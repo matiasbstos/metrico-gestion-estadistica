@@ -1,0 +1,2442 @@
+import { useState } from 'react'
+import Dashboard from './components/Dashboard'
+
+function App() {
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <Dashboard />
+    </div>
+  )
+}
+
+export default App
+import React, { useState, useEffect, useMemo, Component } from 'react';
+import PanelKPIs from './dashboard/PanelKPIs';
+import FiltrosGlobales from './dashboard/FiltrosGlobales';
+import GraficoDinamico from './dashboard/GraficoDinamico';
+import CurvaDemanda from './dashboard/CurvaDemanda';
+import AnalisisSociodemografico from './dashboard/AnalisisSociodemografico';
+import TablaTiemposEspera from './dashboard/TablaTiemposEspera';
+import AnalisisProfesionales from './dashboard/AnalisisProfesionales';
+import RankingProfesionales from './dashboard/RankingProfesionales';
+import DataGridTurnos from './dashboard/DataGridTurnos';
+import GestionDatos from './dashboard/GestionDatos';
+import ReportesModule from './dashboard/ReportesModule';
+import MatrizCruzada from './dashboard/MatrizCruzada';
+import AuditLog from './dashboard/AuditLog';
+import { 
+  Clock, Users, UserCheck, AlertTriangle, Activity, ArrowRight, 
+  FileSpreadsheet, Database, BarChart2, Trash2, Edit, Edit2,
+  CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
+  BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
+  Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
+  HeartPulse, Shield, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser
+} from 'lucide-react';
+import { 
+  BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
+  LineChart, Line, ResponsiveContainer, CartesianGrid, ComposedChart, Area, AreaChart
+} from 'recharts';
+
+import { auth, db, appId } from '../config/firebase';
+import { collection, doc, writeBatch, updateDoc, deleteDoc } from 'firebase/firestore';
+import { useMetricoData } from '../hooks/useMetricoData';
+import { useMetricoAnalytics } from '../hooks/useMetricoAnalytics';
+import { useMetricoDemanda } from '../hooks/useMetricoDemanda';
+import { useMetricoProfesionales } from '../hooks/useMetricoProfesionales';
+import { COLORS, DOC_COLORS, AGE_RANGES, METRIC_LABELS } from '../config/constants';
+
+// Colores Institucionales
+
+
+
+const DashboardContent = () => {
+  const [activeTab, setActiveTab] = useState('resumen');
+  const [notification, setNotification] = useState(null);
+  const [pendingUpload, setPendingUpload] = useState(null);
+  const [editModal, setEditModal] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [centroActivo, setCentroActivo] = useState(localStorage.getItem('metrico_centro') || 'SAR Elsa Romo Aravena');
+  
+  const [manualForm, setManualForm] = useState({
+    fechaInicio: '', fechaFin: '', horario: '08:00 - 20:00',
+    c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0, altasAdmin: 0, totalPacientes: 0
+  });
+
+  const today = new Date();
+  const currentDay = today.toISOString().split('T')[0];
+  const [filtroFechaInicio, setFiltroFechaInicio] = useState(currentDay);
+  const [filtroFechaFin, setFiltroFechaFin] = useState(currentDay);
+  const [modoComparativo, setModoComparativo] = useState(false);
+  const [filtroFechaInicioB, setFiltroFechaInicioB] = useState('');
+  const [filtroFechaFinB, setFiltroFechaFinB] = useState('');
+  
+  const [demandaFechaInicio, setDemandaFechaInicio] = useState(currentDay);
+  const [demandaFechaFin, setDemandaFechaFin] = useState(currentDay);
+  const [demandaViewMode, setDemandaViewMode] = useState('total');
+
+  const [profFechaInicio, setProfFechaInicio] = useState(currentDay);
+  const [profFechaFin, setProfFechaFin] = useState(currentDay);
+  const [docsToCompare, setDocsToCompare] = useState([]);
+  const [searchDoctor, setSearchDoctor] = useState('');
+  const [profesionalesChartType, setProfesionalesChartType] = useState('ambos');
+
+  const [tipoGrafico, setTipoGrafico] = useState('compuesto');
+  const [metricasGrafico, setMetricasGrafico] = useState(['totalPacientes']);
+  const [filtroVariables, setFiltroVariables] = useState('');
+  const [paginaTurnos, setPaginaTurnos] = useState(1);
+  const [modoInterseccion, setModoInterseccion] = useState(false);
+  const turnosPorPagina = 10;
+
+  const [filtrosGlobales, setFiltrosGlobales] = useState({ sexo: 'TODOS', prevision: 'TODOS', edad: 'TODOS', establecimiento: 'TODOS' });
+
+  const { user, loading, syncStatus, setSyncStatus, setLoading, pacientesDB, turnosDB } = useMetricoData();
+
+  useEffect(() => {
+    const loadSheetJS = () => {
+      if (!document.getElementById('sheetjs-script')) {
+        const script = document.createElement('script');
+        script.id = 'sheetjs-script';
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        document.head.appendChild(script);
+      }
+    };
+    loadSheetJS();
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('metrico_centro', centroActivo);
+  }, [centroActivo]);
+
+  useEffect(() => {
+    setDemandaFechaInicio(filtroFechaInicio);
+    setDemandaFechaFin(filtroFechaFin);
+    setProfFechaInicio(filtroFechaInicio);
+    setProfFechaFin(filtroFechaFin);
+  }, [filtroFechaInicio, filtroFechaFin]);
+
+  useEffect(() => {
+    if (demandaViewMode === 'periodos' && !modoComparativo) setDemandaViewMode('total');
+    if (demandaViewMode === 'doctores' && docsToCompare.length === 0) setDemandaViewMode('total');
+  }, [modoComparativo, docsToCompare, demandaViewMode]);
+
+  const showNotif = (msg, type = 'info') => {
+    setNotification({ msg: String(msg), type });
+    setTimeout(() => setNotification(null), 5000);
+  };
+
+  const perc = (val, tot) => tot > 0 ? ((val / tot) * 100).toFixed(1) : 0;
+
+  const formatTime = (minutes) => {
+    if (isNaN(minutes) || minutes < 0 || minutes === null) return '-';
+    if (minutes < 60) return `${Math.round(minutes)} min`;
+    const h = Math.floor(minutes / 60); const m = Math.round(minutes % 60);
+    return `${h}h ${m}m`;
+  };
+
+  const applyDatePreset = (preset) => {
+    const today = new Date();
+    const formatDate = (d) => isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+    let startA, endA, startB, endB;
+    if (preset === 'mes') {
+      startA = new Date(today.getFullYear(), today.getMonth(), 1);
+      endA = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      startB = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      endB = new Date(today.getFullYear(), today.getMonth(), 0);
+    } else if (preset === 'semana') {
+      const firstDay = new Date(today.setDate(today.getDate() - today.getDay() + 1));
+      const lastDay = new Date(today.setDate(today.getDate() - today.getDay() + 7));
+      startA = firstDay; endA = lastDay;
+      startB = new Date(firstDay.getTime() - 7 * 24 * 60 * 60 * 1000);
+      endB = new Date(lastDay.getTime() - 7 * 24 * 60 * 60 * 1000);
+    } else if (preset === 'dia') {
+      startA = endA = new Date();
+      startB = endB = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+    }
+    setFiltroFechaInicio(formatDate(startA));
+    setFiltroFechaFin(formatDate(endA));
+    if(modoComparativo) {
+      setFiltroFechaInicioB(formatDate(startB));
+      setFiltroFechaFinB(formatDate(endB));
+    }
+  };
+
+  const { turnosFiltrados, pacientesFiltrados, demografiaStats, promediosGlobales, metricsByCategory, statsKPI, rankingCentros } = useMetricoAnalytics(pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales);
+  const { turnosDemanda, pacientesDemanda, peakHoursData } = useMetricoDemanda(pacientesDB, turnosDB, demandaFechaInicio, demandaFechaFin, modoComparativo, filtroFechaInicioB, filtroFechaFinB, docsToCompare);
+  const { turnosProf, pacientesProf, metricsByDoctor, filteredMetricsByDoctor, dailyDoctorData } = useMetricoProfesionales(pacientesDB, turnosDB, profFechaInicio, profFechaFin, docsToCompare, searchDoctor);
+
+  const toggleDocToCompare = (docName) => {
+    setDocsToCompare(prev => prev.includes(docName) ? prev.filter(d => d !== docName) : [...prev, docName]);
+  };
+  const clearDocComparison = () => setDocsToCompare([]);
+
+  const totalPaginasTurnos = Math.ceil(turnosDB.length / turnosPorPagina) || 1;
+  const turnosPaginados = useMemo(() => {
+    return turnosDB.slice((paginaTurnos - 1) * turnosPorPagina, paginaTurnos * turnosPorPagina);
+  }, [turnosDB, paginaTurnos]);
+
+  const saveEditedTurno = async () => {
+    if (!editModal || !user || !db) return;
+    setLoading(true); setSyncStatus('syncing');
+    try {
+      const horasTurno = String(editModal.horario || '').includes("17:00") ? 15 : 12;
+      const ratio = Number(editModal.totalPacientes) / horasTurno;
+      const ref = doc(db, 'artifacts', appId, 'public', 'data', 'turnos', editModal.id);
+      
+      const auditLog = {
+        fecha: Date.now(),
+        accion: 'Edición',
+        detalles: `Turno ${editModal.id} editado (${editModal.totalPacientes} pacientes).`,
+        centro: centroActivo,
+        usuario: user?.email || 'Anónimo'
+      };
+
+      const batch = writeBatch(db);
+      batch.update(ref, {
+        totalPacientes: Number(editModal.totalPacientes), altasAdmin: Number(editModal.altasAdmin),
+        c1: Number(editModal.c1), c2: Number(editModal.c2), c3: Number(editModal.c3), 
+        c3_z518: Number(editModal.c3_z518 || 0), c4: Number(editModal.c4), c5: Number(editModal.c5), 
+        horario: editModal.horario, pacientesPorHora: ratio
+      });
+      batch.set(doc(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs')), auditLog);
+      await batch.commit();
+
+      showNotif('Turno actualizado correctamente.', 'success');
+      setEditModal(null);
+    } catch(e) { showNotif('Error al guardar cambios', 'error'); }
+    setLoading(false); setSyncStatus('synced');
+  };
+
+  const executeDeleteTurno = async (turno) => {
+    if (!user || !db) return;
+    setLoading(true); setSyncStatus('syncing');
+    try {
+      const auditLog = {
+        fecha: Date.now(),
+        accion: 'Eliminación',
+        detalles: `Turno ${turno.id} eliminado.`,
+        centro: centroActivo,
+        usuario: user?.email || 'Anónimo'
+      };
+      await writeBatch(db).set(doc(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs')), auditLog).commit();
+      
+      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'turnos', turno.id));
+      if (turno.tipo === 'Masiva' && turno.loteId) {
+        const pacientesAsociados = pacientesDB.filter(p => p.loteId === turno.loteId);
+        for (let i = 0; i < pacientesAsociados.length; i += 400) {
+            const batch = writeBatch(db);
+            pacientesAsociados.slice(i, i + 400).forEach(p => {
+                const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia', p.id);
+                batch.delete(pRef);
+            });
+            await batch.commit();
+        }
+      }
+      setNotification({ message: 'Lote eliminado.', type: 'success' });
+    } catch (e) { setNotification({ message: 'Hubo un problema al limpiar pacientes.', type: 'warning' }); }
+    setDeleteConfirm(null);
+    setLoading(false); setSyncStatus('synced');
+  };
+
+  // Variables para GraficoDinamico
+  const dynamicMetricKeys = {
+      sexo: [{ label: 'Mujeres', value: 'sexo_f', color: '#ec4899' }, { label: 'Hombres', value: 'sexo_m', color: '#3b82f6' }],
+      edad: [
+        { label: 'Niños (0-14)', value: 'edad_0_14', color: '#f59e0b' },
+        { label: 'Jóvenes (15-29)', value: 'edad_15_29', color: '#84cc16' },
+        { label: 'Adultos (30-59)', value: 'edad_30_59', color: '#14b8a6' },
+        { label: 'Mayor (60+)', value: 'edad_60_plus', color: '#6366f1' }
+      ],
+      prev: [{ label: 'Fonasa', value: 'prev_fonasa', color: '#10b981' }, { label: 'Isapre', value: 'prev_isapre', color: '#0ea5e9' }],
+      com: [{ label: 'Melipilla', value: 'com_melipilla', color: '#8b5cf6' }, { label: 'Otras Comunas', value: 'com_otras', color: '#f43f5e' }],
+      nac: [{ label: 'Chilenos', value: 'nac_chilena', color: '#ef4444' }, { label: 'Extranjeros', value: 'nac_extranjera', color: '#06b6d4' }],
+      est: [
+        { label: 'CESFAM Florencia', value: 'est_florencia', color: '#8b5cf6' },
+        { label: 'CESFAM Boris', value: 'est_boris', color: '#d946ef' },
+        { label: 'CESFAM Elgueta', value: 'est_elgueta', color: '#f43f5e' },
+        { label: 'Otros Centros', value: 'est_otros', color: '#94a3b8' }
+      ]
+  };
+
+  const getColorForMetric = (metricKey) => {
+      if (METRIC_LABELS[metricKey]) return COLORS[metricKey] || '#94a3b8';
+      for (const group in dynamicMetricKeys) {
+        const found = dynamicMetricKeys[group].find(m => m.value === metricKey);
+        if (found) return found.color;
+      }
+      return '#cbd5e1';
+  };
+
+  const formatMetricName = (metricKey) => {
+      if (METRIC_LABELS[metricKey]) return METRIC_LABELS[metricKey];
+      for (const group in dynamicMetricKeys) {
+        const found = dynamicMetricKeys[group].find(m => m.value === metricKey);
+        if (found) return found.label;
+      }
+      return metricKey;
+  };
+
+  const handleGraphToggleChange = (metricValue) => {
+    setMetricasGrafico(prev => {
+      if (prev.includes(metricValue)) return prev.filter(m => m !== metricValue);
+      return [...prev, metricValue];
+    });
+  };
+
+  const renderCheckbox = (metric) => (
+    <label key={metric.value} className="flex items-center gap-2 cursor-pointer text-xs group">
+      <div className="relative flex items-center justify-center">
+        <input 
+          type="checkbox" 
+          checked={metricasGrafico.includes(metric.value)}
+          onChange={() => handleGraphToggleChange(metric.value)}
+          className="sr-only"
+        />
+        <div className={`w-4 h-4 rounded transition border ${metricasGrafico.includes(metric.value) ? 'border-transparent' : 'border-slate-300 group-hover:border-slate-400'}`} style={{ backgroundColor: metricasGrafico.includes(metric.value) ? metric.color : 'transparent' }}>
+          {metricasGrafico.includes(metric.value) && <CheckCircle className="w-3.5 h-3.5 text-white absolute top-0.5 left-0.5" />}
+        </div>
+      </div>
+      <span className={metricasGrafico.includes(metric.value) ? 'font-bold text-slate-700' : 'text-slate-500'}>{metric.label}</span>
+    </label>
+  );
+
+  const compareChartData = useMemo(() => {
+    if (!modoComparativo) return [];
+    let currentTotal = turnosFiltrados.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0);
+    const turnosB = turnosDB.filter(t => t.fechaInicio >= filtroFechaInicioB && t.fechaFin <= filtroFechaFinB);
+    let prevTotal = turnosB.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0);
+    return [{ name: 'Volumen Total', 'Periodo A': currentTotal, 'Periodo B': prevTotal }];
+  }, [turnosFiltrados, turnosDB, filtroFechaInicioB, filtroFechaFinB, modoComparativo]);
+
+  const chartData = useMemo(() => {
+    if (modoComparativo) return [];
+    return turnosFiltrados.slice().reverse().map(t => {
+      const row = { name: t.fechaInicio === t.fechaFin ? t.fechaInicio : `${t.fechaInicio} - ${t.fechaFin}` };
+      
+      if (modoInterseccion && metricasGrafico.length > 0) {
+        const pacs = pacientesFiltrados.filter(p => p.loteId === t.loteId);
+        const patientMatchesMetric = (p, m) => {
+          if (m === 'totalPacientes') return true;
+          if (m === 'altasAdmin') return p.estado === 'Cancelada';
+          if (m === 'c1' || m === 'c2' || m === 'c3' || m === 'c3_z518' || m === 'c4' || m === 'c5') return p.categoria === m;
+          if (m === 'sexo_f') return String(p.sexo).toUpperCase().includes('F');
+          if (m === 'sexo_m') return String(p.sexo).toUpperCase().includes('M');
+          if (m === 'edad_0_14') return p.edad !== null && p.edad >= 0 && p.edad <= 14;
+          if (m === 'edad_15_29') return p.edad !== null && p.edad >= 15 && p.edad <= 29;
+          if (m === 'edad_30_59') return p.edad !== null && p.edad >= 30 && p.edad <= 59;
+          if (m === 'edad_60_plus') return p.edad !== null && p.edad >= 60;
+          if (m === 'prev_fonasa') return String(p.prevision).toUpperCase().includes('FONASA');
+          if (m === 'prev_isapre') return String(p.prevision).toUpperCase().includes('ISAPRE');
+          if (m === 'com_melipilla') return String(p.comuna).toUpperCase() === 'MELIPILLA';
+          if (m === 'com_otras') return p.comuna && String(p.comuna).toUpperCase() !== 'MELIPILLA';
+          if (m === 'nac_chilena') return String(p.nacionalidad).toUpperCase().includes('CHILEN');
+          if (m === 'nac_extranjera') return p.nacionalidad && !String(p.nacionalidad).toUpperCase().includes('CHILEN');
+          if (m === 'est_florencia') return String(p.establecimiento).toUpperCase().includes('FLORENCIA');
+          if (m === 'est_boris') return String(p.establecimiento).toUpperCase().includes('BORIS');
+          if (m === 'est_elgueta') return String(p.establecimiento).toUpperCase().includes('ELGUETA');
+          if (m === 'est_otros') return p.establecimiento && !String(p.establecimiento).toUpperCase().match(/FLORENCIA|BORIS|ELGUETA/);
+          return false;
+        };
+        row['Intersección'] = pacs.filter(p => metricasGrafico.every(m => patientMatchesMetric(p, m))).length;
+      } else {
+        metricasGrafico.forEach(m => {
+          if (METRIC_LABELS[m]) {
+            row[m] = Number(t[m] || 0);
+          } else {
+            const pacs = pacientesFiltrados.filter(p => p.loteId === t.loteId);
+            if (m === 'sexo_f') row[m] = pacs.filter(p => String(p.sexo).toUpperCase().includes('F')).length;
+            else if (m === 'sexo_m') row[m] = pacs.filter(p => String(p.sexo).toUpperCase().includes('M')).length;
+            else if (m === 'edad_0_14') row[m] = pacs.filter(p => p.edad !== null && p.edad >= 0 && p.edad <= 14).length;
+            else if (m === 'edad_15_29') row[m] = pacs.filter(p => p.edad !== null && p.edad >= 15 && p.edad <= 29).length;
+            else if (m === 'edad_30_59') row[m] = pacs.filter(p => p.edad !== null && p.edad >= 30 && p.edad <= 59).length;
+            else if (m === 'edad_60_plus') row[m] = pacs.filter(p => p.edad !== null && p.edad >= 60).length;
+            else if (m === 'prev_fonasa') row[m] = pacs.filter(p => String(p.prevision).toUpperCase().includes('FONASA')).length;
+            else if (m === 'prev_isapre') row[m] = pacs.filter(p => String(p.prevision).toUpperCase().includes('ISAPRE')).length;
+            else if (m === 'com_melipilla') row[m] = pacs.filter(p => String(p.comuna).toUpperCase() === 'MELIPILLA').length;
+            else if (m === 'com_otras') row[m] = pacs.filter(p => p.comuna && String(p.comuna).toUpperCase() !== 'MELIPILLA').length;
+            else if (m === 'nac_chilena') row[m] = pacs.filter(p => String(p.nacionalidad).toUpperCase().includes('CHILEN')).length;
+            else if (m === 'nac_extranjera') row[m] = pacs.filter(p => p.nacionalidad && !String(p.nacionalidad).toUpperCase().includes('CHILEN')).length;
+            else if (m === 'est_florencia') row[m] = pacs.filter(p => String(p.establecimiento).toUpperCase().includes('FLORENCIA')).length;
+            else if (m === 'est_boris') row[m] = pacs.filter(p => String(p.establecimiento).toUpperCase().includes('BORIS')).length;
+            else if (m === 'est_elgueta') row[m] = pacs.filter(p => String(p.establecimiento).toUpperCase().includes('ELGUETA')).length;
+            else if (m === 'est_otros') row[m] = pacs.filter(p => p.establecimiento && !String(p.establecimiento).toUpperCase().match(/FLORENCIA|BORIS|ELGUETA/)).length;
+          }
+        });
+      }
+
+      return row;
+    });
+  }, [turnosFiltrados, pacientesFiltrados, metricasGrafico, modoComparativo, modoInterseccion]);
+
+  const pieData = useMemo(() => {
+    if (modoComparativo) return [];
+    return ['c1', 'c2', 'c3', 'c3_z518', 'c4', 'c5'].map(c => ({
+      name: c === 'c3_z518' ? 'C3 (Lesiones)' : c.toUpperCase(),
+      value: turnosFiltrados.reduce((acc, t) => acc + Number(t[c] || 0), 0)
+    })).filter(d => d.value > 0);
+  }, [turnosFiltrados, modoComparativo]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-8 font-sans">
+        <div className="bg-white p-8 rounded-xl shadow-xl max-w-sm w-full text-center border border-slate-100">
+          <Activity className="w-12 h-12 text-blue-600 animate-pulse mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-slate-800 mb-2">Conectando a METRICO</h2>
+          <p className="text-sm text-slate-500 mb-6">Sincronizando registros encriptados...</p>
+          <div className="w-full bg-slate-100 rounded-full h-2 mb-2"><div className="bg-blue-600 h-2 rounded-full w-2/3 animate-pulse"></div></div>
+          <p className="text-[10px] text-slate-400 font-mono">Buscando actualizaciones ({syncStatus})</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-screen w-screen overflow-hidden bg-slate-50 font-sans text-slate-800">
+      {/* COLUMNA IZQUIERDA: SIDEBAR FIJO */}
+      <aside className="w-64 h-full bg-slate-900 text-white flex flex-col justify-between flex-shrink-0 z-10 shadow-xl">
+        <div>
+          <div className="p-6 flex items-center gap-3">
+            <Activity className="w-8 h-8 text-sky-500" />
+            <div>
+              <h1 className="font-black text-lg tracking-tight leading-none">MÉTRICO</h1>
+              <p className="text-[10px] text-slate-400 font-medium mb-2">Clínico Predictivo</p>
+              <select 
+                className="bg-slate-800 text-sky-400 text-xs p-1 rounded border border-slate-700 outline-none w-full font-bold cursor-pointer"
+                value={centroActivo} 
+                onChange={e => setCentroActivo(e.target.value)}
+              >
+                <option value="SAR Elsa Romo Aravena">SAR Elsa Romo Aravena</option>
+                <option value="CESFAM Florencia">CESFAM Florencia</option>
+                <option value="CESFAM Boris Soler">CESFAM Boris Soler</option>
+                <option value="CESFAM Elgueta">CESFAM Elgueta</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="px-6 mb-4">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+              <span className="text-xs font-bold text-emerald-400">Sistema En Línea</span>
+            </div>
+            {syncStatus === 'synced' && <p className="text-[10px] text-slate-500">Último guardado: hace unos segundos</p>}
+            {syncStatus === 'syncing' && <p className="text-[10px] text-sky-400">Guardando cambios...</p>}
+          </div>
+
+          <nav className="mt-2 flex flex-col gap-1 px-3">
+            <button 
+              onClick={() => setActiveTab('resumen')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-md transition-colors ${activeTab === 'resumen' ? 'bg-sky-500 text-white' : 'bg-transparent text-slate-400 hover:text-white hover:bg-slate-800'}`}>
+              <BarChart2 className="w-4 h-4" /> Inicio
+            </button>
+            <button 
+              onClick={() => setActiveTab('reportes')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-colors ${activeTab === 'reportes' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}>
+              <FileSpreadsheet className="w-4 h-4" /> Reporte
+            </button>
+            <button 
+              onClick={() => setActiveTab('data')} 
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-colors ${activeTab === 'data' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}>
+              <Database className="w-4 h-4" /> Gestión de Datos
+            </button>
+            <button 
+              onClick={() => setActiveTab('auditoria')} 
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-colors ${activeTab === 'auditoria' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}>
+              <Shield className="w-4 h-4" /> Auditoría
+            </button>
+          </nav>
+        </div>
+        <div className="p-4 border-t border-slate-800">
+          <button className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg font-medium text-sm transition-colors w-full">
+            <XCircle className="w-4 h-4" /> Cerrar Sesión
+          </button>
+        </div>
+      </aside>
+
+      {/* MODALES */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100">
+            <div className="bg-rose-600 text-white p-4 flex justify-between items-center">
+              <h3 className="font-bold flex items-center gap-2"><Trash2 className="w-5 h-5"/> Eliminar Turno / Lote</h3>
+              <button onClick={() => setDeleteConfirm(null)} className="hover:bg-rose-500 p-1 rounded transition"><X className="w-5 h-5"/></button>
+            </div>
+            <div className="p-6">
+              <p className="text-slate-600 mb-6">¿Estás seguro que deseas eliminar este registro? Si es una carga masiva, se borrarán todos los pacientes asociados a este lote.</p>
+              <div className="flex gap-3">
+                <button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 font-bold transition">Cancelar</button>
+                <button onClick={() => executeDeleteTurno(deleteConfirm)} className="flex-1 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 font-bold transition">Sí, Eliminar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100">
+            <div className="bg-indigo-600 text-white p-4 flex justify-between items-center">
+              <h3 className="font-bold flex items-center gap-2"><Edit className="w-5 h-5"/> Editar Turno / Lote</h3>
+              <button onClick={() => setEditModal(null)} className="hover:bg-indigo-500 p-1 rounded transition"><X className="w-5 h-5"/></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-slate-500">Fecha del turno: <span className="font-bold text-slate-700">{editModal.fechaInicio}</span></p>
+              <div>
+                <label className="block text-xs font-bold mb-1 text-slate-600">Horario</label>
+                <select className="w-full p-2 border rounded bg-slate-50" value={editModal.horario} onChange={e => setEditModal({...editModal, horario: e.target.value})}>
+                  <option>08:00 - 20:00 (Diurno)</option><option>20:00 - 08:00 (Nocturno)</option><option>15:00 - 08:00 (Especial)</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-[10px] font-bold mb-1 text-slate-500 uppercase">Total Pacientes</label><input type="number" className="w-full p-2 border rounded font-bold text-indigo-600" value={editModal.totalPacientes} onChange={e => setEditModal({...editModal, totalPacientes: e.target.value})} /></div>
+                <div><label className="block text-[10px] font-bold mb-1 text-rose-500 uppercase">Altas Admin</label><input type="number" className="w-full p-2 border rounded font-bold text-rose-600" value={editModal.altasAdmin} onChange={e => setEditModal({...editModal, altasAdmin: e.target.value})} /></div>
+              </div>
+              <div className="grid grid-cols-6 gap-2 pt-2 border-t">
+                {['c1', 'c2', 'c3', 'c3_z518', 'c4', 'c5'].map(cat => (
+                  <div key={cat}>
+                    <label className="block text-[10px] font-bold uppercase mb-1 whitespace-nowrap text-center" style={{color: COLORS[cat]}}>{cat === 'c3_z518' ? 'C3 (L)' : cat}</label>
+                    <input type="number" min="0" className="w-full p-1.5 border rounded bg-slate-50 text-center font-bold text-sm" value={editModal[cat]} onChange={e => setEditModal({...editModal, [cat]: e.target.value})} />
+                  </div>
+                ))}
+              </div>
+              <button onClick={saveEditedTurno} className="w-full bg-emerald-600 text-white font-bold py-3 rounded-lg hover:bg-emerald-700 transition mt-4 flex justify-center items-center gap-2 text-sm"><Save className="w-4 h-4"/> Guardar Cambios</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* COLUMNA DERECHA: CANVAS DE SCROLL CONTINUO */}
+      <main className="flex-1 h-full overflow-y-auto p-8 space-y-6 relative">
+        {notification && (
+          <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-sm font-medium z-50 animate-bounce-in ${notification.type === 'error' ? 'bg-red-600 text-white' : notification.type === 'warning' ? 'bg-orange-500 text-white' : 'bg-emerald-600 text-white'}`}>
+            {notification.msg}
+          </div>
+        )}
+
+        {activeTab === 'resumen' && (
+          <>
+            {statsKPI && <PanelKPIs statsKPI={statsKPI} />}
+            
+            <FiltrosGlobales 
+          modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
+          filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={setFiltroFechaInicio}
+          filtroFechaFin={filtroFechaFin} setFiltroFechaFin={setFiltroFechaFin}
+          filtroFechaInicioB={filtroFechaInicioB} setFiltroFechaInicioB={setFiltroFechaInicioB}
+          filtroFechaFinB={filtroFechaFinB} setFiltroFechaFinB={setFiltroFechaFinB}
+          applyDatePreset={applyDatePreset}
+        />
+
+          <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -z-10 opacity-60 translate-x-20 -translate-y-20"></div>
+            
+            <div className="flex flex-wrap items-center gap-3 w-full">
+              <div className="flex items-center gap-2 bg-indigo-50/80 px-3 py-1.5 rounded-lg border border-indigo-100 mr-2">
+                <Filter className="w-4 h-4 text-indigo-600" />
+                <span className="text-[11px] font-bold text-indigo-900 uppercase">Filtros Globales:</span>
+              </div>
+              
+              <select value={filtrosGlobales.sexo} onChange={e => setFiltrosGlobales({...filtrosGlobales, sexo: e.target.value})} className="text-xs bg-white border border-slate-200 rounded-lg p-1.5 focus:border-indigo-500 font-medium text-slate-700">
+                <option value="TODOS">Sexo: Todos</option>
+                <option value="M">Hombres</option>
+                <option value="F">Mujeres</option>
+              </select>
+
+              <select value={filtrosGlobales.edad} onChange={e => setFiltrosGlobales({...filtrosGlobales, edad: e.target.value})} className="text-xs bg-white border border-slate-200 rounded-lg p-1.5 focus:border-indigo-500 font-medium text-slate-700">
+                <option value="TODOS">Edad: Todos</option>
+                <option value="0-14">0 - 14 años</option>
+                <option value="15-29">15 - 29 años</option>
+                <option value="30-59">30 - 59 años</option>
+                <option value="60+">60+ años</option>
+              </select>
+
+              <select value={filtrosGlobales.prevision} onChange={e => setFiltrosGlobales({...filtrosGlobales, prevision: e.target.value})} className="text-xs bg-white border border-slate-200 rounded-lg p-1.5 focus:border-indigo-500 font-medium text-slate-700">
+                <option value="TODOS">Previsión: Todas</option>
+                <option value="FONASA">FONASA</option>
+                <option value="ISAPRE">ISAPRE</option>
+              </select>
+              
+              <select value={filtrosGlobales.establecimiento} onChange={e => setFiltrosGlobales({...filtrosGlobales, establecimiento: e.target.value})} className="text-xs bg-white border border-slate-200 rounded-lg p-1.5 focus:border-indigo-500 font-medium text-slate-700">
+                <option value="TODOS">Centro: Todos</option>
+                <option value="FLORENCIA">CESFAM Florencia</option>
+                <option value="BORIS">CESFAM Boris</option>
+                <option value="ELGUETA">CESFAM Elgueta</option>
+                <option value="OTROS">Otros Centros</option>
+              </select>
+              
+              {Object.values(filtrosGlobales).some(v => v !== 'TODOS') && (
+                <button onClick={() => setFiltrosGlobales({ sexo: 'TODOS', prevision: 'TODOS', edad: 'TODOS', establecimiento: 'TODOS' })} className="ml-auto text-[10px] bg-red-50 text-red-600 hover:bg-red-100 px-2 py-1 rounded font-bold transition-colors flex items-center gap-1">
+                  <Eraser className="w-3 h-3"/> Limpiar Filtros
+                </button>
+              )}
+            </div>
+            {Object.values(filtrosGlobales).some(v => v !== 'TODOS') && (
+              <div className="w-full mt-2 text-[10px] text-amber-600 bg-amber-50 p-1.5 rounded border border-amber-100 flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5" /> Al usar Filtros Globales, los turnos ingresados manualmente (sin pacientes) son excluidos temporalmente del análisis.
+              </div>
+            )}
+          </div>
+
+        <GraficoDinamico 
+          chartData={chartData} compareChartData={compareChartData} pieData={pieData}
+          tipoGrafico={tipoGrafico} setTipoGrafico={setTipoGrafico}
+          metricasGrafico={metricasGrafico} setMetricasGrafico={setMetricasGrafico}
+          filtroVariables={filtroVariables} setFiltroVariables={setFiltroVariables}
+          modoComparativo={modoComparativo} dynamicMetricKeys={dynamicMetricKeys}
+          turnosFiltrados={turnosFiltrados}
+          modoInterseccion={modoInterseccion} setModoInterseccion={setModoInterseccion}
+        />
+
+        {demografiaStats && (
+          <>
+            <AnalisisSociodemografico 
+              demografiaStats={demografiaStats} 
+              rankingCentros={rankingCentros} 
+            />
+            <MatrizCruzada pacientesFiltrados={pacientesFiltrados} />
+          </>
+        )}
+
+        <TablaTiemposEspera 
+          metricsByCategory={metricsByCategory} 
+          promediosGlobales={promediosGlobales} 
+        />
+
+        <CurvaDemanda 
+          peakHoursData={peakHoursData}
+          demandaFechaInicio={demandaFechaInicio} setDemandaFechaInicio={setDemandaFechaInicio}
+          demandaFechaFin={demandaFechaFin} setDemandaFechaFin={setDemandaFechaFin}
+          demandaViewMode={demandaViewMode} setDemandaViewMode={setDemandaViewMode}
+          modoComparativo={modoComparativo} docsToCompare={docsToCompare}
+        />
+
+        <AnalisisProfesionales 
+          profFechaInicio={profFechaInicio} setProfFechaInicio={setProfFechaInicio}
+          profFechaFin={profFechaFin} setProfFechaFin={setProfFechaFin}
+          searchDoctor={searchDoctor} setSearchDoctor={setSearchDoctor}
+          docsToCompare={docsToCompare} toggleDocToCompare={toggleDocToCompare}
+          clearDocComparison={clearDocComparison}
+          filteredMetricsByDoctor={filteredMetricsByDoctor}
+          dailyDoctorData={dailyDoctorData}
+        />
+
+        <RankingProfesionales
+          profFechaInicio={profFechaInicio} setProfFechaInicio={setProfFechaInicio}
+          profFechaFin={profFechaFin} setProfFechaFin={setProfFechaFin}
+          filteredMetricsByDoctor={filteredMetricsByDoctor}
+        />
+
+        <DataGridTurnos 
+          turnosPaginados={turnosPaginados} turnosDB={turnosDB}
+          paginaTurnos={paginaTurnos} setPaginaTurnos={setPaginaTurnos}
+          totalPaginasTurnos={totalPaginasTurnos}
+          setEditModal={setEditModal} setDeleteConfirm={setDeleteConfirm}
+        />
+          </>
+        )}
+
+        {activeTab === 'reportes' && (
+          <ReportesModule pacientesDB={pacientesDB} turnosDB={turnosDB} />
+        )}
+
+        {activeTab === 'data' && (
+          <GestionDatos 
+            user={user} 
+            db={db} 
+            appId={appId} 
+            loading={loading}
+            setLoading={setLoading} 
+            setSyncStatus={setSyncStatus} 
+            showNotif={showNotif} 
+            setActiveTab={setActiveTab} 
+            setFiltroFechaInicio={setFiltroFechaInicio} 
+            setFiltroFechaFin={setFiltroFechaFin} 
+            centroActivo={centroActivo}
+          />
+        )}
+
+        {activeTab === 'auditoria' && (
+          <AuditLog db={db} appId={appId} centroActivo={centroActivo} />
+        )}
+      </main>
+    </div>
+  );
+}
+
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-red-50 flex items-center justify-center p-8 font-sans">
+          <div className="bg-white p-8 rounded-xl shadow-xl max-w-2xl border border-red-200">
+            <div className="flex items-center gap-3 text-red-600 mb-4">
+              <AlertTriangle className="w-8 h-8" />
+              <h1 className="text-xl font-black">Error crítico en el panel</h1>
+            </div>
+            <p className="text-gray-600 mb-4 text-sm">React ha bloqueado la página por seguridad debido al siguiente error visual:</p>
+            <div className="bg-gray-100 p-4 rounded text-xs font-mono text-gray-800 overflow-auto whitespace-pre-wrap max-h-64">
+              {String(this.state.error)}
+            </div>
+            <button onClick={() => window.location.reload()} className="mt-6 bg-red-600 text-white px-6 py-2 rounded font-bold hover:bg-red-700 transition">Recargar Sistema</button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function Dashboard() {
+  return (
+    <ErrorBoundary>
+      <DashboardContent />
+    </ErrorBoundary>
+  );
+}
+import React from 'react';
+import { 
+  BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
+  Line, ResponsiveContainer, CartesianGrid, ComposedChart 
+} from 'recharts';
+import { BarChart2, CheckCircle, TrendingUp, BarChart as BarChartIcon, PieChart as PieChartIcon, Search, HelpCircle, X } from 'lucide-react';
+import { COLORS, METRIC_LABELS } from '../../config/constants';
+
+export default function GraficoDinamico({
+  modoComparativo,
+  tipoGrafico,
+  setTipoGrafico,
+  filtroVariables,
+  setFiltroVariables,
+  metricasGrafico,
+  setMetricasGrafico,
+  dynamicMetricKeys,
+  compareChartData,
+  chartData,
+  pieData,
+  turnosFiltrados,
+  modoInterseccion,
+  setModoInterseccion
+}) {
+  const [showHelpModal, setShowHelpModal] = React.useState(false);
+
+  const getColorForMetric = (metricKey) => {
+      if (metricKey === 'Intersección') return '#8b5cf6'; // Indigo/Purple color for intersection
+      if (METRIC_LABELS[metricKey]) return COLORS[metricKey] || '#94a3b8';
+      for (const group in dynamicMetricKeys) {
+        const found = dynamicMetricKeys[group].find(m => m.value === metricKey);
+        if (found) return found.color;
+      }
+      return '#cbd5e1';
+  };
+
+  const formatMetricName = (metricKey) => {
+      if (metricKey === 'Intersección') return 'Intersección (AND)';
+      if (METRIC_LABELS[metricKey]) return METRIC_LABELS[metricKey];
+      for (const group in dynamicMetricKeys) {
+        const found = dynamicMetricKeys[group].find(m => m.value === metricKey);
+        if (found) return found.label;
+      }
+      return metricKey;
+  };
+
+  const handleGraphToggleChange = (metricValue) => {
+    setMetricasGrafico(prev => {
+      if (prev.includes(metricValue)) return prev.filter(m => m !== metricValue);
+      return [...prev, metricValue];
+    });
+  };
+
+  const renderCheckbox = (metric) => (
+    <label key={metric.value} className="flex items-center gap-2 cursor-pointer text-xs group">
+      <div className="relative flex items-center justify-center">
+        <input 
+          type="checkbox" 
+          checked={metricasGrafico.includes(metric.value)}
+          onChange={() => handleGraphToggleChange(metric.value)}
+          className="sr-only"
+        />
+        <div className={`w-4 h-4 rounded transition border ${metricasGrafico.includes(metric.value) ? 'border-transparent' : 'border-slate-300 group-hover:border-slate-400'}`} style={{ backgroundColor: metricasGrafico.includes(metric.value) ? metric.color : 'transparent' }}>
+          {metricasGrafico.includes(metric.value) && <CheckCircle className="w-3.5 h-3.5 text-white absolute top-0.5 left-0.5" />}
+        </div>
+      </div>
+      <span className={metricasGrafico.includes(metric.value) ? 'font-bold text-slate-700' : 'text-slate-500'}>{metric.label}</span>
+    </label>
+  );
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-base font-bold text-slate-800 flex items-center gap-2"><BarChart2 className="text-blue-500 w-5 h-5"/> Análisis Visual Dinámico Total</h2>
+        {!modoComparativo ? (
+          <div className="flex gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
+            <button onClick={() => setTipoGrafico('compuesto')} className={`p-1.5 rounded ${tipoGrafico === 'compuesto' ? 'bg-white shadow-sm' : 'text-slate-400'}`} title="Gráfico Compuesto"><TrendingUp className="w-4 h-4"/></button>
+            <button onClick={() => setTipoGrafico('barras')} className={`p-1.5 rounded ${tipoGrafico === 'barras' ? 'bg-white shadow-sm' : 'text-slate-400'}`} title="Gráfico de Barras"><BarChartIcon className="w-4 h-4"/></button>
+            <button onClick={() => setTipoGrafico('torta')} className={`p-1.5 rounded ${tipoGrafico === 'torta' ? 'bg-white shadow-sm' : 'text-slate-400'}`} title="Gráfico Circular"><PieChartIcon className="w-4 h-4"/></button>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Controles estilo Acordeón */}
+      {(!modoComparativo && (tipoGrafico === 'compuesto' || tipoGrafico === 'barras')) || modoComparativo ? (
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-[10px] font-bold text-slate-400 uppercase">Control de Variables del Gráfico</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm hover:border-indigo-300 transition-colors">
+                  <span className={`text-[10px] font-bold uppercase ${modoInterseccion ? 'text-indigo-600' : 'text-slate-500'}`}>Filtro Cruzado (Intersección)</span>
+                  <div className={`relative w-8 h-4 rounded-full transition-colors ${modoInterseccion ? 'bg-indigo-500' : 'bg-slate-300'}`}>
+                    <input type="checkbox" checked={modoInterseccion} onChange={() => setModoInterseccion(!modoInterseccion)} className="sr-only" />
+                    <div className={`absolute top-0.5 left-0.5 bg-white w-3 h-3 rounded-full transition-transform ${modoInterseccion ? 'translate-x-4' : 'translate-x-0'}`}></div>
+                  </div>
+                </label>
+                <button onClick={() => setShowHelpModal(true)} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors" title="¿Cómo usar este filtro?">
+                  <HelpCircle className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-2 top-2 text-slate-400" />
+                <input type="text" placeholder="Buscar variables..." value={filtroVariables} onChange={e => setFiltroVariables(e.target.value)} className="text-[11px] pl-7 p-1.5 px-3 rounded-full border border-slate-200 w-64 bg-white focus:outline-none"/>
+              </div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-start">
+             <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex flex-col h-56">
+               <div className="bg-slate-100 border-b border-slate-200 font-bold text-[11px] p-2 text-slate-700 flex items-center gap-1.5 sticky top-0"><span className="w-1.5 h-1.5 rounded-full bg-blue-500 block"></span> Operacional & Tiempos</div>
+               <div className="p-2 flex flex-col gap-1.5 overflow-y-auto flex-1">{Object.entries(METRIC_LABELS).map(([k, label]) => renderCheckbox({ value: k, label: label, color: COLORS[k] || '#94a3b8' }))}</div>
+             </div>
+
+             <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex flex-col h-56">
+               <div className="bg-slate-100 border-b border-slate-200 font-bold text-[11px] p-2 text-slate-700 flex items-center gap-1.5 sticky top-0"><span className="w-1.5 h-1.5 rounded-full bg-pink-500 block"></span> Sexo y Edad</div>
+               <div className="p-2 flex flex-col gap-1.5 overflow-y-auto flex-1">{dynamicMetricKeys.sexo.map(renderCheckbox)}{dynamicMetricKeys.edad.map(renderCheckbox)}</div>
+             </div>
+
+             <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex flex-col h-56">
+               <div className="bg-slate-100 border-b border-slate-200 font-bold text-[11px] p-2 text-slate-700 flex items-center gap-1.5 sticky top-0"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 block"></span> Previsión</div>
+               <div className="p-2 flex flex-col gap-1.5 overflow-y-auto flex-1">{dynamicMetricKeys.prev.map(renderCheckbox)}</div>
+             </div>
+
+             <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex flex-col h-56">
+               <div className="bg-slate-100 border-b border-slate-200 font-bold text-[11px] p-2 text-slate-700 flex items-center gap-1.5 sticky top-0"><span className="w-1.5 h-1.5 rounded-full bg-orange-500 block"></span> Origen y Nacionalidad</div>
+               <div className="p-2 flex flex-col gap-1.5 overflow-y-auto flex-1">{dynamicMetricKeys.com.map(renderCheckbox)}{dynamicMetricKeys.nac.map(renderCheckbox)}</div>
+             </div>
+
+             <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex flex-col h-56">
+               <div className="bg-slate-100 border-b border-slate-200 font-bold text-[11px] p-2 text-slate-700 flex items-center gap-1.5 sticky top-0"><span className="w-1.5 h-1.5 rounded-full bg-purple-500 block"></span> Establecimientos</div>
+               <div className="p-2 flex flex-col gap-1.5 overflow-y-auto flex-1">{dynamicMetricKeys.est.map(renderCheckbox)}</div>
+             </div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="h-80 w-full mt-4">
+        {modoComparativo && metricasGrafico.length > 0 ? (
+          <ResponsiveContainer>
+            <BarChart data={compareChartData}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
+              <YAxis fontSize={10} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+              <Legend />
+              <Bar dataKey="Periodo A" fill="#6366f1" radius={[4,4,0,0]} name="Periodo A" barSize={30} />
+              <Bar dataKey="Periodo B" fill="#fbbf24" radius={[4,4,0,0]} name="Periodo B" barSize={30} />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : null}
+
+        {!modoComparativo && tipoGrafico === 'barras' && chartData.length > 0 ? (
+          <ResponsiveContainer>
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
+              <YAxis fontSize={10} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+              <Legend wrapperStyle={{fontSize: '11px'}} />
+              {(modoInterseccion ? ['Intersección'] : metricasGrafico).map(m => (
+                <Bar key={m} dataKey={m} fill={getColorForMetric(m)} name={formatMetricName(m)} radius={[4,4,0,0]} />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        ) : null}
+
+        {!modoComparativo && tipoGrafico === 'compuesto' && chartData.length > 0 ? (
+          <ResponsiveContainer>
+            <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="name" fontSize={10} tickMargin={10} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="left" fontSize={10} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="right" orientation="right" fontSize={10} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+              <Legend wrapperStyle={{fontSize: '11px'}} />
+              
+              {(modoInterseccion ? ['Intersección'] : metricasGrafico).map(m => {
+                if (!m) return null;
+                const isTime = m.startsWith('tiempo');
+                return (
+                  <Line 
+                    key={m} 
+                    yAxisId={isTime ? "right" : "left"} 
+                    type="monotone" 
+                    dataKey={m} 
+                    name={formatMetricName(m)} 
+                    stroke={getColorForMetric(m)} 
+                    strokeWidth={isTime ? 2 : (modoInterseccion ? 4 : 3)} 
+                    strokeDasharray={isTime ? "5 5" : undefined} 
+                    dot={{ r: modoInterseccion ? 4 : 3 }} 
+                    activeDot={{ r: modoInterseccion ? 6 : 5 }} 
+                  />
+                );
+              })}
+            </ComposedChart>
+          </ResponsiveContainer>
+        ) : null}
+
+        {!modoComparativo && tipoGrafico === 'torta' && pieData.length > 0 ? (
+          <ResponsiveContainer>
+            <PieChart margin={{ top: 20, right: 30, left: 30, bottom: 20 }}>
+              <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value" label={({name, percent}) => percent > 0.01 ? `${name} ${(percent * 100).toFixed(0)}%` : ''} labelLine={true}>
+                {pieData.map((entry, index) => {
+                   const colorKey = entry.name === 'C3 (Lesiones)' ? 'c3_z518' : entry.name.toLowerCase();
+                   return <Cell key={`cell-${index}`} fill={COLORS[colorKey]} />
+                })}
+              </Pie>
+              <Tooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+              <Legend verticalAlign="bottom" height={36} wrapperStyle={{fontSize: '11px'}}/>
+            </PieChart>
+          </ResponsiveContainer>
+        ) : null}
+        
+        
+        {turnosFiltrados.length === 0 ? <div className="h-full flex items-center justify-center text-slate-400 text-sm">Sin datos para graficar</div> : null}
+      </div>
+
+      {showHelpModal && (
+        <div className="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <HelpCircle className="w-5 h-5 text-indigo-500"/> ¿Cómo operar el Filtro Cruzado?
+              </h3>
+              <button onClick={() => setShowHelpModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 text-sm text-slate-600 space-y-4">
+              <p>
+                El <strong>Filtro Cruzado (Intersección)</strong> te permite encontrar pacientes hiper-específicos que cumplen múltiples condiciones a la vez, creando "Situaciones" únicas.
+              </p>
+              
+              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3">
+                <div className="flex gap-2 items-start">
+                  <div className="w-2 h-2 rounded-full bg-slate-400 mt-1.5 flex-shrink-0"></div>
+                  <p><strong>Modo Apagado (Líneas Separadas):</strong> Si seleccionas "Mujeres", "C4" y "Fonasa", el gráfico dibujará <strong>3 líneas distintas</strong>. Una te dirá el total de mujeres, otra el total de pacientes C4 y otra el total de Fonasa en el establecimiento.</p>
+                </div>
+                <div className="flex gap-2 items-start">
+                  <div className="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0"></div>
+                  <p><strong>Modo Encendido (Intersección):</strong> Si seleccionas "Mujeres", "C4" y "Fonasa", el sistema cruzará matemáticamente la base de datos y dibujará <strong>1 sola línea morada</strong>. Esta curva te mostrará <em>"El número exacto de Mujeres, que son de Fonasa, y que fueron categorizadas como C4"</em> en cada turno.</p>
+                </div>
+              </div>
+
+              <p className="font-medium text-slate-700 bg-indigo-50 text-indigo-800 p-3 rounded text-center">
+                ¡Pruébalo! Selecciona un par de variables combinadas (ej. Adultos + Isapre) y descubre patrones ocultos en el flujo de urgencias.
+              </p>
+            </div>
+            <div className="p-4 border-t border-slate-100 bg-slate-50 text-right">
+              <button onClick={() => setShowHelpModal(false)} className="px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition">
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+import React, { useState, useMemo } from 'react';
+import { Grid, TrendingUp } from 'lucide-react';
+
+const VARIABLES = [
+  { id: 'categoria', label: 'Categoría de Triage' },
+  { id: 'sexo', label: 'Sexo' },
+  { id: 'edad', label: 'Rango Etario' },
+  { id: 'prevision', label: 'Previsión' },
+  { id: 'comuna', label: 'Comuna' },
+  { id: 'nacionalidad', label: 'Nacionalidad' },
+  { id: 'establecimiento', label: 'Establecimiento' }
+];
+
+export default function MatrizCruzada({ pacientesFiltrados }) {
+  const [ejeX, setEjeX] = useState('categoria');
+  const [ejeY, setEjeY] = useState('edad');
+
+  // Helper to categorize numeric/raw values
+  const getValue = (paciente, variable) => {
+    if (variable === 'edad') {
+      if (paciente.edad === null || paciente.edad === undefined) return 'Sin Registro';
+      const e = paciente.edad;
+      if (e <= 14) return '0-14 años';
+      if (e <= 29) return '15-29 años';
+      if (e <= 59) return '30-59 años';
+      return '60+ años';
+    }
+    if (variable === 'categoria') {
+      const c = paciente.categoria;
+      if (c === 'c3_z518') return 'C3 (Lesiones)';
+      if (c === 'sincat') return 'Sin Categorizar';
+      return c ? c.toUpperCase() : 'Sin Categorizar';
+    }
+    
+    let val = paciente[variable];
+    if (!val) return 'Sin Registro';
+    
+    // Normalize text
+    val = String(val).toUpperCase().trim();
+    if (variable === 'nacionalidad' && val.includes('CHILEN')) return 'CHILENA';
+    if (variable === 'sexo' && val.includes('M')) return 'HOMBRE';
+    if (variable === 'sexo' && val.includes('F')) return 'MUJER';
+    
+    return val;
+  };
+
+  const matrizData = useMemo(() => {
+    if (!pacientesFiltrados || pacientesFiltrados.length === 0) return { matrix: {}, xLabels: [], yLabels: [], maxVal: 0, total: 0 };
+
+    const matrix = {};
+    const xSet = new Set();
+    const ySet = new Set();
+    let maxVal = 0;
+    let total = 0;
+
+    pacientesFiltrados.forEach(p => {
+      const vx = getValue(p, ejeX);
+      const vy = getValue(p, ejeY);
+      
+      xSet.add(vx);
+      ySet.add(vy);
+
+      if (!matrix[vy]) matrix[vy] = {};
+      if (!matrix[vy][vx]) matrix[vy][vx] = 0;
+      matrix[vy][vx]++;
+      
+      if (matrix[vy][vx] > maxVal) maxVal = matrix[vy][vx];
+      total++;
+    });
+
+    const sortLabels = (set, type) => {
+      const arr = Array.from(set);
+      if (type === 'edad') {
+        const order = ['0-14 años', '15-29 años', '30-59 años', '60+ años', 'Sin Registro'];
+        return arr.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+      }
+      if (type === 'categoria') {
+        const order = ['C1', 'C2', 'C3', 'C3 (Lesiones)', 'C4', 'C5', 'Sin Categorizar'];
+        return arr.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+      }
+      return arr.sort();
+    };
+
+    return {
+      matrix,
+      xLabels: sortLabels(xSet, ejeX),
+      yLabels: sortLabels(ySet, ejeY),
+      maxVal,
+      total
+    };
+  }, [pacientesFiltrados, ejeX, ejeY]);
+
+  // Heatmap color generator
+  const getCellColor = (val, max) => {
+    if (!val || max === 0) return 'bg-slate-50 text-slate-400';
+    const intensity = val / max;
+    if (intensity > 0.8) return 'bg-indigo-600 text-white font-bold';
+    if (intensity > 0.5) return 'bg-indigo-400 text-white font-bold';
+    if (intensity > 0.2) return 'bg-indigo-200 text-indigo-900';
+    return 'bg-indigo-50 text-indigo-700';
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mt-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+          <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
+            <Grid className="text-indigo-600 w-5 h-5"/> Análisis Matricial Cruzado
+          </h2>
+          <p className="text-xs text-slate-500 mt-1">Descubre correlaciones y volúmenes cruzando dos variables operacionales.</p>
+        </div>
+        
+        <div className="flex gap-4 items-center bg-slate-50 p-2 rounded-lg border border-slate-200">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold text-slate-400 uppercase">Eje Y (Filas):</span>
+            <select 
+              value={ejeY} 
+              onChange={e => setEjeY(e.target.value)}
+              className="text-xs border border-slate-300 rounded p-1.5 focus:outline-none focus:border-indigo-500 font-medium text-slate-700 bg-white"
+            >
+              {VARIABLES.map(v => <option key={`y-${v.id}`} value={v.id} disabled={v.id === ejeX}>{v.label}</option>)}
+            </select>
+          </div>
+          <span className="text-slate-300">×</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold text-slate-400 uppercase">Eje X (Columnas):</span>
+            <select 
+              value={ejeX} 
+              onChange={e => setEjeX(e.target.value)}
+              className="text-xs border border-slate-300 rounded p-1.5 focus:outline-none focus:border-indigo-500 font-medium text-slate-700 bg-white"
+            >
+              {VARIABLES.map(v => <option key={`x-${v.id}`} value={v.id} disabled={v.id === ejeY}>{v.label}</option>)}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm border-collapse">
+          <thead>
+            <tr>
+              <th className="p-3 border-b-2 border-slate-200 bg-white text-left min-w-[150px]">
+                <div className="text-[10px] text-slate-400 font-bold uppercase">{VARIABLES.find(v=>v.id===ejeY)?.label} ↓</div>
+              </th>
+              {matrizData.xLabels.map(x => (
+                <th key={x} className="p-3 border-b-2 border-slate-200 bg-white text-center font-bold text-slate-700 min-w-[100px]">
+                  {x}
+                </th>
+              ))}
+              <th className="p-3 border-b-2 border-slate-200 bg-slate-50 text-center font-black text-slate-800 min-w-[100px]">TOTAL</th>
+            </tr>
+          </thead>
+          <tbody>
+            {matrizData.total === 0 ? (
+              <tr><td colSpan={matrizData.xLabels.length + 2} className="text-center p-8 text-slate-400">No hay datos de pacientes masivos para generar la matriz.</td></tr>
+            ) : (
+              matrizData.yLabels.map(y => {
+                let rowTotal = 0;
+                return (
+                  <tr key={y} className="border-b border-slate-100 group hover:bg-slate-50/50">
+                    <td className="p-3 font-bold text-slate-600 border-r border-slate-100">{y}</td>
+                    {matrizData.xLabels.map(x => {
+                      const val = (matrizData.matrix[y] && matrizData.matrix[y][x]) || 0;
+                      rowTotal += val;
+                      return (
+                        <td key={x} className="p-1 border-r border-slate-50">
+                          <div className={`w-full h-full p-2 text-center rounded transition-colors ${getCellColor(val, matrizData.maxVal)}`} title={`${val} pacientes (${((val/matrizData.total)*100).toFixed(1)}%)`}>
+                            {val > 0 ? val : '-'}
+                          </div>
+                        </td>
+                      );
+                    })}
+                    <td className="p-3 text-center font-black text-slate-800 bg-slate-50/50 border-l border-slate-200">
+                      {rowTotal}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+import React, { useMemo } from 'react';
+import { Users, HeartPulse, Shield, Globe, Building2 } from 'lucide-react';
+import { perc } from '../../utils/helpers';
+
+export default function AnalisisSociodemografico({ demografiaStats, rankingCentros }) {
+  if (!demografiaStats || !rankingCentros) return null;
+
+  const topNacionalidades = Object.entries(demografiaStats.nacionalidades)
+    .sort((a, b) => b[1] - a[1]).slice(0, 5);
+  
+  const topComunas = Object.entries(demografiaStats.comunas)
+    .sort((a, b) => b[1] - a[1]).slice(0, 5);
+    
+  const topPrevisiones = Object.entries(demografiaStats.prevs)
+    .sort((a, b) => b[1] - a[1]).slice(0, 4);
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mt-6">
+      <div className="flex items-center gap-2 mb-6">
+        <Users className="text-indigo-600 w-5 h-5"/>
+        <h2 className="text-base font-bold text-slate-800">Análisis Sociodemográfico y Origen</h2>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        
+        {/* COLUMNA 1: PACIENTES (Sexo y Edad) */}
+        <div className="space-y-4">
+          <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2 mb-4">
+            <HeartPulse className="w-4 h-4 text-rose-500"/> Pacientes
+          </h3>
+          
+          <div>
+            <p className="text-[11px] font-bold text-slate-500 mb-2">Distribución por Sexo</p>
+            <div className="flex gap-2 text-xs font-bold">
+              <div className="flex-1 bg-pink-50 text-pink-600 p-2 rounded text-center border border-pink-100 cursor-help relative group">
+                Mujeres: {perc(demografiaStats.sexo.F, demografiaStats.total)}%
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">{demografiaStats.sexo.F} pacientes</div>
+              </div>
+              <div className="flex-1 bg-blue-50 text-blue-600 p-2 rounded text-center border border-blue-100 cursor-help relative group">
+                Hombres: {perc(demografiaStats.sexo.M, demografiaStats.total)}%
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">{demografiaStats.sexo.M} pacientes</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <p className="text-[11px] font-bold text-slate-500 mb-2">Grupos Etarios</p>
+            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[10px]">
+              {['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80+'].map(r => {
+                const count = demografiaStats.edades[r] || 0;
+                if (count === 0) return null;
+                return (
+                  <div key={r} className="flex justify-between font-medium text-slate-600 bg-slate-50 p-1 rounded cursor-help relative group">
+                    <span>{r}</span><span className="font-bold">{perc(count, demografiaStats.total)}%</span>
+                    <div className="absolute bottom-full right-0 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">{count} pacientes</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* COLUMNA 2: PREVISIÓN */}
+        <div className="space-y-4">
+          <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2 mb-4">
+            <Shield className="w-4 h-4 text-emerald-500"/> Previsión
+          </h3>
+          <div className="space-y-3 text-xs">
+            {topPrevisiones.map(([prev, count]) => (
+              <div key={prev} className="flex justify-between font-medium text-slate-600 cursor-help relative group">
+                <span className="uppercase truncate max-w-[140px]">{prev}</span>
+                <span className="font-bold text-emerald-600">{perc(count, demografiaStats.total)}%</span>
+                <div className="absolute bottom-full right-0 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">{count} pacientes</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* COLUMNA 3: ORIGEN (Nacionalidad y Comuna) */}
+        <div className="space-y-4">
+          <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2 mb-4">
+            <Globe className="w-4 h-4 text-blue-500"/> Origen
+          </h3>
+          
+          <div>
+            <p className="text-[11px] font-bold text-slate-500 mb-2">Top Nacionalidades</p>
+            <div className="space-y-2 text-xs">
+              {topNacionalidades.map(([nac, count]) => (
+                <div key={nac} className="flex justify-between font-medium text-slate-600 cursor-help relative group">
+                  <span className="uppercase truncate max-w-[120px]">{nac}</span>
+                  <span className="font-bold">{perc(count, demografiaStats.total)}%</span>
+                  <div className="absolute bottom-full right-0 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">{count} pacientes</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <p className="text-[11px] font-bold text-slate-500 mb-2">Comunas Principales</p>
+            <div className="space-y-2 text-xs">
+              {topComunas.map(([com, count]) => (
+                <div key={com} className="flex justify-between font-medium text-slate-600 cursor-help relative group">
+                  <span className="uppercase truncate max-w-[120px]">{com}</span>
+                  <span className="font-bold">{perc(count, demografiaStats.total)}%</span>
+                  <div className="absolute bottom-full right-0 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">{count} pacientes</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* COLUMNA 4: ESTABLECIMIENTOS */}
+        <div className="space-y-4">
+          <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2 mb-4">
+            <Building2 className="w-4 h-4 text-purple-500"/> Establecimientos
+          </h3>
+          
+          <div className="bg-purple-50 border border-purple-100 p-4 rounded-xl">
+            <p className="text-[11px] font-bold text-purple-600 mb-1 text-center">Centros Base Acumulado</p>
+            <div className="text-center mb-3">
+              <span className="text-2xl font-black text-purple-700">{rankingCentros.mainCentrosPercent}%</span>
+              <span className="text-[10px] text-purple-500 ml-1">del total</span>
+            </div>
+            <div className="space-y-1 text-xs">
+              <div className="flex justify-between font-medium text-purple-700 cursor-help relative group">
+                <span>CESFAM Florencia</span><span className="font-bold">{rankingCentros.florencia.perc}%</span>
+                <div className="absolute bottom-full right-0 mb-1 px-2 py-1 bg-purple-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">{rankingCentros.florencia.count} pacientes</div>
+              </div>
+              <div className="flex justify-between font-medium text-purple-700 cursor-help relative group">
+                <span>CESFAM Boris Soler</span><span className="font-bold">{rankingCentros.boris.perc}%</span>
+                <div className="absolute bottom-full right-0 mb-1 px-2 py-1 bg-purple-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">{rankingCentros.boris.count} pacientes</div>
+              </div>
+              <div className="flex justify-between font-medium text-purple-700 cursor-help relative group">
+                <span>CESFAM Elgueta</span><span className="font-bold">{rankingCentros.elgueta.perc}%</span>
+                <div className="absolute bottom-full right-0 mb-1 px-2 py-1 bg-purple-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">{rankingCentros.elgueta.count} pacientes</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <p className="text-[11px] font-bold text-slate-500 mb-2">Otros Centros (Top 5)</p>
+            <div className="space-y-2 text-[10px]">
+              {rankingCentros.otrosCentros.map((centro) => (
+                <div key={centro.name} className="flex justify-between font-medium text-slate-600 cursor-help relative group">
+                  <span className="uppercase truncate max-w-[140px]">{centro.name}</span>
+                  <span className="font-bold">{perc(centro.count, demografiaStats.total)}%</span>
+                  <div className="absolute bottom-full right-0 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">{centro.count} pacientes</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+import React, { useState } from 'react';
+import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar } from 'lucide-react';
+import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
+
+export default function GestionDatos({ 
+  user, db, appId, loading,
+  setLoading, setSyncStatus, showNotif, 
+  setActiveTab, setFiltroFechaInicio, setFiltroFechaFin, centroActivo
+}) {
+  const [pendingUpload, setPendingUpload] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [manualForm, setManualForm] = useState({
+    fechaInicio: '', fechaFin: '', horario: '17:00 - 08:00 (Semana Largo)',
+    c1: 0, c2: 0, c3: 0, c4: 0, c5: 0, altasAdmin: 0, totalPacientes: 0
+  });
+
+  const extractCategoria = (val) => {
+    if (!val) return 'sincat';
+    const s = String(val).toUpperCase();
+    const match = s.match(/\b(C\s*[1-5]|CATEGOR[IÍ]A\s*[1-5])\b/);
+    if (match) {
+        const num = match[0].match(/[1-5]/)[0];
+        return `c${num}`;
+    }
+    return 'sincat';
+  };
+
+  const normalizeStr = (str) => {
+    if (!str) return '';
+    return String(str).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
+  };
+
+  const parseDateStr = (dString, tString) => {
+    if (!dString) return null;
+    try {
+      let day, month, year;
+      if (dString.includes('-')) { const p = dString.split('-'); year = p[0]; month = p[1]; day = p[2].split(' ')[0]; }
+      else if (dString.includes('/')) { const p = dString.split('/'); day = p[0]; month = p[1]; year = p[2].split(' ')[0]; }
+      else if (!isNaN(dString) && dString > 10000) {
+          const excelDate = new Date((dString - 25569) * 86400 * 1000);
+          return excelDate.getTime();
+      } else return null;
+
+      let hour = 0, min = 0, sec = 0;
+      let extractedTimeStr = '';
+      if (dString.includes(' ') || dString.includes('T')) extractedTimeStr = dString.split(/[ T]/)[1];
+      else if (tString !== '') extractedTimeStr = tString.split(/[ T]/).pop(); 
+
+      if (extractedTimeStr) {
+          if (extractedTimeStr.includes(':')) {
+              const tParts = extractedTimeStr.split(':');
+              hour = parseInt(tParts[0] || 0); min = parseInt(tParts[1] || 0); sec = parseInt(tParts[2] || 0);
+          } else if (!isNaN(extractedTimeStr)) {
+              const totalSeconds = Math.round(parseFloat(extractedTimeStr) * 86400);
+              hour = Math.floor(totalSeconds / 3600); min = Math.floor((totalSeconds % 3600) / 60); sec = totalSeconds % 60;
+          }
+      }
+      if (!year || isNaN(year) || isNaN(hour)) return null;
+      let fullYear = Number(year); if (fullYear < 100) fullYear += 2000;
+      
+      const res = new Date(fullYear, Number(month) - 1, Number(day), Number(hour), Number(min), Number(sec)).getTime();
+      return isNaN(res) ? null : res;
+    } catch (e) { return null; }
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const fileName = file.name.replace(/\.[^/.]+$/, "");
+    setSyncStatus('syncing');
+
+    const processArray = (rows) => {
+      if (rows.length < 2) return showNotif("El archivo parece vacío o muy corto.", "error");
+
+      let headerRowIdx = -1; let headers = [];
+      for (let i = 0; i < Math.min(rows.length, 10); i++) { 
+          const rowStrs = rows[i].map(c => normalizeStr(String(c || '')));
+          if (rowStrs.some(c => c.includes('FECHA ADM') || c.includes('CORRELATIVO') || c.includes('ESTADO'))) {
+              headerRowIdx = i; headers = rowStrs; break;
+          }
+      }
+      if (headerRowIdx === -1) { headerRowIdx = 0; headers = rows[0].map(c => normalizeStr(String(c || ''))); }
+
+      const getIdx = (kws) => {
+        for (const kw of kws) { const idx = headers.findIndex(h => h.includes(normalizeStr(kw))); if (idx !== -1) return idx; }
+        return -1;
+      };
+
+      let iFAdm = getIdx(['FECHA ADMISION', 'FECHA ADM']); let iHAdm = getIdx(['HORA ADMISION', 'HORA ADM']);
+      let iFCat1 = getIdx(['FECHA 1', 'FECHA PRIMERA', 'FECHA TRIAGE', 'FECHA 1° CATEGORIZACION']); let iHCat1 = getIdx(['HORA 1', 'HORA PRIMERA', 'HORA TRIAGE', 'HORA 1° CATEGORIZACION']);
+      let iFCatU = getIdx(['FECHA ULTIMA CATEGORIZACION', 'FECHA ULT', 'FECHA UTL']); let iHCatU = getIdx(['HORA ULTIMA CATEGORIZACION', 'HORA ULT', 'HORA UTL']);
+      let iFAna = getIdx(['FECHA ANAMNESIS', 'FECHA ANA', 'FECHA ATE', 'FECHA MED']); let iHAna = getIdx(['HORA ANAMNESIS', 'HORA ANA', 'HORA ATE', 'HORA MED']);
+      let iFAlt = getIdx(['FECHA ALTA', 'FECHA ALT']); let iHAlt = getIdx(['HORA ALTA', 'HORA ALT']);
+      let iCatPri = getIdx(['PRIMERA CATEGORIZACION', 'PRIMERA CAT', 'CATEGORIA 1']); let iCatUlt = getIdx(['ULTIMA CATEGORIZACION', 'ULTIMA CAT', 'CATEGORIA ULT']);
+      let iEst = getIdx(['ESTADO', 'STATUS']);
+      let iDiag = getIdx(['CÓDIGO DE DIAGNÓSTICO', 'CODIGO DE DIAGNOSTICO', 'DIAGNOSTICO', 'COD DIAG']);
+      let iMed = getIdx(['NOMBRE PROFESIONAL REGISTRA ANAMNESIS', 'NOMBRE PROFESIONAL', 'MEDICO', 'PROFESIONAL', 'DOCTOR']);
+      
+      let iEdad = getIdx(['EDAD']);
+      let iSexo = getIdx(['SEXO']);
+      let iPrev = getIdx(['PREVISION', 'PREVISIÓN']);
+      let iComu = getIdx(['COMUNA']);
+      let iRegi = getIdx(['REGIÓN', 'REGION']);
+      let iNaci = getIdx(['NACIONALIDAD', 'ORIGEN', 'PAIS', 'PAÍS']);
+      let iCentro = getIdx(['ESTABLECIMIENTO', 'CENTRO']);
+
+      if(iFAdm === -1) iFAdm = 1; if(iHAdm === -1) iHAdm = 2;
+      
+      let parsedRecords = [];
+      let canceladasCalc = 0;
+      let catCounts = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0, sincat: 0 };
+
+      for (let i = headerRowIdx + 1; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row || row.length < 5) continue;
+
+        const safeGet = (idx) => (idx !== -1 && row[idx] !== undefined && row[idx] !== null) ? String(row[idx]).trim() : '';
+        const rowStrLower = row.map(c => String(c || '').toLowerCase()).join(' ');
+
+        let estado = safeGet(iEst);
+        if (estado.toLowerCase().includes('cancelad') || rowStrLower.includes('cancelad')) {
+          canceladasCalc++; estado = 'Cancelada';
+        } else if (estado.toLowerCase().includes('complet') || rowStrLower.includes('complet')) {
+          estado = 'Completa';
+        }
+
+        let categoria = 'sincat';
+        if (iCatUlt !== -1) categoria = extractCategoria(safeGet(iCatUlt));
+        if (categoria === 'sincat' && iCatPri !== -1) categoria = extractCategoria(safeGet(iCatPri));
+        if (categoria === 'sincat') categoria = extractCategoria(rowStrLower);
+        
+        let diag = safeGet(iDiag);
+        if (categoria === 'c3' && diag.toUpperCase().includes('Z51.8')) {
+          categoria = 'c3_z518';
+        }
+
+        let medico = safeGet(iMed) || 'No Registrado';
+
+        if(catCounts[categoria] !== undefined) catCounts[categoria]++;
+
+        const tAdm = parseDateStr(safeGet(iFAdm), safeGet(iHAdm));
+        if (!tAdm) continue; 
+
+        const edadRaw = safeGet(iEdad);
+        const edad = edadRaw && !isNaN(parseInt(edadRaw)) ? parseInt(edadRaw) : null;
+
+        parsedRecords.push({
+          tAdmision: tAdm,
+          tCat1: parseDateStr(safeGet(iFCat1), safeGet(iHCat1)),
+          tCatUlt: parseDateStr(safeGet(iFCatU), safeGet(iHCatU)),
+          tAnamnesis: parseDateStr(safeGet(iFAna), safeGet(iHAna)),
+          tAlta: parseDateStr(safeGet(iFAlt), safeGet(iHAlt)),
+          estado: estado, categoria: categoria, medico: medico,
+          edad, sexo: safeGet(iSexo), prevision: safeGet(iPrev),
+          comuna: safeGet(iComu), region: safeGet(iRegi), nacionalidad: safeGet(iNaci), establecimiento: safeGet(iCentro)
+        });
+      }
+
+      if (parsedRecords.length === 0) return showNotif("No se detectaron pacientes válidos.", "error");
+
+      const d = new Date(parsedRecords[0].tAdmision);
+      const defaultDate = !isNaN(d.getTime()) ? d.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+
+      setPendingUpload({
+        fileName,
+        registros: parsedRecords, fechaInicio: defaultDate, fechaFin: defaultDate,
+        horario: '17:00 - 08:00 (Semana Largo)', totalPacientes: parsedRecords.length,
+        altasAdmin: canceladasCalc, ...catCounts
+      });
+      setSyncStatus('synced');
+    };
+
+    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+      if (!window.XLSX) return showNotif("Cargando librerías Excel... reintenta en 1s", "error");
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const wb = window.XLSX.read(evt.target.result, { type: 'binary' });
+        const rows = window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, dateNF: 'dd/mm/yyyy' });
+        processArray(rows);
+      };
+      reader.readAsBinaryString(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+          const text = evt.target.result; const lines = text.split('\n').filter(l => l.trim() !== '');
+          if(lines.length === 0) return showNotif("Archivo vacío", "error");
+          const delimiter = lines[0].includes(';') ? ';' : ',';
+          const rows = lines.map(l => l.split(delimiter).map(c => c.replace(/"/g, '').trim()));
+          processArray(rows);
+      };
+      reader.readAsText(file);
+    }
+    e.target.value = null; 
+  };
+
+  const confirmMassUpload = async () => {
+    if (!pendingUpload || !user || !db) return;
+    setIsUploading(true); setSyncStatus('syncing');
+
+    const cleanFileName = (pendingUpload.fileName || 'LOTE').replace(/\s+/g, '_').toUpperCase();
+    const loteId = `${cleanFileName}-${Date.now()}`;
+    const horasTurno = String(pendingUpload.horario).includes("17:00") ? 15 : 12;
+    const ratio = pendingUpload.totalPacientes / horasTurno;
+
+    const turnoDoc = {
+      loteId, tipo: 'Masiva', fechaInicio: pendingUpload.fechaInicio || '', fechaFin: pendingUpload.fechaFin || '',
+      horario: pendingUpload.horario, totalPacientes: Number(pendingUpload.totalPacientes),
+      altasAdmin: Number(pendingUpload.altasAdmin), pacientesPorHora: ratio,
+      c1: pendingUpload.c1 || 0, c2: pendingUpload.c2 || 0, c3: pendingUpload.c3 || 0, 
+      c3_z518: pendingUpload.c3_z518 || 0, c4: pendingUpload.c4 || 0, c5: pendingUpload.c5 || 0, 
+      creadoEl: Date.now()
+    };
+
+    try {
+      const batchList = [];
+      let currentBatch = writeBatch(db);
+      let opCounter = 0;
+
+      const turnoRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'turnos'));
+      currentBatch.set(turnoRef, turnoDoc);
+      opCounter++;
+      
+      const pacRef = collection(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia');
+      let successCount = 0;
+      
+      for (const p of pendingUpload.registros) {
+        if (p.tAdmision) { 
+          if (opCounter >= 490) {
+            batchList.push(currentBatch);
+            currentBatch = writeBatch(db);
+            opCounter = 0;
+          }
+          const newPacDoc = doc(pacRef);
+          currentBatch.set(newPacDoc, { ...p, loteId });
+          opCounter++;
+          successCount++;
+        }
+      }
+      
+      if (opCounter > 0) batchList.push(currentBatch);
+      
+      const auditLog = {
+        fecha: Date.now(),
+        accion: 'Carga Masiva',
+        detalles: `Archivo ${pendingUpload.fileName} importado (${successCount} pacientes).`,
+        centro: centroActivo || 'Desconocido',
+        usuario: user?.email || 'Anónimo'
+      };
+      const lastBatch = writeBatch(db);
+      lastBatch.set(doc(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs')), auditLog);
+      batchList.push(lastBatch);
+
+      await Promise.all(batchList.map(b => b.commit()));
+      
+      const uploadedInicio = pendingUpload.fechaInicio;
+      const uploadedFin = pendingUpload.fechaFin;
+      
+      setUploadSuccess(true);
+      setTimeout(() => {
+          setUploadSuccess(false);
+          setPendingUpload(null);
+          if (uploadedInicio && uploadedFin) { setFiltroFechaInicio(uploadedInicio); setFiltroFechaFin(uploadedFin); }
+          showNotif(`Carga completada: Se importaron exitosamente ${successCount} pacientes.`, 'success');
+          setActiveTab('resumen');
+      }, 1500);
+
+    } catch (err) { showNotif("Error al guardar lote en la nube.", "error"); }
+    setIsUploading(false); setSyncStatus('synced');
+  };
+
+  const handleManualSave = async () => {
+    if (!manualForm.fechaInicio || !manualForm.fechaFin) {
+      return showNotif("Debes especificar las fechas del turno.", "warning");
+    }
+    setIsUploading(true); setSyncStatus('syncing');
+
+    const loteId = `MANUAL-${Date.now()}`;
+    const horasTurno = String(manualForm.horario).includes("17:00") ? 15 : 12;
+    const ratio = Number(manualForm.totalPacientes) / horasTurno;
+
+    const turnoDoc = {
+      loteId, tipo: 'Manual', fechaInicio: manualForm.fechaInicio, fechaFin: manualForm.fechaFin,
+      horario: manualForm.horario, totalPacientes: Number(manualForm.totalPacientes),
+      altasAdmin: Number(manualForm.altasAdmin), pacientesPorHora: ratio,
+      c1: Number(manualForm.c1), c2: Number(manualForm.c2), c3: Number(manualForm.c3), 
+      c4: Number(manualForm.c4), c5: Number(manualForm.c5), 
+      creadoEl: Date.now()
+    };
+
+    try {
+      const batch = writeBatch(db);
+      const turnoRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'turnos'));
+      batch.set(turnoRef, turnoDoc);
+
+      const auditLog = {
+        fecha: Date.now(),
+        accion: 'Carga Manual',
+        detalles: `Turno manual creado (${manualForm.totalPacientes} pacientes).`,
+        centro: centroActivo || 'Desconocido',
+        usuario: user?.email || 'Anónimo'
+      };
+      batch.set(doc(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs')), auditLog);
+
+      await batch.commit();
+
+      setUploadSuccess(true);
+      setTimeout(() => {
+          setUploadSuccess(false);
+          setManualForm({ fechaInicio: '', fechaFin: '', horario: '17:00 - 08:00 (Semana Largo)', totalPacientes: '', altasAdmin: '', c1: '', c2: '', c3: '', c4: '', c5: '' });
+          if (manualForm.fechaInicio && manualForm.fechaFin) { setFiltroFechaInicio(manualForm.fechaInicio); setFiltroFechaFin(manualForm.fechaFin); }
+          showNotif(`Carga manual guardada: ${manualForm.totalPacientes} pacientes totales.`, 'success');
+          setActiveTab('resumen');
+      }, 1500);
+    } catch (e) {
+      showNotif("Error al guardar el turno manual.", "error");
+    }
+    setIsUploading(false); setSyncStatus('synced');
+  };
+
+  return (
+    <div className="space-y-6 animate-fade-in text-slate-700 max-w-5xl mx-auto">
+      <div className="flex items-center gap-3 mb-8">
+        <Database className="w-8 h-8 text-blue-500" />
+        <div>
+          <h1 className="text-2xl font-black text-slate-800">Gestión de Datos</h1>
+          <p className="text-sm text-slate-500">Carga masiva de Excel o ingreso manual de turnos</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* CARGA MASIVA (EXCEL) */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
+          <div className="flex items-center gap-2 mb-2">
+            <Database className="text-blue-500 w-5 h-5"/>
+            <h2 className="text-lg font-bold text-slate-800">Carga Masiva (Excel)</h2>
+          </div>
+          <p className="text-sm text-slate-500 mb-6">Sube el reporte del sistema. Detectaremos fechas, pacientes, categorías y demografía automáticamente.</p>
+          
+          <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-xl p-8 hover:border-blue-400 hover:bg-blue-50 transition-colors relative">
+            <FileSpreadsheet className="w-12 h-12 text-slate-400 mb-4" />
+            <p className="font-bold text-slate-700 mb-1">Arrastra tu archivo o haz clic aquí</p>
+            <p className="text-xs text-slate-400 mb-6">Soporta .XLSX, .XLS y .CSV</p>
+            
+            <label className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-blue-700 transition cursor-pointer shadow-md">
+              Seleccionar Archivo
+              <input type="file" className="hidden" accept=".xlsx, .xls, .csv" onChange={handleFileUpload} />
+            </label>
+          </div>
+        </div>
+
+        {/* CARGA MANUAL */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
+          <div className="flex items-center gap-2 mb-2">
+            <UploadCloud className="text-emerald-500 w-5 h-5"/>
+            <h2 className="text-lg font-bold text-slate-800">Carga de Turno Manual</h2>
+          </div>
+          <p className="text-sm text-slate-500 mb-6">Ingresa las variables del turno manualmente (sin archivo).</p>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">Fecha Inicio</label>
+                <div className="relative">
+                  <input type="date" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:border-emerald-500" value={manualForm.fechaInicio} onChange={e => setManualForm({...manualForm, fechaInicio: e.target.value})} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">Fecha Fin</label>
+                <div className="relative">
+                  <input type="date" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:border-emerald-500" value={manualForm.fechaFin} onChange={e => setManualForm({...manualForm, fechaFin: e.target.value})} />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1">Horario del Turno</label>
+              <select className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:border-emerald-500" value={manualForm.horario} onChange={e => setManualForm({...manualForm, horario: e.target.value})}>
+                <option value="17:00 - 08:00 (Semana Largo)">17:00 - 08:00 (Semana Largo)</option>
+                <option value="08:00 - 20:00 (Fin de semana Día)">08:00 - 20:00 (Fin de semana Día)</option>
+                <option value="20:00 - 08:00 (Fin de semana Noche)">20:00 - 08:00 (Fin de semana Noche)</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-5 gap-2 pt-2">
+              {[1,2,3,4,5].map(c => (
+                <div key={c}>
+                  <label className={`block text-xs font-bold mb-1 text-center ${c===1?'text-red-500':c===2?'text-orange-500':c===3?'text-yellow-500':c===4?'text-emerald-500':'text-blue-500'}`}>C{c}</label>
+                  <input type="number" min="0" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-center text-sm outline-none focus:border-emerald-500" value={manualForm[`c${c}`]} onChange={e => setManualForm({...manualForm, [`c${c}`]: e.target.value})} />
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 pt-2">
+              <div>
+                <label className="block text-xs font-bold text-red-500 mb-1 text-center">Altas Administrativas</label>
+                <input type="number" min="0" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-center text-sm outline-none focus:border-emerald-500" value={manualForm.altasAdmin} onChange={e => setManualForm({...manualForm, altasAdmin: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1 text-center">Total Pacientes Turno</label>
+                <input type="number" min="0" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-center text-sm outline-none focus:border-emerald-500 font-bold" value={manualForm.totalPacientes} onChange={e => setManualForm({...manualForm, totalPacientes: e.target.value})} />
+              </div>
+            </div>
+
+            <button onClick={handleManualSave} disabled={isUploading || uploadSuccess} className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white font-bold py-3 rounded-lg transition-colors mt-4 shadow-md flex items-center justify-center gap-2">
+              {isUploading ? (
+                <><svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Guardando...</>
+              ) : uploadSuccess ? (
+                <><CheckCircle className="w-5 h-5"/> ¡Carga Exitosa!</>
+              ) : "Guardar Turno Manual"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* MODAL ARCHIVO PROCESADO */}
+      {pendingUpload && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-bounce-in border border-slate-100">
+            <div className="p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <CheckCircle className="w-6 h-6 text-emerald-500" />
+                <h3 className="text-xl font-bold text-slate-800">Archivo Procesado</h3>
+              </div>
+              <p className="text-sm text-slate-500 mb-6">Verifica los datos detectados automáticamente antes de subir a la nube.</p>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Fecha Inicio</label>
+                    <input type="date" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none" value={pendingUpload.fechaInicio} onChange={e => setPendingUpload({...pendingUpload, fechaInicio: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Fecha Fin</label>
+                    <input type="date" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none" value={pendingUpload.fechaFin} onChange={e => setPendingUpload({...pendingUpload, fechaFin: e.target.value})} />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Horario del Turno</label>
+                  <select className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none" value={pendingUpload.horario} onChange={e => setPendingUpload({...pendingUpload, horario: e.target.value})}>
+                    <option value="17:00 - 08:00 (Semana Largo)">17:00 - 08:00 (Semana Largo)</option>
+                    <option value="08:00 - 20:00 (Fin de semana Día)">08:00 - 20:00 (Fin de semana Día)</option>
+                    <option value="20:00 - 08:00 (Fin de semana Noche)">20:00 - 08:00 (Fin de semana Noche)</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Pacientes Detectados</label>
+                    <span className="text-xl font-bold text-blue-600">{pendingUpload.totalPacientes}</span>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Altas Admin (Canceladas)</label>
+                    <span className="text-xl font-bold text-red-500">{pendingUpload.altasAdmin}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] uppercase font-bold text-slate-400 mb-2">DISTRIBUCIÓN DE TRIAJE (DETECTADA)</label>
+                  <div className="grid grid-cols-5 gap-2">
+                    {[1,2,3,4,5].map(c => (
+                      <div key={c} className="bg-slate-50 border border-slate-100 p-2 rounded-lg text-center">
+                        <span className={`block text-[10px] font-bold mb-1 ${c===1?'text-red-500':c===2?'text-orange-500':c===3?'text-yellow-500':c===4?'text-emerald-500':'text-blue-500'}`}>C{c}</span>
+                        <span className="font-bold text-slate-700 text-sm">{pendingUpload[`c${c}`]}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-slate-50 p-4 flex justify-end gap-3 border-t border-slate-100">
+              <button onClick={() => setPendingUpload(null)} className="px-6 py-2.5 rounded-lg font-bold text-slate-600 hover:bg-slate-200 transition">Cancelar</button>
+              <button onClick={confirmMassUpload} disabled={isUploading || uploadSuccess} className="px-6 py-2.5 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 shadow-md transition flex items-center gap-2">
+                {isUploading ? (
+                  <><svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Guardando...</>
+                ) : uploadSuccess ? (
+                  <><CheckCircle className="w-4 h-4"/> ¡Éxito!</>
+                ) : "Guardar Turno"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+import { useMemo } from 'react';
+
+const AGE_RANGES = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80+'];
+
+const perc = (val, tot) => tot > 0 ? ((val / tot) * 100).toFixed(1) : 0;
+
+export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales = {}) => {
+  // =========================================================================
+  // 1. PIPELINE DE DATOS GLOBAL (Afecta KPIs, Triaje, Tabla Global)
+  // =========================================================================
+  const turnosPorFecha = useMemo(() => {
+    return turnosDB.filter(t => {
+      if (filtroFechaInicio && t.fechaInicio < filtroFechaInicio) return false;
+      if (filtroFechaFin && t.fechaFin > filtroFechaFin) return false;
+      return true;
+    });
+  }, [turnosDB, filtroFechaInicio, filtroFechaFin]);
+
+  const hasGlobalFilters = useMemo(() => {
+    return Object.values(filtrosGlobales).some(val => val !== '' && val !== 'TODOS');
+  }, [filtrosGlobales]);
+
+  const pacientesFiltrados = useMemo(() => {
+    const lotesVisibles = turnosPorFecha.map(t => t.loteId);
+    let pacs = pacientesDB.filter(p => lotesVisibles.includes(p.loteId));
+
+    if (hasGlobalFilters) {
+      if (filtrosGlobales.sexo && filtrosGlobales.sexo !== 'TODOS') {
+        pacs = pacs.filter(p => String(p.sexo).toUpperCase().includes(filtrosGlobales.sexo === 'M' ? 'M' : 'F'));
+      }
+      if (filtrosGlobales.prevision && filtrosGlobales.prevision !== 'TODOS') {
+        pacs = pacs.filter(p => String(p.prevision).toUpperCase().includes(filtrosGlobales.prevision));
+      }
+      if (filtrosGlobales.edad && filtrosGlobales.edad !== 'TODOS') {
+        pacs = pacs.filter(p => {
+          if (p.edad === null || p.edad === undefined) return false;
+          if (filtrosGlobales.edad === '0-14') return p.edad <= 14;
+          if (filtrosGlobales.edad === '15-29') return p.edad >= 15 && p.edad <= 29;
+          if (filtrosGlobales.edad === '30-59') return p.edad >= 30 && p.edad <= 59;
+          if (filtrosGlobales.edad === '60+') return p.edad >= 60;
+          return true;
+        });
+      }
+      if (filtrosGlobales.establecimiento && filtrosGlobales.establecimiento !== 'TODOS') {
+        if (filtrosGlobales.establecimiento === 'OTROS') {
+          pacs = pacs.filter(p => p.establecimiento && !String(p.establecimiento).toUpperCase().match(/FLORENCIA|BORIS|ELGUETA/));
+        } else {
+          pacs = pacs.filter(p => String(p.establecimiento).toUpperCase().includes(filtrosGlobales.establecimiento));
+        }
+      }
+    }
+    return pacs;
+  }, [pacientesDB, turnosPorFecha, filtrosGlobales, hasGlobalFilters]);
+
+  const turnosFiltrados = useMemo(() => {
+    if (!hasGlobalFilters) return turnosPorFecha;
+
+    // Cuando hay filtros globales, recalculamos los totales de los turnos en base a los pacientes filtrados
+    // y excluímos los turnos manuales (ya que no se les pueden aplicar filtros de pacientes)
+    return turnosPorFecha.filter(t => t.tipo === 'Masiva').map(t => {
+      const pacs = pacientesFiltrados.filter(p => p.loteId === t.loteId);
+      
+      const counts = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0, sincat: 0 };
+      pacs.forEach(p => {
+        if (counts[p.categoria] !== undefined) counts[p.categoria]++;
+      });
+
+      return {
+        ...t,
+        totalPacientes: pacs.length,
+        altasAdmin: pacs.filter(p => p.estado === 'Cancelada').length,
+        ...counts
+      };
+    });
+  }, [turnosPorFecha, pacientesFiltrados, hasGlobalFilters]);
+
+  // === ANÁLISIS DEMOGRÁFICO Y GLOBAL ===
+  const demografiaStats = useMemo(() => {
+    const stats = {
+      total: 0, edadSum: 0, edadCount: 0, sexo: { F: 0, M: 0, O: 0 },
+      edades: Object.fromEntries(AGE_RANGES.map(r => [r, 0])),
+      prevs: {}, comunas: {}, nacionalidades: {}, establecimientos: {}
+    };
+
+    pacientesFiltrados.forEach(p => {
+      stats.total++;
+      if (p.edad !== null && !isNaN(p.edad)) {
+         stats.edadSum += p.edad; stats.edadCount++;
+         if (p.edad >= 80) stats.edades['80+']++;
+         else {
+           const lower = Math.floor(p.edad / 5) * 5;
+           const range = `${lower}-${lower + 4}`;
+           if (stats.edades[range] !== undefined) stats.edades[range]++;
+         }
+      }
+      
+      const s = String(p.sexo || '').toUpperCase();
+      if (s.includes('MUJER') || s.includes('FEMENINO') || s === 'F') stats.sexo.F++;
+      else if (s.includes('HOMBRE') || s.includes('MASCULINO') || s === 'M') stats.sexo.M++;
+      else stats.sexo.O++;
+
+      const prRaw = String(p.prevision || 'DESCONOCIDO').trim().toUpperCase();
+      let prKey = prRaw;
+      if (prRaw.includes('FONASA')) {
+        if (prRaw.includes('A')) prKey = 'FONASA A'; else if (prRaw.includes('B')) prKey = 'FONASA B';
+        else if (prRaw.includes('C')) prKey = 'FONASA C'; else if (prRaw.includes('D')) prKey = 'FONASA D';
+        else prKey = 'FONASA (OTRO)';
+      } else if (prRaw.includes('ISAPRE')) prKey = 'ISAPRE';
+      else if (prRaw.includes('DIPRECA')) prKey = 'DIPRECA';
+      else if (prRaw.includes('CAPREDENA')) prKey = 'CAPREDENA';
+      else if (prRaw === '' || prRaw === 'UNDEFINED') prKey = 'DESCONOCIDO';
+      
+      stats.prevs[prKey] = (stats.prevs[prKey] || 0) + 1;
+
+      const com = String(p.comuna || 'DESCONOCIDA').toUpperCase();
+      if(com && com !== 'UNDEFINED' && com !== '') stats.comunas[com] = (stats.comunas[com] || 0) + 1;
+
+      const nac = String(p.nacionalidad || 'DESCONOCIDA').toUpperCase();
+      if(nac && nac !== 'UNDEFINED' && nac !== '') stats.nacionalidades[nac] = (stats.nacionalidades[nac] || 0) + 1;
+
+      const est = String(p.establecimiento || 'DESCONOCIDO').toUpperCase();
+      if(est && est !== 'UNDEFINED' && est !== '') stats.establecimientos[est] = (stats.establecimientos[est] || 0) + 1;
+    });
+
+    return stats;
+  }, [pacientesFiltrados]);
+
+  const promediosGlobales = useMemo(() => {
+    let sAdmCat=0, cAdmCat=0, sCatAna=0, cCatAna=0, sAnaAlt=0, cAnaAlt=0, sAdmAlt=0, cAdmAlt=0;
+    pacientesFiltrados.forEach(p => {
+      if (p.tAdmision && p.tCat1) { sAdmCat += (p.tCat1 - p.tAdmision)/60000; cAdmCat++; }
+      if (p.tCatUlt && p.tAnamnesis) { sCatAna += (p.tAnamnesis - p.tCatUlt)/60000; cCatAna++; }
+      if (p.tAnamnesis && p.tAlta) { sAnaAlt += (p.tAlta - p.tAnamnesis)/60000; cAnaAlt++; }
+      if (p.tAdmision && p.tAlta) { sAdmAlt += (p.tAlta - p.tAdmision)/60000; cAdmAlt++; }
+    });
+    return {
+      avgAdmCat: cAdmCat ? sAdmCat / cAdmCat : null, 
+      avgCatAna: cCatAna ? sCatAna / cCatAna : null, 
+      avgAnaAlt: cAnaAlt ? sAnaAlt / cAnaAlt : null,
+      avgAdmAlt: cAdmAlt ? sAdmAlt / cAdmAlt : null, 
+      totalPacientes: pacientesFiltrados.length
+    };
+  }, [pacientesFiltrados]);
+
+  const metricsByCategory = useMemo(() => {
+    const res = {};
+    ['c1', 'c2', 'c3', 'c3_z518', 'c4', 'c5', 'sincat'].forEach(cat => {
+      const pacs = pacientesFiltrados.filter(p => p.categoria === cat);
+      let sAdmCat=0, cAdmCat=0, sCatAna=0, cCatAna=0, sAnaAlt=0, cAnaAlt=0, sAdmAlt=0, cAdmAlt=0;
+      pacs.forEach(p => {
+        if (p.tAdmision && p.tCat1) { sAdmCat += (p.tCat1 - p.tAdmision)/60000; cAdmCat++; }
+        if (p.tCatUlt && p.tAnamnesis) { sCatAna += (p.tAnamnesis - p.tCatUlt)/60000; cCatAna++; }
+        if (p.tAnamnesis && p.tAlta) { sAnaAlt += (p.tAlta - p.tAnamnesis)/60000; cAnaAlt++; }
+        if (p.tAdmision && p.tAlta) { sAdmAlt += (p.tAlta - p.tAdmision)/60000; cAdmAlt++; }
+      });
+      res[cat] = {
+        total: pacs.length, 
+        avgAdmCat: cAdmCat ? sAdmCat / cAdmCat : null,
+        avgCatAna: cCatAna ? sCatAna / cCatAna : null, 
+        avgAnaAlt: cAnaAlt ? sAnaAlt / cAnaAlt : null,
+        avgAdmAlt: cAdmAlt ? sAdmAlt / cAdmAlt : null 
+      };
+    });
+    return res;
+  }, [pacientesFiltrados]);
+
+  const statsKPI = useMemo(() => {
+    if (!filtroFechaInicio || !filtroFechaFin) return null;
+    const fInit = new Date(filtroFechaInicio); const fEnd = new Date(filtroFechaFin);
+    if (isNaN(fInit.getTime()) || isNaN(fEnd.getTime())) return null;
+
+    const daysDiff = (fEnd - fInit) / (1000 * 60 * 60 * 24);
+    const prevEnd = new Date(fInit.getTime() - (1000 * 60 * 60 * 24));
+    const prevInit = new Date(prevEnd.getTime() - (daysDiff * 1000 * 60 * 60 * 24));
+    
+    if (isNaN(prevEnd.getTime()) || isNaN(prevInit.getTime())) return null;
+
+    const pInitStr = prevInit.toISOString().split('T')[0];
+    const pEndStr = prevEnd.toISOString().split('T')[0];
+
+    const prevTurnos = turnosDB.filter(t => t.fechaInicio >= pInitStr && t.fechaFin <= pEndStr);
+    const prevLotes = prevTurnos.map(t => t.loteId);
+    const prevPacientes = pacientesDB.filter(p => prevLotes.includes(p.loteId));
+
+    const calcEstadia = (pacs) => {
+        let sum = 0, count = 0;
+        pacs.forEach(p => { if (p.tAdmision && p.tAlta) { sum += (p.tAlta - p.tAdmision)/60000; count++; } });
+        return count ? sum / count : 0;
+    };
+
+    let currentHoras = 0; turnosFiltrados.forEach(t => currentHoras += (String(t.horario||'').includes('17:00') ? 15 : 12));
+    const currentPacHora = currentHoras > 0 ? turnosFiltrados.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0) / currentHoras : 0;
+
+    let prevHoras = 0; prevTurnos.forEach(t => prevHoras += (String(t.horario||'').includes('17:00') ? 15 : 12));
+    const prevPacHora = prevHoras > 0 ? prevTurnos.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0) / prevHoras : 0;
+
+    const currentEstadia = promediosGlobales.avgAdmAlt || 0;
+    const prevEstadia = calcEstadia(prevPacientes);
+
+    const currentAltasAdmin = turnosFiltrados.reduce((acc, t) => acc + Number(t.altasAdmin || 0), 0);
+    const prevAltasAdmin = prevTurnos.reduce((acc, t) => acc + Number(t.altasAdmin || 0), 0);
+
+    const getGrowth = (curr, prev) => prev === 0 ? (curr > 0 ? 100 : 0) : ((curr - prev) / prev) * 100;
+
+    const avgEdad = demografiaStats.edadCount ? (demografiaStats.edadSum / demografiaStats.edadCount).toFixed(1) : 0;
+    const fonasaTot = Object.entries(demografiaStats.prevs).filter(([k]) => k.includes('FONASA')).reduce((acc, [_, v]) => acc + v, 0);
+    const fonasaPercent = demografiaStats.total ? (fonasaTot / demografiaStats.total) * 100 : 0;
+    const meliPercent = demografiaStats.total ? ((demografiaStats.comunas['MELIPILLA'] || 0) / demografiaStats.total) * 100 : 0;
+
+    return {
+        pacientes: { current: turnosFiltrados.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0), growth: getGrowth(turnosFiltrados.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0), prevTurnos.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0)) },
+        estadia: { current: currentEstadia, growth: getGrowth(currentEstadia, prevEstadia) },
+        pacHora: { current: currentPacHora, growth: getGrowth(currentPacHora, prevPacHora) },
+        altasAdmin: { current: currentAltasAdmin, growth: getGrowth(currentAltasAdmin, prevAltasAdmin) },
+        demo: { avgEdad, fonasaPercent, meliPercent },
+        categorias: ['c1', 'c2', 'c3', 'c3_z518', 'c4', 'c5'].map(c => ({
+            name: c === 'c3_z518' ? 'C3 (L)' : c.toUpperCase(),
+            current: turnosFiltrados.reduce((acc, t) => acc + Number(t[c] || 0), 0),
+            growth: getGrowth(turnosFiltrados.reduce((acc, t) => acc + Number(t[c] || 0), 0), prevTurnos.reduce((acc, t) => acc + Number(t[c] || 0), 0))
+        }))
+    }
+  }, [turnosFiltrados, turnosDB, pacientesDB, filtroFechaInicio, filtroFechaFin, promediosGlobales, demografiaStats]);
+
+  const rankingCentros = useMemo(() => {
+    const centrosArr = Object.entries(demografiaStats.establecimientos).map(([name, count]) => ({name, count}));
+    let countFlorencia = 0, countBoris = 0, countElgueta = 0;
+
+    centrosArr.forEach(c => {
+      if (c.name.includes('FLORENCIA')) countFlorencia += c.count;
+      else if (c.name.includes('BORIS SOLER')) countBoris += c.count;
+      else if (c.name.includes('ELGUETA')) countElgueta += c.count;
+    });
+
+    const mainCentrosCount = countFlorencia + countBoris + countElgueta;
+    const mainCentrosPercent = perc(mainCentrosCount, demografiaStats.total);
+    const otrosCentros = centrosArr
+      .filter(c => !(c.name.includes('FLORENCIA') || c.name.includes('BORIS SOLER') || c.name.includes('ELGUETA')) && c.name !== 'DESCONOCIDO')
+      .sort((a,b) => b.count - a.count).slice(0,5);
+
+    return { 
+      florencia: { count: countFlorencia, perc: perc(countFlorencia, demografiaStats.total) }, 
+      boris: { count: countBoris, perc: perc(countBoris, demografiaStats.total) }, 
+      elgueta: { count: countElgueta, perc: perc(countElgueta, demografiaStats.total) }, 
+      mainCentrosCount, 
+      mainCentrosPercent, 
+      otrosCentros 
+    };
+  }, [demografiaStats]);
+
+  return {
+    turnosFiltrados,
+    pacientesFiltrados,
+    demografiaStats,
+    promediosGlobales,
+    metricsByCategory,
+    statsKPI,
+    rankingCentros
+  };
+};
+import React, { useState, useEffect } from 'react';
+import { collection, query, orderBy, onSnapshot, limit } from 'firebase/firestore';
+import { Shield, Search, Clock, User, Activity } from 'lucide-react';
+
+export default function AuditLog({ db, appId, centroActivo }) {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    if (!db || !appId) return;
+    
+    const q = query(
+      collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs'),
+      orderBy('fecha', 'desc'),
+      limit(100)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setLogs(data);
+      setLoading(false);
+    }, (err) => {
+      console.error('Error fetching audit logs:', err);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [db, appId]);
+
+  const filteredLogs = logs.filter(log => {
+    const term = searchTerm.toLowerCase();
+    return (
+      (log.accion && log.accion.toLowerCase().includes(term)) ||
+      (log.centro && log.centro.toLowerCase().includes(term)) ||
+      (log.usuario && log.usuario.toLowerCase().includes(term)) ||
+      (log.detalles && log.detalles.toLowerCase().includes(term))
+    );
+  });
+
+  const getActionColor = (action) => {
+    if (!action) return 'bg-slate-100 text-slate-600';
+    if (action.includes('Carga')) return 'bg-emerald-100 text-emerald-700';
+    if (action.includes('Edición')) return 'bg-blue-100 text-blue-700';
+    if (action.includes('Eliminación')) return 'bg-rose-100 text-rose-700';
+    return 'bg-slate-100 text-slate-600';
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col h-full">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <Shield className="text-indigo-600 w-6 h-6"/> Registro de Auditoría
+          </h2>
+          <p className="text-sm text-slate-500 mt-1">Historial de acciones y modificaciones del sistema.</p>
+        </div>
+        <div className="relative w-64">
+          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+          <input 
+            type="text" 
+            placeholder="Buscar registros..." 
+            value={searchTerm} 
+            onChange={e => setSearchTerm(e.target.value)} 
+            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-indigo-500"
+          />
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-auto border border-slate-200 rounded-lg bg-slate-50">
+        <table className="w-full text-left text-sm whitespace-nowrap">
+          <thead className="bg-slate-100 border-b border-slate-200 text-slate-600 font-bold sticky top-0 z-10">
+            <tr>
+              <th className="p-4"><div className="flex items-center gap-2"><Clock className="w-4 h-4"/> Fecha y Hora</div></th>
+              <th className="p-4"><div className="flex items-center gap-2"><Activity className="w-4 h-4"/> Acción</div></th>
+              <th className="p-4"><div className="flex items-center gap-2"><User className="w-4 h-4"/> Usuario / Centro</div></th>
+              <th className="p-4 w-full">Detalles</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan="4" className="p-8 text-center text-slate-400">Cargando registros...</td></tr>
+            ) : filteredLogs.length === 0 ? (
+              <tr><td colSpan="4" className="p-8 text-center text-slate-400">No se encontraron registros.</td></tr>
+            ) : (
+              filteredLogs.map(log => {
+                const dateObj = new Date(log.fecha);
+                const dateStr = dateObj.toLocaleDateString();
+                const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                return (
+                  <tr key={log.id} className="border-b border-slate-100 hover:bg-white transition bg-slate-50/50">
+                    <td className="p-4 text-slate-600">
+                      <span className="font-bold">{dateStr}</span> <span className="text-xs">{timeStr}</span>
+                    </td>
+                    <td className="p-4">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${getActionColor(log.accion)}`}>
+                        {log.accion}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <div className="font-medium text-slate-700">{log.usuario}</div>
+                      <div className="text-[10px] text-slate-400 uppercase tracking-wide">{log.centro}</div>
+                    </td>
+                    <td className="p-4 text-slate-600 whitespace-normal text-xs">{log.detalles}</td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+import React, { useState, useMemo } from 'react';
+import { FileText, Download, Printer, Calendar, Users, Clock, AlertTriangle } from 'lucide-react';
+import { useMetricoAnalytics } from '../../hooks/useMetricoAnalytics';
+import { useMetricoProfesionales } from '../../hooks/useMetricoProfesionales';
+
+export default function ReportesModule({ pacientesDB, turnosDB }) {
+  const [tipoReporte, setTipoReporte] = useState('mensual'); // diario, semanal, mensual
+  const [fechaBase, setFechaBase] = useState(new Date().toISOString().split('T')[0]);
+
+  // Calcular las fechas según el tipo de reporte seleccionado
+  const fechas = useMemo(() => {
+    const end = new Date(fechaBase);
+    let start = new Date(fechaBase);
+
+    if (tipoReporte === 'diario') {
+      start = end; // Mismo día
+    } else if (tipoReporte === 'semanal') {
+      start.setDate(end.getDate() - 6); // 7 días (hoy y 6 atrás)
+    } else if (tipoReporte === 'mensual') {
+      start.setDate(1); // Primer día del mes
+      end.setMonth(end.getMonth() + 1);
+      end.setDate(0); // Último día del mes
+    }
+
+    const formatD = (d) => {
+      const parts = d.toISOString().split('T')[0].split('-');
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    };
+    return { inicio: formatD(start), fin: formatD(end), rawInicio: start.toISOString().split('T')[0], rawFin: end.toISOString().split('T')[0] };
+  }, [fechaBase, tipoReporte]);
+
+  // Extraer KPIs para el reporte
+  const { statsKPI, demografiaStats } = useMetricoAnalytics(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin);
+  const { filteredMetricsByDoctor } = useMetricoProfesionales(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin, [], '');
+
+  const printReport = () => {
+    window.print();
+  };
+
+  const exportCSV = () => {
+    // Basic CSV export logic for the current period patients
+    const lotesVisibles = turnosDB.filter(t => t.fechaInicio >= fechas.inicio && t.fechaFin <= fechas.fin).map(t => t.loteId);
+    const pacs = pacientesDB.filter(p => lotesVisibles.includes(p.loteId));
+    
+    if (pacs.length === 0) return alert('No hay datos en este periodo para exportar.');
+    
+    const headers = ['ID_Lote', 'Edad', 'Sexo', 'Categoria', 'Medico', 'Comuna', 'Nacionalidad'];
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + headers.join(",") + "\n"
+      + pacs.map(p => `${p.loteId},${p.edad || ''},${p.sexo || ''},${p.categoria || ''},${p.medico || ''},${p.comuna || ''},${p.nacionalidad || ''}`).join("\n");
+      
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `metrico_datos_${fechas.inicio}_a_${fechas.fin}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const hasData = statsKPI && statsKPI.pacientes.current > 0;
+  
+  const generateNarrative = () => {
+    if (!hasData) return "No se registraron atenciones en este periodo.";
+    
+    let text = `Durante el periodo comprendido entre el ${fechas.inicio} y el ${fechas.fin}, se registró un total de ${statsKPI.pacientes.current} pacientes atendidos. `;
+    
+    text += `El rendimiento promedio de atención médica se situó en ${statsKPI.pacHora.current.toFixed(1)} pacientes por hora. `;
+    
+    text += `Por otro lado, el tiempo promedio de estadía por paciente fue de ${Math.round(statsKPI.estadia.current)} minutos. `;
+
+    const topDoc = [...filteredMetricsByDoctor].sort((a,b) => b.total - a.total)[0];
+    if (topDoc) {
+      text += `El profesional con mayor volumen de pacientes fue ${topDoc.name} con ${topDoc.total} atenciones. `;
+    }
+
+    const altasPct = (statsKPI.altasAdmin.current / statsKPI.pacientes.current) * 100;
+    if (altasPct > 10) {
+      text += `Atención: La tasa de Alta Administrativa fue del ${altasPct.toFixed(1)}%, superando el umbral de alerta del 10%, por lo que se recomienda revisar el protocolo de categorización.`;
+    }
+
+    return { text, altasPct };
+  };
+
+  const narrativeData = generateNarrative();
+
+  return (
+    <div className="w-full flex flex-col gap-6 max-w-6xl mx-auto animate-fade-in">
+      
+      {/* Controles de Reporte (Ocultos al imprimir) */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="flex items-center gap-3">
+          <FileText className="w-6 h-6 text-indigo-500" />
+          <h2 className="text-xl font-bold text-slate-700">Generador de Reportes</h2>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <select 
+            value={tipoReporte} 
+            onChange={(e) => setTipoReporte(e.target.value)}
+            className="border-slate-200 border rounded-lg p-2 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="diario">Informe Diario</option>
+            <option value="semanal">Informe Semanal</option>
+            <option value="mensual">Informe Mensual</option>
+          </select>
+
+          <input 
+            type="date" 
+            value={fechaBase} 
+            onChange={(e) => setFechaBase(e.target.value)}
+            className="border-slate-200 border rounded-lg p-2 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+
+          <div className="h-6 w-px bg-slate-200 mx-2"></div>
+
+          <button onClick={exportCSV} className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 font-bold rounded-lg text-sm transition-colors">
+            <Download className="w-4 h-4" /> Exportar Datos CSV
+          </button>
+
+          <button onClick={printReport} disabled={!hasData} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 font-bold rounded-lg text-sm transition-colors shadow-md">
+            <Printer className="w-4 h-4" /> Imprimir PDF Ejecutivo
+          </button>
+        </div>
+      </div>
+
+      {/* VISTA PREVIA DEL REPORTE */}
+      <div id="reporte-printable" className="bg-white p-10 rounded-xl shadow-sm border border-slate-200 mx-auto w-full max-w-4xl print:w-full print:max-w-none print:mx-auto print:border-none print:shadow-none print:px-8 print:py-4 relative overflow-hidden">
+        
+        {/* Cabecera del Documento */}
+        <div className="border-b-2 border-slate-800 pb-6 mb-8 flex justify-between items-end print-avoid-break">
+          <div className="flex items-center gap-4">
+            <img src="/IMG/LogoSAR.png" alt="Logo SAR" className="h-16 object-contain" />
+            <div>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">METRICO</h1>
+              <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mt-1">Reporte Ejecutivo de Gestión</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-sm font-bold text-slate-700 capitalize">Tipo: {tipoReporte}</p>
+            <p className="text-xs text-slate-500">Periodo: {fechas.inicio} / {fechas.fin}</p>
+          </div>
+        </div>
+
+        {!hasData ? (
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+            <Calendar className="w-12 h-12 mb-4 opacity-50" />
+            <p className="text-lg font-medium">No hay registros para las fechas seleccionadas.</p>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            
+            {/* Resumen Narrativo */}
+            <div className="bg-slate-50 p-6 rounded-lg border border-slate-100 print-avoid-break">
+              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-indigo-500" /> Resumen Ejecutivo Automático
+              </h3>
+              <p className="text-sm text-slate-700 leading-relaxed text-justify">
+                {narrativeData.text}
+              </p>
+            </div>
+
+            {/* KPIs Principales */}
+            <div className="print-avoid-break">
+              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-200 pb-2">Indicadores Clave de Desempeño (KPI)</h3>
+              <div className="grid grid-cols-4 gap-4">
+                <div className="border border-slate-200 p-4 rounded-lg text-center relative overflow-hidden">
+                  <p className="text-xs font-bold text-slate-500 uppercase">Volumen Pacientes</p>
+                  <p className="text-2xl font-black text-slate-800 mt-1">{statsKPI.pacientes.current}</p>
+                  {statsKPI.pacientes.growth !== undefined && (
+                    <p className={`text-[10px] font-bold mt-1 ${statsKPI.pacientes.growth > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {statsKPI.pacientes.growth > 0 ? '+' : ''}{statsKPI.pacientes.growth.toFixed(1)}% vs ant.
+                    </p>
+                  )}
+                </div>
+                <div className="border border-slate-200 p-4 rounded-lg text-center relative overflow-hidden">
+                  <p className="text-xs font-bold text-slate-500 uppercase">Rendimiento</p>
+                  <p className="text-2xl font-black text-blue-600 mt-1">{statsKPI.pacHora.current.toFixed(1)} <span className="text-xs font-bold">pac/h</span></p>
+                  {statsKPI.pacHora.growth !== undefined && (
+                    <p className={`text-[10px] font-bold mt-1 ${statsKPI.pacHora.growth > 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {statsKPI.pacHora.growth > 0 ? '+' : ''}{statsKPI.pacHora.growth.toFixed(1)}% vs ant.
+                    </p>
+                  )}
+                </div>
+                <div className="border border-slate-200 p-4 rounded-lg text-center relative overflow-hidden">
+                  <p className="text-xs font-bold text-slate-500 uppercase">T. Estadía Prom.</p>
+                  <p className="text-2xl font-black mt-1 text-slate-700">{Math.round(statsKPI.estadia.current)} <span className="text-xs font-bold">min</span></p>
+                  {statsKPI.estadia.growth !== undefined && (
+                    <p className={`text-[10px] font-bold mt-1 ${statsKPI.estadia.growth < 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {statsKPI.estadia.growth > 0 ? '+' : ''}{statsKPI.estadia.growth.toFixed(1)}% vs ant.
+                    </p>
+                  )}
+                </div>
+                <div className={`border p-4 rounded-lg text-center relative overflow-hidden ${narrativeData.altasPct > 10 ? 'bg-rose-50 border-rose-200' : 'bg-emerald-50 border-emerald-200'}`}>
+                  <p className={`text-xs font-bold uppercase ${narrativeData.altasPct > 10 ? 'text-rose-600' : 'text-emerald-600'}`}>Altas Administrativas</p>
+                  <p className={`text-2xl font-black mt-1 ${narrativeData.altasPct > 10 ? 'text-rose-700' : 'text-emerald-700'}`}>
+                    {statsKPI.altasAdmin.current} <span className="text-xs font-bold">({narrativeData.altasPct.toFixed(1)}%)</span>
+                  </p>
+                  <p className={`text-[10px] font-bold mt-1 ${narrativeData.altasPct > 10 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                    {narrativeData.altasPct > 10 ? 'Fuera de rango (>10%)' : 'Dentro del rango (<10%)'}
+                  </p>
+                  {statsKPI.altasAdmin.growth !== undefined && (
+                    <p className={`text-[10px] font-bold mt-0.5 ${statsKPI.altasAdmin.growth > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                      {statsKPI.altasAdmin.growth > 0 ? '+' : ''}{statsKPI.altasAdmin.growth.toFixed(1)}% vs ant.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Datos Demográficos Resumidos */}
+            <div className="print:break-before-page">
+              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-200 pb-2">Perfil Demográfico y Operativo</h3>
+              <div className="grid grid-cols-3 gap-6">
+                <div>
+                  <p className="text-xs font-bold text-slate-500 mb-2">Previsión Mayoritaria (Top 5)</p>
+                  <ul className="text-sm text-slate-600">
+                    {Object.entries(demografiaStats.prevs).sort((a,b)=>b[1]-a[1]).slice(0,5).map((p, i) => (
+                      <li key={i} className="flex justify-between border-b border-slate-100 py-1 last:border-0">
+                        <span>{p[0]}</span><span className="font-bold">{p[1]} pac.</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-500 mb-2">Nacionalidades (Top 5)</p>
+                  <ul className="text-sm text-slate-600">
+                    {Object.entries(demografiaStats.nacionalidades).sort((a,b)=>b[1]-a[1]).slice(0,5).map((p, i) => (
+                      <li key={i} className="flex justify-between border-b border-slate-100 py-1 last:border-0">
+                        <span className="truncate pr-2">{p[0]}</span><span className="font-bold">{p[1]} pac.</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-500 mb-2">Centros / Establecimientos (Top 5)</p>
+                  <ul className="text-sm text-slate-600">
+                    {Object.entries(demografiaStats.establecimientos).sort((a,b)=>b[1]-a[1]).slice(0,5).map((p, i) => (
+                      <li key={i} className="flex justify-between border-b border-slate-100 py-1 last:border-0">
+                        <span className="truncate pr-2">{p[0]}</span><span className="font-bold">{p[1]} pac.</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Rendimiento Médico Top 5 */}
+            <div className="print-avoid-break">
+              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-200 pb-2">Top 5 Profesionales (Volumen)</h3>
+              <table className="w-full text-left text-sm border-collapse">
+                <thead>
+                  <tr className="bg-slate-100 text-slate-600">
+                    <th className="p-2 border border-slate-200">Médico</th>
+                    <th className="p-2 border border-slate-200 text-center">Pacientes Atendidos</th>
+                    <th className="p-2 border border-slate-200 text-center">Rendimiento (Pac/Hora)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...filteredMetricsByDoctor].sort((a,b) => b.total - a.total).slice(0, 5).map(doc => (
+                    <tr key={doc.name}>
+                      <td className="p-2 border border-slate-200 font-medium text-slate-700">{doc.name}</td>
+                      <td className="p-2 border border-slate-200 text-center font-bold text-blue-600">{doc.total}</td>
+                      <td className="p-2 border border-slate-200 text-center font-bold text-emerald-600">{doc.promHora}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}

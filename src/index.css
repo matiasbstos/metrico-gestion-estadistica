@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@media print {
+  /* Hide all UI elements not meant for printing */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Show only the printable report container */
+  #reporte-printable, #reporte-printable * {
+    visibility: visible;
+  }
+
+  /* Position the printable report to take the whole page */
+  #reporte-printable {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  @page {
+    margin: 1cm;
+  }
+
+  /* Avoid page breaks inside important components */
+  .print-avoid-break {
+    page-break-inside: avoid;
+  }
+}
