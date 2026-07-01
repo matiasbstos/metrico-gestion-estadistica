@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { FileText, Download, Printer, Calendar, Users, Clock, AlertTriangle } from 'lucide-react';
 import { useMetricoAnalytics } from '../../hooks/useMetricoAnalytics';
 import { useMetricoProfesionales } from '../../hooks/useMetricoProfesionales';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 export default function ReportesModule({ pacientesDB, turnosDB }) {
   const [tipoReporte, setTipoReporte] = useState('mensual'); // diario, semanal, mensual
@@ -31,7 +32,7 @@ export default function ReportesModule({ pacientesDB, turnosDB }) {
   }, [fechaBase, tipoReporte]);
 
   // Extraer KPIs para el reporte
-  const { statsKPI, demografiaStats } = useMetricoAnalytics(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin);
+  const { statsKPI, demografiaStats, topDiagnosticos } = useMetricoAnalytics(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin);
   const { filteredMetricsByDoctor } = useMetricoProfesionales(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin, [], '');
 
   const equiposReporte = useMemo(() => {
@@ -102,10 +103,10 @@ export default function ReportesModule({ pacientesDB, turnosDB }) {
     
     if (pacs.length === 0) return alert('No hay datos en este periodo para exportar.');
     
-    const headers = ['ID_Lote', 'Edad', 'Sexo', 'Categoria', 'Medico', 'Comuna', 'Nacionalidad'];
+    const headers = ['ID_Lote', 'Edad', 'Sexo', 'Categoria', 'Medico', 'Comuna', 'Nacionalidad', 'Diagnostico_Principal'];
     const csvContent = "data:text/csv;charset=utf-8," 
       + headers.join(",") + "\n"
-      + pacs.map(p => `${p.loteId},${p.edad || ''},${p.sexo || ''},${p.categoria || ''},${p.medico || ''},${p.comuna || ''},${p.nacionalidad || ''}`).join("\n");
+      + pacs.map(p => `${p.loteId},${p.edad || ''},${p.sexo || ''},${p.categoria || ''},${p.medico || ''},${p.comuna || ''},${p.nacionalidad || ''},"${String(p.diagnosticoPrincipal || p.codigoDiagnostico || '').replace(/"/g, '""')}"`).join("\n");
       
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -339,6 +340,34 @@ export default function ReportesModule({ pacientesDB, turnosDB }) {
                       <p className="text-xs font-bold text-slate-600">{h.val}</p>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Top Diagnósticos */}
+            {topDiagnosticos && topDiagnosticos.length > 0 && (
+              <div className="print-avoid-break mt-8">
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-200 pb-2">Top 10 Diagnósticos Principales</h3>
+                <div className="h-[250px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      layout="vertical"
+                      data={topDiagnosticos}
+                      margin={{ top: 0, right: 30, left: 10, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                      <XAxis type="number" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10}} />
+                      <YAxis 
+                        dataKey="name" 
+                        type="category" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        width={120}
+                        tick={{fill: '#64748b', fontSize: 9, fontWeight: 'bold'}} 
+                      />
+                      <Bar dataKey="count" fill="#fb7185" radius={[0, 4, 4, 0]} barSize={16} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
             )}

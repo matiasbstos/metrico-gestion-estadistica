@@ -291,6 +291,25 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     };
   }, [demografiaStats]);
 
+  const topDiagnosticos = useMemo(() => {
+    const counts = {};
+    pacientesFiltrados.forEach(p => {
+      let diag = p.diagnosticoPrincipal || p.codigoDiagnostico;
+      if (diag && String(diag).trim() !== '' && String(diag).trim() !== 'UNDEFINED' && String(diag).trim() !== 'null') {
+        let text = String(diag).toUpperCase().trim();
+        // Remove code prefix if it looks like "J00 - Resfrio"
+        if (text.includes('-')) {
+          text = text.split('-').slice(1).join('-').trim();
+        }
+        counts[text] = (counts[text] || 0) + 1;
+      }
+    });
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+  }, [pacientesFiltrados]);
+
   return {
     turnosFiltrados,
     pacientesFiltrados,
@@ -298,6 +317,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     promediosGlobales,
     metricsByCategory,
     statsKPI,
-    rankingCentros
+    rankingCentros,
+    topDiagnosticos
   };
 };

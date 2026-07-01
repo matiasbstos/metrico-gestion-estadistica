@@ -1,0 +1,185 @@
+import React, { useState, useMemo } from 'react';
+import { Calendar, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
+export default function AnalisisComparativoTriple({ pacientesDB, turnosDB }) {
+  const subtractDays = (dateStr, days) => {
+    const d = new Date(dateStr + "T12:00:00"); 
+    d.setDate(d.getDate() - days);
+    return d.toISOString().split('T')[0];
+  };
+
+  const today = new Date().toISOString().split('T')[0];
+  const [fechaA, setFechaA] = useState(today);
+  const [fechaB, setFechaB] = useState(subtractDays(today, 7));
+  const [fechaC, setFechaC] = useState(subtractDays(today, 364));
+
+  const datesToCompare = [
+    { label: 'Periodo 1', date: fechaA, setter: setFechaA, short: 'Fecha 1', color: '#3b82f6' },
+    { label: 'Periodo 2', date: fechaB, setter: setFechaB, short: 'Fecha 2', color: '#8b5cf6' },
+    { label: 'Periodo 3', date: fechaC, setter: setFechaC, short: 'Fecha 3', color: '#10b981' }
+  ];
+
+  const metrics = useMemo(() => {
+    const getStatsForDate = (date) => {
+      // Filtrar turnos de ese día específico
+      const turnosDelDia = turnosDB.filter(t => t.fechaInicio === date || (t.fechaInicio <= date && t.fechaFin >= date));
+      
+      const pacs = pacientesDB.filter(p => {
+        if (!p.tAdmision) return false;
+        const pDate = new Date(p.tAdmision).toISOString().split('T')[0];
+        return pDate === date;
+      });
+
+      let total = 0, c1 = 0, c2 = 0, c3 = 0, c4 = 0, c5 = 0;
+      
+      // Si hay turnos (carga masiva/manual), usamos sus totales
+      if (turnosDelDia.length > 0) {
+        turnosDelDia.forEach(t => {
+          total += Number(t.totalPacientes || 0);
+          c1 += Number(t.c1 || 0);
+          c2 += Number(t.c2 || 0);
+          c3 += Number(t.c3 || 0) + Number(t.c3_z518 || 0);
+          c4 += Number(t.c4 || 0);
+          c5 += Number(t.c5 || 0);
+        });
+      } else {
+        // Fallback: calcular desde pacientes directamente
+        total = pacs.length;
+        pacs.forEach(p => {
+          const c = String(p.categoria).toLowerCase();
+          if (c.includes('c1')) c1++;
+          else if (c.includes('c2')) c2++;
+          else if (c.includes('c3')) c3++;
+          else if (c.includes('c4')) c4++;
+          else if (c.includes('c5')) c5++;
+        });
+      }
+
+      return { total, c1, c2, c3, c4, c5 };
+    };
+
+    const res = {};
+    datesToCompare.forEach(d => {
+      res[d.date] = getStatsForDate(d.date);
+    });
+    return res;
+  }, [fechaA, fechaB, fechaC, turnosDB, pacientesDB]);
+
+  const chartData = [
+    { name: 'C1', [datesToCompare[2].short]: metrics[fechaC].c1, [datesToCompare[1].short]: metrics[fechaB].c1, [datesToCompare[0].short]: metrics[fechaA].c1 },
+    { name: 'C2', [datesToCompare[2].short]: metrics[fechaC].c2, [datesToCompare[1].short]: metrics[fechaB].c2, [datesToCompare[0].short]: metrics[fechaA].c2 },
+    { name: 'C3', [datesToCompare[2].short]: metrics[fechaC].c3, [datesToCompare[1].short]: metrics[fechaB].c3, [datesToCompare[0].short]: metrics[fechaA].c3 },
+    { name: 'C4', [datesToCompare[2].short]: metrics[fechaC].c4, [datesToCompare[1].short]: metrics[fechaB].c4, [datesToCompare[0].short]: metrics[fechaA].c4 },
+    { name: 'C5', [datesToCompare[2].short]: metrics[fechaC].c5, [datesToCompare[1].short]: metrics[fechaB].c5, [datesToCompare[0].short]: metrics[fechaA].c5 },
+  ];
+
+  const getTrendIcon = (current, previous) => {
+    if (current > previous) return <TrendingUp className="w-4 h-4 text-rose-500" />;
+    if (current < previous) return <TrendingDown className="w-4 h-4 text-emerald-500" />;
+    return <Minus className="w-4 h-4 text-slate-400" />;
+  };
+
+  const getPercentChange = (current, previous) => {
+    if (previous === 0) return current > 0 ? '+100%' : '0%';
+    const diff = current - previous;
+    const perc = (diff / previous) * 100;
+    return `${perc > 0 ? '+' : ''}${perc.toFixed(1)}%`;
+  };
+
+  return (
+    <div className="space-y-6 animate-fade-in max-w-7xl mx-auto">
+      <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-indigo-100 rounded-lg">
+            <Calendar className="w-6 h-6 text-indigo-600" />
+          </div>
+          <div>
+            <h2 className="text-xl font-black text-slate-800">Análisis Comparativo Triple</h2>
+            <p className="text-xs font-bold text-slate-400">Selecciona tres fechas independientes para cruzar su rendimiento</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {datesToCompare.map((d, i) => {
+          const stats = metrics[d.date];
+          const prevStats = i === 0 ? metrics[datesToCompare[1].date] : i === 1 ? metrics[datesToCompare[2].date] : null;
+          
+          return (
+            <div key={d.date} className="bg-white rounded-2xl shadow-sm border-t-4 p-6 relative overflow-hidden" style={{ borderTopColor: d.color }}>
+              <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full opacity-10" style={{ backgroundColor: d.color }}></div>
+              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">{d.label}</h3>
+              <input 
+                type="date" 
+                value={d.date} 
+                onChange={(e) => d.setter(e.target.value)}
+                className="w-full border-2 border-slate-200 rounded-lg p-2 text-sm font-black text-slate-700 outline-none focus:border-indigo-500 mb-6 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
+                style={{ borderColor: `${d.color}40` }}
+              />
+              
+              <div className="flex items-end gap-3 mb-6">
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Volumen Total</p>
+                  <p className="text-4xl font-black text-slate-800">{stats.total}</p>
+                </div>
+                {prevStats && (
+                  <div className={`flex items-center gap-1 text-xs font-bold mb-1 ${stats.total > prevStats.total ? 'text-rose-500' : stats.total < prevStats.total ? 'text-emerald-500' : 'text-slate-400'}`}>
+                    {getTrendIcon(stats.total, prevStats.total)}
+                    {getPercentChange(stats.total, prevStats.total)}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                {[
+                  { key: 'c1', color: 'bg-red-500' },
+                  { key: 'c2', color: 'bg-orange-500' },
+                  { key: 'c3', color: 'bg-yellow-500' },
+                  { key: 'c4', color: 'bg-emerald-500' },
+                  { key: 'c5', color: 'bg-blue-500' }
+                ].map(cat => (
+                  <div key={cat.key} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${cat.color}`}></div>
+                      <span className="text-xs font-bold text-slate-600 uppercase">{cat.key}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-black text-slate-700">{stats[cat.key]}</span>
+                      {prevStats && (
+                        <span className={`text-[10px] font-bold w-12 text-right ${stats[cat.key] > prevStats[cat.key] ? 'text-rose-400' : stats[cat.key] < prevStats[cat.key] ? 'text-emerald-400' : 'text-slate-300'}`}>
+                          {getPercentChange(stats[cat.key], prevStats[cat.key])}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <h3 className="text-sm font-black text-slate-700 uppercase tracking-wider mb-6">Comparativa por Categoría de Triaje</h3>
+        <div className="h-80 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 'bold' }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+              <Tooltip 
+                cursor={{ fill: '#f1f5f9' }}
+                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              />
+              <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '12px', fontWeight: 'bold' }} />
+              <Bar dataKey={datesToCompare[2].short} name={datesToCompare[2].short} fill={datesToCompare[2].color} radius={[4, 4, 0, 0]} />
+              <Bar dataKey={datesToCompare[1].short} name={datesToCompare[1].short} fill={datesToCompare[1].color} radius={[4, 4, 0, 0]} />
+              <Bar dataKey={datesToCompare[0].short} name={datesToCompare[0].short} fill={datesToCompare[0].color} radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -7,7 +7,7 @@ export default function PanelKPIs({ statsKPI }) {
   if (!statsKPI) return null;
 
   const renderKPICard = (title, value, growthMonth, growthYear, prefix = '', suffix = '', colorClass = 'text-slate-800') => (
-    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-between h-full min-h-[140px] relative overflow-hidden">
+    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-between h-full min-h-[140px] relative">
         <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase">{title}</span>
         <div className="flex justify-between items-end mt-1 mb-2">
             <span className={`text-3xl font-black ${colorClass}`}>{prefix}{value}{suffix ? <span className="text-sm font-bold ml-1">{suffix}</span> : null}</span>
@@ -47,7 +47,7 @@ export default function PanelKPIs({ statsKPI }) {
     const growthYear = isAnnual ? undefined : statsKPI.altasAdmin.growthYear;
 
     return (
-      <div className={`p-4 rounded-xl shadow-sm border flex flex-col justify-between h-full min-h-[140px] relative overflow-hidden transition-colors ${isAlert ? (isAnnual ? 'bg-rose-50 border-rose-200' : 'bg-rose-50 border-rose-200 animate-pulse') : 'bg-white border-slate-100'}`}>
+      <div className={`p-4 rounded-xl shadow-sm border flex flex-col justify-between h-full min-h-[140px] relative transition-colors ${isAlert ? (isAnnual ? 'bg-rose-50 border-rose-200' : 'bg-rose-50 border-rose-200 animate-pulse') : 'bg-white border-slate-100'}`}>
          <div className="flex items-center gap-2">
            <span className={`text-[10px] font-bold tracking-wider uppercase ${isAlert ? 'text-rose-600' : 'text-slate-400'}`}>Altas Admin</span>
            <InfoTooltip text="Meta institucional: Mantener por encima del 5% del volumen total." />

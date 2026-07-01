@@ -6,9 +6,11 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrados }) {
   const dataEquipos = useMemo(() => {
     const equipos = {
-      'Turno 1': { name: 'Turno 1', lotes: new Set(), totalPacientes: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#3b82f6' },
-      'Turno 2': { name: 'Turno 2', lotes: new Set(), totalPacientes: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#10b981' },
-      'Turno 3': { name: 'Turno 3', lotes: new Set(), totalPacientes: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#8b5cf6' }
+      'Turno 1': { name: 'Turno 1', lotes: new Set(), totalPacientes: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#10b981' }, // Verde
+      'Turno 2': { name: 'Turno 2', lotes: new Set(), totalPacientes: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#facc15' }, // Amarillo
+      'Turno 3': { name: 'Turno 3', lotes: new Set(), totalPacientes: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#3b82f6' }, // Azul
+      'Turno 4': { name: 'Turno 4', lotes: new Set(), totalPacientes: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#f97316' }, // Naranja
+      'Sin Asignar': { name: 'Sin Asignar', lotes: new Set(), totalPacientes: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#94a3b8' } // Gris
     };
 
     turnosFiltrados.forEach(t => {

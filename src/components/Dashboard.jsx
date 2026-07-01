@@ -8,12 +8,15 @@ import AnalisisSociodemografico from './dashboard/AnalisisSociodemografico';
 import TablaTiemposEspera from './dashboard/TablaTiemposEspera';
 import AnalisisProfesionales from './dashboard/AnalisisProfesionales';
 import RankingProfesionales from './dashboard/RankingProfesionales';
+import TopDiagnosticos from './dashboard/TopDiagnosticos';
 import DataGridTurnos from './dashboard/DataGridTurnos';
 import GestionDatos from './dashboard/GestionDatos';
 import ReportesModule from './dashboard/ReportesModule';
 import MatrizCruzada from './dashboard/MatrizCruzada';
 import PautaTurnos from './dashboard/PautaTurnos';
 import AuditLog from './dashboard/AuditLog';
+import AnalisisComparativoTriple from './dashboard/AnalisisComparativoTriple';
+import CalendarioHistorico from './dashboard/CalendarioHistorico';
 import Login from './Login';
 import { 
   Clock, Users, UserCheck, AlertTriangle, Activity, ArrowRight, 
@@ -21,7 +24,7 @@ import {
   CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
   BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
   Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
-  HeartPulse, Shield, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock
+  HeartPulse, Shield, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
@@ -154,7 +157,7 @@ const DashboardContent = () => {
     }
   };
 
-  const { turnosFiltrados, pacientesFiltrados, demografiaStats, promediosGlobales, metricsByCategory, statsKPI, rankingCentros } = useMetricoAnalytics(pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales);
+  const { turnosFiltrados, pacientesFiltrados, demografiaStats, promediosGlobales, metricsByCategory, statsKPI, rankingCentros, topDiagnosticos } = useMetricoAnalytics(pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales);
   const { turnosDemanda, pacientesDemanda, peakHoursData } = useMetricoDemanda(pacientesDB, turnosDB, demandaFechaInicio, demandaFechaFin, modoComparativo, filtroFechaInicioB, filtroFechaFinB, docsToCompare);
   const { turnosProf, pacientesProf, metricsByDoctor, filteredMetricsByDoctor, dailyDoctorData } = useMetricoProfesionales(pacientesDB, turnosDB, profFechaInicio, profFechaFin, docsToCompare, searchDoctor);
 
@@ -443,6 +446,16 @@ const DashboardContent = () => {
               <BarChart2 className="w-4 h-4" /> Inicio
             </button>
             <button 
+              onClick={() => setActiveTab('comparativo')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-md transition-colors ${activeTab === 'comparativo' ? 'bg-sky-500 text-white' : 'bg-transparent text-slate-400 hover:text-white hover:bg-slate-800'}`}>
+              <GitCompare className="w-4 h-4" /> Comparativo
+            </button>
+            <button 
+              onClick={() => setActiveTab('calendario')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-md transition-colors ${activeTab === 'calendario' ? 'bg-sky-500 text-white' : 'bg-transparent text-slate-400 hover:text-white hover:bg-slate-800'}`}>
+              <Calendar className="w-4 h-4" /> Histórico Mensual
+            </button>
+            <button 
               onClick={() => setActiveTab('reportes')}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-colors ${activeTab === 'reportes' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}>
               <FileSpreadsheet className="w-4 h-4" /> Reporte
@@ -611,6 +624,10 @@ const DashboardContent = () => {
 
         <AnalisisEquiposTurno turnosFiltrados={turnosFiltrados} pacientesFiltrados={pacientesFiltrados} />
 
+        {topDiagnosticos && topDiagnosticos.length > 0 && (
+          <TopDiagnosticos topDiagnosticos={topDiagnosticos} />
+        )}
+
         {demografiaStats && (
           <>
             <AnalisisSociodemografico 
@@ -664,6 +681,14 @@ const DashboardContent = () => {
           <ReportesModule pacientesDB={pacientesDB} turnosDB={turnosDB} />
         )}
 
+        {activeTab === 'comparativo' && (
+          <AnalisisComparativoTriple pacientesDB={pacientesDB} turnosDB={turnosDB} />
+        )}
+
+        {activeTab === 'calendario' && (
+          <CalendarioHistorico pacientesDB={pacientesDB} turnosDB={turnosDB} />
+        )}
+
         {activeTab === 'data' && (
           <GestionDatos 
             user={user} 
@@ -678,6 +703,8 @@ const DashboardContent = () => {
             setFiltroFechaFin={setFiltroFechaFin} 
             centroActivo={centroActivo}
             pautasTurnosHook={pautasTurnosHook}
+            pacientesDB={pacientesDB}
+            turnosDB={turnosDB}
           />
         )}
 
