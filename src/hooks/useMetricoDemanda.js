@@ -1,6 +1,20 @@
 import { useMemo } from 'react';
 
-export const useMetricoDemanda = (pacientesDB, turnosDB, demandaFechaInicio, demandaFechaFin, modoComparativo, filtroFechaInicioB, filtroFechaFinB, docsToCompare) => {
+const parseLocalDatetime = (dateStr, hourMinStr) => {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const [h, min] = (hourMinStr || '00:00').split(':').map(Number);
+  return new Date(y, m - 1, d, h, min, 0).getTime();
+};
+
+const isPatientInWindow = (tAdmMs, startDayStr, endDayStr, startHourStr, endHourStr) => {
+  if (!tAdmMs) return false;
+  const tStart = parseLocalDatetime(startDayStr, startHourStr || '00:00');
+  const tEnd = parseLocalDatetime(endDayStr, endHourStr || '23:59');
+  if (isNaN(tStart) || isNaN(tEnd)) return false;
+  return tAdmMs >= tStart && tAdmMs <= tEnd;
+};
+
+export const useMetricoDemanda = (pacientesDB, turnosDB, demandaFechaInicio, demandaFechaFin, modoComparativo, filtroFechaInicioB, filtroFechaFinB, docsToCompare, tipoCorte = 'turno', filtroHoraInicio = '00:00', filtroHoraFin = '23:59') => {
   // =========================================================================
   // 2. PIPELINE DE DATOS DEMANDA (Afecta solo Curva 24 hrs)
   // =========================================================================
@@ -13,9 +27,8 @@ export const useMetricoDemanda = (pacientesDB, turnosDB, demandaFechaInicio, dem
   }, [turnosDB, demandaFechaInicio, demandaFechaFin]);
 
   const pacientesDemanda = useMemo(() => {
-    const lotes = turnosDemanda.map(t => t.loteId);
-    return pacientesDB.filter(p => lotes.includes(p.loteId));
-  }, [pacientesDB, turnosDemanda]);
+    return pacientesDB.filter(p => isPatientInWindow(p.tAdmision, demandaFechaInicio, demandaFechaFin, filtroHoraInicio, filtroHoraFin));
+  }, [pacientesDB, demandaFechaInicio, demandaFechaFin, filtroHoraInicio, filtroHoraFin]);
 
   const peakHoursData = useMemo(() => {
     const hours = Array(24).fill(0).map((_, i) => {
@@ -38,9 +51,7 @@ export const useMetricoDemanda = (pacientesDB, turnosDB, demandaFechaInicio, dem
     });
 
     if (modoComparativo) {
-      const turnosB = turnosDB.filter(t => t.fechaInicio >= filtroFechaInicioB && t.fechaFin <= filtroFechaFinB);
-      const loteIdsB = turnosB.map(t => t.loteId);
-      const pacsB = pacientesDB.filter(p => loteIdsB.includes(p.loteId));
+      const pacsB = pacientesDB.filter(p => isPatientInWindow(p.tAdmision, filtroFechaInicioB, filtroFechaFinB, filtroHoraInicio, filtroHoraFin));
       pacsB.forEach(p => {
         if (p.tAdmision) {
           const date = new Date(p.tAdmision);
@@ -50,7 +61,7 @@ export const useMetricoDemanda = (pacientesDB, turnosDB, demandaFechaInicio, dem
     }
 
     return hours;
-  }, [pacientesDemanda, turnosDB, pacientesDB, filtroFechaInicioB, filtroFechaFinB, modoComparativo, docsToCompare]);
+  }, [pacientesDemanda, pacientesDB, filtroFechaInicioB, filtroFechaFinB, modoComparativo, docsToCompare, filtroHoraInicio, filtroHoraFin]);
 
   return { turnosDemanda, pacientesDemanda, peakHoursData };
 };

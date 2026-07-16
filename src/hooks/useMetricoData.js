@@ -20,6 +20,10 @@ export const useMetricoData = () => {
       const unsubscribeAuth = onAuthStateChanged(auth, async (u) => {
         setUser(u);
         if (u) {
+          // Asignación de rol inmediata y optimista según correo
+          const emailRol = u.email === 'matias.bustos@cormumel.cl' ? 'global' : 'local';
+          setUserProfile({ email: u.email, rol: emailRol });
+
           try {
             const { doc, getDoc, setDoc } = await import('firebase/firestore');
             const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', u.uid);
@@ -40,7 +44,7 @@ export const useMetricoData = () => {
             }
           } catch (e) {
             console.error('Error fetching user profile', e);
-            setUserProfile({ rol: 'local' });
+            setUserProfile({ email: u.email, rol: emailRol });
           }
           setSyncStatus('synced');
         } else {

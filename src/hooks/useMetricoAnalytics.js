@@ -4,7 +4,21 @@ const AGE_RANGES = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '
 
 const perc = (val, tot) => tot > 0 ? ((val / tot) * 100).toFixed(1) : 0;
 
-export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales = {}) => {
+const parseLocalDatetime = (dateStr, hourMinStr) => {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const [h, min] = (hourMinStr || '00:00').split(':').map(Number);
+  return new Date(y, m - 1, d, h, min, 0).getTime();
+};
+
+const isPatientInWindow = (tAdmMs, startDayStr, endDayStr, startHourStr, endHourStr) => {
+  if (!tAdmMs) return false;
+  const tStart = parseLocalDatetime(startDayStr, startHourStr || '00:00');
+  const tEnd = parseLocalDatetime(endDayStr, endHourStr || '23:59');
+  if (isNaN(tStart) || isNaN(tEnd)) return false;
+  return tAdmMs >= tStart && tAdmMs <= tEnd;
+};
+
+export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales = {}, tipoCorte = 'turno', filtroHoraInicio = '00:00', filtroHoraFin = '23:59') => {
   // =========================================================================
   // 1. PIPELINE DE DATOS GLOBAL (Afecta KPIs, Triaje, Tabla Global)
   // =========================================================================
@@ -21,8 +35,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
   }, [filtrosGlobales]);
 
   const pacientesFiltrados = useMemo(() => {
-    const lotesVisibles = turnosPorFecha.map(t => t.loteId);
-    let pacs = pacientesDB.filter(p => lotesVisibles.includes(p.loteId));
+    let pacs = pacientesDB.filter(p => isPatientInWindow(p.tAdmision, filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin));
 
     if (hasGlobalFilters) {
       if (filtrosGlobales.sexo && filtrosGlobales.sexo !== 'TODOS') {
@@ -50,12 +63,17 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       }
     }
     return pacs;
-  }, [pacientesDB, turnosPorFecha, filtrosGlobales, hasGlobalFilters]);
+  }, [pacientesDB, filtrosGlobales, hasGlobalFilters, filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin]);
+
+  const recalcularTurnos = useMemo(() => {
+    const hasHours = (filtroHoraInicio !== '00:00' || filtroHoraFin !== '23:59');
+    return hasGlobalFilters || hasHours;
+  }, [hasGlobalFilters, filtroHoraInicio, filtroHoraFin]);
 
   const turnosFiltrados = useMemo(() => {
-    if (!hasGlobalFilters) return turnosPorFecha;
+    if (!recalcularTurnos) return turnosPorFecha;
 
-    // Cuando hay filtros globales, recalculamos los totales de los turnos en base a los pacientes filtrados
+    // Cuando hay filtros activos (globales o de horas), recalculamos los totales de los turnos en base a los pacientes filtrados
     // y excluímos los turnos manuales (ya que no se les pueden aplicar filtros de pacientes)
     return turnosPorFecha.filter(t => t.tipo === 'Masiva').map(t => {
       const pacs = pacientesFiltrados.filter(p => p.loteId === t.loteId);
@@ -72,7 +90,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
         ...counts
       };
     });
-  }, [turnosPorFecha, pacientesFiltrados, hasGlobalFilters]);
+  }, [turnosPorFecha, pacientesFiltrados, recalcularTurnos]);
 
   // === ANÁLISIS DEMOGRÁFICO Y GLOBAL ===
   const demografiaStats = useMemo(() => {
@@ -170,20 +188,17 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     if (isNaN(fInit.getTime()) || isNaN(fEnd.getTime())) return null;
 
     const daysDiff = Math.max(1, (fEnd - fInit) / (1000 * 60 * 60 * 24));
-    
     // Periodos anteriores (Mes y Año)
     const pmInitStr = new Date(fInit.getFullYear(), fInit.getMonth() - 1, fInit.getDate()).toISOString().split('T')[0];
     const pmEndStr = new Date(fEnd.getFullYear(), fEnd.getMonth() - 1, fEnd.getDate()).toISOString().split('T')[0];
     const pyInitStr = new Date(fInit.getFullYear() - 1, fInit.getMonth(), fInit.getDate()).toISOString().split('T')[0];
-    const pyEndStr = new Date(fEnd.getFullYear() - 1, fEnd.getMonth(), fEnd.getDate()).toISOString().split('T')[0];
-
-    const prevMonthTurnos = turnosDB.filter(t => t.fechaInicio >= pmInitStr && t.fechaFin <= pmEndStr);
-    const prevYearTurnos = turnosDB.filter(t => t.fechaInicio >= pyInitStr && t.fechaFin <= pyEndStr);
-
-    const prevMonthLotes = prevMonthTurnos.map(t => t.loteId);
-    const prevYearLotes = prevYearTurnos.map(t => t.loteId);
-    const prevMonthPacientes = pacientesDB.filter(p => prevMonthLotes.includes(p.loteId));
-    const prevYearPacientes = pacientesDB.filter(p => prevYearLotes.includes(p.loteId));
+    const pyEndStr = new Date(fEnd.getFullYear() - 1, fEnd.getMonth(), fEnd.getDate()).toISOString().split('T')[0];    const getHoursInPeriod = (startDayStr, endDayStr, startHourStr, endHourStr) => {
+      const tStart = parseLocalDatetime(startDayStr, startHourStr || '00:00');
+      const tEnd = parseLocalDatetime(endDayStr, endHourStr || '23:59');
+      const diffMs = tEnd - tStart;
+      const hours = (diffMs + 60 * 1000) / 3600000;
+      return Math.max(1, hours);
+    };
 
     const calcEstadia = (pacs) => {
         let sum = 0, count = 0;
@@ -191,79 +206,171 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
         return count ? sum / count : 0;
     };
 
-    const calcPacHora = (turnos) => {
-        let horas = 0;
-        turnos.forEach(t => horas += (String(t.horario||'').includes('17:00') ? 15 : 12));
-        return horas > 0 ? turnos.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0) / horas : 0;
-    };
+    let prevMonthPacientes, prevYearPacientes;
+    let prevMonthVol, prevYearVol;
+    let pmAltasAdmin, pyAltasAdmin;
+    let pmEstadia, pyEstadia;
+    let pmPacHora, pyPacHora;
+    const pmCats = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
+    const pyCats = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
 
-    const currentEstadia = promediosGlobales.avgAdmAlt || 0;
-    const pmEstadia = calcEstadia(prevMonthPacientes);
-    const pyEstadia = calcEstadia(prevYearPacientes);
+    prevMonthPacientes = pacientesDB.filter(p => isPatientInWindow(p.tAdmision, pmInitStr, pmEndStr, filtroHoraInicio, filtroHoraFin));
+    prevYearPacientes = pacientesDB.filter(p => isPatientInWindow(p.tAdmision, pyInitStr, pyEndStr, filtroHoraInicio, filtroHoraFin));
 
-    const currentPacHora = calcPacHora(turnosFiltrados);
-    const pmPacHora = calcPacHora(prevMonthTurnos);
-    const pyPacHora = calcPacHora(prevYearTurnos);
+    prevMonthVol = prevMonthPacientes.length;
+    prevYearVol = prevYearPacientes.length;
 
-    const prevMonthVol = prevMonthTurnos.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0);
-    const prevYearVol = prevYearTurnos.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0);
-    
-    const currentAltasAdmin = turnosFiltrados.reduce((acc, t) => acc + Number(t.altasAdmin || 0), 0);
-    const pmAltasAdmin = prevMonthTurnos.reduce((acc, t) => acc + Number(t.altasAdmin || 0), 0);
-    const pyAltasAdmin = prevYearTurnos.reduce((acc, t) => acc + Number(t.altasAdmin || 0), 0);
+    pmAltasAdmin = prevMonthPacientes.filter(p => p.estado === 'Cancelada').length;
+    pyAltasAdmin = prevYearPacientes.filter(p => p.estado === 'Cancelada').length;
+
+    pmEstadia = calcEstadia(prevMonthPacientes);
+    pyEstadia = calcEstadia(prevYearPacientes);
+
+    const pmHours = getHoursInPeriod(pmInitStr, pmEndStr, filtroHoraInicio, filtroHoraFin);
+    const pyHours = getHoursInPeriod(pyInitStr, pyEndStr, filtroHoraInicio, filtroHoraFin);
+
+    pmPacHora = pmHours > 0 ? prevMonthVol / pmHours : 0;
+    pyPacHora = pyHours > 0 ? prevYearVol / pyHours : 0;
+
+    prevMonthPacientes.forEach(p => { if (pmCats[p.categoria] !== undefined) pmCats[p.categoria]++; });
+    prevYearPacientes.forEach(p => { if (pyCats[p.categoria] !== undefined) pyCats[p.categoria]++; });
+
+    const currentVol = pacientesFiltrados.length;
+    const currentAltas = pacientesFiltrados.filter(p => p.estado === 'Cancelada').length;
+    const currentEstadiaVal = calcEstadia(pacientesFiltrados);
+
+    const currentHours = getHoursInPeriod(filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin);
+    const currentPacHoraVal = currentHours > 0 ? currentVol / currentHours : 0;
+
+    const currentCats = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
+    pacientesFiltrados.forEach(p => {
+      if (currentCats[p.categoria] !== undefined) currentCats[p.categoria]++;
+    });
 
     const getGrowth = (curr, prev) => prev === 0 ? (curr > 0 ? 100 : 0) : ((curr - prev) / prev) * 100;
 
     const avgEdad = demografiaStats.edadCount ? (demografiaStats.edadSum / demografiaStats.edadCount).toFixed(1) : 0;
-    const fonasaTot = Object.entries(demografiaStats.prevs).filter(([k]) => k.includes('FONASA')).reduce((acc, [_, v]) => acc + v, 0);
-    const fonasaPercent = demografiaStats.total ? (fonasaTot / demografiaStats.total) * 100 : 0;
+    const fontTot = Object.entries(demografiaStats.prevs).filter(([k]) => k.includes('FONASA')).reduce((acc, [_, v]) => acc + v, 0);
+    const fonasaPercent = demografiaStats.total ? (fontTot / demografiaStats.total) * 100 : 0;
     const meliPercent = demografiaStats.total ? ((demografiaStats.comunas['MELIPILLA'] || 0) / demografiaStats.total) * 100 : 0;
 
-    // Comparativa YTD (Año actual)
+    // Comparativa YTD (Año actual) - Siempre usa día completo civil 00:00 a 23:59
     const yearStartStr = `${fEnd.getFullYear()}-01-01`;
     const fEndStr = fEnd.toISOString().split('T')[0];
-    const yearTurnos = turnosDB.filter(t => t.fechaInicio >= yearStartStr && t.fechaFin <= fEndStr);
-    const yearLotes = yearTurnos.map(t => t.loteId);
-    const yearPacientes = pacientesDB.filter(p => yearLotes.includes(p.loteId));
+
+    const yearPacs = pacientesDB.filter(p => isPatientInWindow(p.tAdmision, yearStartStr, fEndStr, '00:00', '23:59'));
+    
+    // Crear conjunto de fechas que son fin de semana o festivos
+    const weekendDates = new Set();
+    turnosDB.forEach(t => {
+      if (t.horario && t.horario.includes('Fin de semana') && t.fechaInicio) {
+        const parts = t.fechaInicio.split('-');
+        if (parts.length === 3) {
+          weekendDates.add(`${parts[2]}/${parts[1]}/${parts[0]}`);
+        }
+      }
+    });
+
+    const isWeekendOrFestivo = (dateStr) => {
+      if (weekendDates.has(dateStr)) return true;
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        const d = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+        const day = d.getDay();
+        return day === 0 || day === 6;
+      }
+      return false;
+    };
+
+    // Calcular récords diarios del año (YTD)
+    const pacsByDate = {};
+    const altasByDate = {};
+    yearPacs.forEach(p => {
+      if (!p.tAdmision) return;
+      const d = new Date(p.tAdmision);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${day}/${m}/${y}`;
+
+      pacsByDate[dateStr] = (pacsByDate[dateStr] || 0) + 1;
+      if (p.estado === 'Cancelada') {
+        altasByDate[dateStr] = (altasByDate[dateStr] || 0) + 1;
+      }
+    });
+
+    let recordPacWkdy = { count: 0, date: 'Sin registros' };
+    let recordPacWknd = { count: 0, date: 'Sin registros' };
+
+    Object.entries(pacsByDate).forEach(([date, count]) => {
+      if (isWeekendOrFestivo(date)) {
+        if (count > recordPacWknd.count) {
+          recordPacWknd = { count, date };
+        }
+      } else {
+        if (count > recordPacWkdy.count) {
+          recordPacWkdy = { count, date };
+        }
+      }
+    });
+
+    let recordAltasWkdy = { count: 0, date: 'Sin registros' };
+    let recordAltasWknd = { count: 0, date: 'Sin registros' };
+
+    Object.entries(altasByDate).forEach(([date, count]) => {
+      if (isWeekendOrFestivo(date)) {
+        if (count > recordAltasWknd.count) {
+          recordAltasWknd = { count, date };
+        }
+      } else {
+        if (count > recordAltasWkdy.count) {
+          recordAltasWkdy = { count, date };
+        }
+      }
+    });
 
     const statsAnual = {
-        pacientes: { current: yearTurnos.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0) },
-        estadia: { current: calcEstadia(yearPacientes) },
-        pacHora: { current: calcPacHora(yearTurnos) },
-        altasAdmin: { current: yearTurnos.reduce((acc, t) => acc + Number(t.altasAdmin || 0), 0) }
+      pacientes: { current: yearPacs.length },
+      estadia: { current: calcEstadia(yearPacs) },
+      pacHora: { current: yearPacs.length / Math.max(1, getHoursInPeriod(yearStartStr, fEndStr, '00:00', '23:59')) },
+      altasAdmin: { current: yearPacs.filter(p => p.estado === 'Cancelada').length },
+      recordPacWkdy,
+      recordPacWknd,
+      recordAltasWkdy,
+      recordAltasWknd
     };
 
     return {
         anual: statsAnual,
         pacientes: {  
-            current: turnosFiltrados.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0), 
-            growthMonth: getGrowth(turnosFiltrados.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0), prevMonthVol),
-            growthYear: getGrowth(turnosFiltrados.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0), prevYearVol)
+            current: currentVol, 
+            growthMonth: getGrowth(currentVol, prevMonthVol),
+            growthYear: getGrowth(currentVol, prevYearVol)
         },
         estadia: { 
-            current: currentEstadia, 
-            growthMonth: getGrowth(currentEstadia, pmEstadia),
-            growthYear: getGrowth(currentEstadia, pyEstadia)
+            current: currentEstadiaVal, 
+            growthMonth: getGrowth(currentEstadiaVal, pmEstadia),
+            growthYear: getGrowth(currentEstadiaVal, pyEstadia)
         },
         pacHora: { 
-            current: currentPacHora, 
-            growthMonth: getGrowth(currentPacHora, pmPacHora),
-            growthYear: getGrowth(currentPacHora, pyPacHora)
+            current: currentPacHoraVal, 
+            growthMonth: getGrowth(currentPacHoraVal, pmPacHora),
+            growthYear: getGrowth(currentPacHoraVal, pyPacHora)
         },
         altasAdmin: { 
-            current: currentAltasAdmin, 
-            growthMonth: getGrowth(currentAltasAdmin, pmAltasAdmin),
-            growthYear: getGrowth(currentAltasAdmin, pyAltasAdmin)
+            current: currentAltas, 
+            growthMonth: getGrowth(currentAltas, pmAltasAdmin),
+            growthYear: getGrowth(currentAltas, pyAltasAdmin)
         },
         demo: { avgEdad, fonasaPercent, meliPercent },
         categorias: ['c1', 'c2', 'c3', 'c3_z518', 'c4', 'c5'].map(c => ({
             name: c === 'c3_z518' ? 'C3 (L)' : c.toUpperCase(),
-            current: turnosFiltrados.reduce((acc, t) => acc + Number(t[c] || 0), 0),
-            growthMonth: getGrowth(turnosFiltrados.reduce((acc, t) => acc + Number(t[c] || 0), 0), prevMonthTurnos.reduce((acc, t) => acc + Number(t[c] || 0), 0)),
-            growthYear: getGrowth(turnosFiltrados.reduce((acc, t) => acc + Number(t[c] || 0), 0), prevYearTurnos.reduce((acc, t) => acc + Number(t[c] || 0), 0))
+            current: currentCats[c],
+            growthMonth: getGrowth(currentCats[c], pmCats[c]),
+            growthYear: getGrowth(currentCats[c], pyCats[c])
         }))
     }
-  }, [turnosFiltrados, turnosDB, pacientesDB, filtroFechaInicio, filtroFechaFin, promediosGlobales, demografiaStats]);
+  }, [pacientesFiltrados, turnosDB, pacientesDB, filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin, promediosGlobales, demografiaStats, tipoCorte]);
 
   const rankingCentros = useMemo(() => {
     const centrosArr = Object.entries(demografiaStats.establecimientos).map(([name, count]) => ({name, count}));

@@ -84,8 +84,32 @@ const DashboardContent = () => {
   const turnosPorPagina = 10;
 
   const [filtrosGlobales, setFiltrosGlobales] = useState({ sexo: 'TODOS', prevision: 'TODOS', edad: 'TODOS', establecimiento: 'TODOS' });
+  const [tipoCorte, setTipoCorte] = useState('turno');
+  const [filtroHoraInicio, setFiltroHoraInicio] = useState('00:00');
+  const [filtroHoraFin, setFiltroHoraFin] = useState('23:59');
+  const [horarioPreset, setHorarioPreset] = useState('civil');
 
   const { user, userProfile, loading, syncStatus, setSyncStatus, setLoading, pacientesDB, turnosDB } = useMetricoData();
+
+  const isGlobalAdmin = useMemo(() => {
+    return user?.email === 'matias.bustos@cormumel.cl' || userProfile?.rol === 'global';
+  }, [user, userProfile]);
+
+  const maxDateLabel = useMemo(() => {
+    if (!pacientesDB || pacientesDB.length === 0) return '';
+    let maxTime = 0;
+    pacientesDB.forEach(p => {
+      if (p.tAdmision && p.tAdmision > maxTime) {
+        maxTime = p.tAdmision;
+      }
+    });
+    if (maxTime === 0) return '';
+    const d = new Date(maxTime);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }, [pacientesDB]);
   const pautasTurnosHook = usePautasTurnos();
 
   useEffect(() => {
@@ -157,9 +181,9 @@ const DashboardContent = () => {
     }
   };
 
-  const { turnosFiltrados, pacientesFiltrados, demografiaStats, promediosGlobales, metricsByCategory, statsKPI, rankingCentros, topDiagnosticos } = useMetricoAnalytics(pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales);
-  const { turnosDemanda, pacientesDemanda, peakHoursData } = useMetricoDemanda(pacientesDB, turnosDB, demandaFechaInicio, demandaFechaFin, modoComparativo, filtroFechaInicioB, filtroFechaFinB, docsToCompare);
-  const { turnosProf, pacientesProf, metricsByDoctor, filteredMetricsByDoctor, dailyDoctorData } = useMetricoProfesionales(pacientesDB, turnosDB, profFechaInicio, profFechaFin, docsToCompare, searchDoctor);
+  const { turnosFiltrados, pacientesFiltrados, demografiaStats, promediosGlobales, metricsByCategory, statsKPI, rankingCentros, topDiagnosticos } = useMetricoAnalytics(pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales, tipoCorte, filtroHoraInicio, filtroHoraFin);
+  const { turnosDemanda, pacientesDemanda, peakHoursData } = useMetricoDemanda(pacientesDB, turnosDB, demandaFechaInicio, demandaFechaFin, modoComparativo, filtroFechaInicioB, filtroFechaFinB, docsToCompare, tipoCorte, filtroHoraInicio, filtroHoraFin);
+  const { turnosProf, pacientesProf, metricsByDoctor, filteredMetricsByDoctor, dailyDoctorData } = useMetricoProfesionales(pacientesDB, turnosDB, profFechaInicio, profFechaFin, docsToCompare, searchDoctor, tipoCorte, filtroHoraInicio, filtroHoraFin);
 
   const toggleDocToCompare = (docName) => {
     setDocsToCompare(prev => prev.includes(docName) ? prev.filter(d => d !== docName) : [...prev, docName]);
@@ -373,17 +397,7 @@ const DashboardContent = () => {
   }, [turnosFiltrados, modoComparativo]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-8 font-sans">
-        <div className="bg-white p-8 rounded-xl shadow-xl max-w-sm w-full text-center border border-slate-100">
-          <Activity className="w-12 h-12 text-blue-600 animate-pulse mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-slate-800 mb-2">Conectando a METRICO</h2>
-          <p className="text-sm text-slate-500 mb-6">Sincronizando registros encriptados...</p>
-          <div className="w-full bg-slate-100 rounded-full h-2 mb-2"><div className="bg-blue-600 h-2 rounded-full w-2/3 animate-pulse"></div></div>
-          <p className="text-[10px] text-slate-400 font-mono">Buscando actualizaciones ({syncStatus})</p>
-        </div>
-      </div>
-    );
+    return <LoadingProgress syncStatus={syncStatus} />;
   }
 
   if (!user) {
@@ -460,7 +474,7 @@ const DashboardContent = () => {
               className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-colors ${activeTab === 'reportes' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}>
               <FileSpreadsheet className="w-4 h-4" /> Reporte
             </button>
-            {userProfile?.rol === 'global' && (
+            {isGlobalAdmin && (
               <>
                 <button 
                   onClick={() => setActiveTab('data')} 
@@ -484,7 +498,7 @@ const DashboardContent = () => {
         <div className="p-4 border-t border-slate-800">
           <div className="mb-4 px-2">
             <p className="text-xs font-bold text-slate-300 truncate" title={user.email}>{user.email}</p>
-            <p className="text-[10px] text-sky-400 font-medium uppercase mt-0.5">{userProfile?.rol === 'global' ? 'Administrador Global' : 'Usuario Local'}</p>
+            <p className="text-[10px] text-sky-400 font-medium uppercase mt-0.5">{isGlobalAdmin ? 'Administrador Global' : 'Usuario Local'}</p>
           </div>
           <button onClick={handlePasswordResetRequest} className="flex items-center gap-3 px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg font-medium text-xs transition-colors w-full mb-1">
             <Lock className="w-3.5 h-3.5" /> Cambiar Clave
@@ -609,6 +623,11 @@ const DashboardContent = () => {
           filtroFechaInicioB={filtroFechaInicioB} setFiltroFechaInicioB={setFiltroFechaInicioB}
           filtroFechaFinB={filtroFechaFinB} setFiltroFechaFinB={setFiltroFechaFinB}
           applyDatePreset={applyDatePreset}
+          tipoCorte={tipoCorte} setTipoCorte={setTipoCorte}
+          filtroHoraInicio={filtroHoraInicio} setFiltroHoraInicio={setFiltroHoraInicio}
+          filtroHoraFin={filtroHoraFin} setFiltroHoraFin={setFiltroHoraFin}
+          horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
+          maxDateLabel={maxDateLabel}
         />
 
 
@@ -716,10 +735,81 @@ const DashboardContent = () => {
           <PautaTurnos 
             usePautasTurnos={pautasTurnosHook} 
             showNotif={showNotif} 
-            isGlobalAdmin={userProfile?.rol === 'global'} 
+            isGlobalAdmin={isGlobalAdmin} 
           />
         )}
       </main>
+    </div>
+  );
+}
+
+function LoadingProgress({ syncStatus }) {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress(prev => {
+        if (prev < 30) return prev + Math.floor(Math.random() * 8) + 2;
+        if (prev < 65) return prev + Math.floor(Math.random() * 4) + 1;
+        if (prev < 90) return prev + Math.floor(Math.random() * 2) + 0.5;
+        if (prev < 98) return prev + 0.1;
+        return prev;
+      });
+    }, 85);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const roundedProgress = Math.min(100, Math.floor(progress));
+
+  return (
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 relative overflow-hidden font-sans">
+      {/* Ambient background glow */}
+      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] -translate-x-1/3 -translate-y-1/3"></div>
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-sky-500/10 rounded-full blur-[100px] translate-x-1/3 translate-y-1/3"></div>
+      
+      <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800 p-8 rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.5)] max-w-sm w-full text-center relative overflow-hidden">
+        {/* Glow pulsing ring icon */}
+        <div className="w-16 h-16 bg-sky-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6 relative border border-sky-500/20 shadow-[0_0_20px_rgba(14,165,233,0.15)] animate-pulse">
+          <Activity className="w-8 h-8 text-sky-400" />
+        </div>
+        
+        <h2 className="text-xl font-black text-white tracking-wide mb-1">Cargando base de datos METRICO</h2>
+        <p className="text-xs text-slate-400 font-semibold mb-6">Sincronizando registros clínicos e históricos</p>
+        
+        {/* Progress Bar Container */}
+        <div className="relative pt-1">
+          <div className="flex mb-2.5 items-center justify-between">
+            <div>
+              <span className="text-[10px] font-black inline-block py-1 px-2.5 uppercase rounded-lg bg-sky-500/20 text-sky-400 tracking-wider">
+                {syncStatus === 'connecting' ? 'Conectando...' : 'Descargando...'}
+              </span>
+            </div>
+            <div className="text-right">
+              <span className="text-sm font-black text-sky-400">
+                {roundedProgress}%
+              </span>
+            </div>
+          </div>
+          
+          {/* Outer track */}
+          <div className="overflow-hidden h-3 text-xs flex rounded-full bg-slate-950 p-[2px] border border-slate-800/80 shadow-inner">
+            {/* Inner fill */}
+            <div 
+              style={{ width: `${roundedProgress}%` }} 
+              className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 rounded-full transition-all duration-150 ease-out"
+            ></div>
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center mt-8 pt-6 border-t border-slate-800/60 text-[10px] text-slate-500 font-black uppercase tracking-wider">
+          <span>Servidor SAR</span>
+          <span className="flex items-center gap-1.5 text-emerald-400">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+            En línea
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

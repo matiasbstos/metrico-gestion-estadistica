@@ -12,7 +12,14 @@ export default function FiltrosGlobales({
   setFiltroFechaInicioB,
   filtroFechaFinB,
   setFiltroFechaFinB,
-  applyDatePreset
+  applyDatePreset,
+  filtroHoraInicio,
+  setFiltroHoraInicio,
+  filtroHoraFin,
+  setFiltroHoraFin,
+  horarioPreset,
+  setHorarioPreset,
+  maxDateLabel
 }) {
   const [activePreset, setActivePreset] = useState('hoy');
 
@@ -27,6 +34,23 @@ export default function FiltrosGlobales({
     applyDatePreset(preset);
   };
 
+  const handleHorarioPreset = (preset) => {
+    setHorarioPreset(preset);
+    if (preset === 'civil') {
+      setFiltroHoraInicio('00:00');
+      setFiltroHoraFin('23:59');
+    } else if (preset === 'largo') {
+      setFiltroHoraInicio('17:00');
+      setFiltroHoraFin('08:00');
+    } else if (preset === 'finde_dia') {
+      setFiltroHoraInicio('08:00');
+      setFiltroHoraFin('20:00');
+    } else if (preset === 'finde_noche') {
+      setFiltroHoraInicio('20:00');
+      setFiltroHoraFin('08:00');
+    }
+  };
+
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
       <div>
@@ -34,15 +58,50 @@ export default function FiltrosGlobales({
           <Compass className="w-6 h-6 text-sky-500" />
           <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Explorador Global de Urgencias</h1>
         </div>
-        <p className="text-sm text-slate-500">Análisis operativo y clínico en tiempo real.</p>
+        <p className="text-sm text-slate-500 flex flex-wrap items-center gap-2">
+          <span>Análisis operativo y clínico en tiempo real.</span>
+          {maxDateLabel && (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm animate-pulse">
+              Datos cargados hasta: {maxDateLabel}
+            </span>
+          )}
+        </p>
       </div>
       
       <div className="flex flex-col items-end gap-2">
-        <div className="flex items-center bg-white border border-slate-200 rounded-lg p-1.5 shadow-sm">
-          <Calendar className="w-4 h-4 text-slate-400 mx-2" />
-          <input type="date" value={filtroFechaInicio} onChange={e => setFiltroFechaInicio(e.target.value)} className="text-xs font-medium text-slate-600 outline-none bg-transparent cursor-pointer" />
-          <span className="text-slate-400 mx-2">-</span>
-          <input type="date" value={filtroFechaFin} onChange={e => setFiltroFechaFin(e.target.value)} className="text-xs font-medium text-slate-600 outline-none bg-transparent cursor-pointer" />
+        <div className="flex items-center bg-white border border-slate-200 rounded-lg p-1.5 shadow-sm gap-2">
+          <Calendar className="w-4 h-4 text-slate-400 mx-1" />
+          <input 
+            type="date" 
+            value={filtroFechaInicio} 
+            onChange={e => setFiltroFechaInicio(e.target.value)} 
+            className="text-xs font-semibold text-slate-600 outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" 
+          />
+          <input 
+            type="time" 
+            value={filtroHoraInicio} 
+            onChange={e => {
+              setFiltroHoraInicio(e.target.value);
+              setHorarioPreset('custom');
+            }} 
+            className="text-xs font-bold text-sky-600 outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" 
+          />
+          <span className="text-slate-400 mx-1">-</span>
+          <input 
+            type="date" 
+            value={filtroFechaFin} 
+            onChange={e => setFiltroFechaFin(e.target.value)} 
+            className="text-xs font-semibold text-slate-600 outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" 
+          />
+          <input 
+            type="time" 
+            value={filtroHoraFin} 
+            onChange={e => {
+              setFiltroHoraFin(e.target.value);
+              setHorarioPreset('custom');
+            }} 
+            className="text-xs font-bold text-sky-600 outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" 
+          />
         </div>
         
         <div className="flex items-center gap-2">
@@ -50,6 +109,21 @@ export default function FiltrosGlobales({
             <button onClick={() => handlePreset('dia')} className={`px-4 py-1 text-xs rounded-md transition-colors ${activePreset === 'hoy' || activePreset === 'dia' ? 'bg-sky-500 text-white font-bold shadow-sm' : 'font-medium text-slate-500 hover:bg-slate-50'}`}>Hoy</button>
             <button onClick={() => handlePreset('semana')} className={`px-4 py-1 text-xs rounded-md transition-colors ${activePreset === 'semana' ? 'bg-sky-500 text-white font-bold shadow-sm' : 'font-medium text-slate-500 hover:bg-slate-50'}`}>Semana</button>
             <button onClick={() => handlePreset('mes')} className={`px-4 py-1 text-xs rounded-md transition-colors ${activePreset === 'mes' ? 'bg-sky-500 text-white font-bold shadow-sm' : 'font-medium text-slate-500 hover:bg-slate-50'}`}>Mes</button>
+          </div>
+
+          <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-1.5 shadow-sm">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Horario:</span>
+            <select 
+              value={horarioPreset} 
+              onChange={e => handleHorarioPreset(e.target.value)} 
+              className="text-xs font-bold text-sky-600 bg-transparent outline-none cursor-pointer border-none p-0 focus:ring-0"
+            >
+              <option value="civil">Día Completo (00:00 - 23:59)</option>
+              <option value="largo">Largo de Semana (17:00 - 08:00)</option>
+              <option value="finde_dia">Finde Día (08:00 - 20:00)</option>
+              <option value="finde_noche">Finde Noche (20:00 - 08:00)</option>
+              <option value="custom">Personalizado</option>
+            </select>
           </div>
           
           <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-1.5 shadow-sm">
@@ -62,11 +136,11 @@ export default function FiltrosGlobales({
 
         {modoComparativo && (
           <div className="flex justify-end mt-1 animate-fade-in w-full">
-            <div className="flex items-center bg-indigo-50 border border-indigo-200 rounded-lg p-1.5 shadow-sm w-full justify-between">
+            <div className="flex items-center bg-indigo-50 border border-indigo-200 rounded-lg p-1.5 shadow-sm w-full justify-between gap-2">
               <Calendar className="w-4 h-4 text-indigo-400 mx-2" />
-              <input type="date" value={filtroFechaInicioB} onChange={e => setFiltroFechaInicioB(e.target.value)} className="text-xs font-bold text-indigo-700 outline-none bg-transparent cursor-pointer" />
+              <input type="date" value={filtroFechaInicioB} onChange={e => setFiltroFechaInicioB(e.target.value)} className="text-xs font-bold text-indigo-700 outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" />
               <span className="text-indigo-400 mx-2">-</span>
-              <input type="date" value={filtroFechaFinB} onChange={e => setFiltroFechaFinB(e.target.value)} className="text-xs font-bold text-indigo-700 outline-none bg-transparent cursor-pointer" />
+              <input type="date" value={filtroFechaFinB} onChange={e => setFiltroFechaFinB(e.target.value)} className="text-xs font-bold text-indigo-700 outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" />
             </div>
           </div>
         )}

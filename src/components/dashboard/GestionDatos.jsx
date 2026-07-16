@@ -191,31 +191,31 @@ export default function GestionDatos({
     let logicalDate;
     let horario;
 
-    if (hours < 8) {
-      logicalDate = yesterday;
-      horario = isYestWknd ? '20:00 - 08:00 (Fin de semana Noche)' : '17:00 - 08:00 (Semana Largo)';
-    } 
-    else if (hours >= 8 && hours < 17) {
-      if (isTodayWknd) {
-        logicalDate = today;
-        horario = '08:00 - 20:00 (Fin de semana Día)';
-      } else {
+    // Regla 1: Fin de semana o Festivo (Continuo)
+    if (isTodayWknd) {
+      if (hours < 8) {
         logicalDate = yesterday;
         horario = isYestWknd ? '20:00 - 08:00 (Fin de semana Noche)' : '17:00 - 08:00 (Semana Largo)';
-      }
-    }
-    else if (hours >= 17 && hours < 20) {
-      if (isTodayWknd) {
+      } 
+      else if (hours >= 8 && hours < 20) {
         logicalDate = today;
         horario = '08:00 - 20:00 (Fin de semana Día)';
-      } else {
+      } 
+      else {
+        logicalDate = today;
+        horario = '20:00 - 08:00 (Fin de semana Noche)';
+      }
+    } 
+    // Regla 2: Día de semana
+    else {
+      if (hours < 15) {
+        logicalDate = yesterday;
+        horario = isYestWknd ? '20:00 - 08:00 (Fin de semana Noche)' : '17:00 - 08:00 (Semana Largo)';
+      } 
+      else {
         logicalDate = today;
         horario = '17:00 - 08:00 (Semana Largo)';
       }
-    }
-    else { 
-      logicalDate = today;
-      horario = isTodayWknd ? '20:00 - 08:00 (Fin de semana Noche)' : '17:00 - 08:00 (Semana Largo)';
     }
 
     const y = logicalDate.getFullYear();

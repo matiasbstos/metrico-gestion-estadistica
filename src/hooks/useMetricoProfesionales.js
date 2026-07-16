@@ -6,7 +6,21 @@ const truncateStr = (str, n) => {
   return safeStr.length > n ? safeStr.substr(0, n - 1) + '...' : safeStr;
 };
 
-export const useMetricoProfesionales = (pacientesDB, turnosDB, profFechaInicio, profFechaFin, docsToCompare, searchDoctor) => {
+const parseLocalDatetime = (dateStr, hourMinStr) => {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const [h, min] = (hourMinStr || '00:00').split(':').map(Number);
+  return new Date(y, m - 1, d, h, min, 0).getTime();
+};
+
+const isPatientInWindow = (tAdmMs, startDayStr, endDayStr, startHourStr, endHourStr) => {
+  if (!tAdmMs) return false;
+  const tStart = parseLocalDatetime(startDayStr, startHourStr || '00:00');
+  const tEnd = parseLocalDatetime(endDayStr, endHourStr || '23:59');
+  if (isNaN(tStart) || isNaN(tEnd)) return false;
+  return tAdmMs >= tStart && tAdmMs <= tEnd;
+};
+
+export const useMetricoProfesionales = (pacientesDB, turnosDB, profFechaInicio, profFechaFin, docsToCompare, searchDoctor, tipoCorte = 'turno', filtroHoraInicio = '00:00', filtroHoraFin = '23:59') => {
   // =========================================================================
   // 3. PIPELINE DE DATOS PROFESIONALES (Médicos)
   // =========================================================================
@@ -19,9 +33,8 @@ export const useMetricoProfesionales = (pacientesDB, turnosDB, profFechaInicio, 
   }, [turnosDB, profFechaInicio, profFechaFin]);
 
   const pacientesProf = useMemo(() => {
-    const lotes = turnosProf.map(t => t.loteId);
-    return pacientesDB.filter(p => lotes.includes(p.loteId));
-  }, [pacientesDB, turnosProf]);
+    return pacientesDB.filter(p => isPatientInWindow(p.tAdmision, profFechaInicio, profFechaFin, filtroHoraInicio, filtroHoraFin));
+  }, [pacientesDB, profFechaInicio, profFechaFin, filtroHoraInicio, filtroHoraFin]);
 
   const metricsByDoctor = useMemo(() => {
     const res = {};

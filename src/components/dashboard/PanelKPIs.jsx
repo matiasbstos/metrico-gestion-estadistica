@@ -94,6 +94,51 @@ export default function PanelKPIs({ statsKPI }) {
           {renderKPICard('Estadía Promedio Global', statsKPI.anual.estadia.current > 0 ? `${Math.round(statsKPI.anual.estadia.current)}` : '0', undefined, undefined, '', 'min', 'text-indigo-500')}
           {renderAltasAdminCard(true)}
         </div>
+
+        {/* Récords Diarios YTD */}
+        {statsKPI.anual.recordPacWkdy && statsKPI.anual.recordPacWknd && statsKPI.anual.recordAltasWkdy && statsKPI.anual.recordAltasWknd && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+            <div className="bg-sky-50/40 p-4 rounded-xl border border-sky-100/60 shadow-sm flex items-center justify-between min-h-[70px]">
+              <div>
+                <span className="text-[9px] md:text-[10px] font-bold text-sky-600 tracking-wider uppercase">Récord Pac. Hábil (YTD)</span>
+                <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Fecha: {statsKPI.anual.recordPacWkdy.date}</p>
+              </div>
+              <span className="text-xl font-black text-sky-700 bg-sky-100/80 px-2.5 py-1 rounded-lg border border-sky-200 shadow-inner whitespace-nowrap">
+                {statsKPI.anual.recordPacWkdy.count} <span className="text-[10px] font-bold text-sky-600 ml-0.5">pac.</span>
+              </span>
+            </div>
+
+            <div className="bg-indigo-50/40 p-4 rounded-xl border border-indigo-100/60 shadow-sm flex items-center justify-between min-h-[70px]">
+              <div>
+                <span className="text-[9px] md:text-[10px] font-bold text-indigo-600 tracking-wider uppercase">Récord Pac. Finde/Fest (YTD)</span>
+                <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Fecha: {statsKPI.anual.recordPacWknd.date}</p>
+              </div>
+              <span className="text-xl font-black text-indigo-700 bg-indigo-100/80 px-2.5 py-1 rounded-lg border border-indigo-200 shadow-inner whitespace-nowrap">
+                {statsKPI.anual.recordPacWknd.count} <span className="text-[10px] font-bold text-indigo-600 ml-0.5">pac.</span>
+              </span>
+            </div>
+            
+            <div className="bg-amber-50/40 p-4 rounded-xl border border-amber-100/60 shadow-sm flex items-center justify-between min-h-[70px]">
+              <div>
+                <span className="text-[9px] md:text-[10px] font-bold text-amber-600 tracking-wider uppercase">Récord Altas Hábil (YTD)</span>
+                <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Fecha: {statsKPI.anual.recordAltasWkdy.date}</p>
+              </div>
+              <span className="text-xl font-black text-amber-700 bg-amber-100/80 px-2.5 py-1 rounded-lg border border-amber-200 shadow-inner whitespace-nowrap">
+                {statsKPI.anual.recordAltasWkdy.count} <span className="text-[10px] font-bold text-amber-600 ml-0.5">altas</span>
+              </span>
+            </div>
+
+            <div className="bg-rose-50/40 p-4 rounded-xl border border-rose-100/60 shadow-sm flex items-center justify-between min-h-[70px]">
+              <div>
+                <span className="text-[9px] md:text-[10px] font-bold text-rose-500 tracking-wider uppercase">Récord Altas Finde/Fest (YTD)</span>
+                <p className="text-[11px] text-slate-500 font-semibold mt-0.5">Fecha: {statsKPI.anual.recordAltasWknd.date}</p>
+              </div>
+              <span className="text-xl font-black text-rose-700 bg-rose-100/80 px-2.5 py-1 rounded-lg border border-rose-200 shadow-inner whitespace-nowrap">
+                {statsKPI.anual.recordAltasWknd.count} <span className="text-[10px] font-bold text-rose-500 ml-0.5">altas</span>
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 2. KPIs PERIODO ACTUAL */}
