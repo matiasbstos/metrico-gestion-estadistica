@@ -91,6 +91,12 @@ const DashboardContent = () => {
 
   const { user, userProfile, loading, syncStatus, setSyncStatus, setLoading, pacientesDB, turnosDB } = useMetricoData();
 
+  const [tema, setTema] = useState(() => localStorage.getItem('metrico-tema') || 'crextio');
+
+  useEffect(() => {
+    localStorage.setItem('metrico-tema', tema);
+  }, [tema]);
+
   const isGlobalAdmin = useMemo(() => {
     return user?.email === 'matias.bustos@cormumel.cl' || userProfile?.rol === 'global';
   }, [user, userProfile]);
@@ -422,17 +428,17 @@ const DashboardContent = () => {
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-50 font-sans text-slate-800">
+    <div className={`flex h-screen w-screen overflow-hidden bg-app-custom font-sans text-secondary-custom theme-transition theme-${tema}`}>
       {/* COLUMNA IZQUIERDA: SIDEBAR FIJO */}
-      <aside className="w-64 h-full bg-slate-900 text-white flex flex-col justify-between flex-shrink-0 z-10 shadow-xl">
+      <aside className="w-64 h-full bg-sidebar-custom border-r border-card-custom text-primary-custom flex flex-col justify-between flex-shrink-0 z-10 shadow-xl theme-transition">
         <div>
           <div className="p-6 flex items-center gap-3">
-            <Activity className="w-8 h-8 text-sky-500" />
+            <Activity className="w-8 h-8 accent-text-custom" />
             <div>
-              <h1 className="font-black text-lg tracking-tight leading-none">MÉTRICO</h1>
-              <p className="text-[10px] text-slate-400 font-medium mb-2">Clínico Predictivo</p>
+              <h1 className="font-black text-lg tracking-tight leading-none text-primary-custom">MÉTRICO</h1>
+              <p className="text-[10px] text-secondary-custom font-medium mb-2">Clínico Predictivo</p>
               <select 
-                className="bg-slate-800 text-sky-400 text-xs p-1 rounded border border-slate-700 outline-none w-full font-bold cursor-pointer"
+                className="bg-input-custom text-primary-custom text-xs p-1.5 rounded-xl border border-card-custom outline-none w-full font-bold cursor-pointer transition-all"
                 value={centroActivo} 
                 onChange={e => setCentroActivo(e.target.value)}
               >
@@ -443,67 +449,95 @@ const DashboardContent = () => {
               </select>
             </div>
           </div>
+
+          {/* Selector de Tema */}
+          <div className="px-6 mb-4">
+            <label className="block text-[9px] font-bold text-secondary-custom uppercase tracking-wide mb-1.5 opacity-80">Tema Visual</label>
+            <div className="flex gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-card-custom transition-all">
+              <button 
+                onClick={() => setTema('crextio')}
+                className={`flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all ${tema === 'crextio' ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
+                title="Cristal Pastel"
+              >
+                Pastel
+              </button>
+              <button 
+                onClick={() => setTema('lordbank')}
+                className={`flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all ${tema === 'lordbank' ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
+                title="Portal Limpio"
+              >
+                Limpio
+              </button>
+              <button 
+                onClick={() => setTema('dark')}
+                className={`flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all ${tema === 'dark' ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
+                title="Clásico Oscuro"
+              >
+                Oscuro
+              </button>
+            </div>
+          </div>
           
           <div className="px-6 mb-4">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-              <span className="text-xs font-bold text-emerald-400">Sistema En Línea</span>
+              <span className="text-xs font-bold text-emerald-500">Sistema En Línea</span>
             </div>
-            {syncStatus === 'synced' && <p className="text-[10px] text-slate-500">Último guardado: hace unos segundos</p>}
-            {syncStatus === 'syncing' && <p className="text-[10px] text-sky-400">Guardando cambios...</p>}
+            {syncStatus === 'synced' && <p className="text-[10px] text-secondary-custom">Último guardado: hace unos segundos</p>}
+            {syncStatus === 'syncing' && <p className="text-[10px] text-sky-500">Guardando cambios...</p>}
           </div>
 
           <nav className="mt-2 flex flex-col gap-1 px-3">
             <button 
               onClick={() => setActiveTab('resumen')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-md transition-colors ${activeTab === 'resumen' ? 'bg-sky-500 text-white' : 'bg-transparent text-slate-400 hover:text-white hover:bg-slate-800'}`}>
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${activeTab === 'resumen' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
               <BarChart2 className="w-4 h-4" /> Inicio
             </button>
             <button 
               onClick={() => setActiveTab('comparativo')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-md transition-colors ${activeTab === 'comparativo' ? 'bg-sky-500 text-white' : 'bg-transparent text-slate-400 hover:text-white hover:bg-slate-800'}`}>
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${activeTab === 'comparativo' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
               <GitCompare className="w-4 h-4" /> Comparativo
             </button>
             <button 
               onClick={() => setActiveTab('calendario')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-md transition-colors ${activeTab === 'calendario' ? 'bg-sky-500 text-white' : 'bg-transparent text-slate-400 hover:text-white hover:bg-slate-800'}`}>
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${activeTab === 'calendario' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
               <Calendar className="w-4 h-4" /> Histórico Mensual
             </button>
             <button 
               onClick={() => setActiveTab('reportes')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-colors ${activeTab === 'reportes' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}>
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${activeTab === 'reportes' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
               <FileSpreadsheet className="w-4 h-4" /> Reporte
             </button>
             {isGlobalAdmin && (
               <>
                 <button 
                   onClick={() => setActiveTab('data')} 
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-colors ${activeTab === 'data' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}>
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${activeTab === 'data' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
                   <Database className="w-4 h-4" /> Gestión de Datos
                 </button>
                 <button 
                   onClick={() => setActiveTab('pauta')} 
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-colors ${activeTab === 'pauta' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}>
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${activeTab === 'pauta' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
                   <Calendar className="w-4 h-4" /> Pauta de Turnos
                 </button>
                 <button 
                   onClick={() => setActiveTab('auditoria')} 
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm transition-colors ${activeTab === 'auditoria' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}>
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${activeTab === 'auditoria' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
                   <Shield className="w-4 h-4" /> Auditoría
                 </button>
               </>
             )}
           </nav>
         </div>
-        <div className="p-4 border-t border-slate-800">
+        <div className="p-4 border-t border-card-custom">
           <div className="mb-4 px-2">
-            <p className="text-xs font-bold text-slate-300 truncate" title={user.email}>{user.email}</p>
-            <p className="text-[10px] text-sky-400 font-medium uppercase mt-0.5">{isGlobalAdmin ? 'Administrador Global' : 'Usuario Local'}</p>
+            <p className="text-xs font-bold text-primary-custom truncate" title={user.email}>{user.email}</p>
+            <p className="text-[10px] accent-text-custom font-medium uppercase mt-0.5">{isGlobalAdmin ? 'Administrador Global' : 'Usuario Local'}</p>
           </div>
-          <button onClick={handlePasswordResetRequest} className="flex items-center gap-3 px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg font-medium text-xs transition-colors w-full mb-1">
+          <button onClick={handlePasswordResetRequest} className="flex items-center gap-3 px-4 py-2 text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5 rounded-lg font-medium text-xs transition-all w-full mb-1">
             <Lock className="w-3.5 h-3.5" /> Cambiar Clave
           </button>
-          <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg font-medium text-xs transition-colors w-full">
+          <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2 text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5 rounded-lg font-medium text-xs transition-all w-full">
             <XCircle className="w-3.5 h-3.5" /> Cerrar Sesión
           </button>
         </div>
@@ -605,7 +639,7 @@ const DashboardContent = () => {
       )}
 
       {/* COLUMNA DERECHA: CANVAS DE SCROLL CONTINUO */}
-      <main className="flex-1 h-full overflow-y-auto p-8 space-y-6 relative">
+      <main className="flex-1 h-full overflow-y-auto p-8 space-y-6 relative theme-transition">
         {notification && (
           <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-sm font-medium z-50 animate-bounce-in ${notification.type === 'error' ? 'bg-red-600 text-white' : notification.type === 'warning' ? 'bg-orange-500 text-white' : 'bg-emerald-600 text-white'}`}>
             {notification.msg}
