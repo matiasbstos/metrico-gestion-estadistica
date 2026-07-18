@@ -3,7 +3,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
   Line, LineChart, ResponsiveContainer, CartesianGrid, ComposedChart, Area, AreaChart, LabelList 
 } from 'recharts';
-import { BarChart2, Activity, Users, Shield, Globe, Building2 } from 'lucide-react';
+import { BarChart2, Activity, Users, Shield, Globe, Building2, AlertTriangle } from 'lucide-react';
 import { COLORS } from '../../config/constants';
 import InfoTooltip from '../InfoTooltip';
 
