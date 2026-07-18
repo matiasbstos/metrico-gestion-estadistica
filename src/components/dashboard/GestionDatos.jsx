@@ -265,6 +265,8 @@ export default function GestionDatos({
         let iCodDiag = getIdx(['CÓDIGO DE DIAGNÓSTICO', 'CODIGO DE DIAGNOSTICO', 'CODIGO DIAGNOSTICO', 'COD DIAG']);
         let iDiagPrin = getIdx(['DIAGNOSTICO PRINCIPAL', 'DIAGNÓSTICO PRINCIPAL', 'DIAGNOSTICO']);
         let iMed = getIdx(['NOMBRE PROFESIONAL REGISTRA ANAMNESIS', 'NOMBRE PROFESIONAL', 'MEDICO', 'PROFESIONAL', 'DOCTOR']);
+        let iCorrelativo = getIdx(['CORRELATIVO', 'Nº', 'NUMERO', 'N°', 'NRO', '#', 'NUMERO DE ATENCION']);
+        let iId = getIdx(['ID', 'RUN', 'RUT', 'IDENTIFICADOR', 'DOCUMENTO']);
         
         let iEdad = getIdx(['EDAD']);
         let iSexo = getIdx(['SEXO']);
@@ -282,7 +284,11 @@ export default function GestionDatos({
         const existingHashes = new Set();
         if (pacientesDB) {
           pacientesDB.forEach(p => {
-            if (p.tAdmision) existingHashes.add(`${p.tAdmision}-${p.edad}-${p.sexo}`);
+            if (p.correlativo && p.idPaciente) {
+              existingHashes.add(`${String(p.correlativo).trim()}-${String(p.idPaciente).trim()}`);
+            } else if (p.tAdmision) {
+              existingHashes.add(`${p.tAdmision}-${p.edad}-${p.sexo}`);
+            }
           });
         }
 
@@ -302,11 +308,21 @@ export default function GestionDatos({
           const edad = edadRaw && !isNaN(parseInt(edadRaw)) ? parseInt(edadRaw) : null;
           const sexoStr = safeGet(iSexo);
 
-          const hash = `${tAdm}-${edad}-${sexoStr}`;
+          const correlativoVal = iCorrelativo !== -1 ? safeGet(iCorrelativo) : '';
+          const idPacienteVal = iId !== -1 ? safeGet(iId) : '';
+          
+          let hash = '';
+          if (correlativoVal && idPacienteVal) {
+            hash = `${correlativoVal.trim()}-${idPacienteVal.trim()}`;
+          } else {
+            hash = `${tAdm}-${edad}-${sexoStr}`;
+          }
+
           if (existingHashes.has(hash)) {
             duplicados++;
             continue;
           }
+          existingHashes.add(hash);
 
           const rowStrLower = row.map(c => String(c || '').toLowerCase()).join(' ');
 
@@ -340,7 +356,9 @@ export default function GestionDatos({
             estado: estado, categoria: categoria, medico: medico,
             codigoDiagnostico: codDiag, diagnosticoPrincipal: diagPrin,
             edad, sexo: sexoStr, prevision: safeGet(iPrev),
-            comuna: safeGet(iComu), region: safeGet(iRegi), nacionalidad: safeGet(iNaci), establecimiento: safeGet(iCentro)
+            comuna: safeGet(iComu), region: safeGet(iRegi), nacionalidad: safeGet(iNaci), establecimiento: safeGet(iCentro),
+            correlativo: correlativoVal,
+            idPaciente: idPacienteVal
           });
         }
 
@@ -393,7 +411,8 @@ export default function GestionDatos({
           totalDuplicados: duplicados,
           totalOutOfBounds: outOfBounds,
           incidencias: incidenciasDetectadas,
-          totalPacientes: turnosGenerados.reduce((acc, t) => acc + t.totalPacientes, 0)
+          totalPacientes: turnosGenerados.reduce((acc, t) => acc + t.totalPacientes, 0),
+          filasOriginales: rows.length - (headerRowIdx + 1)
         });
         
         setIsReadingFile(false);
@@ -486,9 +505,22 @@ export default function GestionDatos({
         centro: centroActivo || 'Desconocido',
         usuario: user?.email || 'Anónimo'
       };
+
+      const auditoriaCargasDoc = {
+        fechaCarga: Date.now(),
+        usuario: user?.email || 'Sistema',
+        archivo: pendingUpload.fileName || 'Lote Excel',
+        estadisticas: {
+          filasOriginales: pendingUpload.filasOriginales || 0,
+          atencionesValidas: successCount,
+          duplicadosDescartados: pendingUpload.totalDuplicados || 0
+        },
+        estado: 'Completado Exitosamente'
+      };
       
       const lastBatch = writeBatch(db);
       lastBatch.set(doc(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs')), auditLog);
+      lastBatch.set(doc(collection(db, 'artifacts', appId, 'public', 'data', 'auditoria_cargas')), auditoriaCargasDoc);
       batchList.push(lastBatch);
 
       await Promise.all(batchList.map(b => b.commit()));
@@ -501,7 +533,7 @@ export default function GestionDatos({
             setFiltroFechaInicio(minDate);
             setFiltroFechaFin(maxDate);
           }
-          showNotif(`Carga completada: ${successCount} pacientes organizados en ${pendingUpload.turnos.length} turnos.`, 'success');
+          showNotif(`Carga exitosa. Se procesaron ${successCount} atenciones válidas y se descartaron ${pendingUpload.totalDuplicados} registros duplicados de origen.`, 'success');
           setActiveTab('resumen');
       }, 1500);
 
@@ -790,12 +822,12 @@ export default function GestionDatos({
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-6 h-6 flex items-center justify-center rounded-full text-xs font-black bg-indigo-500 text-white shadow-sm">3</span>
-                <h4 className="text-xs font-black uppercase text-primary-custom tracking-wider">Depuración de Duplicados</h4>
+                <h4 className="text-xs font-black uppercase text-primary-custom tracking-wider">Desduplicación Inteligente</h4>
               </div>
               <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
-                Utiliza la función de Excel <strong>&quot;Quitar duplicados&quot;</strong> seleccionando todas las columnas para depurar el reporte. 
+                Conserva las columnas de <strong>CORRELATIVO</strong> (Nº de atención) y de <strong>ID / RUN</strong> en el archivo. 
                 <br/><br/>
-                Una vez completado el descarte de duplicados, <strong>elimina la columna del ID / NÚMERO de atención</strong> antes de subir el reporte. Esto es crítico por motivos de anonimización y protección de datos sensibles.
+                Métrico utilizará una <strong>llave compuesta</strong> para limpiar automáticamente los registros duplicados y registrará un log de auditoría en Firebase con el detalle de la carga.
               </p>
             </div>
             <span className="text-[9px] font-bold text-secondary-custom opacity-60 mt-4 block">Protección de Datos Personales</span>
