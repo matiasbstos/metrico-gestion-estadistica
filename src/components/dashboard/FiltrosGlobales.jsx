@@ -25,8 +25,15 @@ export default function FiltrosGlobales({
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
-    if (filtroFechaInicio === today && filtroFechaFin === today) setActivePreset('hoy');
-    else setActivePreset('');
+    if (filtroFechaInicio === today && filtroFechaFin === today) {
+      setActivePreset('hoy');
+    } else if (filtroFechaInicio === '2026-06-01' && filtroFechaFin === '2026-08-31') {
+      setActivePreset('invierno_2026');
+    } else if (filtroFechaInicio === '2025-06-01' && filtroFechaFin === '2025-08-31') {
+      setActivePreset('invierno_2025');
+    } else {
+      setActivePreset('');
+    }
   }, [filtroFechaInicio, filtroFechaFin]);
 
   const handlePreset = (preset) => {
@@ -106,9 +113,23 @@ export default function FiltrosGlobales({
         
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           <div className="flex items-center bg-card-custom border border-card-custom rounded-xl p-1 shadow-sm theme-transition">
-            <button onClick={() => handlePreset('dia')} className={`px-4 py-1 text-xs rounded-lg transition-colors ${activePreset === 'hoy' || activePreset === 'dia' ? 'accent-bg-custom text-white font-bold shadow-sm' : 'font-medium text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>Hoy</button>
-            <button onClick={() => handlePreset('semana')} className={`px-4 py-1 text-xs rounded-lg transition-colors ${activePreset === 'semana' ? 'accent-bg-custom text-white font-bold shadow-sm' : 'font-medium text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>Semana</button>
-            <button onClick={() => handlePreset('mes')} className={`px-4 py-1 text-xs rounded-lg transition-colors ${activePreset === 'mes' ? 'accent-bg-custom text-white font-bold shadow-sm' : 'font-medium text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>Mes</button>
+            <button onClick={() => handlePreset('dia')} className={`px-3 py-1 text-xs rounded-lg transition-colors ${activePreset === 'hoy' || activePreset === 'dia' ? 'accent-bg-custom text-white font-bold shadow-sm' : 'font-medium text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>Hoy</button>
+            <button onClick={() => handlePreset('semana')} className={`px-3 py-1 text-xs rounded-lg transition-colors ${activePreset === 'semana' ? 'accent-bg-custom text-white font-bold shadow-sm' : 'font-medium text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>Semana</button>
+            <button onClick={() => handlePreset('mes')} className={`px-3 py-1 text-xs rounded-lg transition-colors ${activePreset === 'mes' ? 'accent-bg-custom text-white font-bold shadow-sm' : 'font-medium text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>Mes</button>
+            <div className="border-l border-card-custom/50 h-4 mx-1"></div>
+            <select 
+              value={activePreset && activePreset.startsWith('invierno') ? activePreset : ''} 
+              onChange={e => {
+                if (e.target.value) {
+                  handlePreset(e.target.value);
+                }
+              }}
+              className="text-xs font-bold text-secondary-custom bg-transparent outline-none cursor-pointer border-none p-0 focus:ring-0 [&>option]:bg-slate-800 [&>option]:text-slate-100 max-w-[120px] pr-8"
+            >
+              <option value="">Campaña...</option>
+              <option value="invierno_2026">Invierno 2026</option>
+              <option value="invierno_2025">Invierno 2025</option>
+            </select>
           </div>
 
           <div className="flex items-center gap-2 bg-card-custom border border-card-custom rounded-xl px-3 py-1.5 shadow-sm theme-transition">

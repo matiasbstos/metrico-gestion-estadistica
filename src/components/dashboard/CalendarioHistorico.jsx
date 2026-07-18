@@ -184,15 +184,14 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
                   </div>
                 )}
               </div>
-              
-              <div className="flex-1 overflow-y-auto space-y-1.5 md:space-y-2 pr-1" style={{scrollbarWidth: 'thin'}}>
+              <div className="flex-1 overflow-y-auto space-y-1.5 md:space-y-2 pr-1 no-scrollbar">
                 {dayTurnos.length === 0 ? (
                   <p className="text-[9px] font-bold text-secondary-custom opacity-55 text-center mt-4">Sin Datos</p>
                 ) : (
                   dayTurnos.map(t => {
                     const bgCol = TEAM_COLORS[t.equipoTurno] || TEAM_COLORS['Sin Asignar'];
                     return (
-                      <div key={t.id} className="p-1.5 md:p-2 rounded-lg border border-card-custom bg-card-custom shadow-sm relative overflow-hidden group/item hover:accent-border-custom cursor-default transition-all duration-200" onClick={e => e.stopPropagation()}>
+                      <div key={t.id} className="p-1.5 md:p-2 rounded-lg border border-card-custom bg-card-custom shadow-sm relative overflow-hidden group/item hover:accent-border-custom cursor-pointer transition-all duration-200">
                         <div className="absolute top-0 left-0 w-1 h-full" style={{backgroundColor: bgCol}}></div>
                         <div className="pl-1.5">
                           <p className="text-[8px] md:text-[9px] font-black uppercase mb-0.5" style={{color: bgCol}}>{t.equipoTurno}</p>

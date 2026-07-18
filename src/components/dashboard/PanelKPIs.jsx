@@ -3,11 +3,11 @@ import { TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
 import InfoTooltip from '../InfoTooltip';
 import { COLORS } from '../../config/constants';
 
-export default function PanelKPIs({ statsKPI }) {
+export default function PanelKPIs({ statsKPI, onAltasClick }) {
   if (!statsKPI) return null;
 
   const renderKPICard = (title, value, growthMonth, growthYear, prefix = '', suffix = '') => (
-    <div className="bg-card-custom p-5 flex flex-col justify-between h-full min-h-[140px] relative theme-transition">
+    <div className="bg-card-custom p-5 flex flex-col justify-between h-full min-h-[140px] relative theme-transition hover:z-30 hover:shadow-lg">
         <span className="text-[10px] font-bold text-secondary-custom tracking-wider uppercase opacity-80">{title}</span>
         <div className="flex justify-between items-end mt-1 mb-2">
             <span className="text-3xl font-black text-primary-custom">
@@ -50,9 +50,12 @@ export default function PanelKPIs({ statsKPI }) {
     const growthYear = isAnnual ? undefined : statsKPI.altasAdmin.growthYear;
 
     return (
-      <div className={`p-5 flex flex-col justify-between h-full min-h-[140px] relative theme-transition bg-card-custom border rounded-2xl ${isAlert ? (isAnnual ? 'border-red-400/50 bg-red-500/5 text-red-500' : 'border-red-500 bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse') : 'border-card-custom'}`}>
+      <div 
+        onClick={onAltasClick}
+        className={`p-5 flex flex-col justify-between h-full min-h-[140px] relative theme-transition bg-card-custom border rounded-2xl cursor-pointer hover:z-30 hover:shadow-lg ${isAlert ? 'border-red-500 bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse text-red-500' : 'border-card-custom'}`}
+      >
          <div className="flex items-center gap-2">
-            <span className={`text-[10px] font-bold tracking-wider uppercase ${isAlert ? 'text-red-500 dark:text-red-400' : 'text-secondary-custom opacity-80'}`}>Altas Admin</span>
+            <span className={`text-[10px] font-bold tracking-wider uppercase ${isAlert ? 'text-red-500 dark:text-red-400 animate-pulse font-black' : 'text-secondary-custom opacity-80'}`}>Altas Admin</span>
             <InfoTooltip text="Meta institucional: Mantener por debajo del 5% del volumen total." />
             {isAlert && <AlertTriangle className="w-3 h-3 text-red-500 animate-bounce" />}
          </div>
@@ -165,9 +168,9 @@ export default function PanelKPIs({ statsKPI }) {
         const isAltasAlert = periodPct > 5;
         
         return (
-          <div className={`p-6 flex flex-col md:flex-row items-center gap-6 mb-6 theme-transition border rounded-2xl ${isAltasAlert ? 'bg-red-500/10 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse' : 'bg-card-custom border-card-custom'}`}>
-            <div className="flex flex-col gap-1.5 items-center md:items-start">
-              <span className={`text-xs font-bold tracking-wider whitespace-nowrap uppercase ${isAltasAlert ? 'text-red-500' : 'text-secondary-custom opacity-80'}`}>DISTRIBUCIÓN DE TRIAJE</span>
+          <div className="bg-card-custom p-6 flex flex-col md:flex-row items-center gap-6 mb-6 theme-transition border border-card-custom rounded-2xl shadow-sm">
+            <div className="flex flex-col gap-1 items-center md:items-start">
+              <span className="text-xs font-bold tracking-wider whitespace-nowrap uppercase text-secondary-custom opacity-80">DISTRIBUCIÓN DE TRIAJE</span>
               {isAltasAlert && (
                 <span className="text-[9px] font-black bg-red-500 text-white px-2 py-0.5 rounded-full animate-bounce text-center flex items-center gap-1">
                   <AlertTriangle className="w-2.5 h-2.5 animate-pulse" /> ALERTA ALTAS &gt;5%

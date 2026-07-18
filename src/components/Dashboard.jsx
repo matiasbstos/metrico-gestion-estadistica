@@ -179,6 +179,16 @@ const DashboardContent = () => {
     } else if (preset === 'dia') {
       startA = endA = new Date();
       startB = endB = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+    } else if (preset === 'invierno_2026') {
+      startA = new Date(2026, 5, 1);
+      endA = new Date(2026, 8, 0);
+      startB = new Date(2025, 5, 1);
+      endB = new Date(2025, 8, 0);
+    } else if (preset === 'invierno_2025') {
+      startA = new Date(2025, 5, 1);
+      endA = new Date(2025, 8, 0);
+      startB = new Date(2024, 5, 1);
+      endB = new Date(2024, 8, 0);
     }
     setFiltroFechaInicio(formatDate(startA));
     setFiltroFechaFin(formatDate(endA));
@@ -507,7 +517,7 @@ const DashboardContent = () => {
             <button 
               onClick={() => setActiveTab('altas')}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${activeTab === 'altas' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-              <UserCheck className="w-4 h-4" /> Altas Admin
+              <UserCheck className="w-4 h-4" /> Altas Administrativas
             </button>
             <button 
               onClick={() => setActiveTab('reportes')}
@@ -672,7 +682,7 @@ const DashboardContent = () => {
             <hr className="border-card-custom/40 my-6 theme-transition" />
 
             {/* DATOS DE RENDIMIENTO Y KPIs */}
-            {statsKPI && <PanelKPIs statsKPI={statsKPI} />}
+            {statsKPI && <PanelKPIs statsKPI={statsKPI} onAltasClick={() => setActiveTab('altas')} />}
 
 
 
@@ -753,11 +763,34 @@ const DashboardContent = () => {
         )}
 
         {activeTab === 'altas' && (
-          <AnalisisAltasDetail 
-            turnosDB={turnosDB} 
-            filtroFechaInicio={filtroFechaInicio} 
-            filtroFechaFin={filtroFechaFin} 
-          />
+          <div className="space-y-6">
+            {/* SECTOR DE FILTROS Y CONTROL DE CONTEXTO */}
+            <FiltrosGlobales 
+              modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
+              filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={setFiltroFechaInicio}
+              filtroFechaFin={filtroFechaFin} setFiltroFechaFin={setFiltroFechaFin}
+              filtroFechaInicioB={filtroFechaInicioB} setFiltroFechaInicioB={setFiltroFechaInicioB}
+              filtroFechaFinB={filtroFechaFinB} setFiltroFechaFinB={setFiltroFechaFinB}
+              applyDatePreset={applyDatePreset}
+              tipoCorte={tipoCorte} setTipoCorte={setTipoCorte}
+              filtroHoraInicio={filtroHoraInicio} setFiltroHoraInicio={setFiltroHoraInicio}
+              filtroHoraFin={filtroHoraFin} setFiltroHoraFin={setFiltroHoraFin}
+              horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
+              maxDateLabel={maxDateLabel}
+            />
+
+            <hr className="border-card-custom/40 my-6 theme-transition" />
+
+            <AnalisisAltasDetail 
+              turnosDB={turnosDB} 
+              filtroFechaInicio={filtroFechaInicio} 
+              filtroFechaFin={filtroFechaFin} 
+              statsKPI={statsKPI}
+              modoComparativo={modoComparativo}
+              filtroFechaInicioB={filtroFechaInicioB}
+              filtroFechaFinB={filtroFechaFinB}
+            />
+          </div>
         )}
 
         {activeTab === 'data' && (
