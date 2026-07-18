@@ -22,6 +22,7 @@ export default function GestionDatos({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadRecordCount, setUploadRecordCount] = useState(0);
   const [uploadResult, setUploadResult] = useState(null);
+  const [uploadError, setUploadError] = useState(null);
   const [activeGestionTab, setActiveGestionTab] = useState('carga');
   const [limpiezaModo, setLimpiezaModo] = useState('mes');
   const [limpiezaMes, setLimpiezaMes] = useState(new Date().toISOString().substring(0, 7));
@@ -464,6 +465,7 @@ export default function GestionDatos({
   const confirmMassUpload = async () => {
     if (!pendingUpload || !user || !db) return;
     setIsUploading(true); setSyncStatus('syncing');
+    setUploadError(null);
 
     try {
       const batchList = [];
@@ -514,10 +516,20 @@ export default function GestionDatos({
       
       if (opCounter > 0) batchList.push(currentBatch);
       
+      const formatToDMY = (dateStr) => {
+        if (!dateStr || dateStr.length < 10) return '';
+        const p = dateStr.split('-');
+        if (p.length === 3) return `${p[2]}/${p[1]}/${p[0]}`;
+        return dateStr;
+      };
+
+      const minDateFormatted = formatToDMY(minDate);
+      const maxDateFormatted = formatToDMY(maxDate);
+
       const auditLog = {
         fecha: Date.now(),
         accion: 'Carga Masiva',
-        detalles: `Carga exitosa del archivo ${pendingUpload.fileName}. Se procesaron ${successCount} atenciones válidas y se descartaron ${pendingUpload.totalDuplicados} registros duplicados de origen (Filas originales leídas: ${pendingUpload.filasOriginales}).`,
+        detalles: `Carga exitosa del archivo ${pendingUpload.fileName} (Periodo: ${minDateFormatted} al ${maxDateFormatted}). Se procesaron ${successCount} atenciones válidas y se descartaron ${pendingUpload.totalDuplicados} registros duplicados de origen (Filas originales leídas: ${pendingUpload.filasOriginales}).`,
         centro: centroActivo || 'Desconocido',
         usuario: user?.email || 'Anónimo'
       };
@@ -526,6 +538,10 @@ export default function GestionDatos({
         fechaCarga: Date.now(),
         usuario: user?.email || 'Sistema',
         archivo: pendingUpload.fileName || 'Lote Excel',
+        periodo: {
+          desde: minDateFormatted,
+          hasta: maxDateFormatted
+        },
         estadisticas: {
           filasOriginales: pendingUpload.filasOriginales || 0,
           atencionesValidas: successCount,
@@ -565,17 +581,22 @@ export default function GestionDatos({
         filasOriginales: pendingUpload.filasOriginales,
         turnosCount: pendingUpload.turnos.length,
         minDate,
-        maxDate
+        maxDate,
+        minDateFormatted,
+        maxDateFormatted
       });
       setUploadSuccess(true);
 
     } catch (err) { 
       console.error(err);
+      let errMsg = "Error al guardar lote en la nube.";
       if (String(err.message).includes("Timeout")) {
-        showNotif("Error de conexión: tiempo de espera agotado.", "error");
+        errMsg = "Error de conexión: tiempo de espera agotado. Esto suele ocurrir cuando se agota la cuota gratuita diaria de Firebase.";
       } else {
-        showNotif("Error al guardar lote (cuota de operaciones excedida).", "error");
+        errMsg = "Error al guardar el lote. Se ha excedido la cuota de base de datos de Firebase.";
       }
+      setUploadError(errMsg);
+      showNotif(errMsg, "error");
     }
     setIsUploading(false); setSyncStatus('synced');
   };
@@ -986,6 +1007,16 @@ export default function GestionDatos({
                 </div>
               </div>
             </div>
+
+            {uploadError && (
+              <div className="m-6 mb-2 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 p-4 rounded-xl flex items-start gap-2.5 text-red-800 dark:text-red-300 text-xs font-semibold animate-fade-in text-left">
+                <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
+                <div>
+                  <span className="font-bold block text-sm mb-0.5">Fallo al Guardar en Firebase</span>
+                  {uploadError}
+                </div>
+              </div>
+            )}
             
             <div className="bg-slate-50 p-4 flex justify-end gap-3 border-t border-slate-200">
               <button onClick={() => setPendingUpload(null)} className="px-6 py-2.5 rounded-lg font-bold text-slate-600 hover:bg-slate-200 transition">Cancelar</button>
@@ -1032,11 +1063,11 @@ export default function GestionDatos({
 
               <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl flex flex-col justify-between col-span-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Detalle del Archivo</span>
-                  <span className="text-xs font-black text-primary-custom">{uploadResult.filasOriginales} filas leídas</span>
+                  <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Rango de Fechas Cargado</span>
+                  <span className="text-xs font-black text-primary-custom">{uploadResult.minDateFormatted} al {uploadResult.maxDateFormatted}</span>
                 </div>
                 <div className="text-[9px] text-secondary-custom font-medium mt-1">
-                  Distribuidos en <span className="font-bold text-indigo-500">{uploadResult.turnosCount} turnos</span> operacionales de urgencia.
+                  Distribuidos en <span className="font-bold text-indigo-500">{uploadResult.turnosCount} turnos</span> operacionales de urgencia ({uploadResult.filasOriginales} filas analizadas).
                 </div>
               </div>
             </div>
