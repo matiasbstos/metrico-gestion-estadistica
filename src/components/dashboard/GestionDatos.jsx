@@ -301,10 +301,11 @@ export default function GestionDatos({
         const existingHashes = new Set();
         if (pacientesDB) {
           pacientesDB.forEach(p => {
+            if (p.tAdmision) {
+              existingHashes.add(`${p.tAdmision}-${p.edad}-${p.sexo}`);
+            }
             if (p.correlativo && p.idPaciente) {
               existingHashes.add(`${String(p.correlativo).trim()}-${String(p.idPaciente).trim()}`);
-            } else if (p.tAdmision) {
-              existingHashes.add(`${p.tAdmision}-${p.edad}-${p.sexo}`);
             }
           });
         }
@@ -328,18 +329,18 @@ export default function GestionDatos({
           const correlativoVal = iCorrelativo !== -1 ? safeGet(iCorrelativo) : '';
           const idPacienteVal = iId !== -1 ? safeGet(iId) : '';
           
-          let hash = '';
-          if (correlativoVal && idPacienteVal) {
-            hash = `${correlativoVal.trim()}-${idPacienteVal.trim()}`;
-          } else {
-            hash = `${tAdm}-${edad}-${sexoStr}`;
-          }
+          const hashNew = (correlativoVal && idPacienteVal) ? `${correlativoVal.trim()}-${idPacienteVal.trim()}` : '';
+          const hashOld = `${tAdm}-${edad}-${sexoStr}`;
 
-          if (existingHashes.has(hash)) {
+          // Se considera duplicado si coincide con cualquiera de los formatos (histórico o nuevo)
+          const isDuplicate = (hashNew && existingHashes.has(hashNew)) || existingHashes.has(hashOld);
+
+          if (isDuplicate) {
             duplicados++;
             continue;
           }
-          existingHashes.add(hash);
+          if (hashNew) existingHashes.add(hashNew);
+          existingHashes.add(hashOld);
 
           const rowStrLower = row.map(c => String(c || '').toLowerCase()).join(' ');
 
