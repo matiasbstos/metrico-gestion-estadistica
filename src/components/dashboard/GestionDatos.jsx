@@ -12,6 +12,8 @@ export default function GestionDatos({
   const [isReadingFile, setIsReadingFile] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadRecordCount, setUploadRecordCount] = useState(0);
   const [activeGestionTab, setActiveGestionTab] = useState('carga');
   const [limpiezaModo, setLimpiezaModo] = useState('mes');
   const [limpiezaMes, setLimpiezaMes] = useState(new Date().toISOString().substring(0, 7));
@@ -523,7 +525,24 @@ export default function GestionDatos({
       lastBatch.set(doc(collection(db, 'artifacts', appId, 'public', 'data', 'auditoria_cargas')), auditoriaCargasDoc);
       batchList.push(lastBatch);
 
-      await Promise.all(batchList.map(b => b.commit()));
+      setUploadProgress(0);
+      setUploadRecordCount(0);
+
+      for (let i = 0; i < batchList.length; i++) {
+        await batchList[i].commit();
+        const batchProgress = i + 1;
+        const pct = (batchProgress / batchList.length) * 100;
+        setUploadProgress(pct);
+        
+        const isLastBatch = batchProgress === batchList.length;
+        const count = isLastBatch 
+          ? pendingUpload.totalPacientes 
+          : Math.min(
+              pendingUpload.totalPacientes,
+              Math.round((batchProgress / (batchList.length - 1)) * pendingUpload.totalPacientes)
+            );
+        setUploadRecordCount(count);
+      }
       
       setUploadSuccess(true);
       setTimeout(() => {
@@ -848,7 +867,38 @@ export default function GestionDatos({
       {/* MODAL ARCHIVO PROCESADO */}
       {pendingUpload && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-bounce-in border border-slate-100">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-bounce-in border border-slate-100 relative">
+            
+            {/* OVERLAY DE PROGRESO DE CARGA */}
+            {isUploading && (
+              <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center p-6 z-[60] rounded-2xl">
+                <div className="w-full max-w-md text-center space-y-6 animate-fade-in">
+                  <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto" />
+                  <div className="space-y-1.5">
+                    <h4 className="text-lg font-black text-white">Guardando Lote en la Nube</h4>
+                    <p className="text-xs font-semibold text-slate-300">
+                      Cargando {uploadRecordCount.toLocaleString('es-ES')} de {pendingUpload.totalPacientes.toLocaleString('es-ES')} pacientes...
+                    </p>
+                  </div>
+                  
+                  {/* Contenedor Barra de Progreso */}
+                  <div className="space-y-2">
+                    <div className="w-full bg-white/10 h-3 rounded-full overflow-hidden border border-white/5 relative shadow-inner">
+                      <div 
+                        className="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full transition-all duration-300 ease-out" 
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      <span>Progreso: {Math.round(uploadProgress)}%</span>
+                      <span>En {pendingUpload.turnos.length} turnos</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div className="p-6 overflow-y-auto flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <CheckCircle className="w-6 h-6 text-emerald-500" />
