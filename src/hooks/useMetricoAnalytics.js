@@ -97,26 +97,45 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const stats = {
       total: 0, edadSum: 0, edadCount: 0, sexo: { F: 0, M: 0, O: 0 },
       edades: Object.fromEntries(AGE_RANGES.map(r => [r, 0])),
+      edadesSexo: {
+        F: Object.fromEntries(AGE_RANGES.map(r => [r, 0])),
+        M: Object.fromEntries(AGE_RANGES.map(r => [r, 0]))
+      },
       prevs: {}, comunas: {}, nacionalidades: {}, establecimientos: {}
     };
 
     pacientesFiltrados.forEach(p => {
       stats.total++;
+      
+      const s = String(p.sexo || '').toUpperCase();
+      let isFemale = false;
+      let isMale = false;
+      if (s.includes('MUJER') || s.includes('FEMENINO') || s === 'F') {
+        stats.sexo.F++;
+        isFemale = true;
+      } else if (s.includes('HOMBRE') || s.includes('MASCULINO') || s === 'M') {
+        stats.sexo.M++;
+        isMale = true;
+      } else {
+        stats.sexo.O++;
+      }
+
       if (p.edad !== null && !isNaN(p.edad)) {
          stats.edadSum += p.edad; stats.edadCount++;
-         if (p.edad >= 80) stats.edades['80+']++;
+         let range = '';
+         if (p.edad >= 80) range = '80+';
          else {
            const lower = Math.floor(p.edad / 5) * 5;
-           const range = `${lower}-${lower + 4}`;
-           if (stats.edades[range] !== undefined) stats.edades[range]++;
+           range = `${lower}-${lower + 4}`;
+         }
+         
+         if (stats.edades[range] !== undefined) {
+           stats.edades[range]++;
+           if (isFemale) stats.edadesSexo.F[range]++;
+           else if (isMale) stats.edadesSexo.M[range]++;
          }
       }
       
-      const s = String(p.sexo || '').toUpperCase();
-      if (s.includes('MUJER') || s.includes('FEMENINO') || s === 'F') stats.sexo.F++;
-      else if (s.includes('HOMBRE') || s.includes('MASCULINO') || s === 'M') stats.sexo.M++;
-      else stats.sexo.O++;
-
       const prRaw = String(p.prevision || 'DESCONOCIDO').trim().toUpperCase();
       let prKey = prRaw;
       if (prRaw.includes('FONASA')) {

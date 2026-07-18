@@ -22,7 +22,6 @@ export default function AnalisisComparativoTriple({ pacientesDB, turnosDB }) {
 
   const metrics = useMemo(() => {
     const getStatsForDate = (date) => {
-      // Filtrar turnos de ese día específico
       const turnosDelDia = turnosDB.filter(t => t.fechaInicio === date || (t.fechaInicio <= date && t.fechaFin >= date));
       
       const pacs = pacientesDB.filter(p => {
@@ -33,7 +32,6 @@ export default function AnalisisComparativoTriple({ pacientesDB, turnosDB }) {
 
       let total = 0, c1 = 0, c2 = 0, c3 = 0, c4 = 0, c5 = 0;
       
-      // Si hay turnos (carga masiva/manual), usamos sus totales
       if (turnosDelDia.length > 0) {
         turnosDelDia.forEach(t => {
           total += Number(t.totalPacientes || 0);
@@ -44,7 +42,6 @@ export default function AnalisisComparativoTriple({ pacientesDB, turnosDB }) {
           c5 += Number(t.c5 || 0);
         });
       } else {
-        // Fallback: calcular desde pacientes directamente
         total = pacs.length;
         pacs.forEach(p => {
           const c = String(p.categoria).toLowerCase();
@@ -77,7 +74,7 @@ export default function AnalisisComparativoTriple({ pacientesDB, turnosDB }) {
   const getTrendIcon = (current, previous) => {
     if (current > previous) return <TrendingUp className="w-4 h-4 text-rose-500" />;
     if (current < previous) return <TrendingDown className="w-4 h-4 text-emerald-500" />;
-    return <Minus className="w-4 h-4 text-slate-400" />;
+    return <Minus className="w-4 h-4 text-secondary-custom opacity-70" />;
   };
 
   const getPercentChange = (current, previous) => {
@@ -87,16 +84,74 @@ export default function AnalisisComparativoTriple({ pacientesDB, turnosDB }) {
     return `${perc > 0 ? '+' : ''}${perc.toFixed(1)}%`;
   };
 
+  // Custom tooltips acting as mini-dashboards with delta calculation
+  const CustomComparativoTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const getVal = (dateShortName) => {
+        const item = payload.find(p => p.name === dateShortName);
+        return item ? item.value : 0;
+      };
+
+      const val1 = getVal('Fecha 1');
+      const val2 = getVal('Fecha 2');
+      const val3 = getVal('Fecha 3');
+
+      return (
+        <div className="bg-card-custom border border-card-custom p-4 rounded-2xl shadow-xl min-w-[210px] space-y-2.5 text-xs font-bold theme-transition">
+          <p className="text-sm font-black text-primary-custom border-b border-card-custom pb-1.5 uppercase tracking-wider">
+            Categoría {label}
+          </p>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-blue-500">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#3b82f6]"></span>
+                Fecha 1:
+              </span>
+              <span className="text-sm font-black">{val1}</span>
+            </div>
+
+            <div className="flex justify-between items-center text-purple-500">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#8b5cf6]"></span>
+                Fecha 2:
+              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-black">{val2}</span>
+                <span className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm ${val1 > val2 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : val1 < val2 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'bg-black/5 text-secondary-custom'}`}>
+                  {val2 > 0 ? getPercentChange(val1, val2) : '0%'}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center text-emerald-500">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span>
+                Fecha 3:
+              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-black">{val3}</span>
+                <span className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm ${val1 > val3 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : val1 < val3 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'bg-black/5 text-secondary-custom'}`}>
+                  {val3 > 0 ? getPercentChange(val1, val3) : '0%'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
-    <div className="space-y-6 animate-fade-in max-w-7xl mx-auto">
-      <div className="flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+    <div className="space-y-6 animate-fade-in max-w-7xl mx-auto theme-transition">
+      <div className="flex items-center justify-between bg-card-custom p-4 rounded-2xl shadow-sm border border-card-custom">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-indigo-100 rounded-lg">
-            <Calendar className="w-6 h-6 text-indigo-600" />
+          <div className="p-3 bg-indigo-500/10 rounded-xl">
+            <Calendar className="w-6 h-6 text-indigo-500" />
           </div>
           <div>
-            <h2 className="text-xl font-black text-slate-800">Análisis Comparativo Triple</h2>
-            <p className="text-xs font-bold text-slate-400">Selecciona tres fechas independientes para cruzar su rendimiento</p>
+            <h2 className="text-xl font-black text-primary-custom">Análisis Comparativo Triple</h2>
+            <p className="text-xs font-bold text-secondary-custom opacity-85">Selecciona tres fechas independientes para cruzar su rendimiento</p>
           </div>
         </div>
       </div>
@@ -107,24 +162,24 @@ export default function AnalisisComparativoTriple({ pacientesDB, turnosDB }) {
           const prevStats = i === 0 ? metrics[datesToCompare[1].date] : i === 1 ? metrics[datesToCompare[2].date] : null;
           
           return (
-            <div key={d.date} className="bg-white rounded-2xl shadow-sm border-t-4 p-6 relative overflow-hidden" style={{ borderTopColor: d.color }}>
+            <div key={d.date} className="bg-card-custom rounded-3xl shadow-sm border-t-4 p-6 relative overflow-hidden border border-card-custom" style={{ borderTopColor: d.color }}>
               <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full opacity-10" style={{ backgroundColor: d.color }}></div>
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">{d.label}</h3>
+              <h3 className="text-sm font-bold text-secondary-custom uppercase tracking-wider mb-2">{d.label}</h3>
               <input 
                 type="date" 
                 value={d.date} 
                 onChange={(e) => d.setter(e.target.value)}
-                className="w-full border-2 border-slate-200 rounded-lg p-2 text-sm font-black text-slate-700 outline-none focus:border-indigo-500 mb-6 bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="w-full border-2 rounded-xl p-2 text-sm font-black text-primary-custom outline-none focus:border-indigo-500 mb-6 bg-input-custom transition-all cursor-pointer"
                 style={{ borderColor: `${d.color}40` }}
               />
               
               <div className="flex items-end gap-3 mb-6">
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Volumen Total</p>
-                  <p className="text-4xl font-black text-slate-800">{stats.total}</p>
+                  <p className="text-[10px] font-bold text-secondary-custom uppercase">Volumen Total</p>
+                  <p className="text-4xl font-black text-primary-custom">{stats.total}</p>
                 </div>
                 {prevStats && (
-                  <div className={`flex items-center gap-1 text-xs font-bold mb-1 ${stats.total > prevStats.total ? 'text-rose-500' : stats.total < prevStats.total ? 'text-emerald-500' : 'text-slate-400'}`}>
+                  <div className={`flex items-center gap-1 text-xs font-bold mb-1 ${stats.total < prevStats.total ? 'text-rose-500' : stats.total > prevStats.total ? 'text-emerald-500' : 'text-secondary-custom'}`}>
                     {getTrendIcon(stats.total, prevStats.total)}
                     {getPercentChange(stats.total, prevStats.total)}
                   </div>
@@ -139,15 +194,15 @@ export default function AnalisisComparativoTriple({ pacientesDB, turnosDB }) {
                   { key: 'c4', color: 'bg-emerald-500' },
                   { key: 'c5', color: 'bg-blue-500' }
                 ].map(cat => (
-                  <div key={cat.key} className="flex items-center justify-between">
+                  <div key={cat.key} className="flex items-center justify-between border-b border-card-custom/30 pb-1">
                     <div className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full ${cat.color}`}></div>
-                      <span className="text-xs font-bold text-slate-600 uppercase">{cat.key}</span>
+                      <span className="text-xs font-bold text-secondary-custom uppercase">{cat.key}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-black text-slate-700">{stats[cat.key]}</span>
+                      <span className="text-sm font-black text-primary-custom">{stats[cat.key]}</span>
                       {prevStats && (
-                        <span className={`text-[10px] font-bold w-12 text-right ${stats[cat.key] > prevStats[cat.key] ? 'text-rose-400' : stats[cat.key] < prevStats[cat.key] ? 'text-emerald-400' : 'text-slate-300'}`}>
+                        <span className={`text-[10px] font-bold w-12 text-right ${stats[cat.key] < prevStats[cat.key] ? 'text-rose-400' : stats[cat.key] > prevStats[cat.key] ? 'text-emerald-400' : 'text-secondary-custom opacity-55'}`}>
                           {getPercentChange(stats[cat.key], prevStats[cat.key])}
                         </span>
                       )}
@@ -160,22 +215,22 @@ export default function AnalisisComparativoTriple({ pacientesDB, turnosDB }) {
         })}
       </div>
 
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h3 className="text-sm font-black text-slate-700 uppercase tracking-wider mb-6">Comparativa por Categoría de Triaje</h3>
+      <div className="bg-card-custom p-6 rounded-3xl shadow-sm border border-card-custom">
+        <h3 className="text-sm font-black text-primary-custom uppercase tracking-wider mb-6">Comparativa por Categoría de Triaje</h3>
         <div className="h-80 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12, fontWeight: 'bold' }} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 12, fontWeight: 'bold' }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} />
               <Tooltip 
-                cursor={{ fill: '#f1f5f9' }}
-                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                content={<CustomComparativoTooltip />}
               />
               <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '12px', fontWeight: 'bold' }} />
-              <Bar dataKey={datesToCompare[2].short} name={datesToCompare[2].short} fill={datesToCompare[2].color} radius={[4, 4, 0, 0]} />
-              <Bar dataKey={datesToCompare[1].short} name={datesToCompare[1].short} fill={datesToCompare[1].color} radius={[4, 4, 0, 0]} />
-              <Bar dataKey={datesToCompare[0].short} name={datesToCompare[0].short} fill={datesToCompare[0].color} radius={[4, 4, 0, 0]} />
+              <Bar dataKey={datesToCompare[2].short} name="Periodo 3" fill={datesToCompare[2].color} radius={[4, 4, 0, 0]} />
+              <Bar dataKey={datesToCompare[1].short} name="Periodo 2" fill={datesToCompare[1].color} radius={[4, 4, 0, 0]} />
+              <Bar dataKey={datesToCompare[0].short} name="Periodo 1" fill={datesToCompare[0].color} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

@@ -144,6 +144,8 @@ export default function PanelKPIs({ statsKPI }) {
         )}
       </div>
 
+      <hr className="border-card-custom/60 my-6 theme-transition" />
+
       {/* 2. KPIs PERIODO ACTUAL */}
       <div className="mb-6">
         <h3 className="text-xs font-bold accent-text-custom tracking-wider uppercase mb-3 bg-black/5 dark:bg-white/5 inline-block px-3 py-1 rounded-full border border-card-custom theme-transition">Periodo Seleccionado</h3>

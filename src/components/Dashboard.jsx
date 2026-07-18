@@ -648,21 +648,21 @@ const DashboardContent = () => {
 
         {activeTab === 'resumen' && (
           <>
-            {statsKPI && <PanelKPIs statsKPI={statsKPI} />}
-            
             <FiltrosGlobales 
-          modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
-          filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={setFiltroFechaInicio}
-          filtroFechaFin={filtroFechaFin} setFiltroFechaFin={setFiltroFechaFin}
-          filtroFechaInicioB={filtroFechaInicioB} setFiltroFechaInicioB={setFiltroFechaInicioB}
-          filtroFechaFinB={filtroFechaFinB} setFiltroFechaFinB={setFiltroFechaFinB}
-          applyDatePreset={applyDatePreset}
-          tipoCorte={tipoCorte} setTipoCorte={setTipoCorte}
-          filtroHoraInicio={filtroHoraInicio} setFiltroHoraInicio={setFiltroHoraInicio}
-          filtroHoraFin={filtroHoraFin} setFiltroHoraFin={setFiltroHoraFin}
-          horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
-          maxDateLabel={maxDateLabel}
-        />
+              modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
+              filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={setFiltroFechaInicio}
+              filtroFechaFin={filtroFechaFin} setFiltroFechaFin={setFiltroFechaFin}
+              filtroFechaInicioB={filtroFechaInicioB} setFiltroFechaInicioB={setFiltroFechaInicioB}
+              filtroFechaFinB={filtroFechaFinB} setFiltroFechaFinB={setFiltroFechaFinB}
+              applyDatePreset={applyDatePreset}
+              tipoCorte={tipoCorte} setTipoCorte={setTipoCorte}
+              filtroHoraInicio={filtroHoraInicio} setFiltroHoraInicio={setFiltroHoraInicio}
+              filtroHoraFin={filtroHoraFin} setFiltroHoraFin={setFiltroHoraFin}
+              horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
+              maxDateLabel={maxDateLabel}
+            />
+
+            {statsKPI && <PanelKPIs statsKPI={statsKPI} />}
 
 
 
