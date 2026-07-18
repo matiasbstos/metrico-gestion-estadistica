@@ -4,15 +4,15 @@
 
 Aquí documentamos el progreso y las últimas actualizaciones que se le están haciendo al sistema para mantener a todo el equipo informado.
 
-### ✨ [Actualización] - 18 de Julio 2026 - Correcciones Estéticas, Glosario, Borrado de Filtros y Optimización del Calendario
-- **Irradiación de Brillo y Alerta en Altas Administrativas:** Diseñamos una animación de brillo rojo pulsante (`glow-red-alert`) y agregamos la insignia `ALERTA ALTAS >5%` dentro de las tarjetas del periodo y anual en el Inicio y Altas Administrativas para resaltar desviaciones críticas.
-- **Glosario de Tiempos de Espera:** Incorporamos un panel explicativo detallado con los umbrales de colores (Verde = Meta Cumplida, Amarillo = Zona Límite, Rojo = Meta Excedida) y modificamos la tabla a `overflow-visible` para que no se recorten los cuadros de información emergente (tooltips) al pasar el cursor.
-- **Acción de Borrar Filtros:** Agregamos el botón "Borrar Filtros" en las vistas de Inicio y Altas Administrativas para restablecer el contexto completo al mes actual con un solo clic.
-- **Eliminación Definitiva de Scrollbars en Calendario:** Añadimos un bloque de estilos CSS inyectados para forzar el ocultamiento de las barras de desplazamiento (óvalos/cápsulas) en todos los navegadores.
-- **Detalle de Categorías en Modal:** Rediseñamos los elementos de triaje dentro del modal detallado del día para que se muestren como cuadrados redondeados premium (`aspect-square`) en lugar de ovals.
-- **Fondos de Modales Dinámicos:** Vinculamos el fondo de los overlays y los contenedores de modales al tema visual activo (translúcido/pasteles en Crextio y Lordbank, y oscuro en el tema Oscuro) para asegurar consistencia estética.
-- **Manual de Preparación de Archivos (Gestión de Datos):** Diseñamos e implementamos un manual instructivo paso a paso detallando la descarga de registros (Daily), las columnas obligatorias que se deben conservar, y la depuración de duplicados previa a la eliminación del ID de atención.
+### ✨ [Actualización] - 18 de Julio 2026 - Desduplicación Inteligente, Barra de Progreso y Módulo de Rendimiento Clínico
+- **Desduplicación por Llave Compuesta (CORRELATIVO + ID):** Implementación de limpieza de registros duplicados y repetidos de forma cruzada contra la base de datos de Firestore para asegurar la consistencia de los totales anuales de atenciones.
+- **Barra de Progreso y Contador en Tiempo Real:** Nueva pantalla superpuesta translúcida sobre el modal de subida que indica dinámicamente el progreso porcentual y el conteo exacto de registros cargados en la nube.
+- **Modal de Éxito Centrado con Rango de Fechas:** Ventana interactiva y centralizada que detalla las estadísticas exactas de importación (válidos vs duplicados) y el periodo de fechas detectado en el archivo Excel (Fecha Desde/Hasta).
+- **Timeouts y Desbloqueo de UI:** Prevención de congelamientos de botones ante excedente de cuota diaria en el plan gratuito de Firebase (`Quota exceeded`) o fallos de red mediante límites de tiempo de espera y alertas amigables dentro del mismo modal.
 - **Módulo de Rendimiento Clínico (Gestión de Médicos):** Implementamos una nueva sección (icono `Award`) que permite consultar expedientes de médicos (guardias, horas cubiertas de 12h/15h, atenciones, promedio pac/hora y diagnósticos recurrentes) y auditar la nómina completa de pacientes de cualquier turno con descarga directa a CSV.
+- **Glosario de Tiempos de Espera:** Incorporamos un panel explicativo detallado con los umbrales de colores y tooltips interactivos para análisis operativo.
+- **Alerta e Irradiación en Altas:** Animación de brillo rojo pulsante y insignia `ALERTA ALTAS >5%` en tarjetas de periodo y anual en el Inicio y Altas Administrativas.
+- **Acción de Borrar Filtros:** Botón rápido para restablecer el contexto de fecha y horario al mes actual.
 
 ### ✨ [Actualización] - 16 de Julio 2026 - Control de Turnos Completo, Récords YTD Diferenciados y Optimización Operativa
 - **Lógica de Conteo Consistente y Turnos Modificados:** El sistema aplica los cortes de turnos y asocia correctamente las atenciones nocturnas y de madrugada.
