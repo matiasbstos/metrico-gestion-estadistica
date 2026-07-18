@@ -11,6 +11,7 @@ Aquí documentamos el progreso y las últimas actualizaciones que se le están h
 - **Eliminación Definitiva de Scrollbars en Calendario:** Añadimos un bloque de estilos CSS inyectados para forzar el ocultamiento de las barras de desplazamiento (óvalos/cápsulas) en todos los navegadores.
 - **Detalle de Categorías en Modal:** Rediseñamos los elementos de triaje dentro del modal detallado del día para que se muestren como cuadrados redondeados premium (`aspect-square`) en lugar de ovals.
 - **Fondos de Modales Dinámicos:** Vinculamos el fondo de los overlays y los contenedores de modales al tema visual activo (translúcido/pasteles en Crextio y Lordbank, y oscuro en el tema Oscuro) para asegurar consistencia estética.
+- **Manual de Preparación de Archivos (Gestión de Datos):** Diseñamos e implementamos un manual instructivo paso a paso detallando la descarga de registros (Daily), las columnas obligatorias que se deben conservar, y la depuración de duplicados previa a la eliminación del ID de atención.
 
 ### ✨ [Actualización] - 16 de Julio 2026 - Control de Turnos Completo, Récords YTD Diferenciados y Optimización Operativa
 - **Lógica de Conteo Consistente y Turnos Modificados:** El sistema aplica los cortes de turnos y asocia correctamente las atenciones nocturnas y de madrugada.

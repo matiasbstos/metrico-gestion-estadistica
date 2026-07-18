@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2 } from 'lucide-react';
+import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2, BookOpen } from 'lucide-react';
 import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 
 export default function GestionDatos({ 
@@ -736,6 +736,72 @@ export default function GestionDatos({
         </button>
       </div>
       )}
+
+      {/* MANUAL DE PROCEDIMIENTO Y PREPARACIÓN DE ARCHIVOS Excel */}
+      <div className="bg-card-custom border border-card-custom rounded-2xl p-6 shadow-sm mt-8 theme-transition">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2.5 bg-indigo-500/10 text-indigo-500 rounded-xl">
+            <BookOpen className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-primary-custom">Manual de Preparación de Archivos (Subida Masiva)</h3>
+            <p className="text-xs text-secondary-custom font-semibold">Instrucciones obligatorias paso a paso para la depuración y carga exitosa del reporte diario (Daily)</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+          {/* Paso 1 */}
+          <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-xl flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-6 h-6 flex items-center justify-center rounded-full text-xs font-black bg-indigo-500 text-white shadow-sm">1</span>
+                <h4 className="text-xs font-black uppercase text-primary-custom tracking-wider">Descarga del Reporte Daily</h4>
+              </div>
+              <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
+                Ingresa al sistema de registro institucional (HIS) y exporta el reporte diario consolidado de atenciones en formato Excel (.xlsx o .xls). Asegúrate de que el archivo contenga las marcas de tiempo completas de admisión, triaje, atención médica y alta.
+              </p>
+            </div>
+            <span className="text-[9px] font-bold text-secondary-custom opacity-60 mt-4 block">Fuente: Registro Clínico Interno</span>
+          </div>
+
+          {/* Paso 2 */}
+          <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-xl flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-6 h-6 flex items-center justify-center rounded-full text-xs font-black bg-indigo-500 text-white shadow-sm">2</span>
+                <h4 className="text-xs font-black uppercase text-primary-custom tracking-wider">Columnas Obligatorias</h4>
+              </div>
+              <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
+                Abre el archivo descargado y conserva únicamente las siguientes columnas (elimina todas las demás filas de metadatos o comentarios):
+              </p>
+              <ul className="list-disc pl-4 text-[10px] text-secondary-custom font-semibold mt-2 space-y-1">
+                <li><code className="text-primary-custom font-black">ID</code> / <code className="text-primary-custom font-black">NUMERO</code> (Identificador de atención)</li>
+                <li><code className="text-primary-custom font-black">FECHA_INGRESO</code> (Fecha en formato dd/mm/yyyy)</li>
+                <li><code className="text-primary-custom font-black">HORA_INGRESO</code> (Formato hh:mm o hh:mm:ss)</li>
+                <li><code className="text-primary-custom font-black">TRIAJE</code> / <code className="text-primary-custom font-black">CATEGORIZACION</code> (C1 a C5)</li>
+                <li><code className="text-primary-custom font-black">DESTINO_ALTA</code> (Médica o Administrativa)</li>
+              </ul>
+            </div>
+            <span className="text-[9px] font-bold text-secondary-custom opacity-60 mt-4 block">Estructura de Base de Datos</span>
+          </div>
+
+          {/* Paso 3 */}
+          <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-xl flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-6 h-6 flex items-center justify-center rounded-full text-xs font-black bg-indigo-500 text-white shadow-sm">3</span>
+                <h4 className="text-xs font-black uppercase text-primary-custom tracking-wider">Depuración de Duplicados</h4>
+              </div>
+              <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
+                Utiliza la función de Excel <strong>&quot;Quitar duplicados&quot;</strong> seleccionando todas las columnas para depurar el reporte. 
+                <br/><br/>
+                Una vez completado el descarte de duplicados, <strong>elimina la columna del ID / NÚMERO de atención</strong> antes de subir el reporte. Esto es crítico por motivos de anonimización y protección de datos sensibles.
+              </p>
+            </div>
+            <span className="text-[9px] font-bold text-secondary-custom opacity-60 mt-4 block">Protección de Datos Personales</span>
+          </div>
+        </div>
+      </div>
 
       {isReadingFile && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100]">
