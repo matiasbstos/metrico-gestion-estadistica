@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2, BookOpen } from 'lucide-react';
+import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2, BookOpen, ArrowRight } from 'lucide-react';
 import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 
 export default function GestionDatos({ 
@@ -14,6 +14,7 @@ export default function GestionDatos({
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadRecordCount, setUploadRecordCount] = useState(0);
+  const [uploadResult, setUploadResult] = useState(null);
   const [activeGestionTab, setActiveGestionTab] = useState('carga');
   const [limpiezaModo, setLimpiezaModo] = useState('mes');
   const [limpiezaMes, setLimpiezaMes] = useState(new Date().toISOString().substring(0, 7));
@@ -503,7 +504,7 @@ export default function GestionDatos({
       const auditLog = {
         fecha: Date.now(),
         accion: 'Carga Masiva',
-        detalles: `Archivo ${pendingUpload.fileName} importado (${successCount} pacientes distribuidos en ${pendingUpload.turnos.length} turnos).`,
+        detalles: `Carga exitosa del archivo ${pendingUpload.fileName}. Se procesaron ${successCount} atenciones válidas y se descartaron ${pendingUpload.totalDuplicados} registros duplicados de origen (Filas originales leídas: ${pendingUpload.filasOriginales}).`,
         centro: centroActivo || 'Desconocido',
         usuario: user?.email || 'Anónimo'
       };
@@ -544,20 +545,32 @@ export default function GestionDatos({
         setUploadRecordCount(count);
       }
       
+      setUploadResult({
+        fileName: pendingUpload.fileName,
+        successCount: successCount,
+        totalDuplicados: pendingUpload.totalDuplicados,
+        filasOriginales: pendingUpload.filasOriginales,
+        turnosCount: pendingUpload.turnos.length,
+        minDate,
+        maxDate
+      });
       setUploadSuccess(true);
-      setTimeout(() => {
-          setUploadSuccess(false);
-          setPendingUpload(null);
-          if (minDate !== '9999-99-99') {
-            setFiltroFechaInicio(minDate);
-            setFiltroFechaFin(maxDate);
-          }
-          showNotif(`Carga exitosa. Se procesaron ${successCount} atenciones válidas y se descartaron ${pendingUpload.totalDuplicados} registros duplicados de origen.`, 'success');
-          setActiveTab('resumen');
-      }, 1500);
 
     } catch (err) { showNotif("Error al guardar lote en la nube.", "error"); }
     setIsUploading(false); setSyncStatus('synced');
+  };
+
+  const handleSuccessClose = () => {
+    if (uploadResult) {
+      if (uploadResult.minDate !== '9999-99-99') {
+        setFiltroFechaInicio(uploadResult.minDate);
+        setFiltroFechaFin(uploadResult.maxDate);
+      }
+    }
+    setUploadSuccess(false);
+    setPendingUpload(null);
+    setUploadResult(null);
+    setActiveTab('resumen');
   };
 
   const handleManualSave = async () => {
@@ -964,6 +977,56 @@ export default function GestionDatos({
                 ) : "Confirmar Subida"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE ÉXITO DE CARGA CENTRADO */}
+      {uploadSuccess && uploadResult && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fade-in">
+          <div className="bg-card-custom border border-card-custom rounded-3xl shadow-2xl max-w-md w-full p-6 text-center space-y-6 animate-bounce-in theme-transition">
+            
+            {/* Círculo Animado de Éxito */}
+            <div className="mx-auto w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+              <CheckCircle className="w-10 h-10 animate-pulse" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-xl font-black text-primary-custom">¡Carga de Datos Exitosa!</h3>
+              <p className="text-xs text-secondary-custom font-semibold">El archivo &quot;{uploadResult.fileName}&quot; fue importado y consolidado con éxito.</p>
+            </div>
+
+            {/* Grid de Estadísticas de Auditoría */}
+            <div className="grid grid-cols-2 gap-3 mt-4 text-left">
+              <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Atenciones Válidas</span>
+                <span className="text-3xl font-black text-blue-500 mt-2">{uploadResult.successCount}</span>
+                <span className="text-[9px] font-semibold text-secondary-custom opacity-75 mt-1">Guardados en la nube</span>
+              </div>
+              
+              <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Duplicados Omitidos</span>
+                <span className="text-3xl font-black text-rose-500 mt-2">{uploadResult.totalDuplicados}</span>
+                <span className="text-[9px] font-semibold text-secondary-custom opacity-75 mt-1">Registros repetidos</span>
+              </div>
+
+              <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl flex flex-col justify-between col-span-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Detalle del Archivo</span>
+                  <span className="text-xs font-black text-primary-custom">{uploadResult.filasOriginales} filas leídas</span>
+                </div>
+                <div className="text-[9px] text-secondary-custom font-medium mt-1">
+                  Distribuidos en <span className="font-bold text-indigo-500">{uploadResult.turnosCount} turnos</span> operacionales de urgencia.
+                </div>
+              </div>
+            </div>
+
+            <button 
+              onClick={handleSuccessClose}
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black py-4 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2"
+            >
+              Ir al Resumen General <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       )}
