@@ -676,7 +676,7 @@ const DashboardContent = () => {
       {/* COLUMNA DERECHA: CANVAS DE SCROLL CONTINUO */}
       <main className="flex-1 h-full overflow-y-auto p-8 space-y-6 relative theme-transition">
         {notification && (
-          <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-sm font-medium z-50 animate-bounce-in ${notification.type === 'error' ? 'bg-red-600 text-white' : notification.type === 'warning' ? 'bg-orange-500 text-white' : 'bg-emerald-600 text-white'}`}>
+          <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-sm font-medium z-[9999] animate-bounce-in ${notification.type === 'error' ? 'bg-red-600 text-white' : notification.type === 'warning' ? 'bg-orange-500 text-white' : 'bg-emerald-600 text-white'}`}>
             {notification.msg}
           </div>
         )}
