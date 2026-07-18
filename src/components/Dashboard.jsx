@@ -17,6 +17,7 @@ import MatrizCruzada from './dashboard/MatrizCruzada';
 import PautaTurnos from './dashboard/PautaTurnos';
 import AuditLog from './dashboard/AuditLog';
 import AnalisisComparativoTriple from './dashboard/AnalisisComparativoTriple';
+import AuditoriaMedicaDetail from './dashboard/AuditoriaMedicaDetail';
 import CalendarioHistorico from './dashboard/CalendarioHistorico';
 import Login from './Login';
 import { 
@@ -25,7 +26,7 @@ import {
   CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
   BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
   Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
-  HeartPulse, Shield, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare
+  HeartPulse, Shield, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
@@ -533,6 +534,11 @@ const DashboardContent = () => {
               <UserCheck className="w-4 h-4" /> Altas Administrativas
             </button>
             <button 
+              onClick={() => setActiveTab('profesionales')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${activeTab === 'profesionales' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+              <Award className="w-4 h-4" /> Rendimiento Clínico
+            </button>
+            <button 
               onClick={() => setActiveTab('reportes')}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${activeTab === 'reportes' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
               <FileSpreadsheet className="w-4 h-4" /> Reporte
@@ -806,6 +812,10 @@ const DashboardContent = () => {
               filtroFechaFinB={filtroFechaFinB}
             />
           </div>
+        )}
+
+        {activeTab === 'profesionales' && (
+          <AuditoriaMedicaDetail pacientesDB={pacientesDB} turnosDB={turnosDB} />
         )}
 
         {activeTab === 'data' && (
