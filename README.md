@@ -4,6 +4,12 @@
 
 Aquí documentamos el progreso y las últimas actualizaciones que se le están haciendo al sistema para mantener a todo el equipo informado.
 
+### ✨ [Actualización] - 18 de Julio 2026 - Reubicación de Filtros, Corrección Ortográfica de "Triaje", Módulo Altas Admin y Alertas de Exceso
+- **Filtros Temporales en la Parte Superior:** Reubicamos el panel global de filtros arriba de los KPIs con una separación visual estricta para el control de contexto.
+- **Ortografía Corregida de "Triaje":** Modificamos en toda la interfaz y gráficos las referencias de "Triage" por "Triaje" (con J).
+- **Módulo de Auditoría de Altas Administrativas:** Incorporamos la pestaña "Altas Admin" que ofrece KPIs (totales, promedios, récords y equipos líderes), gráficos de evolución y un desglose absoluto por cada turno de trabajo.
+- **Alertas Visuales en Rojo:** El panel de triaje y la tarjeta de altas administrativas parpadean en rojo de forma prominente si el porcentaje de altas excede el límite permitido del 5%.
+
 ### ✨ [Actualización] - 16 de Julio 2026 - Control de Turnos Completo, Récords YTD Diferenciados y Optimización Operativa
 - **Lógica de Conteo Consistente y Turnos Modificados:** El sistema aplica los cortes de turnos y asocia correctamente las atenciones nocturnas y de madrugada.
 - **Carga y Recálculo Dinámico:** La gráfica de *Comparación de Equipos* se recalcula al vuelo cuando filtras rangos horarios personalizados.
@@ -48,17 +54,10 @@ Su propósito principal es brindar una herramienta de inteligencia de negocios (
 
 ---
 
-## 🚀 Despliegue Local para Desarrolladores
+## ✍️ Créditos y Propósito
+Este sistema ha sido desarrollado a medida para optimizar la cadena de suministro logístico-clínico, priorizando la velocidad de operación, la integridad y seguridad de los datos sensibles, y ofreciendo una experiencia de usuario interactiva y sumamente moderna. Un recurso diseñado para salvar tiempo administrativo y evitar fugas de información.
 
-Si deseas ejecutar este proyecto localmente:
+## 📄 Propiedad y Derechos de Uso
+⚠️ **Aviso Importante**: Este repositorio y todo su código fuente son de propiedad exclusiva y uso restringido (Código Cerrado / Proprietary).
 
-```bash
-# 1. Instalar dependencias
-npm install
-
-# 2. Iniciar servidor local
-npm run dev
-
-# 3. Compilar para producción
-npm run build
-```
+El código expuesto aquí tiene como único propósito mostrar el avance y el trabajo en desarrollo del proyecto. NO está permitido su copia, distribución, modificación, ni uso comercial o personal sin la autorización expresa de los autores. Todos los derechos reservados.
