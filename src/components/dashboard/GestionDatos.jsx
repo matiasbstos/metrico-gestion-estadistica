@@ -2,6 +2,13 @@ import React, { useState } from 'react';
 import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2, BookOpen, ArrowRight } from 'lucide-react';
 import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 
+const runWithTimeout = (promise, ms) => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), ms))
+  ]);
+};
+
 export default function GestionDatos({ 
   user, db, appId, loading,
   setLoading, setSyncStatus, showNotif, 
@@ -93,10 +100,16 @@ export default function GestionDatos({
       lastBatch.set(doc(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs')), auditLog);
       batchList.push(lastBatch);
 
-      await Promise.all(batchList.map(b => b.commit()));
+      // Execute commits with timeout to prevent hanging on Firestore backoff (Quota Exceeded)
+      await runWithTimeout(Promise.all(batchList.map(b => b.commit())), 10000);
       showNotif(`Datos eliminados correctamente (${registrosALimpiar.pacientes.length} pacientes borrados).`, "success");
     } catch(e) {
-      showNotif("Error al purgar los datos", "error");
+      console.error(e);
+      if (String(e.message).includes("Timeout")) {
+        showNotif("Tiempo de espera agotado. Verifica tu conexión o cuota de base de datos.", "error");
+      } else {
+        showNotif("Error al purgar los datos (límite de cuota de Firebase excedido).", "error");
+      }
     }
     setIsUploading(false); setSyncStatus('synced');
   };
@@ -530,7 +543,7 @@ export default function GestionDatos({
       setUploadRecordCount(0);
 
       for (let i = 0; i < batchList.length; i++) {
-        await batchList[i].commit();
+        await runWithTimeout(batchList[i].commit(), 8000);
         const batchProgress = i + 1;
         const pct = (batchProgress / batchList.length) * 100;
         setUploadProgress(pct);
@@ -556,7 +569,14 @@ export default function GestionDatos({
       });
       setUploadSuccess(true);
 
-    } catch (err) { showNotif("Error al guardar lote en la nube.", "error"); }
+    } catch (err) { 
+      console.error(err);
+      if (String(err.message).includes("Timeout")) {
+        showNotif("Error de conexión: tiempo de espera agotado.", "error");
+      } else {
+        showNotif("Error al guardar lote (cuota de operaciones excedida).", "error");
+      }
+    }
     setIsUploading(false); setSyncStatus('synced');
   };
 
