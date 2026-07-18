@@ -52,13 +52,18 @@ export default function PanelKPIs({ statsKPI, onAltasClick }) {
     return (
       <div 
         onClick={onAltasClick}
-        className={`p-5 flex flex-col justify-between h-full min-h-[140px] relative theme-transition bg-card-custom border rounded-2xl cursor-pointer hover:z-30 hover:shadow-lg ${isAlert ? 'border-red-500 bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse text-red-500' : 'border-card-custom'}`}
+        className={`p-5 flex flex-col justify-between h-full min-h-[140px] relative theme-transition bg-card-custom border rounded-2xl cursor-pointer hover:z-30 hover:shadow-lg ${isAlert ? 'border-red-500 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 glow-red-alert' : 'border-card-custom'}`}
       >
-         <div className="flex items-center gap-2">
-            <span className={`text-[10px] font-bold tracking-wider uppercase ${isAlert ? 'text-red-500 dark:text-red-400 animate-pulse font-black' : 'text-secondary-custom opacity-80'}`}>Altas Admin</span>
+         <div className="flex items-center gap-2 flex-wrap">
+            <span className={`text-[10px] font-bold tracking-wider uppercase ${isAlert ? 'text-red-600 dark:text-red-400 font-black' : 'text-secondary-custom opacity-80'}`}>Altas Admin</span>
             <InfoTooltip text="Meta institucional: Mantener por debajo del 5% del volumen total." />
-            {isAlert && <AlertTriangle className="w-3 h-3 text-red-500 animate-bounce" />}
+            {isAlert && <AlertTriangle className="w-3.5 h-3.5 text-red-500 animate-bounce" />}
          </div>
+         {isAlert && (
+           <span className="text-[8px] font-black bg-red-600 text-white px-2 py-0.5 rounded-full flex items-center gap-1 w-fit animate-pulse mt-1">
+             <AlertTriangle className="w-2.5 h-2.5" /> ALERTA ALTAS &gt;5%
+           </span>
+         )}
          <div className="flex justify-between items-end mt-1 mb-2">
               <span className={`text-3xl font-black ${isAlert ? 'text-red-600 dark:text-red-400' : 'text-red-500'}`}>{altas}</span>
          </div>

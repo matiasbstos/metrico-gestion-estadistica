@@ -4,11 +4,13 @@
 
 Aquí documentamos el progreso y las últimas actualizaciones que se le están haciendo al sistema para mantener a todo el equipo informado.
 
-### ✨ [Actualización] - 18 de Julio 2026 - Reubicación de Filtros, Corrección Ortográfica de "Triaje", Módulo Altas Admin y Alertas de Exceso
-- **Filtros Temporales en la Parte Superior:** Reubicamos el panel global de filtros arriba de los KPIs con una separación visual estricta para el control de contexto.
-- **Ortografía Corregida de "Triaje":** Modificamos en toda la interfaz y gráficos las referencias de "Triage" por "Triaje" (con J).
-- **Módulo de Auditoría de Altas Administrativas:** Incorporamos la pestaña "Altas Admin" que ofrece KPIs (totales, promedios, récords y equipos líderes), gráficos de evolución y un desglose absoluto por cada turno de trabajo.
-- **Alertas Visuales en Rojo:** El panel de triaje y la tarjeta de altas administrativas parpadean en rojo de forma prominente si el porcentaje de altas excede el límite permitido del 5%.
+### ✨ [Actualización] - 18 de Julio 2026 - Correcciones Estéticas, Glosario, Borrado de Filtros y Optimización del Calendario
+- **Irradiación de Brillo y Alerta en Altas Administrativas:** Diseñamos una animación de brillo rojo pulsante (`glow-red-alert`) y agregamos la insignia `ALERTA ALTAS >5%` dentro de las tarjetas del periodo y anual en el Inicio y Altas Administrativas para resaltar desviaciones críticas.
+- **Glosario de Tiempos de Espera:** Incorporamos un panel explicativo detallado con los umbrales de colores (Verde = Meta Cumplida, Amarillo = Zona Límite, Rojo = Meta Excedida) y modificamos la tabla a `overflow-visible` para que no se recorten los cuadros de información emergente (tooltips) al pasar el cursor.
+- **Acción de Borrar Filtros:** Agregamos el botón "Borrar Filtros" en las vistas de Inicio y Altas Administrativas para restablecer el contexto completo al mes actual con un solo clic.
+- **Eliminación Definitiva de Scrollbars en Calendario:** Añadimos un bloque de estilos CSS inyectados para forzar el ocultamiento de las barras de desplazamiento (óvalos/cápsulas) en todos los navegadores.
+- **Detalle de Categorías en Modal:** Rediseñamos los elementos de triaje dentro del modal detallado del día para que se muestren como cuadrados redondeados premium (`aspect-square`) en lugar de ovals.
+- **Fondos de Modales Dinámicos:** Vinculamos el fondo de los overlays y los contenedores de modales al tema visual activo (translúcido/pasteles en Crextio y Lordbank, y oscuro en el tema Oscuro) para asegurar consistencia estética.
 
 ### ✨ [Actualización] - 16 de Julio 2026 - Control de Turnos Completo, Récords YTD Diferenciados y Optimización Operativa
 - **Lógica de Conteo Consistente y Turnos Modificados:** El sistema aplica los cortes de turnos y asocia correctamente las atenciones nocturnas y de madrugada.

@@ -228,8 +228,16 @@ export default function AnalisisAltasDetail({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* KPI 1: Selección Actual */}
-        <div className={`p-5 rounded-2xl border flex flex-col justify-between min-h-[135px] shadow-sm theme-transition bg-card-custom hover:z-30 hover:shadow-lg ${isAlertActive ? 'border-red-500 bg-red-500/10 animate-pulse text-red-500' : 'border-card-custom'}`}>
-          <span className="text-[10px] font-black tracking-wider uppercase opacity-90">Altas Admin (Periodo Activo)</span>
+        <div className={`p-5 rounded-2xl border flex flex-col justify-between min-h-[135px] shadow-sm theme-transition bg-card-custom hover:z-30 hover:shadow-lg ${isAlertActive ? 'border-red-500 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 glow-red-alert' : 'border-card-custom'}`}>
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-black tracking-wider uppercase opacity-90">Altas Admin (Periodo Activo)</span>
+            {isAlertActive && <AlertTriangle className="w-3.5 h-3.5 text-red-500 animate-bounce" />}
+          </div>
+          {isAlertActive && (
+            <span className="text-[8px] font-black bg-red-600 text-white px-2 py-0.5 rounded-full flex items-center gap-1 w-fit animate-pulse mt-1">
+              <AlertTriangle className="w-2.5 h-2.5" /> ALERTA ALTAS &gt;5%
+            </span>
+          )}
           <div className="flex justify-between items-end mt-2">
             <span className="text-4xl font-black text-primary-custom">
               {statsA.totalAltas}
@@ -242,8 +250,16 @@ export default function AnalisisAltasDetail({
         </div>
 
         {/* KPI 2: Total Anual YTD */}
-        <div className={`p-5 rounded-2xl border flex flex-col justify-between min-h-[135px] shadow-sm theme-transition bg-card-custom hover:z-30 hover:shadow-lg ${isAlertAnual ? 'border-red-500 bg-red-500/10 animate-pulse text-red-500' : 'border-card-custom'}`}>
-          <span className="text-[10px] font-black tracking-wider uppercase opacity-90">Altas Admin (Global Anual YTD)</span>
+        <div className={`p-5 rounded-2xl border flex flex-col justify-between min-h-[135px] shadow-sm theme-transition bg-card-custom hover:z-30 hover:shadow-lg ${isAlertAnual ? 'border-red-500 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 glow-red-alert' : 'border-card-custom'}`}>
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-black tracking-wider uppercase opacity-90">Altas Admin (Global Anual YTD)</span>
+            {isAlertAnual && <AlertTriangle className="w-3.5 h-3.5 text-red-500 animate-bounce" />}
+          </div>
+          {isAlertAnual && (
+            <span className="text-[8px] font-black bg-red-600 text-white px-2 py-0.5 rounded-full flex items-center gap-1 w-fit animate-pulse mt-1">
+              <AlertTriangle className="w-2.5 h-2.5" /> ALERTA ALTAS &gt;5%
+            </span>
+          )}
           <div className="flex justify-between items-end mt-2">
             <span className="text-4xl font-black text-primary-custom">
               {totalAnualAltas}

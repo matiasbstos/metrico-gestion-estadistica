@@ -19,7 +19,8 @@ export default function FiltrosGlobales({
   setFiltroHoraFin,
   horarioPreset,
   setHorarioPreset,
-  maxDateLabel
+  maxDateLabel,
+  onClearFilters
 }) {
   const [activePreset, setActivePreset] = useState('hoy');
 
@@ -153,6 +154,15 @@ export default function FiltrosGlobales({
               <div className={`absolute top-[2px] w-3 h-3 rounded-full bg-white transition-transform ${modoComparativo ? 'left-[18px]' : 'left-[2px]'}`}></div>
             </button>
           </div>
+
+          {onClearFilters && (
+            <button 
+              onClick={onClearFilters} 
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-rose-500/10 text-rose-600 hover:bg-rose-500/25 border border-rose-500/20 shadow-sm transition-all"
+            >
+              Borrar Filtros
+            </button>
+          )}
         </div>
 
         {modoComparativo && (

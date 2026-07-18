@@ -198,6 +198,19 @@ const DashboardContent = () => {
     }
   };
 
+  const handleClearFilters = () => {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+    
+    setFiltroFechaInicio(firstDay);
+    setFiltroFechaFin(lastDay);
+    setModoComparativo(false);
+    setFiltroHoraInicio('00:00');
+    setFiltroHoraFin('23:59');
+    setHorarioPreset('civil');
+  };
+
   const { turnosFiltrados, pacientesFiltrados, demografiaStats, promediosGlobales, metricsByCategory, statsKPI, rankingCentros, topDiagnosticos } = useMetricoAnalytics(pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales, tipoCorte, filtroHoraInicio, filtroHoraFin);
   const { turnosDemanda, pacientesDemanda, peakHoursData } = useMetricoDemanda(pacientesDB, turnosDB, demandaFechaInicio, demandaFechaFin, modoComparativo, filtroFechaInicioB, filtroFechaFinB, docsToCompare, tipoCorte, filtroHoraInicio, filtroHoraFin);
   const { turnosProf, pacientesProf, metricsByDoctor, filteredMetricsByDoctor, dailyDoctorData } = useMetricoProfesionales(pacientesDB, turnosDB, profFechaInicio, profFechaFin, docsToCompare, searchDoctor, tipoCorte, filtroHoraInicio, filtroHoraFin);
@@ -561,13 +574,13 @@ const DashboardContent = () => {
 
       {/* MODALES Y OVERLAYS */}
       {syncStatus === 'syncing' && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-lg flex flex-col justify-center items-center animate-fade-in transition-all">
-          <div className="bg-slate-800/40 p-8 rounded-[2rem] backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(14,165,233,0.3)] flex flex-col items-center max-w-sm text-center relative overflow-hidden">
+        <div className="fixed inset-0 z-[100] backdrop-blur-lg flex flex-col justify-center items-center animate-fade-in transition-all" style={{ backgroundColor: 'var(--bg-overlay)' }}>
+          <div className="bg-card-custom p-8 rounded-[2rem] border border-card-custom shadow-[0_0_40px_rgba(14,165,233,0.25)] flex flex-col items-center max-w-sm text-center relative overflow-hidden theme-transition">
             <div className="absolute inset-0 bg-gradient-to-br from-sky-400/10 to-indigo-500/10 opacity-50 z-0"></div>
             <HeartPulse className="w-16 h-16 text-sky-400 animate-bounce mb-4 relative z-10 drop-shadow-[0_0_15px_rgba(56,189,248,0.5)]" />
-            <h3 className="text-xl font-black text-white tracking-widest uppercase relative z-10">Actualizando</h3>
-            <p className="text-sky-200 text-sm mt-2 font-medium relative z-10">Sincronizando registros...</p>
-            <div className="w-32 bg-slate-800/80 rounded-full h-1 mt-6 overflow-hidden relative z-10 border border-slate-700/50">
+            <h3 className="text-xl font-black text-primary-custom tracking-widest uppercase relative z-10">Actualizando</h3>
+            <p className="text-secondary-custom text-sm mt-2 font-semibold relative z-10">Sincronizando registros...</p>
+            <div className="w-32 bg-input-custom rounded-full h-1 mt-6 overflow-hidden relative z-10 border border-card-custom">
               <div className="absolute top-0 left-0 h-full bg-sky-400 w-1/2 animate-[pulse_1s_ease-in-out_infinite] shadow-[0_0_10px_rgba(56,189,248,1)]"></div>
             </div>
           </div>
@@ -575,19 +588,19 @@ const DashboardContent = () => {
       )}
 
       {deleteConfirm && (
-        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md flex items-center justify-center z-50 animate-fade-in p-4">
-          <div className="bg-white/90 backdrop-blur-2xl rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.3)] max-w-md w-full overflow-hidden border border-white/60">
+        <div className="fixed inset-0 backdrop-blur-md flex items-center justify-center z-50 animate-fade-in p-4" style={{ backgroundColor: 'var(--bg-overlay)' }}>
+          <div className="bg-card-custom rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.25)] max-w-md w-full overflow-hidden border border-card-custom theme-transition">
             <div className="bg-gradient-to-r from-rose-500 to-rose-700 text-white p-5 flex justify-between items-center shadow-md relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
               <h3 className="font-black tracking-wide flex items-center gap-2 relative z-10 text-lg"><Trash2 className="w-5 h-5"/> Eliminar Lote</h3>
               <button onClick={() => setDeleteConfirm(null)} className="hover:bg-white/20 p-1.5 rounded-xl transition-all relative z-10 backdrop-blur-sm"><X className="w-5 h-5"/></button>
             </div>
             <div className="p-6">
-              <div className="bg-rose-50/80 border border-rose-200/60 p-4 rounded-2xl mb-6 shadow-inner">
-                <p className="text-rose-800 text-sm font-medium leading-relaxed">¿Estás seguro que deseas eliminar este registro de forma permanente? <br/><br/>Si es una carga masiva, se borrarán <span className="font-bold">todos los pacientes</span> asociados a este lote.</p>
+              <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl mb-6 shadow-inner text-red-600 dark:text-red-400">
+                <p className="text-sm font-semibold leading-relaxed">¿Estás seguro que deseas eliminar este registro de forma permanente? <br/><br/>Si es una carga masiva, se borrarán <span className="font-black">todos los pacientes</span> asociados a este lote.</p>
               </div>
               <div className="flex gap-4">
-                <button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-3 border-2 border-slate-200/80 text-slate-600 bg-white/50 rounded-2xl hover:bg-slate-50 hover:text-slate-900 font-bold transition-all shadow-sm">Cancelar</button>
+                <button onClick={() => setDeleteConfirm(null)} className="flex-1 px-4 py-3 border border-card-custom text-secondary-custom bg-input-custom rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 font-black transition-all shadow-sm">Cancelar</button>
                 <button onClick={() => executeDeleteTurno(deleteConfirm)} className="flex-1 px-4 py-3 bg-gradient-to-r from-rose-500 to-rose-600 text-white rounded-2xl hover:from-rose-600 hover:to-rose-700 font-bold transition-all shadow-lg shadow-rose-500/30">Sí, Eliminar Registro</button>
               </div>
             </div>
@@ -596,29 +609,29 @@ const DashboardContent = () => {
       )}
 
       {editModal && (
-        <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md flex items-center justify-center z-50 animate-fade-in p-4">
-          <div className="bg-white/90 backdrop-blur-2xl rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.3)] max-w-md w-full overflow-hidden border border-white/60">
+        <div className="fixed inset-0 backdrop-blur-md flex items-center justify-center z-50 animate-fade-in p-4" style={{ backgroundColor: 'var(--bg-overlay)' }}>
+          <div className="bg-card-custom rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.25)] max-w-md w-full overflow-hidden border border-card-custom theme-transition">
             <div className="bg-gradient-to-r from-indigo-600 to-indigo-800 text-white p-5 flex justify-between items-center shadow-md relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
               <h3 className="font-black tracking-wide flex items-center gap-2 relative z-10 text-lg"><Edit className="w-5 h-5"/> Editar Registro</h3>
               <button onClick={() => setEditModal(null)} className="hover:bg-white/20 p-1.5 rounded-xl transition-all relative z-10 backdrop-blur-sm"><X className="w-5 h-5"/></button>
             </div>
-            <div className="p-6 space-y-5">
-              <div className="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100/50 shadow-inner">
-                 <p className="text-sm text-slate-500">Fecha del turno: <span className="font-bold text-indigo-700 bg-white px-2 py-1 rounded-lg border border-indigo-100 shadow-sm ml-1">{editModal.fechaInicio}</span></p>
+            <div className="p-6 space-y-5 text-secondary-custom">
+              <div className="bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom shadow-inner">
+                 <p className="text-sm text-secondary-custom font-semibold">Fecha del turno: <span className="font-black text-primary-custom bg-card-custom px-2.5 py-1 rounded-lg border border-card-custom shadow-sm ml-1">{editModal.fechaInicio}</span></p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wide">Horario</label>
-                  <select value={editModal.horario} onChange={e => setEditModal({...editModal, horario: e.target.value})} className="w-full text-sm border-2 border-slate-200/80 rounded-xl p-2.5 focus:border-indigo-500 outline-none bg-white/70 shadow-sm transition-all focus:bg-white">
+                  <label className="block text-[10px] font-bold text-secondary-custom mb-1.5 uppercase tracking-wide opacity-80">Horario</label>
+                  <select value={editModal.horario} onChange={e => setEditModal({...editModal, horario: e.target.value})} className="w-full text-sm border border-card-custom rounded-xl p-2.5 focus:border-indigo-500 outline-none bg-input-custom text-primary-custom shadow-sm transition-all focus:bg-card-custom">
                     <option value="17:00 - 08:00 (Semana)">17:00 - 08:00 (Semana)</option>
                     <option value="08:00 - 20:00 (Finde)">08:00 - 20:00 (Finde)</option>
                     <option value="20:00 - 08:00 (Finde)">20:00 - 08:00 (Finde)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wide">Equipo de Turno</label>
-                  <select value={editModal.equipoTurno} onChange={e => setEditModal({...editModal, equipoTurno: e.target.value})} className="w-full text-sm border-2 border-slate-200/80 rounded-xl p-2.5 focus:border-indigo-500 outline-none font-bold text-indigo-600 bg-white/70 shadow-sm transition-all focus:bg-white">
+                  <label className="block text-[10px] font-bold text-secondary-custom mb-1.5 uppercase tracking-wide opacity-80">Equipo de Turno</label>
+                  <select value={editModal.equipoTurno} onChange={e => setEditModal({...editModal, equipoTurno: e.target.value})} className="w-full text-sm border border-card-custom rounded-xl p-2.5 focus:border-indigo-500 outline-none font-bold text-indigo-600 bg-input-custom shadow-sm transition-all focus:bg-card-custom">
                     <option value="Sin Asignar">Sin Asignar</option>
                     <option value="Turno 1">Turno 1</option>
                     <option value="Turno 2">Turno 2</option>
@@ -629,22 +642,22 @@ const DashboardContent = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wide">Total Pacientes</label>
-                  <input type="number" value={editModal.totalPacientes} onChange={e => setEditModal({...editModal, totalPacientes: e.target.value})} className="w-full text-lg font-bold border-2 border-slate-200/80 rounded-xl p-2.5 text-blue-600 focus:border-blue-500 outline-none bg-white/70 shadow-sm transition-all focus:bg-white" />
+                  <label className="block text-[10px] font-bold text-secondary-custom mb-1.5 uppercase tracking-wide opacity-80">Total Pacientes</label>
+                  <input type="number" value={editModal.totalPacientes} onChange={e => setEditModal({...editModal, totalPacientes: e.target.value})} className="w-full text-lg font-bold border border-card-custom rounded-xl p-2.5 text-blue-600 focus:border-blue-500 outline-none bg-input-custom shadow-sm transition-all focus:bg-card-custom" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold text-rose-400 mb-1.5 uppercase tracking-wide">Altas Admin</label>
-                  <input type="number" value={editModal.altasAdmin} onChange={e => setEditModal({...editModal, altasAdmin: e.target.value})} className="w-full text-lg font-bold border-2 border-rose-200/80 rounded-xl p-2.5 text-rose-600 focus:border-rose-500 outline-none bg-white/70 shadow-sm transition-all focus:bg-white" />
+                  <input type="number" value={editModal.altasAdmin} onChange={e => setEditModal({...editModal, altasAdmin: e.target.value})} className="w-full text-lg font-bold border border-card-custom rounded-xl p-2.5 text-rose-600 focus:border-rose-500 outline-none bg-input-custom shadow-sm transition-all focus:bg-card-custom" />
                 </div>
               </div>
-              <hr className="border-slate-200/80 my-2" />
+              <hr className="border-card-custom my-2" />
               <div className="flex gap-2 justify-between">
                 {['c1', 'c2', 'c3', 'c3_z518', 'c4', 'c5'].map(c => (
                   <div key={c} className="flex-1 text-center">
                     <label className={`block text-[9px] font-bold mb-1.5 uppercase tracking-wide ${c === 'c1' ? 'text-red-500' : c === 'c2' ? 'text-orange-500' : c === 'c3' ? 'text-yellow-500' : c === 'c3_z518' ? 'text-yellow-600' : c === 'c4' ? 'text-green-500' : 'text-blue-500'}`}>
                       {c === 'c3_z518' ? 'C3 (L)' : c.toUpperCase()}
                     </label>
-                    <input type="number" value={editModal[c]} onChange={e => setEditModal({...editModal, [c]: e.target.value})} className="w-full text-center border-2 border-slate-200/80 rounded-lg p-2 text-sm font-bold focus:border-indigo-500 outline-none bg-white/70 shadow-sm transition-all focus:bg-white" />
+                    <input type="number" value={editModal[c]} onChange={e => setEditModal({...editModal, [c]: e.target.value})} className="w-full text-center border border-card-custom rounded-lg p-2 text-sm font-bold focus:border-indigo-500 outline-none bg-input-custom shadow-sm transition-all focus:bg-card-custom" />
                   </div>
                 ))}
               </div>
@@ -677,6 +690,7 @@ const DashboardContent = () => {
               filtroHoraFin={filtroHoraFin} setFiltroHoraFin={setFiltroHoraFin}
               horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
               maxDateLabel={maxDateLabel}
+              onClearFilters={handleClearFilters}
             />
 
             <hr className="border-card-custom/40 my-6 theme-transition" />
@@ -777,6 +791,7 @@ const DashboardContent = () => {
               filtroHoraFin={filtroHoraFin} setFiltroHoraFin={setFiltroHoraFin}
               horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
               maxDateLabel={maxDateLabel}
+              onClearFilters={handleClearFilters}
             />
 
             <hr className="border-card-custom/40 my-6 theme-transition" />

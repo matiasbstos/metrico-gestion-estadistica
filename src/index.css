@@ -48,6 +48,7 @@
   --border-input: rgba(255, 255, 255, 0.6);
   --text-input: #1e1b4b;
   --bg-sidebar-hover: rgba(255, 255, 255, 0.3);
+  --bg-overlay: rgba(255, 255, 255, 0.45);
 }
 
 .theme-dark {
@@ -65,6 +66,7 @@
   --border-input: #475569;
   --text-input: #f8fafc;
   --bg-sidebar-hover: #1e293b;
+  --bg-overlay: rgba(15, 23, 42, 0.7);
 }
 
 .theme-lordbank {
@@ -82,6 +84,7 @@
   --border-input: #cbd5e1;
   --text-input: #0f172a;
   --bg-sidebar-hover: #f1f5f9;
+  --bg-overlay: rgba(241, 245, 249, 0.5);
 }
 
 /* Clases de utilidad vinculadas */
@@ -135,5 +138,23 @@
 .no-scrollbar {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+}
+
+@keyframes glowRed {
+  0% {
+    box-shadow: 0 0 5px rgba(239, 68, 68, 0.3), inset 0 0 5px rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.85), inset 0 0 10px rgba(239, 68, 68, 0.3);
+    border-color: rgba(239, 68, 68, 1);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(239, 68, 68, 0.3), inset 0 0 5px rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+}
+.glow-red-alert {
+  animation: glowRed 2s infinite ease-in-out;
 }
 

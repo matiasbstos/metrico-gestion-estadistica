@@ -107,6 +107,15 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
 
   return (
     <div className="bg-card-custom p-6 w-full animate-fade-in mt-6 theme-transition">
+      <style>{`
+        .no-scrollbar::-webkit-scrollbar {
+          display: none !important;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none !important;
+          scrollbar-width: none !important;
+        }
+      `}</style>
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 rounded-xl shadow-sm">
@@ -255,7 +264,7 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
 
       {/* MODAL DE DETALLE */}
       {selectedDay && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4" onClick={() => setSelectedDay(null)}>
+        <div className="fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-4" style={{ backgroundColor: 'var(--bg-overlay)' }} onClick={() => setSelectedDay(null)}>
           <div className="bg-card-custom rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.3)] max-w-lg w-full overflow-hidden border border-card-custom theme-transition" onClick={e => e.stopPropagation()}>
             <div className="bg-black/5 dark:bg-white/5 text-primary-custom p-6 flex justify-between items-center border-b border-card-custom relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
@@ -310,9 +319,9 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
                               { label: 'C4', val: t.c4, color: TRIAGE_COLORS.C4 },
                               { label: 'C5', val: t.c5, color: TRIAGE_COLORS.C5 }
                             ].map(cat => (
-                              <div key={cat.label} className="bg-card-custom border border-card-custom rounded-lg p-2 flex flex-col items-center justify-center">
-                                <span className="text-xs font-black" style={{color: cat.color}}>{cat.val || 0}</span>
-                                <span className="text-[9px] font-bold text-secondary-custom mt-0.5">{cat.label}</span>
+                              <div key={cat.label} className="bg-card-custom border border-card-custom rounded-2xl p-2.5 flex flex-col items-center justify-center aspect-square min-w-[55px] md:min-w-[60px] shadow-sm">
+                                <span className="text-sm font-black" style={{color: cat.color}}>{cat.val || 0}</span>
+                                <span className="text-[9px] font-black text-secondary-custom mt-0.5">{cat.label}</span>
                               </div>
                             ))}
                           </div>
