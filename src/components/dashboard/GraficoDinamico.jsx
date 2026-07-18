@@ -19,8 +19,8 @@ export default function GraficoDinamico({
 }) {
   const [activeTab, setActiveTab] = React.useState('operacional');
 
-  // Filtros internos - Por defecto activos para evitar spaghetti
-  const [opFilters, setOpFilters] = React.useState(['c1', 'c2', 'c3', 'c4', 'c5', 'altasAdmin']);
+  // Filtros internos - Por defecto activos
+  const [opFilters, setOpFilters] = React.useState(['totalPacientes', 'c3', 'altasAdmin']);
   const [timeFilters, setTimeFilters] = React.useState(['tiempoCatAna', 'tiempoAdmCat', 'tiempoAnaAlt', 'tiempoAdmAlt']);
 
   const toggleFilter = (setFilter, val) => {
@@ -210,26 +210,13 @@ export default function GraficoDinamico({
                               <YAxis fontSize={10} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)' }} />
                               <Tooltip content={<CustomTooltip />} />
                               <Legend wrapperStyle={{fontSize: '11px'}} />
-                              
-                              {/* Stacked Areas for triage levels to represent total visually, avoiding crossing lines (spaghetti) */}
-                              {opFilters.includes('c1') && <Area type="monotone" dataKey="c1" name="C1" stackId="triage" stroke={COLORS.c1} fill={COLORS.c1} fillOpacity={0.5} />}
-                              {opFilters.includes('c2') && <Area type="monotone" dataKey="c2" name="C2" stackId="triage" stroke={COLORS.c2} fill={COLORS.c2} fillOpacity={0.5} />}
-                              {opFilters.includes('c3') && <Area type="monotone" dataKey="c3" name="C3" stackId="triage" stroke={COLORS.c3} fill={COLORS.c3} fillOpacity={0.5} />}
-                              {opFilters.includes('c4') && <Area type="monotone" dataKey="c4" name="C4" stackId="triage" stroke={COLORS.c4} fill={COLORS.c4} fillOpacity={0.5} />}
-                              {opFilters.includes('c5') && <Area type="monotone" dataKey="c5" name="C5" stackId="triage" stroke={COLORS.c5} fill={COLORS.c5} fillOpacity={0.5} />}
-                              
-                              {/* Volumen total como área translúcida solo si no se desglosa, o como línea discontinua de límite */}
-                              {opFilters.includes('totalPacientes') && (
-                                opFilters.some(x => ['c1','c2','c3','c4','c5'].includes(x)) ? (
-                                  <Line type="monotone" dataKey="totalPacientes" name="Límite Total" stroke="#3b82f6" strokeWidth={2.5} strokeDasharray="5 5" dot={false} />
-                                ) : (
-                                  <Area type="monotone" dataKey="totalPacientes" name="Volumen Total" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorVolumen)" />
-                                )
-                              )}
-
-                              {opFilters.includes('altasAdmin') && (
-                                <Line type="monotone" dataKey="altasAdmin" name="Altas Admin" stroke="#ef4444" strokeWidth={2.5} dot={{r: 4}} />
-                              )}
+                              {opFilters.includes('totalPacientes') && <Area type="monotone" dataKey="totalPacientes" name="Volumen Total" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorVolumen)" />}
+                              {opFilters.includes('c1') && <Bar dataKey="c1" name="C1" stackId="triage" fill={COLORS.c1} />}
+                              {opFilters.includes('c2') && <Bar dataKey="c2" name="C2" stackId="triage" fill={COLORS.c2} />}
+                              {opFilters.includes('c3') && <Bar dataKey="c3" name="C3" stackId="triage" fill={COLORS.c3} />}
+                              {opFilters.includes('c4') && <Bar dataKey="c4" name="C4" stackId="triage" fill={COLORS.c4} />}
+                              {opFilters.includes('c5') && <Bar dataKey="c5" name="C5" stackId="triage" fill={COLORS.c5} radius={[4,4,0,0]} />}
+                              {opFilters.includes('altasAdmin') && <Line type="monotone" dataKey="altasAdmin" name="Altas Admin" stroke="#ef4444" strokeWidth={2.5} dot={{r: 4}} />}
                             </ComposedChart>
                           </ResponsiveContainer>
                         </div>

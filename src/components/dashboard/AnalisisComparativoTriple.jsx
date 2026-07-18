@@ -84,64 +84,6 @@ export default function AnalisisComparativoTriple({ pacientesDB, turnosDB }) {
     return `${perc > 0 ? '+' : ''}${perc.toFixed(1)}%`;
   };
 
-  // Custom tooltips acting as mini-dashboards with delta calculation
-  const CustomComparativoTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      const getVal = (dateShortName) => {
-        const item = payload.find(p => p.name === dateShortName);
-        return item ? item.value : 0;
-      };
-
-      const val1 = getVal('Fecha 1');
-      const val2 = getVal('Fecha 2');
-      const val3 = getVal('Fecha 3');
-
-      return (
-        <div className="bg-card-custom border border-card-custom p-4 rounded-2xl shadow-xl min-w-[210px] space-y-2.5 text-xs font-bold theme-transition">
-          <p className="text-sm font-black text-primary-custom border-b border-card-custom pb-1.5 uppercase tracking-wider">
-            Categoría {label}
-          </p>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center text-blue-500">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#3b82f6]"></span>
-                Fecha 1:
-              </span>
-              <span className="text-sm font-black">{val1}</span>
-            </div>
-
-            <div className="flex justify-between items-center text-purple-500">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#8b5cf6]"></span>
-                Fecha 2:
-              </span>
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-black">{val2}</span>
-                <span className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm ${val1 > val2 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : val1 < val2 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'bg-black/5 text-secondary-custom'}`}>
-                  {val2 > 0 ? getPercentChange(val1, val2) : '0%'}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center text-emerald-500">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#10b981]"></span>
-                Fecha 3:
-              </span>
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-black">{val3}</span>
-                <span className={`text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm ${val1 > val3 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : val1 < val3 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'bg-black/5 text-secondary-custom'}`}>
-                  {val3 > 0 ? getPercentChange(val1, val3) : '0%'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
     <div className="space-y-6 animate-fade-in max-w-7xl mx-auto theme-transition">
       <div className="flex items-center justify-between bg-card-custom p-4 rounded-2xl shadow-sm border border-card-custom">
@@ -225,7 +167,7 @@ export default function AnalisisComparativoTriple({ pacientesDB, turnosDB }) {
               <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} />
               <Tooltip 
                 cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                content={<CustomComparativoTooltip />}
+                contentStyle={{ borderRadius: '12px', border: 'none', backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-card)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
               />
               <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '12px', fontWeight: 'bold' }} />
               <Bar dataKey={datesToCompare[2].short} name="Periodo 3" fill={datesToCompare[2].color} radius={[4, 4, 0, 0]} />

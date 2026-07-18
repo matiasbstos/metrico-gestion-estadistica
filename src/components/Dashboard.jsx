@@ -648,6 +648,8 @@ const DashboardContent = () => {
 
         {activeTab === 'resumen' && (
           <>
+            {statsKPI && <PanelKPIs statsKPI={statsKPI} />}
+            
             <FiltrosGlobales 
               modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
               filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={setFiltroFechaInicio}
@@ -661,8 +663,6 @@ const DashboardContent = () => {
               horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
               maxDateLabel={maxDateLabel}
             />
-
-            {statsKPI && <PanelKPIs statsKPI={statsKPI} />}
 
 
 
