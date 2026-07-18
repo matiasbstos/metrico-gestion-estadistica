@@ -3,7 +3,7 @@ import { Grid, ArrowRight, Activity, Zap, CheckCircle2 } from 'lucide-react';
 import InfoTooltip from '../InfoTooltip';
 
 const VARIABLES = [
-  { id: 'categoria', label: 'Categoría de Triage' },
+  { id: 'categoria', label: 'Categoría de Triaje' },
   { id: 'sexo', label: 'Sexo' },
   { id: 'edad', label: 'Rango Etario' },
   { id: 'prevision', label: 'Previsión' },
@@ -110,7 +110,7 @@ export default function MatrizCruzada({ pacientesFiltrados }) {
             <Grid className="text-indigo-600 w-5 h-5"/>
             <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
               Relación de Datos Multivariables
-              <InfoTooltip title="Relación de Datos Multivariables" text="Compara dos variables simultáneamente (ej. Triage vs Rango Etario) para descubrir patrones ocultos de demanda en la urgencia." />
+              <InfoTooltip title="Relación de Datos Multivariables" text="Compara dos variables simultáneamente (ej. Triaje vs Rango Etario) para descubrir patrones ocultos de demanda en la urgencia." />
             </h2>
           </div>
           <p className="text-xs text-slate-500 mt-1">Descubre correlaciones y volúmenes cruzando dos variables operacionales.</p>

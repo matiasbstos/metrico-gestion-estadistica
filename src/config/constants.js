@@ -9,7 +9,7 @@ export const PALETTE = ['#f43f5e', '#ec4899', '#d946ef', '#a855f7', '#8b5cf6', '
 export const METRIC_LABELS = {
   totalPacientes: 'Volumen Pacientes', altasAdmin: 'Altas Admin',
   c1: 'C1', c2: 'C2', c3: 'C3', c3_z518: 'C3 (Lesiones)', c4: 'C4', c5: 'C5',
-  tiempoAdmCat: 'T. Espera Triage (min)', tiempoCatAna: 'T. Espera Médico (min)', 
+  tiempoAdmCat: 'T. Espera Triaje (min)', tiempoCatAna: 'T. Espera Médico (min)', 
   tiempoAnaAlt: 'T. Box (min)', tiempoAdmAlt: 'T. Estadía Total (min)'
 };
 export const AGE_RANGES = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80+'];

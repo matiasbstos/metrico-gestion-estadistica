@@ -50,39 +50,39 @@ export default function PanelKPIs({ statsKPI }) {
     const growthYear = isAnnual ? undefined : statsKPI.altasAdmin.growthYear;
 
     return (
-      <div className={`p-5 flex flex-col justify-between h-full min-h-[140px] relative theme-transition bg-card-custom ${isAlert ? (isAnnual ? 'border-rose-400/50 bg-rose-500/10' : 'border-rose-500 bg-rose-500/10 animate-pulse') : ''}`}>
+      <div className={`p-5 flex flex-col justify-between h-full min-h-[140px] relative theme-transition bg-card-custom border rounded-2xl ${isAlert ? (isAnnual ? 'border-red-400/50 bg-red-500/5 text-red-500' : 'border-red-500 bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse') : 'border-card-custom'}`}>
          <div className="flex items-center gap-2">
-           <span className={`text-[10px] font-bold tracking-wider uppercase ${isAlert ? 'text-rose-500' : 'text-secondary-custom opacity-80'}`}>Altas Admin</span>
-           <InfoTooltip text="Meta institucional: Mantener por debajo del 5% del volumen total." />
-           {isAlert && <AlertTriangle className="w-3 h-3 text-rose-500" />}
+            <span className={`text-[10px] font-bold tracking-wider uppercase ${isAlert ? 'text-red-500 dark:text-red-400' : 'text-secondary-custom opacity-80'}`}>Altas Admin</span>
+            <InfoTooltip text="Meta institucional: Mantener por debajo del 5% del volumen total." />
+            {isAlert && <AlertTriangle className="w-3 h-3 text-red-500 animate-bounce" />}
          </div>
          <div className="flex justify-between items-end mt-1 mb-2">
-             <span className={`text-3xl font-black ${isAlert ? 'text-rose-600 dark:text-rose-400' : 'text-rose-500'}`}>{altas}</span>
+              <span className={`text-3xl font-black ${isAlert ? 'text-red-600 dark:text-red-400' : 'text-red-500'}`}>{altas}</span>
          </div>
          <div className="flex flex-col gap-1 mt-auto">
-            <div className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded">
-                <span className={`text-[10px] font-bold ${isAlert ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-500'}`}>{pct.toFixed(1)}% del total</span>
-            </div>
-            {growthMonth !== undefined && (
-              <div className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded">
-                <span className="text-[9px] font-bold text-secondary-custom">Vs Mes Ant.</span>
-                <span className={`text-[10px] font-bold flex items-center gap-1 ${growthMonth > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                  {growthMonth > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {growthMonth > 0 ? '+' : ''}{growthMonth.toFixed(1)}%
-                </span>
-              </div>
-            )}
-            {growthYear !== undefined && (
-              <div className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded">
-                <span className="text-[9px] font-bold text-secondary-custom">Vs Año Ant.</span>
-                <span className={`text-[10px] font-bold flex items-center gap-1 ${growthYear > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                  {growthYear > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {growthYear > 0 ? '+' : ''}{growthYear.toFixed(1)}%
-                </span>
-              </div>
-            )}
-         </div>
-      </div>
+             <div className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded">
+                 <span className={`text-[10px] font-bold ${isAlert ? 'text-red-600 dark:text-red-400' : 'text-emerald-500'}`}>{pct.toFixed(1)}% del total</span>
+             </div>
+             {growthMonth !== undefined && (
+               <div className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded">
+                 <span className="text-[9px] font-bold text-secondary-custom">Vs Mes Ant.</span>
+                 <span className={`text-[10px] font-bold flex items-center gap-1 ${growthMonth > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                   {growthMonth > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                   {growthMonth > 0 ? '+' : ''}{growthMonth.toFixed(1)}%
+                 </span>
+               </div>
+             )}
+             {growthYear !== undefined && (
+               <div className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded">
+                 <span className="text-[9px] font-bold text-secondary-custom">Vs Año Ant.</span>
+                 <span className={`text-[10px] font-bold flex items-center gap-1 ${growthYear > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                   {growthYear > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                   {growthYear > 0 ? '+' : ''}{growthYear.toFixed(1)}%
+                 </span>
+               </div>
+             )}
+          </div>
+       </div>
     );
   };
 
@@ -158,8 +158,22 @@ export default function PanelKPIs({ statsKPI }) {
       </div>
 
       {/* 3. TRIAJE */}
-      <div className="bg-card-custom p-6 flex flex-col md:flex-row items-center gap-6 mb-6 theme-transition">
-        <span className="text-xs font-bold text-secondary-custom opacity-80 tracking-wider whitespace-nowrap uppercase">DISTRIBUCIÓN DE TRIAJE</span>
+      {(() => {
+        const periodTotal = statsKPI.pacientes.current;
+        const periodAltas = statsKPI.altasAdmin.current;
+        const periodPct = periodTotal > 0 ? (periodAltas / periodTotal) * 100 : 0;
+        const isAltasAlert = periodPct > 5;
+        
+        return (
+          <div className={`p-6 flex flex-col md:flex-row items-center gap-6 mb-6 theme-transition border rounded-2xl ${isAltasAlert ? 'bg-red-500/10 border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)] animate-pulse' : 'bg-card-custom border-card-custom'}`}>
+            <div className="flex flex-col gap-1.5 items-center md:items-start">
+              <span className={`text-xs font-bold tracking-wider whitespace-nowrap uppercase ${isAltasAlert ? 'text-red-500' : 'text-secondary-custom opacity-80'}`}>DISTRIBUCIÓN DE TRIAJE</span>
+              {isAltasAlert && (
+                <span className="text-[9px] font-black bg-red-500 text-white px-2 py-0.5 rounded-full animate-bounce text-center flex items-center gap-1">
+                  <AlertTriangle className="w-2.5 h-2.5 animate-pulse" /> ALERTA ALTAS &gt;5%
+                </span>
+              )}
+            </div>
         <div className="flex-1 grid grid-cols-3 md:grid-cols-6 gap-2 w-full">
           {statsKPI.categorias.map(c => {
              const colorKey = c.name === 'C3 (L)' ? 'c3_z518' : c.name.toLowerCase();
@@ -189,7 +203,9 @@ export default function PanelKPIs({ statsKPI }) {
              );
           })}
         </div>
-      </div>
+          </div>
+        );
+      })()}
     </>
   );
 }

@@ -23,12 +23,19 @@ export default function GraficoDinamico({
   const [opFilters, setOpFilters] = React.useState(['totalPacientes', 'c3', 'altasAdmin']);
   const [timeFilters, setTimeFilters] = React.useState(['tiempoCatAna', 'tiempoAdmCat', 'tiempoAnaAlt', 'tiempoAdmAlt']);
 
+  const isAltasAlert = useMemo(() => {
+    if (!turnosFiltrados || turnosFiltrados.length === 0) return false;
+    const total = turnosFiltrados.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0);
+    const altas = turnosFiltrados.reduce((acc, t) => acc + Number(t.altasAdmin || 0), 0);
+    return total > 0 ? (altas / total) * 100 > 5 : false;
+  }, [turnosFiltrados]);
+
   const toggleFilter = (setFilter, val) => {
     setFilter(prev => prev.includes(val) ? prev.filter(x => x !== val) : [...prev, val]);
   };
 
   const tabs = [
-    { id: 'operacional', label: 'Operacional & Triage', icon: Activity, color: 'text-blue-500 bg-blue-500/10' },
+    { id: 'operacional', label: 'Operacional & Triaje', icon: Activity, color: 'text-blue-500 bg-blue-500/10' },
     { id: 'tiempos', label: 'Tiempos de Atención', icon: BarChart2, color: 'text-indigo-500 bg-indigo-500/10' },
     { id: 'demografia', label: 'Demografía', icon: Users, color: 'text-pink-500 bg-pink-500/10' },
     { id: 'prevision', label: 'Previsión Médica', icon: Shield, color: 'text-emerald-500 bg-emerald-500/10' },
@@ -173,6 +180,12 @@ export default function GraficoDinamico({
                 {/* VISTA 1: OPERACIONAL */}
                 {activeTab === 'operacional' && (
                   <div className="flex flex-col gap-4">
+                    {isAltasAlert && (
+                      <div className="bg-red-500/10 border border-red-500 text-red-500 text-xs font-bold p-3.5 rounded-2xl flex items-center gap-2 animate-pulse shadow-sm">
+                        <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0 animate-bounce" />
+                        <span>Alerta de Gestión: Las Altas Administrativas del período seleccionado superan la meta del 5% del volumen total de pacientes atendidos.</span>
+                      </div>
+                    )}
                     <div className="flex flex-wrap gap-2 items-center bg-black/5 dark:bg-white/5 p-2 rounded-xl border border-card-custom">
                       <span className="text-xs font-bold text-secondary-custom mr-2">Filtros Rápidos:</span>
                       {[
@@ -225,7 +238,7 @@ export default function GraficoDinamico({
                       {/* 100% Stacked Bar de Triajes (Reducción de espacio y mayor eficiencia lineal) */}
                       <div className="h-full bg-black/5 dark:bg-white/5 p-5 rounded-2xl border border-card-custom flex flex-col justify-between theme-transition">
                          <div>
-                           <h3 className="text-xs font-bold text-primary-custom mb-1 uppercase tracking-wider">Distribución Triage Global</h3>
+                           <h3 className="text-xs font-bold text-primary-custom mb-1 uppercase tracking-wider">Distribución Triaje Global</h3>
                            <p className="text-[10px] text-secondary-custom font-medium mb-4">Proporción lineal del total atendido</p>
                            
                            {totalTriageVal > 0 ? (
@@ -283,7 +296,7 @@ export default function GraficoDinamico({
                       <span className="text-xs font-bold text-secondary-custom mr-2">Filtros Rápidos:</span>
                       {[
                         { id: 'tiempoCatAna', label: 'Espera Médico', color: 'bg-pink-500/10 text-pink-500 border border-pink-500/20' },
-                        { id: 'tiempoAdmCat', label: 'Espera Triage', color: 'bg-purple-500/10 text-purple-500 border border-purple-500/20' },
+                        { id: 'tiempoAdmCat', label: 'Espera Triaje', color: 'bg-purple-500/10 text-purple-500 border border-purple-500/20' },
                         { id: 'tiempoAnaAlt', label: 'Tiempo Box', color: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20' },
                         { id: 'tiempoAdmAlt', label: 'Estadía Total', color: 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20' }
                       ].map(f => (
@@ -303,7 +316,7 @@ export default function GraficoDinamico({
                             <Tooltip content={<CustomTooltip />} />
                             <Legend wrapperStyle={{fontSize: '11px'}} />
                             {timeFilters.includes('tiempoCatAna') && <Line type="monotone" dataKey="tiempoCatAna" name="Espera Médico" stroke="#ec4899" strokeWidth={3} dot={{r:3}} />}
-                            {timeFilters.includes('tiempoAdmCat') && <Line type="monotone" dataKey="tiempoAdmCat" name="Espera Triage" stroke="#8b5cf6" strokeWidth={3} dot={{r:3}} />}
+                            {timeFilters.includes('tiempoAdmCat') && <Line type="monotone" dataKey="tiempoAdmCat" name="Espera Triaje" stroke="#8b5cf6" strokeWidth={3} dot={{r:3}} />}
                             {timeFilters.includes('tiempoAnaAlt') && <Line type="monotone" dataKey="tiempoAnaAlt" name="Tiempo Box" stroke="#14b8a6" strokeWidth={2} strokeDasharray="5 5" />}
                             {timeFilters.includes('tiempoAdmAlt') && <Line type="monotone" dataKey="tiempoAdmAlt" name="Estadía Total" stroke="#6366f1" strokeWidth={2} strokeDasharray="5 5" />}
                           </LineChart>

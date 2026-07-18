@@ -112,8 +112,8 @@ export default function TablaTiemposEspera({ metricsByCategory, promediosGlobale
             <tr className="text-secondary-custom font-bold uppercase text-[10px] tracking-wider border-b border-card-custom">
               <th className="p-3 pb-2 rounded-tl-lg font-bold">Categoría</th>
               <th className="p-3 pb-2 text-center font-bold">Pacientes</th>
-              <th className="p-3 pb-2 text-center font-bold">T. Admisión - Triage</th>
-              <th className="p-3 pb-2 text-center font-bold">T. Triage - Atención</th>
+              <th className="p-3 pb-2 text-center font-bold">T. Admisión - Triaje</th>
+              <th className="p-3 pb-2 text-center font-bold">T. Triaje - Atención</th>
               <th className="p-3 pb-2 text-center font-bold">T. Atención - Alta</th>
               <th className="p-3 pb-2 text-center rounded-tr-lg font-bold">Estadía Total</th>
             </tr>

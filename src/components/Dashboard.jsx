@@ -9,6 +9,7 @@ import TablaTiemposEspera from './dashboard/TablaTiemposEspera';
 import AnalisisProfesionales from './dashboard/AnalisisProfesionales';
 import RankingProfesionales from './dashboard/RankingProfesionales';
 import TopDiagnosticos from './dashboard/TopDiagnosticos';
+import AnalisisAltasDetail from './dashboard/AnalisisAltasDetail';
 import DataGridTurnos from './dashboard/DataGridTurnos';
 import GestionDatos from './dashboard/GestionDatos';
 import ReportesModule from './dashboard/ReportesModule';
@@ -504,6 +505,11 @@ const DashboardContent = () => {
               <Calendar className="w-4 h-4" /> Histórico Mensual
             </button>
             <button 
+              onClick={() => setActiveTab('altas')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${activeTab === 'altas' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+              <UserCheck className="w-4 h-4" /> Altas Admin
+            </button>
+            <button 
               onClick={() => setActiveTab('reportes')}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${activeTab === 'reportes' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
               <FileSpreadsheet className="w-4 h-4" /> Reporte
@@ -648,8 +654,7 @@ const DashboardContent = () => {
 
         {activeTab === 'resumen' && (
           <>
-            {statsKPI && <PanelKPIs statsKPI={statsKPI} />}
-            
+            {/* SECTOR DE FILTROS Y CONTROL DE CONTEXTO */}
             <FiltrosGlobales 
               modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
               filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={setFiltroFechaInicio}
@@ -663,6 +668,11 @@ const DashboardContent = () => {
               horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
               maxDateLabel={maxDateLabel}
             />
+
+            <hr className="border-card-custom/40 my-6 theme-transition" />
+
+            {/* DATOS DE RENDIMIENTO Y KPIs */}
+            {statsKPI && <PanelKPIs statsKPI={statsKPI} />}
 
 
 
@@ -740,6 +750,14 @@ const DashboardContent = () => {
 
         {activeTab === 'calendario' && (
           <CalendarioHistorico pacientesDB={pacientesDB} turnosDB={turnosDB} />
+        )}
+
+        {activeTab === 'altas' && (
+          <AnalisisAltasDetail 
+            turnosDB={turnosDB} 
+            filtroFechaInicio={filtroFechaInicio} 
+            filtroFechaFin={filtroFechaFin} 
+          />
         )}
 
         {activeTab === 'data' && (
