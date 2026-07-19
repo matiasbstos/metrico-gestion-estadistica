@@ -23,6 +23,9 @@ export default function GestionDatos({
   const [uploadRecordCount, setUploadRecordCount] = useState(0);
   const [uploadResult, setUploadResult] = useState(null);
   const [uploadError, setUploadError] = useState(null);
+  const [purgeResult, setPurgeResult] = useState(null);
+  const [purgeError, setPurgeError] = useState(null);
+  const [manualSuccessResult, setManualSuccessResult] = useState(null);
   const [activeGestionTab, setActiveGestionTab] = useState('carga');
   const [limpiezaModo, setLimpiezaModo] = useState('mes');
   const [limpiezaMes, setLimpiezaMes] = useState(new Date().toISOString().substring(0, 7));
@@ -103,14 +106,22 @@ export default function GestionDatos({
 
       // Execute commits with timeout to prevent hanging on Firestore backoff (Quota Exceeded)
       await runWithTimeout(Promise.all(batchList.map(b => b.commit())), 10000);
-      showNotif(`Datos eliminados correctamente (${registrosALimpiar.pacientes.length} pacientes borrados).`, "success");
+      setPurgeResult({
+        modo: limpiezaModo,
+        mes: limpiezaMes,
+        dia: limpiezaDia,
+        pacientesCount: registrosALimpiar.pacientes.length,
+        turnosCount: registrosALimpiar.turnos.length
+      });
     } catch(e) {
       console.error(e);
+      let errMsg = "Error al purgar los datos.";
       if (String(e.message).includes("Timeout")) {
-        showNotif("Tiempo de espera agotado. Verifica tu conexión o cuota de base de datos.", "error");
+        errMsg = "Tiempo de espera agotado. Verifica tu conexión o cuota de base de datos de Firebase.";
       } else {
-        showNotif("Error al purgar los datos (límite de cuota de Firebase excedido).", "error");
+        errMsg = "Se ha excedido el límite de operaciones o la cuota gratuita diaria de la base de datos de Firebase.";
       }
+      setPurgeError(errMsg);
     }
     setIsUploading(false); setSyncStatus('synced');
   };
@@ -615,6 +626,18 @@ export default function GestionDatos({
     setActiveTab('resumen');
   };
 
+  const handleManualSuccessClose = () => {
+    if (manualSuccessResult) {
+      if (manualSuccessResult.fechaInicio) {
+        setFiltroFechaInicio(manualSuccessResult.fechaInicio);
+        setFiltroFechaFin(manualSuccessResult.fechaInicio);
+      }
+    }
+    setManualSuccessResult(null);
+    setManualForm({ fechaInicio: '', fechaFin: '', horario: '17:00 - 08:00 (Semana Largo)', equipoTurno: 'Sin Asignar', totalPacientes: 0, altasAdmin: 0, c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 });
+    setActiveTab('resumen');
+  };
+
   const handleManualSave = async () => {
     if (!manualForm.fechaInicio || !manualForm.fechaFin) {
       return showNotif("Debes especificar las fechas del turno.", "warning");
@@ -650,14 +673,12 @@ export default function GestionDatos({
 
       await batch.commit();
 
-      setUploadSuccess(true);
-      setTimeout(() => {
-          setUploadSuccess(false);
-          setManualForm({ fechaInicio: '', fechaFin: '', horario: '17:00 - 08:00 (Semana Largo)', equipoTurno: 'Sin Asignar', totalPacientes: '', altasAdmin: '', c1: '', c2: '', c3: '', c4: '', c5: '' });
-          if (manualForm.fechaInicio && manualForm.fechaFin) { setFiltroFechaInicio(manualForm.fechaInicio); setFiltroFechaFin(manualForm.fechaFin); }
-          showNotif(`Carga manual guardada: ${manualForm.totalPacientes} pacientes totales.`, 'success');
-          setActiveTab('resumen');
-      }, 1500);
+      setManualSuccessResult({
+        totalPacientes: Number(manualForm.totalPacientes),
+        altasAdmin: Number(manualForm.altasAdmin),
+        fechaInicio: manualForm.fechaInicio,
+        horario: manualForm.horario
+      });
     } catch (e) {
       showNotif("Error al guardar el turno manual.", "error");
     }
@@ -1076,6 +1097,125 @@ export default function GestionDatos({
             <button 
               onClick={handleSuccessClose}
               className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black py-4 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2"
+            >
+              Ir al Resumen General <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+      {/* MODAL DE ÉXITO DE PURGA CENTRADO */}
+      {purgeResult && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fade-in">
+          <div className="bg-card-custom border border-card-custom rounded-3xl shadow-2xl max-w-md w-full p-6 text-center space-y-6 animate-bounce-in theme-transition">
+            
+            <div className="mx-auto w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+              <CheckCircle className="w-10 h-10 animate-pulse" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-xl font-black text-primary-custom">¡Depuración Completada!</h3>
+              <p className="text-xs text-secondary-custom font-semibold">El periodo seleccionado fue eliminado de la base de datos de forma permanente.</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mt-4 text-left">
+              <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Pacientes Eliminados</span>
+                <span className="text-3xl font-black text-rose-500 mt-2">{purgeResult.pacientesCount}</span>
+                <span className="text-[9px] font-semibold text-secondary-custom opacity-75 mt-1">Registros borrados</span>
+              </div>
+              
+              <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Turnos Eliminados</span>
+                <span className="text-3xl font-black text-slate-700 dark:text-slate-300 mt-2">{purgeResult.turnosCount}</span>
+                <span className="text-[9px] font-semibold text-secondary-custom opacity-75 mt-1">Turnos borrados</span>
+              </div>
+
+              <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl flex flex-col justify-between col-span-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Periodo Afectado</span>
+                  <span className="text-xs font-black text-primary-custom">
+                    {purgeResult.modo === 'mes' ? purgeResult.mes : purgeResult.dia}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setPurgeResult(null)}
+              className="w-full bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white font-black py-4 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2"
+            >
+              Cerrar y Volver
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE ERROR DE PURGA CENTRADO */}
+      {purgeError && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fade-in">
+          <div className="bg-card-custom border border-card-custom rounded-3xl shadow-2xl max-w-md w-full p-6 text-center space-y-6 animate-bounce-in theme-transition">
+            
+            <div className="mx-auto w-16 h-16 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center">
+              <AlertTriangle className="w-10 h-10 animate-pulse" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-xl font-black text-red-600 dark:text-red-400">Error en la Operación</h3>
+              <p className="text-xs text-secondary-custom font-semibold">No se pudieron eliminar los registros seleccionados.</p>
+            </div>
+
+            <div className="bg-red-500/5 border border-red-500/10 p-4 rounded-2xl text-left text-xs text-red-800 dark:text-red-300 font-medium leading-relaxed">
+              {purgeError}
+            </div>
+
+            <button 
+              onClick={() => setPurgeError(null)}
+              className="w-full bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-black py-4 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE ÉXITO DE CARGA MANUAL CENTRADO */}
+      {manualSuccessResult && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fade-in">
+          <div className="bg-card-custom border border-card-custom rounded-3xl shadow-2xl max-w-md w-full p-6 text-center space-y-6 animate-bounce-in theme-transition">
+            
+            <div className="mx-auto w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+              <CheckCircle className="w-10 h-10 animate-pulse" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-xl font-black text-primary-custom">¡Turno Guardado con Éxito!</h3>
+              <p className="text-xs text-secondary-custom font-semibold">El registro manual ha sido creado correctamente en la nube.</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mt-4 text-left">
+              <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Total Pacientes</span>
+                <span className="text-3xl font-black text-blue-500 mt-2">{manualSuccessResult.totalPacientes}</span>
+              </div>
+              
+              <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Altas Admin</span>
+                <span className="text-3xl font-black text-rose-500 mt-2">{manualSuccessResult.altasAdmin}</span>
+              </div>
+
+              <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl flex flex-col justify-between col-span-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Fecha y Horario</span>
+                  <span className="text-xs font-black text-primary-custom">
+                    {manualSuccessResult.fechaInicio} ({manualSuccessResult.horario.split('(')[0].trim()})
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <button 
+              onClick={handleManualSuccessClose}
+              className="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-black py-4 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2"
             >
               Ir al Resumen General <ArrowRight className="w-4 h-4" />
             </button>
