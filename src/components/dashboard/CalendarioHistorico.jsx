@@ -27,7 +27,7 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
   const [customStartHour, setCustomStartHour] = useState('17:00');
   const [customEndHour, setCustomEndHour] = useState('08:00');
   const [showCustomRangePanel, setShowCustomRangePanel] = useState(false);
-  const [criterioVisualizacion, setCriterioVisualizacion] = useState('operativo');
+  const [criterioVisualizacion, setCriterioVisualizacion] = useState('turno'); // 'turno' (por defecto) o 'tramo_24h' (00:00 a 23:59)
 
   const getStrictStats = (t) => {
     if (!pacientesDB || pacientesDB.length === 0) {
@@ -45,13 +45,17 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
     
     let startMs, endMs;
     const baseDateStr = t.fechaInicio;
+    const baseD = new Date(baseDateStr + 'T12:00:00');
     const nextDate = new Date(baseDateStr + 'T12:00:00');
     nextDate.setDate(nextDate.getDate() + 1);
     const nextDateStr = nextDate.toISOString().split('T')[0];
     
     if (t.horario.includes('17:00')) {
       startMs = new Date(`${baseDateStr}T16:00:00-04:00`).getTime();
-      endMs = new Date(`${nextDateStr}T08:00:00-04:00`).getTime();
+      // Excepción: Si el turno empieza un viernes (day 5), termina a las 08:00 del sábado sin hora extra.
+      const isFriday = baseD.getDay() === 5;
+      const endHourStr = isFriday ? '08:00:00' : '09:00:00';
+      endMs = new Date(`${nextDateStr}T${endHourStr}-04:00`).getTime();
     } else if (t.horario.includes('08:00 - 20:00')) {
       startMs = new Date(`${baseDateStr}T07:00:00-04:00`).getTime();
       endMs = new Date(`${baseDateStr}T20:00:00-04:00`).getTime();
@@ -80,6 +84,26 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
     return {
       total: inShift.length,
       altas: inShift.filter(p => p.estado === 'Cancelada').length,
+      ...counts
+    };
+  };
+
+  const get24hCivilStats = (dateStr) => {
+    if (!pacientesDB || pacientesDB.length === 0) return { total: 0, altas: 0, c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
+    
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const startMs = new Date(y, m - 1, d, 0, 0, 0).getTime();
+    const endMs = new Date(y, m - 1, d, 23, 59, 59, 999).getTime();
+    
+    const inDay = pacientesDB.filter(p => p.tAdmision >= startMs && p.tAdmision <= endMs);
+    const counts = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
+    inDay.forEach(p => {
+      if (counts[p.categoria] !== undefined) counts[p.categoria]++;
+    });
+
+    return {
+      total: inDay.length,
+      altas: inDay.filter(p => p.estado === 'Cancelada').length,
       ...counts
     };
   };
@@ -217,17 +241,17 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
         <div className="flex items-center bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-card-custom transition-all text-xs font-bold gap-1 shadow-inner theme-transition">
           <button 
             type="button"
-            onClick={() => setCriterioVisualizacion('operativo')} 
-            className={`px-3 py-1.5 rounded-lg transition-all ${criterioVisualizacion === 'operativo' ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
+            onClick={() => setCriterioVisualizacion('turno')} 
+            className={`px-3 py-1.5 rounded-lg transition-all ${criterioVisualizacion === 'turno' ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
           >
-            Tramo 24 Horas
+            Turno
           </button>
           <button 
             type="button"
-            onClick={() => setCriterioVisualizacion('estricto')} 
-            className={`px-3 py-1.5 rounded-lg transition-all ${criterioVisualizacion === 'estricto' ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
+            onClick={() => setCriterioVisualizacion('tramo_24h')} 
+            className={`px-3 py-1.5 rounded-lg transition-all ${criterioVisualizacion === 'tramo_24h' ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
           >
-            Turno
+            Tramo 24 Horas
           </button>
         </div>
 
@@ -249,29 +273,33 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
           if (!d) return <div key={`empty-${idx}`} className="min-h-[120px] md:h-48 rounded-xl border border-dashed border-card-custom bg-black/5 dark:bg-white/5 opacity-55"></div>;
           
           const dayTurnos = turnosByDay[d] || [];
+          const civil24hStats = get24hCivilStats(d);
+
           const processedTurnos = dayTurnos.map(t => {
-            if (criterioVisualizacion === 'estricto') {
-              const strict = getStrictStats(t);
-              return {
-                ...t,
-                totalPacientes: strict.total,
-                altasAdmin: strict.altas,
-                c1: strict.c1,
-                c2: strict.c2,
-                c3: strict.c3,
-                c3_z518: strict.c3_z518,
-                c4: strict.c4,
-                c5: strict.c5
-              };
-            }
-            return t;
+            const strict = getStrictStats(t);
+            return {
+              ...t,
+              totalPacientes: strict.total,
+              altasAdmin: strict.altas,
+              c1: strict.c1,
+              c2: strict.c2,
+              c3: strict.c3,
+              c3_z518: strict.c3_z518,
+              c4: strict.c4,
+              c5: strict.c5
+            };
           });
 
           const dayNumber = parseInt(d.split('-')[2], 10);
           const isToday = d === new Date().toISOString().split('T')[0];
           
-          const totalPacientesDia = processedTurnos.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0);
-          const altasAdminDia = processedTurnos.reduce((acc, t) => acc + Number(t.altasAdmin || 0), 0);
+          const totalPacientesDia = criterioVisualizacion === 'tramo_24h' 
+            ? civil24hStats.total 
+            : processedTurnos.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0);
+
+          const altasAdminDia = criterioVisualizacion === 'tramo_24h' 
+            ? civil24hStats.altas 
+            : processedTurnos.reduce((acc, t) => acc + Number(t.altasAdmin || 0), 0);
           
           const isWknd = isWeekendOrFestivoDay(d);
           const maxPac = isWknd ? maxStatsInMonth.maxPacWknd : maxStatsInMonth.maxPacWkdy;
@@ -299,7 +327,7 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
             >
               <div className="flex justify-between items-start mb-2">
                 <span className={`text-sm md:text-lg font-black transition-colors ${isToday ? 'accent-text-custom' : 'text-secondary-custom opacity-70 group-hover:accent-text-custom'}`}>{dayNumber}</span>
-                {dayTurnos.length > 0 && (
+                {(dayTurnos.length > 0 || civil24hStats.total > 0) && (
                   <div className="flex flex-col items-end gap-1">
                     <div className="flex items-center gap-1">
                       {isMaxPacientes && isMaxAltas ? (
@@ -316,35 +344,63 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
                 )}
               </div>
               <div className="flex-1 overflow-y-auto space-y-1.5 md:space-y-2 pr-1 no-scrollbar">
-                {processedTurnos.length === 0 ? (
-                  <p className="text-[9px] font-bold text-secondary-custom opacity-55 text-center mt-4">Sin Datos</p>
-                ) : (
-                  processedTurnos.map(t => {
-                    const bgCol = TEAM_COLORS[t.equipoTurno] || TEAM_COLORS['Sin Asignar'];
-                    return (
-                      <div key={t.id} className="p-1.5 md:p-2 rounded-lg border border-card-custom bg-card-custom shadow-sm relative overflow-hidden group/item hover:accent-border-custom cursor-pointer transition-all duration-200">
-                        <div className="absolute top-0 left-0 w-1 h-full" style={{backgroundColor: bgCol}}></div>
-                        <div className="pl-1.5">
-                          <p className="text-[8px] md:text-[9px] font-black uppercase mb-0.5" style={{color: bgCol}}>{t.equipoTurno}</p>
-                          <p className="text-[8px] font-bold text-secondary-custom opacity-85 mb-1 truncate" title={t.horario}>{t.horario.split('(')[0].trim()}</p>
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] md:text-xs font-black text-primary-custom">{t.totalPacientes} <span className="hidden md:inline">pac.</span></span>
-                              <span className="text-[9px] md:text-[10px] font-bold text-rose-500">{t.altasAdmin} <span className="hidden md:inline">altas</span></span>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-1 mt-1">
-                              {t.c1 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-red-500 bg-red-500/10 px-1 rounded">C1: {t.c1}</span>}
-                              {t.c2 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-orange-500 bg-orange-500/10 px-1 rounded">C2: {t.c2}</span>}
-                              {t.c3 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-yellow-600 dark:text-yellow-400 bg-yellow-500/10 px-1 rounded">C3: {t.c3}</span>}
-                              {t.c3_z518 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-yellow-600 dark:text-yellow-400 bg-yellow-600/15 px-1 rounded">C3L: {t.c3_z518}</span>}
-                              {t.c4 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1 rounded">C4: {t.c4}</span>}
-                              {t.c5 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-blue-500 bg-blue-500/10 px-1 rounded">C5: {t.c5}</span>}
-                            </div>
+                {criterioVisualizacion === 'tramo_24h' ? (
+                  civil24hStats.total === 0 ? (
+                    <p className="text-[9px] font-bold text-secondary-custom opacity-55 text-center mt-4">Sin Datos (00:00 - 23:59)</p>
+                  ) : (
+                    <div className="p-1.5 md:p-2 rounded-lg border border-indigo-500/30 bg-indigo-500/5 shadow-sm relative overflow-hidden">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
+                      <div className="pl-1.5">
+                        <p className="text-[8px] md:text-[9px] font-black uppercase mb-0.5 text-indigo-500">Tramo 24 Hours</p>
+                        <p className="text-[8px] font-bold text-secondary-custom opacity-85 mb-1">00:00 - 23:59 hrs</p>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] md:text-xs font-black text-primary-custom">{civil24hStats.total} <span className="hidden md:inline">pac.</span></span>
+                            <span className="text-[9px] md:text-[10px] font-bold text-rose-500">{civil24hStats.altas} <span className="hidden md:inline">altas</span></span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-1 mt-1">
+                            {civil24hStats.c1 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-red-500 bg-red-500/10 px-1 rounded">C1: {civil24hStats.c1}</span>}
+                            {civil24hStats.c2 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-orange-500 bg-orange-500/10 px-1 rounded">C2: {civil24hStats.c2}</span>}
+                            {civil24hStats.c3 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-yellow-600 dark:text-yellow-400 bg-yellow-500/10 px-1 rounded">C3: {civil24hStats.c3}</span>}
+                            {civil24hStats.c3_z518 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-yellow-600 dark:text-yellow-400 bg-yellow-600/15 px-1 rounded">C3L: {civil24hStats.c3_z518}</span>}
+                            {civil24hStats.c4 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1 rounded">C4: {civil24hStats.c4}</span>}
+                            {civil24hStats.c5 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-blue-500 bg-blue-500/10 px-1 rounded">C5: {civil24hStats.c5}</span>}
                           </div>
                         </div>
                       </div>
-                    )
-                  })
+                    </div>
+                  )
+                ) : (
+                  processedTurnos.length === 0 ? (
+                    <p className="text-[9px] font-bold text-secondary-custom opacity-55 text-center mt-4">Sin Datos</p>
+                  ) : (
+                    processedTurnos.map(t => {
+                      const bgCol = TEAM_COLORS[t.equipoTurno] || TEAM_COLORS['Sin Asignar'];
+                      return (
+                        <div key={t.id} className="p-1.5 md:p-2 rounded-lg border border-card-custom bg-card-custom shadow-sm relative overflow-hidden group/item hover:accent-border-custom cursor-pointer transition-all duration-200">
+                          <div className="absolute top-0 left-0 w-1 h-full" style={{backgroundColor: bgCol}}></div>
+                          <div className="pl-1.5">
+                            <p className="text-[8px] md:text-[9px] font-black uppercase mb-0.5" style={{color: bgCol}}>{t.equipoTurno}</p>
+                            <p className="text-[8px] font-bold text-secondary-custom opacity-85 mb-1 truncate" title={t.horario}>{t.horario.split('(')[0].trim()}</p>
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] md:text-xs font-black text-primary-custom">{t.totalPacientes} <span className="hidden md:inline">pac.</span></span>
+                                <span className="text-[9px] md:text-[10px] font-bold text-rose-500">{t.altasAdmin} <span className="hidden md:inline">altas</span></span>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-1 mt-1">
+                                {t.c1 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-red-500 bg-red-500/10 px-1 rounded">C1: {t.c1}</span>}
+                                {t.c2 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-orange-500 bg-orange-500/10 px-1 rounded">C2: {t.c2}</span>}
+                                {t.c3 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-yellow-600 dark:text-yellow-400 bg-yellow-500/10 px-1 rounded">C3: {t.c3}</span>}
+                                {t.c3_z518 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-yellow-600 dark:text-yellow-400 bg-yellow-600/15 px-1 rounded">C3L: {t.c3_z518}</span>}
+                                {t.c4 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1 rounded">C4: {t.c4}</span>}
+                                {t.c5 > 0 && <span className="text-[7px] md:text-[8px] font-bold text-blue-500 bg-blue-500/10 px-1 rounded">C5: {t.c5}</span>}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })
+                  )
                 )}
               </div>
             </div>
