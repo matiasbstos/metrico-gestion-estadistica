@@ -27,6 +27,10 @@ export default function GestionDatos({
   const [purgeError, setPurgeError] = useState(null);
   const [manualSuccessResult, setManualSuccessResult] = useState(null);
   const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
+  const [currentBatchIndex, setCurrentBatchIndex] = useState(0);
+  const [totalBatches, setTotalBatches] = useState(0);
+  const [currentPurgeBatchIndex, setCurrentPurgeBatchIndex] = useState(0);
+  const [totalPurgeBatches, setTotalPurgeBatches] = useState(0);
   const [activeGestionTab, setActiveGestionTab] = useState('carga');
   const [limpiezaModo, setLimpiezaModo] = useState('mes');
   const [limpiezaMes, setLimpiezaMes] = useState(new Date().toISOString().substring(0, 7));
@@ -140,8 +144,10 @@ export default function GestionDatos({
       lastBatch.set(doc(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs')), auditLog);
       batchList.push(lastBatch);
       // Ejecutar los commits secuencialmente para evitar saturar el pool de conexiones del navegador
+      setTotalPurgeBatches(batchList.length);
       for (let i = 0; i < batchList.length; i++) {
-        await runWithTimeout(batchList[i].commit(), 10000);
+        setCurrentPurgeBatchIndex(i + 1);
+        await runWithTimeout(batchList[i].commit(), 25000);
       }
       setPurgeResult({
         modo: limpiezaModo,
@@ -610,9 +616,11 @@ export default function GestionDatos({
 
       setUploadProgress(0);
       setUploadRecordCount(0);
+      setTotalBatches(batchList.length);
 
       for (let i = 0; i < batchList.length; i++) {
-        await runWithTimeout(batchList[i].commit(), 8000);
+        setCurrentBatchIndex(i + 1);
+        await runWithTimeout(batchList[i].commit(), 30000);
         const batchProgress = i + 1;
         const pct = (batchProgress / batchList.length) * 100;
         setUploadProgress(pct);
@@ -978,7 +986,7 @@ export default function GestionDatos({
           className="mt-6 w-full bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 disabled:from-slate-400 disabled:to-slate-500 text-white font-bold py-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
         >
           {isUploading ? <Loader2 className="animate-spin w-5 h-5" /> : <X className="w-5 h-5" />}
-          {isUploading ? 'Eliminando Registros...' : (limpiezaModo === 'carga' && registrosALimpiar.pacientes.length === 0 ? 'Eliminar Registro de Carga' : `Purgar ${registrosALimpiar.pacientes.length} Pacientes`)}
+          {isUploading ? `Eliminando lote ${currentPurgeBatchIndex} de ${totalPurgeBatches}...` : (limpiezaModo === 'carga' && registrosALimpiar.pacientes.length === 0 ? 'Eliminar Registro de Carga' : `Purgar ${registrosALimpiar.pacientes.length} Pacientes`)}
         </button>
       </div>
       )}
@@ -1163,7 +1171,7 @@ export default function GestionDatos({
               <button onClick={() => setPendingUpload(null)} className="px-6 py-2.5 rounded-lg font-bold text-slate-600 hover:bg-slate-200 transition">Cancelar</button>
               <button onClick={confirmMassUpload} disabled={isUploading || uploadSuccess} className="px-6 py-2.5 rounded-lg font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 shadow-md transition flex items-center gap-2">
                 {isUploading ? (
-                  <><Loader2 className="animate-spin h-4 w-4" /> Guardando Lote...</>
+                  <><Loader2 className="animate-spin h-4 w-4" /> Guardando lote {currentBatchIndex} de {totalBatches}...</>
                 ) : uploadSuccess ? (
                   <><CheckCircle className="w-4 h-4"/> ¡Éxito!</>
                 ) : "Confirmar Subida"}
