@@ -4,6 +4,13 @@
 
 Aquí documentamos el progreso y las últimas actualizaciones que se le están haciendo al sistema para mantener a todo el equipo informado.
 
+### ✨ [Actualización] - 19 de Julio 2026 - Cuadratura de Turnos Rayen, Sincronización sin Purgar y Criterios Horarios Integrados
+- **Cuadratura Horaria Oficial Rayen (16:00 a 08:00 / 09:00):** Ajuste de la regla de holguras para turnos de semana largo, contabilizando admisiones desde 1 hora antes de la entrada (16:00) y hasta el cierre de turno. Logro de cuadratura perfecta al 100% comparado contra planillas oficiales de Rayen (admitidos, atendidos y altas admin).
+- **Tarjetas de Turno Desglosadas en 3 Columnas:** Rediseño completo de las tarjetas de detalle diario para presentar de forma directa y limpia las tres métricas clave: **Admitidos**, **Atendidos** (admitidos menos altas) y **Altas Administrativas** (con porcentaje).
+- **Herramienta de Sincronización y Recálculo Automático (sin purgar):** Incorporación del botón "Sincronizar y Recalcular Turnos" en la pestaña de Limpieza de Base de Datos para reconstruir los contadores de la colección `turnos` en Firestore al vuelo sin requerir re-subir los archivos Excel.
+- **Alternador de Visualización en el Calendario:** Interruptor en el Histórico Mensual para conmutar dinámicamente entre *"Turno"* (conteo del turno oficial) y *"Tramo 24 Horas"*.
+- **Control de Cuadratura por Tramo Horario Personalizado:** Módulo auditor desplegable en el resumen del día para evaluar cualquier franja horaria a medida (incluyendo cruces de medianoche).
+
 ### ✨ [Actualización] - 18 de Julio 2026 - Desduplicación Inteligente, Barra de Progreso y Módulo de Rendimiento Clínico
 - **Desduplicación por Llave Compuesta (CORRELATIVO + ID):** Implementación de limpieza de registros duplicados y repetidos de forma cruzada contra la base de datos de Firestore para asegurar la consistencia de los totales anuales de atenciones.
 - **Barra de Progreso y Contador en Tiempo Real:** Nueva pantalla superpuesta translúcida sobre el modal de subida que indica dinámicamente el progreso porcentual y el conteo exacto de registros cargados en la nube.
