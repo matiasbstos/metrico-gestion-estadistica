@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2, BookOpen, ArrowRight } from 'lucide-react';
-import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, writeBatch, serverTimestamp, onSnapshot } from 'firebase/firestore';
 
 const runWithTimeout = (promise, ms) => {
   return Promise.race([
