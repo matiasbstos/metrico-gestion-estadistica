@@ -138,6 +138,32 @@ const DashboardContent = () => {
     localStorage.setItem('metrico_centro', centroActivo);
   }, [centroActivo]);
 
+  const [hasInitializedLatestDate, setHasInitializedLatestDate] = useState(false);
+
+  useEffect(() => {
+    if (hasInitializedLatestDate) return;
+    if (!pacientesDB || pacientesDB.length === 0) return;
+
+    let maxTime = 0;
+    pacientesDB.forEach(p => {
+      if (p.tAdmision && p.tAdmision > maxTime) {
+        maxTime = p.tAdmision;
+      }
+    });
+
+    if (maxTime > 0) {
+      const d = new Date(maxTime);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const latestDayStr = `${year}-${month}-${day}`;
+      
+      setFiltroFechaInicio(latestDayStr);
+      setFiltroFechaFin(latestDayStr);
+      setHasInitializedLatestDate(true);
+    }
+  }, [pacientesDB, hasInitializedLatestDate]);
+
   useEffect(() => {
     setDemandaFechaInicio(filtroFechaInicio);
     setDemandaFechaFin(filtroFechaFin);
