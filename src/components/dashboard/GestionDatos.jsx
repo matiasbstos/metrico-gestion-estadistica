@@ -138,8 +138,10 @@ export default function GestionDatos({
       const lastBatch = writeBatch(db);
       lastBatch.set(doc(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs')), auditLog);
       batchList.push(lastBatch);
-
-      await runWithTimeout(Promise.all(batchList.map(b => b.commit())), 10000);
+      // Ejecutar los commits secuencialmente para evitar saturar el pool de conexiones del navegador
+      for (let i = 0; i < batchList.length; i++) {
+        await runWithTimeout(batchList[i].commit(), 10000);
+      }
       setPurgeResult({
         modo: limpiezaModo,
         mes: limpiezaMes,
