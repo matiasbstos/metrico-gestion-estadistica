@@ -350,6 +350,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
 
     const statsAnual = {
       pacientes: { current: yearPacs.length },
+      atendidos: { current: yearPacs.length - yearPacs.filter(p => p.estado === 'Cancelada').length },
       estadia: { current: calcEstadia(yearPacs) },
       pacHora: { current: yearPacs.length / Math.max(1, getHoursInPeriod(yearStartStr, fEndStr, '00:00', '23:59')) },
       altasAdmin: { current: yearPacs.filter(p => p.estado === 'Cancelada').length },
@@ -365,6 +366,11 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
             current: currentVol, 
             growthMonth: getGrowth(currentVol, prevMonthVol),
             growthYear: getGrowth(currentVol, prevYearVol)
+        },
+        atendidos: {
+            current: currentVol - currentAltas,
+            growthMonth: getGrowth(currentVol - currentAltas, prevMonthVol - pmAltasAdmin),
+            growthYear: getGrowth(currentVol - currentAltas, prevYearVol - pyAltasAdmin)
         },
         estadia: { 
             current: currentEstadiaVal, 
