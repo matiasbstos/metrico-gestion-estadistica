@@ -50,13 +50,13 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
     const nextDateStr = nextDate.toISOString().split('T')[0];
     
     if (t.horario.includes('17:00')) {
-      startMs = new Date(`${baseDateStr}T17:00:00-04:00`).getTime();
+      startMs = new Date(`${baseDateStr}T16:00:00-04:00`).getTime();
       endMs = new Date(`${nextDateStr}T08:00:00-04:00`).getTime();
     } else if (t.horario.includes('08:00 - 20:00')) {
-      startMs = new Date(`${baseDateStr}T08:00:00-04:00`).getTime();
+      startMs = new Date(`${baseDateStr}T07:00:00-04:00`).getTime();
       endMs = new Date(`${baseDateStr}T20:00:00-04:00`).getTime();
     } else if (t.horario.includes('20:00 - 08:00')) {
-      startMs = new Date(`${baseDateStr}T20:00:00-04:00`).getTime();
+      startMs = new Date(`${baseDateStr}T19:00:00-04:00`).getTime();
       endMs = new Date(`${nextDateStr}T08:00:00-04:00`).getTime();
     } else {
       return { 
@@ -475,13 +475,13 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
                     const nextDateStr = nextDate.toISOString().split('T')[0];
                     
                     if (t.horario.includes('17:00')) {
-                      startMs = new Date(`${baseDateStr}T17:00:00-04:00`).getTime();
+                      startMs = new Date(`${baseDateStr}T16:00:00-04:00`).getTime();
                       endMs = new Date(`${nextDateStr}T08:00:00-04:00`).getTime();
                     } else if (t.horario.includes('08:00 - 20:00')) {
-                      startMs = new Date(`${baseDateStr}T08:00:00-04:00`).getTime();
+                      startMs = new Date(`${baseDateStr}T07:00:00-04:00`).getTime();
                       endMs = new Date(`${baseDateStr}T20:00:00-04:00`).getTime();
                     } else if (t.horario.includes('20:00 - 08:00')) {
-                      startMs = new Date(`${baseDateStr}T20:00:00-04:00`).getTime();
+                      startMs = new Date(`${baseDateStr}T19:00:00-04:00`).getTime();
                       endMs = new Date(`${nextDateStr}T08:00:00-04:00`).getTime();
                     } else {
                       return { total: t.totalPacientes, altas: t.altasAdmin };
@@ -512,33 +512,18 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
                         
                         <div className="grid grid-cols-3 gap-3 mb-4">
                           <div className="bg-card-custom p-3 rounded-xl border border-card-custom shadow-sm flex flex-col justify-between text-left">
-                            <div className="flex flex-col">
-                              <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Admitidos</span>
-                              <span className="text-xl font-black text-primary-custom mt-1">{strictStats.total} <span className="text-xs font-semibold text-secondary-custom">pac.</span></span>
-                            </div>
-                            <span className="text-[9px] font-semibold text-slate-400 mt-2 block border-t border-slate-100 dark:border-white/5 pt-1">
-                              Tramo 24h: {t.totalPacientes}
-                            </span>
+                            <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Admitidos</span>
+                            <span className="text-2xl font-black text-primary-custom mt-1">{strictStats.total} <span className="text-xs font-semibold text-secondary-custom">pac.</span></span>
                           </div>
 
                           <div className="bg-card-custom p-3 rounded-xl border border-card-custom shadow-sm flex flex-col justify-between text-left">
-                            <div className="flex flex-col">
-                              <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Atendidos</span>
-                              <span className="text-xl font-black text-emerald-500 mt-1">{strictStats.total - strictStats.altas} <span className="text-xs font-semibold text-emerald-400">pac.</span></span>
-                            </div>
-                            <span className="text-[9px] font-semibold text-slate-400 mt-2 block border-t border-slate-100 dark:border-white/5 pt-1">
-                              Tramo 24h: {t.totalPacientes - t.altasAdmin}
-                            </span>
+                            <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Atendidos</span>
+                            <span className="text-2xl font-black text-emerald-500 mt-1">{strictStats.total - strictStats.altas} <span className="text-xs font-semibold text-emerald-400">pac.</span></span>
                           </div>
                           
                           <div className={`p-3 rounded-xl border shadow-sm flex flex-col justify-between transition-colors text-left ${strictPct > 5 ? 'bg-rose-500/10 border-rose-500' : 'bg-card-custom border-card-custom'}`}>
-                            <div className="flex flex-col">
-                              <span className={`text-[10px] font-bold uppercase tracking-wider ${strictPct > 5 ? 'text-rose-500' : 'text-secondary-custom'}`}>Altas Admin</span>
-                              <span className="text-xl font-black text-rose-500 mt-1">{strictStats.altas} <span className="text-xs font-semibold text-rose-400">({strictPct.toFixed(1)}%)</span></span>
-                            </div>
-                            <span className="text-[9px] font-semibold text-slate-400 mt-2 block border-t border-slate-100 dark:border-white/5 pt-1">
-                              Tramo 24h: {t.altasAdmin} ({pct.toFixed(1)}%)
-                            </span>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider ${strictPct > 5 ? 'text-rose-500' : 'text-secondary-custom'}`}>Altas Admin</span>
+                            <span className="text-2xl font-black text-rose-500 mt-1">{strictStats.altas} <span className="text-xs font-semibold text-rose-400">({strictPct.toFixed(1)}%)</span></span>
                           </div>
                         </div>
 
