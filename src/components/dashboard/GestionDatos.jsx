@@ -283,7 +283,7 @@ export default function GestionDatos({
       }
     } 
     else {
-      if (hours < 15) {
+      if (hours < 16) {
         logicalDate = yesterday;
         horario = isYestWknd ? '20:00 - 08:00 (Fin de semana Noche)' : '17:00 - 08:00 (Semana Largo)';
       } 
