@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2, BookOpen, ArrowRight } from 'lucide-react';
 import { collection, doc, writeBatch, serverTimestamp, onSnapshot } from 'firebase/firestore';
 
@@ -37,6 +37,7 @@ export default function GestionDatos({
   const [limpiezaDia, setLimpiezaDia] = useState(new Date().toISOString().substring(0, 10));
   const [auditoriaCargas, setAuditoriaCargas] = useState([]);
   const [selectedCarga, setSelectedCarga] = useState(null);
+  const cancelUploadRef = useRef(false);
 
   useEffect(() => {
     if (!db || !appId) return;
@@ -617,8 +618,12 @@ export default function GestionDatos({
       setUploadProgress(0);
       setUploadRecordCount(0);
       setTotalBatches(batchList.length);
+      cancelUploadRef.current = false;
 
       for (let i = 0; i < batchList.length; i++) {
+        if (cancelUploadRef.current) {
+          throw new Error("CANCELLED_BY_USER");
+        }
         setCurrentBatchIndex(i + 1);
         await runWithTimeout(batchList[i].commit(), 30000);
         const batchProgress = i + 1;
@@ -650,16 +655,21 @@ export default function GestionDatos({
 
     } catch (err) { 
       console.error(err);
-      let errMsg = "Error al guardar lote en la nube.";
-      if (String(err.message).includes("Timeout")) {
-        errMsg = "Error de conexión: tiempo de espera agotado. Esto suele ocurrir cuando se agota la cuota gratuita diaria de Firebase.";
+      if (err.message === "CANCELLED_BY_USER") {
+        setUploadError("Operación cancelada por el usuario. Es posible que algunos lotes iniciales ya se hayan guardado en la nube. Se recomienda purgar este periodo si deseas repetir el proceso.");
       } else {
-        errMsg = "Error al guardar el lote. Se ha excedido la cuota de base de datos de Firebase.";
+        let errMsg = "Error al guardar lote en la nube.";
+        if (String(err.message).includes("Timeout")) {
+          errMsg = "Error de conexión: tiempo de espera agotado. Esto suele ocurrir cuando se agota la cuota gratuita diaria de Firebase.";
+        } else {
+          errMsg = "Error al guardar el lote. Se ha excedido la cuota de base de datos de Firebase.";
+        }
+        setUploadError(errMsg);
+        showNotif(errMsg, "error");
       }
-      setUploadError(errMsg);
-      showNotif(errMsg, "error");
     }
     setIsUploading(false); setSyncStatus('synced');
+    cancelUploadRef.current = false;
   };
 
   const handleSuccessClose = () => {
@@ -1098,6 +1108,14 @@ export default function GestionDatos({
                       <span>En {pendingUpload.turnos.length} turnos</span>
                     </div>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => { cancelUploadRef.current = true; }}
+                    className="px-5 py-2 bg-white/10 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/30 text-slate-200 hover:text-rose-400 text-xs font-bold rounded-xl transition duration-200 mt-4 shadow-sm"
+                  >
+                    Cancelar Subida
+                  </button>
                 </div>
               </div>
             )}
