@@ -5,10 +5,10 @@
 Aquí documentamos el progreso y las últimas actualizaciones que se le están haciendo al sistema para mantener a todo el equipo informado.
 
 ### ✨ [Actualización] - 19 de Julio 2026 - Cuadratura de Turnos Rayen, Sincronización sin Purgar y Criterios Horarios Integrados
-- **Cuadratura Horaria Oficial Rayen (16:00 a 08:00 / 09:00):** Ajuste de la regla de holguras para turnos de semana largo, contabilizando admisiones desde 1 hora antes de la entrada (16:00) y hasta el cierre de turno. Logro de cuadratura perfecta al 100% comparado contra planillas oficiales de Rayen (admitidos, atendidos y altas admin).
+- **Cuadratura Horaria Oficial Rayen (16:00 a 08:00 / 09:00):** Ajuste de la regla de holguras para turnos de semana largo (16:00 a 09:00 Lunes a Jueves, y **corte exacto a las 08:00 AM del Sábado para el turno del Viernes** por empalme con fin de semana). Logro de cuadratura perfecta al 100% comparado contra planillas oficiales de Rayen (admitidos, atendidos y altas admin).
 - **Tarjetas de Turno Desglosadas en 3 Columnas:** Rediseño completo de las tarjetas de detalle diario para presentar de forma directa y limpia las tres métricas clave: **Admitidos**, **Atendidos** (admitidos menos altas) y **Altas Administrativas** (con porcentaje).
 - **Herramienta de Sincronización y Recálculo Automático (sin purgar):** Incorporación del botón "Sincronizar y Recalcular Turnos" en la pestaña de Limpieza de Base de Datos para reconstruir los contadores de la colección `turnos` en Firestore al vuelo sin requerir re-subir los archivos Excel.
-- **Alternador de Visualización en el Calendario:** Interruptor en el Histórico Mensual para conmutar dinámicamente entre *"Turno"* (conteo del turno oficial) y *"Tramo 24 Horas"*.
+- **Alternador de Visualización Reordenado en el Calendario:** Interruptor en el Histórico Mensual ordenado con **"Turno"** en primer lugar (por defecto) y **"Tramo 24 Horas"** en segundo lugar (que calcula dinámicamente el periodo civil completo de 00:00:00 a 23:59:59 del día consultado).
 - **Control de Cuadratura por Tramo Horario Personalizado:** Módulo auditor desplegable en el resumen del día para evaluar cualquier franja horaria a medida (incluyendo cruces de medianoche).
 
 ### ✨ [Actualización] - 18 de Julio 2026 - Desduplicación Inteligente, Barra de Progreso y Módulo de Rendimiento Clínico
