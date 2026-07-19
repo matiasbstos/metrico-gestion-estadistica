@@ -283,6 +283,39 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
                 (turnosByDay[selectedDay] || []).map((t, idx) => {
                   const bgCol = TEAM_COLORS[t.equipoTurno] || TEAM_COLORS['Sin Asignar'];
                   const pct = t.totalPacientes > 0 ? (t.altasAdmin / t.totalPacientes) * 100 : 0;
+                  
+                  // Calcular dinámicamente los contadores en horario oficial estricto (Rayen PDF)
+                  const strictStats = (() => {
+                    if (!pacientesDB || pacientesDB.length === 0) return { total: t.totalPacientes, altas: t.altasAdmin };
+                    
+                    let startMs, endMs;
+                    const baseDateStr = t.fechaInicio;
+                    const nextDate = new Date(baseDateStr + 'T12:00:00');
+                    nextDate.setDate(nextDate.getDate() + 1);
+                    const nextDateStr = nextDate.toISOString().split('T')[0];
+                    
+                    if (t.horario.includes('17:00')) {
+                      startMs = new Date(`${baseDateStr}T17:00:00-04:00`).getTime();
+                      endMs = new Date(`${nextDateStr}T08:00:00-04:00`).getTime();
+                    } else if (t.horario.includes('08:00 - 20:00')) {
+                      startMs = new Date(`${baseDateStr}T08:00:00-04:00`).getTime();
+                      endMs = new Date(`${baseDateStr}T20:00:00-04:00`).getTime();
+                    } else if (t.horario.includes('20:00 - 08:00')) {
+                      startMs = new Date(`${baseDateStr}T20:00:00-04:00`).getTime();
+                      endMs = new Date(`${nextDateStr}T08:00:00-04:00`).getTime();
+                    } else {
+                      return { total: t.totalPacientes, altas: t.altasAdmin };
+                    }
+                    
+                    const inShift = pacientesDB.filter(p => p.tAdmision >= startMs && p.tAdmision <= endMs);
+                    return {
+                      total: inShift.length,
+                      altas: inShift.filter(p => p.estado === 'Cancelada').length
+                    };
+                  })();
+                  
+                  const strictPct = strictStats.total > 0 ? (strictStats.altas / strictStats.total) * 100 : 0;
+
                   return (
                     <div key={t.id || idx} className="border border-card-custom rounded-2xl p-4 shadow-sm relative overflow-hidden bg-black/5 dark:bg-white/5">
                       <div className="absolute top-0 left-0 w-1.5 h-full" style={{backgroundColor: bgCol}}></div>
@@ -299,12 +332,23 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
                         
                         <div className="grid grid-cols-2 gap-4 mb-4">
                           <div className="bg-card-custom p-3 rounded-xl border border-card-custom shadow-sm flex flex-col justify-between">
-                            <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Atenciones</span>
-                            <span className="text-xl font-black text-primary-custom mt-1">{t.totalPacientes} <span className="text-xs font-semibold text-secondary-custom">pacientes</span></span>
+                            <div className="flex flex-col">
+                              <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Atenciones en Turno Oficial</span>
+                              <span className="text-2xl font-black text-primary-custom mt-1">{strictStats.total} <span className="text-xs font-semibold text-secondary-custom">pacientes</span></span>
+                            </div>
+                            <span className="text-[9px] font-semibold text-slate-400 mt-2 block border-t border-slate-100 dark:border-white/5 pt-1">
+                              Con holguras (15h a 15h): {t.totalPacientes}
+                            </span>
                           </div>
-                          <div className={`p-3 rounded-xl border shadow-sm flex flex-col justify-between transition-colors ${pct > 5 ? 'bg-rose-500/10 border-rose-500' : 'bg-card-custom border-card-custom'}`}>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-500">Altas Admin</span>
-                            <span className="text-xl font-black text-rose-500 mt-1">{t.altasAdmin} <span className="text-xs font-semibold text-rose-400">altas ({pct.toFixed(1)}%)</span></span>
+                          
+                          <div className={`p-3 rounded-xl border shadow-sm flex flex-col justify-between transition-colors ${strictPct > 5 ? 'bg-rose-500/10 border-rose-500' : 'bg-card-custom border-card-custom'}`}>
+                            <div className="flex flex-col">
+                              <span className={`text-[10px] font-bold uppercase tracking-wider ${strictPct > 5 ? 'text-rose-500' : 'text-secondary-custom'}`}>Altas en Turno Oficial</span>
+                              <span className="text-2xl font-black text-rose-500 mt-1">{strictStats.altas} <span className="text-xs font-semibold text-rose-400">altas ({strictPct.toFixed(1)}%)</span></span>
+                            </div>
+                            <span className="text-[9px] font-semibold text-slate-400 mt-2 block border-t border-slate-100 dark:border-white/5 pt-1">
+                              Con holguras: {t.altasAdmin} ({pct.toFixed(1)}%)
+                            </span>
                           </div>
                         </div>
 

@@ -279,18 +279,13 @@ export default function GestionDatos({
       }
     } 
     else {
-      // Día de semana (strict: SAR cerrado entre 08:00 y 17:00 en días hábiles)
-      if (hours < 8) {
+      if (hours < 15) {
         logicalDate = yesterday;
         horario = isYestWknd ? '20:00 - 08:00 (Fin de semana Noche)' : '17:00 - 08:00 (Semana Largo)';
       } 
-      else if (hours >= 17) {
+      else {
         logicalDate = today;
         horario = '17:00 - 08:00 (Semana Largo)';
-      } 
-      else {
-        // Pacientes diurnos del CESFAM - Omitidos del conteo del SAR
-        return null;
       }
     }
 
