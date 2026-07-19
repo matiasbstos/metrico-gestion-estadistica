@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2, BookOpen, ArrowRight } from 'lucide-react';
 import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 
@@ -31,6 +31,20 @@ export default function GestionDatos({
   const [limpiezaModo, setLimpiezaModo] = useState('mes');
   const [limpiezaMes, setLimpiezaMes] = useState(new Date().toISOString().substring(0, 7));
   const [limpiezaDia, setLimpiezaDia] = useState(new Date().toISOString().substring(0, 10));
+  const [auditoriaCargas, setAuditoriaCargas] = useState([]);
+  const [selectedCarga, setSelectedCarga] = useState(null);
+
+  useEffect(() => {
+    if (!db || !appId) return;
+    const ref = collection(db, 'artifacts', appId, 'public', 'data', 'auditoria_cargas');
+    const unsub = onSnapshot(ref, (snap) => {
+      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      data.sort((a, b) => (b.fechaCarga || 0) - (a.fechaCarga || 0));
+      setAuditoriaCargas(data);
+    });
+    return () => unsub();
+  }, [db, appId]);
+
   const [manualForm, setManualForm] = useState({
     fechaInicio: '', fechaFin: '', horario: '17:00 - 08:00 (Semana Largo)', equipoTurno: 'Sin Asignar',
     c1: 0, c2: 0, c3: 0, c4: 0, c5: 0, altasAdmin: 0, totalPacientes: 0
@@ -51,21 +65,35 @@ export default function GestionDatos({
         const pDate = new Date(p.tAdmision).toISOString().split('T')[0];
         return pDate.startsWith(`${year}-${month}`);
       });
-    } else {
+    } else if (limpiezaModo === 'dia') {
       turnosTarget = turnosDB.filter(t => t.fechaInicio === limpiezaDia);
       pacientesTarget = pacientesDB.filter(p => {
         if (!p.tAdmision) return false;
         const pDate = new Date(p.tAdmision).toISOString().split('T')[0];
         return pDate === limpiezaDia;
       });
+    } else if (limpiezaModo === 'carga') {
+      if (!selectedCarga) return { turnos: [], pacientes: [] };
+      
+      if (selectedCarga.cargaId) {
+        turnosTarget = turnosDB.filter(t => t.cargaId === selectedCarga.cargaId);
+        pacientesTarget = pacientesDB.filter(p => p.cargaId === selectedCarga.cargaId);
+      } else {
+        const cleanPrefix = String(selectedCarga.archivo || 'LOTE')
+          .replace(/\.[^/.]+$/, "")
+          .replace(/\s+/g, '_')
+          .toUpperCase();
+        
+        turnosTarget = turnosDB.filter(t => t.loteId && t.loteId.startsWith(cleanPrefix));
+        pacientesTarget = pacientesDB.filter(p => p.loteId && p.loteId.startsWith(cleanPrefix));
+      }
     }
 
     return { turnos: turnosTarget, pacientes: pacientesTarget };
-  }, [limpiezaModo, limpiezaMes, limpiezaDia, turnosDB, pacientesDB]);
+  }, [limpiezaModo, limpiezaMes, limpiezaDia, selectedCarga, turnosDB, pacientesDB]);
 
   const purgarDatos = async () => {
     if (registrosALimpiar.turnos.length === 0 && registrosALimpiar.pacientes.length === 0) return;
-    // Confirmación manejada por el modal personalizado de React
     
     setIsUploading(true); setSyncStatus('syncing');
     try {
@@ -91,12 +119,18 @@ export default function GestionDatos({
         addDeleteOp(doc(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia', p.id));
       });
 
+      if (limpiezaModo === 'carga' && selectedCarga) {
+        addDeleteOp(doc(db, 'artifacts', appId, 'public', 'data', 'auditoria_cargas', selectedCarga.id));
+      }
+
       if (opCounter > 0) batchList.push(currentBatch);
 
       const auditLog = {
         fecha: Date.now(),
         accion: 'Purgado',
-        detalles: `Purgado masivo (${limpiezaModo}: ${limpiezaModo==='mes'?limpiezaMes:limpiezaDia}): ${registrosALimpiar.turnos.length} turnos, ${registrosALimpiar.pacientes.length} pacientes.`,
+        detalles: limpiezaModo === 'carga' && selectedCarga
+          ? `Purgado de carga masiva (Archivo: ${selectedCarga.archivo}): ${registrosALimpiar.turnos.length} turnos, ${registrosALimpiar.pacientes.length} pacientes.`
+          : `Purgado masivo (${limpiezaModo}: ${limpiezaModo==='mes'?limpiezaMes:limpiezaDia}): ${registrosALimpiar.turnos.length} turnos, ${registrosALimpiar.pacientes.length} pacientes.`,
         centro: centroActivo || 'Desconocido',
         usuario: user?.email || 'Anónimo'
       };
@@ -105,15 +139,16 @@ export default function GestionDatos({
       lastBatch.set(doc(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs')), auditLog);
       batchList.push(lastBatch);
 
-      // Execute commits with timeout to prevent hanging on Firestore backoff (Quota Exceeded)
       await runWithTimeout(Promise.all(batchList.map(b => b.commit())), 10000);
       setPurgeResult({
         modo: limpiezaModo,
         mes: limpiezaMes,
         dia: limpiezaDia,
+        archivo: selectedCarga?.archivo,
         pacientesCount: registrosALimpiar.pacientes.length,
         turnosCount: registrosALimpiar.turnos.length
       });
+      setSelectedCarga(null);
     } catch(e) {
       console.error(e);
       let errMsg = "Error al purgar los datos.";
@@ -131,7 +166,6 @@ export default function GestionDatos({
     setManualForm(prev => {
       const updated = { ...prev, [field]: value };
       
-      // Auto-completar equipo
       if (pautasTurnosHook && (field === 'fechaInicio' || field === 'horario')) {
         const equipo = pautasTurnosHook.getEquipoParaTurno(updated.fechaInicio, updated.horario);
         if (equipo) updated.equipoTurno = equipo;
@@ -220,7 +254,6 @@ export default function GestionDatos({
     let logicalDate;
     let horario;
 
-    // Regla 1: Fin de semana o Festivo (Continuo)
     if (isTodayWknd) {
       if (hours < 8) {
         logicalDate = yesterday;
@@ -235,7 +268,6 @@ export default function GestionDatos({
         horario = '20:00 - 08:00 (Fin de semana Noche)';
       }
     } 
-    // Regla 2: Día de semana
     else {
       if (hours < 15) {
         logicalDate = yesterday;
@@ -344,7 +376,6 @@ export default function GestionDatos({
           const hashNew = (correlativoVal && idPacienteVal) ? `${correlativoVal.trim()}-${idPacienteVal.trim()}` : '';
           const hashOld = `${tAdm}-${edad}-${sexoStr}`;
 
-          // Se considera duplicado si coincide con cualquiera de los formatos (histórico o nuevo)
           const isDuplicate = (hashNew && existingHashes.has(hashNew)) || existingHashes.has(hashOld);
 
           if (isDuplicate) {
@@ -488,6 +519,8 @@ export default function GestionDatos({
       let minDate = '9999-99-99';
       let maxDate = '0000-00-00';
 
+      const cargaId = `CARGA-${Date.now()}`;
+
       for (const turno of pendingUpload.turnos) {
         const cleanFileName = (pendingUpload.fileName || 'LOTE').replace(/\s+/g, '_').toUpperCase();
         const loteId = `${cleanFileName}-${turno.fechaInicio}-${Date.now()}`;
@@ -503,7 +536,8 @@ export default function GestionDatos({
           altasAdmin: Number(turno.altasAdmin), pacientesPorHora: ratio,
           c1: turno.c1 || 0, c2: turno.c2 || 0, c3: turno.c3 || 0, 
           c3_z518: turno.c3_z518 || 0, c4: turno.c4 || 0, c5: turno.c5 || 0, 
-          creadoEl: Date.now()
+          creadoEl: Date.now(),
+          cargaId
         };
 
         const turnoRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'turnos'));
@@ -520,7 +554,7 @@ export default function GestionDatos({
               opCounter = 0;
             }
             const newPacDoc = doc(pacRef);
-            currentBatch.set(newPacDoc, { ...p, loteId });
+            currentBatch.set(newPacDoc, { ...p, loteId, cargaId });
             opCounter++;
             successCount++;
           }
@@ -560,12 +594,15 @@ export default function GestionDatos({
           atencionesValidas: successCount,
           duplicadosDescartados: pendingUpload.totalDuplicados || 0
         },
-        estado: 'Completado Exitosamente'
+        estado: 'Completado Exitosamente',
+        cargaId
       };
       
       const lastBatch = writeBatch(db);
       lastBatch.set(doc(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs')), auditLog);
-      lastBatch.set(doc(collection(db, 'artifacts', appId, 'public', 'data', 'auditoria_cargas')), auditoriaCargasDoc);
+      
+      const auditoriaRef = doc(db, 'artifacts', appId, 'public', 'data', 'auditoria_cargas', cargaId);
+      lastBatch.set(auditoriaRef, auditoriaCargasDoc);
       batchList.push(lastBatch);
 
       setUploadProgress(0);
@@ -711,7 +748,6 @@ export default function GestionDatos({
 
       {activeGestionTab === 'carga' && (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* CARGA MASIVA (EXCEL) */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
           <div className="flex items-center gap-2 mb-2">
             <Database className="text-blue-500 w-5 h-5"/>
@@ -731,7 +767,6 @@ export default function GestionDatos({
           </div>
         </div>
 
-        {/* CARGA MANUAL */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
           <div className="flex items-center gap-2 mb-2">
             <UploadCloud className="text-emerald-500 w-5 h-5"/>
@@ -818,23 +853,103 @@ export default function GestionDatos({
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">
           <div>
-            <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">Modo de Purgado</label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="modo_purgado" checked={limpiezaModo === 'mes'} onChange={() => setLimpiezaModo('mes')} />
-                <span className="text-sm font-bold text-slate-700">Por Mes</span>
+            <div className="flex gap-4 border-b border-slate-200 pb-4 flex-wrap">
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                <input type="radio" checked={limpiezaModo === 'mes'} onChange={() => { setLimpiezaModo('mes'); setSelectedCarga(null); }} />
+                Por Mes
               </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="modo_purgado" checked={limpiezaModo === 'dia'} onChange={() => setLimpiezaModo('dia')} />
-                <span className="text-sm font-bold text-slate-700">Por Día</span>
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                <input type="radio" checked={limpiezaModo === 'dia'} onChange={() => { setLimpiezaModo('dia'); setSelectedCarga(null); }} />
+                Por Día
+              </label>
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                <input type="radio" checked={limpiezaModo === 'carga'} onChange={() => { setLimpiezaModo('carga'); setSelectedCarga(null); }} />
+                Por Archivo Cargado
               </label>
             </div>
-            
+
             <div className="mt-4">
               {limpiezaModo === 'mes' ? (
-                <input type="month" value={limpiezaMes} onChange={e => setLimpiezaMes(e.target.value)} className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-sm font-bold text-slate-700 outline-none focus:border-rose-500" />
-              ) : (
+                <div className="flex gap-2">
+                  <select 
+                    value={limpiezaMes.split('-')[1]} 
+                    onChange={e => {
+                      const yr = limpiezaMes.split('-')[0];
+                      setLimpiezaMes(`${yr}-${e.target.value}`);
+                    }} 
+                    className="flex-1 bg-white border border-slate-300 rounded-lg p-2.5 text-sm font-bold text-slate-700 outline-none focus:border-rose-500"
+                  >
+                    <option value="01">Enero</option>
+                    <option value="02">Febrero</option>
+                    <option value="03">Marzo</option>
+                    <option value="04">Abril</option>
+                    <option value="05">Mayo</option>
+                    <option value="06">Junio</option>
+                    <option value="07">Julio</option>
+                    <option value="08">Agosto</option>
+                    <option value="09">Septiembre</option>
+                    <option value="10">Octubre</option>
+                    <option value="11">Noviembre</option>
+                    <option value="12">Diciembre</option>
+                  </select>
+                  
+                  <select 
+                    value={limpiezaMes.split('-')[0]} 
+                    onChange={e => {
+                      const mn = limpiezaMes.split('-')[1];
+                      setLimpiezaMes(`${e.target.value}-${mn}`);
+                    }} 
+                    className="w-28 bg-white border border-slate-300 rounded-lg p-2.5 text-sm font-bold text-slate-700 outline-none focus:border-rose-500"
+                  >
+                    <option value="2026">2026</option>
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                  </select>
+                </div>
+              ) : limpiezaModo === 'dia' ? (
                 <input type="date" value={limpiezaDia} onChange={e => setLimpiezaDia(e.target.value)} className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-sm font-bold text-slate-700 outline-none focus:border-rose-500" />
+              ) : (
+                <div className="space-y-3">
+                  <div className="border border-slate-200 rounded-xl overflow-hidden max-h-[220px] overflow-y-auto bg-white">
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead className="bg-slate-100 text-[9px] font-bold text-slate-500 uppercase tracking-wider sticky top-0 border-b border-slate-200">
+                        <tr>
+                          <th className="px-3 py-2">Archivo / Periodo</th>
+                          <th className="px-3 py-2 text-center">Atenciones</th>
+                          <th className="px-3 py-2 text-right">Acción</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200/60">
+                        {auditoriaCargas.length === 0 ? (
+                          <tr>
+                            <td colSpan="3" className="text-center py-6 text-[11px] text-slate-400 font-semibold">No se encontraron registros de cargas masivas.</td>
+                          </tr>
+                        ) : (
+                          auditoriaCargas.map((c) => (
+                            <tr key={c.id} className={`transition-colors ${selectedCarga?.id === c.id ? 'bg-rose-500/10' : 'hover:bg-slate-50'}`}>
+                              <td className="px-3 py-2">
+                                <span className="font-bold block text-slate-700 truncate max-w-[190px]" title={c.archivo}>{c.archivo}</span>
+                                <span className="text-[9px] text-slate-400 font-medium block">Periodo: {c.periodo?.desde} al {c.periodo?.hasta}</span>
+                              </td>
+                              <td className="px-3 py-2 text-center font-bold text-rose-500 text-sm">
+                                {c.estadisticas?.atencionesValidas}
+                              </td>
+                              <td className="px-3 py-2 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedCarga(c)}
+                                  className={`px-2 py-1 rounded text-[10px] font-bold transition ${selectedCarga?.id === c.id ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}
+                                >
+                                  {selectedCarga?.id === c.id ? 'Seleccionado' : 'Seleccionar'}
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -1133,9 +1248,9 @@ export default function GestionDatos({
 
               <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl flex flex-col justify-between col-span-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Periodo Afectado</span>
-                  <span className="text-xs font-black text-primary-custom">
-                    {purgeResult.modo === 'mes' ? purgeResult.mes : purgeResult.dia}
+                  <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Periodo / Archivo Purgado</span>
+                  <span className="text-xs font-black text-primary-custom truncate max-w-[200px]" title={purgeResult.modo === 'carga' ? purgeResult.archivo : (purgeResult.modo === 'mes' ? purgeResult.mes : purgeResult.dia)}>
+                    {purgeResult.modo === 'carga' ? purgeResult.archivo : (purgeResult.modo === 'mes' ? purgeResult.mes : purgeResult.dia)}
                   </span>
                 </div>
               </div>
@@ -1243,9 +1358,9 @@ export default function GestionDatos({
             {/* Resumen de eliminación */}
             <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl text-left space-y-3 text-xs font-semibold text-secondary-custom">
               <div className="flex justify-between">
-                <span>Periodo a purgar:</span>
-                <span className="text-primary-custom font-black font-mono">
-                  {limpiezaModo === 'mes' ? limpiezaMes : limpiezaDia}
+                <span>Periodo / Archivo a purgar:</span>
+                <span className="text-primary-custom font-black truncate max-w-[200px]" title={limpiezaModo === 'carga' ? selectedCarga?.archivo : (limpiezaModo === 'mes' ? limpiezaMes : limpiezaDia)}>
+                  {limpiezaModo === 'carga' ? selectedCarga?.archivo : (limpiezaModo === 'mes' ? limpiezaMes : limpiezaDia)}
                 </span>
               </div>
               <div className="flex justify-between">
