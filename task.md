@@ -1,9 +1,0 @@
-- [x] Crear el componente `AuditoriaMedicaDetail.jsx` (implementando búsquedas por turno y por expediente de médico, cruce de diagnósticos, horas y turnos totales, y exportación CSV)
-- [x] Registrar la pestaña `profesionales` en `Dashboard.jsx` bajo el nombre "Rendimiento Clínico" (icono `Award`)
-- [x] Diseñar e integrar la barra de progreso en tiempo real y contador de registros durante la carga masiva en GestionDatos.jsx
-- [x] Diseñar e implementar el Modal de Éxito Centrado con estadísticas detalladas (atenciones válidas, duplicados y filas originales) y replicar la descripción en la bitácora de auditoría
-- [x] Resolver bloqueo/congelamiento del botón purgar datos por excedente de cuota Firebase implementando runWithTimeout y desbloqueo de UI
-- [x] Corregir la superposición de las alertas/toasts sobre el fondo oscuro del modal incrementando el nivel de apilamiento (z-index) a z-[9999]
-- [x] Compilar y desplegar a Firebase Hosting
-- [x] Actualizar el muro de novedades en `README.md`
-- [x] Actualizar el historial en `walkthrough.md`

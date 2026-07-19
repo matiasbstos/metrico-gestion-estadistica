@@ -26,6 +26,7 @@ export default function GestionDatos({
   const [purgeResult, setPurgeResult] = useState(null);
   const [purgeError, setPurgeError] = useState(null);
   const [manualSuccessResult, setManualSuccessResult] = useState(null);
+  const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
   const [activeGestionTab, setActiveGestionTab] = useState('carga');
   const [limpiezaModo, setLimpiezaModo] = useState('mes');
   const [limpiezaMes, setLimpiezaMes] = useState(new Date().toISOString().substring(0, 7));
@@ -64,7 +65,7 @@ export default function GestionDatos({
 
   const purgarDatos = async () => {
     if (registrosALimpiar.turnos.length === 0 && registrosALimpiar.pacientes.length === 0) return;
-    if (!window.confirm("ATENCIÓN: Se eliminarán todos los datos seleccionados de forma permanente. ¿Estás absolutamente seguro de continuar?")) return;
+    // Confirmación manejada por el modal personalizado de React
     
     setIsUploading(true); setSyncStatus('syncing');
     try {
@@ -854,7 +855,7 @@ export default function GestionDatos({
         </div>
 
         <button 
-          onClick={purgarDatos} 
+          onClick={() => setShowPurgeConfirm(true)} 
           disabled={isUploading || (registrosALimpiar.turnos.length === 0 && registrosALimpiar.pacientes.length === 0)}
           className="mt-6 w-full bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 disabled:from-slate-400 disabled:to-slate-500 text-white font-bold py-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
         >
@@ -1219,6 +1220,61 @@ export default function GestionDatos({
             >
               Ir al Resumen General <ArrowRight className="w-4 h-4" />
             </button>
+          </div>
+        </div>
+      )}
+      {/* MODAL DE CONFIRMACIÓN DE PURGA PERSONALIZADO */}
+      {showPurgeConfirm && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fade-in">
+          <div className="bg-card-custom border border-red-500/35 dark:border-red-500/25 rounded-3xl shadow-2xl max-w-md w-full p-6 text-center space-y-6 animate-bounce-in theme-transition">
+            
+            {/* Círculo de Alerta */}
+            <div className="mx-auto w-16 h-16 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center">
+              <AlertTriangle className="w-10 h-10 animate-pulse" />
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-xl font-black text-red-600 dark:text-red-400">¿Estás absolutamente seguro?</h3>
+              <p className="text-xs text-secondary-custom font-semibold">
+                Esta acción es irreversible y eliminará permanentemente todos los registros del periodo seleccionado.
+              </p>
+            </div>
+
+            {/* Resumen de eliminación */}
+            <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl text-left space-y-3 text-xs font-semibold text-secondary-custom">
+              <div className="flex justify-between">
+                <span>Periodo a purgar:</span>
+                <span className="text-primary-custom font-black font-mono">
+                  {limpiezaModo === 'mes' ? limpiezaMes : limpiezaDia}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Pacientes a eliminar:</span>
+                <span className="text-rose-500 font-black">{registrosALimpiar.pacientes.length} registros</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Turnos a eliminar:</span>
+                <span className="text-slate-700 dark:text-slate-300 font-black">{registrosALimpiar.turnos.length} turnos</span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowPurgeConfirm(false)}
+                className="flex-1 bg-black/5 dark:bg-white/5 border border-card-custom hover:bg-black/10 dark:hover:bg-white/10 text-secondary-custom font-black py-3.5 rounded-2xl transition-all shadow-sm"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={() => {
+                  setShowPurgeConfirm(false);
+                  purgarDatos();
+                }}
+                className="flex-1 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-black py-3.5 rounded-2xl transition-all shadow-md"
+              >
+                Sí, Confirmar
+              </button>
+            </div>
           </div>
         </div>
       )}
