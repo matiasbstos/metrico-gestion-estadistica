@@ -24,6 +24,36 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
   const [selectedDay, setSelectedDay] = useState(null);
+  const [customStartHour, setCustomStartHour] = useState('17:00');
+  const [customEndHour, setCustomEndHour] = useState('08:00');
+  const [showCustomRangePanel, setShowCustomRangePanel] = useState(false);
+
+  const customStats = useMemo(() => {
+    if (!selectedDay || !pacientesDB || pacientesDB.length === 0) return null;
+    
+    const [y, m, d] = selectedDay.split('-').map(Number);
+    const [sh, smin] = customStartHour.split(':').map(Number);
+    const [eh, emin] = customEndHour.split(':').map(Number);
+    
+    const startMs = new Date(y, m - 1, d, sh, smin, 0).getTime();
+    
+    let endDay = d;
+    if (sh > eh || (sh === eh && smin >= emin)) {
+      endDay = d + 1;
+    }
+    const endMs = new Date(y, m - 1, endDay, eh, emin, 0).getTime();
+    
+    const filtered = pacientesDB.filter(p => p.tAdmision >= startMs && p.tAdmision <= endMs);
+    const totalAdmitidos = filtered.length;
+    const altasAdmin = filtered.filter(p => p.estado === 'Cancelada').length;
+    const atendidos = totalAdmitidos - altasAdmin;
+    
+    return {
+      totalAdmitidos,
+      altasAdmin,
+      atendidos
+    };
+  }, [selectedDay, customStartHour, customEndHour, pacientesDB]);
 
   const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   const prevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
@@ -277,6 +307,64 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
               <button onClick={() => setSelectedDay(null)} className="hover:bg-black/10 dark:hover:bg-white/10 p-2 rounded-xl transition-all text-primary-custom"><X className="w-5 h-5"/></button>
             </div>
             <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+              
+              {/* PANEL COMPARATIVO Y DE CONTROL DE CUADRATURA */}
+              <div className="bg-slate-50 dark:bg-black/25 border border-card-custom rounded-2xl p-4 space-y-3">
+                <div className="flex justify-between items-center cursor-pointer select-none" onClick={() => setShowCustomRangePanel(!showCustomRangePanel)}>
+                  <span className="text-xs font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                    Control de Cuadratura por Tramo Horario
+                  </span>
+                  <span className="text-xs font-bold text-slate-400">{showCustomRangePanel ? 'Ocultar' : 'Mostrar'}</span>
+                </div>
+                
+                {showCustomRangePanel && (
+                  <div className="space-y-4 pt-2 border-t border-slate-200 dark:border-white/5 animate-fade-in text-left">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Hora Inicio</label>
+                        <input 
+                          type="time" 
+                          value={customStartHour} 
+                          onChange={e => setCustomStartHour(e.target.value)} 
+                          className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-2 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none" 
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Hora Término</label>
+                        <input 
+                          type="time" 
+                          value={customEndHour} 
+                          onChange={e => setCustomEndHour(e.target.value)} 
+                          className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-2 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none" 
+                        />
+                      </div>
+                    </div>
+                    
+                    {customStats && (
+                      <div className="grid grid-cols-3 gap-2 pt-2">
+                        <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-2.5 rounded-xl text-center">
+                          <span className="text-[9px] font-bold text-slate-400 block uppercase">Admitidos</span>
+                          <span className="text-lg font-black text-slate-700 dark:text-slate-200">{customStats.totalAdmitidos}</span>
+                        </div>
+                        <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-2.5 rounded-xl text-center">
+                          <span className="text-[9px] font-bold text-emerald-500 block uppercase">Atendidos</span>
+                          <span className="text-lg font-black text-emerald-500">{customStats.atendidos}</span>
+                        </div>
+                        <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-2.5 rounded-xl text-center">
+                          <span className="text-[9px] font-bold text-rose-500 block uppercase">Altas Admin</span>
+                          <span className="text-lg font-black text-rose-500">{customStats.altasAdmin}</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <p className="text-[9px] font-semibold text-slate-400 leading-normal">
+                      * Nota: Si la hora de inicio es mayor que la de término (Ej: 17:00 a 08:00), el sistema calcula el tramo cruzando la medianoche hacia la mañana del día siguiente de forma automática.
+                    </p>
+                  </div>
+                )}
+              </div>
+
               {(turnosByDay[selectedDay] || []).length === 0 ? (
                 <p className="text-center text-secondary-custom py-8 font-bold">No hay registros de turnos para este día.</p>
               ) : (

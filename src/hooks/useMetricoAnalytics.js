@@ -13,8 +13,15 @@ const parseLocalDatetime = (dateStr, hourMinStr) => {
 const isPatientInWindow = (tAdmMs, startDayStr, endDayStr, startHourStr, endHourStr) => {
   if (!tAdmMs) return false;
   const tStart = parseLocalDatetime(startDayStr, startHourStr || '00:00');
-  const tEnd = parseLocalDatetime(endDayStr, endHourStr || '23:59');
+  let tEnd = parseLocalDatetime(endDayStr, endHourStr || '23:59');
   if (isNaN(tStart) || isNaN(tEnd)) return false;
+  
+  if (startHourStr && endHourStr && startHourStr > endHourStr && startDayStr === endDayStr) {
+    const endPlusOne = new Date(tEnd);
+    endPlusOne.setDate(endPlusOne.getDate() + 1);
+    tEnd = endPlusOne.getTime();
+  }
+  
   return tAdmMs >= tStart && tAdmMs <= tEnd;
 };
 

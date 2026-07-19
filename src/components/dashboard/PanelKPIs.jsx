@@ -98,7 +98,12 @@ export default function PanelKPIs({ statsKPI, onAltasClick }) {
     <>
       {/* 1. KPIs ANUALES */}
       <div className="mb-6">
-        <h3 className="text-xs font-bold text-secondary-custom tracking-wider uppercase mb-3 opacity-80">Global Anual (Year-to-Date)</h3>
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <h3 className="text-xs font-bold text-secondary-custom tracking-wider uppercase opacity-85">Global Anual (Year-to-Date)</h3>
+          <span className="text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded-md border border-slate-200 dark:border-white/5 theme-transition">
+            Criterio de Globalidad (Calendario Civil Absoluto)
+          </span>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-5 gap-4">
           {renderKPICard('Pac. Admitidos (Total)', statsKPI.anual.pacientes.current, undefined, undefined, '', '')}
           {renderKPICard('Pac. Atendidos (Total)', statsKPI.anual.atendidos.current, undefined, undefined, '', '')}
@@ -155,7 +160,12 @@ export default function PanelKPIs({ statsKPI, onAltasClick }) {
 
       {/* 2. KPIs PERIODO ACTUAL */}
       <div className="mb-6">
-        <h3 className="text-xs font-bold accent-text-custom tracking-wider uppercase mb-3 bg-black/5 dark:bg-white/5 inline-block px-3 py-1 rounded-full border border-card-custom theme-transition">Periodo Seleccionado</h3>
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <h3 className="text-xs font-bold accent-text-custom tracking-wider uppercase bg-black/5 dark:bg-white/5 inline-block px-3 py-1 rounded-full border border-card-custom theme-transition">Periodo Seleccionado</h3>
+          <span className="text-[9px] font-bold text-indigo-500 bg-indigo-500/5 px-2 py-0.5 rounded-md border border-indigo-500/10 theme-transition">
+            Criterio de Turno (Encasillamiento Horario)
+          </span>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
           {renderKPICard('Pac. Admitidos', statsKPI.pacientes.current, statsKPI.pacientes.growthMonth, statsKPI.pacientes.growthYear)}
           {renderKPICard('Pac. Atendidos', statsKPI.atendidos.current, statsKPI.atendidos.growthMonth, statsKPI.atendidos.growthYear)}
