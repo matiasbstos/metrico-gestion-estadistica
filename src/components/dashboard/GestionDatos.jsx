@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2, BookOpen, ArrowRight } from 'lucide-react';
+import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2, BookOpen, ArrowRight, Zap } from 'lucide-react';
 import { collection, doc, writeBatch, serverTimestamp, onSnapshot } from 'firebase/firestore';
 
 const runWithTimeout = (promise, ms) => {
@@ -38,6 +38,10 @@ export default function GestionDatos({
   const [auditoriaCargas, setAuditoriaCargas] = useState([]);
   const [selectedCarga, setSelectedCarga] = useState(null);
   const cancelUploadRef = useRef(false);
+
+  const [isRecalculating, setIsRecalculating] = useState(false);
+  const [recalcProgress, setRecalcProgress] = useState(0);
+  const [recalcStatus, setRecalcStatus] = useState('');
 
   useEffect(() => {
     if (!db || !appId) return;
@@ -685,6 +689,132 @@ export default function GestionDatos({
     setActiveTab('resumen');
   };
 
+  const recalcularTurnosDesdePacientes = async () => {
+    if (!pacientesDB || pacientesDB.length === 0) {
+      return showNotif("No hay pacientes cargados en el sistema para realizar la sincronización.", "warning");
+    }
+    
+    setIsRecalculating(true);
+    setSyncStatus('syncing');
+    setRecalcProgress(0);
+    setRecalcStatus('Agrupando pacientes por jornadas y horarios...');
+
+    try {
+      const turnosMap = {};
+      pacientesDB.forEach(p => {
+        const shift = getShiftBoundaries(p.tAdmision);
+        if (!shift) return;
+
+        const key = `${shift.fechaInicio}|${shift.horario}`;
+        if (!turnosMap[key]) {
+          let equipo = 'Sin Asignar';
+          if (pautasTurnosHook) {
+            const eq = pautasTurnosHook.getEquipoParaTurno(shift.fechaInicio, shift.horario);
+            if (eq) equipo = eq;
+          }
+          turnosMap[key] = {
+            fechaInicio: shift.fechaInicio,
+            fechaFin: shift.fechaInicio,
+            horario: shift.horario,
+            equipoTurno: equipo,
+            totalPacientes: 0,
+            altasAdmin: 0,
+            c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0, sincat: 0
+          };
+        }
+
+        const tObj = turnosMap[key];
+        tObj.totalPacientes++;
+        if (p.estado === 'Cancelada') tObj.altasAdmin++;
+        if (tObj[p.categoria] !== undefined) tObj[p.categoria]++;
+      });
+
+      const nuevosTurnos = Object.values(turnosMap);
+      setRecalcStatus(`Preparando actualización de ${nuevosTurnos.length} jornadas...`);
+
+      const batchList = [];
+      let currentBatch = writeBatch(db);
+      let opCounter = 0;
+
+      const addOp = (actionFn) => {
+        actionFn(currentBatch);
+        opCounter++;
+        if (opCounter >= 450) {
+          batchList.push(currentBatch);
+          currentBatch = writeBatch(db);
+          opCounter = 0;
+        }
+      };
+
+      // Eliminar turnos viejos
+      turnosDB.forEach(t => {
+        addOp((b) => b.delete(doc(db, 'artifacts', appId, 'public', 'data', 'turnos', t.id)));
+      });
+
+      // Crear turnos nuevos
+      const cleanFileName = "SINCRONIZACION";
+      nuevosTurnos.forEach(t => {
+        const loteId = `${cleanFileName}-${t.fechaInicio}-${Date.now()}`;
+        const horasTurno = String(t.horario).includes("17:00") ? 15 : 12;
+        const ratio = t.totalPacientes / horasTurno;
+
+        const turnoDoc = {
+          loteId,
+          tipo: 'Masiva',
+          fechaInicio: t.fechaInicio,
+          fechaFin: t.fechaInicio,
+          horario: t.horario,
+          equipoTurno: t.equipoTurno,
+          totalPacientes: Number(t.totalPacientes),
+          altasAdmin: Number(t.altasAdmin),
+          pacientesPorHora: ratio,
+          c1: t.c1 || 0,
+          c2: t.c2 || 0,
+          c3: t.c3 || 0,
+          c3_z518: t.c3_z518 || 0,
+          c4: t.c4 || 0,
+          c5: t.c5 || 0,
+          creadoEl: Date.now()
+        };
+
+        const newShiftRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'turnos'));
+        addOp((b) => b.set(newShiftRef, turnoDoc));
+      });
+
+      if (opCounter > 0) {
+        batchList.push(currentBatch);
+      }
+
+      // Guardar log de auditoría
+      const auditLog = {
+        fecha: Date.now(),
+        accion: 'Sincronización',
+        detalles: `Sincronización y recálculo de turnos realizado. Reconstruidos ${nuevosTurnos.length} turnos en base a ${pacientesDB.length} registros de pacientes.`,
+        centro: centroActivo || 'Desconocido',
+        usuario: user?.email || 'Anónimo'
+      };
+      
+      const auditBatch = writeBatch(db);
+      auditBatch.set(doc(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs')), auditLog);
+      batchList.push(auditBatch);
+
+      // Comprometer secuencialmente
+      for (let i = 0; i < batchList.length; i++) {
+        setRecalcStatus(`Guardando lote ${i + 1} de ${batchList.length} en la nube...`);
+        await runWithTimeout(batchList[i].commit(), 30000);
+        setRecalcProgress(((i + 1) / batchList.length) * 100);
+      }
+
+      showNotif("Sincronización y recálculo de turnos completado con éxito.", "success");
+    } catch (e) {
+      console.error(e);
+      showNotif("Error al sincronizar y recalcular turnos: " + e.message, "error");
+    }
+
+    setIsRecalculating(false);
+    setSyncStatus('synced');
+  };
+
   const handleManualSuccessClose = () => {
     if (manualSuccessResult) {
       if (manualSuccessResult.fechaInicio) {
@@ -998,6 +1128,36 @@ export default function GestionDatos({
           {isUploading ? <Loader2 className="animate-spin w-5 h-5" /> : <X className="w-5 h-5" />}
           {isUploading ? `Eliminando lote ${currentPurgeBatchIndex} de ${totalPurgeBatches}...` : (limpiezaModo === 'carga' && registrosALimpiar.pacientes.length === 0 ? 'Eliminar Registro de Carga' : `Purgar ${registrosALimpiar.pacientes.length} Pacientes`)}
         </button>
+
+        {/* SECCIÓN ADICIONAL: REGENERACIÓN Y RECÁLCULO DE JORNADAS */}
+        <div className="border-t border-slate-200/60 dark:border-white/5 my-6"></div>
+        
+        <div className="flex items-center gap-2 mb-2">
+          <Zap className="text-indigo-500 w-5 h-5"/>
+          <h2 className="text-lg font-bold text-slate-800">Sincronización y Recálculo de Turnos</h2>
+        </div>
+        <p className="text-sm text-slate-500 mb-4 text-left">
+          Esta herramienta regenera y actualiza la lista de turnos y sus contadores (categorías, total de pacientes y altas administrativas) en base a los pacientes guardados en la colección de urgencia. Útil si has realizado cambios en las reglas horarias y deseas refrescar las estadísticas sin tener que purgar y volver a cargar los archivos Excel.
+        </p>
+        
+        <button 
+          onClick={recalcularTurnosDesdePacientes}
+          disabled={isRecalculating || !pacientesDB || pacientesDB.length === 0}
+          className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 disabled:from-slate-400 disabled:to-slate-500 text-white font-bold py-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+        >
+          <Zap className="w-5 h-5" />
+          {isRecalculating ? "Recalculando..." : "Sincronizar y Recalcular Turnos"}
+        </button>
+
+        {isRecalculating && (
+          <div className="mt-4 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-left animate-fade-in">
+            <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 block mb-1">PROGRESO DE SINCRONIZACIÓN</span>
+            <div className="w-full bg-slate-200 dark:bg-white/10 h-2 rounded-full overflow-hidden mb-2">
+              <div className="bg-indigo-600 h-full transition-all duration-300" style={{ width: `${recalcProgress}%` }}></div>
+            </div>
+            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">{recalcStatus}</span>
+          </div>
+        )}
       </div>
       )}
 

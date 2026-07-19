@@ -27,6 +27,62 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
   const [customStartHour, setCustomStartHour] = useState('17:00');
   const [customEndHour, setCustomEndHour] = useState('08:00');
   const [showCustomRangePanel, setShowCustomRangePanel] = useState(false);
+  const [criterioVisualizacion, setCriterioVisualizacion] = useState('operativo');
+
+  const getStrictStats = (t) => {
+    if (!pacientesDB || pacientesDB.length === 0) {
+      return { 
+        total: t.totalPacientes, 
+        altas: t.altasAdmin, 
+        c1: t.c1 || 0, 
+        c2: t.c2 || 0, 
+        c3: t.c3 || 0, 
+        c3_z518: t.c3_z518 || 0, 
+        c4: t.c4 || 0, 
+        c5: t.c5 || 0 
+      };
+    }
+    
+    let startMs, endMs;
+    const baseDateStr = t.fechaInicio;
+    const nextDate = new Date(baseDateStr + 'T12:00:00');
+    nextDate.setDate(nextDate.getDate() + 1);
+    const nextDateStr = nextDate.toISOString().split('T')[0];
+    
+    if (t.horario.includes('17:00')) {
+      startMs = new Date(`${baseDateStr}T17:00:00-04:00`).getTime();
+      endMs = new Date(`${nextDateStr}T08:00:00-04:00`).getTime();
+    } else if (t.horario.includes('08:00 - 20:00')) {
+      startMs = new Date(`${baseDateStr}T08:00:00-04:00`).getTime();
+      endMs = new Date(`${baseDateStr}T20:00:00-04:00`).getTime();
+    } else if (t.horario.includes('20:00 - 08:00')) {
+      startMs = new Date(`${baseDateStr}T20:00:00-04:00`).getTime();
+      endMs = new Date(`${nextDateStr}T08:00:00-04:00`).getTime();
+    } else {
+      return { 
+        total: t.totalPacientes, 
+        altas: t.altasAdmin, 
+        c1: t.c1 || 0, 
+        c2: t.c2 || 0, 
+        c3: t.c3 || 0, 
+        c3_z518: t.c3_z518 || 0, 
+        c4: t.c4 || 0, 
+        c5: t.c5 || 0 
+      };
+    }
+    
+    const inShift = pacientesDB.filter(p => p.tAdmision >= startMs && p.tAdmision <= endMs);
+    const counts = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
+    inShift.forEach(p => {
+      if (counts[p.categoria] !== undefined) counts[p.categoria]++;
+    });
+
+    return {
+      total: inShift.length,
+      altas: inShift.filter(p => p.estado === 'Cancelada').length,
+      ...counts
+    };
+  };
 
   const customStats = useMemo(() => {
     if (!selectedDay || !pacientesDB || pacientesDB.length === 0) return null;
@@ -157,6 +213,24 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
           </div>
         </div>
         
+        {/* Selector de Criterio de Visualización */}
+        <div className="flex items-center bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-card-custom transition-all text-xs font-bold gap-1 shadow-inner theme-transition">
+          <button 
+            type="button"
+            onClick={() => setCriterioVisualizacion('operativo')} 
+            className={`px-3 py-1.5 rounded-lg transition-all ${criterioVisualizacion === 'operativo' ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
+          >
+            Turno Operativo (Holgura)
+          </button>
+          <button 
+            type="button"
+            onClick={() => setCriterioVisualizacion('estricto')} 
+            className={`px-3 py-1.5 rounded-lg transition-all ${criterioVisualizacion === 'estricto' ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
+          >
+            Reloj Oficial (Estricto)
+          </button>
+        </div>
+
         <div className="flex items-center gap-4 bg-black/5 dark:bg-white/5 p-2 rounded-xl border border-card-custom shadow-inner">
           <button onClick={prevMonth} className="p-2 hover:bg-card-custom rounded-lg transition-colors shadow-sm text-primary-custom"><ChevronLeft className="w-5 h-5" /></button>
           <span className="text-lg font-black text-primary-custom w-40 text-center uppercase tracking-widest">{monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}</span>
@@ -175,11 +249,29 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
           if (!d) return <div key={`empty-${idx}`} className="min-h-[120px] md:h-48 rounded-xl border border-dashed border-card-custom bg-black/5 dark:bg-white/5 opacity-55"></div>;
           
           const dayTurnos = turnosByDay[d] || [];
+          const processedTurnos = dayTurnos.map(t => {
+            if (criterioVisualizacion === 'estricto') {
+              const strict = getStrictStats(t);
+              return {
+                ...t,
+                totalPacientes: strict.total,
+                altasAdmin: strict.altas,
+                c1: strict.c1,
+                c2: strict.c2,
+                c3: strict.c3,
+                c3_z518: strict.c3_z518,
+                c4: strict.c4,
+                c5: strict.c5
+              };
+            }
+            return t;
+          });
+
           const dayNumber = parseInt(d.split('-')[2], 10);
           const isToday = d === new Date().toISOString().split('T')[0];
           
-          const totalPacientesDia = dayTurnos.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0);
-          const altasAdminDia = dayTurnos.reduce((acc, t) => acc + Number(t.altasAdmin || 0), 0);
+          const totalPacientesDia = processedTurnos.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0);
+          const altasAdminDia = processedTurnos.reduce((acc, t) => acc + Number(t.altasAdmin || 0), 0);
           
           const isWknd = isWeekendOrFestivoDay(d);
           const maxPac = isWknd ? maxStatsInMonth.maxPacWknd : maxStatsInMonth.maxPacWkdy;
@@ -224,10 +316,10 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
                 )}
               </div>
               <div className="flex-1 overflow-y-auto space-y-1.5 md:space-y-2 pr-1 no-scrollbar">
-                {dayTurnos.length === 0 ? (
+                {processedTurnos.length === 0 ? (
                   <p className="text-[9px] font-bold text-secondary-custom opacity-55 text-center mt-4">Sin Datos</p>
                 ) : (
-                  dayTurnos.map(t => {
+                  processedTurnos.map(t => {
                     const bgCol = TEAM_COLORS[t.equipoTurno] || TEAM_COLORS['Sin Asignar'];
                     return (
                       <div key={t.id} className="p-1.5 md:p-2 rounded-lg border border-card-custom bg-card-custom shadow-sm relative overflow-hidden group/item hover:accent-border-custom cursor-pointer transition-all duration-200">
