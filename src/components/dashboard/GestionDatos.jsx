@@ -93,7 +93,8 @@ export default function GestionDatos({
   }, [limpiezaModo, limpiezaMes, limpiezaDia, selectedCarga, turnosDB, pacientesDB]);
 
   const purgarDatos = async () => {
-    if (registrosALimpiar.turnos.length === 0 && registrosALimpiar.pacientes.length === 0) return;
+    if (limpiezaModo !== 'carga' && registrosALimpiar.turnos.length === 0 && registrosALimpiar.pacientes.length === 0) return;
+    if (limpiezaModo === 'carga' && !selectedCarga) return;
     
     setIsUploading(true); setSyncStatus('syncing');
     try {
@@ -973,11 +974,11 @@ export default function GestionDatos({
 
         <button 
           onClick={() => setShowPurgeConfirm(true)} 
-          disabled={isUploading || (registrosALimpiar.turnos.length === 0 && registrosALimpiar.pacientes.length === 0)}
+          disabled={isUploading || (limpiezaModo === 'carga' ? !selectedCarga : (registrosALimpiar.turnos.length === 0 && registrosALimpiar.pacientes.length === 0))}
           className="mt-6 w-full bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 disabled:from-slate-400 disabled:to-slate-500 text-white font-bold py-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
         >
           {isUploading ? <Loader2 className="animate-spin w-5 h-5" /> : <X className="w-5 h-5" />}
-          {isUploading ? 'Eliminando Registros...' : `Purgar ${registrosALimpiar.pacientes.length} Pacientes`}
+          {isUploading ? 'Eliminando Registros...' : (limpiezaModo === 'carga' && registrosALimpiar.pacientes.length === 0 ? 'Eliminar Registro de Carga' : `Purgar ${registrosALimpiar.pacientes.length} Pacientes`)}
         </button>
       </div>
       )}
