@@ -4,6 +4,13 @@
 
 Aquí documentamos el progreso y las últimas actualizaciones que se le están haciendo al sistema para mantener a todo el equipo informado.
 
+### ✨ [Actualización] - 22 de Julio 2026 - KPIs de Enfermería Completos, Diferenciación C3 Avanzada y Ventana de Detalle interactiva
+- **KPIs de Enfermería en Reporte Imprimible:** Incorporación de tiempos promedio de respuesta ("T. 1ª Cat" y "T. 2ª Cat") y filas de totales/promedios globales en el pie de la tabla de desempeño para consolidar métricas de todo el establecimiento.
+- **Gráficos Comparativos de Doble Eje:** Visualización de barras degradadas de respuesta por enfermero (Top 10) para control de tiempos.
+- **Ventana Emergente de Detalle Clínico C3:** Al hacer clic en cualquiera de los Top 10 diagnósticos C3 generales en la tabla, se despliega una bitácora detallada con los pacientes (admisión, diagnóstico, código, enfermero categorizador y turno asociado) en un modal flotante.
+- **Identificación Dinámica de Constatación de Lesiones:** Exclusión exhaustiva de constatación de lesiones (basada en códigos Z51.8, Z04, Z04.5 y descriptores textuales como "CIRCUNSTANCIAS LEGALES", "AGRESION", "POLICIAL", etc.) para mantener limpios los reportes clínicos.
+- **Detección Flexible y Regla de Adyacencia en Cargas (Excel):** Optimización del importador de datos de Iris ("Informe de tiempos de espera") para emparejar cabeceras dinámicas de profesionales de enfermería por subcadena corta, con fallback automático a la columna adyacente (+1) para el instrumento profesional.
+
 ### ✨ [Actualización] - 19 de Julio 2026 - Cuadratura de Turnos Rayen, Sincronización sin Purgar y Criterios Horarios Integrados
 - **Cuadratura Horaria Oficial Rayen (16:00 a 08:00 / 09:00):** Ajuste de la regla de holguras para turnos de semana largo (16:00 a 09:00 Lunes a Jueves, y **corte exacto a las 08:00 AM del Sábado para el turno del Viernes** por empalme con fin de semana). Logro de cuadratura perfecta al 100% comparado contra planillas oficiales de Rayen (admitidos, atendidos y altas admin).
 - **Tarjetas de Turno Desglosadas en 3 Columnas:** Rediseño completo de las tarjetas de detalle diario para presentar de forma directa y limpia las tres métricas clave: **Admitidos**, **Atendidos** (admitidos menos altas) y **Altas Administrativas** (con porcentaje).

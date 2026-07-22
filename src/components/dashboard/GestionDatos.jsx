@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2, BookOpen, ArrowRight, Zap } from 'lucide-react';
+import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2, BookOpen, ArrowRight, Zap, Trash2 } from 'lucide-react';
 import { collection, doc, writeBatch, serverTimestamp, onSnapshot } from 'firebase/firestore';
 
 const runWithTimeout = (promise, ms) => {
@@ -100,6 +100,90 @@ export default function GestionDatos({
 
     return { turnos: turnosTarget, pacientes: pacientesTarget };
   }, [limpiezaModo, limpiezaMes, limpiezaDia, selectedCarga, turnosDB, pacientesDB]);
+
+  const [isDeduplicating, setIsDeduplicating] = useState(false);
+  const [dedupProgress, setDedupProgress] = useState(0);
+
+  const depurarDuplicados = async () => {
+    if (!pacientesDB || pacientesDB.length === 0) {
+      showNotif("No hay registros cargados para depurar.", "info");
+      return;
+    }
+
+    setIsUploading(true); setSyncStatus('syncing');
+    setIsDeduplicating(true);
+    setDedupProgress(0);
+
+    try {
+      const seenHashes = new Set();
+      const duplicatesToDelete = [];
+
+      const norm = (v) => String(v || '').trim().toUpperCase();
+
+      pacientesDB.forEach(p => {
+        if (!p.id) return;
+
+        const sexNorm = norm(p.sexo);
+        const edadNorm = p.edad ?? '';
+        const corrNorm = norm(p.correlativo);
+        const idNorm = norm(p.idPaciente);
+        const diagNorm = norm(p.diagnosticoPrincipal);
+
+        let isDup = false;
+
+        const hashCorrId = (corrNorm && idNorm) ? `${corrNorm}_${idNorm}` : null;
+        const hashTimeOld = (p.tAdmision) ? `${p.tAdmision}_${edadNorm}_${sexNorm}` : null;
+        const hashTimeCorr = (p.tAdmision && corrNorm) ? `${p.tAdmision}_${corrNorm}` : null;
+        const hashTimeId = (p.tAdmision && idNorm) ? `${p.tAdmision}_${idNorm}` : null;
+        const hashTimeDiag = (p.tAdmision && diagNorm) ? `${p.tAdmision}_${edadNorm}_${sexNorm}_${diagNorm}` : null;
+
+        if (hashCorrId && seenHashes.has(hashCorrId)) isDup = true;
+        else if (hashTimeCorr && seenHashes.has(hashTimeCorr)) isDup = true;
+        else if (hashTimeId && seenHashes.has(hashTimeId)) isDup = true;
+        else if (hashTimeDiag && seenHashes.has(hashTimeDiag)) isDup = true;
+        else if (hashTimeOld && seenHashes.has(hashTimeOld)) isDup = true;
+
+        if (isDup) {
+          duplicatesToDelete.push(p.id);
+        } else {
+          if (hashCorrId) seenHashes.add(hashCorrId);
+          if (hashTimeCorr) seenHashes.add(hashTimeCorr);
+          if (hashTimeId) seenHashes.add(hashTimeId);
+          if (hashTimeDiag) seenHashes.add(hashTimeDiag);
+          if (hashTimeOld) seenHashes.add(hashTimeOld);
+        }
+      });
+
+      if (duplicatesToDelete.length === 0) {
+        showNotif("¡Excelente! No se encontraron registros duplicados en la base de datos.", "success");
+        setIsDeduplicating(false);
+        setIsUploading(false); setSyncStatus('synced');
+        return;
+      }
+
+      const batchSize = 400;
+      const totalBatches = Math.ceil(duplicatesToDelete.length / batchSize);
+
+      for (let i = 0; i < totalBatches; i++) {
+        const chunk = duplicatesToDelete.slice(i * batchSize, (i + 1) * batchSize);
+        const batch = writeBatch(db);
+        chunk.forEach(docId => {
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia', docId);
+          batch.delete(docRef);
+        });
+        await batch.commit();
+        setDedupProgress(Math.round(((i + 1) / totalBatches) * 100));
+      }
+
+      showNotif(`¡Depuración completada! Se eliminaron ${duplicatesToDelete.length} registros duplicados.`, "success");
+    } catch (err) {
+      console.error("Error en depuración:", err);
+      showNotif(`Error al depurar duplicados: ${err.message}`, "error");
+    } finally {
+      setIsDeduplicating(false);
+      setIsUploading(false); setSyncStatus('synced');
+    }
+  };
 
   const purgarDatos = async () => {
     if (limpiezaModo !== 'carga' && registrosALimpiar.turnos.length === 0 && registrosALimpiar.pacientes.length === 0) return;
@@ -337,11 +421,30 @@ export default function GestionDatos({
         let iFAlt = getIdx(['FECHA ALTA', 'FECHA ALT']); let iHAlt = getIdx(['HORA ALTA', 'HORA ALT']);
         let iCatPri = getIdx(['PRIMERA CATEGORIZACION', 'PRIMERA CAT', 'CATEGORIA 1']); let iCatUlt = getIdx(['ULTIMA CATEGORIZACION', 'ULTIMA CAT', 'CATEGORIA ULT']);
         let iEst = getIdx(['ESTADO', 'STATUS']);
-        let iCodDiag = getIdx(['CÓDIGO DE DIAGNÓSTICO', 'CODIGO DE DIAGNOSTICO', 'CODIGO DIAGNOSTICO', 'COD DIAG']);
-        let iDiagPrin = getIdx(['DIAGNOSTICO PRINCIPAL', 'DIAGNÓSTICO PRINCIPAL', 'DIAGNOSTICO']);
+        let iCodDiag = getIdx(['CÓDIGO DE DIAGNÓSTICO', 'CODIGO DE DIAGNOSTICO', 'CODIGO DIAGNOSTICO', 'COD DIAG', 'CODIGO DIAG', 'CÓDIGO DIAGNÓSTICO', 'CIE10', 'CODIGO CIE10', 'COD CIE10']);
+        let iDiagPrin = getIdx(['DIAGNOSTICO PRINCIPAL', 'DIAGNÓSTICO PRINCIPAL', 'DIAGNOSTICO', 'DIAGNOSTICO INGRESO', 'DIAGNOSTICO EGRESO', 'DIAG PRINCIPAL']);
+        let iDestinoAlta = getIdx(['DESTINO DE ALTA', 'DESTINO ALTA', 'DESTINO', 'TIPO DE ALTA', 'DESTINO EGRESO', 'DESTINO ALTA MEDICA', 'MOTIVO DE ALTA', 'MOTIVO ALTA', 'DESTINO FINAL', 'MOTIVO EGRESO', 'DESTINO/MOTIVO']);
         let iMed = getIdx(['NOMBRE PROFESIONAL REGISTRA ANAMNESIS', 'NOMBRE PROFESIONAL', 'MEDICO', 'PROFESIONAL', 'DOCTOR']);
         let iCorrelativo = getIdx(['CORRELATIVO', 'Nº', 'NUMERO', 'N°', 'NRO', '#', 'NUMERO DE ATENCION']);
         let iId = getIdx(['ID', 'RUN', 'RUT', 'IDENTIFICADOR', 'DOCUMENTO']);
+        
+        let iEnfCat1 = getIdx(['REGISTRA LA PRIMERA', 'REGISTRA PRIMERA', 'REGISTRA PRIM', 'PROFESIONAL 1°', 'PROFESIONAL 1A', 'PRIMERA CATEGORIZACION']);
+        let iEnfCat1Inst = getIdx(['INSTRUMENTO QUE REGISTRA LA PRIMERA', 'INSTRUMENTO QUE REGISTRA PRIMERA', 'INSTRUMENTO REGISTRA PRIM', 'INSTRUMENTO 1°', 'INSTRUMENTO 1A', 'INSTRUMENTO PRIM']);
+        if (iEnfCat1Inst === -1 && iEnfCat1 !== -1) {
+          iEnfCat1Inst = iEnfCat1 + 1;
+        }
+        
+        let iEnfCatUlt = getIdx(['REGISTRA LA ULTIMA', 'REGISTRA ULTIMA', 'REGISTRA ULT', 'PROFESIONAL ULT', 'ULTIMA CATEGORIZACION']);
+        let iEnfCatUltInst = getIdx(['INSTRUMENTO QUE REGISTRA LA ULTIMA', 'INSTRUMENTO QUE REGISTRA ULTIMA', 'INSTRUMENTO REGISTRA ULT', 'INSTRUMENTO ULT']);
+        if (iEnfCatUltInst === -1 && iEnfCatUlt !== -1) {
+          iEnfCatUltInst = iEnfCatUlt + 1;
+        }
+        
+        let iMedAna = getIdx(['REGISTRA LA ANAMNESIS', 'REGISTRA ANAMNESIS', 'REGISTRA ANA', 'PROFESIONAL ANAMNESIS', 'ANAMNESIS']);
+        let iMedAnaInst = getIdx(['INSTRUMENTO QUE REGISTRA LA ANAMNESIS', 'INSTRUMENTO QUE REGISTRA ANAMNESIS', 'INSTRUMENTO ANAMNESIS', 'INSTRUMENTO ANA']);
+        if (iMedAnaInst === -1 && iMedAna !== -1) {
+          iMedAnaInst = iMedAna + 1;
+        }
         
         let iEdad = getIdx(['EDAD']);
         let iSexo = getIdx(['SEXO']);
@@ -356,20 +459,30 @@ export default function GestionDatos({
 
         if(iFAdm === -1) iFAdm = 1; if(iHAdm === -1) iHAdm = 2;
 
-        const existingHashes = new Set();
+        const normVal = (v) => String(v || '').trim().toUpperCase();
+
+        const existingMap = new Map();
         if (pacientesDB) {
           pacientesDB.forEach(p => {
+            if (!p.id) return;
+            const sexNorm = normVal(p.sexo);
+            const edadNorm = p.edad ?? '';
+            const corrNorm = normVal(p.correlativo);
+            const idNorm = normVal(p.idPaciente);
+
+            if (corrNorm && idNorm) existingMap.set(`${corrNorm}_${idNorm}`, p);
             if (p.tAdmision) {
-              existingHashes.add(`${p.tAdmision}-${p.edad}-${p.sexo}`);
-            }
-            if (p.correlativo && p.idPaciente) {
-              existingHashes.add(`${String(p.correlativo).trim()}-${String(p.idPaciente).trim()}`);
+              existingMap.set(`${p.tAdmision}_${edadNorm}_${sexNorm}`, p);
+              if (corrNorm) existingMap.set(`${p.tAdmision}_${corrNorm}`, p);
+              if (idNorm) existingMap.set(`${p.tAdmision}_${idNorm}`, p);
             }
           });
         }
 
         let parsedRecords = [];
+        let recordsToUpdate = [];
         let duplicados = 0;
+        let actualizados = 0;
 
         for (let i = headerRowIdx + 1; i < rows.length; i++) {
           const row = rows[i];
@@ -387,17 +500,19 @@ export default function GestionDatos({
           const correlativoVal = iCorrelativo !== -1 ? safeGet(iCorrelativo) : '';
           const idPacienteVal = iId !== -1 ? safeGet(iId) : '';
           
-          const hashNew = (correlativoVal && idPacienteVal) ? `${correlativoVal.trim()}-${idPacienteVal.trim()}` : '';
-          const hashOld = `${tAdm}-${edad}-${sexoStr}`;
+          const sexNormNew = normVal(sexoStr);
+          const corrNormNew = normVal(correlativoVal);
+          const idNormNew = normVal(idPacienteVal);
 
-          const isDuplicate = (hashNew && existingHashes.has(hashNew)) || existingHashes.has(hashOld);
+          const hashCorrId = (corrNormNew && idNormNew) ? `${corrNormNew}_${idNormNew}` : '';
+          const hashTimeOld = `${tAdm}_${edad ?? ''}_${sexNormNew}`;
+          const hashTimeCorr = (tAdm && corrNormNew) ? `${tAdm}_${corrNormNew}` : '';
+          const hashTimeId = (tAdm && idNormNew) ? `${tAdm}_${idNormNew}` : '';
 
-          if (isDuplicate) {
-            duplicados++;
-            continue;
-          }
-          if (hashNew) existingHashes.add(hashNew);
-          existingHashes.add(hashOld);
+          const existingPatient = (hashCorrId && existingMap.get(hashCorrId)) ||
+                                  existingMap.get(hashTimeOld) ||
+                                  (hashTimeCorr && existingMap.get(hashTimeCorr)) ||
+                                  (hashTimeId && existingMap.get(hashTimeId));
 
           const rowStrLower = row.map(c => String(c || '').toLowerCase()).join(' ');
 
@@ -415,12 +530,90 @@ export default function GestionDatos({
           
           let codDiag = safeGet(iCodDiag);
           let diagPrin = safeGet(iDiagPrin);
+          let destAlta = safeGet(iDestinoAlta);
           
           if (categoria === 'c3' && (codDiag.toUpperCase().includes('Z51.8') || diagPrin.toUpperCase().includes('Z51.8'))) {
             categoria = 'c3_z518';
           }
 
-          let medico = safeGet(iMed) || 'No Registrado';
+          let enfermeroCat1 = '';
+          let enfermeroCat1Inst = '';
+          let enfermeroCatUlt = '';
+          let enfermeroCatUltInst = '';
+          let medicoAnamnesis = '';
+          let medicoAnamnesisInst = '';
+
+          if (iEnfCat1 !== -1) {
+            const name1 = safeGet(iEnfCat1);
+            const inst1 = safeGet(iEnfCat1Inst);
+            enfermeroCat1Inst = inst1;
+            if (inst1.toLowerCase().includes('enfermero') || !inst1) {
+              enfermeroCat1 = name1;
+            }
+          }
+
+          if (iEnfCatUlt !== -1) {
+            const nameUlt = safeGet(iEnfCatUlt);
+            const instUlt = safeGet(iEnfCatUltInst);
+            enfermeroCatUltInst = instUlt;
+            if (instUlt.toLowerCase().includes('enfermero') || !instUlt) {
+              enfermeroCatUlt = nameUlt;
+            }
+          }
+
+          if (iMedAna !== -1) {
+            const nameAna = safeGet(iMedAna);
+            const instAna = safeGet(iMedAnaInst);
+            medicoAnamnesisInst = instAna;
+            if (instAna.toLowerCase().includes('medico') || instAna.toLowerCase().includes('médico') || !instAna) {
+              medicoAnamnesis = nameAna;
+            }
+          }
+
+          let medicoVal = medicoAnamnesis || safeGet(iMed) || 'No Registrado';
+
+          if (existingPatient) {
+            let needsUpdate = false;
+            const updateData = {};
+
+            if (destAlta && (!existingPatient.destinoAlta || existingPatient.destinoAlta !== destAlta)) {
+              updateData.destinoAlta = destAlta;
+              updateData.destino = destAlta;
+              needsUpdate = true;
+            }
+            if (codDiag && (!existingPatient.codigoDiagnostico || existingPatient.codigoDiagnostico !== codDiag)) {
+              updateData.codigoDiagnostico = codDiag;
+              needsUpdate = true;
+            }
+            if (diagPrin && (!existingPatient.diagnosticoPrincipal || existingPatient.diagnosticoPrincipal !== diagPrin)) {
+              updateData.diagnosticoPrincipal = diagPrin;
+              needsUpdate = true;
+            }
+            if (enfermeroCat1 && (!existingPatient.enfermeroCat1 || existingPatient.enfermeroCat1 !== enfermeroCat1)) {
+              updateData.enfermeroCat1 = enfermeroCat1;
+              updateData.enfermeroCat1Inst = enfermeroCat1Inst;
+              needsUpdate = true;
+            }
+            if (enfermeroCatUlt && (!existingPatient.enfermeroCatUlt || existingPatient.enfermeroCatUlt !== enfermeroCatUlt)) {
+              updateData.enfermeroCatUlt = enfermeroCatUlt;
+              updateData.enfermeroCatUltInst = enfermeroCatUltInst;
+              needsUpdate = true;
+            }
+            if (medicoAnamnesis && (!existingPatient.medicoAnamnesis || existingPatient.medicoAnamnesis !== medicoAnamnesis)) {
+              updateData.medicoAnamnesis = medicoAnamnesis;
+              updateData.medicoAnamnesisInst = medicoAnamnesisInst;
+              updateData.medico = medicoAnamnesis;
+              needsUpdate = true;
+            }
+
+            if (needsUpdate) {
+              recordsToUpdate.push({ id: existingPatient.id, data: updateData });
+              actualizados++;
+            } else {
+              duplicados++;
+            }
+            continue;
+          }
 
           parsedRecords.push({
             tAdmision: tAdm,
@@ -428,8 +621,14 @@ export default function GestionDatos({
             tCatUlt: parseDateStr(safeGet(iFCatU), safeGet(iHCatU)),
             tAnamnesis: parseDateStr(safeGet(iFAna), safeGet(iHAna)),
             tAlta: parseDateStr(safeGet(iFAlt), safeGet(iHAlt)),
-            estado: estado, categoria: categoria, medico: medico,
-            codigoDiagnostico: codDiag, diagnosticoPrincipal: diagPrin,
+            estado: estado, categoria: categoria, medico: medicoVal,
+            enfermeroCat1: enfermeroCat1,
+            enfermeroCat1Inst: enfermeroCat1Inst,
+            enfermeroCatUlt: enfermeroCatUlt,
+            enfermeroCatUltInst: enfermeroCatUltInst,
+            medicoAnamnesis: medicoAnamnesis,
+            medicoAnamnesisInst: medicoAnamnesisInst,
+            codigoDiagnostico: codDiag, diagnosticoPrincipal: diagPrin, destinoAlta: destAlta, destino: destAlta,
             edad, sexo: sexoStr, prevision: safeGet(iPrev),
             comuna: safeGet(iComu), region: safeGet(iRegi), nacionalidad: safeGet(iNaci), establecimiento: safeGet(iCentro),
             correlativo: correlativoVal,
@@ -474,15 +673,17 @@ export default function GestionDatos({
 
         const turnosGenerados = Object.values(turnosMap);
 
-        if (turnosGenerados.length === 0) {
+        if (turnosGenerados.length === 0 && recordsToUpdate.length === 0) {
           setIsReadingFile(false);
-          if (duplicados > 0) return showNotif(`Se omitieron ${duplicados} registros duplicados y no quedaron pacientes nuevos para subir.`, "warning");
+          if (duplicados > 0) return showNotif(`Se omitieron ${duplicados} registros duplicados y no quedaron pacientes nuevos ni datos para actualizar.`, "warning");
           return showNotif("No se detectaron pacientes válidos dentro de los horarios de atención.", "error");
         }
 
         setPendingUpload({
           fileName,
           turnos: turnosGenerados,
+          recordsToUpdate,
+          totalActualizados: actualizados,
           totalDuplicados: duplicados,
           totalOutOfBounds: outOfBounds,
           incidencias: incidenciasDetectadas,
@@ -572,6 +773,19 @@ export default function GestionDatos({
             opCounter++;
             successCount++;
           }
+        }
+      }
+
+      if (pendingUpload.recordsToUpdate && pendingUpload.recordsToUpdate.length > 0) {
+        for (const item of pendingUpload.recordsToUpdate) {
+          if (opCounter >= 490) {
+            batchList.push(currentBatch);
+            currentBatch = writeBatch(db);
+            opCounter = 0;
+          }
+          const pacDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia', item.id);
+          currentBatch.update(pacDocRef, item.data);
+          opCounter++;
         }
       }
       
@@ -1158,6 +1372,35 @@ export default function GestionDatos({
             <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block">{recalcStatus}</span>
           </div>
         )}
+
+        {/* HERRAMIENTA DE DEPURACIÓN AUTOMÁTICA DE PACIENTES DUPLICADOS */}
+        <div className="border-t border-slate-200/60 dark:border-white/5 my-6"></div>
+        
+        <div className="flex items-center gap-2 mb-2">
+          <Trash2 className="text-rose-500 w-5 h-5"/>
+          <h2 className="text-lg font-bold text-slate-800">Depuración Automática de Registros Duplicados</h2>
+        </div>
+        <p className="text-sm text-slate-500 mb-4 text-left">
+          Escanea la base de datos completa de pacientes en busca de registros repetidos (coincidencia de RUT, correlativo, horario de admisión o diagnóstico) y conserva solo una copia única por atención, eliminando automáticamente los duplicados excedentes.
+        </p>
+        
+        <button 
+          onClick={depurarDuplicados}
+          disabled={isDeduplicating || !pacientesDB || pacientesDB.length === 0}
+          className="w-full bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 disabled:from-slate-400 disabled:to-slate-500 text-white font-bold py-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+        >
+          <Trash2 className="w-5 h-5" />
+          {isDeduplicating ? "Depurando duplicados..." : "🔍 Analizar y Depurar Pacientes Duplicados"}
+        </button>
+
+        {isDeduplicating && (
+          <div className="mt-4 p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-left animate-fade-in">
+            <span className="text-xs font-black text-rose-600 dark:text-rose-400 block mb-1">PROGRESO DE DEPURACIÓN DE DUPLICADOS</span>
+            <div className="w-full bg-slate-200 dark:bg-white/10 h-2 rounded-full overflow-hidden mb-2">
+              <div className="bg-rose-600 h-full transition-all duration-300" style={{ width: `${dedupProgress}%` }}></div>
+            </div>
+          </div>
+        )}
       </div>
       )}
 
@@ -1179,13 +1422,13 @@ export default function GestionDatos({
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-6 h-6 flex items-center justify-center rounded-full text-xs font-black bg-indigo-500 text-white shadow-sm">1</span>
-                <h4 className="text-xs font-black uppercase text-primary-custom tracking-wider">Descarga del Reporte Daily</h4>
+                <h4 className="text-xs font-black uppercase text-primary-custom tracking-wider">Descarga desde Iris</h4>
               </div>
               <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
-                Ingresa al sistema de registro institucional (HIS) y exporta el reporte diario consolidado de atenciones en formato Excel (.xlsx o .xls). Asegúrate de que el archivo contenga las marcas de tiempo completas de admisión, triaje, atención médica y alta.
+                Ingresa al sistema institucional <strong>Iris</strong>, dirígete al apartado <strong>"Informe de tiempos de espera"</strong> y exporta la base de datos de atenciones diarias en formato de hoja de cálculo (.xlsx o .xls).
               </p>
             </div>
-            <span className="text-[9px] font-bold text-secondary-custom opacity-60 mt-4 block">Fuente: Registro Clínico Interno</span>
+            <span className="text-[9px] font-bold text-secondary-custom opacity-60 mt-4 block">Fuente: Sistema Iris Ministerial</span>
           </div>
 
           {/* Paso 2 */}
@@ -1193,20 +1436,46 @@ export default function GestionDatos({
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-6 h-6 flex items-center justify-center rounded-full text-xs font-black bg-indigo-500 text-white shadow-sm">2</span>
-                <h4 className="text-xs font-black uppercase text-primary-custom tracking-wider">Columnas Obligatorias</h4>
+                <h4 className="text-xs font-black uppercase text-primary-custom tracking-wider">Columnas a Conservar</h4>
               </div>
-              <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
-                Abre el archivo descargado y conserva únicamente las siguientes columnas (elimina todas las demás filas de metadatos o comentarios):
+              <p className="text-[11px] text-secondary-custom font-medium leading-relaxed mb-2">
+                Abre el archivo y <strong>elimina todas las demás columnas</strong>, conservando únicamente las siguientes 29 columnas obligatorias:
               </p>
-              <ul className="list-disc pl-4 text-[10px] text-secondary-custom font-semibold mt-2 space-y-1">
-                <li><code className="text-primary-custom font-black">ID</code> / <code className="text-primary-custom font-black">NUMERO</code> (Identificador de atención)</li>
-                <li><code className="text-primary-custom font-black">FECHA_INGRESO</code> (Fecha en formato dd/mm/yyyy)</li>
-                <li><code className="text-primary-custom font-black">HORA_INGRESO</code> (Formato hh:mm o hh:mm:ss)</li>
-                <li><code className="text-primary-custom font-black">TRIAJE</code> / <code className="text-primary-custom font-black">CATEGORIZACION</code> (C1 a C5)</li>
-                <li><code className="text-primary-custom font-black">DESTINO_ALTA</code> (Médica o Administrativa)</li>
-              </ul>
+              <div className="max-h-48 overflow-y-auto border border-card-custom bg-black/5 dark:bg-black/25 rounded-lg p-2.5 space-y-1">
+                <ul className="list-decimal pl-4 text-[9px] text-secondary-custom font-semibold space-y-0.5">
+                  <li><code className="text-primary-custom font-black">ID</code></li>
+                  <li><code className="text-primary-custom font-black">Edad en años</code></li>
+                  <li><code className="text-primary-custom font-black">Sexo</code></li>
+                  <li><code className="text-primary-custom font-black">Previsión</code></li>
+                  <li><code className="text-primary-custom font-black">Comuna de residencia</code></li>
+                  <li><code className="text-primary-custom font-black">Región de residencia</code></li>
+                  <li><code className="text-primary-custom font-black">Nacionalidad</code></li>
+                  <li><code className="text-primary-custom font-black">Establecimiento inscrito</code></li>
+                  <li><code className="text-primary-custom font-black">Correlativo</code></li>
+                  <li><code className="text-primary-custom font-black">Fecha de admisión</code></li>
+                  <li><code className="text-primary-custom font-black">Hora de admisión</code></li>
+                  <li><code className="text-primary-custom font-black">Fecha de la primera categorización</code></li>
+                  <li><code className="text-primary-custom font-black">Hora de la primera categorización</code></li>
+                  <li><code className="text-primary-custom font-black">Fecha de la última categorización</code></li>
+                  <li><code className="text-primary-custom font-black">Hora de la última categorización</code></li>
+                  <li><code className="text-primary-custom font-black">Fecha de alta</code></li>
+                  <li><code className="text-primary-custom font-black">Hora de alta</code></li>
+                  <li><code className="text-primary-custom font-black">Primera categorización</code></li>
+                  <li><code className="text-primary-custom font-black">Nombre del profesional que registra la primera categorización</code></li>
+                  <li><code className="text-primary-custom font-black">Instrumento del profesional que registra la primera categorización</code></li>
+                  <li><code className="text-primary-custom font-black">Última categorización</code></li>
+                  <li><code className="text-primary-custom font-black">Nombre del profesional que registra la última categorización</code></li>
+                  <li><code className="text-primary-custom font-black">Instrumento del profesional que registra la última categorización</code></li>
+                  <li><code className="text-primary-custom font-black">Código de diagnóstico</code></li>
+                  <li><code className="text-primary-custom font-black">Diagnóstico principal</code></li>
+                  <li><code className="text-primary-custom font-black">Nombre del profesional que registra la anamnesis</code></li>
+                  <li><code className="text-primary-custom font-black">Instrumento del profesional que registra la anamnesis</code></li>
+                  <li><code className="text-primary-custom font-black">Destino de alta</code></li>
+                  <li><code className="text-primary-custom font-black">Estado</code></li>
+                </ul>
+              </div>
             </div>
-            <span className="text-[9px] font-bold text-secondary-custom opacity-60 mt-4 block">Estructura de Base de Datos</span>
+            <span className="text-[9px] font-bold text-secondary-custom opacity-60 mt-4 block">Estructura Requerida de Planilla</span>
           </div>
 
           {/* Paso 3 */}
@@ -1214,15 +1483,13 @@ export default function GestionDatos({
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-6 h-6 flex items-center justify-center rounded-full text-xs font-black bg-indigo-500 text-white shadow-sm">3</span>
-                <h4 className="text-xs font-black uppercase text-primary-custom tracking-wider">Desduplicación Inteligente</h4>
+                <h4 className="text-xs font-black uppercase text-primary-custom tracking-wider">Depuración y Carga</h4>
               </div>
               <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
-                Conserva las columnas de <strong>CORRELATIVO</strong> (Nº de atención) y de <strong>ID / RUN</strong> en el archivo. 
-                <br/><br/>
-                Métrico utilizará una <strong>llave compuesta</strong> para limpiar automáticamente los registros duplicados y registrará un log de auditoría en Firebase con el detalle de la carga.
+                Una vez depurado el archivo con las 29 columnas, arrástralo al área de subida. Métrico utilizará los correlativos y las marcas de tiempo para desduplicar automáticamente y procesar el log en la nube.
               </p>
             </div>
-            <span className="text-[9px] font-bold text-secondary-custom opacity-60 mt-4 block">Protección de Datos Personales</span>
+            <span className="text-[9px] font-bold text-secondary-custom opacity-60 mt-4 block">Validación y Consistencia</span>
           </div>
         </div>
       </div>
@@ -1301,15 +1568,23 @@ export default function GestionDatos({
 
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col">
-                  <span className="text-xs font-bold text-slate-500 uppercase">Pacientes Válidos</span>
+                  <span className="text-xs font-bold text-slate-500 uppercase">Pacientes Nuevos</span>
                   <span className="text-3xl font-black text-blue-600">{pendingUpload.totalPacientes}</span>
                   <span className="text-xs font-bold text-slate-400 mt-1">En {pendingUpload.turnos.length} turnos</span>
                 </div>
-                <div className="bg-rose-50 p-4 rounded-xl border border-rose-100 flex flex-col">
-                  <span className="text-xs font-bold text-rose-500 uppercase">Duplicados Omitidos</span>
-                  <span className="text-3xl font-black text-rose-600">{pendingUpload.totalDuplicados}</span>
-                  <span className="text-xs font-bold text-rose-400 mt-1">Ya estaban en sistema</span>
-                </div>
+                {pendingUpload.totalActualizados > 0 ? (
+                  <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100 flex flex-col">
+                    <span className="text-xs font-bold text-emerald-600 uppercase">Fichas Enriquecidas</span>
+                    <span className="text-3xl font-black text-emerald-600">{pendingUpload.totalActualizados}</span>
+                    <span className="text-xs font-bold text-emerald-500 mt-1">Diagnóstico y Destino agregados</span>
+                  </div>
+                ) : (
+                  <div className="bg-rose-50 p-4 rounded-xl border border-rose-100 flex flex-col">
+                    <span className="text-xs font-bold text-rose-500 uppercase">Duplicados Omitidos</span>
+                    <span className="text-3xl font-black text-rose-600">{pendingUpload.totalDuplicados}</span>
+                    <span className="text-xs font-bold text-rose-400 mt-1">Sin información nueva</span>
+                  </div>
+                )}
               </div>
 
               {pendingUpload.totalOutOfBounds > 0 && (

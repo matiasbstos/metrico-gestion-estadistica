@@ -118,7 +118,7 @@ export default function TablaTiemposEspera({ metricsByCategory, promediosGlobale
               <th className="p-3 pb-2 text-center rounded-tr-lg font-bold">Estadía Total</th>
             </tr>
           </thead>
-          <tbody className="space-y-1">
+          <tbody>
             {['c1', 'c2', 'c3', 'c3_z518', 'c4', 'c5', 'sincat'].map(cat => {
               const data = metricsByCategory ? metricsByCategory[cat] : null;
               if (!data || (data.total === 0 && cat === 'sincat')) return null; 

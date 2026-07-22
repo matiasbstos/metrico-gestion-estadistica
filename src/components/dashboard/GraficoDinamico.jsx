@@ -3,11 +3,21 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
   Line, LineChart, ResponsiveContainer, CartesianGrid, ComposedChart, Area, AreaChart, LabelList 
 } from 'recharts';
-import { BarChart2, Activity, Users, Shield, Globe, Building2, AlertTriangle } from 'lucide-react';
+import { BarChart2, Activity, Users, Shield, Globe, Building2, AlertTriangle, Maximize2, Minimize2, X } from 'lucide-react';
 import { COLORS } from '../../config/constants';
 import InfoTooltip from '../InfoTooltip';
 
 const AGE_RANGES = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80+'];
+
+const CustomLabel = (props) => {
+  const { x, y, width, value } = props;
+  if (!value) return null;
+  return (
+    <text x={x + width + 6} y={y + 12} fill="var(--text-primary)" fontSize={10} fontWeight="bold" textAnchor="start">
+      {value}
+    </text>
+  );
+};
 
 export default function GraficoDinamico({
   modoComparativo,
@@ -18,6 +28,7 @@ export default function GraficoDinamico({
   demografiaStats
 }) {
   const [activeTab, setActiveTab] = React.useState('operacional');
+  const [isExpanded, setIsExpanded] = React.useState(false);
 
   // Filtros internos - Por defecto activos
   const [opFilters, setOpFilters] = React.useState(['totalPacientes', 'c3', 'altasAdmin']);
@@ -44,7 +55,7 @@ export default function GraficoDinamico({
 
   // Preparar datos usando demografiaStats para mayor precisión
   const demographicData = useMemo(() => {
-    if (!demografiaStats) return { sexo: [], edades: [], prevs: [], centros: [] };
+    if (!demografiaStats) return { sexo: [], edades: [], prevs: [], centros: [], origen: [] };
     
     // Sexo
     const sexo = [
@@ -92,8 +103,10 @@ export default function GraficoDinamico({
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-card-custom border border-card-custom p-3 rounded-xl shadow-xl font-bold text-xs theme-transition">
-          <p className="font-black text-primary-custom mb-2 border-b border-card-custom pb-1">{label}</p>
+        <div className="bg-card-custom border border-card-custom p-3.5 rounded-2xl shadow-2xl font-bold text-xs theme-transition z-50 backdrop-blur-md">
+          <p className="font-black text-primary-custom mb-2 border-b border-card-custom pb-1 flex items-center justify-between gap-2">
+            <span>{label}</span>
+          </p>
           {payload.map((entry, index) => (
             <div key={`item-${index}`} className="flex items-center justify-between gap-4 mb-1">
               <span className="flex items-center gap-1.5 text-secondary-custom">
@@ -115,6 +128,90 @@ export default function GraficoDinamico({
     return pieData ? pieData.reduce((acc, curr) => acc + (curr.value || 0), 0) : 0;
   }, [pieData]);
 
+  // Renderizado reutilizable de Pestañas de Navegación
+  const renderCategoryTabs = (compact = false) => (
+    <div className={`flex flex-wrap gap-2 ${compact ? 'mb-3' : 'mb-6 border-b border-card-custom pb-4'}`}>
+      {tabs.map(tab => {
+        const Icon = tab.icon;
+        const isActive = activeTab === tab.id;
+        return (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold text-xs transition-all duration-200 cursor-pointer ${
+              isActive 
+                ? `accent-bg-custom text-white shadow-sm scale-102` 
+                : 'text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5 border border-transparent'
+            }`}
+          >
+            <Icon className="w-4 h-4" />
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  // Renderizado reutilizable de Filtros Rápidos
+  const renderQuickFilters = () => {
+    if (activeTab === 'operacional') {
+      return (
+        <div className="flex flex-wrap gap-2 items-center bg-black/5 dark:bg-white/5 p-2 rounded-xl border border-card-custom mb-3">
+          <span className="text-xs font-bold text-secondary-custom mr-2">Filtros Rápidos:</span>
+          {[
+            { id: 'totalPacientes', label: 'Línea de Volumen Total', color: 'bg-blue-500/10 text-blue-500 border border-blue-500/20' },
+            { id: 'c1', label: 'C1', color: 'bg-red-500/10 text-red-500 border border-red-500/20' },
+            { id: 'c2', label: 'C2', color: 'bg-orange-500/10 text-orange-500 border border-orange-500/20' },
+            { id: 'c3', label: 'C3', color: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20' },
+            { id: 'c4', label: 'C4', color: 'bg-green-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' },
+            { id: 'c5', label: 'C5', color: 'bg-blue-500/10 text-blue-500 border border-blue-500/20' },
+            { id: 'altasAdmin', label: 'Altas Admin', color: 'bg-red-500/10 text-red-600 border border-red-500/20' }
+          ].map(f => (
+            <button 
+              key={f.id} 
+              onClick={() => toggleFilter(setOpFilters, f.id)} 
+              className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all cursor-pointer ${
+                opFilters.includes(f.id) 
+                  ? `${f.color} ring-2 ring-white dark:ring-slate-800 shadow-sm` 
+                  : 'bg-card-custom text-secondary-custom border border-card-custom hover:bg-black/5 dark:hover:bg-white/5'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      );
+    }
+
+    if (activeTab === 'tiempos') {
+      return (
+        <div className="flex flex-wrap gap-2 items-center bg-black/5 dark:bg-white/5 p-2 rounded-xl border border-card-custom mb-3">
+          <span className="text-xs font-bold text-secondary-custom mr-2">Filtros Rápidos:</span>
+          {[
+            { id: 'tiempoCatAna', label: 'Espera Médico', color: 'bg-pink-500/10 text-pink-500 border border-pink-500/20' },
+            { id: 'tiempoAdmCat', label: 'Espera Triaje', color: 'bg-purple-500/10 text-purple-500 border border-purple-500/20' },
+            { id: 'tiempoAnaAlt', label: 'Tiempo Box', color: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20' },
+            { id: 'tiempoAdmAlt', label: 'Estadía Total', color: 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20' }
+          ].map(f => (
+            <button 
+              key={f.id} 
+              onClick={() => toggleFilter(setTimeFilters, f.id)} 
+              className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all cursor-pointer ${
+                timeFilters.includes(f.id) 
+                  ? `${f.color} ring-2 ring-white dark:ring-slate-800 shadow-sm` 
+                  : 'bg-card-custom text-secondary-custom border border-card-custom hover:bg-black/5 dark:hover:bg-white/5'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div className="bg-card-custom rounded-2xl border border-card-custom p-6 mt-6 theme-transition">
       <div className="flex justify-between items-center mb-6 border-b border-card-custom pb-4">
@@ -130,28 +227,7 @@ export default function GraficoDinamico({
         </div>
       </div>
 
-      {!modoComparativo && (
-        <div className="flex flex-wrap gap-2 mb-6 border-b border-card-custom pb-4">
-          {tabs.map(tab => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all duration-200 ${
-                  isActive 
-                    ? `accent-bg-custom text-white shadow-sm` 
-                    : 'text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5 border border-transparent'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {!modoComparativo && renderCategoryTabs()}
 
       <div className="w-full min-h-[24rem]">
         {modoComparativo ? (
@@ -186,27 +262,22 @@ export default function GraficoDinamico({
                         <span>Alerta de Gestión: Las Altas Administrativas del período seleccionado superan la meta del 5% del volumen total de pacientes atendidos.</span>
                       </div>
                     )}
-                    <div className="flex flex-wrap gap-2 items-center bg-black/5 dark:bg-white/5 p-2 rounded-xl border border-card-custom">
-                      <span className="text-xs font-bold text-secondary-custom mr-2">Filtros Rápidos:</span>
-                      {[
-                        { id: 'totalPacientes', label: 'Línea de Volumen Total', color: 'bg-blue-500/10 text-blue-500 border border-blue-500/20' },
-                        { id: 'c1', label: 'C1', color: 'bg-red-500/10 text-red-500 border border-red-500/20' },
-                        { id: 'c2', label: 'C2', color: 'bg-orange-500/10 text-orange-500 border border-orange-500/20' },
-                        { id: 'c3', label: 'C3', color: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20' },
-                        { id: 'c4', label: 'C4', color: 'bg-green-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' },
-                        { id: 'c5', label: 'C5', color: 'bg-blue-500/10 text-blue-500 border border-blue-500/20' },
-                        { id: 'altasAdmin', label: 'Altas Admin', color: 'bg-red-500/10 text-red-600 border border-red-500/20' }
-                      ].map(f => (
-                        <button key={f.id} onClick={() => toggleFilter(setOpFilters, f.id)} className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all ${opFilters.includes(f.id) ? `${f.color} ring-2 ring-white dark:ring-slate-800 shadow-sm` : 'bg-card-custom text-secondary-custom border border-card-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-                          {f.label}
-                        </button>
-                      ))}
-                    </div>
+                    
+                    {renderQuickFilters()}
                     
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       {/* Gráfico de evolución en tiempo */}
                       <div className="lg:col-span-2 h-full bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom flex flex-col">
-                        <h3 className="text-xs font-bold text-primary-custom mb-1 uppercase tracking-wider">Evolución de Atenciones</h3>
+                        <div className="flex justify-between items-center mb-1">
+                          <h3 className="text-xs font-bold text-primary-custom uppercase tracking-wider">Evolución de Atenciones</h3>
+                          <button
+                            onClick={() => setIsExpanded(true)}
+                            className="flex items-center gap-1.5 px-3 py-1 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-primary-custom text-[11px] font-bold rounded-lg transition-all cursor-pointer shadow-sm"
+                            title="Expandir gráfico en pantalla completa para ver diferencias visuales amplificadas"
+                          >
+                            <Maximize2 className="w-3.5 h-3.5 text-indigo-500" /> Expandir Gráfico
+                          </button>
+                        </div>
                         <p className="text-[10px] text-secondary-custom font-medium mb-3">Áreas apiladas para ver aportes individuales sin superposición molesta</p>
                         
                         <div className="flex-1 min-h-[280px] w-full">
@@ -235,7 +306,7 @@ export default function GraficoDinamico({
                         </div>
                       </div>
 
-                      {/* 100% Stacked Bar de Triajes (Reducción de espacio y mayor eficiencia lineal) */}
+                      {/* 100% Stacked Bar de Triajes */}
                       <div className="h-full bg-black/5 dark:bg-white/5 p-5 rounded-2xl border border-card-custom flex flex-col justify-between theme-transition">
                          <div>
                            <h3 className="text-xs font-bold text-primary-custom mb-1 uppercase tracking-wider">Distribución Triaje Global</h3>
@@ -292,21 +363,18 @@ export default function GraficoDinamico({
                 {/* VISTA 2: TIEMPOS */}
                 {activeTab === 'tiempos' && (
                   <div className="flex flex-col gap-4 h-full">
-                    <div className="flex flex-wrap gap-2 items-center bg-black/5 dark:bg-white/5 p-2 rounded-xl border border-card-custom">
-                      <span className="text-xs font-bold text-secondary-custom mr-2">Filtros Rápidos:</span>
-                      {[
-                        { id: 'tiempoCatAna', label: 'Espera Médico', color: 'bg-pink-500/10 text-pink-500 border border-pink-500/20' },
-                        { id: 'tiempoAdmCat', label: 'Espera Triaje', color: 'bg-purple-500/10 text-purple-500 border border-purple-500/20' },
-                        { id: 'tiempoAnaAlt', label: 'Tiempo Box', color: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20' },
-                        { id: 'tiempoAdmAlt', label: 'Estadía Total', color: 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20' }
-                      ].map(f => (
-                        <button key={f.id} onClick={() => toggleFilter(setTimeFilters, f.id)} className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all ${timeFilters.includes(f.id) ? `${f.color} ring-2 ring-white dark:ring-slate-800 shadow-sm` : 'bg-card-custom text-secondary-custom border border-card-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-                          {f.label}
-                        </button>
-                      ))}
-                    </div>
+                    {renderQuickFilters()}
+
                     <div className="flex-1 bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom flex flex-col">
-                      <h3 className="text-xs font-bold text-primary-custom mb-2 uppercase tracking-wider">Evolución de Tiempos de Espera (Minutos)</h3>
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-xs font-bold text-primary-custom uppercase tracking-wider">Evolución de Tiempos de Espera (Minutos)</h3>
+                        <button
+                          onClick={() => setIsExpanded(true)}
+                          className="flex items-center gap-1.5 px-3 py-1 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-primary-custom text-[11px] font-bold rounded-lg transition-all cursor-pointer shadow-sm"
+                        >
+                          <Maximize2 className="w-3.5 h-3.5 text-indigo-500" /> Expandir Gráfico
+                        </button>
+                      </div>
                       <div className="flex-1 min-h-[300px] w-full">
                         <ResponsiveContainer width="100%" height={300}>
                           <LineChart data={chartData} margin={{ top: 5, right: 20, left: -20, bottom: 0 }}>
@@ -344,7 +412,15 @@ export default function GraficoDinamico({
                       </div>
                     </div>
                     <div className="lg:col-span-2 h-full bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom flex flex-col">
-                      <h3 className="text-xs font-bold text-primary-custom mb-4 uppercase tracking-wider">Distribución de Grupos Etarios</h3>
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xs font-bold text-primary-custom uppercase tracking-wider">Distribución de Grupos Etarios</h3>
+                        <button
+                          onClick={() => setIsExpanded(true)}
+                          className="flex items-center gap-1.5 px-3 py-1 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-primary-custom text-[11px] font-bold rounded-lg transition-all cursor-pointer shadow-sm"
+                        >
+                          <Maximize2 className="w-3.5 h-3.5 text-indigo-500" /> Expandir Gráfico
+                        </button>
+                      </div>
                       <div className="w-full flex-1">
                         <ResponsiveContainer width="100%" height={300}>
                           <BarChart data={demographicData.edades} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
@@ -385,9 +461,17 @@ export default function GraficoDinamico({
                        </div>
                     </div>
                     <div className="h-full bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom flex flex-col overflow-hidden">
-                       <h3 className="text-xs font-bold text-primary-custom mb-4 uppercase tracking-wider">
-                         {activeTab === 'prevision' ? 'Evolución Previsional' : 'Distribución por Establecimiento'}
-                       </h3>
+                       <div className="flex justify-between items-center mb-4">
+                         <h3 className="text-xs font-bold text-primary-custom uppercase tracking-wider">
+                           {activeTab === 'prevision' ? 'Evolución Previsional' : 'Distribución por Establecimiento'}
+                         </h3>
+                         <button
+                           onClick={() => setIsExpanded(true)}
+                           className="flex items-center gap-1.5 px-3 py-1 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-primary-custom text-[11px] font-bold rounded-lg transition-all cursor-pointer shadow-sm"
+                         >
+                           <Maximize2 className="w-3.5 h-3.5 text-indigo-500" /> Expandir Gráfico
+                         </button>
+                       </div>
                        <div className="flex-1 min-h-[300px] overflow-y-auto custom-scrollbar pr-2 w-full">
                          {activeTab === 'prevision' ? (
                            <ResponsiveContainer width="100%" height={300}>
@@ -421,6 +505,206 @@ export default function GraficoDinamico({
           </div>
         )}
       </div>
+
+      {/* MODAL PANTALLA COMPLETA / GRÁFICO EXPANDIDO CON CONTROLES REPLICADOS Y ALTO CONTRASTE */}
+      {isExpanded && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 md:p-6 animate-fade-in">
+          <div className="bg-card-custom border border-card-custom w-full max-w-7xl h-[92vh] rounded-3xl p-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] flex flex-col justify-between theme-transition relative overflow-hidden">
+            
+            {/* Cabecera Modal */}
+            <div>
+              <div className="flex justify-between items-start border-b border-card-custom pb-3 mb-3">
+                <div>
+                  <h3 className="text-lg font-black text-primary-custom tracking-tight flex items-center gap-2">
+                    <Maximize2 className="w-5 h-5 text-indigo-500" />
+                    Análisis de Tendencias - Vista Ampliada & Escala Dinámica
+                  </h3>
+                  <p className="text-xs text-secondary-custom font-semibold mt-0.5">
+                    Navega por todos los análisis y alterna opciones de visualización sin salir de esta vista.
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setIsExpanded(false)}
+                  className="p-2 bg-black/10 dark:bg-white/10 hover:bg-rose-500 hover:text-white text-secondary-custom rounded-xl transition-all cursor-pointer shadow-sm"
+                  title="Cerrar vista ampliada"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* REPLICACIÓN DE PESTAÑAS DENTRO DEL MODAL */}
+              {renderCategoryTabs(true)}
+
+              {/* REPLICACIÓN DE FILTROS RÁPIDOS DENTRO DEL MODAL */}
+              {renderQuickFilters()}
+            </div>
+
+            {/* Contenido Gráfico Expandido con Fondo Limpio de Alto Contraste */}
+            <div className="flex-1 w-full min-h-0 bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom my-2 relative overflow-hidden flex flex-col justify-center">
+              
+              {/* TAB 1: OPERACIONAL (EXPANDIDO) */}
+              {activeTab === 'operacional' && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={chartData} margin={{ top: 25, right: 30, left: 0, bottom: 20 }}>
+                    <defs>
+                      <linearGradient id="colorVolumenExpanded" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.18}/>
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.15)" />
+                    <XAxis dataKey="name" fontSize={11} axisLine={false} tickLine={false} tickMargin={10} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
+                    <YAxis fontSize={11} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} domain={['auto', 'auto']} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', paddingTop: '10px' }} />
+                    {opFilters.includes('totalPacientes') && (
+                      <Area type="monotone" dataKey="totalPacientes" name="Volumen Total" stroke="#3b82f6" strokeWidth={3.5} fillOpacity={1} fill="url(#colorVolumenExpanded)">
+                        <LabelList dataKey="totalPacientes" position="top" style={{ fill: '#3b82f6', fontSize: '11px', fontWeight: 'bold' }} />
+                      </Area>
+                    )}
+                    {opFilters.includes('c1') && <Bar dataKey="c1" name="C1" stackId="triage" fill={COLORS.c1} />}
+                    {opFilters.includes('c2') && <Bar dataKey="c2" name="C2" stackId="triage" fill={COLORS.c2} />}
+                    {opFilters.includes('c3') && <Bar dataKey="c3" name="C3" stackId="triage" fill={COLORS.c3} />}
+                    {opFilters.includes('c4') && <Bar dataKey="c4" name="C4" stackId="triage" fill={COLORS.c4} />}
+                    {opFilters.includes('c5') && <Bar dataKey="c5" name="C5" stackId="triage" fill={COLORS.c5} radius={[4,4,0,0]} />}
+                    {opFilters.includes('altasAdmin') && (
+                      <Line type="monotone" dataKey="altasAdmin" name="Altas Admin" stroke="#ef4444" strokeWidth={3} dot={{r: 6}}>
+                        <LabelList dataKey="altasAdmin" position="top" style={{ fill: '#ef4444', fontSize: '10px', fontWeight: 'bold' }} />
+                      </Line>
+                    )}
+                  </ComposedChart>
+                </ResponsiveContainer>
+              )}
+
+              {/* TAB 2: TIEMPOS DE ATENCIÓN (EXPANDIDO) */}
+              {activeTab === 'tiempos' && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData} margin={{ top: 25, right: 30, left: 0, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.15)" />
+                    <XAxis dataKey="name" fontSize={11} axisLine={false} tickLine={false} tickMargin={10} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
+                    <YAxis fontSize={11} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} domain={['auto', 'auto']} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', paddingTop: '10px' }} />
+                    {timeFilters.includes('tiempoCatAna') && <Line type="monotone" dataKey="tiempoCatAna" name="Espera Médico" stroke="#ec4899" strokeWidth={3.5} dot={{r: 5}} />}
+                    {timeFilters.includes('tiempoAdmCat') && <Line type="monotone" dataKey="tiempoAdmCat" name="Espera Triaje" stroke="#8b5cf6" strokeWidth={3.5} dot={{r: 5}} />}
+                    {timeFilters.includes('tiempoAnaAlt') && <Line type="monotone" dataKey="tiempoAnaAlt" name="Tiempo Box" stroke="#14b8a6" strokeWidth={2.5} strokeDasharray="5 5" dot={{r: 4}} />}
+                    {timeFilters.includes('tiempoAdmAlt') && <Line type="monotone" dataKey="tiempoAdmAlt" name="Estadía Total" stroke="#6366f1" strokeWidth={2.5} strokeDasharray="5 5" dot={{r: 4}} />}
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+
+              {/* TAB 3: DEMOGRAFÍA (EXPANDIDO) */}
+              {activeTab === 'demografia' && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full w-full">
+                  <div className="h-full bg-card-custom p-4 rounded-2xl border border-card-custom flex flex-col justify-between">
+                    <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider mb-2">Distribución por Sexo</h4>
+                    <div className="w-full flex-1">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie data={demographicData.sexo} cx="50%" cy="50%" innerRadius={60} outerRadius={95} paddingAngle={3} dataKey="value" label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}>
+                            {demographicData.sexo.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                          </Pie>
+                          <Tooltip content={<CustomTooltip />} />
+                          <Legend verticalAlign="bottom" height={36} wrapperStyle={{fontSize: '12px', fontWeight: 'bold'}}/>
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                  <div className="lg:col-span-2 h-full bg-card-custom p-4 rounded-2xl border border-card-custom flex flex-col">
+                    <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider mb-2">Distribución por Grupos Etarios</h4>
+                    <div className="w-full flex-1">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={demographicData.edades} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.15)" />
+                          <XAxis dataKey="name" fontSize={11} axisLine={false} tickLine={false} tickMargin={10} angle={-35} textAnchor="end" height={50} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
+                          <YAxis fontSize={11} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
+                          <Tooltip content={<CustomTooltip />} />
+                          <Bar dataKey="value" name="Pacientes" fill="#8b5cf6" radius={[6,6,0,0]}>
+                            <LabelList dataKey="value" position="top" style={{ fill: '#8b5cf6', fontSize: '11px', fontWeight: 'bold' }} />
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 4 & 5: PREVISIÓN Y ORIGEN (EXPANDIDO) */}
+              {(activeTab === 'prevision' || activeTab === 'origen') && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full w-full">
+                  <div className="h-full bg-card-custom p-4 rounded-2xl border border-card-custom flex flex-col">
+                    <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider mb-2">
+                      {activeTab === 'prevision' ? 'Distribución de Previsión' : 'Distribución por Nacionalidad'}
+                    </h4>
+                    <div className="w-full flex-1">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie 
+                            data={activeTab === 'prevision' ? demographicData.prevs : demographicData.origen} 
+                            cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={3} dataKey="value"
+                            label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          >
+                            {(activeTab === 'prevision' ? demographicData.prevs : demographicData.origen).map((entry, index) => 
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            )}
+                          </Pie>
+                          <Tooltip content={<CustomTooltip />} />
+                          <Legend verticalAlign="bottom" height={36} wrapperStyle={{fontSize: '12px', fontWeight: 'bold'}}/>
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                  <div className="h-full bg-card-custom p-4 rounded-2xl border border-card-custom flex flex-col">
+                    <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider mb-2">
+                      {activeTab === 'prevision' ? 'Evolución Previsional' : 'Distribución por Establecimiento'}
+                    </h4>
+                    <div className="w-full flex-1">
+                      {activeTab === 'prevision' ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.15)" />
+                            <XAxis dataKey="name" fontSize={11} axisLine={false} tickLine={false} tickMargin={10} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
+                            <YAxis fontSize={11} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
+                            <Tooltip content={<CustomTooltip />} />
+                            <Area type="monotone" dataKey="totalPacientes" name="Total Pacientes" stroke="#10b981" strokeWidth={3} fill="#10b981" fillOpacity={0.18} />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={demographicData.centros} layout="vertical" margin={{ top: 10, right: 40, left: 10, bottom: 10 }}>
+                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(148, 163, 184, 0.15)" />
+                            <XAxis type="number" fontSize={11} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
+                            <YAxis dataKey="name" type="category" fontSize={10} axisLine={false} tickLine={false} width={130} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
+                            <Tooltip content={<CustomTooltip />} />
+                            <Bar dataKey="value" name="Pacientes" fill="#8b5cf6" radius={[0,6,6,0]}>
+                              <LabelList dataKey="value" content={<CustomLabel />} />
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            </div>
+
+            {/* Pie de Modal */}
+            <div className="pt-2 flex justify-between items-center border-t border-card-custom">
+              <span className="text-[11px] text-secondary-custom font-semibold">
+                Sugerencia: puedes alternar entre las pestañas y filtros directamente desde esta ventana.
+              </span>
+              <button
+                onClick={() => setIsExpanded(false)}
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition-all cursor-pointer"
+              >
+                Cerrar Vista Ampliada
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

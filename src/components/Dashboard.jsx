@@ -19,6 +19,8 @@ import AuditLog from './dashboard/AuditLog';
 import AnalisisComparativoTriple from './dashboard/AnalisisComparativoTriple';
 import AuditoriaMedicaDetail from './dashboard/AuditoriaMedicaDetail';
 import CalendarioHistorico from './dashboard/CalendarioHistorico';
+import AnalisisFracturas from './dashboard/AnalisisFracturas';
+import AnalisisEnfermeria from './dashboard/AnalisisEnfermeria';
 import Login from './Login';
 import { 
   Clock, Users, UserCheck, AlertTriangle, Activity, ArrowRight, 
@@ -26,7 +28,7 @@ import {
   CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
   BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
   Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
-  HeartPulse, Shield, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award
+  HeartPulse, Shield, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
@@ -48,6 +50,8 @@ import { COLORS, DOC_COLORS, AGE_RANGES, METRIC_LABELS } from '../config/constan
 
 const DashboardContent = () => {
   const [activeTab, setActiveTab] = useState('resumen');
+  const [subTabEspecifico, setSubTabEspecifico] = useState('fracturas'); // 'fracturas' | 'altas'
+  const [isEspecificosOpen, setIsEspecificosOpen] = useState(true);
   const [notification, setNotification] = useState(null);
   const [pendingUpload, setPendingUpload] = useState(null);
   const [editModal, setEditModal] = useState(null);
@@ -455,8 +459,10 @@ const DashboardContent = () => {
     })).filter(d => d.value > 0);
   }, [turnosFiltrados, modoComparativo]);
 
-  if (loading) {
-    return <LoadingProgress syncStatus={syncStatus} />;
+  const isDataInitializing = loading || (!hasInitializedLatestDate && pacientesDB.length > 0);
+
+  if (isDataInitializing) {
+    return <LoadingProgress syncStatus={syncStatus} totalRecords={pacientesDB.length + turnosDB.length} />;
   }
 
   if (!user) {
@@ -484,7 +490,7 @@ const DashboardContent = () => {
     <div className={`flex h-screen w-screen overflow-hidden bg-app-custom font-sans text-secondary-custom theme-transition theme-${tema}`}>
       {/* COLUMNA IZQUIERDA: SIDEBAR FIJO */}
       <aside className="w-64 h-full bg-sidebar-custom border-r border-card-custom text-primary-custom flex flex-col justify-between flex-shrink-0 z-10 shadow-xl theme-transition">
-        <div>
+        <div className="overflow-y-auto flex-1 min-h-0 custom-scrollbar pb-4">
           <div className="p-6 flex items-center gap-3">
             <Activity className="w-8 h-8 accent-text-custom" />
             <div>
@@ -531,13 +537,73 @@ const DashboardContent = () => {
             </div>
           </div>
           
-          <div className="px-6 mb-4">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-              <span className="text-xs font-bold text-emerald-500">Sistema En Línea</span>
+          {/* MONITOR DE ESTADO Y PROGRESO DE CARGA (SOLICITADO POR EL USUARIO) */}
+          <div className="px-5 mb-4">
+            <div className={`p-3 rounded-2xl border transition-all duration-300 ${
+              loading || syncStatus === 'connecting'
+                ? 'bg-amber-500/10 dark:bg-amber-500/15 border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
+                : syncStatus === 'syncing'
+                ? 'bg-sky-500/10 dark:bg-sky-500/15 border-sky-500/30 shadow-[0_0_15px_rgba(56,189,248,0.15)]'
+                : 'bg-emerald-500/10 dark:bg-emerald-500/15 border-emerald-500/30'
+            }`}>
+              
+              {/* ESTADO 1: CARGANDO / SINCRONIZANDO (ALARMA CONSTANTE + PROGRESO % Y NUMÉRICO) */}
+              {(loading || syncStatus === 'connecting' || syncStatus === 'syncing') ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex items-center justify-center">
+                        <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping absolute"></div>
+                        <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                      </div>
+                      <span className="text-xs font-black text-amber-500 dark:text-amber-400 tracking-wide uppercase">
+                        {syncStatus === 'syncing' ? 'Sincronizando' : 'Cargando Datos'}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-black text-amber-500 dark:text-amber-400 bg-amber-500/20 px-1.5 py-0.5 rounded-md">
+                      {pacientesDB.length > 0 ? 'En proceso' : 'Conectando'}
+                    </span>
+                  </div>
+
+                  {/* Barra de Progreso en Sidebar */}
+                  <div className="w-full bg-black/10 dark:bg-white/10 h-2 rounded-full overflow-hidden border border-amber-500/20">
+                    <div 
+                      className="bg-gradient-to-r from-amber-500 to-sky-400 h-full rounded-full transition-all duration-300 animate-pulse"
+                      style={{ width: `${Math.min(100, Math.max(15, Math.floor(((pacientesDB.length + turnosDB.length) / 1600) * 100)))}%` }}
+                    ></div>
+                  </div>
+
+                  <div className="flex justify-between items-center text-[10px] font-bold text-secondary-custom">
+                    <span className="truncate">
+                      {pacientesDB.length > 0 ? `${(pacientesDB.length + turnosDB.length).toLocaleString()} registros` : 'Iniciando conexión...'}
+                    </span>
+                    <span className="text-amber-500 dark:text-amber-400 font-black">
+                      {pacientesDB.length > 0 ? `${Math.min(100, Math.max(15, Math.floor(((pacientesDB.length + turnosDB.length) / 1600) * 100)))}%` : '0%'}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                /* ESTADO 2: CARGA COMPLETA (CONFIRMACIÓN OK) */
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                      <span className="text-xs font-black text-emerald-500">Sistema En Línea</span>
+                    </div>
+                    <span className="text-[9px] font-black bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 px-2 py-0.5 rounded-md border border-emerald-500/30">
+                      OK ✓
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-secondary-custom font-bold pt-1">
+                    ✓ {(pacientesDB.length + turnosDB.length).toLocaleString()} registros cargados
+                  </p>
+                  <p className="text-[9px] text-secondary-custom opacity-70">
+                    Sincronización completa
+                  </p>
+                </div>
+              )}
+
             </div>
-            {syncStatus === 'synced' && <p className="text-[10px] text-secondary-custom">Último guardado: hace unos segundos</p>}
-            {syncStatus === 'syncing' && <p className="text-[10px] text-sky-500">Guardando cambios...</p>}
           </div>
 
           <nav className="mt-2 flex flex-col gap-1 px-3">
@@ -557,15 +623,50 @@ const DashboardContent = () => {
               <Calendar className="w-4 h-4" /> Histórico Mensual
             </button>
             <button 
-              onClick={() => setActiveTab('altas')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${activeTab === 'altas' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-              <UserCheck className="w-4 h-4" /> Altas Administrativas
-            </button>
-            <button 
               onClick={() => setActiveTab('profesionales')}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${activeTab === 'profesionales' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
               <Award className="w-4 h-4" /> Rendimiento Clínico
             </button>
+
+            {/* APARTADO GENERAL: ANÁLISIS ESPECÍFICOS */}
+            <div className="space-y-1">
+              <button 
+                onClick={() => {
+                  if (!['especificos', 'altas', 'fracturas', 'enfermeria'].includes(activeTab)) {
+                    setIsEspecificosOpen(true);
+                  } else {
+                    setIsEspecificosOpen(!isEspecificosOpen);
+                  }
+                  setActiveTab('especificos');
+                }}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 cursor-pointer ${['especificos', 'altas', 'fracturas', 'enfermeria'].includes(activeTab) ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                <div className="flex items-center gap-3">
+                  <Layers className="w-4 h-4" /> Análisis Específicos
+                </div>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isEspecificosOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isEspecificosOpen && (
+                <div className="pl-6 flex flex-col gap-1 py-1 transition-all">
+                  <button 
+                    onClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); }}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'altas' || (activeTab === 'especificos' && subTabEspecifico === 'altas') ? 'bg-black/10 dark:bg-white/10 text-primary-custom font-black border border-card-custom' : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                    <UserCheck className="w-3.5 h-3.5" /> Altas Administrativas
+                  </button>
+                  <button 
+                    onClick={() => { setActiveTab('fracturas'); setSubTabEspecifico('fracturas'); }}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'fracturas' || (activeTab === 'especificos' && subTabEspecifico === 'fracturas') ? 'bg-rose-500/20 text-rose-500 font-black border border-rose-500/30' : 'text-secondary-custom hover:text-rose-500 hover:bg-rose-500/10'}`}>
+                    <Activity className="w-3.5 h-3.5 text-rose-500" /> Estadísticas de Fractura
+                  </button>
+                  <button 
+                    onClick={() => { setActiveTab('enfermeria'); setSubTabEspecifico('enfermeria'); }}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'enfermeria' || (activeTab === 'especificos' && subTabEspecifico === 'enfermeria') ? 'bg-indigo-500/20 text-indigo-500 font-black border border-indigo-500/30' : 'text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10'}`}>
+                    <Activity className="w-3.5 h-3.5 text-indigo-500" /> Rendimiento Enfermería
+                  </button>
+                </div>
+              )}
+            </div>
+
             <button 
               onClick={() => setActiveTab('reportes')}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${activeTab === 'reportes' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
@@ -753,7 +854,8 @@ const DashboardContent = () => {
           <>
             <AnalisisSociodemografico 
               demografiaStats={demografiaStats} 
-              rankingCentros={rankingCentros} 
+              rankingCentros={rankingCentros}
+              pacientesFiltrados={pacientesFiltrados}
             />
             <MatrizCruzada pacientesFiltrados={pacientesFiltrados} />
           </>
@@ -799,7 +901,22 @@ const DashboardContent = () => {
         )}
 
         {activeTab === 'reportes' && (
-          <ReportesModule pacientesDB={pacientesDB} turnosDB={turnosDB} />
+          <ReportesModule 
+            pacientesDB={pacientesDB} 
+            turnosDB={turnosDB} 
+            modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
+            filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={setFiltroFechaInicio}
+            filtroFechaFin={filtroFechaFin} setFiltroFechaFin={setFiltroFechaFin}
+            filtroFechaInicioB={filtroFechaInicioB} setFiltroFechaInicioB={setFiltroFechaInicioB}
+            filtroFechaFinB={filtroFechaFinB} setFiltroFechaFinB={setFiltroFechaFinB}
+            applyDatePreset={applyDatePreset}
+            tipoCorte={tipoCorte} setTipoCorte={setTipoCorte}
+            filtroHoraInicio={filtroHoraInicio} setFiltroHoraInicio={setFiltroHoraInicio}
+            filtroHoraFin={filtroHoraFin} setFiltroHoraFin={setFiltroHoraFin}
+            horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
+            maxDateLabel={maxDateLabel}
+            handleClearFilters={handleClearFilters}
+          />
         )}
 
         {activeTab === 'comparativo' && (
@@ -810,7 +927,11 @@ const DashboardContent = () => {
           <CalendarioHistorico pacientesDB={pacientesDB} turnosDB={turnosDB} />
         )}
 
-        {activeTab === 'altas' && (
+        {activeTab === 'profesionales' && (
+          <AuditoriaMedicaDetail pacientesDB={pacientesDB} turnosDB={turnosDB} />
+        )}
+
+        {['especificos', 'altas', 'fracturas', 'enfermeria'].includes(activeTab) && (
           <div className="space-y-6">
             {/* SECTOR DE FILTROS Y CONTROL DE CONTEXTO */}
             <FiltrosGlobales 
@@ -828,22 +949,53 @@ const DashboardContent = () => {
               onClearFilters={handleClearFilters}
             />
 
-            <hr className="border-card-custom/40 my-6 theme-transition" />
+            {/* SELECCIÓN DE SUB-MÓDULO DE ANÁLISIS ESPECÍFICO */}
+            <div className="flex gap-2 bg-card-custom p-1.5 rounded-2xl border border-card-custom shadow-sm w-fit theme-transition">
+              <button
+                onClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'altas' || (activeTab === 'especificos' && subTabEspecifico === 'altas') ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}
+              >
+                <UserCheck className="w-4 h-4" />
+                Altas Administrativas
+              </button>
+              <button
+                onClick={() => { setActiveTab('fracturas'); setSubTabEspecifico('fracturas'); }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'fracturas' || (activeTab === 'especificos' && subTabEspecifico === 'fracturas') ? 'bg-rose-500 text-white shadow-sm' : 'text-secondary-custom hover:text-rose-500 hover:bg-rose-500/10'}`}
+              >
+                <Activity className="w-4 h-4" />
+                Estadísticas de Fractura y Destino
+              </button>
+              <button
+                onClick={() => { setActiveTab('enfermeria'); setSubTabEspecifico('enfermeria'); }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'enfermeria' || (activeTab === 'especificos' && subTabEspecifico === 'enfermeria') ? 'bg-indigo-600 text-white shadow-sm' : 'text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10'}`}
+              >
+                <Users className="w-4 h-4" />
+                Rendimiento de Enfermería y Triaje
+              </button>
+            </div>
 
-            <AnalisisAltasDetail 
-              turnosDB={turnosDB} 
-              filtroFechaInicio={filtroFechaInicio} 
-              filtroFechaFin={filtroFechaFin} 
-              statsKPI={statsKPI}
-              modoComparativo={modoComparativo}
-              filtroFechaInicioB={filtroFechaInicioB}
-              filtroFechaFinB={filtroFechaFinB}
-            />
+            <hr className="border-card-custom/40 my-4 theme-transition" />
+
+            {(activeTab === 'altas' || (activeTab === 'especificos' && subTabEspecifico === 'altas')) && (
+              <AnalisisAltasDetail 
+                turnosDB={turnosDB} 
+                filtroFechaInicio={filtroFechaInicio} 
+                filtroFechaFin={filtroFechaFin} 
+                statsKPI={statsKPI}
+                modoComparativo={modoComparativo}
+                filtroFechaInicioB={filtroFechaInicioB}
+                filtroFechaFinB={filtroFechaFinB}
+              />
+            )}
+
+            {(activeTab === 'fracturas' || (activeTab === 'especificos' && subTabEspecifico === 'fracturas')) && (
+              <AnalisisFracturas pacientesFiltrados={pacientesFiltrados} />
+            )}
+
+            {(activeTab === 'enfermeria' || (activeTab === 'especificos' && subTabEspecifico === 'enfermeria')) && (
+              <AnalisisEnfermeria pacientesFiltrados={pacientesFiltrados} pacientesDB={pacientesDB} turnosDB={turnosDB} />
+            )}
           </div>
-        )}
-
-        {activeTab === 'profesionales' && (
-          <AuditoriaMedicaDetail pacientesDB={pacientesDB} turnosDB={turnosDB} />
         )}
 
         {activeTab === 'data' && (
@@ -881,24 +1033,31 @@ const DashboardContent = () => {
   );
 }
 
-function LoadingProgress({ syncStatus }) {
+function LoadingProgress({ syncStatus, totalRecords = 0 }) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setProgress(prev => {
-        if (prev < 30) return prev + Math.floor(Math.random() * 8) + 2;
-        if (prev < 65) return prev + Math.floor(Math.random() * 4) + 1;
-        if (prev < 90) return prev + Math.floor(Math.random() * 2) + 0.5;
-        if (prev < 98) return prev + 0.1;
+        if (prev < 30) return prev + Math.floor(Math.random() * 8) + 3;
+        if (prev < 65) return prev + Math.floor(Math.random() * 5) + 2;
+        if (prev < 88) return prev + Math.floor(Math.random() * 3) + 1;
+        if (prev < 98) return prev + 0.5;
         return prev;
       });
-    }, 85);
+    }, 60);
 
     return () => clearInterval(timer);
   }, []);
 
   const roundedProgress = Math.min(100, Math.floor(progress));
+
+  const getStatusText = (pct) => {
+    if (pct < 25) return 'Conectando con base de datos de urgencias...';
+    if (pct < 65) return totalRecords > 0 ? `Sincronizando ${totalRecords.toLocaleString()} registros clínicos...` : 'Descargando datos clínicos e historial...';
+    if (pct < 90) return 'Procesando grupos etarios, triajes e indicadores...';
+    return '¡Finalizando sincronización e inicializando panel!';
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 relative overflow-hidden font-sans">
@@ -906,45 +1065,49 @@ function LoadingProgress({ syncStatus }) {
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] -translate-x-1/3 -translate-y-1/3"></div>
       <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-sky-500/10 rounded-full blur-[100px] translate-x-1/3 translate-y-1/3"></div>
       
-      <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800 p-8 rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.5)] max-w-sm w-full text-center relative overflow-hidden">
+      <div className="bg-slate-900/70 backdrop-blur-2xl border border-slate-800 p-8 rounded-[2.5rem] shadow-[0_0_60px_rgba(14,165,233,0.15)] max-w-md w-full text-center relative overflow-hidden">
         {/* Glow pulsing ring icon */}
-        <div className="w-16 h-16 bg-sky-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6 relative border border-sky-500/20 shadow-[0_0_20px_rgba(14,165,233,0.15)] animate-pulse">
+        <div className="w-16 h-16 bg-sky-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6 relative border border-sky-500/20 shadow-[0_0_25px_rgba(56,189,248,0.2)] animate-pulse">
           <Activity className="w-8 h-8 text-sky-400" />
         </div>
         
-        <h2 className="text-xl font-black text-white tracking-wide mb-1">Cargando base de datos METRICO</h2>
-        <p className="text-xs text-slate-400 font-semibold mb-6">Sincronizando registros clínicos e históricos</p>
+        <h2 className="text-xl font-black text-white tracking-wide mb-1">Cargando Sistema MÉTRICO</h2>
+        <p className="text-xs text-slate-400 font-semibold mb-6">Sincronizando registros clínicos y métricas operacionales</p>
         
         {/* Progress Bar Container */}
-        <div className="relative pt-1">
-          <div className="flex mb-2.5 items-center justify-between">
+        <div className="relative pt-1 bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80">
+          <div className="flex mb-2 items-center justify-between">
             <div>
               <span className="text-[10px] font-black inline-block py-1 px-2.5 uppercase rounded-lg bg-sky-500/20 text-sky-400 tracking-wider">
-                {syncStatus === 'connecting' ? 'Conectando...' : 'Descargando...'}
+                {syncStatus === 'connecting' ? 'Conectando' : syncStatus === 'synced' ? 'Sincronizado' : 'Cargando Datos'}
               </span>
             </div>
             <div className="text-right">
-              <span className="text-sm font-black text-sky-400">
+              <span className="text-base font-black text-sky-400">
                 {roundedProgress}%
               </span>
             </div>
           </div>
           
           {/* Outer track */}
-          <div className="overflow-hidden h-3 text-xs flex rounded-full bg-slate-950 p-[2px] border border-slate-800/80 shadow-inner">
+          <div className="overflow-hidden h-3.5 text-xs flex rounded-full bg-slate-900 p-[2px] border border-slate-700/60 shadow-inner my-2">
             {/* Inner fill */}
             <div 
               style={{ width: `${roundedProgress}%` }} 
               className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 rounded-full transition-all duration-150 ease-out"
             ></div>
           </div>
+
+          <p className="text-[11px] text-slate-300 font-medium mt-2 animate-pulse truncate">
+            {getStatusText(roundedProgress)}
+          </p>
         </div>
 
-        <div className="flex justify-between items-center mt-8 pt-6 border-t border-slate-800/60 text-[10px] text-slate-500 font-black uppercase tracking-wider">
-          <span>Servidor SAR</span>
+        <div className="flex justify-between items-center mt-6 pt-5 border-t border-slate-800/60 text-[10px] text-slate-500 font-black uppercase tracking-wider">
+          <span>Servidor SAR Elsa Romo</span>
           <span className="flex items-center gap-1.5 text-emerald-400">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-            En línea
+            {totalRecords > 0 ? `${totalRecords.toLocaleString()} Registros` : 'En línea'}
           </span>
         </div>
       </div>

@@ -5,22 +5,39 @@ import { auth, db, appId } from '../config/firebase';
 
 export const useMetricoData = () => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [syncStatus, setSyncStatus] = useState('connecting');
-  const [pacientesDB, setPacientesDB] = useState([]);
-  const [turnosDB, setTurnosDB] = useState([]);
-
   const [userProfile, setUserProfile] = useState(null);
 
-  useEffect(() => {
-    // Auth initialization is now handled by the Login component.
-    // We just listen to changes.
+  // Inicialización instantánea con caché local
+  const [pacientesDB, setPacientesDB] = useState(() => {
+    try {
+      const cached = localStorage.getItem('metrico_cached_pacientes');
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  });
 
+  const [turnosDB, setTurnosDB] = useState(() => {
+    try {
+      const cached = localStorage.getItem('metrico_cached_turnos');
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const hasCache = pacientesDB.length > 0;
+  const [loading, setLoading] = useState(!hasCache);
+  const [syncStatus, setSyncStatus] = useState(hasCache ? 'synced' : 'connecting');
+
+  const [pacientesLoaded, setPacientesLoaded] = useState(hasCache);
+  const [turnosLoaded, setTurnosLoaded] = useState(hasCache);
+
+  useEffect(() => {
     if (auth) {
       const unsubscribeAuth = onAuthStateChanged(auth, async (u) => {
         setUser(u);
         if (u) {
-          // Asignación de rol inmediata y optimista según correo
           const emailRol = u.email === 'matias.bustos@cormumel.cl' ? 'global' : 'local';
           setUserProfile({ email: u.email, rol: emailRol });
 
@@ -46,7 +63,6 @@ export const useMetricoData = () => {
             console.error('Error fetching user profile', e);
             setUserProfile({ email: u.email, rol: emailRol });
           }
-          setSyncStatus('synced');
         } else {
           setUserProfile(null);
           setSyncStatus('error');
@@ -59,7 +75,10 @@ export const useMetricoData = () => {
 
   useEffect(() => {
     if (!user || !db) return; 
-    setLoading(true);
+    if (!pacientesDB.length) {
+      setLoading(true);
+      setSyncStatus('connecting');
+    }
 
     const pacientesRef = collection(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia');
     const turnosRef = collection(db, 'artifacts', appId, 'public', 'data', 'turnos');
@@ -67,28 +86,59 @@ export const useMetricoData = () => {
     const unsubPacientes = onSnapshot(pacientesRef, (snapshot) => {
       const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       setPacientesDB(data);
-      setLoading(false);
-      setSyncStatus('synced');
-    }, () => { setSyncStatus('error'); });
+      setPacientesLoaded(true);
+      if (data.length > 0) {
+        try { localStorage.setItem('metrico_cached_pacientes', JSON.stringify(data)); } catch (e) {}
+      }
+    }, () => { 
+      setSyncStatus('error'); 
+      setPacientesLoaded(true);
+    });
 
     const unsubTurnos = onSnapshot(turnosRef, (snapshot) => {
       const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      setTurnosDB(data.sort((a, b) => {
+      const sorted = data.sort((a, b) => {
         const dateA = a.fechaInicio ? new Date(a.fechaInicio) : new Date(0);
         const dateB = b.fechaInicio ? new Date(b.fechaInicio) : new Date(0);
         return dateB - dateA;
-      }));
-      setLoading(false);
-    }, () => { setSyncStatus('error'); setLoading(false); });
+      });
+      setTurnosDB(sorted);
+      setTurnosLoaded(true);
+      if (sorted.length > 0) {
+        try { localStorage.setItem('metrico_cached_turnos', JSON.stringify(sorted)); } catch (e) {}
+      }
+    }, () => { 
+      setSyncStatus('error'); 
+      setTurnosLoaded(true);
+    });
 
     const fallbackTimer = setTimeout(() => {
+      setPacientesLoaded(true);
+      setTurnosLoaded(true);
       setLoading(false);
-    }, 3000);
+    }, 5000);
 
     return () => { unsubPacientes(); unsubTurnos(); clearTimeout(fallbackTimer); };
   }, [user]);
 
-  // Retornamos también los setters de loading y syncStatus porque 
-  // las funciones de borrado y carga masiva los seguirán necesitando.
-  return { user, userProfile, loading, syncStatus, setSyncStatus, setLoading, pacientesDB, turnosDB };
+  useEffect(() => {
+    if (pacientesLoaded && turnosLoaded) {
+      setLoading(false);
+      setSyncStatus('synced');
+    }
+  }, [pacientesLoaded, turnosLoaded]);
+
+  return { 
+    user, 
+    userProfile, 
+    loading: (pacientesDB.length === 0 && loading), 
+    syncStatus, 
+    setSyncStatus, 
+    setLoading, 
+    pacientesDB, 
+    turnosDB,
+    pacientesLoaded,
+    turnosLoaded
+  };
 };
+

@@ -72,32 +72,30 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     return pacs;
   }, [pacientesDB, filtrosGlobales, hasGlobalFilters, filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin]);
 
-  const recalcularTurnos = useMemo(() => {
-    const hasHours = (filtroHoraInicio !== '00:00' || filtroHoraFin !== '23:59');
-    return hasGlobalFilters || hasHours;
-  }, [hasGlobalFilters, filtroHoraInicio, filtroHoraFin]);
-
   const turnosFiltrados = useMemo(() => {
-    if (!recalcularTurnos) return turnosPorFecha;
-
-    // Cuando hay filtros activos (globales o de horas), recalculamos los totales de los turnos en base a los pacientes filtrados
-    // y excluímos los turnos manuales (ya que no se les pueden aplicar filtros de pacientes)
-    return turnosPorFecha.filter(t => t.tipo === 'Masiva').map(t => {
+    return turnosPorFecha.map(t => {
       const pacs = pacientesFiltrados.filter(p => p.loteId === t.loteId);
-      
+      const pacsCount = pacs.length;
+      const altasCount = pacs.filter(p => p.estado === 'Cancelada').length;
+
       const counts = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0, sincat: 0 };
-      pacs.forEach(p => {
-        if (counts[p.categoria] !== undefined) counts[p.categoria]++;
-      });
+      if (pacsCount > 0) {
+        pacs.forEach(p => {
+          if (counts[p.categoria] !== undefined) counts[p.categoria]++;
+        });
+      }
 
       return {
         ...t,
-        totalPacientes: pacs.length,
-        altasAdmin: pacs.filter(p => p.estado === 'Cancelada').length,
-        ...counts
+        totalPacientes: pacsCount > 0 ? pacsCount : Number(t.totalPacientes || 0),
+        altasAdmin: pacsCount > 0 ? altasCount : Number(t.altasAdmin || 0),
+        ...(pacsCount > 0 ? counts : {
+          c1: t.c1 || 0, c2: t.c2 || 0, c3: t.c3 || 0, c3_z518: t.c3_z518 || 0,
+          c4: t.c4 || 0, c5: t.c5 || 0, sincat: t.sincat || 0
+        })
       };
     });
-  }, [turnosPorFecha, pacientesFiltrados, recalcularTurnos]);
+  }, [turnosPorFecha, pacientesFiltrados]);
 
   // === ANÁLISIS DEMOGRÁFICO Y GLOBAL ===
   const demografiaStats = useMemo(() => {
