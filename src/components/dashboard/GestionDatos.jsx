@@ -429,13 +429,13 @@ export default function GestionDatos({
         let iId = getIdx(['ID', 'RUN', 'RUT', 'IDENTIFICADOR', 'DOCUMENTO']);
         
         let iEnfCat1 = getIdx(['REGISTRA LA PRIMERA', 'REGISTRA PRIMERA', 'REGISTRA PRIM', 'PROFESIONAL 1°', 'PROFESIONAL 1A', 'PRIMERA CATEGORIZACION']);
-        let iEnfCat1Inst = getIdx(['INSTRUMENTO QUE REGISTRA LA PRIMERA', 'INSTRUMENTO QUE REGISTRA PRIMERA', 'INSTRUMENTO REGISTRA PRIM', 'INSTRUMENTO 1°', 'INSTRUMENTO 1A', 'INSTRUMENTO PRIM']);
+        let iEnfCat1Inst = getIdx(['INSTRUMENTO DEL PROFESIONAL QUE REGISTRA LA PRIMERA', 'INSTRUMENTO PROFESIONAL QUE REGISTRA LA PRIMERA', 'INSTRUMENTO QUE REGISTRA LA PRIMERA', 'INSTRUMENTO QUE REGISTRA PRIMERA', 'INSTRUMENTO REGISTRA PRIM', 'INSTRUMENTO 1°', 'INSTRUMENTO 1A', 'INSTRUMENTO PRIM']);
         if (iEnfCat1Inst === -1 && iEnfCat1 !== -1) {
           iEnfCat1Inst = iEnfCat1 + 1;
         }
         
         let iEnfCatUlt = getIdx(['REGISTRA LA ULTIMA', 'REGISTRA ULTIMA', 'REGISTRA ULT', 'PROFESIONAL ULT', 'ULTIMA CATEGORIZACION']);
-        let iEnfCatUltInst = getIdx(['INSTRUMENTO QUE REGISTRA LA ULTIMA', 'INSTRUMENTO QUE REGISTRA ULTIMA', 'INSTRUMENTO REGISTRA ULT', 'INSTRUMENTO ULT']);
+        let iEnfCatUltInst = getIdx(['INSTRUMENTO DEL PROFESIONAL QUE REGISTRA LA ULTIMA', 'INSTRUMENTO PROFESIONAL QUE REGISTRA LA ULTIMA', 'INSTRUMENTO QUE REGISTRA LA ULTIMA', 'INSTRUMENTO QUE REGISTRA ULTIMA', 'INSTRUMENTO REGISTRA ULT', 'INSTRUMENTO ULT']);
         if (iEnfCatUltInst === -1 && iEnfCatUlt !== -1) {
           iEnfCatUltInst = iEnfCatUlt + 1;
         }
@@ -547,7 +547,7 @@ export default function GestionDatos({
             const name1 = safeGet(iEnfCat1);
             const inst1 = safeGet(iEnfCat1Inst);
             enfermeroCat1Inst = inst1;
-            if (inst1.toLowerCase().includes('enfermero') || !inst1) {
+            if (inst1.toLowerCase().includes('enfermer') || !inst1) {
               enfermeroCat1 = name1;
             }
           }
@@ -556,7 +556,7 @@ export default function GestionDatos({
             const nameUlt = safeGet(iEnfCatUlt);
             const instUlt = safeGet(iEnfCatUltInst);
             enfermeroCatUltInst = instUlt;
-            if (instUlt.toLowerCase().includes('enfermero') || !instUlt) {
+            if (instUlt.toLowerCase().includes('enfermer') || !instUlt) {
               enfermeroCatUlt = nameUlt;
             }
           }

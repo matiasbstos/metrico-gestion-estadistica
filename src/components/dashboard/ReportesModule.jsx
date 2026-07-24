@@ -46,6 +46,17 @@ export default function ReportesModule({
     };
   }, [filtroFechaInicio, filtroFechaFin]);
 
+  // Tipo de reporte dinámico
+  const tipoReporte = useMemo(() => {
+    if (!fechas.rawInicio || !fechas.rawFin) return 'Consolidado General';
+    if (fechas.rawInicio === fechas.rawFin) return 'Diario';
+    return 'Consolidado del Periodo';
+  }, [fechas.rawInicio, fechas.rawFin]);
+
+  // Extraer KPIs para el reporte
+  const { statsKPI, demografiaStats, topDiagnosticos, pacientesFiltrados, turnosFiltrados } = useMetricoAnalytics(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin);
+  const { filteredMetricsByDoctor } = useMetricoProfesionales(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin, [], '');
+
   // Rango de fechas reales detectado automáticamente de los datos de pacientes
   const rangoFechasReales = useMemo(() => {
     const pacs = pacientesFiltrados || [];
@@ -84,17 +95,6 @@ export default function ReportesModule({
       texto: `${iniStr} al ${finStr}`
     };
   }, [pacientesFiltrados, fechas]);
-
-  // Tipo de reporte dinámico
-  const tipoReporte = useMemo(() => {
-    if (!fechas.rawInicio || !fechas.rawFin) return 'Consolidado General';
-    if (fechas.rawInicio === fechas.rawFin) return 'Diario';
-    return 'Consolidado del Periodo';
-  }, [fechas.rawInicio, fechas.rawFin]);
-
-  // Extraer KPIs para el reporte
-  const { statsKPI, demografiaStats, topDiagnosticos, pacientesFiltrados, turnosFiltrados } = useMetricoAnalytics(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin);
-  const { filteredMetricsByDoctor } = useMetricoProfesionales(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin, [], '');
 
   // Datos para sub-reporte de Altas Admin
   const altasStats = useMemo(() => {
