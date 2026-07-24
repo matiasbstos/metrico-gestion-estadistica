@@ -28,7 +28,7 @@ import {
   CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
   BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
   Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
-  HeartPulse, Shield, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown
+  HeartPulse, Shield, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
@@ -98,6 +98,7 @@ const DashboardContent = () => {
   const { user, userProfile, loading, syncStatus, setSyncStatus, setLoading, pacientesDB, turnosDB } = useMetricoData();
 
   const [tema, setTema] = useState(() => localStorage.getItem('metrico-tema') || 'crextio');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
   useEffect(() => {
     localStorage.setItem('metrico-tema', tema);
@@ -488,222 +489,315 @@ const DashboardContent = () => {
 
   return (
     <div className={`flex h-screen w-screen overflow-hidden bg-app-custom font-sans text-secondary-custom theme-transition theme-${tema}`}>
-      {/* COLUMNA IZQUIERDA: SIDEBAR FIJO */}
-      <aside className="w-64 h-full bg-sidebar-custom border-r border-card-custom text-primary-custom flex flex-col justify-between flex-shrink-0 z-10 shadow-xl theme-transition">
+      
+      {/* OVERLAY FONDO OSCURO EN MÓVILES */}
+      {!sidebarCollapsed && (
+        <div 
+          onClick={() => setSidebarCollapsed(true)} 
+          className="md:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40 animate-fade-in"
+        />
+      )}
+
+      {/* COLUMNA IZQUIERDA: SIDEBAR FLUIDO */}
+      <aside className={`
+        h-full bg-sidebar-custom border-r border-card-custom text-primary-custom flex flex-col justify-between flex-shrink-0 z-50 shadow-xl theme-transition
+        fixed md:static inset-y-0 left-0 transform transition-all duration-300 ease-in-out
+        ${sidebarCollapsed ? 'translate-x-[-100%] md:translate-x-0 md:w-16 lg:w-20' : 'translate-x-0 w-64 md:w-64'}
+      `}>
         <div className="overflow-y-auto flex-1 min-h-0 custom-scrollbar pb-4">
-          <div className="p-6 flex items-center gap-3">
-            <Activity className="w-8 h-8 accent-text-custom" />
-            <div>
-              <h1 className="font-black text-lg tracking-tight leading-none text-primary-custom">MÉTRICO</h1>
-              <p className="text-[10px] text-secondary-custom font-medium mb-2">Clínico Predictivo</p>
-              <select 
-                className="bg-input-custom text-primary-custom text-xs p-1.5 rounded-xl border border-card-custom outline-none w-full font-bold cursor-pointer transition-all"
-                value={centroActivo} 
-                onChange={e => setCentroActivo(e.target.value)}
+          <div className={`p-4 flex flex-col gap-4 border-b border-card-custom/50 theme-transition ${sidebarCollapsed ? 'items-center' : ''}`}>
+            <div className="flex items-center justify-between w-full">
+              {!sidebarCollapsed && (
+                <div className="flex items-center gap-3 animate-fade-in">
+                  <Activity className="w-7 h-7 accent-text-custom flex-shrink-0" />
+                  <div>
+                    <h1 className="font-black text-base tracking-tight leading-none text-primary-custom">MÉTRICO</h1>
+                    <p className="text-[9px] text-secondary-custom font-medium leading-none mt-1">Clínico Predictivo</p>
+                  </div>
+                </div>
+              )}
+              {sidebarCollapsed && (
+                <Activity className="w-7 h-7 accent-text-custom flex-shrink-0 mx-auto animate-fade-in" />
+              )}
+              <button 
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className={`p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg border border-card-custom/40 transition-all text-secondary-custom hover:text-primary-custom cursor-pointer ${sidebarCollapsed ? 'mt-2' : ''}`}
+                title={sidebarCollapsed ? "Expandir panel" : "Contraer panel"}
               >
-                <option value="SAR Elsa Romo Aravena">SAR Elsa Romo Aravena</option>
-                <option value="CESFAM Florencia">CESFAM Florencia</option>
-                <option value="CESFAM Boris Soler">CESFAM Boris Soler</option>
-                <option value="CESFAM Elgueta">CESFAM Elgueta</option>
-              </select>
+                {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+              </button>
             </div>
+            
+            {!sidebarCollapsed && (
+              <div className="animate-fade-in w-full">
+                <label className="block text-[8px] font-black text-secondary-custom uppercase tracking-wider mb-1.5 opacity-60">Centro Activo</label>
+                <select 
+                  className="bg-input-custom text-primary-custom text-xs p-2.5 rounded-xl border border-card-custom outline-none w-full font-bold cursor-pointer transition-all focus:bg-card-custom"
+                  value={centroActivo} 
+                  onChange={e => setCentroActivo(e.target.value)}
+                >
+                  <option value="SAR Elsa Romo Aravena">SAR Elsa Romo Aravena</option>
+                  <option value="CESFAM Florencia">CESFAM Florencia</option>
+                  <option value="CESFAM Boris Soler">CESFAM Boris Soler</option>
+                  <option value="CESFAM Elgueta">CESFAM Elgueta</option>
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Selector de Tema */}
-          <div className="px-6 mb-4">
-            <label className="block text-[9px] font-bold text-secondary-custom uppercase tracking-wide mb-1.5 opacity-80">Tema Visual</label>
-            <div className="flex gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-card-custom transition-all">
-              <button 
-                onClick={() => setTema('crextio')}
-                className={`flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all ${tema === 'crextio' ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
-                title="Cristal Pastel"
-              >
-                Pastel
-              </button>
-              <button 
-                onClick={() => setTema('lordbank')}
-                className={`flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all ${tema === 'lordbank' ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
-                title="Portal Limpio"
-              >
-                Limpio
-              </button>
-              <button 
-                onClick={() => setTema('dark')}
-                className={`flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all ${tema === 'dark' ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
-                title="Clásico Oscuro"
-              >
-                Oscuro
-              </button>
+          {!sidebarCollapsed && (
+            <div className="px-6 mb-4 mt-4 animate-fade-in">
+              <label className="block text-[9px] font-bold text-secondary-custom uppercase tracking-wide mb-1.5 opacity-80">Tema Visual</label>
+              <div className="flex gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-card-custom transition-all">
+                <button 
+                  onClick={() => setTema('crextio')}
+                  className={`flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all ${tema === 'crextio' ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
+                  title="Cristal Pastel"
+                >
+                  Pastel
+                </button>
+                <button 
+                  onClick={() => setTema('lordbank')}
+                  className={`flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all ${tema === 'lordbank' ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
+                  title="Portal Limpio"
+                >
+                  Limpio
+                </button>
+                <button 
+                  onClick={() => setTema('dark')}
+                  className={`flex-1 text-[10px] font-bold py-1.5 rounded-lg transition-all ${tema === 'dark' ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
+                  title="Clásico Oscuro"
+                >
+                  Oscuro
+                </button>
+              </div>
             </div>
-          </div>
+          )}
           
-          {/* MONITOR DE ESTADO Y PROGRESO DE CARGA (SOLICITADO POR EL USUARIO) */}
-          <div className="px-5 mb-4">
-            <div className={`p-3 rounded-2xl border transition-all duration-300 ${
-              loading || syncStatus === 'connecting'
-                ? 'bg-amber-500/10 dark:bg-amber-500/15 border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
-                : syncStatus === 'syncing'
-                ? 'bg-sky-500/10 dark:bg-sky-500/15 border-sky-500/30 shadow-[0_0_15px_rgba(56,189,248,0.15)]'
-                : 'bg-emerald-500/10 dark:bg-emerald-500/15 border-emerald-500/30'
-            }`}>
-              
-              {/* ESTADO 1: CARGANDO / SINCRONIZANDO (ALARMA CONSTANTE + PROGRESO % Y NUMÉRICO) */}
-              {(loading || syncStatus === 'connecting' || syncStatus === 'syncing') ? (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-1.5">
-                    <div className="flex items-center gap-2">
-                      <div className="relative flex items-center justify-center">
-                        <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping absolute"></div>
-                        <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+          {/* MONITOR DE ESTADO Y PROGRESO DE CARGA */}
+          <div className="px-3 mb-4 mt-2">
+            {sidebarCollapsed ? (
+              <div 
+                className={`w-10 h-10 mx-auto rounded-xl border flex items-center justify-center transition-all duration-300 ${
+                  loading || syncStatus === 'connecting'
+                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-500 animate-pulse'
+                    : syncStatus === 'syncing'
+                    ? 'bg-sky-500/10 border-sky-500/30 text-sky-500 animate-spin'
+                    : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500'
+                }`}
+                title={loading || syncStatus === 'connecting' || syncStatus === 'syncing' ? 'Sincronizando...' : 'Sistema en línea'}
+              >
+                <div className={`w-3.5 h-3.5 rounded-full ${
+                  loading || syncStatus === 'connecting'
+                    ? 'bg-amber-500 animate-ping'
+                    : syncStatus === 'syncing'
+                    ? 'bg-sky-500 animate-pulse'
+                    : 'bg-emerald-500'
+                }`} />
+              </div>
+            ) : (
+              <div className={`p-3 rounded-2xl border transition-all duration-300 ${
+                loading || syncStatus === 'connecting'
+                  ? 'bg-amber-500/10 dark:bg-amber-500/15 border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
+                  : syncStatus === 'syncing'
+                  ? 'bg-sky-500/10 dark:bg-sky-500/15 border-sky-500/30 shadow-[0_0_15px_rgba(56,189,248,0.15)]'
+                  : 'bg-emerald-500/10 dark:bg-emerald-500/15 border-emerald-500/30'
+              }`}>
+                {/* ESTADO 1: CARGANDO / SINCRONIZANDO */}
+                {(loading || syncStatus === 'connecting' || syncStatus === 'syncing') ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-1.5">
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex items-center justify-center">
+                          <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping absolute"></div>
+                          <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                        </div>
+                        <span className="text-xs font-black text-amber-500 dark:text-amber-400 tracking-wide uppercase">
+                          Sincronizando
+                        </span>
                       </div>
-                      <span className="text-xs font-black text-amber-500 dark:text-amber-400 tracking-wide uppercase">
-                        {syncStatus === 'syncing' ? 'Sincronizando' : 'Cargando Datos'}
-                      </span>
                     </div>
-                    <span className="text-[10px] font-black text-amber-500 dark:text-amber-400 bg-amber-500/20 px-1.5 py-0.5 rounded-md">
-                      {pacientesDB.length > 0 ? 'En proceso' : 'Conectando'}
-                    </span>
-                  </div>
-
-                  {/* Barra de Progreso en Sidebar */}
-                  <div className="w-full bg-black/10 dark:bg-white/10 h-2 rounded-full overflow-hidden border border-amber-500/20">
-                    <div 
-                      className="bg-gradient-to-r from-amber-500 to-sky-400 h-full rounded-full transition-all duration-300 animate-pulse"
-                      style={{ width: `${Math.min(100, Math.max(15, Math.floor(((pacientesDB.length + turnosDB.length) / 1600) * 100)))}%` }}
-                    ></div>
-                  </div>
-
-                  <div className="flex justify-between items-center text-[10px] font-bold text-secondary-custom">
-                    <span className="truncate">
-                      {pacientesDB.length > 0 ? `${(pacientesDB.length + turnosDB.length).toLocaleString()} registros` : 'Iniciando conexión...'}
-                    </span>
-                    <span className="text-amber-500 dark:text-amber-400 font-black">
-                      {pacientesDB.length > 0 ? `${Math.min(100, Math.max(15, Math.floor(((pacientesDB.length + turnosDB.length) / 1600) * 100)))}%` : '0%'}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                /* ESTADO 2: CARGA COMPLETA (CONFIRMACIÓN OK) */
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                      <span className="text-xs font-black text-emerald-500">Sistema En Línea</span>
+                    <div className="w-full bg-black/10 dark:bg-white/10 h-1 rounded-full overflow-hidden">
+                      <div className="bg-amber-500 h-full rounded-full transition-all" style={{ width: '50%' }}></div>
                     </div>
-                    <span className="text-[9px] font-black bg-emerald-500/20 text-emerald-500 dark:text-emerald-400 px-2 py-0.5 rounded-md border border-emerald-500/30">
-                      OK ✓
-                    </span>
                   </div>
-                  <p className="text-[10px] text-secondary-custom font-bold pt-1">
-                    ✓ {(pacientesDB.length + turnosDB.length).toLocaleString()} registros cargados
-                  </p>
-                  <p className="text-[9px] text-secondary-custom opacity-70">
-                    Sincronización completa
-                  </p>
-                </div>
-              )}
-
-            </div>
+                ) : (
+                  /* ESTADO 2: CARGA COMPLETA */
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                        <span className="text-xs font-black text-emerald-500">Sistema En Línea</span>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-secondary-custom font-bold pt-1">
+                      ✓ {(pacientesDB.length + turnosDB.length).toLocaleString()} registros
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          <nav className="mt-2 flex flex-col gap-1 px-3">
+          <nav className={`mt-2 flex flex-col gap-1 ${sidebarCollapsed ? 'px-2 items-center' : 'px-3'}`}>
             <button 
-              onClick={() => setActiveTab('resumen')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${activeTab === 'resumen' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-              <BarChart2 className="w-4 h-4" /> Inicio
+              onClick={() => { setActiveTab('resumen'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+              title="Inicio"
+              className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'resumen' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+              <BarChart2 className="w-4 h-4 flex-shrink-0" />
+              {!sidebarCollapsed && <span className="animate-fade-in truncate">Inicio</span>}
             </button>
             <button 
-              onClick={() => setActiveTab('comparativo')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${activeTab === 'comparativo' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-              <GitCompare className="w-4 h-4" /> Comparativo
+              onClick={() => { setActiveTab('comparativo'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+              title="Comparativo"
+              className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'comparativo' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+              <GitCompare className="w-4 h-4 flex-shrink-0" />
+              {!sidebarCollapsed && <span className="animate-fade-in truncate">Comparativo</span>}
             </button>
             <button 
-              onClick={() => setActiveTab('calendario')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${activeTab === 'calendario' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-              <Calendar className="w-4 h-4" /> Histórico Mensual
+              onClick={() => { setActiveTab('calendario'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+              title="Histórico Mensual"
+              className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'calendario' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+              <Calendar className="w-4 h-4 flex-shrink-0" />
+              {!sidebarCollapsed && <span className="animate-fade-in truncate">Histórico Mensual</span>}
             </button>
             <button 
-              onClick={() => setActiveTab('profesionales')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${activeTab === 'profesionales' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-              <Award className="w-4 h-4" /> Rendimiento Clínico
+              onClick={() => { setActiveTab('profesionales'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+              title="Rendimiento Clínico"
+              className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'profesionales' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+              <Award className="w-4 h-4 flex-shrink-0" />
+              {!sidebarCollapsed && <span className="animate-fade-in truncate">Rendimiento Clínico</span>}
             </button>
 
             {/* APARTADO GENERAL: ANÁLISIS ESPECÍFICOS */}
-            <div className="space-y-1">
-              <button 
-                onClick={() => {
-                  if (!['especificos', 'altas', 'fracturas', 'enfermeria'].includes(activeTab)) {
-                    setIsEspecificosOpen(true);
-                  } else {
-                    setIsEspecificosOpen(!isEspecificosOpen);
-                  }
-                  setActiveTab('especificos');
-                }}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 cursor-pointer ${['especificos', 'altas', 'fracturas', 'enfermeria'].includes(activeTab) ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-                <div className="flex items-center gap-3">
-                  <Layers className="w-4 h-4" /> Análisis Específicos
-                </div>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isEspecificosOpen ? 'rotate-180' : ''}`} />
-              </button>
+            {sidebarCollapsed ? (
+              <>
+                <button 
+                  onClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                  title="Altas Administrativas"
+                  className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'altas' ? 'bg-black/10 dark:bg-white/10 text-primary-custom font-black border border-card-custom' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                  <UserCheck className="w-4 h-4 flex-shrink-0" />
+                </button>
+                <button 
+                  onClick={() => { setActiveTab('fracturas'); setSubTabEspecifico('fracturas'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                  title="Estadísticas de Fractura"
+                  className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'fracturas' ? 'bg-rose-500/20 text-rose-500 font-black border border-rose-500/30' : 'bg-transparent text-secondary-custom hover:text-rose-500 hover:bg-rose-500/10'}`}>
+                  <Activity className="w-4 h-4 text-rose-500 flex-shrink-0" />
+                </button>
+                <button 
+                  onClick={() => { setActiveTab('enfermeria'); setSubTabEspecifico('enfermeria'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                  title="Rendimiento Enfermería"
+                  className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'enfermeria' ? 'bg-indigo-500/20 text-indigo-500 font-black border border-indigo-500/30' : 'bg-transparent text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10'}`}>
+                  <Activity className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                </button>
+              </>
+            ) : (
+              <div className="space-y-1 w-full">
+                <button 
+                  onClick={() => {
+                    if (!['especificos', 'altas', 'fracturas', 'enfermeria'].includes(activeTab)) {
+                      setIsEspecificosOpen(true);
+                    } else {
+                      setIsEspecificosOpen(!isEspecificosOpen);
+                    }
+                    setActiveTab('especificos');
+                  }}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 cursor-pointer ${['especificos', 'altas', 'fracturas', 'enfermeria'].includes(activeTab) ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                  <div className="flex items-center gap-3">
+                    <Layers className="w-4 h-4" /> Análisis Específicos
+                  </div>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isEspecificosOpen ? 'rotate-180' : ''}`} />
+                </button>
 
-              {isEspecificosOpen && (
-                <div className="pl-6 flex flex-col gap-1 py-1 transition-all">
-                  <button 
-                    onClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); }}
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'altas' || (activeTab === 'especificos' && subTabEspecifico === 'altas') ? 'bg-black/10 dark:bg-white/10 text-primary-custom font-black border border-card-custom' : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-                    <UserCheck className="w-3.5 h-3.5" /> Altas Administrativas
-                  </button>
-                  <button 
-                    onClick={() => { setActiveTab('fracturas'); setSubTabEspecifico('fracturas'); }}
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'fracturas' || (activeTab === 'especificos' && subTabEspecifico === 'fracturas') ? 'bg-rose-500/20 text-rose-500 font-black border border-rose-500/30' : 'text-secondary-custom hover:text-rose-500 hover:bg-rose-500/10'}`}>
-                    <Activity className="w-3.5 h-3.5 text-rose-500" /> Estadísticas de Fractura
-                  </button>
-                  <button 
-                    onClick={() => { setActiveTab('enfermeria'); setSubTabEspecifico('enfermeria'); }}
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'enfermeria' || (activeTab === 'especificos' && subTabEspecifico === 'enfermeria') ? 'bg-indigo-500/20 text-indigo-500 font-black border border-indigo-500/30' : 'text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10'}`}>
-                    <Activity className="w-3.5 h-3.5 text-indigo-500" /> Rendimiento Enfermería
-                  </button>
-                </div>
-              )}
-            </div>
+                {isEspecificosOpen && (
+                  <div className="pl-6 flex flex-col gap-1 py-1 transition-all">
+                    <button 
+                      onClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'altas' || (activeTab === 'especificos' && subTabEspecifico === 'altas') ? 'bg-black/10 dark:bg-white/10 text-primary-custom font-black border border-card-custom' : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                      <UserCheck className="w-3.5 h-3.5" /> Altas Administrativas
+                    </button>
+                    <button 
+                      onClick={() => { setActiveTab('fracturas'); setSubTabEspecifico('fracturas'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'fracturas' || (activeTab === 'especificos' && subTabEspecifico === 'fracturas') ? 'bg-rose-500/20 text-rose-500 font-black border border-rose-500/30' : 'text-secondary-custom hover:text-rose-500 hover:bg-rose-500/10'}`}>
+                      <Activity className="w-3.5 h-3.5 text-rose-500" /> Estadísticas de Fractura
+                    </button>
+                    <button 
+                      onClick={() => { setActiveTab('enfermeria'); setSubTabEspecifico('enfermeria'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'enfermeria' || (activeTab === 'especificos' && subTabEspecifico === 'enfermeria') ? 'bg-indigo-500/20 text-indigo-500 font-black border border-indigo-500/30' : 'text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10'}`}>
+                      <Activity className="w-3.5 h-3.5 text-indigo-500" /> Rendimiento Enfermería
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             <button 
-              onClick={() => setActiveTab('reportes')}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${activeTab === 'reportes' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-              <FileSpreadsheet className="w-4 h-4" /> Reporte
+              onClick={() => { setActiveTab('reportes'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+              title="Reporte"
+              className={`flex items-center rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'reportes' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+              <FileSpreadsheet className="w-4 h-4 flex-shrink-0" />
+              {!sidebarCollapsed && <span className="animate-fade-in truncate">Reporte</span>}
             </button>
             {isGlobalAdmin && (
               <>
                 <button 
-                  onClick={() => setActiveTab('data')} 
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${activeTab === 'data' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-                  <Database className="w-4 h-4" /> Gestión de Datos
+                  onClick={() => { setActiveTab('data'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                  title="Gestión de Datos"
+                  className={`flex items-center rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'data' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                  <Database className="w-4 h-4 flex-shrink-0" />
+                  {!sidebarCollapsed && <span className="animate-fade-in truncate">Gestión de Datos</span>}
                 </button>
                 <button 
-                  onClick={() => setActiveTab('pauta')} 
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${activeTab === 'pauta' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-                  <Calendar className="w-4 h-4" /> Pauta de Turnos
+                  onClick={() => { setActiveTab('pauta'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                  title="Pauta de Turnos"
+                  className={`flex items-center rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'pauta' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                  <Calendar className="w-4 h-4 flex-shrink-0" />
+                  {!sidebarCollapsed && <span className="animate-fade-in truncate">Pauta de Turnos</span>}
                 </button>
                 <button 
-                  onClick={() => setActiveTab('auditoria')} 
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${activeTab === 'auditoria' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-                  <Shield className="w-4 h-4" /> Auditoría
+                  onClick={() => { setActiveTab('auditoria'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                  title="Auditoría"
+                  className={`flex items-center rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'auditoria' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                  <Shield className="w-4 h-4 flex-shrink-0" />
+                  {!sidebarCollapsed && <span className="animate-fade-in truncate">Auditoría</span>}
                 </button>
               </>
             )}
           </nav>
         </div>
-        <div className="p-4 border-t border-card-custom">
-          <div className="mb-4 px-2">
-            <p className="text-xs font-bold text-primary-custom truncate" title={user.email}>{user.email}</p>
-            <p className="text-[10px] accent-text-custom font-medium uppercase mt-0.5">{isGlobalAdmin ? 'Administrador Global' : 'Usuario Local'}</p>
-          </div>
-          <button onClick={handlePasswordResetRequest} className="flex items-center gap-3 px-4 py-2 text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5 rounded-lg font-medium text-xs transition-all w-full mb-1">
-            <Lock className="w-3.5 h-3.5" /> Cambiar Clave
-          </button>
-          <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2 text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5 rounded-lg font-medium text-xs transition-all w-full">
-            <XCircle className="w-3.5 h-3.5" /> Cerrar Sesión
-          </button>
+        <div className={`p-4 border-t border-card-custom ${sidebarCollapsed ? 'flex flex-col items-center gap-2' : ''}`}>
+          {!sidebarCollapsed ? (
+            <>
+              <div className="mb-4 px-2 animate-fade-in">
+                <p className="text-xs font-bold text-primary-custom truncate" title={user.email}>{user.email}</p>
+                <p className="text-[10px] accent-text-custom font-medium uppercase mt-0.5">{isGlobalAdmin ? 'Administrador Global' : 'Usuario Local'}</p>
+              </div>
+              <button onClick={handlePasswordResetRequest} className="flex items-center gap-3 px-4 py-2 text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5 rounded-lg font-medium text-xs transition-all w-full mb-1">
+                <Lock className="w-3.5 h-3.5" /> Cambiar Clave
+              </button>
+              <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2 text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5 rounded-lg font-medium text-xs transition-all w-full">
+                <XCircle className="w-3.5 h-3.5" /> Cerrar Sesión
+              </button>
+            </>
+          ) : (
+            <>
+              <button 
+                onClick={handlePasswordResetRequest} 
+                title="Cambiar Clave" 
+                className="p-2.5 text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+              >
+                <Lock className="w-4 h-4" />
+              </button>
+              <button 
+                onClick={handleLogout} 
+                title="Cerrar Sesión" 
+                className="p-2.5 text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+              >
+                <XCircle className="w-4 h-4" />
+              </button>
+            </>
+          )}
         </div>
       </aside>
 
@@ -803,12 +897,44 @@ const DashboardContent = () => {
       )}
 
       {/* COLUMNA DERECHA: CANVAS DE SCROLL CONTINUO */}
-      <main className="flex-1 h-full overflow-y-auto p-8 space-y-6 relative theme-transition">
-        {notification && (
-          <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-sm font-medium z-[9999] animate-bounce-in ${notification.type === 'error' ? 'bg-red-600 text-white' : notification.type === 'warning' ? 'bg-orange-500 text-white' : 'bg-emerald-600 text-white'}`}>
-            {notification.msg}
+      <main className="flex-1 h-full overflow-y-auto flex flex-col relative theme-transition">
+        
+        {/* Mobile Top Header (Visible en pantallas < md) */}
+        <div className="md:hidden flex items-center justify-between bg-card-custom p-4 border-b border-card-custom sticky top-0 z-30 shadow-sm theme-transition">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="p-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl transition-all text-primary-custom cursor-pointer"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <span className="font-black text-xs tracking-wider text-primary-custom uppercase">
+              {activeTab === 'resumen' ? 'Inicio' : 
+               activeTab === 'comparativo' ? 'Comparativo' : 
+               activeTab === 'calendario' ? 'Histórico Mensual' : 
+               activeTab === 'profesionales' ? 'Rendimiento Clínico' : 
+               activeTab === 'altas' ? 'Altas Administrativas' :
+               activeTab === 'fracturas' ? 'Estadísticas Fracturas' :
+               activeTab === 'enfermeria' ? 'Rendimiento Enfermería' :
+               activeTab === 'reportes' ? 'Reportes' : 
+               activeTab === 'data' ? 'Gestión de Datos' : 
+               activeTab === 'pauta' ? 'Pautas de Turnos' : 
+               activeTab === 'auditoria' ? 'Auditoría' : activeTab}
+            </span>
           </div>
-        )}
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 accent-text-custom" />
+            <span className="font-black text-[10px] tracking-widest text-primary-custom">MÉTRICO</span>
+          </div>
+        </div>
+
+        {/* CONTENIDO INTERNO CON PADDING */}
+        <div className="p-4 md:p-8 space-y-6 flex-1">
+          {notification && (
+            <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-sm font-medium z-[9999] animate-bounce-in ${notification.type === 'error' ? 'bg-red-600 text-white' : notification.type === 'warning' ? 'bg-orange-500 text-white' : 'bg-emerald-600 text-white'}`}>
+              {notification.msg}
+            </div>
+          )}
 
         {activeTab === 'resumen' && (
           <>
@@ -1029,6 +1155,7 @@ const DashboardContent = () => {
             isGlobalAdmin={isGlobalAdmin} 
           />
         )}
+        </div>
       </main>
     </div>
   );
