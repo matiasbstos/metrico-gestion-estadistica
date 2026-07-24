@@ -130,7 +130,7 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
 
       if (p.cat1Clean === 'c1') c1Count++;
       else if (p.cat1Clean === 'c2') c2Count++;
-      else if (p.cat1Clean === 'c3') c3Count++;
+      else if (p.cat1Clean === 'c3' || p.cat1Clean === 'c3_z518') c3Count++;
       else if (p.cat1Clean === 'c4') c4Count++;
       else if (p.cat1Clean === 'c5') c5Count++;
 
@@ -172,7 +172,7 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
 
       if (p.cat1Clean === 'c1') item.c1++;
       else if (p.cat1Clean === 'c2') item.c2++;
-      else if (p.cat1Clean === 'c3') item.c3++;
+      else if (p.cat1Clean === 'c3' || p.cat1Clean === 'c3_z518') item.c3++;
       else if (p.cat1Clean === 'c4') item.c4++;
       else if (p.cat1Clean === 'c5') item.c5++;
       else item.sincat++;
