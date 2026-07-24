@@ -5,6 +5,7 @@ import { useMetricoProfesionales } from '../../hooks/useMetricoProfesionales';
 import FiltrosGlobales from './FiltrosGlobales';
 
 export default function ReportesModule({ 
+  user,
   pacientesDB, 
   turnosDB,
   modoComparativo, setModoComparativo,
@@ -44,6 +45,45 @@ export default function ReportesModule({
       rawFin 
     };
   }, [filtroFechaInicio, filtroFechaFin]);
+
+  // Rango de fechas reales detectado automáticamente de los datos de pacientes
+  const rangoFechasReales = useMemo(() => {
+    const pacs = pacientesFiltrados || [];
+    if (pacs.length === 0) {
+      return { inicio: fechas.inicio, fin: fechas.fin, texto: `${fechas.inicio} al ${fechas.fin}` };
+    }
+
+    let minT = Infinity;
+    let maxT = -Infinity;
+
+    pacs.forEach(p => {
+      if (p.tAdmision) {
+        if (p.tAdmision < minT) minT = p.tAdmision;
+        if (p.tAdmision > maxT) maxT = p.tAdmision;
+      }
+    });
+
+    if (minT === Infinity || maxT === -Infinity) {
+      return { inicio: fechas.inicio, fin: fechas.fin, texto: `${fechas.inicio} al ${fechas.fin}` };
+    }
+
+    const formatDate = (ms) => {
+      const d = new Date(ms);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    };
+
+    const iniStr = formatDate(minT);
+    const finStr = formatDate(maxT);
+
+    return {
+      inicio: iniStr,
+      fin: finStr,
+      texto: `${iniStr} al ${finStr}`
+    };
+  }, [pacientesFiltrados, fechas]);
 
   // Tipo de reporte dinámico
   const tipoReporte = useMemo(() => {
@@ -473,7 +513,7 @@ export default function ReportesModule({
                   </div>
                   <div className="text-right">
                     <p className="text-xs font-bold text-slate-700 capitalize">Tipo: {tipoReporte}</p>
-                    <p className="text-[11px] text-slate-500">Periodo: {fechas.inicio} al {fechas.fin}</p>
+                    <p className="text-[11px] text-slate-500 font-bold">Periodo de Datos: {rangoFechasReales.texto}</p>
                   </div>
                 </div>
 
@@ -607,7 +647,7 @@ export default function ReportesModule({
                       <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">Análisis de Cancelaciones e Impacto Operativo</p>
                     </div>
                   </div>
-                  <span className="text-xs font-bold text-slate-500">Periodo: {fechas.inicio} al {fechas.fin}</span>
+                  <span className="text-xs font-black text-slate-600">Periodo de Datos: {rangoFechasReales.texto}</span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4 print-avoid-break">
@@ -668,7 +708,7 @@ export default function ReportesModule({
                       <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">Casos de Traumatología y Destinos de Alta Médica</p>
                     </div>
                   </div>
-                  <span className="text-xs font-bold text-slate-500">Periodo: {fechas.inicio} al {fechas.fin}</span>
+                  <span className="text-xs font-black text-slate-600">Periodo de Datos: {rangoFechasReales.texto}</span>
                 </div>
 
                 {/* Universo General */}
@@ -773,7 +813,7 @@ export default function ReportesModule({
                       <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">Tiempos de Respuesta y Gestión de Categorización (C1-C5)</p>
                     </div>
                   </div>
-                  <span className="text-xs font-bold text-slate-500">Periodo: {fechas.inicio} al {fechas.fin}</span>
+                  <span className="text-xs font-black text-slate-600">Periodo de Datos: {rangoFechasReales.texto}</span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4 print-avoid-break">
@@ -969,6 +1009,101 @@ export default function ReportesModule({
                 </div>
               </div>
             )}
+
+            {/* SECCIÓN DE CIERRE Y CONTROL DE VALIDEZ (PEDIDO POR EL USUARIO) */}
+            <div className="print-page-break print-avoid-break space-y-6 pt-6 border-t-2 border-slate-950">
+              {/* Header Cierre */}
+              <div className="flex justify-between items-center border-b border-slate-300 pb-3">
+                <div>
+                  <h2 className="text-sm font-black text-slate-900 tracking-wider uppercase">CIERRE DE INFORME Y VALIDACIÓN DE DATOS</h2>
+                  <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Control Operativo e Integridad de la Información</p>
+                </div>
+                <div className="text-right">
+                  <span className="px-3 py-1 bg-slate-100 text-slate-800 text-[10px] font-black rounded-full border border-slate-200 uppercase">
+                    Documento Oficial
+                  </span>
+                </div>
+              </div>
+
+              {/* Grid de Totales Consignados */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Cuadro de Resumen General */}
+                <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block border-b border-slate-200 pb-1">Totales Consignados en Periodo</span>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-slate-500 font-bold block">Total Atenciones:</span>
+                      <span className="font-black text-slate-800 text-sm">{pacientesFiltrados.length} pac.</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 font-bold block">Casos Críticos (C1/C2):</span>
+                      <span className="font-black text-slate-800 text-sm">{enfermeriaStats.casosCriticos.length} pac.</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 font-bold block">Constatación Lesiones (C3):</span>
+                      <span className="font-black text-slate-800 text-sm">{enfermeriaStats.c3Stats.lesionesCount} pac. ({enfermeriaStats.c3Stats.lesionesPerc}%)</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 font-bold block">Diagnóstico Clínico C3:</span>
+                      <span className="font-black text-slate-800 text-sm">{enfermeriaStats.c3Stats.clinicoCount} pac. ({enfermeriaStats.c3Stats.clinicoPerc}%)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Cuadro de Tiempos y Operatividad */}
+                <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block border-b border-slate-200 pb-1">Metadatos de Operación y Tiempos</span>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-slate-500 font-bold block">T. Promedio 1ª Cat:</span>
+                      <span className="font-black text-slate-800 text-sm">{enfermeriaStats.avgMinCat1} min</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 font-bold block">T. Promedio Re-Cat:</span>
+                      <span className="font-black text-slate-800 text-sm">{enfermeriaStats.avgMinReCat} min</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 font-bold block">Tasa Altas Admin:</span>
+                      <span className="font-black text-rose-700 text-sm">{altasStats.pct}% ({altasStats.totalAltas} altas)</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 font-bold block">Total Fracturas Fx:</span>
+                      <span className="font-black text-amber-700 text-sm">{fracturasStats.totalFracturas} pac.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Metadatos de Emisión de Reporte */}
+              <div className="bg-slate-50/50 border border-slate-200 p-3.5 rounded-xl text-[11px] text-slate-600 leading-relaxed space-y-1.5">
+                <p>
+                  <strong>Sistema Emisor:</strong> Métrico - Dashboard de Gestión Estadística y Tiempos de Espera de Urgencia (SAR Hospital de Melipilla).
+                </p>
+                <p>
+                  <strong>Usuario Certificante:</strong> {user?.email || 'Usuario de Gestión Local / Localhost'}
+                </p>
+                <p>
+                  <strong>Fecha de Descarga:</strong> {new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago' })} h
+                </p>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">
+                  * Este documento es un consolidado estadístico generado a partir de registros del sistema Iris.
+                </p>
+              </div>
+
+              {/* Bloque de Firmas */}
+              <div className="grid grid-cols-2 gap-8 pt-10">
+                <div className="text-center space-y-1">
+                  <div className="border-t border-slate-400 w-52 mx-auto"></div>
+                  <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Firma Enfermero(a) Supervisor(a)</p>
+                  <p className="text-[9px] text-slate-500 font-bold uppercase">Gestión de Categorización y Triaje</p>
+                </div>
+                <div className="text-center space-y-1">
+                  <div className="border-t border-slate-400 w-52 mx-auto"></div>
+                  <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Firma Jefe de Urgencia</p>
+                  <p className="text-[9px] text-slate-500 font-bold uppercase">Validación de Rendimiento SAR</p>
+                </div>
+              </div>
+            </div>
 
           </div>
         )}

@@ -902,6 +902,7 @@ const DashboardContent = () => {
 
         {activeTab === 'reportes' && (
           <ReportesModule 
+            user={user}
             pacientesDB={pacientesDB} 
             turnosDB={turnosDB} 
             modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}

@@ -104,12 +104,14 @@ export default function PanelKPIs({ statsKPI, onAltasClick }) {
             Criterio de Globalidad (Calendario Civil Absoluto)
           </span>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
           {renderKPICard('Pac. Admitidos (Total)', statsKPI.anual.pacientes.current, undefined, undefined, '', '')}
           {renderKPICard('Pac. Atendidos (Total)', statsKPI.anual.atendidos.current, undefined, undefined, '', '')}
           {renderKPICard('Rendimiento Global', statsKPI.anual.pacHora.current.toFixed(1), undefined, undefined, '', 'pac/h')}
           {renderKPICard('Estadía Promedio Global', statsKPI.anual.estadia.current > 0 ? `${Math.round(statsKPI.anual.estadia.current)}` : '0', undefined, undefined, '', 'min')}
           {renderAltasAdminCard(true)}
+          {renderKPICard('Traslados Hosp. (YTD)', statsKPI.anual.traslados ? statsKPI.anual.traslados.current : 0, undefined, undefined, '', 'pac')}
+          {renderKPICard('Constat. Lesiones (YTD)', statsKPI.anual.constataciones ? statsKPI.anual.constataciones.current : 0, undefined, undefined, '', 'pac')}
         </div>
 
         {/* Récords Diarios YTD */}
@@ -166,12 +168,14 @@ export default function PanelKPIs({ statsKPI, onAltasClick }) {
             Criterio de Turno (Encasillamiento Horario)
           </span>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-4">
           {renderKPICard('Pac. Admitidos', statsKPI.pacientes.current, statsKPI.pacientes.growthMonth, statsKPI.pacientes.growthYear)}
           {renderKPICard('Pac. Atendidos', statsKPI.atendidos.current, statsKPI.atendidos.growthMonth, statsKPI.atendidos.growthYear)}
           {renderKPICard('Pac / Hora', statsKPI.pacHora.current.toFixed(1), statsKPI.pacHora.growthMonth, statsKPI.pacHora.growthYear)}
           {renderKPICard('Prom. Estadía', statsKPI.estadia.current > 0 ? `${Math.round(statsKPI.estadia.current)}` : '0', statsKPI.estadia.growthMonth, statsKPI.estadia.growthYear, '', 'min')}
           {renderAltasAdminCard()}
+          {renderKPICard('Traslados Hosp.', statsKPI.traslados ? statsKPI.traslados.current : 0, statsKPI.traslados ? statsKPI.traslados.growthMonth : 0, statsKPI.traslados ? statsKPI.traslados.growthYear : 0, '', 'pac')}
+          {renderKPICard('Constat. Lesiones', statsKPI.constataciones ? statsKPI.constataciones.current : 0, statsKPI.constataciones ? statsKPI.constataciones.growthMonth : 0, statsKPI.constataciones ? statsKPI.constataciones.growthYear : 0, '', 'pac')}
           {renderKPICard('Promedio Edad', statsKPI.demo.avgEdad, undefined, undefined, '', ' a.')}
           {renderKPICard('Pac. Fonasa', statsKPI.demo.fonasaPercent.toFixed(1), undefined, undefined, '', '%')}
         </div>

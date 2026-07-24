@@ -269,9 +269,21 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const currentCats = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
     pacientesFiltrados.forEach(p => {
       if (currentCats[p.categoria] !== undefined) currentCats[p.categoria]++;
-    });
+    });    const getGrowth = (curr, prev) => prev === 0 ? (curr > 0 ? 100 : 0) : ((curr - prev) / prev) * 100;
 
-    const getGrowth = (curr, prev) => prev === 0 ? (curr > 0 ? 100 : 0) : ((curr - prev) / prev) * 100;
+    const isTraslado = (p) => {
+      const d = String(p.destinoAlta || p.destino || '').toLowerCase();
+      return d.includes('hospital') || d.includes('emergencia') || d.includes('derivac');
+    };
+    const isConstatacion = (p) => p.categoria === 'c3_z518';
+
+    const currentTraslados = pacientesFiltrados.filter(isTraslado).length;
+    const pmTraslados = prevMonthPacientes.filter(isTraslado).length;
+    const pyTraslados = prevYearPacientes.filter(isTraslado).length;
+
+    const currentConstataciones = pacientesFiltrados.filter(isConstatacion).length;
+    const pmConstataciones = prevMonthPacientes.filter(isConstatacion).length;
+    const pyConstataciones = prevYearPacientes.filter(isConstatacion).length;
 
     const avgEdad = demografiaStats.edadCount ? (demografiaStats.edadSum / demografiaStats.edadCount).toFixed(1) : 0;
     const fontTot = Object.entries(demografiaStats.prevs).filter(([k]) => k.includes('FONASA')).reduce((acc, [_, v]) => acc + v, 0);
@@ -283,6 +295,9 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const fEndStr = fEnd.toISOString().split('T')[0];
 
     const yearPacs = pacientesDB.filter(p => isPatientInWindow(p.tAdmision, yearStartStr, fEndStr, '00:00', '23:59'));
+
+    const ytdTraslados = yearPacs.filter(isTraslado).length;
+    const ytdConstataciones = yearPacs.filter(isConstatacion).length;
     
     // Crear conjunto de fechas que son fin de semana o festivos
     const weekendDates = new Set();
@@ -310,16 +325,13 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const pacsByDate = {};
     const altasByDate = {};
     yearPacs.forEach(p => {
-      if (!p.tAdmision) return;
-      const d = new Date(p.tAdmision);
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      const dateStr = `${day}/${m}/${y}`;
-
-      pacsByDate[dateStr] = (pacsByDate[dateStr] || 0) + 1;
-      if (p.estado === 'Cancelada') {
-        altasByDate[dateStr] = (altasByDate[dateStr] || 0) + 1;
+      if (p.tAdmision) {
+        const d = new Date(p.tAdmision);
+        const dateStr = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+        pacsByDate[dateStr] = (pacsByDate[dateStr] || 0) + 1;
+        if (p.estado === 'Cancelada') {
+          altasByDate[dateStr] = (altasByDate[dateStr] || 0) + 1;
+        }
       }
     });
 
@@ -359,6 +371,8 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       estadia: { current: calcEstadia(yearPacs) },
       pacHora: { current: yearPacs.length / Math.max(1, getHoursInPeriod(yearStartStr, fEndStr, '00:00', '23:59')) },
       altasAdmin: { current: yearPacs.filter(p => p.estado === 'Cancelada').length },
+      traslados: { current: ytdTraslados },
+      constataciones: { current: ytdConstataciones },
       recordPacWkdy,
       recordPacWknd,
       recordAltasWkdy,
@@ -391,6 +405,16 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
             current: currentAltas, 
             growthMonth: getGrowth(currentAltas, pmAltasAdmin),
             growthYear: getGrowth(currentAltas, pyAltasAdmin)
+        },
+        traslados: {
+            current: currentTraslados,
+            growthMonth: getGrowth(currentTraslados, pmTraslados),
+            growthYear: getGrowth(currentTraslados, pyTraslados)
+        },
+        constataciones: {
+            current: currentConstataciones,
+            growthMonth: getGrowth(currentConstataciones, pmConstataciones),
+            growthYear: getGrowth(currentConstataciones, pyConstataciones)
         },
         demo: { avgEdad, fonasaPercent, meliPercent },
         categorias: ['c1', 'c2', 'c3', 'c3_z518', 'c4', 'c5'].map(c => ({
