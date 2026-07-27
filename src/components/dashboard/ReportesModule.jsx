@@ -453,7 +453,45 @@ export default function ReportesModule({
   }, [enfermeriaStats]);
 
   const printReport = () => {
+    const originalTitle = document.title;
+    
+    // Determinar el nombre representativo del informe según la selección activa
+    let nombreReporte = 'Reporte Ejecutivo Consolidado';
+    const seleccionados = [];
+    if (incluirGeneral) seleccionados.push('General');
+    if (incluirAltas) seleccionados.push('Altas Admin');
+    if (incluirFracturas) seleccionados.push('Fracturas');
+    if (incluirEnfermeria) seleccionados.push('Enfermería');
+    if (incluirConstataciones) seleccionados.push('Constatación Lesiones Z51.8');
+
+    if (seleccionados.length === 1) {
+      if (incluirConstataciones) nombreReporte = 'Informe Técnico Constatación de Lesiones Z51.8';
+      else if (incluirEnfermeria) nombreReporte = 'Sub-reporte Enfermería y Triaje';
+      else if (incluirAltas) nombreReporte = 'Sub-reporte Altas Administrativas';
+      else if (incluirFracturas) nombreReporte = 'Sub-reporte Fracturas y Destino';
+      else if (incluirGeneral) nombreReporte = 'Reporte Ejecutivo General';
+    } else if (seleccionados.length > 1) {
+      nombreReporte = `Reporte Consolidado (${seleccionados.join(' - ')})`;
+    }
+
+    // Fecha actual para el nombre del archivo
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+    const fechaActualStr = `${dd}-${mm}-${yyyy}`;
+
+    // Construir el título dinámico que el navegador usará como nombre sugerido al guardar en PDF
+    const customTitle = `MÉTRICO - Gestión Estadística SAR - ${nombreReporte} - ${fechaActualStr}`;
+    
+    document.title = customTitle;
+
     window.print();
+
+    // Restaurar título original de la pestaña
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1500);
   };
 
   const exportCSV = () => {
