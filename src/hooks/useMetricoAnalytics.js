@@ -104,7 +104,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
         totalPacientes: pacsCount > 0 ? pacsCount : Number(t.totalPacientes || 0),
         altasAdmin: pacsCount > 0 ? altasCount : Number(t.altasAdmin || 0),
         ...(pacsCount > 0 ? counts : {
-          c1: t.c1 || 0, c2: t.c2 || 0, c3: t.c3 || 0, c3_z518: t.c3_z518 || 0,
+          c1: t.c1 || 0, c2: t.c2 || 0, c3: (t.c3 || 0) + (t.c3_z518 || 0), c3_z518: 0,
           c4: t.c4 || 0, c5: t.c5 || 0, sincat: t.sincat || 0
         })
       };
