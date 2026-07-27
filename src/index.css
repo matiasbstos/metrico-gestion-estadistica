@@ -3,7 +3,7 @@
 @media print {
   @page {
     size: letter portrait;
-    margin: 15mm 15mm 15mm 15mm;
+    margin: 8mm 12mm 10mm 12mm;
   }
 
   /* Reset complete layout stack to allow multi-page flow */
@@ -38,7 +38,7 @@
     display: none !important;
   }
 
-  /* Force the printed element to take full page width and natural height */
+  /* Force the printed element to take full page width and natural height without top gaps */
   #reporte-printable {
     position: static !important;
     display: block !important;
@@ -52,11 +52,21 @@
     color: #000000 !important;
   }
 
+  #reporte-printable > div {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  #reporte-printable > div > div:first-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
   .print-page-break {
     page-break-before: always !important;
     break-before: page !important;
-    margin-top: 1.5rem !important;
-    padding-top: 1rem !important;
+    margin-top: 0.5rem !important;
+    padding-top: 0.5rem !important;
   }
 
   .print-avoid-break {
