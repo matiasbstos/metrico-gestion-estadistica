@@ -1192,7 +1192,7 @@ export default function ReportesModule({
                   {/* Metadatos de Emisión */}
                   <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-[11px] text-slate-600 leading-relaxed space-y-1">
                     <p>
-                      <strong>Sistema Emisor:</strong> MÉTRICO - Sistema de Gestión Estadística de Urgencia (SAR Dra. Eloísa Díaz / Elsa Romo Aravena).
+                      <strong>Sistema Emisor:</strong> MÉTRICO - Sistema de Gestión Estadística de Urgencia (SAR Arpillerista Elsa Romo Aravena).
                     </p>
                     <p>
                       <strong>Usuario Certificante:</strong> {user?.email || 'Usuario Autorizado / Gestión Local'}
@@ -1212,7 +1212,7 @@ export default function ReportesModule({
                     <div className="text-center space-y-1">
                       <div className="border-t border-slate-400 w-52 mx-auto"></div>
                       <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Firma Directora Técnica</p>
-                      <p className="text-[9px] text-slate-500 font-bold uppercase">SAR Dra. Eloísa Díaz (Elsa Romo Aravena)</p>
+                      <p className="text-[9px] text-slate-500 font-bold uppercase">SAR Arpillerista Elsa Romo Aravena</p>
                     </div>
                   </div>
                 </div>
@@ -1288,7 +1288,7 @@ export default function ReportesModule({
                 {/* Metadatos de Emisión de Reporte */}
                 <div className="bg-slate-50/50 border border-slate-200 p-3.5 rounded-xl text-[11px] text-slate-600 leading-relaxed space-y-1.5">
                   <p>
-                    <strong>Sistema Emisor:</strong> Métrico - Dashboard de Gestión Estadística y Tiempos de Espera de Urgencia (SAR Dra. Eloísa Díaz / Elsa Romo Aravena).
+                    <strong>Sistema Emisor:</strong> Métrico - Dashboard de Gestión Estadística y Tiempos de Espera de Urgencia (SAR Arpillerista Elsa Romo Aravena).
                   </p>
                   <p>
                     <strong>Usuario Certificante:</strong> {user?.email || 'Usuario Autorizado / Gestión Local'}
@@ -1311,7 +1311,7 @@ export default function ReportesModule({
                   <div className="text-center space-y-1">
                     <div className="border-t border-slate-400 w-52 mx-auto"></div>
                     <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Firma Directora Técnica</p>
-                    <p className="text-[9px] text-slate-500 font-bold uppercase">SAR Dra. Eloísa Díaz (Elsa Romo Aravena)</p>
+                    <p className="text-[9px] text-slate-500 font-bold uppercase">SAR Arpillerista Elsa Romo Aravena</p>
                   </div>
                 </div>
               </div>
