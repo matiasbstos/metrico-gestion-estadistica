@@ -7,26 +7,27 @@ import {
 } from 'recharts';
 import InfoTooltip from '../InfoTooltip';
 
-export default function AnalisisConstataciones({ pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin }) {
+export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin }) {
   const [filtroSexo, setFiltroSexo] = useState('TODOS');
   const [filtroComuna, setFiltroComuna] = useState('TODOS');
 
-  // 1. Filtrar los lotes visibles dentro del período seleccionado
-  const turnosVisibles = useMemo(() => {
-    return turnosDB.filter(t => {
+  // 1. Obtener la lista base de pacientes del período
+  const targetPacientes = useMemo(() => {
+    if (pacientesFiltrados && pacientesFiltrados.length > 0) {
+      return pacientesFiltrados;
+    }
+    const lotesVisibles = new Set(turnosDB.filter(t => {
       if (filtroFechaInicio && t.fechaInicio < filtroFechaInicio) return false;
       if (filtroFechaFin && t.fechaFin > filtroFechaFin) return false;
       return true;
-    });
-  }, [turnosDB, filtroFechaInicio, filtroFechaFin]);
+    }).map(t => t.loteId));
 
-  const lotesVisiblesIds = useMemo(() => new Set(turnosVisibles.map(t => t.loteId)), [turnosVisibles]);
+    return pacientesDB.filter(p => lotesVisibles.has(p.loteId));
+  }, [pacientesFiltrados, pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin]);
 
   // 2. Extraer todos los pacientes que son Constataciones de Lesiones (Z51.8) en el período
   const pacientesLesiones = useMemo(() => {
-    return pacientesDB.filter(p => {
-      if (!lotesVisiblesIds.has(p.loteId)) return false;
-      
+    return targetPacientes.filter(p => {
       const isLesion = p.categoria === 'c3_z518' || 
                        (p.diagnostico && String(p.diagnostico).toUpperCase().includes('Z51.8'));
       if (!isLesion) return false;
@@ -45,26 +46,23 @@ export default function AnalisisConstataciones({ pacientesDB, turnosDB, filtroFe
 
       return true;
     });
-  }, [pacientesDB, lotesVisiblesIds, filtroSexo, filtroComuna]);
+  }, [targetPacientes, filtroSexo, filtroComuna]);
 
   // Total pacientes evaluados C3 en el periodo (para calcular la tasa)
   const totalEvaluadosC3 = useMemo(() => {
-    return pacientesDB.filter(p => {
-      if (!lotesVisiblesIds.has(p.loteId)) return false;
-      return p.categoria === 'c3' || p.categoria === 'c3_z518';
-    }).length;
-  }, [pacientesDB, lotesVisiblesIds]);
+    return targetPacientes.filter(p => p.categoria === 'c3' || p.categoria === 'c3_z518' || (p.diagnostico && String(p.diagnostico).toUpperCase().includes('Z51.8'))).length;
+  }, [targetPacientes]);
 
   // Comunas únicas disponibles para el selector
   const comunasDisponibles = useMemo(() => {
     const setC = new Set();
-    pacientesDB.forEach(p => {
-      if (lotesVisiblesIds.has(p.loteId) && p.comuna) {
+    targetPacientes.forEach(p => {
+      if (p.comuna) {
         setC.add(String(p.comuna).toUpperCase().trim());
       }
     });
     return Array.from(setC).sort();
-  }, [pacientesDB, lotesVisiblesIds]);
+  }, [targetPacientes]);
 
   // 3. Métricas y KPIs Generales (Cantidades Absolutas)
   const statsGenerales = useMemo(() => {

@@ -262,8 +262,19 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     pmPacHora = pmHours > 0 ? prevMonthVol / pmHours : 0;
     pyPacHora = pyHours > 0 ? prevYearVol / pyHours : 0;
 
-    prevMonthPacientes.forEach(p => { if (pmCats[p.categoria] !== undefined) pmCats[p.categoria]++; });
-    prevYearPacientes.forEach(p => { if (pyCats[p.categoria] !== undefined) pyCats[p.categoria]++; });
+    const countCategories = (pacList, targetObj) => {
+      pacList.forEach(p => {
+        const isLesion = p.categoria === 'c3_z518' || (p.diagnostico && String(p.diagnostico).toUpperCase().includes('Z51.8'));
+        if (isLesion) {
+          targetObj.c3_z518++;
+        } else if (targetObj[p.categoria] !== undefined) {
+          targetObj[p.categoria]++;
+        }
+      });
+    };
+
+    countCategories(prevMonthPacientes, pmCats);
+    countCategories(prevYearPacientes, pyCats);
 
     const currentVol = pacientesFiltrados.length;
     const currentAltas = pacientesFiltrados.filter(p => p.estado === 'Cancelada').length;
@@ -273,15 +284,15 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const currentPacHoraVal = currentHours > 0 ? currentVol / currentHours : 0;
 
     const currentCats = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
-    pacientesFiltrados.forEach(p => {
-      if (currentCats[p.categoria] !== undefined) currentCats[p.categoria]++;
-    });    const getGrowth = (curr, prev) => prev === 0 ? (curr > 0 ? 100 : 0) : ((curr - prev) / prev) * 100;
+    countCategories(pacientesFiltrados, currentCats);
+
+    const getGrowth = (curr, prev) => prev === 0 ? (curr > 0 ? 100 : 0) : ((curr - prev) / prev) * 100;
 
     const isTraslado = (p) => {
       const d = String(p.destinoAlta || p.destino || '').toLowerCase();
       return d.includes('hospital') || d.includes('emergencia') || d.includes('derivac');
     };
-    const isConstatacion = (p) => p.categoria === 'c3_z518';
+    const isConstatacion = (p) => p.categoria === 'c3_z518' || (p.diagnostico && String(p.diagnostico).toUpperCase().includes('Z51.8'));
 
     const currentTraslados = pacientesFiltrados.filter(isTraslado).length;
     const pmTraslados = prevMonthPacientes.filter(isTraslado).length;
@@ -300,7 +311,12 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const yearStartStr = `${fEnd.getFullYear()}-01-01`;
     const fEndStr = fEnd.toISOString().split('T')[0];
 
-    const yearPacs = pacientesDB.filter(p => isPatientInWindow(p.tAdmision, yearStartStr, fEndStr, '00:00', '23:59'));
+    const yearLoteIds = new Set(turnosDB.filter(t => t.fechaInicio >= yearStartStr && t.fechaFin <= fEndStr).map(t => t.loteId));
+    const yearPacs = pacientesDB.filter(p => {
+      if (p.tAdmision && isPatientInWindow(p.tAdmision, yearStartStr, fEndStr, '00:00', '23:59')) return true;
+      if (p.loteId && yearLoteIds.has(p.loteId)) return true;
+      return false;
+    });
 
     const ytdTraslados = yearPacs.filter(isTraslado).length;
     const ytdConstataciones = yearPacs.filter(isConstatacion).length;

@@ -1070,7 +1070,7 @@ const DashboardContent = () => {
           <AuditoriaMedicaDetail pacientesDB={pacientesDB} turnosDB={turnosDB} />
         )}
 
-        {['especificos', 'altas', 'fracturas', 'enfermeria'].includes(activeTab) && (
+        {['especificos', 'altas', 'fracturas', 'enfermeria', 'constataciones'].includes(activeTab) && (
           <div className="space-y-6">
             {/* SECTOR DE FILTROS Y CONTROL DE CONTEXTO */}
             <FiltrosGlobales 
@@ -1089,7 +1089,7 @@ const DashboardContent = () => {
             />
 
             {/* SELECCIÓN DE SUB-MÓDULO DE ANÁLISIS ESPECÍFICO */}
-            <div className="flex gap-2 bg-card-custom p-1.5 rounded-2xl border border-card-custom shadow-sm w-fit theme-transition">
+            <div className="flex gap-2 bg-card-custom p-1.5 rounded-2xl border border-card-custom shadow-sm w-fit theme-transition flex-wrap">
               <button
                 onClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'altas' || (activeTab === 'especificos' && subTabEspecifico === 'altas') ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}
@@ -1110,6 +1110,13 @@ const DashboardContent = () => {
               >
                 <Users className="w-4 h-4" />
                 Rendimiento de Enfermería y Triaje
+              </button>
+              <button
+                onClick={() => { setActiveTab('constataciones'); setSubTabEspecifico('constataciones'); }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'constataciones' || (activeTab === 'especificos' && subTabEspecifico === 'constataciones') ? 'bg-amber-600 text-white shadow-sm' : 'text-secondary-custom hover:text-amber-600 hover:bg-amber-600/10'}`}
+              >
+                <ShieldAlert className="w-4 h-4 text-amber-500" />
+                Constatación de Lesiones
               </button>
             </div>
 
@@ -1137,6 +1144,7 @@ const DashboardContent = () => {
             
             {(activeTab === 'constataciones' || (activeTab === 'especificos' && subTabEspecifico === 'constataciones')) && (
               <AnalisisConstataciones 
+                pacientesFiltrados={pacientesFiltrados}
                 pacientesDB={pacientesDB} 
                 turnosDB={turnosDB} 
                 filtroFechaInicio={filtroFechaInicio} 
