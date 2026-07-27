@@ -74,10 +74,12 @@
     break-inside: avoid !important;
   }
 
-  /* Avoid cutting off chart SVGs or table rows */
-  tr, img, svg {
+  /* Avoid cutting off chart SVGs or table rows and force vector colors */
+  tr, img, svg, rect, path {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }
 

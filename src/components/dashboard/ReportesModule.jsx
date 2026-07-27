@@ -1227,22 +1227,27 @@ export default function ReportesModule({
                     </div>
                   </div>
 
-                  <div className="space-y-2 pt-1">
+                  <div className="space-y-2.5 pt-1">
                     {statsConstatacionesReporte.matrixArr.map((item, idx) => {
                       const maxVal = Math.max(...statsConstatacionesReporte.matrixArr.map(m => Math.max(m.mujeres, m.hombres)), 1);
                       const widthM = Math.round((item.mujeres / maxVal) * 100);
                       const widthH = Math.round((item.hombres / maxVal) * 100);
 
+                      const mPercent = Math.max(widthM, 5);
+                      const hPercent = Math.max(widthH, 5);
+
                       return (
                         <div key={idx} className="grid grid-cols-12 items-center gap-2 text-[11px]">
                           {/* Lado Izquierdo: Mujeres */}
                           <div className="col-span-5 flex items-center justify-end gap-2">
-                            <span className="font-bold text-pink-700 text-[10px]">{item.mujeres} pac ({item.pctMujeres}%)</span>
-                            <div className="w-full bg-slate-200 h-3.5 rounded-l-md overflow-hidden flex justify-end">
-                              <div 
-                                className="bg-pink-500 h-full rounded-l-md transition-all" 
-                                style={{ width: `${Math.max(widthM, 5)}%` }}
-                              />
+                            <span className="font-bold text-pink-700 text-[10px] whitespace-nowrap">{item.mujeres} pac ({item.pctMujeres}%)</span>
+                            <div className="w-full h-4 min-w-[60px]">
+                              <svg className="w-full h-full block" preserveAspectRatio="none" viewBox="0 0 100 16">
+                                {/* Track gris de fondo (vectoriales impresos siempre) */}
+                                <rect x="0" y="0" width="100" height="16" rx="4" fill="#cbd5e1" stroke="#94a3b8" strokeWidth="0.5" />
+                                {/* Barra Rosa de Mujeres */}
+                                <rect x={100 - mPercent} y="0" width={mPercent} height="16" rx="4" fill="#ec4899" />
+                              </svg>
                             </div>
                           </div>
 
@@ -1253,13 +1258,15 @@ export default function ReportesModule({
 
                           {/* Lado Derecho: Hombres */}
                           <div className="col-span-5 flex items-center gap-2">
-                            <div className="w-full bg-slate-200 h-3.5 rounded-r-md overflow-hidden flex justify-start">
-                              <div 
-                                className="bg-blue-500 h-full rounded-r-md transition-all" 
-                                style={{ width: `${Math.max(widthH, 5)}%` }}
-                              />
+                            <div className="w-full h-4 min-w-[60px]">
+                              <svg className="w-full h-full block" preserveAspectRatio="none" viewBox="0 0 100 16">
+                                {/* Track gris de fondo */}
+                                <rect x="0" y="0" width="100" height="16" rx="4" fill="#cbd5e1" stroke="#94a3b8" strokeWidth="0.5" />
+                                {/* Barra Azul de Hombres */}
+                                <rect x="0" y="0" width={hPercent} height="16" rx="4" fill="#2563eb" />
+                              </svg>
                             </div>
-                            <span className="font-bold text-blue-700 text-[10px]">{item.hombres} pac ({item.pctHombres}%)</span>
+                            <span className="font-bold text-blue-700 text-[10px] whitespace-nowrap">{item.hombres} pac ({item.pctHombres}%)</span>
                           </div>
                         </div>
                       );
