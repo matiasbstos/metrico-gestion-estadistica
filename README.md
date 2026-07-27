@@ -4,6 +4,12 @@
 
 Aquí documentamos el progreso y las últimas actualizaciones que se le están haciendo al sistema para mantener a todo el equipo informado.
 
+### ✨ [Actualización] - 27 de Julio 2026 - Unificación de Constatación de Lesiones (Z51.8), Módulo Específico e Interacciones Demográficas
+- **Unificación de Cifra Real de Constatación de Lesiones (Z51.8):** Sincronización del cálculo dinámico entre el Explorador de Inicio (tarjetas de período y YTD) y los reportes de enfermería/triaje en los **273 casos reales** de la base de pacientes.
+- **Nuevo Módulo de Análisis Específico de Constataciones de Lesiones:** Apartado dedicado dentro de *Análisis Específicos* que desglosa cuantitativamente la demanda por Constatación de Lesiones (Z51.8).
+- **Matrices Cruzadas e Interacciones Demográficas:** Visualización combinada de Rango Etario vs. Sexo (con minigráficos integrados) y Comuna de Residencia vs. Sexo con filtros locales por género y comuna.
+- **Optimizaciones del Pipeline de Datos:** Resolución de la consulta YTD acumulada anual de `useMetricoAnalytics` y conexión directa del sub-módulo al pipeline en tiempo real `pacientesFiltrados`.
+
 ### ✨ [Actualización] - 22 de Julio 2026 - KPIs de Enfermería Completos, Diferenciación C3 Avanzada y Ventana de Detalle interactiva
 - **KPIs de Enfermería en Reporte Imprimible:** Incorporación de tiempos promedio de respuesta ("T. 1ª Cat" y "T. 2ª Cat") y filas de totales/promedios globales en el pie de la tabla de desempeño para consolidar métricas de todo el establecimiento.
 - **Gráficos Comparativos de Doble Eje:** Visualización de barras degradadas de respuesta por enfermero (Top 10) para control de tiempos.
