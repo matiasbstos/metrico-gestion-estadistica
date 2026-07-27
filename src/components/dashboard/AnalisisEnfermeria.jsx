@@ -26,13 +26,7 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
       
       const cod = (p.codigoDiagnostico || '').toUpperCase();
       const diag = (p.diagnosticoPrincipal || '').toUpperCase();
-      const isLesion = cod.includes('Z51.8') || cod.includes('Z518') || 
-                       cod.includes('Z04') || 
-                       diag.includes('CONSTATAC') || 
-                       diag.includes('LESIÓN') || diag.includes('LESION') ||
-                       diag.includes('CIRCUNSTANCIAS LEGALES') ||
-                       diag.includes('POLICIAL') ||
-                       diag.includes('AGRESIÓN') || diag.includes('AGRESION');
+      const isLesion = cod.includes('Z51.8') || cod.includes('Z518');
 
       if (isLesion) {
         if (cat1 === 'c3') cat1 = 'c3_z518';

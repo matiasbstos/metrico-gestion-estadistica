@@ -25,17 +25,37 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
     return pacientesDB.filter(p => lotesVisibles.has(p.loteId));
   }, [pacientesFiltrados, pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin]);
 
-  // 2. Extraer todos los pacientes que son Constataciones de Lesiones (Z51.8) en el período
+  // Helper para verificar código estricto Z51.8 / c3_z518 (186 casos base)
+  const isStrictZ518 = (p) => {
+    if (!p) return false;
+    if (p.categoria === 'c3_z518') return true;
+    const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
+    const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
+    return cod.includes('Z51.8') || cod.includes('Z518');
+  };
+
+  // Helper para verificar casos extendidos (Z04, Agresiones, Policial, Legales)
+  const isExtendedCase = (p) => {
+    if (!p) return false;
+    const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
+    const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
+    return cod.includes('Z04') ||
+           diag.includes('CONSTATAC') || diag.includes('LESIÓN') || diag.includes('LESION') ||
+           diag.includes('CIRCUNSTANCIAS LEGALES') || diag.includes('POLICIAL') ||
+           diag.includes('AGRESIÓN') || diag.includes('AGRESION');
+  };
+
+  // Helper para clasificar coincidencia por destino policial / carabineros
+  const isMatchDestinoPolicial = (p) => {
+    const d = String(p.destinoAlta || p.destino || '').toUpperCase();
+    return d.includes('COMISAR') || d.includes('CARABINER') || d.includes('PDI') || 
+           d.includes('POLIC') || d.includes('CUSTODIA') || d.includes('JUZGADO') || d.includes('TRIBUNAL');
+  };
+
+  // 2. Extraer los pacientes con Z51.8 Estricto (Oficial 186)
   const pacientesLesiones = useMemo(() => {
     return targetPacientes.filter(p => {
-      const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
-      const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
-      const isLesion = p.categoria === 'c3_z518' ||
-                       cod.includes('Z51.8') || cod.includes('Z518') || cod.includes('Z04') ||
-                       diag.includes('CONSTATAC') || diag.includes('LESIÓN') || diag.includes('LESION') ||
-                       diag.includes('CIRCUNSTANCIAS LEGALES') || diag.includes('POLICIAL') ||
-                       diag.includes('AGRESIÓN') || diag.includes('AGRESION');
-      if (!isLesion) return false;
+      if (!isStrictZ518(p)) return false;
 
       // Filtros locales
       if (filtroSexo !== 'TODOS') {
@@ -53,14 +73,30 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
     });
   }, [targetPacientes, filtroSexo, filtroComuna]);
 
+  // Auditoría complementaria de casos secundarios (Z04 / Legales = 87 adicionales)
+  const auditoriaCasosSecundarios = useMemo(() => {
+    const secundario = targetPacientes.filter(p => isExtendedCase(p) && !isStrictZ518(p));
+    let matchPolicialCount = 0;
+    let altaMedicaCount = 0;
+
+    secundario.forEach(p => {
+      if (isMatchDestinoPolicial(p)) matchPolicialCount++;
+      else altaMedicaCount++;
+    });
+
+    return {
+      totalSecundarios: secundario.length,
+      matchPolicialCount,
+      altaMedicaCount,
+      secundarioList: secundario
+    };
+  }, [targetPacientes]);
+
   // Total pacientes evaluados C3 en el periodo (para calcular la tasa)
   const totalEvaluadosC3 = useMemo(() => {
     return targetPacientes.filter(p => {
       const cat = String(p.categoria || '').toLowerCase();
-      if (cat === 'c3' || cat === 'c3_z518') return true;
-      const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
-      const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
-      return cod.includes('Z51.8') || cod.includes('Z518') || cod.includes('Z04') || diag.includes('CONSTATAC') || diag.includes('LESIÓN') || diag.includes('LESION');
+      return cat === 'c3' || cat === 'c3_z518' || isStrictZ518(p);
     }).length;
   }, [targetPacientes]);
 
@@ -284,15 +320,68 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
 
         <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-between h-32">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Comuna con Mayor Frecuencia</span>
-          <div className="my-1 truncate" title={statsGenerales.topComuna}>
-            <span className="text-xl font-black text-indigo-600 truncate block">{statsGenerales.topComuna}</span>
+          <div className="my-1 truncate">
+            <span className="text-xl font-black text-indigo-600 uppercase">{statsGenerales.topComuna}</span>
+            <p className="text-xs font-bold text-slate-500">{statsGenerales.topComunaCount} casos registrados</p>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-[10px] font-bold text-slate-500">{statsGenerales.topComunaCount} casos registrados</span>
-            <MapPin className="w-3.5 h-3.5 text-indigo-400" />
-          </div>
+          <span className="text-[10px] font-medium text-slate-500 flex items-center gap-1">
+            <MapPin className="w-3 h-3 text-indigo-400" /> Principal origen territorial
+          </span>
         </div>
 
+      </div>
+
+      {/* SECCIÓN DE AUDITORÍA Y MATCH POR DESTINO POLICIAL */}
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+          <div className="flex items-center gap-2">
+            <ShieldAlert className="w-5 h-5 text-amber-500" />
+            <h3 className="text-sm font-black tracking-wide uppercase text-slate-800">
+              Auditoría por Destino y Casos Complementarios (Z04 / Agresiones / Legales)
+            </h3>
+          </div>
+          <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+            Regla de Match por Destino Policial
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+              Oficial Z51.8 Estricto
+            </span>
+            <div className="text-2xl font-black text-emerald-800 mt-1">
+              {statsGenerales.total} <span className="text-xs font-bold text-emerald-600">pacientes</span>
+            </div>
+            <p className="text-[10px] text-emerald-700 font-medium mt-1">
+              Cifra oficial Z51.8 reflejada en Inicio y Subreportes (186 pac).
+            </p>
+          </div>
+
+          <div className="bg-sky-50 p-4 rounded-xl border border-sky-100">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-sky-700">
+              Match Policial / Carabineros (Z04 / Legales)
+            </span>
+            <div className="text-2xl font-black text-sky-800 mt-1">
+              {auditoriaCasosSecundarios.matchPolicialCount} <span className="text-xs font-bold text-sky-600">pacientes</span>
+            </div>
+            <p className="text-[10px] text-sky-700 font-medium mt-1">
+              Destino verificado con Comisaría, Carabineros o Custodia.
+            </p>
+          </div>
+
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+              Alta Médica Domiciliaria / Consulta
+            </span>
+            <div className="text-2xl font-black text-slate-800 mt-1">
+              {auditoriaCasosSecundarios.altaMedicaCount} <span className="text-xs font-bold text-slate-500">pacientes</span>
+            </div>
+            <p className="text-[10px] text-slate-500 font-medium mt-1">
+              Diagnósticos con destino Alta Domicilio o Servicio Urgencia.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* SECCIÓN DE MATRICES CRUZADAS E INTERACCIONES */}

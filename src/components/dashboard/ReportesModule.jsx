@@ -215,16 +215,9 @@ export default function ReportesModule({
         
         let cat = String(p.catPrimera || p.categoria || '').toLowerCase();
         
-        // Dinámicamente identificar Constatación de Lesiones
+        // Dinámicamente identificar Constatación de Lesiones (Z51.8 Estricto)
         const cod = (p.codigoDiagnostico || '').toUpperCase();
-        const diag = (p.diagnosticoPrincipal || '').toUpperCase();
-        const isLesion = cod.includes('Z51.8') || cod.includes('Z518') || 
-                         cod.includes('Z04') || 
-                         diag.includes('CONSTATAC') || 
-                         diag.includes('LESIÓN') || diag.includes('LESION') ||
-                         diag.includes('CIRCUNSTANCIAS LEGALES') ||
-                         diag.includes('POLICIAL') ||
-                         diag.includes('AGRESIÓN') || diag.includes('AGRESION');
+        const isLesion = cod.includes('Z51.8') || cod.includes('Z518');
         
         if (isLesion && cat === 'c3') {
           cat = 'c3_z518';
