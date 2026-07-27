@@ -61,10 +61,13 @@ Aquí documentamos el progreso y las últimas actualizaciones que se le están h
 Su propósito principal es brindar una herramienta de inteligencia de negocios (BI) que permita cruzar datos (horarios, equipos, categorías de pacientes) para facilitar la toma de decisiones clínicas y operativas en tiempo real.
 
 ### Características Principales:
-- Visualización de datos mediante gráficos dinámicos (Recharts).
-- Análisis de métricas KPIs clave.
-- Control de usuarios y roles mediante la nube.
-- Sincronización en tiempo real y alta disponibilidad.
+- 📊 **Panel de KPIs Estadísticos**: Indicadores clave de rendimiento en tiempo real, como promedios de espera, profesionales activos y distribución de turnos.
+- 👥 **Análisis de Profesionales y Turnos**: Módulos dedicados al seguimiento del desempeño del personal clínico, rankings de profesionales y cobertura por turnos.
+- 📉 **Curva de Demanda**: Gráficos interactivos de demanda temporal para anticipar cargas de trabajo y flujos de pacientes.
+- 🗂️ **Gestión e Importación Masiva**: Carga robusta de datos desde archivos Excel para inicializar, actualizar y cruzar registros en segundos.
+- 🩺 **Análisis Sociodemográfico**: Desglose visual de métricas de pacientes según edad, género y otras variables sociodemográficas relevantes.
+- 🛡️ **Análisis Específico de Constataciones de Lesiones (Z51.8)**: Módulo dedicado para desgloses cuantitativos absolutos e interacciones demográficas entre sexo, edad y comuna de residencia.
+- 🔐 **Seguridad y Roles**: Control de acceso a módulos específicos y persistencia en tiempo real soportada por Firebase.
 
 ### Tecnologías:
 - **Frontend:** React + Vite, Tailwind CSS, Lucide React.

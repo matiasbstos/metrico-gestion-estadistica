@@ -81,7 +81,13 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       const counts = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0, sincat: 0 };
       if (pacsCount > 0) {
         pacs.forEach(p => {
-          if (counts[p.categoria] !== undefined) counts[p.categoria]++;
+          const cat = p.categoria;
+          const isLesion = cat === 'c3_z518' || (p.diagnostico && String(p.diagnostico).toUpperCase().includes('Z51.8'));
+          if (isLesion) {
+            counts.c3_z518++;
+          } else if (counts[cat] !== undefined) {
+            counts[cat]++;
+          }
         });
       }
 

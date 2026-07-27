@@ -21,6 +21,7 @@ import AuditoriaMedicaDetail from './dashboard/AuditoriaMedicaDetail';
 import CalendarioHistorico from './dashboard/CalendarioHistorico';
 import AnalisisFracturas from './dashboard/AnalisisFracturas';
 import AnalisisEnfermeria from './dashboard/AnalisisEnfermeria';
+import AnalisisConstataciones from './dashboard/AnalisisConstataciones';
 import Login from './Login';
 import { 
   Clock, Users, UserCheck, AlertTriangle, Activity, ArrowRight, 
@@ -28,7 +29,7 @@ import {
   CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
   BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
   Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
-  HeartPulse, Shield, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight
+  HeartPulse, Shield, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
@@ -50,7 +51,7 @@ import { COLORS, DOC_COLORS, AGE_RANGES, METRIC_LABELS } from '../config/constan
 
 const DashboardContent = () => {
   const [activeTab, setActiveTab] = useState('resumen');
-  const [subTabEspecifico, setSubTabEspecifico] = useState('fracturas'); // 'fracturas' | 'altas'
+  const [subTabEspecifico, setSubTabEspecifico] = useState('fracturas'); // 'fracturas' | 'altas' | 'constataciones'
   const [isEspecificosOpen, setIsEspecificosOpen] = useState(true);
   const [notification, setNotification] = useState(null);
   const [pendingUpload, setPendingUpload] = useState(null);
@@ -674,6 +675,13 @@ const DashboardContent = () => {
             {sidebarCollapsed ? (
               <>
                 <button 
+                  onClick={() => { setActiveTab('constataciones'); setSubTabEspecifico('constataciones'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                  title="Constatación de Lesiones"
+                  className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'constataciones' ? 'bg-amber-500/20 text-amber-500 font-black border border-amber-500/30' : 'bg-transparent text-secondary-custom hover:text-amber-500 hover:bg-amber-500/10'}`}>
+                  <ShieldAlert className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                </button>
+              <>
+                <button 
                   onClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
                   title="Altas Administrativas"
                   className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'altas' ? 'bg-black/10 dark:bg-white/10 text-primary-custom font-black border border-card-custom' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
@@ -726,6 +734,11 @@ const DashboardContent = () => {
                       onClick={() => { setActiveTab('enfermeria'); setSubTabEspecifico('enfermeria'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
                       className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'enfermeria' || (activeTab === 'especificos' && subTabEspecifico === 'enfermeria') ? 'bg-indigo-500/20 text-indigo-500 font-black border border-indigo-500/30' : 'text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10'}`}>
                       <Activity className="w-3.5 h-3.5 text-indigo-500" /> Rendimiento Enfermería
+                    </button>
+                    <button 
+                      onClick={() => { setActiveTab('constataciones'); setSubTabEspecifico('constataciones'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'constataciones' || (activeTab === 'especificos' && subTabEspecifico === 'constataciones') ? 'bg-amber-500/20 text-amber-500 font-black border border-amber-500/30' : 'text-secondary-custom hover:text-amber-500 hover:bg-amber-500/10'}`}>
+                      <ShieldAlert className="w-3.5 h-3.5 text-amber-500" /> Constatación de Lesiones
                     </button>
                   </div>
                 )}
@@ -1121,6 +1134,15 @@ const DashboardContent = () => {
 
             {(activeTab === 'enfermeria' || (activeTab === 'especificos' && subTabEspecifico === 'enfermeria')) && (
               <AnalisisEnfermeria pacientesFiltrados={pacientesFiltrados} pacientesDB={pacientesDB} turnosDB={turnosDB} />
+            )}
+            
+            {(activeTab === 'constataciones' || (activeTab === 'especificos' && subTabEspecifico === 'constataciones')) && (
+              <AnalisisConstataciones 
+                pacientesDB={pacientesDB} 
+                turnosDB={turnosDB} 
+                filtroFechaInicio={filtroFechaInicio} 
+                filtroFechaFin={filtroFechaFin} 
+              />
             )}
           </div>
         )}
