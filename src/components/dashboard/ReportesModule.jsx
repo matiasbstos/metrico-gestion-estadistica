@@ -1223,85 +1223,126 @@ export default function ReportesModule({
                   </div>
                 </div>
 
-                {/* RESUMEN POR SEXO Y RANGO DOMINANTE DE PARTICIPACIÓN */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="bg-blue-50/70 border border-blue-200 p-3 rounded-xl flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Hombres Atendidos</span>
-                      <p className="text-xl font-black text-blue-900 mt-0.5">{statsConstatacionesReporte.hombres} <span className="text-xs font-bold text-blue-700">pac.</span></p>
+                {/* DONUT CHART / ANILLO DE DISTRIBUCIÓN POR SEXO Y RANGO DOMINANTE */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print-avoid-break">
+                  {/* Card 1: Gráfico de Anillo / Dona por Sexo */}
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-4">
+                    {/* SVG Donut Ring Chart */}
+                    <div className="relative w-28 h-28 shrink-0">
+                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 110 110">
+                        {/* Track de Fondo */}
+                        <circle cx="55" cy="55" r="45" fill="none" stroke="#f1f5f9" strokeWidth="12" />
+                        {/* Arco Hombres (Azul) */}
+                        <circle 
+                          cx="55" cy="55" r="45" fill="none" stroke="#2563eb" strokeWidth="12" 
+                          strokeDasharray={`${(Number(statsConstatacionesReporte.hombresPct) / 100) * 282.74} 282.74`}
+                          strokeDashoffset="0"
+                          strokeLinecap="round"
+                        />
+                        {/* Arco Mujeres (Rosa) */}
+                        <circle 
+                          cx="55" cy="55" r="45" fill="none" stroke="#ec4899" strokeWidth="12" 
+                          strokeDasharray={`${(Number(statsConstatacionesReporte.mujeresPct) / 100) * 282.74} 282.74`}
+                          strokeDashoffset={`-${(Number(statsConstatacionesReporte.hombresPct) / 100) * 282.74}`}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      {/* Texto Central de la Dona */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                        <span className="text-base font-black text-slate-900 leading-none">{statsConstatacionesReporte.totalOfficial}</span>
+                        <span className="text-[8px] font-bold text-slate-500 uppercase mt-0.5">Pacientes</span>
+                      </div>
                     </div>
-                    <span className="text-base font-black text-blue-700 bg-white px-2 py-0.5 rounded-lg border border-blue-200">{statsConstatacionesReporte.hombresPct}%</span>
+
+                    {/* Leyenda de la Dona */}
+                    <div className="flex-1 space-y-2 text-[11px]">
+                      <h4 className="text-xs font-bold text-slate-800 uppercase border-b border-slate-200 pb-1">Distribución por Sexo</h4>
+                      <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-pink-100 shadow-2xs">
+                        <div className="flex items-center gap-1.5 font-bold text-pink-700">
+                          <span className="w-2.5 h-2.5 rounded-full bg-pink-500 inline-block shrink-0"></span>
+                          <span>Mujeres</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-black text-pink-900 block">{statsConstatacionesReporte.mujeres} pac.</span>
+                          <span className="text-[10px] font-bold text-pink-600">({statsConstatacionesReporte.mujeresPct}%)</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-blue-100 shadow-2xs">
+                        <div className="flex items-center gap-1.5 font-bold text-blue-700">
+                          <span className="w-2.5 h-2.5 rounded-full bg-blue-600 inline-block shrink-0"></span>
+                          <span>Hombres</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-black text-blue-900 block">{statsConstatacionesReporte.hombres} pac.</span>
+                          <span className="text-[10px] font-bold text-blue-600">({statsConstatacionesReporte.hombresPct}%)</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="bg-pink-50/70 border border-pink-200 p-3 rounded-xl flex items-center justify-between">
+                  {/* Card 2: Rango Etario Dominante */}
+                  <div className="bg-amber-50/60 p-4 rounded-xl border border-amber-200 flex flex-col justify-between">
                     <div>
-                      <span className="text-[10px] font-bold text-pink-700 uppercase tracking-wider">Mujeres Atendidas</span>
-                      <p className="text-xl font-black text-pink-900 mt-0.5">{statsConstatacionesReporte.mujeres} <span className="text-xs font-bold text-pink-700">pac.</span></p>
+                      <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block mb-1">Rango Etario con Mayor Participación</span>
+                      <h3 className="text-2xl font-black text-amber-900">{statsConstatacionesReporte.topRango.rango} años</h3>
+                      <p className="text-xs font-medium text-amber-800 mt-1">Grupo de edad con mayor volumen de constataciones de lesiones atendidas.</p>
                     </div>
-                    <span className="text-base font-black text-pink-700 bg-white px-2 py-0.5 rounded-lg border border-pink-200">{statsConstatacionesReporte.mujeresPct}%</span>
-                  </div>
-
-                  <div className="bg-amber-50/70 border border-amber-300 p-3 rounded-xl flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider">Mayor Participación</span>
-                      <p className="text-base font-black text-amber-900 mt-0.5">{statsConstatacionesReporte.topRango.rango} años</p>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-sm font-black text-amber-800 block">{statsConstatacionesReporte.topRango.total} pac.</span>
-                      <span className="text-[10px] font-bold text-amber-700">({statsConstatacionesReporte.topRango.pct}% del total)</span>
+                    <div className="flex justify-between items-center bg-white/80 p-2 rounded-lg border border-amber-200 mt-2 text-[11px]">
+                      <span className="font-bold text-amber-900">Total Casos Registrados:</span>
+                      <span className="font-black text-amber-900 text-sm">{statsConstatacionesReporte.topRango.total} pac. ({statsConstatacionesReporte.topRango.pct}%)</span>
                     </div>
                   </div>
                 </div>
 
-                {/* GRÁFICO DE BARRAS HORIZONTALES ENCONTRADAS (PIRÁMIDE DEMOGRÁFICA DE EDAD VS SEXO) */}
+                {/* GRÁFICO DE BARRAS HORIZONTALES ENCONTRADAS (PIRÁMIDE DEMOGRÁFICA DE EDAD VS SEXO CON LÍNEAS SUTILES) */}
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 print-avoid-break">
                   <div className="flex justify-between items-center border-b border-slate-200 pb-2">
                     <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                       Pirámide Demográfica: Distribución Etaria Enfrentada por Sexo (Mujeres ⬅️ | ➡️ Hombres)
                     </h3>
                     <div className="flex items-center gap-4 text-[10px] font-bold">
-                      <span className="flex items-center gap-1 text-pink-600"><span className="w-2.5 h-2.5 rounded-full bg-pink-500 inline-block"></span> Mujeres ({statsConstatacionesReporte.mujeresPct}%)</span>
-                      <span className="flex items-center gap-1 text-blue-600"><span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> Hombres ({statsConstatacionesReporte.hombresPct}%)</span>
+                      <span className="flex items-center gap-1 text-pink-600"><span className="w-2 h-2 rounded-full bg-pink-500 inline-block"></span> Mujeres</span>
+                      <span className="flex items-center gap-1 text-blue-600"><span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span> Hombres</span>
                     </div>
                   </div>
 
-                  <div className="space-y-2.5 pt-1">
+                  <div className="space-y-3 pt-1">
                     {statsConstatacionesReporte.matrixArr.map((item, idx) => {
                       const maxVal = Math.max(...statsConstatacionesReporte.matrixArr.map(m => Math.max(m.mujeres, m.hombres)), 1);
                       const widthM = Math.round((item.mujeres / maxVal) * 100);
                       const widthH = Math.round((item.hombres / maxVal) * 100);
 
-                      const mPercent = Math.max(widthM, 5);
-                      const hPercent = Math.max(widthH, 5);
+                      const mPercent = Math.max(widthM, 4);
+                      const hPercent = Math.max(widthH, 4);
 
                       return (
                         <div key={idx} className="grid grid-cols-12 items-center gap-2 text-[11px]">
                           {/* Lado Izquierdo: Mujeres */}
                           <div className="col-span-5 flex items-center justify-end gap-2">
                             <span className="font-bold text-pink-700 text-[10px] whitespace-nowrap">{item.mujeres} pac ({item.pctMujeres}%)</span>
-                            <div className="w-full h-4 min-w-[60px]">
-                              <svg className="w-full h-full block" preserveAspectRatio="none" viewBox="0 0 100 16">
-                                {/* Track gris de fondo (vectoriales impresos siempre) */}
-                                <rect x="0" y="0" width="100" height="16" rx="4" fill="#cbd5e1" stroke="#94a3b8" strokeWidth="0.5" />
+                            <div className="w-full h-2.5 min-w-[60px]">
+                              <svg className="w-full h-full block" preserveAspectRatio="none" viewBox="0 0 100 10">
+                                {/* Track sutil gris muy claro */}
+                                <rect x="0" y="0" width="100" height="10" rx="5" fill="#f1f5f9" stroke="#e2e8f0" strokeWidth="0.5" />
                                 {/* Barra Rosa de Mujeres */}
-                                <rect x={100 - mPercent} y="0" width={mPercent} height="16" rx="4" fill="#ec4899" />
+                                <rect x={100 - mPercent} y="0" width={mPercent} height="10" rx="5" fill="#ec4899" />
                               </svg>
                             </div>
                           </div>
 
                           {/* Centro: Rango de Edad */}
-                          <div className="col-span-2 text-center bg-white py-0.5 border border-slate-300 rounded font-black text-slate-800 text-[10px]">
+                          <div className="col-span-2 text-center bg-white py-0.5 border border-slate-200 rounded font-black text-slate-800 text-[10px] shadow-2xs">
                             {item.rango} años
                           </div>
 
                           {/* Lado Derecho: Hombres */}
                           <div className="col-span-5 flex items-center gap-2">
-                            <div className="w-full h-4 min-w-[60px]">
-                              <svg className="w-full h-full block" preserveAspectRatio="none" viewBox="0 0 100 16">
-                                {/* Track gris de fondo */}
-                                <rect x="0" y="0" width="100" height="16" rx="4" fill="#cbd5e1" stroke="#94a3b8" strokeWidth="0.5" />
+                            <div className="w-full h-2.5 min-w-[60px]">
+                              <svg className="w-full h-full block" preserveAspectRatio="none" viewBox="0 0 100 10">
+                                {/* Track sutil gris muy claro */}
+                                <rect x="0" y="0" width="100" height="10" rx="5" fill="#f1f5f9" stroke="#e2e8f0" strokeWidth="0.5" />
                                 {/* Barra Azul de Hombres */}
-                                <rect x="0" y="0" width={hPercent} height="16" rx="4" fill="#2563eb" />
+                                <rect x="0" y="0" width={hPercent} height="10" rx="5" fill="#2563eb" />
                               </svg>
                             </div>
                             <span className="font-bold text-blue-700 text-[10px] whitespace-nowrap">{item.hombres} pac ({item.pctHombres}%)</span>
