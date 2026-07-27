@@ -25,14 +25,13 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
     return pacientesDB.filter(p => lotesVisibles.has(p.loteId));
   }, [pacientesFiltrados, pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin]);
 
-  // Helper oficial para Constataciones Z51.8 (241 casos oficiales)
+  // Helper oficial para Constataciones Z51.8 (Z51.8 + Z518)
   const isConstatacionOficial = (p) => {
     if (!p) return false;
     if (p.categoria === 'c3_z518') return true;
     const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
     const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
-    return cod.includes('Z51') || cod.includes('Z51.8') || cod.includes('Z518') ||
-           diag.includes('CONSTATAC') || diag.includes('LESIÓN') || diag.includes('LESION');
+    return cod.includes('Z51.8') || cod.includes('Z518') || diag.includes('CONSTATAC');
   };
 
   // 2. Extraer los pacientes con Constataciones Z51.8 Oficiales (241 pac)

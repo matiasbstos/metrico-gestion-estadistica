@@ -30,8 +30,7 @@ const isConstatacionLesion = (p) => {
   if (p.categoria === 'c3_z518') return true;
   const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
   const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
-  return cod.includes('Z51') || cod.includes('Z51.8') || cod.includes('Z518') ||
-         diag.includes('CONSTATAC') || diag.includes('LESIÓN') || diag.includes('LESION');
+  return cod.includes('Z51.8') || cod.includes('Z518') || diag.includes('CONSTATAC');
 };
 
 export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales = {}, tipoCorte = 'turno', filtroHoraInicio = '00:00', filtroHoraFin = '23:59') => {

@@ -349,7 +349,7 @@ export default function ReportesModule({
       const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
 
       const isC3 = cat === 'c3' || cat === 'c3_z518';
-      const isOfficial = cat === 'c3_z518' || cod.includes('Z51') || cod.includes('Z51.8') || cod.includes('Z518') || diag.includes('CONSTATAC') || diag.includes('LESIÓN') || diag.includes('LESION');
+      const isOfficial = cat === 'c3_z518' || cod.includes('Z51.8') || cod.includes('Z518') || diag.includes('CONSTATAC');
 
       if (isOfficial) {
         official241++;
@@ -375,7 +375,7 @@ export default function ReportesModule({
       if (isC3) c3Total++;
 
       if (cod.includes('Z51') || cod.includes('Z04') || isOfficial) {
-        if (cod.includes('Z51') || diag.includes('LESIÓ') || diag.includes('LESION') || diag.includes('CONSTATAC')) subLesiones++;
+        if (cod.includes('Z51') || cod.includes('Z51.8') || cod.includes('Z518') || diag.includes('CONSTATAC')) subLesiones++;
         if (diag.includes('CIRCUNSTANCIAS LEGALES') || diag.includes('LEGAL')) subLegales++;
         if (diag.includes('AGRESIÓ') || diag.includes('AGRESION')) subAgresion++;
         if (diag.includes('POLICIAL') || diag.includes('CARABINERO') || diag.includes('PDI') || cod.includes('Z04')) subPolicial++;
@@ -393,8 +393,10 @@ export default function ReportesModule({
 
     return {
       totalOfficial: totalOff,
+      totalSarPacientes: pacs.length,
       totalC3: c3Total,
       pctC3: c3Total > 0 ? ((totalOff / c3Total) * 100).toFixed(1) : '0.0',
+      pctSarTotal: pacs.length > 0 ? ((totalOff / pacs.length) * 100).toFixed(1) : '0.0',
       hombres,
       mujeres,
       subLesiones,
@@ -1121,31 +1123,37 @@ export default function ReportesModule({
                   </p>
                 </div>
 
-                {/* Cifra Oficial Principal y Desglose de Sub-variables */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white p-4 rounded-xl border border-amber-300 shadow-sm flex flex-col justify-between">
-                    <span className="text-[10px] font-bold text-amber-700 uppercase">Cifra Oficial Constataciones Z51.8</span>
-                    <p className="text-3xl font-black text-amber-800 my-1">{statsConstatacionesReporte.totalOfficial} <span className="text-xs font-bold text-slate-500">pacientes</span></p>
-                    <span className="text-[10px] text-slate-600 font-medium">Representa el <strong>{statsConstatacionesReporte.pctC3}%</strong> del universo C3 evaluados ({statsConstatacionesReporte.totalC3} pac).</span>
+                {/* Cifra Oficial Principal, Universo Total SAR y Desglose de Sub-variables */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Universo Total Atenciones SAR</span>
+                    <p className="text-3xl font-black text-slate-800 my-1">{statsConstatacionesReporte.totalSarPacientes.toLocaleString()} <span className="text-xs font-bold text-slate-500">pac.</span></p>
+                    <span className="text-[10px] text-slate-500 font-medium">Demanda total registrada en el establecimiento.</span>
+                  </div>
+
+                  <div className="bg-amber-50/70 p-4 rounded-xl border border-amber-300 shadow-sm flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-amber-800 uppercase">Cifra Oficial Constataciones Z51.8</span>
+                    <p className="text-3xl font-black text-amber-900 my-1">{statsConstatacionesReporte.totalOfficial} <span className="text-xs font-bold text-amber-700">pacientes</span></p>
+                    <span className="text-[10px] text-amber-800 font-medium">Representa el <strong>{statsConstatacionesReporte.pctC3}%</strong> de evaluados C3 ({statsConstatacionesReporte.totalC3} pac) y <strong>{statsConstatacionesReporte.pctSarTotal}%</strong> del total SAR.</span>
                   </div>
 
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-                    <span className="text-[10px] font-bold text-slate-600 uppercase block mb-1">Desglose Numérico de Sub-Variables (Z51.8 y Z04)</span>
-                    <div className="grid grid-cols-2 gap-2 text-[11px]">
-                      <div className="flex justify-between bg-white p-2 rounded border border-slate-200">
-                        <span className="font-semibold text-slate-700">(a) Lesiones Directas:</span>
+                    <span className="text-[10px] font-bold text-slate-600 uppercase block mb-1">Sub-Variables (Z51.8 y Z04)</span>
+                    <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                      <div className="flex justify-between bg-white p-1.5 rounded border border-slate-200">
+                        <span className="font-semibold text-slate-700">(a) Lesiones:</span>
                         <span className="font-bold text-amber-700">{statsConstatacionesReporte.subLesiones}</span>
                       </div>
                       <div className="flex justify-between bg-white p-2 rounded border border-slate-200">
-                        <span className="font-semibold text-slate-700">(b) Circunstancias Legales:</span>
+                        <span className="font-semibold text-slate-700">(b) Legales:</span>
                         <span className="font-bold text-amber-700">{statsConstatacionesReporte.subLegales}</span>
                       </div>
-                      <div className="flex justify-between bg-white p-2 rounded border border-slate-200">
-                        <span className="font-semibold text-slate-700">(c) Agresiones / Violencia:</span>
+                      <div className="flex justify-between bg-white p-1.5 rounded border border-slate-200">
+                        <span className="font-semibold text-slate-700">(c) Agresión:</span>
                         <span className="font-bold text-amber-700">{statsConstatacionesReporte.subAgresion}</span>
                       </div>
-                      <div className="flex justify-between bg-white p-2 rounded border border-slate-200">
-                        <span className="font-semibold text-slate-700">(d) Mención Policial:</span>
+                      <div className="flex justify-between bg-white p-1.5 rounded border border-slate-200">
+                        <span className="font-semibold text-slate-700">(d) Policial:</span>
                         <span className="font-bold text-amber-700">{statsConstatacionesReporte.subPolicial}</span>
                       </div>
                     </div>
@@ -1179,103 +1187,135 @@ export default function ReportesModule({
                   </table>
                 </div>
 
+                {/* BLOQUE DE CERTIFICACIÓN Y FIRMAS PROPIO PARA EL INFORME DE CONSTATACIÓN DE LESIONES */}
+                <div className="pt-6 border-t-2 border-slate-900 space-y-6">
+                  {/* Metadatos de Emisión */}
+                  <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-[11px] text-slate-600 leading-relaxed space-y-1">
+                    <p>
+                      <strong>Sistema Emisor:</strong> MÉTRICO - Sistema de Gestión Estadística de Urgencia (SAR Dra. Eloísa Díaz / Elsa Romo Aravena).
+                    </p>
+                    <p>
+                      <strong>Usuario Certificante:</strong> {user?.email || 'Usuario Autorizado / Gestión Local'}
+                    </p>
+                    <p>
+                      <strong>Fecha y Hora de Emisión:</strong> {new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago' })} h
+                    </p>
+                  </div>
+
+                  {/* Firmas Directora Técnica y Enfermero Supervisor */}
+                  <div className="grid grid-cols-2 gap-8 pt-6">
+                    <div className="text-center space-y-1">
+                      <div className="border-t border-slate-400 w-52 mx-auto"></div>
+                      <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Firma Enfermero(a) Supervisor(a)</p>
+                      <p className="text-[9px] text-slate-500 font-bold uppercase">Gestión de Categorización y Triaje</p>
+                    </div>
+                    <div className="text-center space-y-1">
+                      <div className="border-t border-slate-400 w-52 mx-auto"></div>
+                      <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Firma Directora Técnica</p>
+                      <p className="text-[9px] text-slate-500 font-bold uppercase">SAR Dra. Eloísa Díaz (Elsa Romo Aravena)</p>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             )}
 
-            {/* SECCIÓN DE CIERRE Y CONTROL DE VALIDEZ (PEDIDO POR EL USUARIO) */}
-            <div className="print-page-break print-avoid-break space-y-6 pt-6 border-t-2 border-slate-950">
-              {/* Header Cierre */}
-              <div className="flex justify-between items-center border-b border-slate-300 pb-3">
-                <div>
-                  <h2 className="text-sm font-black text-slate-900 tracking-wider uppercase">CIERRE DE INFORME Y VALIDACIÓN DE DATOS</h2>
-                  <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Control Operativo e Integridad de la Información</p>
+            {/* SECCIÓN DE CIERRE Y CONTROL DE VALIDEZ GLOBAL (SOLO CUANDO SE INCLUYEN OTROS REPORTES) */}
+            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria) && (
+              <div className="print-page-break print-avoid-break space-y-6 pt-6 border-t-2 border-slate-950">
+                {/* Header Cierre */}
+                <div className="flex justify-between items-center border-b border-slate-300 pb-3">
+                  <div>
+                    <h2 className="text-sm font-black text-slate-900 tracking-wider uppercase">CIERRE DE INFORME Y VALIDACIÓN DE DATOS</h2>
+                    <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Control Operativo e Integridad de la Información</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="px-3 py-1 bg-slate-100 text-slate-800 text-[10px] font-black rounded-full border border-slate-200 uppercase">
+                      Documento Oficial
+                    </span>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <span className="px-3 py-1 bg-slate-100 text-slate-800 text-[10px] font-black rounded-full border border-slate-200 uppercase">
-                    Documento Oficial
-                  </span>
-                </div>
-              </div>
 
-              {/* Grid de Totales Consignados */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* Cuadro de Resumen General */}
-                <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block border-b border-slate-200 pb-1">Totales Consignados en Periodo</span>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <span className="text-slate-500 font-bold block">Total Atenciones:</span>
-                      <span className="font-black text-slate-800 text-sm">{pacientesFiltrados.length} pac.</span>
+                {/* Grid de Totales Consignados */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Cuadro de Resumen General */}
+                  <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block border-b border-slate-200 pb-1">Totales Consignados en Periodo</span>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <span className="text-slate-500 font-bold block">Total Atenciones:</span>
+                        <span className="font-black text-slate-800 text-sm">{pacientesFiltrados.length} pac.</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-bold block">Casos Críticos (C1/C2):</span>
+                        <span className="font-black text-slate-800 text-sm">{enfermeriaStats.casosCriticos.length} pac.</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-bold block">Constatación Lesiones (C3):</span>
+                        <span className="font-black text-slate-800 text-sm">{enfermeriaStats.c3Stats.lesionesCount} pac. ({enfermeriaStats.c3Stats.lesionesPerc}%)</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-bold block">Diagnóstico Clínico C3:</span>
+                        <span className="font-black text-slate-800 text-sm">{enfermeriaStats.c3Stats.clinicoCount} pac. ({enfermeriaStats.c3Stats.clinicoPerc}%)</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-slate-500 font-bold block">Casos Críticos (C1/C2):</span>
-                      <span className="font-black text-slate-800 text-sm">{enfermeriaStats.casosCriticos.length} pac.</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 font-bold block">Constatación Lesiones (C3):</span>
-                      <span className="font-black text-slate-800 text-sm">{enfermeriaStats.c3Stats.lesionesCount} pac. ({enfermeriaStats.c3Stats.lesionesPerc}%)</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 font-bold block">Diagnóstico Clínico C3:</span>
-                      <span className="font-black text-slate-800 text-sm">{enfermeriaStats.c3Stats.clinicoCount} pac. ({enfermeriaStats.c3Stats.clinicoPerc}%)</span>
+                  </div>
+
+                  {/* Cuadro de Tiempos y Operatividad */}
+                  <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2">
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block border-b border-slate-200 pb-1">Metadatos de Operación y Tiempos</span>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <span className="text-slate-500 font-bold block">T. Promedio 1ª Cat:</span>
+                        <span className="font-black text-slate-800 text-sm">{enfermeriaStats.avgMinCat1} min</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-bold block">T. Promedio Re-Cat:</span>
+                        <span className="font-black text-slate-800 text-sm">{enfermeriaStats.avgMinReCat} min</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-bold block">Tasa Altas Admin:</span>
+                        <span className="font-black text-rose-700 text-sm">{altasStats.pct}% ({altasStats.totalAltas} altas)</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-bold block">Total Fracturas Fx:</span>
+                        <span className="font-black text-amber-700 text-sm">{fracturasStats.totalFracturas} pac.</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Cuadro de Tiempos y Operatividad */}
-                <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block border-b border-slate-200 pb-1">Metadatos de Operación y Tiempos</span>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <span className="text-slate-500 font-bold block">T. Promedio 1ª Cat:</span>
-                      <span className="font-black text-slate-800 text-sm">{enfermeriaStats.avgMinCat1} min</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 font-bold block">T. Promedio Re-Cat:</span>
-                      <span className="font-black text-slate-800 text-sm">{enfermeriaStats.avgMinReCat} min</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 font-bold block">Tasa Altas Admin:</span>
-                      <span className="font-black text-rose-700 text-sm">{altasStats.pct}% ({altasStats.totalAltas} altas)</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 font-bold block">Total Fracturas Fx:</span>
-                      <span className="font-black text-amber-700 text-sm">{fracturasStats.totalFracturas} pac.</span>
-                    </div>
+                {/* Metadatos de Emisión de Reporte */}
+                <div className="bg-slate-50/50 border border-slate-200 p-3.5 rounded-xl text-[11px] text-slate-600 leading-relaxed space-y-1.5">
+                  <p>
+                    <strong>Sistema Emisor:</strong> Métrico - Dashboard de Gestión Estadística y Tiempos de Espera de Urgencia (SAR Dra. Eloísa Díaz / Elsa Romo Aravena).
+                  </p>
+                  <p>
+                    <strong>Usuario Certificante:</strong> {user?.email || 'Usuario Autorizado / Gestión Local'}
+                  </p>
+                  <p>
+                    <strong>Fecha de Descarga:</strong> {new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago' })} h
+                  </p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">
+                    * Este documento es un consolidado estadístico generado a partir de registros del sistema Iris.
+                  </p>
+                </div>
+
+                {/* Bloque de Firmas */}
+                <div className="grid grid-cols-2 gap-8 pt-10">
+                  <div className="text-center space-y-1">
+                    <div className="border-t border-slate-400 w-52 mx-auto"></div>
+                    <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Firma Enfermero(a) Supervisor(a)</p>
+                    <p className="text-[9px] text-slate-500 font-bold uppercase">Gestión de Categorización y Triaje</p>
+                  </div>
+                  <div className="text-center space-y-1">
+                    <div className="border-t border-slate-400 w-52 mx-auto"></div>
+                    <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Firma Directora Técnica</p>
+                    <p className="text-[9px] text-slate-500 font-bold uppercase">SAR Dra. Eloísa Díaz (Elsa Romo Aravena)</p>
                   </div>
                 </div>
               </div>
-
-              {/* Metadatos de Emisión de Reporte */}
-              <div className="bg-slate-50/50 border border-slate-200 p-3.5 rounded-xl text-[11px] text-slate-600 leading-relaxed space-y-1.5">
-                <p>
-                  <strong>Sistema Emisor:</strong> Métrico - Dashboard de Gestión Estadística y Tiempos de Espera de Urgencia (SAR Hospital de Melipilla).
-                </p>
-                <p>
-                  <strong>Usuario Certificante:</strong> {user?.email || 'Usuario de Gestión Local / Localhost'}
-                </p>
-                <p>
-                  <strong>Fecha de Descarga:</strong> {new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago' })} h
-                </p>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">
-                  * Este documento es un consolidado estadístico generado a partir de registros del sistema Iris.
-                </p>
-              </div>
-
-              {/* Bloque de Firmas */}
-              <div className="grid grid-cols-2 gap-8 pt-10">
-                <div className="text-center space-y-1">
-                  <div className="border-t border-slate-400 w-52 mx-auto"></div>
-                  <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Firma Enfermero(a) Supervisor(a)</p>
-                  <p className="text-[9px] text-slate-500 font-bold uppercase">Gestión de Categorización y Triaje</p>
-                </div>
-                <div className="text-center space-y-1">
-                  <div className="border-t border-slate-400 w-52 mx-auto"></div>
-                  <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Firma Jefe de Urgencia</p>
-                  <p className="text-[9px] text-slate-500 font-bold uppercase">Validación de Rendimiento SAR</p>
-                </div>
-              </div>
-            </div>
+            )}
 
           </div>
         )}

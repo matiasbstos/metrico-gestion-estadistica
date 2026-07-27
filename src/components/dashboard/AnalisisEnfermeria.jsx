@@ -26,7 +26,7 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
       
       const cod = (p.codigoDiagnostico || '').toUpperCase();
       const diag = (p.diagnosticoPrincipal || '').toUpperCase();
-      const isLesion = cod.includes('Z51.8') || cod.includes('Z518');
+      const isLesion = cod.includes('Z51.8') || cod.includes('Z518') || diag.includes('CONSTATAC');
 
       if (isLesion) {
         if (cat1 === 'c3') cat1 = 'c3_z518';
