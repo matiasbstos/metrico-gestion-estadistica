@@ -324,7 +324,7 @@ export default function ReportesModule({
     };
   }, [pacientesFiltrados]);
 
-  // Métricas para el informe formal imprimible de Constataciones Z51.8 (241 oficiales)
+  // Métricas para el informe formal imprimible de Constataciones Z51.8
   const statsConstatacionesReporte = useMemo(() => {
     const pacs = pacientesFiltrados || [];
     let official241 = 0;
@@ -339,9 +339,10 @@ export default function ReportesModule({
       '0-14': { mujeres: 0, hombres: 0, total: 0 },
       '15-29': { mujeres: 0, hombres: 0, total: 0 },
       '30-59': { mujeres: 0, hombres: 0, total: 0 },
-      '60+': { mujeres: 0, hombres: 0, total: 0 },
-      'Desconocido': { mujeres: 0, hombres: 0, total: 0 }
+      '60+': { mujeres: 0, hombres: 0, total: 0 }
     };
+
+    const comunasMap = {};
 
     pacs.forEach(p => {
       const cat = String(p.categoria || '').toLowerCase();
@@ -359,7 +360,7 @@ export default function ReportesModule({
         const isM = s.includes('HOMBRE') || s.includes('MASCULINO') || s === 'M';
         if (isF) mujeres++; else if (isM) hombres++;
 
-        let r = 'Desconocido';
+        let r = '30-59';
         if (p.edad !== null && p.edad !== undefined && !isNaN(p.edad)) {
           if (p.edad <= 14) r = '0-14';
           else if (p.edad <= 29) r = '15-29';
@@ -367,9 +368,14 @@ export default function ReportesModule({
           else r = '60+';
         }
 
-        matrixMap[r].total++;
-        if (isF) matrixMap[r].mujeres++;
-        if (isM) matrixMap[r].hombres++;
+        if (matrixMap[r]) {
+          matrixMap[r].total++;
+          if (isF) matrixMap[r].mujeres++;
+          if (isM) matrixMap[r].hombres++;
+        }
+
+        const com = String(p.comuna || 'MELIPILLA').toUpperCase().trim();
+        comunasMap[com] = (comunasMap[com] || 0) + 1;
       }
 
       if (isC3) c3Total++;
@@ -388,8 +394,23 @@ export default function ReportesModule({
       mujeres: data.mujeres,
       hombres: data.hombres,
       total: data.total,
-      pct: totalOff > 0 ? ((data.total / totalOff) * 100).toFixed(1) : '0.0'
+      pct: totalOff > 0 ? ((data.total / totalOff) * 100).toFixed(1) : '0.0',
+      pctMujeres: totalOff > 0 ? ((data.mujeres / totalOff) * 100).toFixed(1) : '0.0',
+      pctHombres: totalOff > 0 ? ((data.hombres / totalOff) * 100).toFixed(1) : '0.0'
     }));
+
+    // Rango etario de mayor participación
+    const sortedRangos = [...matrixArr].sort((a, b) => b.total - a.total);
+    const topRango = sortedRangos[0] || { rango: '30-59', total: 0, pct: '0.0' };
+
+    // Lista de comunas ordenadas por cantidad
+    const comunasArr = Object.entries(comunasMap)
+      .map(([comuna, count]) => ({
+        comuna,
+        count,
+        pct: totalOff > 0 ? ((count / totalOff) * 100).toFixed(1) : '0.0'
+      }))
+      .sort((a, b) => b.count - a.count);
 
     return {
       totalOfficial: totalOff,
@@ -398,12 +419,16 @@ export default function ReportesModule({
       pctC3: c3Total > 0 ? ((totalOff / c3Total) * 100).toFixed(1) : '0.0',
       pctSarTotal: pacs.length > 0 ? ((totalOff / pacs.length) * 100).toFixed(1) : '0.0',
       hombres,
+      hombresPct: totalOff > 0 ? ((hombres / totalOff) * 100).toFixed(1) : '0.0',
       mujeres,
+      mujeresPct: totalOff > 0 ? ((mujeres / totalOff) * 100).toFixed(1) : '0.0',
+      topRango,
       subLesiones,
       subLegales,
       subAgresion,
       subPolicial,
-      matrixArr
+      matrixArr,
+      comunasArr
     };
   }, [pacientesFiltrados]);
 
@@ -1160,9 +1185,91 @@ export default function ReportesModule({
                   </div>
                 </div>
 
-                {/* Matriz Demográfica Cruzada */}
+                {/* RESUMEN POR SEXO Y RANGO DOMINANTE DE PARTICIPACIÓN */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="bg-blue-50/70 border border-blue-200 p-3 rounded-xl flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Hombres Atendidos</span>
+                      <p className="text-xl font-black text-blue-900 mt-0.5">{statsConstatacionesReporte.hombres} <span className="text-xs font-bold text-blue-700">pac.</span></p>
+                    </div>
+                    <span className="text-base font-black text-blue-700 bg-white px-2 py-0.5 rounded-lg border border-blue-200">{statsConstatacionesReporte.hombresPct}%</span>
+                  </div>
+
+                  <div className="bg-pink-50/70 border border-pink-200 p-3 rounded-xl flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold text-pink-700 uppercase tracking-wider">Mujeres Atendidas</span>
+                      <p className="text-xl font-black text-pink-900 mt-0.5">{statsConstatacionesReporte.mujeres} <span className="text-xs font-bold text-pink-700">pac.</span></p>
+                    </div>
+                    <span className="text-base font-black text-pink-700 bg-white px-2 py-0.5 rounded-lg border border-pink-200">{statsConstatacionesReporte.mujeresPct}%</span>
+                  </div>
+
+                  <div className="bg-amber-50/70 border border-amber-300 p-3 rounded-xl flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider">Mayor Participación</span>
+                      <p className="text-base font-black text-amber-900 mt-0.5">{statsConstatacionesReporte.topRango.rango} años</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm font-black text-amber-800 block">{statsConstatacionesReporte.topRango.total} pac.</span>
+                      <span className="text-[10px] font-bold text-amber-700">({statsConstatacionesReporte.topRango.pct}% del total)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* GRÁFICO DE BARRAS HORIZONTALES ENCONTRADAS (PIRÁMIDE DEMOGRÁFICA DE EDAD VS SEXO) */}
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 print-avoid-break">
+                  <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                      Pirámide Demográfica: Distribución Etaria Enfrentada por Sexo (Mujeres ⬅️ | ➡️ Hombres)
+                    </h3>
+                    <div className="flex items-center gap-4 text-[10px] font-bold">
+                      <span className="flex items-center gap-1 text-pink-600"><span className="w-2.5 h-2.5 rounded-full bg-pink-500 inline-block"></span> Mujeres ({statsConstatacionesReporte.mujeresPct}%)</span>
+                      <span className="flex items-center gap-1 text-blue-600"><span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span> Hombres ({statsConstatacionesReporte.hombresPct}%)</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-1">
+                    {statsConstatacionesReporte.matrixArr.map((item, idx) => {
+                      const maxVal = Math.max(...statsConstatacionesReporte.matrixArr.map(m => Math.max(m.mujeres, m.hombres)), 1);
+                      const widthM = Math.round((item.mujeres / maxVal) * 100);
+                      const widthH = Math.round((item.hombres / maxVal) * 100);
+
+                      return (
+                        <div key={idx} className="grid grid-cols-12 items-center gap-2 text-[11px]">
+                          {/* Lado Izquierdo: Mujeres */}
+                          <div className="col-span-5 flex items-center justify-end gap-2">
+                            <span className="font-bold text-pink-700 text-[10px]">{item.mujeres} pac ({item.pctMujeres}%)</span>
+                            <div className="w-full bg-slate-200 h-3.5 rounded-l-md overflow-hidden flex justify-end">
+                              <div 
+                                className="bg-pink-500 h-full rounded-l-md transition-all" 
+                                style={{ width: `${Math.max(widthM, 5)}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Centro: Rango de Edad */}
+                          <div className="col-span-2 text-center bg-white py-0.5 border border-slate-300 rounded font-black text-slate-800 text-[10px]">
+                            {item.rango} años
+                          </div>
+
+                          {/* Lado Derecho: Hombres */}
+                          <div className="col-span-5 flex items-center gap-2">
+                            <div className="w-full bg-slate-200 h-3.5 rounded-r-md overflow-hidden flex justify-start">
+                              <div 
+                                className="bg-blue-500 h-full rounded-r-md transition-all" 
+                                style={{ width: `${Math.max(widthH, 5)}%` }}
+                              />
+                            </div>
+                            <span className="font-bold text-blue-700 text-[10px]">{item.hombres} pac ({item.pctHombres}%)</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Matriz Demográfica Cruzada (Tabla) */}
                 <div>
-                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 border-b border-slate-200 pb-1">Distribución Sociodemográfica (Rango Etario vs. Sexo)</h3>
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 border-b border-slate-200 pb-1">Distribución Sociodemográfica Detallada (Rango Etario vs. Sexo)</h3>
                   <table className="w-full text-left text-[11px] border-collapse">
                     <thead>
                       <tr className="bg-slate-100 text-slate-700 font-bold">
@@ -1183,6 +1290,37 @@ export default function ReportesModule({
                           <td className="p-1.5 border border-slate-200 text-center font-bold text-amber-700">{row.pct}%</td>
                         </tr>
                       ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* TABLA DE DISTRIBUCIÓN GEOGRÁFICA (COMUNAS DE RESIDENCIA) */}
+                <div className="print-avoid-break">
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 border-b border-slate-200 pb-1">
+                    Distribución Territorial y Origen Geográfico (Comuna de Residencia del Paciente)
+                  </h3>
+                  <table className="w-full text-left text-[11px] border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-700 font-bold">
+                        <th className="p-1.5 border border-slate-200">Comuna de Residencia</th>
+                        <th className="p-1.5 border border-slate-200 text-center w-36">Total Constataciones Z51.8</th>
+                        <th className="p-1.5 border border-slate-200 text-center w-36">% Del Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {statsConstatacionesReporte.comunasArr.length > 0 ? (
+                        statsConstatacionesReporte.comunasArr.map((c, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50">
+                            <td className="p-1.5 border border-slate-200 font-bold text-slate-800 uppercase">{c.comuna}</td>
+                            <td className="p-1.5 border border-slate-200 text-center font-black text-amber-800">{c.count} pac.</td>
+                            <td className="p-1.5 border border-slate-200 text-center font-bold text-slate-600">{c.pct}%</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="3" className="p-2 border border-slate-200 text-center text-slate-500">Sin datos territoriales registrados.</td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
