@@ -507,8 +507,19 @@ const DashboardContent = () => {
       `}>
         <div className="overflow-y-auto flex-1 min-h-0 custom-scrollbar pb-4">
           <div className={`p-4 flex flex-col gap-4 border-b border-card-custom/50 theme-transition ${sidebarCollapsed ? 'items-center' : ''}`}>
-            <div className="flex items-center justify-between w-full">
-              {!sidebarCollapsed && (
+            {sidebarCollapsed ? (
+              <div className="flex flex-col items-center gap-3 w-full py-1">
+                <Activity className="w-7 h-7 accent-text-custom flex-shrink-0 animate-fade-in" />
+                <button 
+                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                  className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg border border-card-custom/40 transition-all text-secondary-custom hover:text-primary-custom cursor-pointer"
+                  title="Expandir panel"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-3 animate-fade-in">
                   <Activity className="w-7 h-7 accent-text-custom flex-shrink-0" />
                   <div>
@@ -516,18 +527,15 @@ const DashboardContent = () => {
                     <p className="text-[9px] text-secondary-custom font-medium leading-none mt-1">Clínico Predictivo</p>
                   </div>
                 </div>
-              )}
-              {sidebarCollapsed && (
-                <Activity className="w-7 h-7 accent-text-custom flex-shrink-0 mx-auto animate-fade-in" />
-              )}
-              <button 
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className={`p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg border border-card-custom/40 transition-all text-secondary-custom hover:text-primary-custom cursor-pointer ${sidebarCollapsed ? 'mt-2' : ''}`}
-                title={sidebarCollapsed ? "Expandir panel" : "Contraer panel"}
-              >
-                {sidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-              </button>
-            </div>
+                <button 
+                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                  className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg border border-card-custom/40 transition-all text-secondary-custom hover:text-primary-custom cursor-pointer"
+                  title="Contraer panel"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+              </div>
+            )}
             
             {!sidebarCollapsed && (
               <div className="animate-fade-in w-full">

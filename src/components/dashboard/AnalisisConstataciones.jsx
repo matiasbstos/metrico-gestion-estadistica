@@ -28,8 +28,13 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
   // 2. Extraer todos los pacientes que son Constataciones de Lesiones (Z51.8) en el período
   const pacientesLesiones = useMemo(() => {
     return targetPacientes.filter(p => {
-      const isLesion = p.categoria === 'c3_z518' || 
-                       (p.diagnostico && String(p.diagnostico).toUpperCase().includes('Z51.8'));
+      const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
+      const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
+      const isLesion = p.categoria === 'c3_z518' ||
+                       cod.includes('Z51.8') || cod.includes('Z518') || cod.includes('Z04') ||
+                       diag.includes('CONSTATAC') || diag.includes('LESIÓN') || diag.includes('LESION') ||
+                       diag.includes('CIRCUNSTANCIAS LEGALES') || diag.includes('POLICIAL') ||
+                       diag.includes('AGRESIÓN') || diag.includes('AGRESION');
       if (!isLesion) return false;
 
       // Filtros locales
@@ -50,7 +55,13 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
 
   // Total pacientes evaluados C3 en el periodo (para calcular la tasa)
   const totalEvaluadosC3 = useMemo(() => {
-    return targetPacientes.filter(p => p.categoria === 'c3' || p.categoria === 'c3_z518' || (p.diagnostico && String(p.diagnostico).toUpperCase().includes('Z51.8'))).length;
+    return targetPacientes.filter(p => {
+      const cat = String(p.categoria || '').toLowerCase();
+      if (cat === 'c3' || cat === 'c3_z518') return true;
+      const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
+      const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
+      return cod.includes('Z51.8') || cod.includes('Z518') || cod.includes('Z04') || diag.includes('CONSTATAC') || diag.includes('LESIÓN') || diag.includes('LESION');
+    }).length;
   }, [targetPacientes]);
 
   // Comunas únicas disponibles para el selector

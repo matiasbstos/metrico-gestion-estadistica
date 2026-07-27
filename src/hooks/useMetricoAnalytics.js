@@ -25,6 +25,17 @@ const isPatientInWindow = (tAdmMs, startDayStr, endDayStr, startHourStr, endHour
   return tAdmMs >= tStart && tAdmMs <= tEnd;
 };
 
+const isConstatacionLesion = (p) => {
+  if (!p) return false;
+  if (p.categoria === 'c3_z518') return true;
+  const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
+  const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
+  return cod.includes('Z51.8') || cod.includes('Z518') || cod.includes('Z04') ||
+         diag.includes('CONSTATAC') || diag.includes('LESIÓN') || diag.includes('LESION') ||
+         diag.includes('CIRCUNSTANCIAS LEGALES') || diag.includes('POLICIAL') ||
+         diag.includes('AGRESIÓN') || diag.includes('AGRESION');
+};
+
 export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales = {}, tipoCorte = 'turno', filtroHoraInicio = '00:00', filtroHoraFin = '23:59') => {
   // =========================================================================
   // 1. PIPELINE DE DATOS GLOBAL (Afecta KPIs, Triaje, Tabla Global)
@@ -70,7 +81,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       }
     }
     return pacs;
-  }, [pacientesDB, filtrosGlobales, hasGlobalFilters, filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin]);
+  }, [pacientesDB, filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin, filtrosGlobales, hasGlobalFilters]);
 
   const turnosFiltrados = useMemo(() => {
     return turnosPorFecha.map(t => {
@@ -82,8 +93,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       if (pacsCount > 0) {
         pacs.forEach(p => {
           const cat = p.categoria;
-          const isLesion = cat === 'c3_z518' || (p.diagnostico && String(p.diagnostico).toUpperCase().includes('Z51.8'));
-          if (isLesion) {
+          if (isConstatacionLesion(p)) {
             counts.c3_z518++;
           } else if (counts[cat] !== undefined) {
             counts[cat]++;
@@ -264,8 +274,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
 
     const countCategories = (pacList, targetObj) => {
       pacList.forEach(p => {
-        const isLesion = p.categoria === 'c3_z518' || (p.diagnostico && String(p.diagnostico).toUpperCase().includes('Z51.8'));
-        if (isLesion) {
+        if (isConstatacionLesion(p)) {
           targetObj.c3_z518++;
         } else if (targetObj[p.categoria] !== undefined) {
           targetObj[p.categoria]++;
@@ -292,7 +301,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       const d = String(p.destinoAlta || p.destino || '').toLowerCase();
       return d.includes('hospital') || d.includes('emergencia') || d.includes('derivac');
     };
-    const isConstatacion = (p) => p.categoria === 'c3_z518' || (p.diagnostico && String(p.diagnostico).toUpperCase().includes('Z51.8'));
+    const isConstatacion = isConstatacionLesion;
 
     const currentTraslados = pacientesFiltrados.filter(isTraslado).length;
     const pmTraslados = prevMonthPacientes.filter(isTraslado).length;
