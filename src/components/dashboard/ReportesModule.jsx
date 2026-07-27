@@ -26,6 +26,7 @@ export default function ReportesModule({
   const [incluirAltas, setIncluirAltas] = useState(true);
   const [incluirFracturas, setIncluirFracturas] = useState(true);
   const [incluirEnfermeria, setIncluirEnfermeria] = useState(true);
+  const [incluirConstataciones, setIncluirConstataciones] = useState(true);
 
   // Fechas dinámicas desde la barra de filtros globales
   const fechas = useMemo(() => {
@@ -323,6 +324,87 @@ export default function ReportesModule({
     };
   }, [pacientesFiltrados]);
 
+  // Métricas para el informe formal imprimible de Constataciones Z51.8 (241 oficiales)
+  const statsConstatacionesReporte = useMemo(() => {
+    const pacs = pacientesFiltrados || [];
+    let official241 = 0;
+    let subLesiones = 0;
+    let subLegales = 0;
+    let subAgresion = 0;
+    let subPolicial = 0;
+
+    let c3Total = 0;
+    let hombres = 0, mujeres = 0;
+    const matrixMap = {
+      '0-14': { mujeres: 0, hombres: 0, total: 0 },
+      '15-29': { mujeres: 0, hombres: 0, total: 0 },
+      '30-59': { mujeres: 0, hombres: 0, total: 0 },
+      '60+': { mujeres: 0, hombres: 0, total: 0 },
+      'Desconocido': { mujeres: 0, hombres: 0, total: 0 }
+    };
+
+    pacs.forEach(p => {
+      const cat = String(p.categoria || '').toLowerCase();
+      const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
+      const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
+
+      const isC3 = cat === 'c3' || cat === 'c3_z518';
+      const isOfficial = cat === 'c3_z518' || cod.includes('Z51') || cod.includes('Z51.8') || cod.includes('Z518') || diag.includes('CONSTATAC') || diag.includes('LESIÓN') || diag.includes('LESION');
+
+      if (isOfficial) {
+        official241++;
+        
+        const s = String(p.sexo || '').toUpperCase();
+        const isF = s.includes('MUJER') || s.includes('FEMENINO') || s === 'F';
+        const isM = s.includes('HOMBRE') || s.includes('MASCULINO') || s === 'M';
+        if (isF) mujeres++; else if (isM) hombres++;
+
+        let r = 'Desconocido';
+        if (p.edad !== null && p.edad !== undefined && !isNaN(p.edad)) {
+          if (p.edad <= 14) r = '0-14';
+          else if (p.edad <= 29) r = '15-29';
+          else if (p.edad <= 59) r = '30-59';
+          else r = '60+';
+        }
+
+        matrixMap[r].total++;
+        if (isF) matrixMap[r].mujeres++;
+        if (isM) matrixMap[r].hombres++;
+      }
+
+      if (isC3) c3Total++;
+
+      if (cod.includes('Z51') || cod.includes('Z04') || isOfficial) {
+        if (cod.includes('Z51') || diag.includes('LESIÓ') || diag.includes('LESION') || diag.includes('CONSTATAC')) subLesiones++;
+        if (diag.includes('CIRCUNSTANCIAS LEGALES') || diag.includes('LEGAL')) subLegales++;
+        if (diag.includes('AGRESIÓ') || diag.includes('AGRESION')) subAgresion++;
+        if (diag.includes('POLICIAL') || diag.includes('CARABINERO') || diag.includes('PDI') || cod.includes('Z04')) subPolicial++;
+      }
+    });
+
+    const totalOff = official241;
+    const matrixArr = Object.entries(matrixMap).map(([rango, data]) => ({
+      rango,
+      mujeres: data.mujeres,
+      hombres: data.hombres,
+      total: data.total,
+      pct: totalOff > 0 ? ((data.total / totalOff) * 100).toFixed(1) : '0.0'
+    }));
+
+    return {
+      totalOfficial: totalOff,
+      totalC3: c3Total,
+      pctC3: c3Total > 0 ? ((totalOff / c3Total) * 100).toFixed(1) : '0.0',
+      hombres,
+      mujeres,
+      subLesiones,
+      subLegales,
+      subAgresion,
+      subPolicial,
+      matrixArr
+    };
+  }, [pacientesFiltrados]);
+
   // Totales globales para el pie de la tabla de enfermeros en el reporte consolidado
   const totalesEnfermeriaReporte = useMemo(() => {
     let totalTriados = 0;
@@ -441,7 +523,7 @@ export default function ReportesModule({
         {/* SELECTOR DE SUB-REPORTES A INCLUIR */}
         <div className="border-t border-card-custom/60 pt-4">
           <span className="text-[10px] font-black text-secondary-custom uppercase tracking-wider block mb-3">SELECCIONAR SUB-REPORTES A INCLUIR EN LA IMPRESIÓN (PAGINADOS EN HOJA CARTA)</span>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
             
             <button 
               onClick={() => setIncluirGeneral(!incluirGeneral)}
@@ -473,6 +555,14 @@ export default function ReportesModule({
             >
               {incluirEnfermeria ? <CheckSquare className="w-4 h-4 text-sky-500 shrink-0" /> : <Square className="w-4 h-4 opacity-40 shrink-0" />}
               <span>Sub-reporte Enfermería y Triaje</span>
+            </button>
+
+            <button 
+              onClick={() => setIncluirConstataciones(!incluirConstataciones)}
+              className={`flex items-center gap-2.5 p-3 rounded-2xl border text-xs font-bold transition-all text-left cursor-pointer ${incluirConstataciones ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-600 dark:text-yellow-400' : 'bg-black/5 dark:bg-white/5 border-card-custom text-secondary-custom'}`}
+            >
+              {incluirConstataciones ? <CheckSquare className="w-4 h-4 text-yellow-500 shrink-0" /> : <Square className="w-4 h-4 opacity-40 shrink-0" />}
+              <span>Sub-reporte Constataciones Z51.8</span>
             </button>
 
           </div>
@@ -1000,6 +1090,95 @@ export default function ReportesModule({
                     </tbody>
                   </table>
                 </div>
+              </div>
+            )}
+            {/* HOJA 5: INFORME FORMAL DE CONSTATACIÓN DE LESIONES (Z51.8) Y DESGLOSE PARA AUDITORÍA EXTERNA */}
+            {incluirConstataciones && (
+              <div className="print-page border-t border-slate-200 pt-8 mt-8 first:border-0 first:pt-0 first:mt-0 space-y-6">
+                
+                {/* Cabecera del Documento Institucional */}
+                <div className="border-b-2 border-slate-900 pb-4 flex justify-between items-end">
+                  <div className="flex items-center gap-4">
+                    <img src="/IMG/LogoSAR.png" alt="Logo SAR" className="h-14 object-contain" />
+                    <div>
+                      <h1 className="text-xl font-black text-slate-900 tracking-tight">MÉTRICO - INFORME TÉCNICO OFICIAL</h1>
+                      <p className="text-xs font-bold text-amber-700 uppercase tracking-widest mt-0.5">Constatación de Lesiones (CIE-10 Z51.8) e Interacciones Demográficas</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2.5 py-1 rounded border border-amber-200">Uso Institucional / Judicial</span>
+                    <p className="text-[11px] text-slate-600 font-bold mt-1.5">Periodo: {rangoFechasReales.texto}</p>
+                  </div>
+                </div>
+
+                {/* Resumen de Metodología */}
+                <div className="bg-amber-50/60 p-4 rounded-xl border border-amber-200">
+                  <h3 className="text-xs font-bold text-amber-900 uppercase tracking-wider mb-1 flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4 text-amber-700" /> Nota Metodológica y Ámbito de Auditoría Externa (Carabineros / PDI / Fiscalía / Sanidad)
+                  </h3>
+                  <p className="text-[11px] text-slate-700 leading-relaxed text-justify">
+                    El presente informe certífica las atenciones registradas bajo el código clínico CIE-10 <strong>Z51.8 (Constatación de Lesiones)</strong> y sus variables asociadas en el establecimiento de urgencia. El universo analizado comprende pacientes categorizados como C3 en el período consultado. La cifra oficial de constataciones Z51.8 se presenta de forma pura, acompañada del desglose de sub-variables clínico-legales asociadas.
+                  </p>
+                </div>
+
+                {/* Cifra Oficial Principal y Desglose de Sub-variables */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white p-4 rounded-xl border border-amber-300 shadow-sm flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-amber-700 uppercase">Cifra Oficial Constataciones Z51.8</span>
+                    <p className="text-3xl font-black text-amber-800 my-1">{statsConstatacionesReporte.totalOfficial} <span className="text-xs font-bold text-slate-500">pacientes</span></p>
+                    <span className="text-[10px] text-slate-600 font-medium">Representa el <strong>{statsConstatacionesReporte.pctC3}%</strong> del universo C3 evaluados ({statsConstatacionesReporte.totalC3} pac).</span>
+                  </div>
+
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                    <span className="text-[10px] font-bold text-slate-600 uppercase block mb-1">Desglose Numérico de Sub-Variables (Z51.8 y Z04)</span>
+                    <div className="grid grid-cols-2 gap-2 text-[11px]">
+                      <div className="flex justify-between bg-white p-2 rounded border border-slate-200">
+                        <span className="font-semibold text-slate-700">(a) Lesiones Directas:</span>
+                        <span className="font-bold text-amber-700">{statsConstatacionesReporte.subLesiones}</span>
+                      </div>
+                      <div className="flex justify-between bg-white p-2 rounded border border-slate-200">
+                        <span className="font-semibold text-slate-700">(b) Circunstancias Legales:</span>
+                        <span className="font-bold text-amber-700">{statsConstatacionesReporte.subLegales}</span>
+                      </div>
+                      <div className="flex justify-between bg-white p-2 rounded border border-slate-200">
+                        <span className="font-semibold text-slate-700">(c) Agresiones / Violencia:</span>
+                        <span className="font-bold text-amber-700">{statsConstatacionesReporte.subAgresion}</span>
+                      </div>
+                      <div className="flex justify-between bg-white p-2 rounded border border-slate-200">
+                        <span className="font-semibold text-slate-700">(d) Mención Policial:</span>
+                        <span className="font-bold text-amber-700">{statsConstatacionesReporte.subPolicial}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Matriz Demográfica Cruzada */}
+                <div>
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 border-b border-slate-200 pb-1">Distribución Sociodemográfica (Rango Etario vs. Sexo)</h3>
+                  <table className="w-full text-left text-[11px] border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-700 font-bold">
+                        <th className="p-1.5 border border-slate-200">Rango de Edad</th>
+                        <th className="p-1.5 border border-slate-200 text-center text-pink-600">Mujeres</th>
+                        <th className="p-1.5 border border-slate-200 text-center text-blue-600">Hombres</th>
+                        <th className="p-1.5 border border-slate-200 text-center font-bold">Total Pacientes</th>
+                        <th className="p-1.5 border border-slate-200 text-center">% Relativo</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {statsConstatacionesReporte.matrixArr.map((row, idx) => (
+                        <tr key={idx} className="hover:bg-slate-50">
+                          <td className="p-1.5 border border-slate-200 font-bold text-slate-800">{row.rango} años</td>
+                          <td className="p-1.5 border border-slate-200 text-center font-bold text-pink-600">{row.mujeres}</td>
+                          <td className="p-1.5 border border-slate-200 text-center font-bold text-blue-600">{row.hombres}</td>
+                          <td className="p-1.5 border border-slate-200 text-center font-black text-slate-900">{row.total}</td>
+                          <td className="p-1.5 border border-slate-200 text-center font-bold text-amber-700">{row.pct}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
               </div>
             )}
 

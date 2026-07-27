@@ -25,37 +25,20 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
     return pacientesDB.filter(p => lotesVisibles.has(p.loteId));
   }, [pacientesFiltrados, pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin]);
 
-  // Helper para verificar código estricto Z51.8 / c3_z518 (186 casos base)
-  const isStrictZ518 = (p) => {
+  // Helper oficial para Constataciones Z51.8 (241 casos oficiales)
+  const isConstatacionOficial = (p) => {
     if (!p) return false;
     if (p.categoria === 'c3_z518') return true;
     const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
     const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
-    return cod.includes('Z51.8') || cod.includes('Z518');
+    return cod.includes('Z51') || cod.includes('Z51.8') || cod.includes('Z518') ||
+           diag.includes('CONSTATAC') || diag.includes('LESIÓN') || diag.includes('LESION');
   };
 
-  // Helper para verificar casos extendidos (Z04, Agresiones, Policial, Legales)
-  const isExtendedCase = (p) => {
-    if (!p) return false;
-    const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
-    const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
-    return cod.includes('Z04') ||
-           diag.includes('CONSTATAC') || diag.includes('LESIÓN') || diag.includes('LESION') ||
-           diag.includes('CIRCUNSTANCIAS LEGALES') || diag.includes('POLICIAL') ||
-           diag.includes('AGRESIÓN') || diag.includes('AGRESION');
-  };
-
-  // Helper para clasificar coincidencia por destino policial / carabineros
-  const isMatchDestinoPolicial = (p) => {
-    const d = String(p.destinoAlta || p.destino || '').toUpperCase();
-    return d.includes('COMISAR') || d.includes('CARABINER') || d.includes('PDI') || 
-           d.includes('POLIC') || d.includes('CUSTODIA') || d.includes('JUZGADO') || d.includes('TRIBUNAL');
-  };
-
-  // 2. Extraer los pacientes con Z51.8 Estricto (Oficial 186)
+  // 2. Extraer los pacientes con Constataciones Z51.8 Oficiales (241 pac)
   const pacientesLesiones = useMemo(() => {
     return targetPacientes.filter(p => {
-      if (!isStrictZ518(p)) return false;
+      if (!isConstatacionOficial(p)) return false;
 
       // Filtros locales
       if (filtroSexo !== 'TODOS') {
@@ -73,22 +56,31 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
     });
   }, [targetPacientes, filtroSexo, filtroComuna]);
 
-  // Auditoría complementaria de casos secundarios (Z04 / Legales = 87 adicionales)
-  const auditoriaCasosSecundarios = useMemo(() => {
-    const secundario = targetPacientes.filter(p => isExtendedCase(p) && !isStrictZ518(p));
-    let matchPolicialCount = 0;
-    let altaMedicaCount = 0;
+  // Desglose lateral numérico por sub-variables asociadas (Z51.8 y Z04)
+  const desgloseSubVariables = useMemo(() => {
+    let lesionesDirectas = 0;
+    let circunstanciasLegales = 0;
+    let agresiones = 0;
+    let mencionesPoliciales = 0;
 
-    secundario.forEach(p => {
-      if (isMatchDestinoPolicial(p)) matchPolicialCount++;
-      else altaMedicaCount++;
+    targetPacientes.forEach(p => {
+      const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
+      const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
+      
+      const isZ51orZ04 = cod.includes('Z51') || cod.includes('Z04') || isConstatacionOficial(p);
+      if (isZ51orZ04) {
+        if (cod.includes('Z51') || diag.includes('LESIÓ') || diag.includes('LESION') || diag.includes('CONSTATAC')) lesionesDirectas++;
+        if (diag.includes('CIRCUNSTANCIAS LEGALES') || diag.includes('LEGAL')) circunstanciasLegales++;
+        if (diag.includes('AGRESIÓ') || diag.includes('AGRESION')) agresiones++;
+        if (diag.includes('POLICIAL') || diag.includes('CARABINERO') || diag.includes('PDI') || cod.includes('Z04')) mencionesPoliciales++;
+      }
     });
 
     return {
-      totalSecundarios: secundario.length,
-      matchPolicialCount,
-      altaMedicaCount,
-      secundarioList: secundario
+      lesionesDirectas,
+      circunstanciasLegales,
+      agresiones,
+      mencionesPoliciales
     };
   }, [targetPacientes]);
 
@@ -96,7 +88,7 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
   const totalEvaluadosC3 = useMemo(() => {
     return targetPacientes.filter(p => {
       const cat = String(p.categoria || '').toLowerCase();
-      return cat === 'c3' || cat === 'c3_z518' || isStrictZ518(p);
+      return cat === 'c3' || cat === 'c3_z518' || isConstatacionOficial(p);
     }).length;
   }, [targetPacientes]);
 
@@ -331,55 +323,51 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
 
       </div>
 
-      {/* SECCIÓN DE AUDITORÍA Y MATCH POR DESTINO POLICIAL */}
+      {/* SECCIÓN DE DESGLOSE LATERAL DE VARIABLES ADICIONALES (Z51.8 y Z04) */}
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
           <div className="flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-amber-500" />
+            <Activity className="w-5 h-5 text-amber-500" />
             <h3 className="text-sm font-black tracking-wide uppercase text-slate-800">
-              Auditoría por Destino y Casos Complementarios (Z04 / Agresiones / Legales)
+              Desglose de Variables Clínico-Legales Asociadas (Códigos CIE-10 Z51.8 y Z04)
             </h3>
           </div>
           <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-            Regla de Match por Destino Policial
+            Encasillamiento Cuantitativo por Descriptores
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
-              Oficial Z51.8 Estricto
-            </span>
-            <div className="text-2xl font-black text-emerald-800 mt-1">
-              {statsGenerales.total} <span className="text-xs font-bold text-emerald-600">pacientes</span>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-amber-50/60 p-4 rounded-xl border border-amber-200">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800">(a) Lesiones Directas</span>
+            <div className="text-2xl font-black text-amber-900 mt-1">
+              {desgloseSubVariables.lesionesDirectas} <span className="text-xs font-bold text-amber-700">pac.</span>
             </div>
-            <p className="text-[10px] text-emerald-700 font-medium mt-1">
-              Cifra oficial Z51.8 reflejada en Inicio y Subreportes (186 pac).
-            </p>
+            <p className="text-[10px] text-amber-700 font-medium mt-1">Constatación de lesiones física general.</p>
           </div>
 
-          <div className="bg-sky-50 p-4 rounded-xl border border-sky-100">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-sky-700">
-              Match Policial / Carabineros (Z04 / Legales)
-            </span>
-            <div className="text-2xl font-black text-sky-800 mt-1">
-              {auditoriaCasosSecundarios.matchPolicialCount} <span className="text-xs font-bold text-sky-600">pacientes</span>
+          <div className="bg-indigo-50/60 p-4 rounded-xl border border-indigo-200">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-800">(b) Circunstancias Legales</span>
+            <div className="text-2xl font-black text-indigo-900 mt-1">
+              {desgloseSubVariables.circunstanciasLegales} <span className="text-xs font-bold text-indigo-700">pac.</span>
             </div>
-            <p className="text-[10px] text-sky-700 font-medium mt-1">
-              Destino verificado con Comisaría, Carabineros o Custodia.
-            </p>
+            <p className="text-[10px] text-indigo-700 font-medium mt-1">Consultas motivadas por requerimientos legales.</p>
           </div>
 
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
-              Alta Médica Domiciliaria / Consulta
-            </span>
-            <div className="text-2xl font-black text-slate-800 mt-1">
-              {auditoriaCasosSecundarios.altaMedicaCount} <span className="text-xs font-bold text-slate-500">pacientes</span>
+          <div className="bg-rose-50/60 p-4 rounded-xl border border-rose-200">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-800">(c) Agresión / Violencia</span>
+            <div className="text-2xl font-black text-rose-900 mt-1">
+              {desgloseSubVariables.agresiones} <span className="text-xs font-bold text-rose-700">pac.</span>
             </div>
-            <p className="text-[10px] text-slate-500 font-medium mt-1">
-              Diagnósticos con destino Alta Domicilio o Servicio Urgencia.
-            </p>
+            <p className="text-[10px] text-rose-700 font-medium mt-1">Registros de lesiones por terceros/agresión.</p>
+          </div>
+
+          <div className="bg-sky-50/60 p-4 rounded-xl border border-sky-200">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-sky-800">(d) Mención Policial / Judicial</span>
+            <div className="text-2xl font-black text-sky-900 mt-1">
+              {desgloseSubVariables.mencionesPoliciales} <span className="text-xs font-bold text-sky-700">pac.</span>
+            </div>
+            <p className="text-[10px] text-sky-700 font-medium mt-1">Intervención o presencia policial referenciada.</p>
           </div>
         </div>
       </div>
