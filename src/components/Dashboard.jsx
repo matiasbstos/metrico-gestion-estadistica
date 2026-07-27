@@ -680,7 +680,6 @@ const DashboardContent = () => {
                   className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'constataciones' ? 'bg-amber-500/20 text-amber-500 font-black border border-amber-500/30' : 'bg-transparent text-secondary-custom hover:text-amber-500 hover:bg-amber-500/10'}`}>
                   <ShieldAlert className="w-4 h-4 text-amber-500 flex-shrink-0" />
                 </button>
-              <>
                 <button 
                   onClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
                   title="Altas Administrativas"
