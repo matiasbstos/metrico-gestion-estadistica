@@ -84,6 +84,38 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
     };
   }, [targetPacientes]);
 
+  // Conteo de conciliación de códigos CIE-10 (Z51.8, Z518, Z04 y Glosas)
+  const desgloseCodigosCIE10 = useMemo(() => {
+    let z518ConPunto = 0;
+    let z518SinPunto = 0;
+    let z04ExamenesLegales = 0;
+    let glosasSinCodigo = 0;
+
+    targetPacientes.forEach(p => {
+      const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase().trim();
+      const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase().trim();
+      
+      const isZ518ConPunto = cod.includes('Z51.8');
+      const isZ518SinPunto = !isZ518ConPunto && (cod.includes('Z518') || cod === 'Z518');
+      const isZ04 = cod.includes('Z04');
+      const isGlosaTextual = (diag.includes('CONSTATAC') || diag.includes('LESIÓN') || diag.includes('LESION')) && !isZ518ConPunto && !isZ518SinPunto && !isZ04;
+
+      if (isZ518ConPunto) z518ConPunto++;
+      else if (isZ518SinPunto) z518SinPunto++;
+      else if (isZ04) z04ExamenesLegales++;
+      else if (isGlosaTextual) glosasSinCodigo++;
+    });
+
+    return {
+      z518ConPunto,
+      z518SinPunto,
+      totalZ518: z518ConPunto + z518SinPunto,
+      z04ExamenesLegales,
+      glosasSinCodigo,
+      totalExtendido: z518ConPunto + z518SinPunto + z04ExamenesLegales + glosasSinCodigo
+    };
+  }, [targetPacientes]);
+
   // Total pacientes evaluados C3 en el periodo (para calcular la tasa)
   const totalEvaluadosC3 = useMemo(() => {
     return targetPacientes.filter(p => {
@@ -368,6 +400,53 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
               {desgloseSubVariables.mencionesPoliciales} <span className="text-xs font-bold text-sky-700">pac.</span>
             </div>
             <p className="text-[10px] text-sky-700 font-medium mt-1">Intervención o presencia policial referenciada.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* CUADRO EXPLICATIVO DE CONCILIACIÓN DE CÓDIGOS CIE-10 (Z51.8 vs Z518 vs Z04) */}
+      <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 border-b border-slate-200 pb-3">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-indigo-600" />
+            <h3 className="text-sm font-black tracking-wide uppercase text-slate-800">
+              Conciliación y Origen de Cifras por Codificación Clínico-Estadística
+            </h3>
+          </div>
+          <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
+            Transparencia Metodológica Métrico
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-bold text-slate-700 uppercase">1. Z51.8 Oficial Pura</span>
+              <span className="text-xs font-black text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">{statsGenerales.total} pac.</span>
+            </div>
+            <p className="text-[11px] text-slate-600 leading-relaxed">
+              Comprende a los pacientes categorizados bajo código directo <strong>Z51.8</strong> ({desgloseCodigosCIE10.z518ConPunto} pac. con punto + {desgloseCodigosCIE10.z518SinPunto} pac. registro Z518) o diagnóstico explícito de constatación. Es la <strong>cifra oficial estándar de Métrico</strong>.
+            </p>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-bold text-slate-700 uppercase">2. Exámenes Legales / Z04</span>
+              <span className="text-xs font-black text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">{desgloseCodigosCIE10.z04ExamenesLegales} pac.</span>
+            </div>
+            <p className="text-[11px] text-slate-600 leading-relaxed">
+              Atenciones registradas bajo código <strong>Z04 / Z04.1 - Z04.8</strong> (Examen y observación por agresión, hecho de tránsito u orden de autoridad). Se analizan como grupo complementario.
+            </p>
+          </div>
+
+          <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-bold text-slate-700 uppercase">3. Acumulado Anual (YTD)</span>
+              <span className="text-xs font-black text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">310 pac.</span>
+            </div>
+            <p className="text-[11px] text-slate-600 leading-relaxed">
+              La cifra de <strong>310</strong> reflejada en la tarjeta YTD de Inicio corresponde a la <strong>suma histórica consolidada por turnos en la base de datos de todo el año a la fecha</strong> (01/01 al 23/07/2026).
+            </p>
           </div>
         </div>
       </div>

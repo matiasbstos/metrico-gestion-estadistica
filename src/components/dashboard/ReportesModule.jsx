@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { FileText, Download, Printer, Calendar, Users, Clock, AlertTriangle, CheckSquare, Square, Activity, Hospital, UserCheck, ShieldCheck, Layers } from 'lucide-react';
+import { FileText, Download, Printer, Calendar, Users, Clock, AlertTriangle, CheckSquare, Square, Activity, Hospital, UserCheck, ShieldCheck, ShieldAlert, Layers } from 'lucide-react';
 import { useMetricoAnalytics } from '../../hooks/useMetricoAnalytics';
 import { useMetricoProfesionales } from '../../hooks/useMetricoProfesionales';
 import FiltrosGlobales from './FiltrosGlobales';
