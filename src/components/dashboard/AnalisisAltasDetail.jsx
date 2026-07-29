@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { UserCheck, Calendar, Clock, AlertTriangle, TrendingUp, TrendingDown, GitCompare, Landmark } from 'lucide-react';
+import { UserCheck, Calendar, Clock, AlertTriangle, TrendingUp, TrendingDown, GitCompare, Landmark, Info } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer, BarChart, Bar, Cell, Legend, ComposedChart, Line
 } from 'recharts';
+import { generateAltasSummary } from '../../utils/summaryGenerator';
 
 export default function AnalisisAltasDetail({ 
   turnosDB, 
@@ -12,7 +13,8 @@ export default function AnalisisAltasDetail({
   statsKPI,
   modoComparativo,
   filtroFechaInicioB,
-  filtroFechaFinB
+  filtroFechaFinB,
+  pacientesFiltrados
 }) {
   
   // 1. Filtrar turnos según el rango seleccionado (Periodo A)
@@ -189,6 +191,8 @@ export default function AnalisisAltasDetail({
 
   const isAlertActive = statsA.pct > 5;
   
+  const summaryText = useMemo(() => generateAltasSummary(pacientesFiltrados), [pacientesFiltrados]);
+  
   // Total Anual YTD Estadísticas
   const totalAnualAltas = statsKPI?.anual?.altasAdmin?.current || 0;
   const totalAnualPacientes = statsKPI?.anual?.pacientes?.current || 0;
@@ -222,6 +226,17 @@ export default function AnalisisAltasDetail({
             <span>Alerta: Altas Administrativas ({statsA.pct.toFixed(1)}%) superan el 5% del volumen general.</span>
           </div>
         )}
+      </div>
+
+      {/* Narrative Summary Box */}
+      <div className="bg-card-custom p-5 rounded-2xl border border-card-custom shadow-sm flex flex-col theme-transition">
+        <h4 className="text-[10px] font-black tracking-wider uppercase text-secondary-custom mb-2.5 flex items-center gap-1.5 border-b border-card-custom/20 pb-2">
+          <Info className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+          Análisis Clínico-Administrativo del Periodo
+        </h4>
+        <p className="text-xs text-primary-custom leading-relaxed font-semibold">
+          {summaryText}
+        </p>
       </div>
 
       {/* Grid de KPIs - Indicador de Selección y Total Anual (YTD) */}

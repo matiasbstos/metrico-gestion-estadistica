@@ -317,16 +317,18 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const yearStartStr = `${fEnd.getFullYear()}-01-01`;
     const fEndStr = fEnd.toISOString().split('T')[0];
 
-    const yearLoteIds = new Set(turnosDB.filter(t => t.fechaInicio >= yearStartStr && t.fechaFin <= fEndStr).map(t => t.loteId));
-    const yearPacs = pacientesDB.filter(p => {
-      if (p.tAdmision && isPatientInWindow(p.tAdmision, yearStartStr, fEndStr, '00:00', '23:59')) return true;
-      if (p.loteId && yearLoteIds.has(p.loteId)) return true;
-      return false;
-    });
+    const ytdTurnos = turnosDB.filter(t => t.fechaInicio && t.fechaInicio >= yearStartStr && t.fechaInicio <= fEndStr);
 
-    const ytdTraslados = yearPacs.filter(isTraslado).length;
-    const ytdConstataciones = yearPacs.filter(isConstatacion).length;
-    
+    const ytdPacientes = ytdTurnos.reduce((acc, t) => acc + (t.totalPacientes || 0), 0);
+    const ytdAltas = ytdTurnos.reduce((acc, t) => acc + (t.altasAdmin || 0), 0);
+    const ytdAtendidos = ytdPacientes - ytdAltas;
+    const ytdTraslados = ytdTurnos.reduce((acc, t) => acc + (t.trasladosCount || 0), 0);
+    const ytdConstataciones = ytdTurnos.reduce((acc, t) => acc + (t.constatacionesCount || 0), 0);
+
+    // Calcular estadía promedio YTD a partir de los pacientes cargados en el cliente de este año
+    const yearLoadedPacs = pacientesDB.filter(p => p.tAdmision && isPatientInWindow(p.tAdmision, yearStartStr, fEndStr, '00:00', '23:59'));
+    const ytdEstadia = calcEstadia(yearLoadedPacs);
+
     // Crear conjunto de fechas que son fin de semana o festivos
     const weekendDates = new Set();
     turnosDB.forEach(t => {
@@ -349,16 +351,16 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       return false;
     };
 
-    // Calcular récords diarios del año (YTD)
+    // Calcular récords diarios del año (YTD) a partir de turnosDB
     const pacsByDate = {};
     const altasByDate = {};
-    yearPacs.forEach(p => {
-      if (p.tAdmision) {
-        const d = new Date(p.tAdmision);
-        const dateStr = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-        pacsByDate[dateStr] = (pacsByDate[dateStr] || 0) + 1;
-        if (p.estado === 'Cancelada') {
-          altasByDate[dateStr] = (altasByDate[dateStr] || 0) + 1;
+    ytdTurnos.forEach(t => {
+      if (t.fechaInicio) {
+        const parts = t.fechaInicio.split('-');
+        if (parts.length === 3) {
+          const dateStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
+          pacsByDate[dateStr] = (pacsByDate[dateStr] || 0) + (t.totalPacientes || 0);
+          altasByDate[dateStr] = (altasByDate[dateStr] || 0) + (t.altasAdmin || 0);
         }
       }
     });
@@ -394,11 +396,11 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     });
 
     const statsAnual = {
-      pacientes: { current: yearPacs.length },
-      atendidos: { current: yearPacs.length - yearPacs.filter(p => p.estado === 'Cancelada').length },
-      estadia: { current: calcEstadia(yearPacs) },
-      pacHora: { current: yearPacs.length / Math.max(1, getHoursInPeriod(yearStartStr, fEndStr, '00:00', '23:59')) },
-      altasAdmin: { current: yearPacs.filter(p => p.estado === 'Cancelada').length },
+      pacientes: { current: ytdPacientes },
+      atendidos: { current: ytdAtendidos },
+      estadia: { current: ytdEstadia },
+      pacHora: { current: ytdPacientes / Math.max(1, getHoursInPeriod(yearStartStr, fEndStr, '00:00', '23:59')) },
+      altasAdmin: { current: ytdAltas },
       traslados: { current: ytdTraslados },
       constataciones: { current: ytdConstataciones },
       recordPacWkdy,

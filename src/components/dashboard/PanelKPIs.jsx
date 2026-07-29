@@ -1,13 +1,19 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertTriangle, ArrowUpRight } from 'lucide-react';
 import InfoTooltip from '../InfoTooltip';
 import { COLORS } from '../../config/constants';
 
-export default function PanelKPIs({ statsKPI, onAltasClick }) {
+export default function PanelKPIs({ statsKPI, onAltasClick, onTrasladosClick, onConstatacionesClick }) {
   if (!statsKPI) return null;
 
-  const renderKPICard = (title, value, growthMonth, growthYear, prefix = '', suffix = '') => (
-    <div className="bg-card-custom p-5 flex flex-col justify-between h-full min-h-[140px] relative theme-transition hover:z-30 hover:shadow-lg">
+  const renderKPICard = (title, value, growthMonth, growthYear, prefix = '', suffix = '', isClickable = false, onClick = null) => (
+    <div 
+      onClick={isClickable ? onClick : undefined}
+      className={`bg-card-custom p-5 flex flex-col justify-between h-full min-h-[140px] relative theme-transition hover:z-30 hover:shadow-lg group ${isClickable ? 'cursor-pointer hover:border-indigo-500 hover:-translate-y-0.5' : ''}`}
+    >
+        {isClickable && (
+          <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-secondary-custom/40 group-hover:text-indigo-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200" />
+        )}
         <span className="text-[10px] font-bold text-secondary-custom tracking-wider uppercase opacity-80">{title}</span>
         <div className="flex justify-between items-end mt-1 mb-2">
             <span className="text-3xl font-black text-primary-custom">
@@ -52,8 +58,9 @@ export default function PanelKPIs({ statsKPI, onAltasClick }) {
     return (
       <div 
         onClick={onAltasClick}
-        className={`p-5 flex flex-col justify-between h-full min-h-[140px] relative theme-transition bg-card-custom border rounded-2xl cursor-pointer hover:z-30 hover:shadow-lg ${isAlert ? 'border-red-500 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 glow-red-alert' : 'border-card-custom'}`}
+        className={`p-5 flex flex-col justify-between h-full min-h-[140px] relative theme-transition bg-card-custom border rounded-2xl cursor-pointer hover:z-30 hover:shadow-lg group hover:-translate-y-0.5 ${isAlert ? 'border-red-500 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 glow-red-alert hover:border-red-650' : 'border-card-custom hover:border-indigo-500'}`}
       >
+         <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-secondary-custom/40 group-hover:text-indigo-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200" />
          <div className="flex items-center gap-2 flex-wrap">
             <span className={`text-[10px] font-bold tracking-wider uppercase ${isAlert ? 'text-red-600 dark:text-red-400 font-black' : 'text-secondary-custom opacity-80'}`}>Altas Admin</span>
             <InfoTooltip text="Meta institucional: Mantener por debajo del 5% del volumen total." />
@@ -110,8 +117,8 @@ export default function PanelKPIs({ statsKPI, onAltasClick }) {
           {renderKPICard('Rendimiento Global', statsKPI.anual.pacHora.current.toFixed(1), undefined, undefined, '', 'pac/h')}
           {renderKPICard('Estadía Promedio Global', statsKPI.anual.estadia.current > 0 ? `${Math.round(statsKPI.anual.estadia.current)}` : '0', undefined, undefined, '', 'min')}
           {renderAltasAdminCard(true)}
-          {renderKPICard('Traslados Hosp. (YTD)', statsKPI.anual.traslados ? statsKPI.anual.traslados.current : 0, undefined, undefined, '', 'pac')}
-          {renderKPICard('Constat. Lesiones (YTD)', statsKPI.anual.constataciones ? statsKPI.anual.constataciones.current : 0, undefined, undefined, '', 'pac')}
+          {renderKPICard('Traslados Hosp. (YTD)', statsKPI.anual.traslados ? statsKPI.anual.traslados.current : 0, undefined, undefined, '', 'pac', true, onTrasladosClick)}
+          {renderKPICard('Constat. Lesiones (YTD)', statsKPI.anual.constataciones ? statsKPI.anual.constataciones.current : 0, undefined, undefined, '', 'pac', true, onConstatacionesClick)}
         </div>
 
         {/* Récords Diarios YTD */}
@@ -174,8 +181,8 @@ export default function PanelKPIs({ statsKPI, onAltasClick }) {
           {renderKPICard('Pac / Hora', statsKPI.pacHora.current.toFixed(1), statsKPI.pacHora.growthMonth, statsKPI.pacHora.growthYear)}
           {renderKPICard('Prom. Estadía', statsKPI.estadia.current > 0 ? `${Math.round(statsKPI.estadia.current)}` : '0', statsKPI.estadia.growthMonth, statsKPI.estadia.growthYear, '', 'min')}
           {renderAltasAdminCard()}
-          {renderKPICard('Traslados Hosp.', statsKPI.traslados ? statsKPI.traslados.current : 0, statsKPI.traslados ? statsKPI.traslados.growthMonth : 0, statsKPI.traslados ? statsKPI.traslados.growthYear : 0, '', 'pac')}
-          {renderKPICard('Constat. Lesiones', statsKPI.constataciones ? statsKPI.constataciones.current : 0, statsKPI.constataciones ? statsKPI.constataciones.growthMonth : 0, statsKPI.constataciones ? statsKPI.constataciones.growthYear : 0, '', 'pac')}
+          {renderKPICard('Traslados Hosp.', statsKPI.traslados ? statsKPI.traslados.current : 0, statsKPI.traslados ? statsKPI.traslados.growthMonth : 0, statsKPI.traslados ? statsKPI.traslados.growthYear : 0, '', 'pac', true, onTrasladosClick)}
+          {renderKPICard('Constat. Lesiones', statsKPI.constataciones ? statsKPI.constataciones.current : 0, statsKPI.constataciones ? statsKPI.constataciones.growthMonth : 0, statsKPI.constataciones ? statsKPI.constataciones.growthYear : 0, '', 'pac', true, onConstatacionesClick)}
           {renderKPICard('Promedio Edad', statsKPI.demo.avgEdad, undefined, undefined, '', ' a.')}
           {renderKPICard('Pac. Fonasa', statsKPI.demo.fonasaPercent.toFixed(1), undefined, undefined, '', '%')}
         </div>

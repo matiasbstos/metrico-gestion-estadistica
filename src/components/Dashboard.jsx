@@ -22,6 +22,7 @@ import CalendarioHistorico from './dashboard/CalendarioHistorico';
 import AnalisisFracturas from './dashboard/AnalisisFracturas';
 import AnalisisEnfermeria from './dashboard/AnalisisEnfermeria';
 import AnalisisConstataciones from './dashboard/AnalisisConstataciones';
+import AnalisisTraslados from './dashboard/AnalisisTraslados';
 import Login from './Login';
 import { 
   Clock, Users, UserCheck, AlertTriangle, Activity, ArrowRight, 
@@ -29,7 +30,7 @@ import {
   CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
   BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
   Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
-  HeartPulse, Shield, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight
+  HeartPulse, Shield, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
@@ -96,14 +97,44 @@ const DashboardContent = () => {
   const [filtroHoraFin, setFiltroHoraFin] = useState('23:59');
   const [horarioPreset, setHorarioPreset] = useState('civil');
 
-  const { user, userProfile, loading, syncStatus, setSyncStatus, setLoading, pacientesDB, turnosDB } = useMetricoData();
+  const { user, userProfile, loading, syncStatus, setSyncStatus, setLoading, pacientesDB, turnosDB } = useMetricoData(filtroFechaInicio, filtroFechaFin);
 
   const [tema, setTema] = useState(() => localStorage.getItem('metrico-tema') || 'crextio');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
+  const [hasAutoSelectedDate, setHasAutoSelectedDate] = useState(false);
+
   useEffect(() => {
     localStorage.setItem('metrico-tema', tema);
   }, [tema]);
+
+  useEffect(() => {
+    if (turnosDB && turnosDB.length > 0 && !hasAutoSelectedDate) {
+      let maxDate = '';
+      turnosDB.forEach(t => {
+        if (t.fechaInicio && t.fechaInicio > maxDate) {
+          maxDate = t.fechaInicio;
+        }
+      });
+      if (maxDate) {
+        const parts = maxDate.split('-');
+        if (parts.length === 3) {
+          const y = parseInt(parts[0]);
+          const m = parseInt(parts[1]);
+          const firstDay = `${y}-${String(m).padStart(2, '0')}-01`;
+          const lastDay = new Date(y, m, 0).toISOString().split('T')[0];
+
+          setFiltroFechaInicio(firstDay);
+          setFiltroFechaFin(lastDay);
+          setDemandaFechaInicio(firstDay);
+          setDemandaFechaFin(lastDay);
+          setProfFechaInicio(firstDay);
+          setProfFechaFin(lastDay);
+          setHasAutoSelectedDate(true);
+        }
+      }
+    }
+  }, [turnosDB, hasAutoSelectedDate]);
 
   const isGlobalAdmin = useMemo(() => {
     return user?.email === 'matias.bustos@cormumel.cl' || userProfile?.rol === 'global';
@@ -706,19 +737,25 @@ const DashboardContent = () => {
                   className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'enfermeria' ? 'bg-indigo-500/20 text-indigo-500 font-black border border-indigo-500/30' : 'bg-transparent text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10'}`}>
                   <Activity className="w-4 h-4 text-indigo-500 flex-shrink-0" />
                 </button>
+                <button 
+                  onClick={() => { setActiveTab('traslados'); setSubTabEspecifico('traslados'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                  title="Traslados Hospitalarios"
+                  className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'traslados' ? 'bg-indigo-500/20 text-indigo-500 font-black border border-indigo-500/30' : 'bg-transparent text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10'}`}>
+                  <ArrowLeftRight className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                </button>
               </>
             ) : (
               <div className="space-y-1 w-full">
                 <button 
                   onClick={() => {
-                    if (!['especificos', 'altas', 'fracturas', 'enfermeria'].includes(activeTab)) {
+                    if (!['especificos', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados'].includes(activeTab)) {
                       setIsEspecificosOpen(true);
                     } else {
                       setIsEspecificosOpen(!isEspecificosOpen);
                     }
                     setActiveTab('especificos');
                   }}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 cursor-pointer ${['especificos', 'altas', 'fracturas', 'enfermeria'].includes(activeTab) ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 cursor-pointer ${['especificos', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados'].includes(activeTab) ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
                   <div className="flex items-center gap-3">
                     <Layers className="w-4 h-4" /> Análisis Específicos
                   </div>
@@ -746,6 +783,11 @@ const DashboardContent = () => {
                       onClick={() => { setActiveTab('constataciones'); setSubTabEspecifico('constataciones'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
                       className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'constataciones' || (activeTab === 'especificos' && subTabEspecifico === 'constataciones') ? 'bg-amber-500/20 text-amber-500 font-black border border-amber-500/30' : 'text-secondary-custom hover:text-amber-500 hover:bg-amber-500/10'}`}>
                       <ShieldAlert className="w-3.5 h-3.5 text-amber-500" /> Constatación de Lesiones
+                    </button>
+                    <button 
+                      onClick={() => { setActiveTab('traslados'); setSubTabEspecifico('traslados'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'traslados' || (activeTab === 'especificos' && subTabEspecifico === 'traslados') ? 'bg-indigo-500/20 text-indigo-500 font-black border border-indigo-500/30' : 'text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10'}`}>
+                      <ArrowLeftRight className="w-3.5 h-3.5 text-indigo-500" /> Traslados Hospitalarios
                     </button>
                   </div>
                 )}
@@ -822,7 +864,7 @@ const DashboardContent = () => {
       </aside>
 
       {/* MODALES Y OVERLAYS */}
-      {syncStatus === 'syncing' && (
+      {syncStatus === 'syncing' && activeTab !== 'data' && (
         <div className="fixed inset-0 z-[100] backdrop-blur-lg flex flex-col justify-center items-center animate-fade-in transition-all" style={{ backgroundColor: 'var(--bg-overlay)' }}>
           <div className="bg-card-custom p-8 rounded-[2rem] border border-card-custom shadow-[0_0_40px_rgba(14,165,233,0.25)] flex flex-col items-center max-w-sm text-center relative overflow-hidden theme-transition">
             <div className="absolute inset-0 bg-gradient-to-br from-sky-400/10 to-indigo-500/10 opacity-50 z-0"></div>
@@ -934,6 +976,7 @@ const DashboardContent = () => {
                activeTab === 'calendario' ? 'Histórico Mensual' : 
                activeTab === 'profesionales' ? 'Rendimiento Clínico' : 
                activeTab === 'altas' ? 'Altas Administrativas' :
+               activeTab === 'traslados' ? 'Traslados Hospitalarios' :
                activeTab === 'fracturas' ? 'Estadísticas Fracturas' :
                activeTab === 'enfermeria' ? 'Rendimiento Enfermería' :
                activeTab === 'reportes' ? 'Reportes' : 
@@ -977,7 +1020,7 @@ const DashboardContent = () => {
             <hr className="border-card-custom/40 my-6 theme-transition" />
 
             {/* DATOS DE RENDIMIENTO Y KPIs */}
-            {statsKPI && <PanelKPIs statsKPI={statsKPI} onAltasClick={() => setActiveTab('altas')} />}
+            {statsKPI && <PanelKPIs statsKPI={statsKPI} onAltasClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); }} onTrasladosClick={() => { setActiveTab('traslados'); setSubTabEspecifico('traslados'); }} onConstatacionesClick={() => { setActiveTab('constataciones'); setSubTabEspecifico('constataciones'); }} />}
 
 
 
@@ -988,6 +1031,7 @@ const DashboardContent = () => {
           filtroVariables={filtroVariables} setFiltroVariables={setFiltroVariables}
           modoComparativo={modoComparativo} dynamicMetricKeys={dynamicMetricKeys}
           turnosFiltrados={turnosFiltrados} demografiaStats={demografiaStats}
+          pacientesFiltrados={pacientesFiltrados}
         />
 
         <AnalisisEquiposTurno turnosFiltrados={turnosFiltrados} pacientesFiltrados={pacientesFiltrados} />
@@ -1078,7 +1122,7 @@ const DashboardContent = () => {
           <AuditoriaMedicaDetail pacientesDB={pacientesDB} turnosDB={turnosDB} />
         )}
 
-        {['especificos', 'altas', 'fracturas', 'enfermeria', 'constataciones'].includes(activeTab) && (
+        {['especificos', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados'].includes(activeTab) && (
           <div className="space-y-6">
             {/* SECTOR DE FILTROS Y CONTROL DE CONTEXTO */}
             <FiltrosGlobales 
@@ -1126,6 +1170,13 @@ const DashboardContent = () => {
                 <ShieldAlert className="w-4 h-4 text-amber-500" />
                 Constatación de Lesiones
               </button>
+              <button
+                onClick={() => { setActiveTab('traslados'); setSubTabEspecifico('traslados'); }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'traslados' || (activeTab === 'especificos' && subTabEspecifico === 'traslados') ? 'bg-indigo-500 text-white shadow-sm' : 'text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10'}`}
+              >
+                <ArrowLeftRight className="w-4 h-4" />
+                Traslados Hospitalarios
+              </button>
             </div>
 
             <hr className="border-card-custom/40 my-4 theme-transition" />
@@ -1139,6 +1190,7 @@ const DashboardContent = () => {
                 modoComparativo={modoComparativo}
                 filtroFechaInicioB={filtroFechaInicioB}
                 filtroFechaFinB={filtroFechaFinB}
+                pacientesFiltrados={pacientesFiltrados}
               />
             )}
 
@@ -1157,6 +1209,19 @@ const DashboardContent = () => {
                 turnosDB={turnosDB} 
                 filtroFechaInicio={filtroFechaInicio} 
                 filtroFechaFin={filtroFechaFin} 
+              />
+            )}
+
+            {(activeTab === 'traslados' || (activeTab === 'especificos' && subTabEspecifico === 'traslados')) && (
+              <AnalisisTraslados 
+                pacientesFiltrados={pacientesFiltrados}
+                pacientesDB={pacientesDB} 
+                turnosDB={turnosDB} 
+                filtroFechaInicio={filtroFechaInicio} 
+                filtroFechaFin={filtroFechaFin} 
+                modoComparativo={modoComparativo}
+                filtroFechaInicioB={filtroFechaInicioB}
+                filtroFechaFinB={filtroFechaFinB}
               />
             )}
           </div>

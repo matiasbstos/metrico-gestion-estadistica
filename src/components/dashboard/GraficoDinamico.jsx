@@ -6,6 +6,7 @@ import {
 import { BarChart2, Activity, Users, Shield, Globe, Building2, AlertTriangle, Maximize2, Minimize2, X } from 'lucide-react';
 import { COLORS } from '../../config/constants';
 import InfoTooltip from '../InfoTooltip';
+import { obtenerTurnoDetallado } from '../../utils/helpers';
 
 const AGE_RANGES = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80+'];
 
@@ -25,10 +26,30 @@ export default function GraficoDinamico({
   chartData,
   pieData,
   turnosFiltrados,
-  demografiaStats
+  demografiaStats,
+  pacientesFiltrados
 }) {
   const [activeTab, setActiveTab] = React.useState('operacional');
   const [isExpanded, setIsExpanded] = React.useState(false);
+  const [selectedTriageDetail, setSelectedTriageDetail] = React.useState(null);
+
+  const pacientesDelTriaje = useMemo(() => {
+    if (!selectedTriageDetail || !pacientesFiltrados || pacientesFiltrados.length === 0) return [];
+    
+    const targetName = String(selectedTriageDetail.name || '').toLowerCase().trim();
+    
+    return pacientesFiltrados.filter(p => {
+      const catClean = String(p.categoria || p.cat1Clean || p.cat1 || '').toLowerCase().trim();
+      
+      if (targetName.includes('c1')) return catClean === 'c1';
+      if (targetName.includes('c2')) return catClean === 'c2';
+      if (targetName.includes('lesiones') || targetName.includes('z518')) return catClean === 'c3_z518' || catClean.includes('lesiones');
+      if (targetName.includes('c3')) return catClean === 'c3' && !catClean.includes('z518');
+      if (targetName.includes('c4')) return catClean === 'c4';
+      if (targetName.includes('c5')) return catClean === 'c5';
+      return false;
+    });
+  }, [selectedTriageDetail, pacientesFiltrados]);
 
   // Filtros internos - Por defecto activos
   const [opFilters, setOpFilters] = React.useState(['totalPacientes', 'c3', 'altasAdmin']);
@@ -321,8 +342,10 @@ export default function GraficoDinamico({
                                  return (
                                    <div 
                                      key={item.name} 
+                                     onClick={() => setSelectedTriageDetail(item)}
                                      style={{ width: `${pct}%`, backgroundColor: COLORS[colorKey] }} 
-                                     className="h-full flex items-center justify-center relative group cursor-help transition-all duration-300 hover:opacity-90 border-r border-white/10 last:border-r-0"
+                                     className="h-full flex items-center justify-center relative group cursor-pointer transition-all duration-300 hover:opacity-90 border-r border-white/10 last:border-r-0"
+                                     title={`Haz clic para ver el detalle de los ${item.value} pacientes de ${item.name}`}
                                    >
                                      {pct > 12 && (
                                        <span className="text-[9px] font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.65)]">
@@ -347,7 +370,12 @@ export default function GraficoDinamico({
                              const pct = totalTriageVal > 0 ? (item.value / totalTriageVal) * 100 : 0;
                              const colorKey = item.name === 'C3 (Lesiones)' ? 'c3_z518' : item.name.toLowerCase();
                              return (
-                               <div key={item.name} className="flex items-center gap-2 bg-card-custom p-1.5 rounded-xl border border-card-custom shadow-sm text-[11px] font-bold">
+                               <div 
+                                 key={item.name} 
+                                 onClick={() => setSelectedTriageDetail(item)}
+                                 className="flex items-center gap-2 bg-card-custom p-1.5 rounded-xl border border-card-custom shadow-sm text-[11px] font-bold cursor-pointer hover:border-sky-500/50 hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+                                 title={`Haz clic para ver el detalle de los ${item.value} pacientes de ${item.name}`}
+                               >
                                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[colorKey] }}></span>
                                  <span className="text-secondary-custom opacity-85 truncate flex-1">{item.name}</span>
                                  <span className="text-primary-custom ml-1 whitespace-nowrap">{item.value} <span className="text-[9px] text-secondary-custom opacity-70 font-medium">({pct.toFixed(1)}%)</span></span>
@@ -700,6 +728,85 @@ export default function GraficoDinamico({
               >
                 Cerrar Vista Ampliada
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE DETALLE DE PACIENTES POR CATEGORÍA DE TRIAJE */}
+      {selectedTriageDetail && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+          <div className="bg-card-custom border border-card-custom rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col max-h-[85vh] overflow-hidden theme-transition animate-fade-in relative">
+            {/* Header */}
+            <div className="p-5 border-b border-card-custom flex justify-between items-center bg-black/5 dark:bg-white/5">
+              <div>
+                <h3 className="text-sm font-black text-primary-custom uppercase tracking-wider flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-sky-500" />
+                  Detalle de Pacientes Categoría {selectedTriageDetail.name} ({pacientesDelTriaje.length} atenciones)
+                </h3>
+                <p className="text-[11px] text-secondary-custom font-semibold mt-0.5">
+                  Se muestran todos los registros clínicos del periodo clasificados en la categoría {selectedTriageDetail.name}.
+                </p>
+              </div>
+              <button 
+                onClick={() => setSelectedTriageDetail(null)}
+                className="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 text-secondary-custom rounded-xl transition-all cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Table Content */}
+            <div className="overflow-y-auto p-4">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-black/5 dark:bg-white/5 text-[10px] font-bold text-secondary-custom uppercase border-b border-card-custom">
+                    <th className="p-3">Fecha y Hora</th>
+                    <th className="p-3 text-center">Turno Asociado</th>
+                    <th className="p-3 text-center">ID / Correlativo (IP)</th>
+                    <th className="p-3 text-center">Categoría</th>
+                    <th className="p-3">Diagnóstico Médico</th>
+                    <th className="p-3 text-center">Código CIE</th>
+                    <th className="p-3">Profesional / Categorizador</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-card-custom text-xs">
+                  {pacientesDelTriaje.length > 0 ? (
+                    pacientesDelTriaje.map((p, idx) => {
+                      const d = p.tAdmision ? new Date(p.tAdmision) : null;
+                      const dateStr = d ? d.toLocaleDateString('es-CL') : '-';
+                      const timeStr = d ? d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : '-';
+                      const turnoInfo = obtenerTurnoDetallado(p.tAdmision);
+
+                      return (
+                        <tr key={idx} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors font-medium text-secondary-custom">
+                          <td className="p-3 font-semibold text-primary-custom whitespace-nowrap">{dateStr} {timeStr}</td>
+                          <td className="p-3 text-center font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap">{turnoInfo.textoCompleto}</td>
+                          <td className="p-3 text-center font-bold text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                            {p.correlativo || p.idPaciente || '-'}
+                          </td>
+                          <td className="p-3 text-center whitespace-nowrap">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-sky-500/10 text-sky-500 border border-sky-500/20">
+                              {p.categoria ? p.categoria.toUpperCase() : selectedTriageDetail.name}
+                            </span>
+                          </td>
+                          <td className="p-3 font-bold text-slate-700 dark:text-slate-300 max-w-xs truncate" title={p.diagnosticoPrincipal}>
+                            {p.diagnosticoPrincipal || '-'}
+                          </td>
+                          <td className="p-3 text-center font-bold text-slate-500 whitespace-nowrap">{p.codigoDiagnostico || '-'}</td>
+                          <td className="p-3 font-semibold text-primary-custom whitespace-nowrap">{p.enf1 && p.enf1 !== 'No Registrado' ? p.enf1 : p.medico || '-'}</td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan="7" className="p-8 text-center text-secondary-custom text-xs font-semibold">
+                        No se registraron atenciones individuales coincidentes para {selectedTriageDetail.name} en el periodo seleccionado.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

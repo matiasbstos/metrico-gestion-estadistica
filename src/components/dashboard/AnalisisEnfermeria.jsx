@@ -1,11 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { 
   Users, Clock, Activity, ShieldCheck, Search, Filter, Download, 
-  Stethoscope, ChevronRight, AlertCircle, ArrowUpRight, CheckCircle2, RefreshCw, Hospital, UserCheck, X
+  Stethoscope, ChevronRight, AlertCircle, ArrowUpRight, CheckCircle2, RefreshCw, Hospital, UserCheck, X, Info
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, CartesianGrid, AreaChart, Area 
 } from 'recharts';
+import { obtenerTurnoDetallado } from '../../utils/helpers';
+import { generateEnfermeriaSummary } from '../../utils/summaryGenerator';
 
 const perc = (val, tot) => tot > 0 ? ((val / tot) * 100).toFixed(1) : '0.0';
 
@@ -29,8 +31,8 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
       const isLesion = cod.includes('Z51.8') || cod.includes('Z518') || diag.includes('CONSTATAC');
 
       if (isLesion) {
-        if (cat1 === 'c3') cat1 = 'c3_z518';
-        if (catUlt === 'c3') catUlt = 'c3_z518';
+        cat1 = 'c3_z518';
+        catUlt = 'c3_z518';
       }
 
       const tAdm = p.tAdmision || null;
@@ -315,6 +317,8 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
     document.body.removeChild(link);
   };
 
+  const summaryText = useMemo(() => generateEnfermeriaSummary(pacientesFiltradosVista), [pacientesFiltradosVista]);
+
   return (
     <div className="space-y-6 animate-fade-in">
       
@@ -342,6 +346,17 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
             <Download className="w-4 h-4 text-emerald-500" /> Exportar CSV
           </button>
         </div>
+      </div>
+
+      {/* Narrative Summary Box */}
+      <div className="bg-card-custom p-5 rounded-2xl border border-card-custom shadow-sm flex flex-col theme-transition">
+        <h4 className="text-[10px] font-black tracking-wider uppercase text-secondary-custom mb-2.5 flex items-center gap-1.5 border-b border-card-custom/20 pb-2">
+          <Info className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+          Análisis de Tiempos y Calidad de Categorización (Triaje)
+        </h4>
+        <p className="text-xs text-primary-custom leading-relaxed font-semibold">
+          {summaryText}
+        </p>
       </div>
 
       {/* TARJETAS KPI DE DESEMPEÑO DE ENFERMERÍA */}
@@ -573,7 +588,15 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
                 statsPorProfesional.map((row, idx) => (
                   <tr key={idx} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors font-medium text-secondary-custom">
                     <td className="p-3 font-bold text-primary-custom">
-                      {row.nombre}
+                      <div className="flex items-center gap-1.5">
+                        <span>{row.nombre}</span>
+                        {row.nombre === 'No Registrado' && (
+                          <Info 
+                            className="w-3.5 h-3.5 text-secondary-custom opacity-70 hover:opacity-100 transition-opacity cursor-help" 
+                            title="Corresponde mayoritariamente a admisiones sin categorizar o canceladas que no requirieron triage, y un mínimo de fichas donde el nombre del profesional venía vacío en el Excel original."
+                          />
+                        )}
+                      </div>
                     </td>
                     <td className="p-3 text-center font-black text-rose-500 text-sm">
                       {row.totalTriados}
@@ -753,44 +776,12 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
                   const d = p.tAdmision ? new Date(p.tAdmision) : null;
                   const dateStr = d ? d.toLocaleDateString('es-CL') : '-';
                   const timeStr = d ? d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : '-';
-                  
-                  // Calcular turno asociado
-                  let turnoStr = '-';
-                  if (d) {
-                    const hours = d.getHours();
-                    const dayOfWeek = d.getDay();
-                    const isWknd = (dayOfWeek === 0 || dayOfWeek === 6);
-                    
-                    let logicalDate = new Date(p.tAdmision);
-                    let label = '';
-                    
-                    if (isWknd) {
-                      if (hours < 8) {
-                        logicalDate.setDate(logicalDate.getDate() - 1);
-                        label = 'Finde Noche';
-                      } else if (hours >= 8 && hours < 20) {
-                        label = 'Finde Día';
-                      } else {
-                        label = 'Finde Noche';
-                      }
-                    } else {
-                      if (hours < 16) {
-                        logicalDate.setDate(logicalDate.getDate() - 1);
-                        label = 'Largo';
-                      } else {
-                        label = 'Largo';
-                      }
-                    }
-                    const y = logicalDate.getFullYear();
-                    const m = String(logicalDate.getMonth() + 1).padStart(2, '0');
-                    const day = String(logicalDate.getDate()).padStart(2, '0');
-                    turnoStr = `${day}/${m}/${y} (${label})`;
-                  }
+                  const turnoInfo = obtenerTurnoDetallado(p.tAdmision);
                   
                   return (
                     <tr key={idx} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors font-medium text-secondary-custom">
                       <td className="p-3 font-semibold text-primary-custom">{dateStr} {timeStr}</td>
-                      <td className="p-3 text-center font-bold text-slate-600 dark:text-slate-400">{turnoStr}</td>
+                      <td className="p-3 text-center font-bold text-slate-600 dark:text-slate-400">{turnoInfo.textoCompleto}</td>
                       <td className="p-3 text-center font-bold text-slate-600 dark:text-slate-400">
                         {p.correlativo || p.idPaciente || '-'}
                       </td>
@@ -863,44 +854,12 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
                       const d = p.tAdmision ? new Date(p.tAdmision) : null;
                       const dateStr = d ? d.toLocaleDateString('es-CL') : '-';
                       const timeStr = d ? d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : '-';
-                      
-                      // Calcular turno asociado
-                      let turnoStr = '-';
-                      if (d) {
-                        const hours = d.getHours();
-                        const dayOfWeek = d.getDay();
-                        const isWknd = (dayOfWeek === 0 || dayOfWeek === 6);
-                        
-                        let logicalDate = new Date(p.tAdmision);
-                        let label = '';
-                        
-                        if (isWknd) {
-                          if (hours < 8) {
-                            logicalDate.setDate(logicalDate.getDate() - 1);
-                            label = 'Finde Noche';
-                          } else if (hours >= 8 && hours < 20) {
-                            label = 'Finde Día';
-                          } else {
-                            label = 'Finde Noche';
-                          }
-                        } else {
-                          if (hours < 16) {
-                            logicalDate.setDate(logicalDate.getDate() - 1);
-                            label = 'Largo';
-                          } else {
-                            label = 'Largo';
-                          }
-                        }
-                        const y = logicalDate.getFullYear();
-                        const m = String(logicalDate.getMonth() + 1).padStart(2, '0');
-                        const day = String(logicalDate.getDate()).padStart(2, '0');
-                        turnoStr = `${day}/${m}/${y} (${label})`;
-                      }
+                      const turnoInfo = obtenerTurnoDetallado(p.tAdmision);
                       
                       return (
                         <tr key={idx} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors font-medium text-secondary-custom">
                           <td className="p-3 font-semibold text-primary-custom">{dateStr} {timeStr}</td>
-                          <td className="p-3 text-center font-bold text-slate-600 dark:text-slate-400">{turnoStr}</td>
+                          <td className="p-3 text-center font-bold text-slate-600 dark:text-slate-400">{turnoInfo.textoCompleto}</td>
                           <td className="p-3 text-center font-bold text-slate-600 dark:text-slate-400">
                             {p.correlativo || p.idPaciente || '-'}
                           </td>

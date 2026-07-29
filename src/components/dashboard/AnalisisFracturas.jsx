@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { Activity, Stethoscope, Hospital, Users, Search, Download, Filter, AlertCircle, Award, Calendar, ChevronRight } from 'lucide-react';
+import { Activity, Clock, Stethoscope, Hospital, Users, Search, Download, Filter, AlertCircle, Award, Calendar, ChevronRight, ChevronDown, ChevronUp, ArrowRightLeft, Info } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
 import InfoTooltip from '../InfoTooltip';
+import { generateFracturasSummary } from '../../utils/summaryGenerator';
 
 const perc = (val, tot) => tot > 0 ? ((val / tot) * 100).toFixed(1) : '0.0';
 
@@ -29,7 +30,9 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
   const [filtroDestino, setFiltroDestino] = useState('TODOS');
   const [filtroEdad, setFiltroEdad] = useState('TODOS');
   const [filtroSexo, setFiltroSexo] = useState('TODOS');
-  const [modoVistaEdad, setModoVistaEdad] = useState('detallado'); // 'detallado' (17 tramos 5 años de la imagen 1) | 'clinico' (4 tramos)
+  const [modoVistaEdad, setModoVistaEdad] = useState('detallado'); // 'detallado' (17 tramos 5 años) | 'clinico' (4 tramos)
+  const [mostrarDetalleTop5, setMostrarDetalleTop5] = useState(false);
+  const [cardExpandedTop5, setCardExpandedTop5] = useState({});
 
   // Pipeline de filtrado para pacientes con Fractura
   const pacientesFractura = useMemo(() => {
@@ -98,12 +101,17 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
   // Métricas agregadas y estadísticas multidimensionales
   const stats = useMemo(() => {
     let total = pacientesFractura.length;
-    let hospitalCount = 0;
-    let domicilioCount = 0;
-    let otroDestinoCount = 0;
-    let sinRegistroCount = 0;
+    let hospitalCount = 0, hospitalMujeres = 0, hospitalHombres = 0;
+    let domicilioCount = 0, domicilioMujeres = 0, domicilioHombres = 0;
+    let otroDestinoCount = 0, otroMujeres = 0, otroHombres = 0;
+    let sinRegistroCount = 0, sinRegistroMujeres = 0, sinRegistroHombres = 0;
     let mujeresCount = 0;
     let hombresCount = 0;
+
+    let sumAdmCatTotal = 0, countAdmCatTotal = 0;
+    let sumCatAnaTotal = 0, countCatAnaTotal = 0;
+    let sumAnaAltTotal = 0, countAnaAltTotal = 0;
+    let sumAdmAltTotal = 0, countAdmAltTotal = 0;
 
     let p0_14 = 0;
     let p15_29 = 0;
@@ -115,17 +123,73 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
 
     pacientesFractura.forEach(p => {
       const catDest = parseDestinoCat(p);
-      if (catDest === 'hospital') hospitalCount++;
-      else if (catDest === 'domicilio') domicilioCount++;
-      else if (catDest === 'sin_registro') sinRegistroCount++;
-      else otroDestinoCount++;
 
       const s = String(p.sexo || '').toUpperCase();
       let isF = s.includes('MUJER') || s.includes('FEMENINO') || s === 'F';
       let isM = s.includes('HOMBRE') || s.includes('MASCULINO') || s === 'M';
+
+      if (catDest === 'hospital') {
+        hospitalCount++;
+        if (isF) hospitalMujeres++;
+        if (isM) hospitalHombres++;
+      } else if (catDest === 'domicilio') {
+        domicilioCount++;
+        if (isF) domicilioMujeres++;
+        if (isM) domicilioHombres++;
+      } else if (catDest === 'sin_registro') {
+        sinRegistroCount++;
+        if (isF) sinRegistroMujeres++;
+        if (isM) sinRegistroHombres++;
+      } else {
+        otroDestinoCount++;
+        if (isF) otroMujeres++;
+        if (isM) otroHombres++;
+      }
       
       if (isF) mujeresCount++;
       else if (isM) hombresCount++;
+
+      // Determinar tiempo de categorización (promedio entre Cat1 y CatUlt si existen ambos)
+      let tCat = null;
+      if (typeof p.tCat1 === 'number' && typeof p.tCatUlt === 'number') {
+        tCat = (p.tCat1 + p.tCatUlt) / 2;
+      } else if (typeof p.tCat1 === 'number') {
+        tCat = p.tCat1;
+      } else if (typeof p.tCatUlt === 'number') {
+        tCat = p.tCatUlt;
+      }
+
+      // 1. Admisión -> Categorización (en Horas)
+      let dAdmCat = null;
+      if (typeof p.tAdmision === 'number' && typeof tCat === 'number' && tCat >= p.tAdmision) {
+        dAdmCat = (tCat - p.tAdmision) / 3600000;
+        sumAdmCatTotal += dAdmCat;
+        countAdmCatTotal++;
+      }
+
+      // 2. Categorización -> Anamnesis (en Horas)
+      let dCatAna = null;
+      if (typeof tCat === 'number' && typeof p.tAnamnesis === 'number' && p.tAnamnesis >= tCat) {
+        dCatAna = (p.tAnamnesis - tCat) / 3600000;
+        sumCatAnaTotal += dCatAna;
+        countCatAnaTotal++;
+      }
+
+      // 3. Anamnesis -> Trasladado / Alta (en Horas)
+      let dAnaAlt = null;
+      if (typeof p.tAnamnesis === 'number' && typeof p.tAlta === 'number' && p.tAlta >= p.tAnamnesis) {
+        dAnaAlt = (p.tAlta - p.tAnamnesis) / 3600000;
+        sumAnaAltTotal += dAnaAlt;
+        countAnaAltTotal++;
+      }
+
+      // 4. Estadía Total: Admisión -> Trasladado / Alta (en Horas)
+      let dAdmAlt = null;
+      if (typeof p.tAdmision === 'number' && typeof p.tAlta === 'number' && p.tAlta >= p.tAdmision) {
+        dAdmAlt = (p.tAlta - p.tAdmision) / 3600000;
+        sumAdmAltTotal += dAdmAlt;
+        countAdmAltTotal++;
+      }
 
       if (p.edad !== null && p.edad !== undefined && p.edad !== '' && !isNaN(Number(p.edad))) {
         const edadNum = Number(p.edad);
@@ -161,6 +225,10 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
           domicilio: 0,
           otroDestino: 0,
           sinRegistro: 0,
+          sumAdmCat: 0, countAdmCat: 0,
+          sumCatAna: 0, countCatAna: 0,
+          sumAnaAlt: 0, countAnaAlt: 0,
+          sumAdmAlt: 0, countAdmAlt: 0,
           p0_14: 0,
           p15_29: 0,
           p30_59: 0,
@@ -178,6 +246,11 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
       else if (catDest === 'sin_registro') item.sinRegistro++;
       else item.otroDestino++;
 
+      if (dAdmCat !== null) { item.sumAdmCat += dAdmCat; item.countAdmCat++; }
+      if (dCatAna !== null) { item.sumCatAna += dCatAna; item.countCatAna++; }
+      if (dAnaAlt !== null) { item.sumAnaAlt += dAnaAlt; item.countAnaAlt++; }
+      if (dAdmAlt !== null) { item.sumAdmAlt += dAdmAlt; item.countAdmAlt++; }
+
       if (isF) item.mujeres++;
       if (isM) item.hombres++;
 
@@ -193,12 +266,22 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
       }
     });
 
-    const listaDiagnosticos = Object.values(porDiagnostico).sort((a, b) => b.total - a.total);
+    const listaDiagnosticos = Object.values(porDiagnostico).map(item => {
+      return {
+        ...item,
+        avgAdmCat: item.countAdmCat > 0 ? (item.sumAdmCat / item.countAdmCat) : null,
+        avgCatAna: item.countCatAna > 0 ? (item.sumCatAna / item.countCatAna) : null,
+        avgAnaAlt: item.countAnaAlt > 0 ? (item.sumAnaAlt / item.countAnaAlt) : null,
+        avgAdmAlt: item.countAdmAlt > 0 ? (item.sumAdmAlt / item.countAdmAlt) : null,
+        percMujeres: perc(item.mujeres, item.total),
+        percHombres: perc(item.hombres, item.total)
+      };
+    }).sort((a, b) => b.total - a.total);
 
     // KPI 1: Diagnóstico más frecuente
     const diagMasFrecuente = listaDiagnosticos.length > 0 ? listaDiagnosticos[0] : null;
 
-    // KPI 2: Grupo Etario de 5 años más afectado (de los 17 tramos etarios de la Imagen 1)
+    // KPI 2: Grupo Etario de 5 años más afectado
     let rangoMasFrecuente = { rango: 'N/A', total: 0 };
     Object.entries(porRangoEtario).forEach(([rango, data]) => {
       if (data.total > rangoMasFrecuente.total) {
@@ -215,15 +298,54 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
     ].sort((a, b) => b.val - a.val);
     const grupoClinicoMasAfectado = gruposClinicos[0];
 
+    const avgAdmCatGlobal = countAdmCatTotal > 0 ? (sumAdmCatTotal / countAdmCatTotal) : null;
+    const avgCatAnaGlobal = countCatAnaTotal > 0 ? (sumCatAnaTotal / countCatAnaTotal) : null;
+    const avgAnaAltGlobal = countAnaAltTotal > 0 ? (sumAnaAltTotal / countAnaAltTotal) : null;
+    const avgAdmAltGlobal = countAdmAltTotal > 0 ? (sumAdmAltTotal / countAdmAltTotal) : null;
+
+    const totalEvaluados = pacientesFiltrados ? pacientesFiltrados.length : 0;
+
     return {
       total,
+      totalEvaluados,
+      percFracturasDelUniverso: perc(total, totalEvaluados),
+      
       hospitalCount,
-      domicilioCount,
-      otroDestinoCount,
-      sinRegistroCount,
+      hospitalMujeres,
+      hospitalHombres,
       percHospital: perc(hospitalCount, total),
+      percHospitalMujeres: perc(hospitalMujeres, hospitalCount),
+      percHospitalHombres: perc(hospitalHombres, hospitalCount),
+
+      domicilioCount,
+      domicilioMujeres,
+      domicilioHombres,
+      percDomicilio: perc(domicilioCount, total),
+      percDomicilioMujeres: perc(domicilioMujeres, domicilioCount),
+      percDomicilioHombres: perc(domicilioHombres, domicilioCount),
+
+      otroDestinoCount,
+      otroMujeres,
+      otroHombres,
+      percOtroDestino: perc(otroDestinoCount, total),
+
+      sinRegistroCount,
+      sinRegistroMujeres,
+      sinRegistroHombres,
+      percSinRegistro: perc(sinRegistroCount, total),
+
       mujeresCount,
       hombresCount,
+      percMujeresGlobal: perc(mujeresCount, total),
+      percHombresGlobal: perc(hombresCount, total),
+      
+      avgAdmCatGlobal, countAdmCatTotal,
+      avgCatAnaGlobal, countCatAnaTotal,
+      avgAnaAltGlobal, countAnaAltTotal,
+      avgAdmAltGlobal, countAdmAltTotal,
+
+      top5Diagnosticos: listaDiagnosticos.slice(0, 5),
+
       p0_14,
       p15_29,
       p30_59,
@@ -234,7 +356,7 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
       rangoMasFrecuente,
       grupoClinicoMasAfectado
     };
-  }, [pacientesFractura]);
+  }, [pacientesFractura, pacientesFiltrados]);
 
   // Datos para gráfico de barras por Edad y Sexo
   const dataGraficoEdad = useMemo(() => {
@@ -261,18 +383,41 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
     if (stats.listaDiagnosticos.length === 0) return;
 
     const ageHeaders = AGE_RANGES.map(r => `Edad_${r.replace('-', '_').replace('+', 'plus')}_Anos`);
-    const headers = ["Codigo_CIE", "Diagnostico_Principal", "Total_Casos", "Hospital_Emergencia", "Alta_Domicilio", "Otro_Destino", "Sin_Registro", ...ageHeaders, "Mujeres", "Hombres"];
+    const headers = [
+      "Codigo_CIE",
+      "Diagnostico_Principal",
+      "Total_Casos",
+      "Demora_Admision_Categorizacion_Horas",
+      "Demora_Categorizacion_Anamnesis_Horas",
+      "Demora_Anamnesis_Traslado_Horas",
+      "Estadia_Total_Horas",
+      "Hospital_Emergencia",
+      "Alta_Domicilio",
+      "Otro_Destino",
+      "Sin_Registro",
+      ...ageHeaders,
+      "Mujeres_Casos",
+      "Mujeres_Porcentaje",
+      "Hombres_Casos",
+      "Hombres_Porcentaje"
+    ];
     const rows = stats.listaDiagnosticos.map(d => [
       `"${d.codigo}"`,
       `"${d.diagnostico.replace(/"/g, '""')}"`,
       d.total,
+      d.avgAdmCat !== null ? d.avgAdmCat.toFixed(1) : 'N/A',
+      d.avgCatAna !== null ? d.avgCatAna.toFixed(1) : 'N/A',
+      d.avgAnaAlt !== null ? d.avgAnaAlt.toFixed(1) : 'N/A',
+      d.avgAdmAlt !== null ? d.avgAdmAlt.toFixed(1) : 'N/A',
       d.hospital,
       d.domicilio,
       d.otroDestino,
       d.sinRegistro,
       ...AGE_RANGES.map(r => d.rangoCounts[r] || 0),
       d.mujeres,
-      d.hombres
+      `"${d.percMujeres}%"`,
+      d.hombres,
+      `"${d.percHombres}%"`
     ]);
 
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
@@ -284,6 +429,8 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
     link.click();
     document.body.removeChild(link);
   };
+
+  const summaryText = useMemo(() => generateFracturasSummary(pacientesFiltrados), [pacientesFiltrados]);
 
   return (
     <div className="bg-card-custom rounded-2xl border border-card-custom p-6 mt-6 shadow-sm theme-transition">
@@ -321,88 +468,400 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
         </button>
       </div>
 
-      {/* TARJETAS DE KPIS PRINCIPALES DE FRACTURAS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* Narrative Summary Box */}
+      <div className="bg-card-custom p-5 rounded-2xl border border-card-custom shadow-sm mb-6 flex flex-col theme-transition">
+        <h4 className="text-[10px] font-black tracking-wider uppercase text-secondary-custom mb-2.5 flex items-center gap-1.5 border-b border-card-custom/20 pb-2">
+          <Info className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+          Análisis Epidemiológico y Clínico de Lesiones Óseas
+        </h4>
+        <p className="text-xs text-primary-custom leading-relaxed font-semibold">
+          {summaryText}
+        </p>
+      </div>
+
+      {/* TARJETAS DE KPIS PRINCIPALES DE FRACTURAS (6 LÁMINAS SUPERIORES COMPLETAS) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
         
-        {/* KPI 1: TOTAL FRACTURAS */}
-        <div className="bg-gradient-to-br from-rose-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-rose-500/20 relative overflow-hidden group shadow-sm">
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-rose-500">Total Casos Fractura</span>
-            <Stethoscope className="w-4 h-4 text-rose-500 opacity-80" />
+        {/* KPI 1: UNIVERSO EVALUADO Y CASOS FRACTURA */}
+        <div className="bg-gradient-to-br from-rose-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-rose-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[135px]">
+          <div>
+            <div className="flex justify-between items-start mb-2">
+              <span className="text-[11px] font-black uppercase tracking-wider text-rose-500">Universo & Fracturas</span>
+              <Stethoscope className="w-4 h-4 text-rose-500 opacity-80" />
+            </div>
+            <div className="flex items-baseline gap-1.5 mt-1">
+              <span className="text-3xl font-black text-primary-custom">{stats.total}</span>
+              <span className="text-xs font-bold text-rose-500">({stats.percFracturasDelUniverso}%)</span>
+            </div>
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-black text-primary-custom">{stats.total}</span>
-            <span className="text-xs text-secondary-custom font-semibold">casos</span>
+          <div className="mt-2 pt-2 border-t border-card-custom/50 text-[10px] text-secondary-custom flex justify-between items-center font-medium">
+            <span>Universo Evaluado:</span>
+            <span className="font-black text-primary-custom">{stats.totalEvaluados} pac.</span>
           </div>
-          <p className="text-[10px] text-secondary-custom mt-2 opacity-80">
-            {totalFracturasPeriodo > 0 ? `${perc(stats.total, totalFracturasPeriodo)}% del total en selección` : 'Sin registros en el rango'}
-          </p>
         </div>
 
-        {/* KPI 2: DIAGNÓSTICO MÁS FRECUENTE */}
-        <div className="bg-gradient-to-br from-amber-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-amber-500/20 relative overflow-hidden group shadow-sm">
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-amber-500">Fractura más Frecuente</span>
-            <Award className="w-4 h-4 text-amber-500 opacity-80" />
+        {/* KPI 2: TRASLADOS A HOSPITAL / UEH */}
+        <div className="bg-gradient-to-br from-purple-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-purple-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[135px]">
+          <div>
+            <div className="flex justify-between items-start mb-2">
+              <span className="text-[11px] font-black uppercase tracking-wider text-purple-500">Traslados Hospital</span>
+              <Hospital className="w-4 h-4 text-purple-500 opacity-80" />
+            </div>
+            <div className="flex items-baseline gap-1.5 mt-1">
+              <span className="text-3xl font-black text-purple-600 dark:text-purple-400">{stats.hospitalCount}</span>
+              <span className="text-xs font-bold text-purple-500">({stats.percHospital}%)</span>
+            </div>
           </div>
-          <div className="mt-1">
+          <div className="mt-2 pt-2 border-t border-card-custom/50 text-[10px] text-secondary-custom font-medium truncate">
+            Derivados a urgencia secundaria
+          </div>
+        </div>
+
+        {/* KPI 3: ALTAS A DOMICILIO Y OTROS */}
+        <div className="bg-gradient-to-br from-emerald-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-emerald-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[135px]">
+          <div>
+            <div className="flex justify-between items-start mb-2">
+              <span className="text-[11px] font-black uppercase tracking-wider text-emerald-500">Altas Domicilio</span>
+              <Award className="w-4 h-4 text-emerald-500 opacity-80" />
+            </div>
+            <div className="flex items-baseline gap-1.5 mt-1">
+              <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">{stats.domicilioCount}</span>
+              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">({stats.percDomicilio}%)</span>
+            </div>
+          </div>
+          <div className="mt-2 pt-2 border-t border-card-custom/50 text-[10px] text-secondary-custom font-medium truncate">
+            Resolución ambulatoria SAPU/SAR
+          </div>
+        </div>
+
+        {/* KPI 4: FRACTURA MÁS FRECUENTE (RESTAURADA) */}
+        <div className="bg-gradient-to-br from-amber-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-amber-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[135px]">
+          <div>
+            <div className="flex justify-between items-start mb-1">
+              <span className="text-[11px] font-black uppercase tracking-wider text-amber-500">Fractura Frecuente</span>
+              <Activity className="w-4 h-4 text-amber-500 opacity-80" />
+            </div>
             {stats.diagMasFrecuente ? (
-              <>
-                <span className="text-xs font-black text-amber-600 dark:text-amber-400 block truncate" title={stats.diagMasFrecuente.diagnostico}>
+              <div className="mt-1">
+                <span className="text-[11px] font-black text-amber-600 dark:text-amber-400 block truncate" title={stats.diagMasFrecuente.diagnostico}>
                   {stats.diagMasFrecuente.codigo !== 'S/C' ? `${stats.diagMasFrecuente.codigo}: ` : ''}{stats.diagMasFrecuente.diagnostico}
                 </span>
-                <span className="text-xl font-black text-primary-custom">{stats.diagMasFrecuente.total} <span className="text-xs font-bold text-secondary-custom">casos ({perc(stats.diagMasFrecuente.total, stats.total)}%)</span></span>
-              </>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-2xl font-black text-primary-custom">{stats.diagMasFrecuente.total}</span>
+                  <span className="text-[10px] font-bold text-amber-500">({perc(stats.diagMasFrecuente.total, stats.total)}%)</span>
+                </div>
+              </div>
             ) : (
               <span className="text-xs text-secondary-custom font-bold">Sin datos</span>
             )}
           </div>
-          <p className="text-[10px] text-secondary-custom mt-1 opacity-80">
-            Mayor volumen por código CIE-10
-          </p>
+          <div className="mt-2 pt-2 border-t border-card-custom/50 text-[10px] text-secondary-custom font-medium truncate">
+            Mayor frecuencia CIE-10
+          </div>
         </div>
 
-        {/* KPI 3: GRUPO ETARIO MÁS AFECTADO */}
-        <div className="bg-gradient-to-br from-sky-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-sky-500/20 relative overflow-hidden group shadow-sm">
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-sky-500">Grupo Etario más Afectado</span>
-            <Users className="w-4 h-4 text-sky-500 opacity-80" />
-          </div>
-          <div className="mt-1">
+        {/* KPI 5: GRUPO ETARIO MÁS AFECTADO (RESTAURADA) */}
+        <div className="bg-gradient-to-br from-indigo-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-indigo-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[135px]">
+          <div>
+            <div className="flex justify-between items-start mb-1">
+              <span className="text-[11px] font-black uppercase tracking-wider text-indigo-500">Edad Afectada</span>
+              <Users className="w-4 h-4 text-indigo-500 opacity-80" />
+            </div>
             {stats.rangoMasFrecuente && stats.rangoMasFrecuente.total > 0 ? (
-              <>
-                <span className="text-xs font-black text-sky-600 dark:text-sky-400 block">
-                  Tramo {stats.rangoMasFrecuente.rango} Años
+              <div className="mt-1">
+                <span className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 block">
+                  Tramo {stats.rangoMasFrecuente.rango} años
                 </span>
-                <span className="text-xl font-black text-primary-custom">
-                  {stats.rangoMasFrecuente.total} <span className="text-xs font-bold text-secondary-custom">casos ({perc(stats.rangoMasFrecuente.total, stats.total)}%)</span>
-                </span>
-              </>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-2xl font-black text-primary-custom">{stats.rangoMasFrecuente.total}</span>
+                  <span className="text-[10px] font-bold text-indigo-500">({perc(stats.rangoMasFrecuente.total, stats.total)}%)</span>
+                </div>
+              </div>
             ) : (
               <span className="text-xs text-secondary-custom font-bold">Sin datos</span>
             )}
           </div>
-          <p className="text-[10px] text-secondary-custom mt-1 opacity-80">
-            Tramo quinquenal de mayor incidencia (17 tramos)
-          </p>
+          <div className="mt-2 pt-2 border-t border-card-custom/50 text-[10px] text-secondary-custom font-medium truncate">
+            Pico de casos por edad
+          </div>
         </div>
 
-        {/* KPI 4: DERIVACIÓN A HOSPITAL / UEH */}
-        <div className="bg-gradient-to-br from-purple-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-purple-500/20 relative overflow-hidden group shadow-sm">
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-purple-500">Derivación Hospital / UEH</span>
-            <Hospital className="w-4 h-4 text-purple-500 opacity-80" />
+        {/* KPI 6: DESGLOSE DE TIEMPOS DE ATENCIÓN (4 ETAPAS EN HORAS) */}
+        <div className="bg-gradient-to-br from-sky-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-sky-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[135px]">
+          <div className="flex justify-between items-start mb-1">
+            <div className="flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5 text-sky-500" />
+              <span className="text-[11px] font-black uppercase tracking-wider text-sky-500 truncate">
+                Flujo Atenciones
+              </span>
+            </div>
+            <InfoTooltip 
+              title="Promedios del Flujo de Atención" 
+              text="Duraciones promedio en horas (1 decimal): Admisión a Categorización (promedio Cat1/CatUlt), Categorización a Anamnesis, Anamnesis a Traslado/Alta, y Estadía Total." 
+            />
           </div>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-3xl font-black text-rose-500">{stats.hospitalCount}</span>
-            <span className="text-xs font-bold text-rose-500">({stats.percHospital}%)</span>
+
+          <div className="grid grid-cols-4 gap-1 mt-1">
+            <div className="bg-black/5 dark:bg-white/5 p-1 rounded-lg text-center border border-card-custom/50" title={`Admisión → Categorización (${stats.countAdmCatTotal} pac.)`}>
+              <span className="text-[7px] font-bold uppercase text-sky-500 block truncate">Adm-Cat</span>
+              <span className="text-xs font-black text-primary-custom">
+                {stats.avgAdmCatGlobal !== null ? stats.avgAdmCatGlobal.toFixed(1) : '-'}
+              </span>
+              <span className="text-[7px] font-bold text-sky-500 block">hrs</span>
+            </div>
+
+            <div className="bg-black/5 dark:bg-white/5 p-1 rounded-lg text-center border border-card-custom/50" title={`Categorización → Anamnesis (${stats.countCatAnaTotal} pac.)`}>
+              <span className="text-[7px] font-bold uppercase text-indigo-500 block truncate">Cat-Ana</span>
+              <span className="text-xs font-black text-primary-custom">
+                {stats.avgCatAnaGlobal !== null ? stats.avgCatAnaGlobal.toFixed(1) : '-'}
+              </span>
+              <span className="text-[7px] font-bold text-indigo-500 block">hrs</span>
+            </div>
+
+            <div className="bg-black/5 dark:bg-white/5 p-1 rounded-lg text-center border border-card-custom/50" title={`Anamnesis → Traslado/Alta (${stats.countAnaAltTotal} pac.)`}>
+              <span className="text-[7px] font-bold uppercase text-amber-500 block truncate">Ana-Tras</span>
+              <span className="text-xs font-black text-primary-custom">
+                {stats.avgAnaAltGlobal !== null ? stats.avgAnaAltGlobal.toFixed(1) : '-'}
+              </span>
+              <span className="text-[7px] font-bold text-amber-500 block">hrs</span>
+            </div>
+
+            <div className="bg-emerald-500/10 p-1 rounded-lg text-center border border-emerald-500/20" title={`Estadía Total (${stats.countAdmAltTotal} pac.)`}>
+              <span className="text-[7px] font-bold uppercase text-emerald-600 dark:text-emerald-400 block truncate">Total</span>
+              <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                {stats.avgAdmAltGlobal !== null ? stats.avgAdmAltGlobal.toFixed(1) : '-'}
+              </span>
+              <span className="text-[7px] font-bold text-emerald-600 dark:text-emerald-400 block">hrs</span>
+            </div>
           </div>
-          <p className="text-[10px] text-secondary-custom mt-2 opacity-80">
-            Traslados urgentes a atención secundaria
-          </p>
         </div>
 
       </div>
+
+      {/* SECCIÓN COMPARATIVA DE GÉNERO Y DESTINO DE ALTA */}
+      {stats.total > 0 && (
+        <div className="bg-black/5 dark:bg-white/5 p-5 rounded-2xl border border-card-custom mb-6">
+          
+          {/* HEADER CON TÍTULO E INDICADORES */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2 pb-3 border-b border-card-custom/50">
+            <div>
+              <h3 className="text-xs font-bold text-primary-custom uppercase tracking-wider flex items-center gap-2">
+                <ArrowRightLeft className="w-4 h-4 text-purple-500" />
+                Distribución Global por Género & Destinos de Alta
+              </h3>
+              <p className="text-[11px] text-secondary-custom mt-0.5 font-medium">
+                Participación total por sexo y resolución asistencial (derivaciones a hospital vs altas ambulatorias).
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            
+            {/* BLOQUE PROTAGÓNICO 1: PARTICIPACIÓN DE GÉNERO TOTAL (MUJERES VS HOMBRES) */}
+            <div className="lg:col-span-7 bg-card-custom p-5 rounded-xl border border-rose-500/30 shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-xs font-black uppercase tracking-wider text-rose-500 flex items-center gap-1.5">
+                    <Users className="w-4 h-4 text-rose-500" />
+                    Distribución de Sexo en Fracturas
+                  </span>
+                  <span className="text-[10px] text-secondary-custom font-bold">Universo Total: {stats.total} casos</span>
+                </div>
+
+                {/* KPI DESTACADOS DE MUJERES Y HOMBRES */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="bg-pink-500/10 p-3.5 rounded-xl border border-pink-500/20">
+                    <span className="text-[10px] font-bold uppercase text-pink-500 block">Mujeres</span>
+                    <div className="flex items-baseline gap-2 mt-0.5">
+                      <span className="text-3xl font-black text-pink-600 dark:text-pink-400">{stats.mujeresCount}</span>
+                      <span className="text-xs font-black text-pink-500">({stats.percMujeresGlobal}%)</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-500/10 p-3.5 rounded-xl border border-blue-500/20">
+                    <span className="text-[10px] font-bold uppercase text-blue-500 block">Hombres</span>
+                    <div className="flex items-baseline gap-2 mt-0.5">
+                      <span className="text-3xl font-black text-blue-600 dark:text-blue-400">{stats.hombresCount}</span>
+                      <span className="text-xs font-black text-blue-500">({stats.percHombresGlobal}%)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* GRAN BARRA DE PORCENTAJE DE PARTICIPACIÓN GÉNERO */}
+              <div>
+                <div className="flex justify-between text-[11px] font-bold mb-1.5">
+                  <span className="text-pink-500">Mujeres: {stats.mujeresCount} ({stats.percMujeresGlobal}%)</span>
+                  <span className="text-blue-500">Hombres: {stats.hombresCount} ({stats.percHombresGlobal}%)</span>
+                </div>
+                <div className="h-4 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden flex shadow-inner">
+                  <div 
+                    className="bg-gradient-to-r from-pink-500 to-rose-400 h-full transition-all duration-500" 
+                    style={{ width: `${stats.percMujeresGlobal}%` }} 
+                    title={`Mujeres: ${stats.mujeresCount} casos (${stats.percMujeresGlobal}%)`}
+                  />
+                  <div 
+                    className="bg-gradient-to-r from-blue-400 to-indigo-500 h-full transition-all duration-500" 
+                    style={{ width: `${stats.percHombresGlobal}%` }} 
+                    title={`Hombres: ${stats.hombresCount} casos (${stats.percHombresGlobal}%)`}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* BLOQUE PROTAGÓNICO 2: DESTINOS DE ALTA (TOTALIDADES Y PARTICIPACIÓN) */}
+            <div className="lg:col-span-5 bg-card-custom p-5 rounded-xl border border-purple-500/30 shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-xs font-black uppercase tracking-wider text-purple-500 flex items-center gap-1.5">
+                    <Hospital className="w-4 h-4 text-purple-500" />
+                    Destino Asistencial
+                  </span>
+                  <span className="text-[10px] text-secondary-custom font-bold">Totalidades</span>
+                </div>
+
+                <div className="space-y-3">
+                  {/* TRASLADADOS A HOSPITAL */}
+                  <div className="bg-purple-500/10 p-3 rounded-xl border border-purple-500/20 flex justify-between items-center">
+                    <div>
+                      <span className="text-xs font-black text-primary-custom block uppercase">Trasladados a Hospital / UEH</span>
+                      <span className="text-[10px] text-secondary-custom font-semibold">Atención Secundaria de Urgencia</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xl font-black text-purple-600 dark:text-purple-400 block">{stats.hospitalCount}</span>
+                      <span className="text-[10px] font-bold text-rose-500">{stats.percHospital}% del total</span>
+                    </div>
+                  </div>
+
+                  {/* NO TRASLADADOS / DOMICILIO */}
+                  <div className="bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 flex justify-between items-center">
+                    <div>
+                      <span className="text-xs font-black text-primary-custom block uppercase">No Trasladados (Domicilio / Otros)</span>
+                      <span className="text-[10px] text-secondary-custom font-semibold">Resolución Ambulatoria SAPU/SAR</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 block">{stats.total - stats.hospitalCount}</span>
+                      <span className="text-[10px] font-bold text-emerald-500">{(100 - Number(stats.percHospital)).toFixed(1)}% del total</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* BARRA COMPARATIVA DE DESTINO */}
+              <div className="mt-3 pt-2">
+                <div className="h-3 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden flex shadow-inner">
+                  <div 
+                    className="bg-purple-500 h-full transition-all duration-500" 
+                    style={{ width: `${stats.percHospital}%` }} 
+                    title={`Hospital / UEH: ${stats.hospitalCount} (${stats.percHospital}%)`}
+                  />
+                  <div 
+                    className="bg-emerald-500 h-full transition-all duration-500" 
+                    style={{ width: `${(100 - Number(stats.percHospital)).toFixed(1)}%` }} 
+                    title={`Domicilio / Otros: ${stats.total - stats.hospitalCount} (${(100 - Number(stats.percHospital)).toFixed(1)}%)`}
+                  />
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* SECCIÓN DESTACADA: TOP 5 DIAGNÓSTICOS PRINCIPALES DE FRACTURA CON PESTAÑA DESPLEGABLE */}
+      {stats.top5Diagnosticos.length > 0 && (
+        <div className="bg-black/5 dark:bg-white/5 p-5 rounded-2xl border border-card-custom mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-bold text-primary-custom uppercase tracking-wider flex items-center gap-2">
+                <Award className="w-4 h-4 text-amber-500" />
+                Top 5 Diagnósticos Principales de Fractura
+              </h3>
+              <InfoTooltip 
+                title="Top 5 Diagnósticos" 
+                text="Los 5 tipos de fractura con mayor cantidad de registros. Haz clic en 'Ver detalle' para desplegar el desglose por sexo y tiempo de estadía total." 
+              />
+            </div>
+
+            <button
+              onClick={() => setMostrarDetalleTop5(!mostrarDetalleTop5)}
+              className="flex items-center gap-1.5 bg-card-custom hover:bg-black/5 dark:hover:bg-white/10 text-secondary-custom hover:text-primary-custom border border-card-custom px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer shadow-sm"
+            >
+              <span>{mostrarDetalleTop5 ? 'Ocultar detalles' : 'Desplegar todos los detalles'}</span>
+              {mostrarDetalleTop5 ? <ChevronUp className="w-3.5 h-3.5 text-rose-500" /> : <ChevronDown className="w-3.5 h-3.5 text-rose-500" />}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            {stats.top5Diagnosticos.map((item, idx) => {
+              const isCardExpanded = mostrarDetalleTop5 || !!cardExpandedTop5[idx];
+
+              return (
+                <div 
+                  key={idx} 
+                  className="bg-card-custom p-4 rounded-xl border border-card-custom flex flex-col justify-between shadow-sm relative overflow-hidden group transition-all hover:border-rose-500/30"
+                >
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-[11px] font-black text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20">
+                        #{idx + 1}
+                      </span>
+                      <span className="text-[11px] font-extrabold text-secondary-custom bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-md">
+                        {item.codigo}
+                      </span>
+                    </div>
+
+                    {/* NOMBRE DIAGNÓSTICO DESTACADO Y PROTAGÓNICO */}
+                    <h4 className="text-xs font-black text-primary-custom leading-snug my-1.5 min-h-[36px] flex items-center" title={item.diagnostico}>
+                      {item.diagnostico}
+                    </h4>
+
+                    <div className="flex justify-between items-baseline mt-2 pt-2 border-t border-card-custom/50">
+                      <span className="text-[10px] text-secondary-custom font-semibold">Total Casos:</span>
+                      <span className="text-sm font-black text-rose-500">{item.total} <span className="text-[10px] font-bold text-secondary-custom">({perc(item.total, stats.total)}%)</span></span>
+                    </div>
+                  </div>
+
+                  {/* BOTÓN DESPLEGABLE DE PESTAÑA DETALLE */}
+                  <div className="mt-3 pt-2 border-t border-card-custom/40">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCardExpandedTop5(prev => ({ ...prev, [idx]: !prev[idx] }));
+                      }}
+                      className="w-full flex items-center justify-between text-[10px] font-bold text-secondary-custom hover:text-rose-500 transition-colors py-1 cursor-pointer"
+                    >
+                      <span>{isCardExpanded ? 'Ocultar detalle' : 'Ver detalle'}</span>
+                      {isCardExpanded ? <ChevronUp className="w-3.5 h-3.5 text-rose-500" /> : <ChevronDown className="w-3.5 h-3.5 text-rose-500" />}
+                    </button>
+
+                    {/* CONTENIDO DESPLEGABLE */}
+                    {isCardExpanded && (
+                      <div className="mt-2 pt-2 border-t border-card-custom/30 space-y-1.5 text-[10px]">
+                        <div className="flex justify-between items-center" title={`${item.mujeres} mujeres (${item.percMujeres}%)`}>
+                          <span className="text-secondary-custom font-semibold">Mujeres:</span>
+                          <span className="font-bold text-pink-500">{item.mujeres} ({item.percMujeres}%)</span>
+                        </div>
+                        <div className="flex justify-between items-center" title={`${item.hombres} hombres (${item.percHombres}%)`}>
+                          <span className="text-secondary-custom font-semibold">Hombres:</span>
+                          <span className="font-bold text-blue-500">{item.hombres} ({item.percHombres}%)</span>
+                        </div>
+                        <div className="flex justify-between items-center border-t border-card-custom/30 pt-1 mt-1">
+                          <span className="text-secondary-custom font-semibold">Estadía Total:</span>
+                          <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                            {item.avgAdmAlt !== null ? `${item.avgAdmAlt.toFixed(1)} hrs` : '-'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* BARRA DE FILTROS LOCALES */}
       <div className="bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom mb-6 flex flex-col lg:flex-row gap-4 justify-between items-center">
@@ -487,17 +946,27 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
         </div>
       </div>
 
-      {/* SECCIÓN INTERACTIVA DE GRUPOS ETARIOS COMPLETOS (PILLS ESTILO IMAGEN 1) */}
-      <div className="bg-black/5 dark:bg-white/5 p-5 rounded-2xl border border-card-custom mb-6">
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="text-xs font-bold text-primary-custom uppercase tracking-wider flex items-center gap-2">
-            <Users className="w-4 h-4 text-sky-500" />
-            Distribución por Grupos Etarios Completos (5 en 5 Años)
-          </h3>
-          <span className="text-[10px] text-secondary-custom font-semibold">Haz clic en cualquier tramo para filtrar la vista</span>
+      {/* SECCIÓN INTERACTIVA DE GRUPOS ETARIOS (COMPRIMIDA EN GRID RESPONSIVO) */}
+      <div className="bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2.5 gap-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-xs font-bold text-primary-custom uppercase tracking-wider flex items-center gap-2">
+              <Users className="w-4 h-4 text-sky-500" />
+              Grupos Etarios (17 Tramos)
+            </h3>
+            {filtroEdad !== 'TODOS' && (
+              <button 
+                onClick={() => setFiltroEdad('TODOS')}
+                className="text-[10px] font-bold text-rose-500 hover:underline bg-rose-500/10 px-2 py-0.5 rounded-md"
+              >
+                Limpiar filtro ({filtroEdad})
+              </button>
+            )}
+          </div>
+          <span className="text-[10px] text-secondary-custom font-semibold">Haz clic en un tramo para filtrar la vista</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-9 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-9 gap-1.5">
           {AGE_RANGES.map(range => {
             const count = stats.porRangoEtario[range]?.total || 0;
             const percentage = perc(count, stats.total);
@@ -507,15 +976,19 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
               <button
                 key={range}
                 onClick={() => setFiltroEdad(isSelected ? 'TODOS' : range)}
-                className={`p-2.5 rounded-xl border flex flex-col justify-between items-center transition-all cursor-pointer ${
+                title={`${range} años: ${count} pacientes (${percentage}%)`}
+                className={`flex flex-col items-center justify-center p-2 rounded-xl text-center transition-all cursor-pointer border ${
                   isSelected 
-                    ? 'bg-rose-500 text-white border-rose-600 shadow-md scale-105' 
-                    : 'bg-card-custom hover:bg-black/5 dark:hover:bg-white/10 border-card-custom text-primary-custom'
+                    ? 'bg-rose-500 text-white border-rose-600 font-bold shadow-sm ring-2 ring-rose-500/30' 
+                    : 'bg-card-custom hover:bg-black/5 dark:hover:bg-white/10 border-card-custom text-secondary-custom'
                 }`}
               >
-                <span className={`text-[11px] font-bold ${isSelected ? 'text-white' : 'text-secondary-custom'}`}>{range} yrs</span>
-                <span className={`text-sm font-black mt-1 ${isSelected ? 'text-white' : 'text-primary-custom'}`}>{percentage}%</span>
-                <span className={`text-[9px] font-medium ${isSelected ? 'text-white/80' : 'text-secondary-custom/70'}`}>{count} pac.</span>
+                <span className={`text-[10px] font-bold ${isSelected ? 'text-white/90' : 'text-secondary-custom'}`}>
+                  {range}
+                </span>
+                <span className={`text-xs font-black ${isSelected ? 'text-white' : 'text-primary-custom'}`}>
+                  {percentage}%
+                </span>
               </button>
             );
           })}
@@ -645,6 +1118,10 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
                 <th className="p-3 whitespace-nowrap">Código CIE</th>
                 <th className="p-3 min-w-[220px]">Diagnóstico Principal</th>
                 <th className="p-3 text-center whitespace-nowrap">Total Casos</th>
+                <th className="p-3 text-center text-sky-500 whitespace-nowrap" title="Promedio Admisión a Categorización (hrs)">Adm → Cat</th>
+                <th className="p-3 text-center text-indigo-500 whitespace-nowrap" title="Promedio Categorización a Anamnesis (hrs)">Cat → Ana</th>
+                <th className="p-3 text-center text-amber-500 whitespace-nowrap" title="Promedio Anamnesis a Traslado/Alta (hrs)">Ana → Traslado</th>
+                <th className="p-3 text-center text-emerald-500 whitespace-nowrap" title="Estadía Total: Admisión a Traslado/Alta (hrs)">Estadía Total</th>
                 <th className="p-3 text-center text-rose-500 whitespace-nowrap">Hospital / UEH</th>
                 <th className="p-3 text-center text-emerald-500 whitespace-nowrap">Domicilio</th>
                 <th className="p-3 text-center text-sky-500 whitespace-nowrap">Otros</th>
@@ -664,8 +1141,8 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
                   ))
                 )}
 
-                <th className="p-3 text-center text-pink-500 whitespace-nowrap">Mujeres</th>
-                <th className="p-3 text-center text-blue-500 whitespace-nowrap">Hombres</th>
+                <th className="p-3 text-center text-pink-500 whitespace-nowrap">Mujeres (% / N)</th>
+                <th className="p-3 text-center text-blue-500 whitespace-nowrap">Hombres (% / N)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-card-custom text-xs">
@@ -678,9 +1155,45 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
                     <td className="p-3 font-bold text-primary-custom">
                       {row.diagnostico}
                     </td>
-                    <td className="p-3 text-center font-black text-rose-500 text-sm">
+                    <td 
+                      className="p-3 text-center font-black text-rose-500 text-sm cursor-help whitespace-nowrap"
+                      title={`${row.total} casos de fractura (${perc(row.total, stats.total)}% del total)`}
+                    >
                       {row.total}
                     </td>
+
+                    {/* 1. Admisión -> Categorización */}
+                    <td 
+                      className="p-3 text-center font-bold text-sky-600 dark:text-sky-400 bg-sky-500/5 whitespace-nowrap"
+                      title={row.countAdmCat > 0 ? `Admisión → Categorización: ${row.avgAdmCat.toFixed(1)} hrs (${row.countAdmCat} de ${row.total} pac.)` : 'Sin registro de categorización'}
+                    >
+                      {row.avgAdmCat !== null ? `${row.avgAdmCat.toFixed(1)} hrs` : '-'}
+                    </td>
+
+                    {/* 2. Categorización -> Anamnesis */}
+                    <td 
+                      className="p-3 text-center font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/5 whitespace-nowrap"
+                      title={row.countCatAna > 0 ? `Categorización → Anamnesis: ${row.avgCatAna.toFixed(1)} hrs (${row.countCatAna} de ${row.total} pac.)` : 'Sin registro de anamnesis'}
+                    >
+                      {row.avgCatAna !== null ? `${row.avgCatAna.toFixed(1)} hrs` : '-'}
+                    </td>
+
+                    {/* 3. Anamnesis -> Traslado/Alta */}
+                    <td 
+                      className="p-3 text-center font-bold text-amber-600 dark:text-amber-400 bg-amber-500/5 whitespace-nowrap"
+                      title={row.countAnaAlt > 0 ? `Anamnesis → Traslado/Alta: ${row.avgAnaAlt.toFixed(1)} hrs (${row.countAnaAlt} de ${row.total} pac.)` : 'Sin registro de alta/traslado'}
+                    >
+                      {row.avgAnaAlt !== null ? `${row.avgAnaAlt.toFixed(1)} hrs` : '-'}
+                    </td>
+
+                    {/* 4. Estadía Total */}
+                    <td 
+                      className="p-3 text-center font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 whitespace-nowrap"
+                      title={row.countAdmAlt > 0 ? `Estadía Total Admisión → Traslado/Alta: ${row.avgAdmAlt.toFixed(1)} hrs (${row.countAdmAlt} de ${row.total} pac.)` : 'Sin registro de estadía total'}
+                    >
+                      {row.avgAdmAlt !== null ? `${row.avgAdmAlt.toFixed(1)} hrs` : '-'}
+                    </td>
+
                     <td className="p-3 text-center font-bold text-rose-500 bg-rose-500/5">
                       {row.hospital > 0 ? `${row.hospital} (${perc(row.hospital, row.total)}%)` : '-'}
                     </td>
@@ -718,17 +1231,26 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
                       ))
                     )}
 
-                    <td className="p-3 text-center font-bold text-pink-500 bg-pink-500/5">
-                      {row.mujeres > 0 ? row.mujeres : '-'}
+                    {/* DESGLOSE INTERACTIVO MUJERES */}
+                    <td 
+                      className="p-3 text-center font-bold text-pink-500 bg-pink-500/5 whitespace-nowrap cursor-help"
+                      title={row.mujeres > 0 ? `${row.mujeres} mujeres de ${row.total} casos equivalen al ${row.percMujeres}%` : '0 mujeres de 0 casos (0%)'}
+                    >
+                      {row.mujeres > 0 ? `${row.mujeres} (${row.percMujeres}%)` : '-'}
                     </td>
-                    <td className="p-3 text-center font-bold text-blue-500 bg-blue-500/5">
-                      {row.hombres > 0 ? row.hombres : '-'}
+
+                    {/* DESGLOSE INTERACTIVO HOMBRES */}
+                    <td 
+                      className="p-3 text-center font-bold text-blue-500 bg-blue-500/5 whitespace-nowrap cursor-help"
+                      title={row.hombres > 0 ? `${row.hombres} hombres de ${row.total} casos equivalen al ${row.percHombres}%` : '0 hombres de 0 casos (0%)'}
+                    >
+                      {row.hombres > 0 ? `${row.hombres} (${row.percHombres}%)` : '-'}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="15" className="p-8 text-center text-secondary-custom text-xs font-semibold">
+                  <td colSpan="30" className="p-8 text-center text-secondary-custom text-xs font-semibold">
                     No se encontraron diagnósticos que coincidan con la búsqueda.
                   </td>
                 </tr>

@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { 
-  ShieldAlert, Users, Calendar, MapPin, Activity, Clock, FileSpreadsheet, Filter, CheckCircle2 
+  ShieldAlert, Users, Calendar, MapPin, Activity, Clock, FileSpreadsheet, Filter, CheckCircle2, Info
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, PieChart, Pie, Cell 
 } from 'recharts';
 import InfoTooltip from '../InfoTooltip';
+import { generateConstatacionesSummary } from '../../utils/summaryGenerator';
 
 export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin }) {
   const [filtroSexo, setFiltroSexo] = useState('TODOS');
@@ -235,6 +236,8 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
     return Object.values(comunasMap).sort((a,b) => b.Total - a.Total);
   }, [pacientesLesiones]);
 
+  const summaryText = useMemo(() => generateConstatacionesSummary(targetPacientes), [targetPacientes]);
+
   return (
     <div className="w-full space-y-6 animate-fade-in">
       
@@ -289,6 +292,17 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
             </button>
           )}
         </div>
+      </div>
+
+      {/* Narrative Summary Box */}
+      <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-between">
+        <h4 className="text-[10px] font-black tracking-wider uppercase text-slate-400 mb-2 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+          <Info className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+          Resumen Analítico e Histórico (Código CIE-10 Z51.8)
+        </h4>
+        <p className="text-xs text-slate-700 leading-relaxed font-semibold">
+          {summaryText}
+        </p>
       </div>
 
       {/* TARJETAS KPI DE CANTIDADES ABSOLUTAS */}

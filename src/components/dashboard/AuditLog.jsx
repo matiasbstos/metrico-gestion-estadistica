@@ -85,7 +85,7 @@ export default function AuditLog({ db, appId, centroActivo }) {
             ) : (
               filteredLogs.map(log => {
                 const dateObj = new Date(log.fecha);
-                const dateStr = dateObj.toLocaleDateString();
+                const dateStr = dateObj.toLocaleDateString('es-CL');
                 const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
                 return (

@@ -225,3 +225,19 @@
   animation: glowRed 2s infinite ease-in-out;
 }
 
+@keyframes floatAmbulance {
+  0% {
+    transform: translateY(-50%) translateY(0px);
+  }
+  50% {
+    transform: translateY(-50%) translateY(-6px);
+  }
+  100% {
+    transform: translateY(-50%) translateY(0px);
+  }
+}
+
+.animate-float-ambulance {
+  animation: floatAmbulance 3s ease-in-out infinite;
+}
+

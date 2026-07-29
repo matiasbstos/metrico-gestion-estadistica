@@ -3,6 +3,8 @@ import { FileText, Download, Printer, Calendar, Users, Clock, AlertTriangle, Che
 import { useMetricoAnalytics } from '../../hooks/useMetricoAnalytics';
 import { useMetricoProfesionales } from '../../hooks/useMetricoProfesionales';
 import FiltrosGlobales from './FiltrosGlobales';
+import { generateAltasSummary, generateFracturasSummary, generateEnfermeriaSummary, generateConstatacionesSummary, generateTrasladosSummary } from '../../utils/summaryGenerator';
+import { obtenerTurnoDetallado } from '../../utils/helpers';
 
 export default function ReportesModule({ 
   user,
@@ -27,6 +29,7 @@ export default function ReportesModule({
   const [incluirFracturas, setIncluirFracturas] = useState(true);
   const [incluirEnfermeria, setIncluirEnfermeria] = useState(true);
   const [incluirConstataciones, setIncluirConstataciones] = useState(true);
+  const [incluirTraslados, setIncluirTraslados] = useState(true);
 
   // Fechas dinámicas desde la barra de filtros globales
   const fechas = useMemo(() => {
@@ -220,7 +223,7 @@ export default function ReportesModule({
         const cod = (p.codigoDiagnostico || '').toUpperCase();
         const isLesion = cod.includes('Z51.8') || cod.includes('Z518');
         
-        if (isLesion && cat === 'c3') {
+        if (isLesion) {
           cat = 'c3_z518';
         }
 
@@ -445,17 +448,257 @@ export default function ReportesModule({
       c5 += row.c5;
     });
     return {
-      totalTriados,
+totalTriados,
       c1, c2, c3, c4, c5,
       avgMinCat1: enfermeriaStats.avgMinCat1,
       avgMinReCat: enfermeriaStats.avgMinReCat
     };
   }, [enfermeriaStats]);
 
+  const trasladosReportStats = useMemo(() => {
+    const pacs = pacientesFiltrados || [];
+    
+    // Identificar traslados
+    const isTraslado = (p) => {
+      const dest = (p.destinoAlta || p.destino || '').toLowerCase();
+      return dest.includes('hospital') || dest.includes('emergencia') || dest.includes('derivac');
+    };
+    
+    const listTraslados = pacs.filter(isTraslado);
+    const totalTraslados = listTraslados.length;
+    const totalPacientes = pacs.length || 1;
+    const pctTraslados = ((totalTraslados / totalPacientes) * 100).toFixed(1);
+    
+    // Promedio diario
+    const uniqueDays = new Set();
+    listTraslados.forEach(p => {
+      if (p.tAdmision) {
+        uniqueDays.add(new Date(p.tAdmision).toDateString());
+      }
+    });
+    const diasTotal = uniqueDays.size || 1;
+    const promedioDiario = (totalTraslados / diasTotal).toFixed(1);
+    
+    // Distribución de sexo
+    let hombres = 0;
+    let mujeres = 0;
+    let otros = 0;
+    
+    listTraslados.forEach(p => {
+      const sex = (p.sexo || '').toUpperCase();
+      if (sex.includes('HOMBRE') || sex.includes('MASCULINO') || sex === 'M') hombres++;
+      else if (sex.includes('MUJER') || sex.includes('FEMENINO') || sex === 'F') mujeres++;
+      else otros++;
+    });
+    
+    const hombresPct = totalTraslados > 0 ? ((hombres / totalTraslados) * 100).toFixed(1) : '0.0';
+    const mujeresPct = totalTraslados > 0 ? ((mujeres / totalTraslados) * 100).toFixed(1) : '0.0';
+    
+    // Rangos etarios en tramos de 5 años
+    const brackets = [
+      '0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', 
+      '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80+'
+    ];
+    const ageRanges = {};
+    brackets.forEach(r => { ageRanges[r] = 0; });
+    ageRanges['Desconocido'] = 0;
+
+    listTraslados.forEach(p => {
+      const age = p.edad;
+      if (age === null || age === undefined || isNaN(age)) {
+        ageRanges['Desconocido']++;
+        return;
+      }
+      if (age >= 80) {
+        ageRanges['80+']++;
+        return;
+      }
+      let placed = false;
+      for (let i = 0; i < 16; i++) {
+        const start = i * 5;
+        const end = start + 4;
+        if (age >= start && age <= end) {
+          ageRanges[`${start}-${end}`]++;
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) ageRanges['Desconocido']++;
+    });
+
+    const ageRangesPct = {};
+    Object.entries(ageRanges).forEach(([range, count]) => {
+      ageRangesPct[range] = totalTraslados > 0 ? ((count / totalTraslados) * 100).toFixed(1) : '0.0';
+    });
+
+    // Top 3 de mayor participación
+    const topAgeRanges = Object.entries(ageRanges)
+      .filter(([range, count]) => range !== 'Desconocido' && count > 0)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([range, count]) => ({
+        range,
+        count,
+        pct: totalTraslados > 0 ? ((count / totalTraslados) * 100).toFixed(1) : '0.0'
+      }));
+
+    // Comparativa año anterior (YoY)
+    let prevYearTraslados = 0;
+    let prevYearTotalAdms = 0;
+    let prevYearPct = '0.0';
+    let yoyGrowth = '0.0';
+    
+    if (pacientesDB && filtroFechaInicio && filtroFechaFin) {
+      const pStart = filtroFechaInicio.split('-');
+      const pEnd = filtroFechaFin.split('-');
+      if (pStart.length === 3 && pEnd.length === 3) {
+        const prevStartStr = `${parseInt(pStart[0]) - 1}-${pStart[1]}-${pStart[2]}`;
+        const prevEndStr = `${parseInt(pEnd[0]) - 1}-${pEnd[1]}-${pEnd[2]}`;
+        
+        const startMs = new Date(prevStartStr + 'T00:00:00').getTime();
+        const endMs = new Date(prevEndStr + 'T23:59:59').getTime();
+        
+        const prevYearPacs = pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
+        const prevListTras = prevYearPacs.filter(isTraslado);
+        prevYearTraslados = prevListTras.length;
+        prevYearTotalAdms = prevYearPacs.length;
+        prevYearPct = prevYearTotalAdms > 0 ? ((prevYearTraslados / prevYearTotalAdms) * 100).toFixed(1) : '0.0';
+        
+        if (prevYearTraslados > 0) {
+          yoyGrowth = (((totalTraslados - prevYearTraslados) / prevYearTraslados) * 100).toFixed(1);
+        } else if (totalTraslados > 0) {
+          yoyGrowth = '100.0';
+        }
+      }
+    }
+
+    const prevYearPacs = pacientesDB && filtroFechaInicio && filtroFechaFin ? (() => {
+      const pStart = filtroFechaInicio.split('-');
+      const pEnd = filtroFechaFin.split('-');
+      if (pStart.length === 3 && pEnd.length === 3) {
+        const prevStartStr = `${parseInt(pStart[0]) - 1}-${pStart[1]}-${pStart[2]}`;
+        const prevEndStr = `${parseInt(pEnd[0]) - 1}-${pEnd[1]}-${pEnd[2]}`;
+        const startMs = new Date(prevStartStr + 'T00:00:00').getTime();
+        const endMs = new Date(prevEndStr + 'T23:59:59').getTime();
+        return pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
+      }
+      return [];
+    })() : [];
+    
+    const summaryText = generateTrasladosSummary(pacs, prevYearPacs);
+
+    // Top Destino
+    const destCounts = {};
+    listTraslados.forEach(p => {
+      const dest = p.destinoAlta || p.destino || 'Sin Especificar';
+      destCounts[dest] = (destCounts[dest] || 0) + 1;
+    });
+    let topDestName = '-';
+    let topDestCount = 0;
+    Object.entries(destCounts).forEach(([name, count]) => {
+      if (count > topDestCount) {
+        topDestName = name;
+        topDestCount = count;
+      }
+    });
+    const topDestPct = totalTraslados > 0 ? ((topDestCount / totalTraslados) * 100).toFixed(1) : '0.0';
+    
+    // Turno Récord
+    const turnosCounts = {};
+    listTraslados.forEach(p => {
+      if (!p.tAdmision) return;
+      
+      const d = new Date(p.tAdmision);
+      const isNight = d.getHours() >= 20 || d.getHours() < 8;
+      const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+      const dateStr = d.toLocaleDateString('es-CL');
+      
+      // Intentar obtener el número de turno real (1, 2, 3)
+      const tInfo = obtenerTurnoDetallado ? obtenerTurnoDetallado(p.tAdmision) : null;
+      const turnoNum = tInfo ? tInfo.turnoNum : (isNight ? '3 (Noche)' : isWeekend ? '2 (Tarde)' : '1 (Mañana)');
+      const tipo = tInfo ? tInfo.tipo : (isWeekend ? 'Fin de Semana' : 'Largo de Semana');
+      
+      const key = `${dateStr}_${turnoNum}_${tipo}`;
+      turnosCounts[key] = (turnosCounts[key] || 0) + 1;
+    });
+    
+    let maxKey = null;
+    let maxCount = 0;
+    Object.entries(turnosCounts).forEach(([key, count]) => {
+      if (count > maxCount) {
+        maxCount = count;
+        maxKey = key;
+      }
+    });
+    
+    let recordTurnoStr = '-';
+    let recordTurnoNum = '-';
+    let recordTurnoFecha = '-';
+    let recordTurnoTipo = '-';
+    if (maxKey) {
+      const [dateStr, turnoNum, tipo] = maxKey.split('_');
+      recordTurnoFecha = dateStr;
+      recordTurnoNum = turnoNum;
+      recordTurnoTipo = tipo;
+      recordTurnoStr = `Turno ${turnoNum} (${tipo}) del ${dateStr} con ${maxCount} pac.`;
+    }
+    
+    // Top 5 diagnósticos
+    const diagCounts = {};
+    const diagNames = {};
+    listTraslados.forEach(p => {
+      const code = p.codigoDiagnostico || 'SIN_COD';
+      const name = p.diagnosticoPrincipal || 'Sin diagnóstico';
+      diagCounts[code] = (diagCounts[code] || 0) + 1;
+      diagNames[code] = name;
+    });
+    
+    const topDiagArr = Object.entries(diagCounts)
+      .map(([code, count]) => ({
+        code,
+        name: diagNames[code],
+        count,
+        pct: totalTraslados > 0 ? ((count / totalTraslados) * 100).toFixed(1) : '0.0',
+        pctGlobal: totalPacientes > 0 ? ((count / totalPacientes) * 100).toFixed(2) : '0.00'
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    return {
+      totalTraslados,
+      pctTraslados,
+      promedioDiario,
+      hombres,
+      mujeres,
+      hombresPct,
+      mujeresPct,
+      ageRanges,
+      ageRangesPct,
+      topAgeRanges,
+      prevYearTraslados,
+      prevYearPct,
+      yoyGrowth,
+      summaryText,
+      topDestName,
+      topDestCount,
+      topDestPct,
+      recordTurnoStr,
+      recordTurnoNum,
+      recordTurnoFecha,
+      recordTurnoTipo,
+      recordCount: maxCount,
+      topDiagArr,
+      listTraslados
+    };
+  }, [pacientesFiltrados, pacientesDB, filtroFechaInicio, filtroFechaFin]);
+
+  const altasSummaryText = useMemo(() => generateAltasSummary(pacientesFiltrados), [pacientesFiltrados]);
+  const fracturasSummaryText = useMemo(() => generateFracturasSummary(pacientesFiltrados), [pacientesFiltrados]);
+  const enfermeriaSummaryText = useMemo(() => generateEnfermeriaSummary(pacientesFiltrados), [pacientesFiltrados]);
+  const constatacionesSummaryText = useMemo(() => generateConstatacionesSummary(pacientesFiltrados), [pacientesFiltrados]);
+
   const printReport = () => {
     const originalTitle = document.title;
-    
-    // Determinar el nombre representativo del informe según la selección activa
     let nombreReporte = 'Reporte Ejecutivo Consolidado';
     const seleccionados = [];
     if (incluirGeneral) seleccionados.push('General');
@@ -463,6 +706,7 @@ export default function ReportesModule({
     if (incluirFracturas) seleccionados.push('Fracturas');
     if (incluirEnfermeria) seleccionados.push('Enfermería');
     if (incluirConstataciones) seleccionados.push('Constatación Lesiones Z51.8');
+    if (incluirTraslados) seleccionados.push('Traslados');
 
     if (seleccionados.length === 1) {
       if (incluirConstataciones) nombreReporte = 'Informe Técnico Constatación de Lesiones Z51.8';
@@ -470,6 +714,7 @@ export default function ReportesModule({
       else if (incluirAltas) nombreReporte = 'Sub-reporte Altas Administrativas';
       else if (incluirFracturas) nombreReporte = 'Sub-reporte Fracturas y Destino';
       else if (incluirGeneral) nombreReporte = 'Reporte Ejecutivo General';
+      else if (incluirTraslados) nombreReporte = 'Sub-reporte Traslados Hospitalarios';
     } else if (seleccionados.length > 1) {
       nombreReporte = `Reporte Consolidado (${seleccionados.join(' - ')})`;
     }
@@ -628,6 +873,14 @@ export default function ReportesModule({
             >
               {incluirConstataciones ? <CheckSquare className="w-4 h-4 text-yellow-500 shrink-0" /> : <Square className="w-4 h-4 opacity-40 shrink-0" />}
               <span>Sub-reporte Constataciones Z51.8</span>
+            </button>
+
+            <button 
+              onClick={() => setIncluirTraslados(!incluirTraslados)}
+              className={`flex items-center gap-2.5 p-3 rounded-2xl border text-xs font-bold transition-all text-left cursor-pointer ${incluirTraslados ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-650 dark:text-indigo-400' : 'bg-black/5 dark:bg-white/5 border-card-custom text-secondary-custom'}`}
+            >
+              {incluirTraslados ? <CheckSquare className="w-4 h-4 text-indigo-500 shrink-0" /> : <Square className="w-4 h-4 opacity-40 shrink-0" />}
+              <span>Sub-reporte Traslados Hospitalarios</span>
             </button>
 
           </div>
@@ -1444,8 +1697,239 @@ export default function ReportesModule({
               </div>
             )}
 
+            {/* HOJA 6: SUB-REPORTE OFICIAL DE TRASLADOS HOSPITALARIOS */}
+            {incluirTraslados && (
+              <div className="print-page border-t border-slate-200 pt-8 mt-8 first:border-0 first:pt-0 first:mt-0 space-y-6">
+                {/* Cabecera del Documento Institucional */}
+                <div className="border-b-2 border-slate-900 pb-4 flex justify-between items-end">
+                  <div className="flex items-center gap-4">
+                    <img src="/IMG/LogoSAR.png" alt="Logo SAR" className="h-14 object-contain" />
+                    <div>
+                      <h1 className="text-xl font-black text-slate-900 tracking-tight">MÉTRICO - SUB-REPORTE OPERATIVO</h1>
+                      <p className="text-xs font-bold text-indigo-700 uppercase tracking-widest mt-0.5">Traslados Hospitalarios y Derivaciones de Urgencia</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded border border-indigo-200">Área de Derivaciones y Triage</span>
+                    <p className="text-[11px] text-slate-600 font-bold mt-1.5">Periodo: {rangoFechasReales.texto}</p>
+                  </div>
+                </div>
+
+                {/* Resumen de Metodología */}
+                <div className="bg-indigo-50/60 p-4 rounded-xl border border-indigo-200">
+                  <h3 className="text-xs font-bold text-indigo-900 uppercase tracking-wider mb-1 flex items-center gap-2">
+                    <Hospital className="w-4 h-4 text-indigo-700" /> Nota de Auditoría y Control de Traslados a Centros Externos
+                  </h3>
+                  <p className="text-[11px] text-slate-700 leading-relaxed text-justify">
+                    El presente informe consolida los traslados y derivaciones de pacientes efectuados a centros de mayor complejidad (hospitales base u otros servicios de urgencia) durante el período consultado. Representa el volumen de pacientes cuya resolución de urgencia requirió continuidad de atención de especialidad.
+                  </p>
+                </div>
+
+                {/* Narrative Summary Box */}
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 print-avoid-break">
+                  <p className="text-[9px] font-bold text-slate-500 uppercase mb-1">Resumen de Gestión y Derivaciones</p>
+                  <p className="text-xs text-slate-700 leading-relaxed font-semibold">
+                    {trasladosReportStats.summaryText}
+                  </p>
+                </div>
+
+                {/* Cifras Oficiales y KPIs */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Total Traslados en Periodo</span>
+                    <p className="text-2xl font-black text-slate-800 my-1">{trasladosReportStats.totalTraslados} <span className="text-xs font-bold text-slate-500">pac.</span></p>
+                    <span className="text-[10px] text-slate-500 font-medium">Equivale al <strong>{trasladosReportStats.pctTraslados}%</strong> del total de admisiones globales.</span>
+                  </div>
+
+                  <div className="bg-indigo-50/70 p-4 rounded-xl border border-indigo-300 shadow-sm flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-indigo-800 uppercase">Centro Destino Principal</span>
+                    <p className="text-lg font-black text-indigo-950 my-1 line-clamp-2" title={trasladosReportStats.topDestName}>{trasladosReportStats.topDestName}</p>
+                    <span className="text-[10px] text-indigo-800 font-medium">Registró <strong>{trasladosReportStats.topDestCount} pac.</strong> ({trasladosReportStats.topDestPct}%)</span>
+                  </div>
+
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Promedio Diario y Turno Récord</span>
+                    <div className="space-y-1 mt-1 text-[11px]">
+                      <div>
+                        <span className="font-semibold text-slate-500">Promedio: </span>
+                        <span className="font-black text-slate-800">{trasladosReportStats.promedioDiario} pac/día</span>
+                      </div>
+                      <div>
+                        <span className="font-semibold text-slate-500">Récord: </span>
+                        <span className="font-bold text-rose-700">Turno {trasladosReportStats.recordTurnoNum} ({trasladosReportStats.recordCount} pac.)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Comparación Año Anterior (YoY)</span>
+                    <p className="text-xl font-black text-slate-800 my-1">
+                      {trasladosReportStats.prevYearTraslados} pac. <span className="text-xs font-bold text-slate-500">({trasladosReportStats.prevYearPct}%)</span>
+                    </p>
+                    <span className={`text-[9px] font-bold ${Number(trasladosReportStats.yoyGrowth) >= 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                      {Number(trasladosReportStats.yoyGrowth) >= 0 ? '📈 Aumento de ' : '📉 Disminución de '}
+                      {Math.abs(Number(trasladosReportStats.yoyGrowth))}% YoY
+                    </span>
+                  </div>
+                </div>
+
+                {/* Donut Chart de Sexo y Demografía */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 print-avoid-break">
+                  {/* Distribución por Sexo */}
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-6">
+                    <div className="relative w-24 h-24 shrink-0">
+                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 110 110">
+                        <circle cx="55" cy="55" r="45" fill="none" stroke="#f1f5f9" strokeWidth="12" />
+                        <circle 
+                          cx="55" cy="55" r="45" fill="none" stroke="#3b82f6" strokeWidth="12" 
+                          strokeDasharray={`${(Number(trasladosReportStats.hombresPct) / 100) * 282.74} 282.74`}
+                          strokeDashoffset="0"
+                          strokeLinecap="round"
+                        />
+                        <circle 
+                          cx="55" cy="55" r="45" fill="none" stroke="#ec4899" strokeWidth="12" 
+                          strokeDasharray={`${(Number(trasladosReportStats.mujeresPct) / 100) * 282.74} 282.74`}
+                          strokeDashoffset={`-${(Number(trasladosReportStats.hombresPct) / 100) * 282.74}`}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                        <span className="text-[8px] font-bold text-slate-500 uppercase leading-none">Total</span>
+                        <span className="text-xs font-black text-slate-800 mt-0.5">{trasladosReportStats.totalTraslados}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2 text-xs">
+                      <h4 className="font-black text-slate-700 uppercase text-[10px]">Distribución por Sexo</h4>
+                      <div className="flex items-center justify-between w-32 border-b border-slate-200 pb-1">
+                        <span className="text-blue-700 font-bold flex items-center gap-1">
+                          <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> H
+                        </span>
+                        <span className="font-extrabold text-slate-800">{trasladosReportStats.hombres} ({trasladosReportStats.hombresPct}%)</span>
+                      </div>
+                      <div className="flex items-center justify-between w-32">
+                        <span className="text-pink-700 font-bold flex items-center gap-1">
+                          <span className="w-2.5 h-2.5 rounded-full bg-pink-500"></span> M
+                        </span>
+                        <span className="font-extrabold text-slate-800">{trasladosReportStats.mujeres} ({trasladosReportStats.mujeresPct}%)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Distribución por Rango Etario (Tramos de 5 años) */}
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+                    <h4 className="font-black text-slate-700 uppercase text-[10px] border-b border-slate-200 pb-1.5 mb-2">Tramos Etarios Dominantes</h4>
+                    <div className="space-y-1.5 text-[10px]">
+                      {trasladosReportStats.topAgeRanges && trasladosReportStats.topAgeRanges.length > 0 ? (
+                        trasladosReportStats.topAgeRanges.map((item, idx) => (
+                          <div key={idx} className="flex justify-between border-b border-slate-100 pb-0.5">
+                            <span className="font-semibold text-slate-600">🏆 #{idx+1} ({item.range} a.):</span>
+                            <span className="font-extrabold text-slate-800">{item.count} pac. ({item.pct}%)</span>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-[10px] text-slate-400 py-2">Sin datos disponibles.</p>
+                      )}
+                      
+                      {/* Otros tramos activos */}
+                      <div className="text-[8px] font-bold text-slate-400 uppercase pt-1 border-t border-slate-200 mt-1 mb-1">
+                        Otros tramos activos:
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[9px] max-h-20 overflow-y-auto">
+                        {Object.entries(trasladosReportStats.ageRanges || {})
+                          .filter(([range, count]) => range !== 'Desconocido' && count > 0 && !(trasladosReportStats.topAgeRanges || []).some(t => t.range === range))
+                          .slice(0, 4)
+                          .map(([range, count]) => (
+                            <div key={range} className="flex justify-between text-slate-500 border-b border-slate-50">
+                              <span>{range}:</span>
+                              <span className="font-bold text-slate-700">{count} pac.</span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Top Diagnósticos */}
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                    <h4 className="font-black text-slate-700 uppercase text-[10px] border-b border-slate-200 pb-1.5">Top Diagnósticos de Traslado</h4>
+                    {trasladosReportStats.topDiagArr.length > 0 ? (
+                      <div className="space-y-2 text-[10px]">
+                        {trasladosReportStats.topDiagArr.map((diag, index) => (
+                          <div key={index} className="flex justify-between items-center bg-white p-1.5 rounded border border-slate-200">
+                            <span className="text-slate-800 font-bold truncate pr-3 flex items-center gap-1 max-w-[140px]">
+                              <span className="px-1 py-0.5 rounded bg-indigo-50 text-indigo-700 font-black text-[8px]">{diag.code}</span>
+                              <span className="truncate" title={diag.name}>{diag.name}</span>
+                            </span>
+                            <span className="font-extrabold text-slate-700 text-right shrink-0">
+                              {diag.count} ({diag.pct}%)
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-[10px] text-slate-500 text-center py-4">Sin registros de diagnóstico.</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Tabla de Detalle Clínico de Derivaciones */}
+                <div className="print-avoid-break">
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 border-b border-slate-200 pb-1">
+                    Detalle Clínico de Derivaciones (Primeras 25 registradas)
+                  </h3>
+                  <table className="w-full text-left text-[10px] border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-700 font-bold">
+                        <th className="p-1.5 border border-slate-200">Fecha y Hora</th>
+                        <th className="p-1.5 border border-slate-200">Turno</th>
+                        <th className="p-1.5 border border-slate-200 text-center">Ficha/Correlativo</th>
+                        <th className="p-1.5 border border-slate-200">Destino de Alta</th>
+                        <th className="p-1.5 border border-slate-200">Diagnóstico Principal</th>
+                        <th className="p-1.5 border border-slate-200 text-center">CIE-10</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {trasladosReportStats.listTraslados.length > 0 ? (
+                        trasladosReportStats.listTraslados.slice(0, 25).map((p, idx) => {
+                          const d = p.tAdmision ? new Date(p.tAdmision) : null;
+                          const dateStr = d ? `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` : '-';
+                          
+                          // Turno Detallado
+                          let turnoStr = '-';
+                          if (p.tAdmision) {
+                            const dateVal = new Date(p.tAdmision);
+                            const isNight = dateVal.getHours() >= 20 || dateVal.getHours() < 8;
+                            turnoStr = isNight ? 'Turno 3' : 'Turno 1';
+                          }
+
+                          return (
+                            <tr key={idx} className="hover:bg-slate-50">
+                              <td className="p-1.5 border border-slate-200 font-medium text-slate-800">{dateStr}</td>
+                              <td className="p-1.5 border border-slate-200 font-bold text-slate-600">{turnoStr}</td>
+                              <td className="p-1.5 border border-slate-200 text-center font-bold text-slate-700">{p.correlativo || p.idPaciente || '-'}</td>
+                              <td className="p-1.5 border border-slate-200 font-bold text-indigo-900 max-w-[120px] truncate" title={p.destinoAlta || p.destino}>{p.destinoAlta || p.destino || '-'}</td>
+                              <td className="p-1.5 border border-slate-200 font-medium text-slate-800 max-w-[150px] truncate" title={p.diagnosticoPrincipal}>{p.diagnosticoPrincipal || '-'}</td>
+                              <td className="p-1.5 border border-slate-200 text-center font-bold text-indigo-700">{p.codigoDiagnostico || '-'}</td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan="6" className="p-2 border border-slate-200 text-center text-slate-500">No se registraron traslados hospitalarios en el período.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                  {trasladosReportStats.listTraslados.length > 25 && (
+                    <p className="text-[9px] text-slate-500 font-bold italic mt-1.5 text-right">
+                      * Mostrando las primeras 25 derivaciones de un total de {trasladosReportStats.listTraslados.length} registradas en el período.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* SECCIÓN DE CIERRE Y CONTROL DE VALIDEZ GLOBAL (SOLO CUANDO SE INCLUYEN OTROS REPORTES) */}
-            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria) && (
+            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirTraslados) && (
               <div className="print-page-break print-avoid-break space-y-6 pt-6 border-t-2 border-slate-950">
                 {/* Header Cierre */}
                 <div className="flex justify-between items-center border-b border-slate-300 pb-3">
@@ -1479,8 +1963,8 @@ export default function ReportesModule({
                         <span className="font-black text-slate-800 text-sm">{enfermeriaStats.c3Stats.lesionesCount} pac. ({enfermeriaStats.c3Stats.lesionesPerc}%)</span>
                       </div>
                       <div>
-                        <span className="text-slate-500 font-bold block">Diagnóstico Clínico C3:</span>
-                        <span className="font-black text-slate-800 text-sm">{enfermeriaStats.c3Stats.clinicoCount} pac. ({enfermeriaStats.c3Stats.clinicoPerc}%)</span>
+                        <span className="text-slate-500 font-bold block">Traslados Hospitalarios:</span>
+                        <span className="font-black text-indigo-700 text-sm">{trasladosReportStats.totalTraslados} pac. ({trasladosReportStats.pctTraslados}%)</span>
                       </div>
                     </div>
                   </div>

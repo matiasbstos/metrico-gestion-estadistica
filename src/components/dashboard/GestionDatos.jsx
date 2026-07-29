@@ -29,6 +29,7 @@ export default function GestionDatos({
   const [showPurgeConfirm, setShowPurgeConfirm] = useState(false);
   const [currentBatchIndex, setCurrentBatchIndex] = useState(0);
   const [totalBatches, setTotalBatches] = useState(0);
+  const [uploadEta, setUploadEta] = useState(null);
   const [currentPurgeBatchIndex, setCurrentPurgeBatchIndex] = useState(0);
   const [totalPurgeBatches, setTotalPurgeBatches] = useState(0);
   const [activeGestionTab, setActiveGestionTab] = useState('carga');
@@ -428,22 +429,57 @@ export default function GestionDatos({
         let iCorrelativo = getIdx(['CORRELATIVO', 'Nº', 'NUMERO', 'N°', 'NRO', '#', 'NUMERO DE ATENCION']);
         let iId = getIdx(['ID', 'RUN', 'RUT', 'IDENTIFICADOR', 'DOCUMENTO']);
         
-        let iEnfCat1 = getIdx(['REGISTRA LA PRIMERA', 'REGISTRA PRIMERA', 'REGISTRA PRIM', 'PROFESIONAL 1°', 'PROFESIONAL 1A', 'PRIMERA CATEGORIZACION']);
-        let iEnfCat1Inst = getIdx(['INSTRUMENTO DEL PROFESIONAL QUE REGISTRA LA PRIMERA', 'INSTRUMENTO PROFESIONAL QUE REGISTRA LA PRIMERA', 'INSTRUMENTO QUE REGISTRA LA PRIMERA', 'INSTRUMENTO QUE REGISTRA PRIMERA', 'INSTRUMENTO REGISTRA PRIM', 'INSTRUMENTO 1°', 'INSTRUMENTO 1A', 'INSTRUMENTO PRIM']);
+        let iEnfCat1 = getIdx(['REGISTRA LA PRIMERA', 'REGISTRA PRIMERA', 'REGISTRA PRIM', 'PROFESIONAL 1°', 'PROFESIONAL 1A']);
+        let iEnfCat1Inst = getIdx([
+          'INSTRUMENTO DEL PROFESIONAL QUE REGISTRA LA PRIMERA',
+          'INSTRUMENTO PROFESIONAL QUE REGISTRA LA PRIMERA',
+          'INSTRUMENTO PROFESIONAL QUE REGISTRA PRIEMRA',
+          'INSTRUMETO PROFESIONAL QUE REGISTRA PRIEMRA',
+          'INSTRUMETO PROFESIONAL QUE REGISTRA PRIMERA',
+          'INSTRUMENTO QUE REGISTRA LA PRIMERA',
+          'INSTRUMENTO QUE REGISTRA PRIMERA',
+          'INSTRUMENTO REGISTRA PRIM',
+          'INSTRUMENTO 1°',
+          'INSTRUMENTO 1A',
+          'INSTRUMENTO PRIM'
+        ]);
         if (iEnfCat1Inst === -1 && iEnfCat1 !== -1) {
-          iEnfCat1Inst = iEnfCat1 + 1;
+          const nextHeader = headers[iEnfCat1 + 1] || '';
+          if (nextHeader.includes('INSTRUMENTO') || nextHeader.includes('INSTRUMETO')) {
+            iEnfCat1Inst = iEnfCat1 + 1;
+          }
         }
         
-        let iEnfCatUlt = getIdx(['REGISTRA LA ULTIMA', 'REGISTRA ULTIMA', 'REGISTRA ULT', 'PROFESIONAL ULT', 'ULTIMA CATEGORIZACION']);
-        let iEnfCatUltInst = getIdx(['INSTRUMENTO DEL PROFESIONAL QUE REGISTRA LA ULTIMA', 'INSTRUMENTO PROFESIONAL QUE REGISTRA LA ULTIMA', 'INSTRUMENTO QUE REGISTRA LA ULTIMA', 'INSTRUMENTO QUE REGISTRA ULTIMA', 'INSTRUMENTO REGISTRA ULT', 'INSTRUMENTO ULT']);
+        let iEnfCatUlt = getIdx(['REGISTRA LA ULTIMA', 'REGISTRA ULTIMA', 'REGISTRA ULT', 'PROFESIONAL ULT']);
+        let iEnfCatUltInst = getIdx([
+          'INSTRUMENTO DEL PROFESIONAL QUE REGISTRA LA ULTIMA',
+          'INSTRUMENTO PROFESIONAL QUE REGISTRA LA ULTIMA',
+          'INSTRUMETO PROFESIONAL QUE REGISTRA ULTIMA',
+          'INSTRUMENTO QUE REGISTRA LA ULTIMA',
+          'INSTRUMENTO QUE REGISTRA ULTIMA',
+          'INSTRUMENTO REGISTRA ULT',
+          'INSTRUMENTO ULT'
+        ]);
         if (iEnfCatUltInst === -1 && iEnfCatUlt !== -1) {
-          iEnfCatUltInst = iEnfCatUlt + 1;
+          const nextHeader = headers[iEnfCatUlt + 1] || '';
+          if (nextHeader.includes('INSTRUMENTO') || nextHeader.includes('INSTRUMETO')) {
+            iEnfCatUltInst = iEnfCatUlt + 1;
+          }
         }
         
         let iMedAna = getIdx(['REGISTRA LA ANAMNESIS', 'REGISTRA ANAMNESIS', 'REGISTRA ANA', 'PROFESIONAL ANAMNESIS', 'ANAMNESIS']);
-        let iMedAnaInst = getIdx(['INSTRUMENTO QUE REGISTRA LA ANAMNESIS', 'INSTRUMENTO QUE REGISTRA ANAMNESIS', 'INSTRUMENTO ANAMNESIS', 'INSTRUMENTO ANA']);
+        let iMedAnaInst = getIdx([
+          'INSTRUMENTO QUE REGISTRA LA ANAMNESIS',
+          'INSTRUMENTO QUE REGISTRA ANAMNESIS',
+          'INSTRUMETO PROFESIONAL REGISTRA ANAMNESIS',
+          'INSTRUMENTO ANAMNESIS',
+          'INSTRUMENTO ANA'
+        ]);
         if (iMedAnaInst === -1 && iMedAna !== -1) {
-          iMedAnaInst = iMedAna + 1;
+          const nextHeader = headers[iMedAna + 1] || '';
+          if (nextHeader.includes('INSTRUMENTO') || nextHeader.includes('INSTRUMETO')) {
+            iMedAnaInst = iMedAna + 1;
+          }
         }
         
         let iEdad = getIdx(['EDAD']);
@@ -456,6 +492,20 @@ export default function GestionDatos({
         let iRegi = getIdx(['REGIÓN', 'REGION']);
         let iNaci = getIdx(['NACIONALIDAD', 'ORIGEN', 'PAIS', 'PAÍS']);
         let iCentro = getIdx(['ESTABLECIMIENTO', 'CENTRO']);
+
+        // Validaciones analíticas del resto de columnas requeridas
+        if (iFCat1 === -1 && iFCatU === -1) incidenciasDetectadas.push("Falta columna de Categorización (Fecha/Hora). No se podrán medir tiempos de espera al triage.");
+        if (iFAna === -1) incidenciasDetectadas.push("Falta columna de Anamnesis (Fecha/Hora). No se podrán calcular tiempos de espera a atención médica.");
+        if (iFAlt === -1 || iHAlt === -1) incidenciasDetectadas.push("Falta columna de Alta (Fecha/Hora). No se podrá calcular el tiempo de estadía total.");
+        if (iCatPri === -1 && iCatUlt === -1) incidenciasDetectadas.push("Falta columna de Categorización (C1-C5). Se intentará deducir del texto de los registros, pero puede haber imprecisiones.");
+        if (iEst === -1) incidenciasDetectadas.push("Falta columna de Estado de Atención. No se podrán calcular altas administrativas.");
+        if (iCodDiag === -1) incidenciasDetectadas.push("Falta columna de Código de Diagnóstico (CIE-10). Afectará al análisis de constataciones y fracturas.");
+        if (iDiagPrin === -1) incidenciasDetectadas.push("Falta columna de Diagnóstico Principal. No se podrá realizar el Top 5 de diagnósticos asociados.");
+        if (iDestinoAlta === -1) incidenciasDetectadas.push("Falta columna de Destino de Alta. El módulo de Traslados Hospitalarios no recibirá datos.");
+        if (iEnfCat1 === -1 && iEnfCatUlt === -1 && iMed === -1) incidenciasDetectadas.push("Falta columna de Identificación de Profesional/Enfermero. No se podrá analizar la carga del personal.");
+        if (iCorrelativo === -1 && iId === -1) incidenciasDetectadas.push("Falta columna de Identificador/Correlativo. Dificultará la detección de registros duplicados.");
+        if (iComu === -1) incidenciasDetectadas.push("Falta columna de Comuna. No se podrá visualizar la distribución por comunas.");
+        if (iNaci === -1) incidenciasDetectadas.push("Falta columna de Nacionalidad. El análisis sociodemográfico por nacionalidad no estará disponible.");
 
         if(iFAdm === -1) iFAdm = 1; if(iHAdm === -1) iHAdm = 2;
 
@@ -483,6 +533,9 @@ export default function GestionDatos({
         let recordsToUpdate = [];
         let duplicados = 0;
         let actualizados = 0;
+        let fileMinTime = Infinity;
+        let fileMaxTime = -Infinity;
+        const fileTurnosKeys = new Set();
 
         for (let i = headerRowIdx + 1; i < rows.length; i++) {
           const row = rows[i];
@@ -492,6 +545,14 @@ export default function GestionDatos({
           
           const tAdm = parseDateStr(safeGet(iFAdm), safeGet(iHAdm));
           if (!tAdm) continue; 
+
+          if (tAdm < fileMinTime) fileMinTime = tAdm;
+          if (tAdm > fileMaxTime) fileMaxTime = tAdm;
+          
+          const shift = getShiftBoundaries(tAdm);
+          if (shift) {
+            fileTurnosKeys.add(`${shift.fechaInicio}|${shift.horario}`);
+          }
 
           const edadRaw = safeGet(iEdad);
           const edad = edadRaw && !isNaN(parseInt(edadRaw)) ? parseInt(edadRaw) : null;
@@ -639,6 +700,18 @@ export default function GestionDatos({
         let outOfBounds = 0;
         const turnosMap = {};
 
+        const isTraslado = (p) => {
+            const d = String(p.destinoAlta || p.destino || '').toLowerCase();
+            return d.includes('hospital') || d.includes('emergencia') || d.includes('derivac');
+        };
+
+        const isConstatacion = (p) => {
+            if (p.categoria === 'c3_z518') return true;
+            const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
+            const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
+            return cod.includes('Z51.8') || cod.includes('Z518') || diag.includes('CONSTATAC');
+        };
+
         parsedRecords.forEach(p => {
             const shift = getShiftBoundaries(p.tAdmision);
             if (!shift) {
@@ -660,6 +733,8 @@ export default function GestionDatos({
                     registros: [],
                     totalPacientes: 0,
                     altasAdmin: 0,
+                    trasladosCount: 0,
+                    constatacionesCount: 0,
                     c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0, sincat: 0
                 };
             }
@@ -669,6 +744,8 @@ export default function GestionDatos({
             tObj.totalPacientes++;
             if (p.estado === 'Cancelada') tObj.altasAdmin++;
             if (tObj[p.categoria] !== undefined) tObj[p.categoria]++;
+            if (isTraslado(p)) tObj.trasladosCount++;
+            if (isConstatacion(p)) tObj.constatacionesCount++;
         });
 
         const turnosGenerados = Object.values(turnosMap);
@@ -679,6 +756,18 @@ export default function GestionDatos({
           return showNotif("No se detectaron pacientes válidos dentro de los horarios de atención.", "error");
         }
 
+        const dateToYYYYMMDD = (ts) => {
+          if (ts === Infinity || ts === -Infinity) return '';
+          const d = new Date(ts);
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}`;
+        };
+
+        const fileMinDate = dateToYYYYMMDD(fileMinTime);
+        const fileMaxDate = dateToYYYYMMDD(fileMaxTime);
+
         setPendingUpload({
           fileName,
           turnos: turnosGenerados,
@@ -688,7 +777,10 @@ export default function GestionDatos({
           totalOutOfBounds: outOfBounds,
           incidencias: incidenciasDetectadas,
           totalPacientes: turnosGenerados.reduce((acc, t) => acc + t.totalPacientes, 0),
-          filasOriginales: rows.length - (headerRowIdx + 1)
+          filasOriginales: rows.length - (headerRowIdx + 1),
+          fileMinDate,
+          fileMaxDate,
+          fileTurnosCount: fileTurnosKeys.size
         });
         
         setIsReadingFile(false);
@@ -725,14 +817,16 @@ export default function GestionDatos({
     if (!pendingUpload || !user || !db) return;
     setIsUploading(true); setSyncStatus('syncing');
     setUploadError(null);
+    const startTime = Date.now();
+    setUploadEta(null);
 
     try {
       const batchList = [];
       let currentBatch = writeBatch(db);
       let opCounter = 0;
       let successCount = 0;
-      let minDate = '9999-99-99';
-      let maxDate = '0000-00-00';
+      let minDate = pendingUpload.fileMinDate || '9999-99-99';
+      let maxDate = pendingUpload.fileMaxDate || '0000-00-00';
 
       const cargaId = `CARGA-${Date.now()}`;
 
@@ -847,6 +941,14 @@ export default function GestionDatos({
         const batchProgress = i + 1;
         const pct = (batchProgress / batchList.length) * 100;
         setUploadProgress(pct);
+
+        // Calcular ETA
+        const elapsedTime = Date.now() - startTime;
+        const avgTimePerBatch = elapsedTime / batchProgress;
+        const remainingBatches = batchList.length - batchProgress;
+        const remainingTimeMs = avgTimePerBatch * remainingBatches;
+        const remainingSeconds = Math.round(remainingTimeMs / 1000);
+        setUploadEta(remainingSeconds);
         
         const isLastBatch = batchProgress === batchList.length;
         const count = isLastBatch 
@@ -863,7 +965,7 @@ export default function GestionDatos({
         successCount: successCount,
         totalDuplicados: pendingUpload.totalDuplicados,
         filasOriginales: pendingUpload.filasOriginales,
-        turnosCount: pendingUpload.turnos.length,
+        turnosCount: pendingUpload.fileTurnosCount || pendingUpload.turnos.length,
         minDate,
         maxDate,
         minDateFormatted,
@@ -914,6 +1016,18 @@ export default function GestionDatos({
     setRecalcStatus('Agrupando pacientes por jornadas y horarios...');
 
     try {
+      const isTraslado = (p) => {
+        const d = String(p.destinoAlta || p.destino || '').toLowerCase();
+        return d.includes('hospital') || d.includes('emergencia') || d.includes('derivac');
+      };
+
+      const isConstatacion = (p) => {
+        if (p.categoria === 'c3_z518') return true;
+        const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
+        const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
+        return cod.includes('Z51.8') || cod.includes('Z518') || diag.includes('CONSTATAC');
+      };
+
       const turnosMap = {};
       pacientesDB.forEach(p => {
         const shift = getShiftBoundaries(p.tAdmision);
@@ -933,6 +1047,8 @@ export default function GestionDatos({
             equipoTurno: equipo,
             totalPacientes: 0,
             altasAdmin: 0,
+            trasladosCount: 0,
+            constatacionesCount: 0,
             c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0, sincat: 0
           };
         }
@@ -941,6 +1057,8 @@ export default function GestionDatos({
         tObj.totalPacientes++;
         if (p.estado === 'Cancelada') tObj.altasAdmin++;
         if (tObj[p.categoria] !== undefined) tObj[p.categoria]++;
+        if (isTraslado(p)) tObj.trasladosCount++;
+        if (isConstatacion(p)) tObj.constatacionesCount++;
       });
 
       const nuevosTurnos = Object.values(turnosMap);
@@ -1517,13 +1635,16 @@ export default function GestionDatos({
                   <div className="space-y-1.5">
                     <h4 className="text-lg font-black text-white">Guardando Lote en la Nube</h4>
                     <p className="text-xs font-semibold text-slate-300">
+                      Procesando lote {currentBatchIndex} de {totalBatches}
+                    </p>
+                    <p className="text-xs font-bold text-sky-400">
                       Cargando {uploadRecordCount.toLocaleString('es-ES')} de {pendingUpload.totalPacientes.toLocaleString('es-ES')} pacientes...
                     </p>
                   </div>
                   
                   {/* Contenedor Barra de Progreso */}
                   <div className="space-y-2">
-                    <div className="w-full bg-white/10 h-3 rounded-full overflow-hidden border border-white/5 relative shadow-inner">
+                    <div className="w-full bg-white/10 h-4 rounded-full overflow-hidden border border-white/5 relative shadow-inner">
                       <div 
                         className="bg-gradient-to-r from-blue-500 to-indigo-500 h-full rounded-full transition-all duration-300 ease-out" 
                         style={{ width: `${uploadProgress}%` }}
@@ -1532,14 +1653,23 @@ export default function GestionDatos({
                     
                     <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       <span>Progreso: {Math.round(uploadProgress)}%</span>
-                      <span>En {pendingUpload.turnos.length} turnos</span>
+                      <span>
+                        {uploadEta === null 
+                          ? "Calculando tiempo..." 
+                          : uploadEta <= 0 
+                            ? "Casi terminado..." 
+                            : uploadEta > 60 
+                              ? `Tiempo restante: ~${Math.floor(uploadEta / 60)}m ${uploadEta % 60}s` 
+                              : `Tiempo restante: ~${uploadEta}s`
+                        }
+                      </span>
                     </div>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => { cancelUploadRef.current = true; }}
-                    className="px-5 py-2 bg-white/10 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/30 text-slate-200 hover:text-rose-400 text-xs font-bold rounded-xl transition duration-200 mt-4 shadow-sm"
+                    className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs font-black rounded-xl transition duration-200 mt-4 shadow-lg shadow-rose-900/30 cursor-pointer"
                   >
                     Cancelar Subida
                   </button>
@@ -1637,46 +1767,46 @@ export default function GestionDatos({
       {/* MODAL DE ÉXITO DE CARGA CENTRADO */}
       {uploadSuccess && uploadResult && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fade-in">
-          <div className="bg-card-custom border border-card-custom rounded-3xl shadow-2xl max-w-md w-full p-6 text-center space-y-6 animate-bounce-in theme-transition">
+          <div className="bg-white border border-slate-200 rounded-3xl shadow-2xl max-w-md w-full p-6 text-center space-y-6 animate-bounce-in font-sans text-slate-800">
             
             {/* Círculo Animado de Éxito */}
-            <div className="mx-auto w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+            <div className="mx-auto w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
               <CheckCircle className="w-10 h-10 animate-pulse" />
             </div>
 
             <div className="space-y-1">
-              <h3 className="text-xl font-black text-primary-custom">¡Carga de Datos Exitosa!</h3>
-              <p className="text-xs text-secondary-custom font-semibold">El archivo &quot;{uploadResult.fileName}&quot; fue importado y consolidado con éxito.</p>
+              <h3 className="text-xl font-black text-slate-800">¡Carga de Datos Exitosa!</h3>
+              <p className="text-xs text-slate-500 font-semibold">El archivo &quot;{uploadResult.fileName}&quot; fue importado y consolidado con éxito.</p>
             </div>
 
             {/* Grid de Estadísticas de Auditoría */}
             <div className="grid grid-cols-2 gap-3 mt-4 text-left">
-              <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl flex flex-col justify-between">
-                <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Atenciones Válidas</span>
-                <span className="text-3xl font-black text-blue-500 mt-2">{uploadResult.successCount}</span>
-                <span className="text-[9px] font-semibold text-secondary-custom opacity-75 mt-1">Guardados en la nube</span>
+              <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Atenciones Válidas</span>
+                <span className="text-3xl font-black text-blue-600 mt-2">{uploadResult.successCount}</span>
+                <span className="text-[9px] font-semibold text-slate-400 mt-1">Guardados en la nube</span>
               </div>
               
-              <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl flex flex-col justify-between">
-                <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Duplicados Omitidos</span>
-                <span className="text-3xl font-black text-rose-500 mt-2">{uploadResult.totalDuplicados}</span>
-                <span className="text-[9px] font-semibold text-secondary-custom opacity-75 mt-1">Registros repetidos</span>
+              <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Duplicados Omitidos</span>
+                <span className="text-3xl font-black text-rose-600 mt-2">{uploadResult.totalDuplicados}</span>
+                <span className="text-[9px] font-semibold text-slate-400 mt-1">Registros repetidos</span>
               </div>
 
-              <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl flex flex-col justify-between col-span-2">
+              <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex flex-col justify-between col-span-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Rango de Fechas Cargado</span>
-                  <span className="text-xs font-black text-primary-custom">{uploadResult.minDateFormatted} al {uploadResult.maxDateFormatted}</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Rango de Fechas Cargado</span>
+                  <span className="text-xs font-black text-slate-800">{uploadResult.minDateFormatted} al {uploadResult.maxDateFormatted}</span>
                 </div>
-                <div className="text-[9px] text-secondary-custom font-medium mt-1">
-                  Distribuidos en <span className="font-bold text-indigo-500">{uploadResult.turnosCount} turnos</span> operacionales de urgencia ({uploadResult.filasOriginales} filas analizadas).
+                <div className="text-[9px] text-slate-500 font-medium mt-1">
+                  Distribuidos en <span className="font-bold text-indigo-600">{uploadResult.turnosCount} turnos</span> operacionales de urgencia ({uploadResult.filasOriginales} filas analizadas).
                 </div>
               </div>
             </div>
 
             <button 
               onClick={handleSuccessClose}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black py-4 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black py-4 rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               Ir al Resumen General <ArrowRight className="w-4 h-4" />
             </button>
