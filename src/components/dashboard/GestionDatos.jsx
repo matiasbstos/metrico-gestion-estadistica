@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2, BookOpen, ArrowRight, Zap, Trash2 } from 'lucide-react';
-import { collection, doc, writeBatch, serverTimestamp, onSnapshot } from 'firebase/firestore';
+import { collection, doc, writeBatch, serverTimestamp, onSnapshot, getDocs } from 'firebase/firestore';
 
 const runWithTimeout = (promise, ms) => {
   return Promise.race([
@@ -1006,16 +1006,29 @@ export default function GestionDatos({
   };
 
   const recalcularTurnosDesdePacientes = async () => {
-    if (!pacientesDB || pacientesDB.length === 0) {
-      return showNotif("No hay pacientes cargados en el sistema para realizar la sincronización.", "warning");
-    }
-    
     setIsRecalculating(true);
     setSyncStatus('syncing');
     setRecalcProgress(0);
-    setRecalcStatus('Agrupando pacientes por jornadas y horarios...');
+    setRecalcStatus('Descargando todos los registros de pacientes desde el servidor...');
 
     try {
+      const pacsRef = collection(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia');
+      const pacsSnap = await getDocs(pacsRef);
+      const todosPacientes = pacsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      if (todosPacientes.length === 0) {
+        setIsRecalculating(false);
+        setSyncStatus('synced');
+        return showNotif("No hay pacientes en la base de datos para realizar la sincronización.", "warning");
+      }
+
+      setRecalcStatus('Descargando todos los turnos existentes...');
+      const turnosRef = collection(db, 'artifacts', appId, 'public', 'data', 'turnos');
+      const turnosSnap = await getDocs(turnosRef);
+      const todosTurnos = turnosSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      setRecalcStatus('Agrupando pacientes por jornadas y horarios...');
+
       const isTraslado = (p) => {
         const d = String(p.destinoAlta || p.destino || '').toLowerCase();
         return d.includes('hospital') || d.includes('emergencia') || d.includes('derivac');
@@ -1029,7 +1042,7 @@ export default function GestionDatos({
       };
 
       const turnosMap = {};
-      pacientesDB.forEach(p => {
+      todosPacientes.forEach(p => {
         const shift = getShiftBoundaries(p.tAdmision);
         if (!shift) return;
 
@@ -1079,7 +1092,7 @@ export default function GestionDatos({
       };
 
       // Eliminar turnos viejos
-      turnosDB.forEach(t => {
+      todosTurnos.forEach(t => {
         addOp((b) => b.delete(doc(db, 'artifacts', appId, 'public', 'data', 'turnos', t.id)));
       });
 

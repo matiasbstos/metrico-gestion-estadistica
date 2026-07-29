@@ -319,6 +319,15 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
 
     const ytdTurnos = turnosDB.filter(t => t.fechaInicio && t.fechaInicio >= yearStartStr && t.fechaInicio <= fEndStr);
 
+    console.log("DEBUG_YTD:", {
+      turnosDB_len: turnosDB.length,
+      yearStartStr,
+      fEndStr,
+      ytdTurnos_len: ytdTurnos.length,
+      ytdPacientes_sum: ytdTurnos.reduce((acc, t) => acc + (t.totalPacientes || 0), 0),
+      turnosDB_sample: turnosDB.slice(0, 5)
+    });
+
     const ytdPacientes = ytdTurnos.reduce((acc, t) => acc + (t.totalPacientes || 0), 0);
     const ytdAltas = ytdTurnos.reduce((acc, t) => acc + (t.altasAdmin || 0), 0);
     const ytdAtendidos = ytdPacientes - ytdAltas;
