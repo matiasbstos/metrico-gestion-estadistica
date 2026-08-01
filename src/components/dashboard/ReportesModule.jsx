@@ -746,23 +746,25 @@ totalTriados,
   };
 
   const exportCSV = () => {
-    const lotesVisibles = turnosDB.filter(t => t.fechaInicio >= fechas.inicio && t.fechaFin <= fechas.fin).map(t => t.loteId);
-    const pacs = pacientesDB.filter(p => lotesVisibles.includes(p.loteId));
+    const startMs = new Date(fechas.inicio + 'T00:00:00').getTime();
+    const endMs = new Date(fechas.fin + 'T23:59:59').getTime();
+    const pacs = pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
     
     if (pacs.length === 0) return alert('No hay datos en este periodo para exportar.');
     
     const headers = ['ID_Lote', 'Edad', 'Sexo', 'Categoria', 'Medico', 'Comuna', 'Nacionalidad', 'Diagnostico_Principal', 'Destino_Alta'];
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + headers.join(",") + "\n"
-      + pacs.map(p => `${p.loteId},${p.edad || ''},${p.sexo || ''},${p.categoria || ''},${p.medico || ''},${p.comuna || ''},${p.nacionalidad || ''},"${String(p.diagnosticoPrincipal || p.codigoDiagnostico || '').replace(/"/g, '""')}","${String(p.destinoAlta || p.destino || '').replace(/"/g, '""')}"`).join("\n");
+    const csvContent = headers.join(",") + "\n"
+      + pacs.map(p => `${p.loteId || ''},${p.edad || ''},${p.sexo || ''},${p.categoria || ''},${p.medico || ''},${p.comuna || ''},${p.nacionalidad || ''},"${String(p.diagnosticoPrincipal || p.codigoDiagnostico || '').replace(/"/g, '""')}","${String(p.destinoAlta || p.destino || '').replace(/"/g, '""')}"`).join("\n");
       
-    const encodedUri = encodeURI(csvContent);
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", url);
     link.setAttribute("download", `metrico_reporte_completo_${fechas.inicio}_a_${fechas.fin}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const hasData = statsKPI && statsKPI.pacientes.current > 0;

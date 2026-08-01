@@ -17,13 +17,9 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
     if (pacientesFiltrados && pacientesFiltrados.length > 0) {
       return pacientesFiltrados;
     }
-    const lotesVisibles = new Set(turnosDB.filter(t => {
-      if (filtroFechaInicio && t.fechaInicio < filtroFechaInicio) return false;
-      if (filtroFechaFin && t.fechaFin > filtroFechaFin) return false;
-      return true;
-    }).map(t => t.loteId));
-
-    return pacientesDB.filter(p => lotesVisibles.has(p.loteId));
+    const startMs = filtroFechaInicio ? new Date(filtroFechaInicio + 'T00:00:00').getTime() : 0;
+    const endMs = filtroFechaFin ? new Date(filtroFechaFin + 'T23:59:59').getTime() : Date.now();
+    return pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
   }, [pacientesFiltrados, pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin]);
 
   // Helper oficial para Constataciones Z51.8 (Z51.8 + Z518)

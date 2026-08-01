@@ -199,10 +199,10 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
   const promediosGlobales = useMemo(() => {
     let sAdmCat=0, cAdmCat=0, sCatAna=0, cCatAna=0, sAnaAlt=0, cAnaAlt=0, sAdmAlt=0, cAdmAlt=0;
     pacientesFiltrados.forEach(p => {
-      if (p.tAdmision && p.tCat1) { sAdmCat += (p.tCat1 - p.tAdmision)/60000; cAdmCat++; }
-      if (p.tCatUlt && p.tAnamnesis) { sCatAna += (p.tAnamnesis - p.tCatUlt)/60000; cCatAna++; }
-      if (p.tAnamnesis && p.tAlta) { sAnaAlt += (p.tAlta - p.tAnamnesis)/60000; cAnaAlt++; }
-      if (p.tAdmision && p.tAlta) { sAdmAlt += (p.tAlta - p.tAdmision)/60000; cAdmAlt++; }
+      if (p.tAdmision && p.tCat1 && p.tCat1 >= p.tAdmision) { sAdmCat += (p.tCat1 - p.tAdmision)/60000; cAdmCat++; }
+      if (p.tCatUlt && p.tAnamnesis && p.tAnamnesis >= p.tCatUlt) { sCatAna += (p.tAnamnesis - p.tCatUlt)/60000; cCatAna++; }
+      if (p.tAnamnesis && p.tAlta && p.tAlta >= p.tAnamnesis) { sAnaAlt += (p.tAlta - p.tAnamnesis)/60000; cAnaAlt++; }
+      if (p.tAdmision && p.tAlta && p.tAlta >= p.tAdmision) { sAdmAlt += (p.tAlta - p.tAdmision)/60000; cAdmAlt++; }
     });
     return {
       avgAdmCat: cAdmCat ? sAdmCat / cAdmCat : null, 
@@ -219,10 +219,10 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       const pacs = pacientesFiltrados.filter(p => p.categoria === cat);
       let sAdmCat=0, cAdmCat=0, sCatAna=0, cCatAna=0, sAnaAlt=0, cAnaAlt=0, sAdmAlt=0, cAdmAlt=0;
       pacs.forEach(p => {
-        if (p.tAdmision && p.tCat1) { sAdmCat += (p.tCat1 - p.tAdmision)/60000; cAdmCat++; }
-        if (p.tCatUlt && p.tAnamnesis) { sCatAna += (p.tAnamnesis - p.tCatUlt)/60000; cCatAna++; }
-        if (p.tAnamnesis && p.tAlta) { sAnaAlt += (p.tAlta - p.tAnamnesis)/60000; cAnaAlt++; }
-        if (p.tAdmision && p.tAlta) { sAdmAlt += (p.tAlta - p.tAdmision)/60000; cAdmAlt++; }
+        if (p.tAdmision && p.tCat1 && p.tCat1 >= p.tAdmision) { sAdmCat += (p.tCat1 - p.tAdmision)/60000; cAdmCat++; }
+        if (p.tCatUlt && p.tAnamnesis && p.tAnamnesis >= p.tCatUlt) { sCatAna += (p.tAnamnesis - p.tCatUlt)/60000; cCatAna++; }
+        if (p.tAnamnesis && p.tAlta && p.tAlta >= p.tAnamnesis) { sAnaAlt += (p.tAlta - p.tAnamnesis)/60000; cAnaAlt++; }
+        if (p.tAdmision && p.tAlta && p.tAlta >= p.tAdmision) { sAdmAlt += (p.tAlta - p.tAdmision)/60000; cAdmAlt++; }
       });
       res[cat] = {
         total: pacs.length, 
@@ -255,7 +255,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
 
     const calcEstadia = (pacs) => {
         let sum = 0, count = 0;
-        pacs.forEach(p => { if (p.tAdmision && p.tAlta) { sum += (p.tAlta - p.tAdmision)/60000; count++; } });
+        pacs.forEach(p => { if (p.tAdmision && p.tAlta && p.tAlta >= p.tAdmision) { sum += (p.tAlta - p.tAdmision)/60000; count++; } });
         return count ? sum / count : 0;
     };
 
