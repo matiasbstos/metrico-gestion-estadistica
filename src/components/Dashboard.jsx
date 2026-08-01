@@ -865,10 +865,10 @@ const DashboardContent = () => {
             </button>
             <button 
               onClick={() => { setActiveTab('comparativo'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
-              title="Comparativa de Fechas"
+              title="Rendimiento Turno"
               className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'comparativo' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
               <GitCompare className="w-4 h-4 flex-shrink-0" />
-              {!sidebarCollapsed && <span className="animate-fade-in truncate">Comparativa de Fechas</span>}
+              {!sidebarCollapsed && <span className="animate-fade-in truncate">Rendimiento Turno</span>}
             </button>
             <button 
               onClick={() => { setActiveTab('calendario'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
