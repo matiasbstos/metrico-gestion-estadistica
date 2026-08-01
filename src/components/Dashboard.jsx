@@ -1299,7 +1299,13 @@ const DashboardContent = () => {
         )}
 
         {activeTab === 'comparativo' && (
-          <AnalisisComparativoTriple pacientesDB={pacientesDB} turnosDB={turnosDB} />
+          <AnalisisComparativoTriple 
+            pacientesDB={pacientesDB} 
+            turnosDB={turnosDB} 
+            setFiltroFechaInicio={setFiltroFechaInicio}
+            setFiltroFechaFin={setFiltroFechaFin}
+            setActiveTab={setActiveTab}
+          />
         )}
 
         {activeTab === 'calendario' && (
