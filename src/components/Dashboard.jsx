@@ -5,6 +5,7 @@ import GraficoDinamico from './dashboard/GraficoDinamico';
 import AnalisisEquiposTurno from './dashboard/AnalisisEquiposTurno';
 import CurvaDemanda from './dashboard/CurvaDemanda';
 import AnalisisSociodemografico from './dashboard/AnalisisSociodemografico';
+import PerfilPaciente from './dashboard/PerfilPaciente';
 import TablaTiemposEspera from './dashboard/TablaTiemposEspera';
 import AnalisisProfesionales from './dashboard/AnalisisProfesionales';
 import RankingProfesionales from './dashboard/RankingProfesionales';
@@ -885,6 +886,14 @@ const DashboardContent = () => {
               {!sidebarCollapsed && <span className="animate-fade-in truncate">Rendimiento Clínico</span>}
             </button>
 
+            <button 
+              onClick={() => { setActiveTab('perfil_paciente'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+              title="Perfil del Paciente"
+              className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'perfil_paciente' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+              <Users className="w-4 h-4 flex-shrink-0" />
+              {!sidebarCollapsed && <span className="animate-fade-in truncate">Perfil del Paciente</span>}
+            </button>
+
             {/* APARTADO GENERAL: ANÁLISIS ESPECÍFICOS */}
             {sidebarCollapsed ? (
               <>
@@ -1150,6 +1159,7 @@ const DashboardContent = () => {
                activeTab === 'comparativo' ? 'Comparativo' : 
                activeTab === 'calendario' ? 'Histórico Mensual' : 
                activeTab === 'profesionales' ? 'Rendimiento Clínico' : 
+               activeTab === 'perfil_paciente' ? 'Perfil del Paciente' :
                activeTab === 'altas' ? 'Altas Administrativas' :
                activeTab === 'traslados' ? 'Traslados Hospitalarios' :
                activeTab === 'fracturas' ? 'Estadísticas Fracturas' :
@@ -1247,16 +1257,7 @@ const DashboardContent = () => {
           <TopDiagnosticos topDiagnosticos={topDiagnosticos} />
         )}
 
-        {demografiaStats && (
-          <>
-            <AnalisisSociodemografico 
-              demografiaStats={demografiaStats} 
-              rankingCentros={rankingCentros}
-              pacientesFiltrados={pacientesFiltrados}
-            />
-            <MatrizCruzada pacientesFiltrados={pacientesFiltrados} />
-          </>
-        )}
+        {/* Módulo sociodemográfico movido a la pestaña Perfil del Paciente */}
 
         <TablaTiemposEspera 
           metricsByCategory={metricsByCategory} 
@@ -1334,6 +1335,14 @@ const DashboardContent = () => {
 
         {activeTab === 'profesionales' && (
           <AuditoriaMedicaDetail pacientesDB={pacientesDB} turnosDB={turnosDB} />
+        )}
+
+        {activeTab === 'perfil_paciente' && (
+          <PerfilPaciente 
+            pacientesFiltrados={pacientesFiltrados}
+            demografiaStats={demografiaStats}
+            rankingCentros={rankingCentros}
+          />
         )}
 
         {['especificos', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados'].includes(activeTab) && (

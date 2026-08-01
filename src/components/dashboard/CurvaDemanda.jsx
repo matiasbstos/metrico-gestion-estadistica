@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   XAxis, YAxis, Tooltip, Legend, Area, Line, ResponsiveContainer, CartesianGrid, ComposedChart 
 } from 'recharts';
-import { Zap, Calendar } from 'lucide-react';
+import { Zap, Calendar, Clock, Activity } from 'lucide-react';
 import { DOC_COLORS } from '../../config/constants';
 import InfoTooltip from '../InfoTooltip';
 
@@ -16,27 +16,116 @@ export default function CurvaDemanda({
   modoComparativo,
   docsToCompare
 }) {
+  const stats = useMemo(() => {
+    const totalPacientes = peakHoursData.reduce((acc, d) => acc + (d.atenciones || 0), 0);
+    const promedioPorHora = (totalPacientes / 24).toFixed(1);
+    
+    let maxHourObj = null;
+    let maxVal = -1;
+    peakHoursData.forEach(d => {
+      if (d.atenciones > maxVal) {
+        maxVal = d.atenciones;
+        maxHourObj = d;
+      }
+    });
+    
+    const horaPico = maxHourObj ? maxHourObj.horaTooltip : '-';
+    const maxPacientes = maxVal > 0 ? maxVal : 0;
+    
+    let mananaSum = 0;
+    let tardeSum = 0;
+    let nocheSum = 0;
+    
+    peakHoursData.forEach(d => {
+      const h = d.hora;
+      if (h >= 8 && h < 14) mananaSum += (d.atenciones || 0);
+      else if (h >= 14 && h < 20) tardeSum += (d.atenciones || 0);
+      else nocheSum += (d.atenciones || 0);
+    });
+    
+    let blockMaxName = 'Noche';
+    let blockMaxVal = nocheSum;
+    let blockMaxHours = '20:00 - 07:59';
+    
+    if (mananaSum > blockMaxVal) {
+      blockMaxName = 'Mañana';
+      blockMaxVal = mananaSum;
+      blockMaxHours = '08:00 - 13:59';
+    }
+    if (tardeSum > blockMaxVal) {
+      blockMaxName = 'Tarde';
+      blockMaxVal = tardeSum;
+      blockMaxHours = '14:00 - 19:59';
+    }
+    
+    const blockMaxPct = totalPacientes > 0 ? ((blockMaxVal / totalPacientes) * 100).toFixed(0) : 0;
+    
+    return {
+      totalPacientes,
+      promedioPorHora,
+      horaPico,
+      maxPacientes,
+      blockMaxName,
+      blockMaxHours,
+      blockMaxPct
+    };
+  }, [peakHoursData]);
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mt-6 w-full flex flex-col h-[400px]">
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-4">
+    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800/60 p-6 mt-6 w-full flex flex-col min-h-[480px] theme-transition">
+      {/* Cabecera */}
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
          <div className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-amber-500"/>
-            <h2 className="text-base font-bold text-slate-700 flex items-center gap-2">
+            <Zap className="w-5 h-5 text-amber-500 animate-pulse"/>
+            <h2 className="text-base font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
               Curva de Demanda Continua (00:00 - 23:59)
               <InfoTooltip title="Curva de Demanda" text="Analiza los 'Peak Hours' o picos de congestión a lo largo del día seleccionado." />
             </h2>
          </div>
          
          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
-               <Calendar className="w-4 h-4 text-slate-400 ml-2"/>
-               <input type="date" value={demandaFechaInicio} onChange={e => setDemandaFechaInicio(e.target.value)} className="text-xs border-none focus:ring-0 text-slate-600 bg-transparent p-1 outline-none"/>
-               <span className="text-slate-300">-</span>
-               <input type="date" value={demandaFechaFin} onChange={e => setDemandaFechaFin(e.target.value)} className="text-xs border-none focus:ring-0 text-slate-600 bg-transparent p-1 outline-none"/>
+            <div className="flex items-center gap-1 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-1 shadow-sm">
+                <Calendar className="w-4 h-4 text-slate-400 ml-2"/>
+                <input type="date" value={demandaFechaInicio} onChange={e => setDemandaFechaInicio(e.target.value)} className="text-xs border-none focus:ring-0 text-slate-600 dark:text-slate-300 bg-transparent p-1 outline-none"/>
+                <span className="text-slate-300">-</span>
+                <input type="date" value={demandaFechaFin} onChange={e => setDemandaFechaFin(e.target.value)} className="text-xs border-none focus:ring-0 text-slate-600 dark:text-slate-300 bg-transparent p-1 outline-none"/>
             </div>
          </div>
       </div>
-      <div className="h-full w-full">
+
+      {/* Tarjetas Indicadoras de la Curva */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* Tarjeta 1: Volumen Total */}
+        <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 rounded-2xl p-4 shadow-sm theme-transition">
+          <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Volumen Total Acumulado</span>
+          <p className="text-2xl font-black text-slate-800 dark:text-slate-100 mt-1">{stats.totalPacientes} <span className="text-xs font-bold text-slate-500">pac.</span></p>
+          <span className="text-[9px] font-bold text-slate-400 block mt-1">Registrados en la curva</span>
+        </div>
+        
+        {/* Tarjeta 2: Hora Pico */}
+        <div className="bg-rose-500/5 border border-rose-500/10 rounded-2xl p-4 shadow-sm theme-transition">
+          <span className="text-[9px] font-black text-rose-500 dark:text-rose-400 uppercase tracking-wider block">Pico Máximo de Demanda</span>
+          <p className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{stats.horaPico}</p>
+          <span className="text-[9px] font-bold text-rose-400 dark:text-rose-500/60 block mt-1">{stats.maxPacientes} admisiones en esa hora</span>
+        </div>
+
+        {/* Tarjeta 3: Bloque Mayor Flujo */}
+        <div className="bg-indigo-500/5 border border-indigo-500/10 rounded-2xl p-4 shadow-sm theme-transition">
+          <span className="text-[9px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-wider block">Bloque Más Congestionado</span>
+          <p className="text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-1">{stats.blockMaxName} <span className="text-xs font-bold text-indigo-500">{stats.blockMaxPct}%</span></p>
+          <span className="text-[9px] font-bold text-indigo-400 dark:text-indigo-500/60 block mt-1">{stats.blockMaxHours}</span>
+        </div>
+
+        {/* Tarjeta 4: Promedio Admisiones/Hora */}
+        <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-4 shadow-sm theme-transition">
+          <span className="text-[9px] font-black text-amber-500 dark:text-amber-400 uppercase tracking-wider block">Promedio de Admisiones</span>
+          <p className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{stats.promedioPorHora} <span className="text-xs font-bold text-amber-500">pac./hr</span></p>
+          <span className="text-[9px] font-bold text-amber-400 dark:text-amber-500/60 block mt-1">Admisiones por hora de servicio</span>
+        </div>
+      </div>
+
+      {/* Gráfico */}
+      <div className="flex-1 w-full min-h-[250px]">
         {peakHoursData.some(d => d.atenciones > 0 || (modoComparativo && d.periodoB > 0)) ? (
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={peakHoursData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -46,11 +135,11 @@ export default function CurvaDemanda({
                   <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="horaCorta" fontSize={10} tickMargin={5} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={20} />
-              <YAxis fontSize={10} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{borderRadius: '8px', border: 'none', fontSize:'11px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} labelFormatter={(label, payload) => String((payload && payload.length > 0) ? payload[0].payload.horaTooltip : label)} />
-              <Legend wrapperStyle={{fontSize: '11px'}} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.1)" />
+              <XAxis dataKey="horaCorta" fontSize={10} tickMargin={5} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={20} tick={{ fill: 'var(--text-secondary)' }} />
+              <YAxis fontSize={10} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)' }} />
+              <Tooltip contentStyle={{borderRadius: '8px', border: 'none', fontSize:'11px', backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} labelFormatter={(label, payload) => String((payload && payload.length > 0) ? payload[0].payload.horaTooltip : label)} />
+              <Legend wrapperStyle={{fontSize: '11px', fontWeight: 'bold'}} />
               
               {demandaViewMode === 'total' ? (
                   <Area type="monotone" dataKey="atenciones" name="Total Pacientes" stroke="#f59e0b" strokeWidth={3} fillOpacity={1} fill="url(#colorDemanda)" />
