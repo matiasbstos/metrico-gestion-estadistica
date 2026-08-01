@@ -605,7 +605,23 @@ const DashboardContent = () => {
 
     return turnosFiltrados.slice().reverse().map(t => {
       const row = { name: t.fechaInicio === t.fechaFin ? t.fechaInicio : `${t.fechaInicio} - ${t.fechaFin}` };
-      const pacs = pacientesFiltrados.filter(p => p.loteId === t.loteId);
+      const pacs = pacientesFiltrados.filter(p => {
+        if (p.loteId === t.loteId) return true;
+        if (!p.tAdmision) return false;
+        const pDateObj = new Date(p.tAdmision);
+        let pDateStr = pDateObj.toISOString().split('T')[0];
+        const hours = pDateObj.getHours();
+        if (hours < 8) {
+          const prev = new Date(p.tAdmision);
+          prev.setDate(prev.getDate() - 1);
+          pDateStr = prev.toISOString().split('T')[0];
+        }
+        if (pDateStr !== t.fechaInicio) return false;
+        const tHorario = String(t.horario).toLowerCase();
+        const isNightT = tHorario.includes('noche') || tHorario.includes('17:00') || tHorario.includes('20:00');
+        const isNightP = hours < 8 || hours >= 17;
+        return isNightT === isNightP;
+      });
       
       allMetrics.forEach(m => {
         if (['tiempoAdmCat', 'tiempoCatAna', 'tiempoAnaAlt', 'tiempoAdmAlt'].includes(m)) {
