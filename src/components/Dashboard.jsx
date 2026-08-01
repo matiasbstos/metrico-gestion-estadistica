@@ -102,6 +102,24 @@ const DashboardContent = () => {
 
   const [tema, setTema] = useState(() => localStorage.getItem('metrico-tema') || 'crextio');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const mainScrollRef = React.useRef(null);
+
+  useEffect(() => {
+    const mainEl = mainScrollRef.current;
+    if (!mainEl) return;
+    
+    const handleScroll = () => {
+      if (mainEl.scrollTop > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    
+    mainEl.addEventListener('scroll', handleScroll);
+    return () => mainEl.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const [hasAutoSelectedDate, setHasAutoSelectedDate] = useState(false);
 
@@ -1100,7 +1118,7 @@ const DashboardContent = () => {
       )}
 
       {/* COLUMNA DERECHA: CANVAS DE SCROLL CONTINUO */}
-      <main className="flex-1 h-full overflow-y-auto flex flex-col relative theme-transition">
+      <main ref={mainScrollRef} className="flex-1 h-full overflow-y-auto flex flex-col relative theme-transition">
         
         {/* Mobile Top Header (Visible en pantallas < md) */}
         <div className="md:hidden flex items-center justify-between bg-card-custom p-4 border-b border-card-custom sticky top-0 z-30 shadow-sm theme-transition">
@@ -1161,7 +1179,7 @@ const DashboardContent = () => {
         {activeTab === 'resumen' && (
           <>
             {/* SECTOR DE FILTROS Y CONTROL DE CONTEXTO (STICKY/FLOTANTE CON BLUR EFECTO VIDRIO) */}
-            <div className="sticky top-0 z-40 bg-slate-50/80 dark:bg-slate-900/85 backdrop-blur-md pb-4 pt-3 shadow-md border-b border-card-custom/20 -mx-4 md:-mx-8 px-4 md:px-8 transition-all">
+            <div className={`sticky top-[61px] md:top-0 z-40 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-md shadow-md border-b border-card-custom/20 -mx-4 md:-mx-8 px-4 md:px-8 transition-all duration-300 ${isScrolled ? 'py-2' : 'pb-4 pt-3'}`}>
               <FiltrosGlobales 
                 modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
                 filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={setFiltroFechaInicio}
@@ -1175,6 +1193,7 @@ const DashboardContent = () => {
                 horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
                 maxDateLabel={maxDateLabel}
                 onClearFilters={handleClearFilters}
+                isScrolled={isScrolled}
               />
             </div>
 
