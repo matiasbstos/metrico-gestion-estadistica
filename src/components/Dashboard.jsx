@@ -1164,28 +1164,14 @@ const DashboardContent = () => {
             <hr className="border-card-custom/40 my-6 theme-transition" />
 
             {/* DATOS DE RENDIMIENTO Y KPIs */}
-            {loadingKpis ? (
-              <div className="mb-6">
-                <div className="h-4 w-48 bg-slate-300 dark:bg-white/10 rounded animate-pulse mb-3"></div>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                  {[...Array(7)].map((_, i) => (
-                    <div key={i} className="bg-card-custom p-5 flex flex-col justify-between h-[140px] animate-pulse rounded-2xl border border-card-custom/40">
-                      <div className="h-2 w-16 bg-slate-300 dark:bg-white/10 rounded"></div>
-                      <div className="h-6 w-20 bg-slate-300 dark:bg-white/10 rounded mt-2"></div>
-                      <div className="h-3 w-24 bg-slate-300 dark:bg-white/10 rounded mt-auto"></div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              (kpisBigQuery || statsKPI) && (
-                <PanelKPIs 
-                  statsKPI={kpisBigQuery || statsKPI} 
-                  onAltasClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); }} 
-                  onTrasladosClick={() => { setActiveTab('traslados'); setSubTabEspecifico('traslados'); }} 
-                  onConstatacionesClick={() => { setActiveTab('constataciones'); setSubTabEspecifico('constataciones'); }} 
-                />
-              )
+            {(kpisBigQuery || statsKPI) && (
+              <PanelKPIs 
+                statsKPI={kpisBigQuery || statsKPI} 
+                isLoading={loading || loadingKpis}
+                onAltasClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); }} 
+                onTrasladosClick={() => { setActiveTab('traslados'); setSubTabEspecifico('traslados'); }} 
+                onConstatacionesClick={() => { setActiveTab('constataciones'); setSubTabEspecifico('constataciones'); }} 
+              />
             )}
 
 
@@ -1198,6 +1184,7 @@ const DashboardContent = () => {
           modoComparativo={modoComparativo} dynamicMetricKeys={dynamicMetricKeys}
           turnosFiltrados={turnosFiltrados} demografiaStats={demografiaStats}
           pacientesFiltrados={pacientesFiltrados}
+          isLoading={loading || loadingKpis}
         />
 
         <AnalisisEquiposTurno turnosFiltrados={turnosFiltrados} pacientesFiltrados={pacientesFiltrados} />

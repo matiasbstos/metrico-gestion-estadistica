@@ -27,7 +27,8 @@ export default function GraficoDinamico({
   pieData,
   turnosFiltrados,
   demografiaStats,
-  pacientesFiltrados
+  pacientesFiltrados,
+  isLoading
 }) {
   const [activeTab, setActiveTab] = React.useState('operacional');
   const [isExpanded, setIsExpanded] = React.useState(false);
@@ -251,7 +252,12 @@ export default function GraficoDinamico({
       {!modoComparativo && renderCategoryTabs()}
 
       <div className="w-full min-h-[24rem]">
-        {modoComparativo ? (
+        {isLoading ? (
+          <div className="h-80 flex flex-col items-center justify-center text-secondary-custom">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-500 mb-3"></div>
+            <p className="text-xs font-black uppercase tracking-wider">Cargando y analizando datos...</p>
+          </div>
+        ) : modoComparativo ? (
           <div className="h-80 w-full animate-fade-in">
              <ResponsiveContainer width="100%" height={300}>
               <BarChart data={compareChartData}>
