@@ -8,6 +8,7 @@ import {
 } from 'recharts';
 import { obtenerTurnoDetallado } from '../../utils/helpers';
 import { generateEnfermeriaSummary } from '../../utils/summaryGenerator';
+import InfoTooltip from '../InfoTooltip';
 
 const perc = (val, tot) => tot > 0 ? ((val / tot) * 100).toFixed(1) : '0.0';
 
@@ -591,9 +592,9 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
                       <div className="flex items-center gap-1.5">
                         <span>{row.nombre}</span>
                         {row.nombre === 'No Registrado' && (
-                          <Info 
-                            className="w-3.5 h-3.5 text-secondary-custom opacity-70 hover:opacity-100 transition-opacity cursor-help" 
-                            title="Corresponde mayoritariamente a admisiones sin categorizar o canceladas que no requirieron triage, y un mínimo de fichas donde el nombre del profesional venía vacío en el Excel original."
+                          <InfoTooltip 
+                            title="¿Por qué 'No Registrado'?"
+                            text="Corresponde a admisiones sin categorizar, canceladas o de derivación inmediata que no requirieron triage clínico (y por ende no tienen profesional de enfermería asignado), o registros donde el campo del enfermero venía vacío en el archivo Excel original."
                           />
                         )}
                       </div>
