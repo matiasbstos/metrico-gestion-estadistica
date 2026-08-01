@@ -1670,35 +1670,7 @@ totalTriados,
                   </table>
                 </div>
 
-                {/* BLOQUE DE CERTIFICACIÓN Y FIRMAS PROPIO PARA EL INFORME DE CONSTATACIÓN DE LESIONES */}
-                <div className="pt-6 border-t-2 border-slate-900 space-y-6">
-                  {/* Metadatos de Emisión */}
-                  <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-[11px] text-slate-600 leading-relaxed space-y-1">
-                    <p>
-                      <strong>Sistema Emisor:</strong> MÉTRICO - Sistema de Gestión Estadística de Urgencia (SAR Arpillerista Elsa Romo Aravena).
-                    </p>
-                    <p>
-                      <strong>Usuario Certificante:</strong> {user?.email || 'Usuario Autorizado / Gestión Local'}
-                    </p>
-                    <p>
-                      <strong>Fecha y Hora de Emisión:</strong> {new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago' })} h
-                    </p>
-                  </div>
 
-                  {/* Firmas Directora Técnica y Enfermero Supervisor */}
-                  <div className="grid grid-cols-2 gap-8 pt-6">
-                    <div className="text-center space-y-1">
-                      <div className="border-t border-slate-400 w-52 mx-auto"></div>
-                      <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Firma Enfermero(a) Supervisor(a)</p>
-                      <p className="text-[9px] text-slate-500 font-bold uppercase">Gestión de Categorización y Triaje</p>
-                    </div>
-                    <div className="text-center space-y-1">
-                      <div className="border-t border-slate-400 w-52 mx-auto"></div>
-                      <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Firma Directora Técnica</p>
-                      <p className="text-[9px] text-slate-500 font-bold uppercase">SAR Arpillerista Elsa Romo Aravena</p>
-                    </div>
-                  </div>
-                </div>
 
               </div>
             )}
@@ -1981,26 +1953,33 @@ totalTriados,
                     </div>
                   </div>
 
-                  {/* Cuadro de Tiempos y Operatividad */}
-                  <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block border-b border-slate-200 pb-1">Metadatos de Operación y Tiempos</span>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div>
-                        <span className="text-slate-500 font-bold block">T. Promedio 1ª Cat:</span>
-                        <span className="font-black text-slate-800 text-sm">{enfermeriaStats.avgMinCat1} min</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 font-bold block">T. Promedio Re-Cat:</span>
-                        <span className="font-black text-slate-800 text-sm">{enfermeriaStats.avgMinReCat} min</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 font-bold block">Tasa Altas Admin:</span>
-                        <span className="font-black text-rose-700 text-sm">{altasStats.pct}% ({altasStats.totalAltas} altas)</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-500 font-bold block">Total Fracturas Fx:</span>
-                        <span className="font-black text-amber-700 text-sm">{fracturasStats.totalFracturas} pac.</span>
-                      </div>
+                </div>
+              </div>
+            )}
+
+            {/* BLOQUE GLOBAL DE CIERRE DE INFORME Y VALIDACIÓN DE DATOS */}
+            {activeSheets.length > 0 && (
+              <div className="print-avoid-break pt-8 border-t-2 border-slate-900 mt-8 space-y-6">
+                
+                {/* Cuadro de Tiempos y Operatividad */}
+                <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block border-b border-slate-200 pb-1">Metadatos de Operación y Tiempos</span>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-slate-500 font-bold block">T. Promedio 1ª Cat:</span>
+                      <span className="font-black text-slate-800 text-sm">{enfermeriaStats.avgMinCat1} min</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 font-bold block">T. Promedio Re-Cat:</span>
+                      <span className="font-black text-slate-800 text-sm">{enfermeriaStats.avgMinReCat} min</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 font-bold block">Tasa Altas Admin:</span>
+                      <span className="font-black text-rose-700 text-sm">{altasStats.pct}% ({altasStats.totalAltas} altas)</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 font-bold block">Total Fracturas Fx:</span>
+                      <span className="font-black text-amber-700 text-sm">{fracturasStats.totalFracturas} pac.</span>
                     </div>
                   </div>
                 </div>
@@ -2034,9 +2013,9 @@ totalTriados,
                     <p className="text-[9px] text-slate-500 font-bold uppercase">SAR Arpillerista Elsa Romo Aravena</p>
                   </div>
                 </div>
+
               </div>
             )}
-
           </div>
         )}
 
