@@ -12,5 +12,18 @@
         "destination": "/index.html"
       }
     ]
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git"
+      ]
+    }
+  ],
+  "extensions": {
+    "firestore-bigquery-export": "firebase/firestore-bigquery-export@0.3.3"
   }
 }

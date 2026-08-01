@@ -1776,74 +1776,80 @@ totalTriados,
                 {/* Donut Chart de Sexo y Demografía */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 print-avoid-break">
                   {/* Distribución por Sexo */}
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-6">
-                    <div className="relative w-24 h-24 shrink-0">
-                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 110 110">
-                        <circle cx="55" cy="55" r="45" fill="none" stroke="#f1f5f9" strokeWidth="12" />
-                        <circle 
-                          cx="55" cy="55" r="45" fill="none" stroke="#3b82f6" strokeWidth="12" 
-                          strokeDasharray={`${(Number(trasladosReportStats.hombresPct) / 100) * 282.74} 282.74`}
-                          strokeDashoffset="0"
-                          strokeLinecap="round"
-                        />
-                        <circle 
-                          cx="55" cy="55" r="45" fill="none" stroke="#ec4899" strokeWidth="12" 
-                          strokeDasharray={`${(Number(trasladosReportStats.mujeresPct) / 100) * 282.74} 282.74`}
-                          strokeDashoffset={`-${(Number(trasladosReportStats.hombresPct) / 100) * 282.74}`}
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                        <span className="text-[8px] font-bold text-slate-500 uppercase leading-none">Total</span>
-                        <span className="text-xs font-black text-slate-800 mt-0.5">{trasladosReportStats.totalTraslados}</span>
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col h-full justify-start gap-3">
+                    <h4 className="font-black text-slate-700 uppercase text-[10px] border-b border-slate-200 pb-1.5">Distribución por Sexo</h4>
+                    <div className="flex items-center justify-around gap-4 flex-1 pt-1">
+                      <div className="relative w-24 h-24 shrink-0">
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 110 110">
+                          <circle cx="55" cy="55" r="45" fill="none" stroke="#f1f5f9" strokeWidth="12" />
+                          <circle 
+                            cx="55" cy="55" r="45" fill="none" stroke="#3b82f6" strokeWidth="12" 
+                            strokeDasharray={`${(Number(trasladosReportStats.hombresPct) / 100) * 282.74} 282.74`}
+                            strokeDashoffset="0"
+                            strokeLinecap="round"
+                          />
+                          <circle 
+                            cx="55" cy="55" r="45" fill="none" stroke="#ec4899" strokeWidth="12" 
+                            strokeDasharray={`${(Number(trasladosReportStats.mujeresPct) / 100) * 282.74} 282.74`}
+                            strokeDashoffset={`-${(Number(trasladosReportStats.hombresPct) / 100) * 282.74}`}
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                          <span className="text-[8px] font-bold text-slate-500 uppercase leading-none">Total</span>
+                          <span className="text-xs font-black text-slate-800 mt-0.5">{trasladosReportStats.totalTraslados}</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="space-y-2 text-xs">
-                      <h4 className="font-black text-slate-700 uppercase text-[10px]">Distribución por Sexo</h4>
-                      <div className="flex items-center justify-between w-32 border-b border-slate-200 pb-1">
-                        <span className="text-blue-700 font-bold flex items-center gap-1">
-                          <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> H
-                        </span>
-                        <span className="font-extrabold text-slate-800">{trasladosReportStats.hombres} ({trasladosReportStats.hombresPct}%)</span>
-                      </div>
-                      <div className="flex items-center justify-between w-32">
-                        <span className="text-pink-700 font-bold flex items-center gap-1">
-                          <span className="w-2.5 h-2.5 rounded-full bg-pink-500"></span> M
-                        </span>
-                        <span className="font-extrabold text-slate-800">{trasladosReportStats.mujeres} ({trasladosReportStats.mujeresPct}%)</span>
+                      <div className="space-y-2 text-xs">
+                        <div className="flex items-center justify-between w-32 border-b border-slate-200 pb-1">
+                          <span className="text-blue-700 font-bold flex items-center gap-1">
+                            <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> H
+                          </span>
+                          <span className="font-extrabold text-slate-800">{trasladosReportStats.hombres} ({trasladosReportStats.hombresPct}%)</span>
+                        </div>
+                        <div className="flex items-center justify-between w-32">
+                          <span className="text-pink-700 font-bold flex items-center gap-1">
+                            <span className="w-2.5 h-2.5 rounded-full bg-pink-500"></span> M
+                          </span>
+                          <span className="font-extrabold text-slate-800">{trasladosReportStats.mujeres} ({trasladosReportStats.mujeresPct}%)</span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Distribución por Rango Etario (Tramos de 5 años) */}
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
-                    <h4 className="font-black text-slate-700 uppercase text-[10px] border-b border-slate-200 pb-1.5 mb-2">Tramos Etarios Dominantes</h4>
-                    <div className="space-y-1.5 text-[10px]">
-                      {trasladosReportStats.topAgeRanges && trasladosReportStats.topAgeRanges.length > 0 ? (
-                        trasladosReportStats.topAgeRanges.map((item, idx) => (
-                          <div key={idx} className="flex justify-between border-b border-slate-100 pb-0.5">
-                            <span className="font-semibold text-slate-600">🏆 #{idx+1} ({item.range} a.):</span>
-                            <span className="font-extrabold text-slate-800">{item.count} pac. ({item.pct}%)</span>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-[10px] text-slate-400 py-2">Sin datos disponibles.</p>
-                      )}
-                      
-                      {/* Otros tramos activos */}
-                      <div className="text-[8px] font-bold text-slate-400 uppercase pt-1 border-t border-slate-200 mt-1 mb-1">
-                        Otros tramos activos:
-                      </div>
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[9px] max-h-20 overflow-y-auto">
-                        {Object.entries(trasladosReportStats.ageRanges || {})
-                          .filter(([range, count]) => range !== 'Desconocido' && count > 0 && !(trasladosReportStats.topAgeRanges || []).some(t => t.range === range))
-                          .slice(0, 4)
-                          .map(([range, count]) => (
-                            <div key={range} className="flex justify-between text-slate-500 border-b border-slate-50">
-                              <span>{range}:</span>
-                              <span className="font-bold text-slate-700">{count} pac.</span>
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-start gap-3">
+                    <h4 className="font-black text-slate-700 uppercase text-[10px] border-b border-slate-200 pb-1.5">Tramos Etarios Dominantes</h4>
+                    <div className="space-y-1.5 text-[10px] flex-1 flex flex-col justify-between">
+                      <div>
+                        {trasladosReportStats.topAgeRanges && trasladosReportStats.topAgeRanges.length > 0 ? (
+                          trasladosReportStats.topAgeRanges.map((item, idx) => (
+                            <div key={idx} className="flex justify-between border-b border-slate-100 pb-0.5 mb-1">
+                              <span className="font-semibold text-slate-600">🏆 #{idx+1} ({item.range} a.):</span>
+                              <span className="font-extrabold text-slate-800">{item.count} pac. ({item.pct}%)</span>
                             </div>
-                          ))}
+                          ))
+                        ) : (
+                          <p className="text-[10px] text-slate-400 py-2">Sin datos disponibles.</p>
+                        )}
+                      </div>
+                      
+                      <div>
+                        {/* Otros tramos activos */}
+                        <div className="text-[8px] font-bold text-slate-400 uppercase pt-1 border-t border-slate-200 mt-1 mb-1">
+                          Otros tramos activos:
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[9px] max-h-20 overflow-y-auto">
+                          {Object.entries(trasladosReportStats.ageRanges || {})
+                            .filter(([range, count]) => range !== 'Desconocido' && count > 0 && !(trasladosReportStats.topAgeRanges || []).some(t => t.range === range))
+                            .slice(0, 4)
+                            .map(([range, count]) => (
+                              <div key={range} className="flex justify-between text-slate-500 border-b border-slate-50">
+                                <span>{range}:</span>
+                                <span className="font-bold text-slate-700">{count} pac.</span>
+                              </div>
+                            ))}
+                        </div>
                       </div>
                     </div>
                   </div>

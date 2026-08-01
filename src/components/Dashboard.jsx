@@ -37,7 +37,8 @@ import {
   LineChart, Line, ResponsiveContainer, CartesianGrid, ComposedChart, Area, AreaChart
 } from 'recharts';
 
-import { auth, db, appId } from '../config/firebase';
+import { app, auth, db, appId } from '../config/firebase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { collection, doc, writeBatch, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useMetricoData } from '../hooks/useMetricoData';
 import { useMetricoAnalytics } from '../hooks/useMetricoAnalytics';
@@ -277,7 +278,120 @@ const DashboardContent = () => {
     setHorarioPreset('civil');
   };
 
+  const [kpisBigQuery, setKpisBigQuery] = useState(null);
+  const [loadingKpis, setLoadingKpis] = useState(false);
+
   const { turnosFiltrados, pacientesFiltrados, demografiaStats, promediosGlobales, metricsByCategory, statsKPI, rankingCentros, topDiagnosticos } = useMetricoAnalytics(pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales, tipoCorte, filtroHoraInicio, filtroHoraFin);
+
+  useEffect(() => {
+    if (!filtroFechaInicio || !filtroFechaFin || !app) return;
+
+    const fetchKpis = async () => {
+      setLoadingKpis(true);
+      try {
+        const functions = getFunctions(app);
+        const callKpis = httpsCallable(functions, 'obtenerKpisDashboard');
+        const res = await callKpis({ fechaInicio: filtroFechaInicio, fechaFin: filtroFechaFin });
+        
+        const data = res.data;
+        if (data && data.current) {
+          const getGrowth = (curr, prev) => {
+            const c = Number(curr || 0);
+            const p = Number(prev || 0);
+            return p === 0 ? (c > 0 ? 100 : 0) : ((c - p) / p) * 100;
+          };
+
+          const parseKpis = (item) => ({
+            totalAtenciones: Number(item.totalAtenciones || 0),
+            totalC1: Number(item.totalC1 || 0),
+            totalC2: Number(item.totalC2 || 0),
+            totalC3: Number(item.totalC3 || 0),
+            totalC3Z518: Number(item.totalC3Z518 || 0),
+            totalC4: Number(item.totalC4 || 0),
+            totalC5: Number(item.totalC5 || 0),
+            totalAltas: Number(item.totalAltas || 0),
+            totalTraslados: Number(item.totalTraslados || 0),
+            totalConstataciones: Number(item.totalConstataciones || 0),
+            avgEstadia: Number(item.avgEstadia || 0)
+          });
+
+          const curr = parseKpis(data.current);
+          const pm = parseKpis(data.prevMonth);
+          const py = parseKpis(data.prevYear);
+          const ytdData = parseKpis(data.ytd);
+          
+          const rec = data.records || {};
+
+          const sy = filtroFechaInicio.split('-').map(Number);
+          const ey = filtroFechaFin.split('-').map(Number);
+          const getHours = (s, e) => Math.max(1, (new Date(e[0], e[1]-1, e[2], 23, 59, 59) - new Date(s[0], s[1]-1, s[2], 0, 0, 0)) / 3600000);
+          
+          const currentHours = getHours(sy, ey);
+          const pmHours = getHours(
+            [sy[0], sy[1]-1, sy[2]],
+            [ey[0], ey[1]-1, ey[2]]
+          );
+          const pyHours = getHours(
+            [sy[0]-1, sy[1], sy[2]],
+            [ey[0]-1, ey[1], ey[2]]
+          );
+          const ytdHours = getHours(
+            [ey[0], 1, 1],
+            ey
+          );
+
+          const currentPacHora = currentHours > 0 ? curr.totalAtenciones / currentHours : 0;
+          const pmPacHora = pmHours > 0 ? pm.totalAtenciones / pmHours : 0;
+          const pyPacHora = pyHours > 0 ? py.totalAtenciones / pyHours : 0;
+          const ytdPacHora = ytdHours > 0 ? ytdData.totalAtenciones / ytdHours : 0;
+
+          const stats = {
+            anual: {
+              pacientes: { current: ytdData.totalAtenciones },
+              atendidos: { current: ytdData.totalAtenciones - ytdData.totalAltas },
+              estadia: { current: ytdData.avgEstadia },
+              pacHora: { current: ytdPacHora },
+              altasAdmin: { current: ytdData.totalAltas },
+              traslados: { current: ytdData.totalTraslados },
+              constataciones: { current: ytdData.totalConstataciones },
+              recordPacWkdy: { count: Number(rec.max_pac_wkdy || 0), date: rec.max_pac_wkdy_date || 'Sin registros' },
+              recordPacWknd: { count: Number(rec.max_pac_wknd || 0), date: rec.max_pac_wknd_date || 'Sin registros' },
+              recordAltasWkdy: { count: Number(rec.max_altas_wkdy || 0), date: rec.max_altas_wkdy_date || 'Sin registros' },
+              recordAltasWknd: { count: Number(rec.max_altas_wknd || 0), date: rec.max_altas_wknd_date || 'Sin registros' }
+            },
+            pacientes: { current: curr.totalAtenciones, growthMonth: getGrowth(curr.totalAtenciones, pm.totalAtenciones), growthYear: getGrowth(curr.totalAtenciones, py.totalAtenciones) },
+            atendidos: { current: curr.totalAtenciones - curr.totalAltas, growthMonth: getGrowth(curr.totalAtenciones - curr.totalAltas, pm.totalAtenciones - pm.totalAltas), growthYear: getGrowth(curr.totalAtenciones - curr.totalAltas, py.totalAtenciones - py.totalAltas) },
+            pacHora: { current: currentPacHora, growthMonth: getGrowth(currentPacHora, pmPacHora), growthYear: getGrowth(currentPacHora, pyPacHora) },
+            estadia: { current: curr.avgEstadia, growthMonth: getGrowth(curr.avgEstadia, pm.avgEstadia), growthYear: getGrowth(curr.avgEstadia, py.avgEstadia) },
+            altasAdmin: { current: curr.totalAltas, growthMonth: getGrowth(curr.totalAltas, pm.totalAltas), growthYear: getGrowth(curr.totalAltas, py.totalAltas) },
+            traslados: { current: curr.totalTraslados, growthMonth: getGrowth(curr.totalTraslados, pm.totalTraslados), growthYear: getGrowth(curr.totalTraslados, py.totalTraslados) },
+            constataciones: { current: curr.totalConstataciones, growthMonth: getGrowth(curr.totalConstataciones, pm.totalConstataciones), growthYear: getGrowth(curr.totalConstataciones, py.totalConstataciones) },
+            demo: {
+              avgEdad: demografiaStats?.avgEdad || 0,
+              fonasaPercent: demografiaStats?.fonasaPercent || 0,
+              meliPercent: demografiaStats?.meliPercent || 0
+            },
+            categorias: [
+              { name: 'C1', current: curr.totalC1, growthMonth: getGrowth(curr.totalC1, pm.totalC1), growthYear: getGrowth(curr.totalC1, py.totalC1) },
+              { name: 'C2', current: curr.totalC2, growthMonth: getGrowth(curr.totalC2, pm.totalC2), growthYear: getGrowth(curr.totalC2, py.totalC2) },
+              { name: 'C3', current: curr.totalC3, growthMonth: getGrowth(curr.totalC3, pm.totalC3), growthYear: getGrowth(curr.totalC3, py.totalC3) },
+              { name: 'C3 (L)', current: curr.totalC3Z518, growthMonth: getGrowth(curr.totalC3Z518, pm.totalC3Z518), growthYear: getGrowth(curr.totalC3Z518, py.totalC3Z518) },
+              { name: 'C4', current: curr.totalC4, growthMonth: getGrowth(curr.totalC4, pm.totalC4), growthYear: getGrowth(curr.totalC4, py.totalC4) },
+              { name: 'C5', current: curr.totalC5, growthMonth: getGrowth(curr.totalC5, pm.totalC5), growthYear: getGrowth(curr.totalC5, py.totalC5) }
+            ]
+          };
+
+          setKpisBigQuery(stats);
+        }
+      } catch (err) {
+        console.error("Error calling obtenerKpisDashboard Cloud Function:", err);
+      } finally {
+        setLoadingKpis(false);
+      }
+    };
+
+    fetchKpis();
+  }, [filtroFechaInicio, filtroFechaFin, demografiaStats]);
   const { turnosDemanda, pacientesDemanda, peakHoursData } = useMetricoDemanda(pacientesDB, turnosDB, demandaFechaInicio, demandaFechaFin, modoComparativo, filtroFechaInicioB, filtroFechaFinB, docsToCompare, tipoCorte, filtroHoraInicio, filtroHoraFin);
   const { turnosProf, pacientesProf, metricsByDoctor, filteredMetricsByDoctor, dailyDoctorData } = useMetricoProfesionales(pacientesDB, turnosDB, profFechaInicio, profFechaFin, docsToCompare, searchDoctor, tipoCorte, filtroHoraInicio, filtroHoraFin);
 
@@ -1017,10 +1131,50 @@ const DashboardContent = () => {
               onClearFilters={handleClearFilters}
             />
 
+            {/* Barra de progreso global sutil al cambiar de fechas */}
+            <style>{`
+              @keyframes metrico-progress {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(100%); }
+              }
+              .animate-metrico-progress {
+                animation: metrico-progress 1.5s infinite linear;
+              }
+            `}</style>
+            <div className="h-1 w-full bg-black/5 dark:bg-white/5 overflow-hidden relative -mt-3 rounded-full">
+              {(loading || loadingKpis) && (
+                <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-sky-400 to-indigo-500 w-full animate-metrico-progress shadow-[0_0_8px_rgba(56,189,248,0.6)] rounded-full"></div>
+              )}
+            </div>
+
             <hr className="border-card-custom/40 my-6 theme-transition" />
 
+            <div className={`transition-all duration-300 ${loading || loadingKpis ? 'opacity-65 pointer-events-none filter blur-[0.5px]' : 'opacity-100'}`}>
+
             {/* DATOS DE RENDIMIENTO Y KPIs */}
-            {statsKPI && <PanelKPIs statsKPI={statsKPI} onAltasClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); }} onTrasladosClick={() => { setActiveTab('traslados'); setSubTabEspecifico('traslados'); }} onConstatacionesClick={() => { setActiveTab('constataciones'); setSubTabEspecifico('constataciones'); }} />}
+            {loadingKpis ? (
+              <div className="mb-6">
+                <div className="h-4 w-48 bg-slate-300 dark:bg-white/10 rounded animate-pulse mb-3"></div>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                  {[...Array(7)].map((_, i) => (
+                    <div key={i} className="bg-card-custom p-5 flex flex-col justify-between h-[140px] animate-pulse rounded-2xl border border-card-custom/40">
+                      <div className="h-2 w-16 bg-slate-300 dark:bg-white/10 rounded"></div>
+                      <div className="h-6 w-20 bg-slate-300 dark:bg-white/10 rounded mt-2"></div>
+                      <div className="h-3 w-24 bg-slate-300 dark:bg-white/10 rounded mt-auto"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              (kpisBigQuery || statsKPI) && (
+                <PanelKPIs 
+                  statsKPI={kpisBigQuery || statsKPI} 
+                  onAltasClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); }} 
+                  onTrasladosClick={() => { setActiveTab('traslados'); setSubTabEspecifico('traslados'); }} 
+                  onConstatacionesClick={() => { setActiveTab('constataciones'); setSubTabEspecifico('constataciones'); }} 
+                />
+              )
+            )}
 
 
 
@@ -1087,6 +1241,7 @@ const DashboardContent = () => {
           setEditModal={setEditModal} setDeleteConfirm={setDeleteConfirm}
           userProfile={userProfile}
         />
+            </div>
           </>
         )}
 

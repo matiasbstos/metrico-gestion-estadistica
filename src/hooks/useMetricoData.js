@@ -135,21 +135,15 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
     const turnosRef = collection(db, 'artifacts', appId, 'public', 'data', 'turnos');
 
     const qCurrent = query(pacientesRef, where('tAdmision', '>=', ranges.current.start), where('tAdmision', '<=', ranges.current.end));
-    const qPrevYear = query(pacientesRef, where('tAdmision', '>=', ranges.prevYear.start), where('tAdmision', '<=', ranges.prevYear.end));
-    const qPrevMonth = query(pacientesRef, where('tAdmision', '>=', ranges.prevMonth.start), where('tAdmision', '<=', ranges.prevMonth.end));
     const qTurnos = query(turnosRef, where('fechaInicio', '>=', `${ranges.minYear}-01-01`));
 
     let currentDocs = [];
-    let prevYearDocs = [];
-    let prevMonthDocs = [];
 
     const mergeAndSetPacientes = () => {
-      const combined = [...currentDocs, ...prevYearDocs, ...prevMonthDocs];
-      const unique = Array.from(new Map(combined.map(p => [p.id, p])).values());
-      setPacientesDB(unique);
+      setPacientesDB(currentDocs);
       setPacientesLoaded(true);
-      if (unique.length > 0) {
-        try { localStorage.setItem('metrico_cached_pacientes', JSON.stringify(unique)); } catch (e) {}
+      if (currentDocs.length > 0) {
+        try { localStorage.setItem('metrico_cached_pacientes', JSON.stringify(currentDocs)); } catch (e) {}
       }
     };
 
@@ -158,22 +152,6 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
       mergeAndSetPacientes();
     }, (err) => {
       console.error("Error cargando pacientes actuales:", err);
-      setPacientesLoaded(true);
-    });
-
-    const unsubPrevYear = onSnapshot(qPrevYear, (snapshot) => {
-      prevYearDocs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      mergeAndSetPacientes();
-    }, (err) => {
-      console.error("Error cargando pacientes YoY:", err);
-      setPacientesLoaded(true);
-    });
-
-    const unsubPrevMonth = onSnapshot(qPrevMonth, (snapshot) => {
-      prevMonthDocs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      mergeAndSetPacientes();
-    }, (err) => {
-      console.error("Error cargando pacientes MoM:", err);
       setPacientesLoaded(true);
     });
 
@@ -203,8 +181,6 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
 
     return () => { 
       unsubCurrent();
-      unsubPrevYear();
-      unsubPrevMonth();
       unsubTurnos(); 
       clearTimeout(fallbackTimer); 
     };

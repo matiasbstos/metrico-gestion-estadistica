@@ -1009,12 +1009,39 @@ export default function GestionDatos({
     setIsRecalculating(true);
     setSyncStatus('syncing');
     setRecalcProgress(0);
-    setRecalcStatus('Descargando todos los registros de pacientes desde el servidor...');
+    setRecalcStatus('Descargando registros desde el servidor en bloques trimestrales...');
 
     try {
+      const { query, where } = await import('firebase/firestore');
       const pacsRef = collection(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia');
-      const pacsSnap = await getDocs(pacsRef);
-      const todosPacientes = pacsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      
+      const quarterRanges = [
+        { start: new Date(2024, 9, 1, 0, 0, 0).getTime(), end: new Date(2024, 11, 31, 23, 59, 59).getTime() },
+        { start: new Date(2025, 0, 1, 0, 0, 0).getTime(), end: new Date(2025, 2, 31, 23, 59, 59).getTime() },
+        { start: new Date(2025, 3, 1, 0, 0, 0).getTime(), end: new Date(2025, 5, 30, 23, 59, 59).getTime() },
+        { start: new Date(2025, 6, 1, 0, 0, 0).getTime(), end: new Date(2025, 8, 30, 23, 59, 59).getTime() },
+        { start: new Date(2025, 9, 1, 0, 0, 0).getTime(), end: new Date(2025, 11, 31, 23, 59, 59).getTime() },
+        { start: new Date(2026, 0, 1, 0, 0, 0).getTime(), end: new Date(2026, 2, 31, 23, 59, 59).getTime() },
+        { start: new Date(2026, 3, 1, 0, 0, 0).getTime(), end: new Date(2026, 5, 30, 23, 59, 59).getTime() },
+        { start: new Date(2026, 6, 1, 0, 0, 0).getTime(), end: new Date(2026, 8, 30, 23, 59, 59).getTime() },
+        { start: new Date(2026, 9, 1, 0, 0, 0).getTime(), end: new Date(2026, 11, 31, 23, 59, 59).getTime() }
+      ];
+
+      const todosPacientes = [];
+      const promises = quarterRanges.map(async (r) => {
+        const q = query(pacsRef, where('tAdmision', '>=', r.start), where('tAdmision', '<=', r.end));
+        const snap = await getDocs(q);
+        const docs = [];
+        snap.forEach(d => {
+          docs.push({ id: d.id, ...d.data() });
+        });
+        return docs;
+      });
+
+      const results = await Promise.all(promises);
+      results.forEach(docs => {
+        todosPacientes.push(...docs);
+      });
 
       if (todosPacientes.length === 0) {
         setIsRecalculating(false);
