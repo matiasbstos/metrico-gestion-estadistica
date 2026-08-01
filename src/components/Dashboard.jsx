@@ -1118,12 +1118,30 @@ const DashboardContent = () => {
         </div>
 
         {/* CONTENIDO INTERNO CON PADDING */}
-        <div className="p-4 md:p-8 space-y-6 flex-1">
+        <div className="p-4 md:p-8 space-y-6 flex-1 relative">
           {notification && (
             <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-sm font-medium z-[9999] animate-bounce-in ${notification.type === 'error' ? 'bg-red-600 text-white' : notification.type === 'warning' ? 'bg-orange-500 text-white' : 'bg-emerald-600 text-white'}`}>
               {notification.msg}
             </div>
           )}
+
+          {/* Barra de progreso global sutil al cambiar de fechas */}
+          <style>{`
+            @keyframes metrico-progress {
+              0% { transform: translateX(-100%); }
+              100% { transform: translateX(100%); }
+            }
+            .animate-metrico-progress {
+              animation: metrico-progress 1.5s infinite linear;
+            }
+          `}</style>
+          <div className="absolute top-0 left-0 right-0 h-1 bg-black/5 dark:bg-white/5 overflow-hidden z-50">
+            {(loading || loadingKpis) && (
+              <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-sky-400 to-indigo-500 w-full animate-metrico-progress shadow-[0_0_8px_rgba(56,189,248,0.6)]"></div>
+            )}
+          </div>
+
+          <div className={`transition-all duration-300 ${loading || loadingKpis ? 'opacity-65 pointer-events-none filter blur-[0.5px]' : 'opacity-100'} flex-1 flex flex-col space-y-6`}>
 
         {activeTab === 'resumen' && (
           <>
@@ -1143,25 +1161,7 @@ const DashboardContent = () => {
               onClearFilters={handleClearFilters}
             />
 
-            {/* Barra de progreso global sutil al cambiar de fechas */}
-            <style>{`
-              @keyframes metrico-progress {
-                0% { transform: translateX(-100%); }
-                100% { transform: translateX(100%); }
-              }
-              .animate-metrico-progress {
-                animation: metrico-progress 1.5s infinite linear;
-              }
-            `}</style>
-            <div className="h-1 w-full bg-black/5 dark:bg-white/5 overflow-hidden relative -mt-3 rounded-full">
-              {(loading || loadingKpis) && (
-                <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-sky-400 to-indigo-500 w-full animate-metrico-progress shadow-[0_0_8px_rgba(56,189,248,0.6)] rounded-full"></div>
-              )}
-            </div>
-
             <hr className="border-card-custom/40 my-6 theme-transition" />
-
-            <div className={`transition-all duration-300 ${loading || loadingKpis ? 'opacity-65 pointer-events-none filter blur-[0.5px]' : 'opacity-100'}`}>
 
             {/* DATOS DE RENDIMIENTO Y KPIs */}
             {loadingKpis ? (
@@ -1253,7 +1253,6 @@ const DashboardContent = () => {
           setEditModal={setEditModal} setDeleteConfirm={setDeleteConfirm}
           userProfile={userProfile}
         />
-            </div>
           </>
         )}
 
@@ -1426,6 +1425,7 @@ const DashboardContent = () => {
             isGlobalAdmin={isGlobalAdmin} 
           />
         )}
+            </div>
         </div>
       </main>
     </div>
