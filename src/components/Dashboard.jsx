@@ -266,16 +266,31 @@ const DashboardContent = () => {
   };
 
   const handleClearFilters = () => {
-    const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
+    let maxTime = 0;
+    if (pacientesDB && pacientesDB.length > 0) {
+      pacientesDB.forEach(p => {
+        if (p.tAdmision && p.tAdmision > maxTime) {
+          maxTime = p.tAdmision;
+        }
+      });
+    }
+
+    const baseDate = maxTime > 0 ? new Date(maxTime) : new Date();
+    const y = baseDate.getFullYear();
+    const m = baseDate.getMonth();
+    
+    const firstDay = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+    const lastDay = new Date(y, m + 1, 0).toISOString().split('T')[0];
     
     setFiltroFechaInicio(firstDay);
     setFiltroFechaFin(lastDay);
     setModoComparativo(false);
+    setFiltroFechaInicioB('');
+    setFiltroFechaFinB('');
     setFiltroHoraInicio('00:00');
     setFiltroHoraFin('23:59');
     setHorarioPreset('civil');
+    setFiltrosGlobales({ sexo: 'TODOS', prevision: 'TODOS', edad: 'TODOS', establecimiento: 'TODOS' });
   };
 
   const [kpisBigQuery, setKpisBigQuery] = useState(null);
@@ -1145,23 +1160,23 @@ const DashboardContent = () => {
 
         {activeTab === 'resumen' && (
           <>
-            {/* SECTOR DE FILTROS Y CONTROL DE CONTEXTO */}
-            <FiltrosGlobales 
-              modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
-              filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={setFiltroFechaInicio}
-              filtroFechaFin={filtroFechaFin} setFiltroFechaFin={setFiltroFechaFin}
-              filtroFechaInicioB={filtroFechaInicioB} setFiltroFechaInicioB={setFiltroFechaInicioB}
-              filtroFechaFinB={filtroFechaFinB} setFiltroFechaFinB={setFiltroFechaFinB}
-              applyDatePreset={applyDatePreset}
-              tipoCorte={tipoCorte} setTipoCorte={setTipoCorte}
-              filtroHoraInicio={filtroHoraInicio} setFiltroHoraInicio={setFiltroHoraInicio}
-              filtroHoraFin={filtroHoraFin} setFiltroHoraFin={setFiltroHoraFin}
-              horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
-              maxDateLabel={maxDateLabel}
-              onClearFilters={handleClearFilters}
-            />
-
-            <hr className="border-card-custom/40 my-6 theme-transition" />
+            {/* SECTOR DE FILTROS Y CONTROL DE CONTEXTO (STICKY/FLOTANTE CON BLUR EFECTO VIDRIO) */}
+            <div className="sticky top-0 z-40 bg-slate-50/80 dark:bg-slate-900/85 backdrop-blur-md pb-4 pt-3 shadow-md border-b border-card-custom/20 -mx-4 md:-mx-8 px-4 md:px-8 transition-all">
+              <FiltrosGlobales 
+                modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
+                filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={setFiltroFechaInicio}
+                filtroFechaFin={filtroFechaFin} setFiltroFechaFin={setFiltroFechaFin}
+                filtroFechaInicioB={filtroFechaInicioB} setFiltroFechaInicioB={setFiltroFechaInicioB}
+                filtroFechaFinB={filtroFechaFinB} setFiltroFechaFinB={setFiltroFechaFinB}
+                applyDatePreset={applyDatePreset}
+                tipoCorte={tipoCorte} setTipoCorte={setTipoCorte}
+                filtroHoraInicio={filtroHoraInicio} setFiltroHoraInicio={setFiltroHoraInicio}
+                filtroHoraFin={filtroHoraFin} setFiltroHoraFin={setFiltroHoraFin}
+                horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
+                maxDateLabel={maxDateLabel}
+                onClearFilters={handleClearFilters}
+              />
+            </div>
 
             {/* DATOS DE RENDIMIENTO Y KPIs */}
             {(kpisBigQuery || statsKPI) && (
