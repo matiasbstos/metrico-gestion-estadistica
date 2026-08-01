@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
   Line, LineChart, ResponsiveContainer, CartesianGrid, ComposedChart, Area, AreaChart, LabelList 
@@ -541,9 +542,9 @@ export default function GraficoDinamico({
       </div>
 
       {/* MODAL PANTALLA COMPLETA / GRÁFICO EXPANDIDO CON CONTROLES REPLICADOS Y ALTO CONTRASTE */}
-      {isExpanded && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 md:p-6 animate-fade-in">
-          <div className="bg-card-custom border border-card-custom w-full max-w-7xl h-[92vh] rounded-3xl p-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] flex flex-col justify-between theme-transition relative overflow-hidden">
+      {isExpanded && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-3 md:p-6 animate-fade-in">
+          <div className="bg-card-custom border border-card-custom w-full max-w-7xl h-[92vh] rounded-[2rem] p-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] flex flex-col justify-between theme-transition relative overflow-hidden">
             
             {/* Cabecera Modal */}
             <div>
@@ -574,7 +575,7 @@ export default function GraficoDinamico({
             </div>
 
             {/* Contenido Gráfico Expandido con Fondo Limpio de Alto Contraste */}
-            <div className="flex-1 w-full min-h-0 bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom my-2 relative overflow-hidden flex flex-col justify-center">
+            <div className="flex-1 w-full min-h-0 bg-white dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 my-2 relative overflow-hidden flex flex-col justify-center shadow-inner">
               
               {/* TAB 1: OPERACIONAL (EXPANDIDO) */}
               {activeTab === 'operacional' && (
@@ -586,7 +587,7 @@ export default function GraficoDinamico({
                         <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.15)" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.25)" />
                     <XAxis dataKey="name" fontSize={11} axisLine={false} tickLine={false} tickMargin={10} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
                     <YAxis fontSize={11} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} domain={['auto', 'auto']} />
                     <Tooltip content={<CustomTooltip />} />
@@ -614,7 +615,7 @@ export default function GraficoDinamico({
               {activeTab === 'tiempos' && (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData} margin={{ top: 25, right: 30, left: 0, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.15)" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.25)" />
                     <XAxis dataKey="name" fontSize={11} axisLine={false} tickLine={false} tickMargin={10} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
                     <YAxis fontSize={11} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} domain={['auto', 'auto']} />
                     <Tooltip content={<CustomTooltip />} />
@@ -649,7 +650,7 @@ export default function GraficoDinamico({
                     <div className="w-full flex-1">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={demographicData.edades} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.15)" />
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.25)" />
                           <XAxis dataKey="name" fontSize={11} axisLine={false} tickLine={false} tickMargin={10} angle={-35} textAnchor="end" height={50} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
                           <YAxis fontSize={11} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
                           <Tooltip content={<CustomTooltip />} />
@@ -696,7 +697,7 @@ export default function GraficoDinamico({
                       {activeTab === 'prevision' ? (
                         <ResponsiveContainer width="100%" height="100%">
                           <AreaChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.15)" />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.25)" />
                             <XAxis dataKey="name" fontSize={11} axisLine={false} tickLine={false} tickMargin={10} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
                             <YAxis fontSize={11} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
                             <Tooltip content={<CustomTooltip />} />
@@ -736,7 +737,8 @@ export default function GraficoDinamico({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* MODAL DE DETALLE DE PACIENTES POR CATEGORÍA DE TRIAJE */}
