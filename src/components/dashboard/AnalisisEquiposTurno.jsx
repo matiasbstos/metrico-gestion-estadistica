@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
-import { Users, UserX, Clock, Activity, BarChart2 } from 'lucide-react';
+import { Users, UserX, Clock, Activity, BarChart2, ArrowUpRight } from 'lucide-react';
 import { obtenerTurnoDetallado } from '../../utils/helpers';
 
-export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrados }) {
+export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrados, setActiveTab }) {
   const dataEquipos = useMemo(() => {
     const equipos = {
       'Turno 1': { name: 'Turno 1', totalPacientes: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#10b981' }, // Verde
@@ -104,9 +104,16 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
         </div>
       </div>
 
-      {/* Tarjetas KPI de Resumen */}
+      {/* Tarjetas KPI de Resumen (1.1, 1.2, 1.3) con enlace al comparativo */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-card-custom p-4 rounded-xl border border-card-custom shadow-sm flex flex-col justify-between theme-transition">
+        <div 
+          onClick={() => setActiveTab && setActiveTab('comparativo')}
+          title="Ver Comparativa de Fechas"
+          className="bg-card-custom p-4 rounded-xl border border-card-custom shadow-sm flex flex-col justify-between theme-transition relative group hover:shadow-md hover:border-indigo-500/30 cursor-pointer"
+        >
+          <div className="absolute top-3 right-3 p-1 rounded-lg bg-slate-100 dark:bg-white/5 text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10 transition-all opacity-60 group-hover:opacity-100">
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </div>
           <div>
             <span className="text-[9px] font-black text-secondary-custom tracking-wider uppercase opacity-85">Equipo Líder en Volumen</span>
             <div className="text-2xl font-black text-indigo-500 mt-1">
@@ -118,7 +125,14 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
           </p>
         </div>
 
-        <div className="bg-card-custom p-4 rounded-xl border border-card-custom shadow-sm flex flex-col justify-between theme-transition">
+        <div 
+          onClick={() => setActiveTab && setActiveTab('comparativo')}
+          title="Ver Comparativa de Fechas"
+          className="bg-card-custom p-4 rounded-xl border border-card-custom shadow-sm flex flex-col justify-between theme-transition relative group hover:shadow-md hover:border-rose-500/30 cursor-pointer"
+        >
+          <div className="absolute top-3 right-3 p-1 rounded-lg bg-slate-100 dark:bg-white/5 text-secondary-custom hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-60 group-hover:opacity-100">
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </div>
           <div>
             <span className="text-[9px] font-black text-secondary-custom tracking-wider uppercase opacity-85">Turno Récord (Volumen Individual)</span>
             <div className="text-2xl font-black text-rose-500 mt-1">
@@ -130,7 +144,14 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
           </p>
         </div>
 
-        <div className="bg-card-custom p-4 rounded-xl border border-card-custom shadow-sm flex flex-col justify-between theme-transition">
+        <div 
+          onClick={() => setActiveTab && setActiveTab('comparativo')}
+          title="Ver Comparativa de Fechas"
+          className="bg-card-custom p-4 rounded-xl border border-card-custom shadow-sm flex flex-col justify-between theme-transition relative group hover:shadow-md hover:border-emerald-500/30 cursor-pointer"
+        >
+          <div className="absolute top-3 right-3 p-1 rounded-lg bg-slate-100 dark:bg-white/5 text-secondary-custom hover:text-emerald-500 hover:bg-emerald-500/10 transition-all opacity-60 group-hover:opacity-100">
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </div>
           <div>
             <span className="text-[9px] font-black text-secondary-custom tracking-wider uppercase opacity-85">T. Espera (Triaje) Global</span>
             <div className="text-2xl font-black text-emerald-500 mt-1">

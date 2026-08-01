@@ -173,15 +173,6 @@ export default function AnalisisComparativoTriple({
               className="bg-card-custom rounded-3xl shadow-sm border-t-4 p-6 relative overflow-hidden border border-card-custom hover:shadow-lg transition-all group" 
               style={{ borderTopColor: d.color }}
             >
-              {/* Icono de enlace superior derecho (Flecha para ir al detalle) */}
-              <button 
-                onClick={() => handleCardClick(d.date)}
-                title="Haga clic para ver el desglose detallado de este día en la pantalla de inicio"
-                className="absolute top-4 right-4 p-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-card-custom text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10 transition-all cursor-pointer z-20 group-hover:scale-105"
-              >
-                <ArrowUpRight className="w-4 h-4" />
-              </button>
-
               <h3 className="text-xs font-black text-secondary-custom uppercase tracking-widest mb-3">{d.label}</h3>
               
               <input 
