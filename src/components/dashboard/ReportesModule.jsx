@@ -103,7 +103,7 @@ export default function ReportesModule({
 
   // Datos para sub-reporte de Altas Admin
   const altasStats = useMemo(() => {
-    if (!statsKPI) return { totalPacientes: 0, totalAltas: 0, pct: '0.0', turnosCriticos: [] };
+    if (!statsKPI) return { totalPacientes: 0, totalAltas: 0, pct: '0.0', turnosCriticos: [], prevYearAltas: 0, prevYearPct: '0.0', yoyGrowth: '0.0' };
 
     const totalPacientes = statsKPI.pacientes.current;
     const totalAltas = statsKPI.altasAdmin.current;
@@ -117,8 +117,38 @@ export default function ReportesModule({
       .filter(t => Number(t.pct) > 10)
       .sort((a, b) => b.pct - a.pct);
 
-    return { totalPacientes, totalAltas, pct, turnosCriticos };
-  }, [statsKPI, turnosFiltrados]);
+    let prevYearAltas = 0;
+    let prevYearTotalAdms = 0;
+    let prevYearPct = '0.0';
+    let yoyGrowth = '0.0';
+
+    if (kpisBigQuery && kpisBigQuery.prevYearValues) {
+      prevYearAltas = kpisBigQuery.prevYearValues.altasAdmin || 0;
+      prevYearTotalAdms = kpisBigQuery.prevYearValues.pacientes || 0;
+      prevYearPct = prevYearTotalAdms > 0 ? ((prevYearAltas / prevYearTotalAdms) * 100).toFixed(1) : '0.0';
+      yoyGrowth = (kpisBigQuery.altasAdmin?.growthYear || 0).toFixed(1);
+    } else if (pacientesDB && filtroFechaInicio && filtroFechaFin) {
+      const pStart = filtroFechaInicio.split('-');
+      const pEnd = filtroFechaFin.split('-');
+      if (pStart.length === 3 && pEnd.length === 3) {
+        const prevStartStr = `${parseInt(pStart[0]) - 1}-${pStart[1]}-${pStart[2]}`;
+        const prevEndStr = `${parseInt(pEnd[0]) - 1}-${pEnd[1]}-${pEnd[2]}`;
+        const startMs = new Date(prevStartStr + 'T00:00:00').getTime();
+        const endMs = new Date(prevEndStr + 'T23:59:59').getTime();
+        const prevYearPacs = pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
+        prevYearAltas = prevYearPacs.filter(p => p.estado === 'Cancelada').length;
+        prevYearTotalAdms = prevYearPacs.length;
+        prevYearPct = prevYearTotalAdms > 0 ? ((prevYearAltas / prevYearTotalAdms) * 100).toFixed(1) : '0.0';
+        if (prevYearAltas > 0) {
+          yoyGrowth = (((totalAltas - prevYearAltas) / prevYearAltas) * 100).toFixed(1);
+        } else if (totalAltas > 0) {
+          yoyGrowth = '100.0';
+        }
+      }
+    }
+
+    return { totalPacientes, totalAltas, pct, turnosCriticos, prevYearAltas, prevYearPct, yoyGrowth };
+  }, [statsKPI, turnosFiltrados, kpisBigQuery, pacientesDB, filtroFechaInicio, filtroFechaFin]);
 
   // Datos para sub-reporte de Fracturas y Destino
   const fracturasStats = useMemo(() => {
@@ -167,6 +197,35 @@ export default function ReportesModule({
 
     const topFracturas = Object.entries(diagMap).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 5);
 
+    let prevYearFracturas = 0;
+    let prevYearTotalAdms = 0;
+    let prevYearPct = '0.0';
+    let yoyGrowth = '0.0';
+
+    if (filtroFechaInicio && filtroFechaFin && pacientesDB) {
+      const pStart = filtroFechaInicio.split('-');
+      const pEnd = filtroFechaFin.split('-');
+      if (pStart.length === 3 && pEnd.length === 3) {
+        const prevStartStr = `${parseInt(pStart[0]) - 1}-${pStart[1]}-${pStart[2]}`;
+        const prevEndStr = `${parseInt(pEnd[0]) - 1}-${pEnd[1]}-${pEnd[2]}`;
+        const startMs = new Date(prevStartStr + 'T00:00:00').getTime();
+        const endMs = new Date(prevEndStr + 'T23:59:59').getTime();
+        const prevYearPacs = pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
+        const prevFracs = prevYearPacs.filter(p => {
+          const diag = (p.diagnosticoPrincipal || p.codigoDiagnostico || '').toLowerCase();
+          return diag.includes('fractura') || diag.includes('fx');
+        });
+        prevYearFracturas = prevFracs.length;
+        prevYearTotalAdms = prevYearPacs.length;
+        prevYearPct = prevYearTotalAdms > 0 ? ((prevYearFracturas / prevYearTotalAdms) * 100).toFixed(1) : '0.0';
+        if (prevYearFracturas > 0) {
+          yoyGrowth = (((totalFracturas - prevYearFracturas) / prevYearFracturas) * 100).toFixed(1);
+        } else if (totalFracturas > 0) {
+          yoyGrowth = '100.0';
+        }
+      }
+    }
+
     return { 
       totalPacientes: pacs.length, 
       totalFracturas, 
@@ -177,9 +236,12 @@ export default function ReportesModule({
       topFracturas,
       fracturasTrasladadas,
       fracturasDomicilio,
-      fracturasOtros
+      fracturasOtros,
+      prevYearFracturas,
+      prevYearPct,
+      yoyGrowth
     };
-  }, [pacientesFiltrados]);
+  }, [pacientesFiltrados, pacientesDB, filtroFechaInicio, filtroFechaFin]);
 
   // Datos para sub-reporte de Enfermería
   const enfermeriaStats = useMemo(() => {
@@ -310,6 +372,35 @@ export default function ReportesModule({
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
 
+    let prevYearAvgCat1 = 0;
+    let yoyAvgCat1Growth = '0.0';
+
+    if (filtroFechaInicio && filtroFechaFin && pacientesDB) {
+      const pStart = filtroFechaInicio.split('-');
+      const pEnd = filtroFechaFin.split('-');
+      if (pStart.length === 3 && pEnd.length === 3) {
+        const prevStartStr = `${parseInt(pStart[0]) - 1}-${pStart[1]}-${pStart[2]}`;
+        const prevEndStr = `${parseInt(pEnd[0]) - 1}-${pEnd[1]}-${pEnd[2]}`;
+        const startMs = new Date(prevStartStr + 'T00:00:00').getTime();
+        const endMs = new Date(prevEndStr + 'T23:59:59').getTime();
+        const prevYearPacs = pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
+        let sumPrev = 0; let countPrev = 0;
+        prevYearPacs.forEach(p => {
+          const tAdm = p.tAdmision;
+          const tC1 = p.tCat1 || p.tCatUlt;
+          if (tAdm && tC1 && tC1 >= tAdm) {
+            const m = (tC1 - tAdm) / 60000;
+            if (m <= 300) { sumPrev += m; countPrev++; }
+          }
+        });
+        const currentAvg = countMinCat1 ? Math.round(sumMinCat1 / countMinCat1) : 0;
+        prevYearAvgCat1 = countPrev ? Math.round(sumPrev / countPrev) : 0;
+        if (prevYearAvgCat1 > 0) {
+          yoyAvgCat1Growth = (((currentAvg - prevYearAvgCat1) / prevYearAvgCat1) * 100).toFixed(1);
+        }
+      }
+    }
+
     return {
       totalTriados: pacs.length,
       avgMinCat1: countMinCat1 ? Math.round(sumMinCat1 / countMinCat1) : 0,
@@ -324,9 +415,11 @@ export default function ReportesModule({
         clinicoCount: c3ClinicoPacs.length,
         clinicoPerc: totalC3 > 0 ? ((c3ClinicoPacs.length / totalC3) * 100).toFixed(1) : '0.0',
         top10DiagC3
-      }
+      },
+      prevYearAvgCat1,
+      yoyAvgCat1Growth
     };
-  }, [pacientesFiltrados]);
+  }, [pacientesFiltrados, pacientesDB, filtroFechaInicio, filtroFechaFin]);
 
   // Métricas para el informe formal imprimible de Constataciones Z51.8
   const statsConstatacionesReporte = useMemo(() => {
@@ -416,6 +509,40 @@ export default function ReportesModule({
       }))
       .sort((a, b) => b.count - a.count);
 
+    let prevYearConstataciones = 0;
+    let prevYearPct = '0.0';
+    let yoyGrowth = '0.0';
+
+    if (kpisBigQuery && kpisBigQuery.prevYearValues) {
+      prevYearConstataciones = kpisBigQuery.prevYearValues.constataciones || 0;
+      yoyGrowth = (kpisBigQuery.constataciones?.growthYear || 0).toFixed(1);
+      const prevTotal = kpisBigQuery.prevYearValues.pacientes || 0;
+      prevYearPct = prevTotal > 0 ? ((prevYearConstataciones / prevTotal) * 100).toFixed(1) : '0.0';
+    } else if (filtroFechaInicio && filtroFechaFin && pacientesDB) {
+      const pStart = filtroFechaInicio.split('-');
+      const pEnd = filtroFechaFin.split('-');
+      if (pStart.length === 3 && pEnd.length === 3) {
+        const prevStartStr = `${parseInt(pStart[0]) - 1}-${pStart[1]}-${pStart[2]}`;
+        const prevEndStr = `${parseInt(pEnd[0]) - 1}-${pEnd[1]}-${pEnd[2]}`;
+        const startMs = new Date(prevStartStr + 'T00:00:00').getTime();
+        const endMs = new Date(prevEndStr + 'T23:59:59').getTime();
+        const prevYearPacs = pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
+        const prevConsts = prevYearPacs.filter(p => {
+          const cat = String(p.categoria || '').toLowerCase();
+          const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
+          const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
+          return cat === 'c3_z518' || cod.includes('Z51.8') || cod.includes('Z518') || diag.includes('CONSTATAC');
+        });
+        prevYearConstataciones = prevConsts.length;
+        prevYearPct = prevYearPacs.length > 0 ? ((prevYearConstataciones / prevYearPacs.length) * 100).toFixed(1) : '0.0';
+        if (prevYearConstataciones > 0) {
+          yoyGrowth = (((totalOff - prevYearConstataciones) / prevYearConstataciones) * 100).toFixed(1);
+        } else if (totalOff > 0) {
+          yoyGrowth = '100.0';
+        }
+      }
+    }
+
     return {
       totalOfficial: totalOff,
       totalSarPacientes: pacs.length,
@@ -432,9 +559,12 @@ export default function ReportesModule({
       subAgresion,
       subPolicial,
       matrixArr,
-      comunasArr
+      comunasArr,
+      prevYearConstataciones,
+      prevYearPct,
+      yoyGrowth
     };
-  }, [pacientesFiltrados]);
+  }, [pacientesFiltrados, pacientesDB, kpisBigQuery, filtroFechaInicio, filtroFechaFin]);
 
   // Totales globales para el pie de la tabla de enfermeros en el reporte consolidado
   const totalesEnfermeriaReporte = useMemo(() => {
@@ -1059,7 +1189,7 @@ totalTriados,
                   <span className="text-xs font-black text-slate-600">Periodo de Datos: {rangoFechasReales.texto}</span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4 print-avoid-break">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 print-avoid-break">
                   <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl">
                     <span className="text-[10px] font-bold text-slate-500 uppercase">Total Atenciones</span>
                     <p className="text-2xl font-black text-slate-800 mt-1">{altasStats.totalPacientes}</p>
@@ -1071,6 +1201,16 @@ totalTriados,
                   <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl">
                     <span className="text-[10px] font-bold text-amber-600 uppercase">Tasa de Cancelación</span>
                     <p className="text-2xl font-black text-amber-700 mt-1">{altasStats.pct}%</p>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Comparación Año Anterior (YoY)</span>
+                    <p className="text-xl font-black text-slate-800 my-1">
+                      {altasStats.prevYearAltas} altas <span className="text-xs font-bold text-slate-500">({altasStats.prevYearPct}%)</span>
+                    </p>
+                    <span className={`text-[9px] font-bold ${Number(altasStats.yoyGrowth) >= 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                      {Number(altasStats.yoyGrowth) >= 0 ? '📈 Aumento de ' : '📉 Disminución de '}
+                      {Math.abs(Number(altasStats.yoyGrowth))}% YoY
+                    </span>
                   </div>
                 </div>
 
@@ -1150,7 +1290,7 @@ totalTriados,
                   <h3 className="text-xs font-bold text-amber-800 uppercase tracking-wider border-b border-amber-200 pb-1.5 flex items-center gap-2">
                     <Activity className="w-4 h-4 text-amber-600" /> Desglose Específico de Casos de Fracturas
                   </h3>
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                     <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl">
                       <span className="text-[10px] font-bold text-amber-700 uppercase">Total Casos Fracturas</span>
                       <p className="text-xl font-black text-amber-700 mt-1">{fracturasStats.totalFracturas}</p>
@@ -1165,7 +1305,7 @@ totalTriados,
                       </p>
                     </div>
                     <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">
-                      <span className="text-[10px] font-bold text-emerald-700 uppercase">Alta Domicilio (Ambulatorio)</span>
+                      <span className="text-[10px] font-bold text-emerald-700 uppercase">Alta Domicilio</span>
                       <p className="text-xl font-black text-emerald-700 mt-1">
                         {fracturasStats.fracturasDomicilio}
                         <span className="text-[11px] font-bold text-emerald-600 ml-1.5">
@@ -1174,13 +1314,22 @@ totalTriados,
                       </p>
                     </div>
                     <div className="bg-white border border-slate-200 p-3 rounded-xl">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">Otros / Sin Registro Fx</span>
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">Otros / Sin Registro</span>
                       <p className="text-xl font-black text-slate-700 mt-1">
                         {fracturasStats.fracturasOtros}
                         <span className="text-[11px] font-bold text-slate-500 ml-1.5">
                           ({fracturasStats.totalFracturas > 0 ? ((fracturasStats.fracturasOtros / fracturasStats.totalFracturas) * 100).toFixed(0) : 0}%)
                         </span>
                       </p>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                      <span className="text-[10px] font-bold text-slate-600 uppercase">Año Anterior (YoY)</span>
+                      <p className="text-xl font-black text-slate-800 mt-1">
+                        {fracturasStats.prevYearFracturas} <span className="text-[11px] font-bold text-slate-500">({fracturasStats.prevYearPct}%)</span>
+                      </p>
+                      <span className={`text-[9px] font-bold ${Number(fracturasStats.yoyGrowth) >= 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
+                        {Number(fracturasStats.yoyGrowth) >= 0 ? '📈 +' : '📉 '}{fracturasStats.yoyGrowth}% YoY
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1225,7 +1374,7 @@ totalTriados,
                   <span className="text-xs font-black text-slate-600">Periodo de Datos: {rangoFechasReales.texto}</span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4 print-avoid-break">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 print-avoid-break">
                   <div className="bg-sky-50 border border-sky-200 p-4 rounded-xl">
                     <span className="text-[10px] font-bold text-sky-600 uppercase">T. Resp. 1ª Categorización</span>
                     <p className="text-2xl font-black text-sky-700 mt-1">{enfermeriaStats.avgMinCat1} min</p>
@@ -1237,6 +1386,16 @@ totalTriados,
                   <div className="bg-indigo-50 border border-indigo-200 p-4 rounded-xl">
                     <span className="text-[10px] font-bold text-indigo-600 uppercase">Pacientes Re-evaluados</span>
                     <p className="text-2xl font-black text-indigo-700 mt-1">{enfermeriaStats.reCatCount} pac.</p>
+                  </div>
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Comparación Año Anterior (YoY)</span>
+                    <p className="text-xl font-black text-slate-800 my-1">
+                      {enfermeriaStats.prevYearAvgCat1} min <span className="text-xs font-bold text-slate-500">(1ª Cat.)</span>
+                    </p>
+                    <span className={`text-[9px] font-bold ${Number(enfermeriaStats.yoyAvgCat1Growth) <= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {Number(enfermeriaStats.yoyAvgCat1Growth) <= 0 ? '📉 Mejora de ' : '📈 Aumento de '}
+                      {Math.abs(Number(enfermeriaStats.yoyAvgCat1Growth))}% YoY
+                    </span>
                   </div>
                 </div>
 
@@ -1447,8 +1606,8 @@ totalTriados,
                   </p>
                 </div>
 
-                {/* Cifra Oficial Principal, Universo Total SAR y Desglose de Sub-variables */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Cifra Oficial Principal, Universo Total SAR, Desglose de Sub-variables y YoY */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
                     <span className="text-[10px] font-bold text-slate-600 uppercase">Universo Total Atenciones SAR</span>
                     <p className="text-3xl font-black text-slate-800 my-1">{statsConstatacionesReporte.totalSarPacientes.toLocaleString()} <span className="text-xs font-bold text-slate-500">pac.</span></p>
@@ -1468,7 +1627,7 @@ totalTriados,
                         <span className="font-semibold text-slate-700">(a) Lesiones:</span>
                         <span className="font-bold text-amber-700">{statsConstatacionesReporte.subLesiones}</span>
                       </div>
-                      <div className="flex justify-between bg-white p-2 rounded border border-slate-200">
+                      <div className="flex justify-between bg-white p-1.5 rounded border border-slate-200">
                         <span className="font-semibold text-slate-700">(b) Legales:</span>
                         <span className="font-bold text-amber-700">{statsConstatacionesReporte.subLegales}</span>
                       </div>
@@ -1481,6 +1640,17 @@ totalTriados,
                         <span className="font-bold text-amber-700">{statsConstatacionesReporte.subPolicial}</span>
                       </div>
                     </div>
+                  </div>
+
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Comparación Año Anterior (YoY)</span>
+                    <p className="text-2xl font-black text-slate-800 my-1">
+                      {statsConstatacionesReporte.prevYearConstataciones} pac. <span className="text-xs font-bold text-slate-500">({statsConstatacionesReporte.prevYearPct}%)</span>
+                    </p>
+                    <span className={`text-[9px] font-bold ${Number(statsConstatacionesReporte.yoyGrowth) >= 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
+                      {Number(statsConstatacionesReporte.yoyGrowth) >= 0 ? '📈 Aumento de ' : '📉 Disminución de '}
+                      {Math.abs(Number(statsConstatacionesReporte.yoyGrowth))}% YoY
+                    </span>
                   </div>
                 </div>
 

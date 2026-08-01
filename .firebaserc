@@ -1,5 +1,13 @@
 {
   "projects": {
     "default": "metrico-dashboard-2026"
+  },
+  "targets": {},
+  "etags": {
+    "metrico-dashboard-2026": {
+      "extensionInstances": {
+        "firestore-bigquery-export": "e250259900d7ef4326a6bd1014301f86aa904add8fcd598099362bb7b28c1b53"
+      }
+    }
   }
 }

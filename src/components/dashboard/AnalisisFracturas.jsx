@@ -25,7 +25,7 @@ const parseDestinoCat = (p) => {
   return 'otro';
 };
 
-export default function AnalisisFracturas({ pacientesFiltrados }) {
+export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, filtroFechaInicio, filtroFechaFin }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroDestino, setFiltroDestino] = useState('TODOS');
   const [filtroEdad, setFiltroEdad] = useState('TODOS');
@@ -33,6 +33,34 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
   const [modoVistaEdad, setModoVistaEdad] = useState('detallado'); // 'detallado' (17 tramos 5 años) | 'clinico' (4 tramos)
   const [mostrarDetalleTop5, setMostrarDetalleTop5] = useState(false);
   const [cardExpandedTop5, setCardExpandedTop5] = useState({});
+
+  const prevYearStart = useMemo(() => {
+    if (!filtroFechaInicio) return null;
+    const p = filtroFechaInicio.split('-');
+    if (p.length !== 3) return null;
+    return `${parseInt(p[0]) - 1}-${p[1]}-${p[2]}`;
+  }, [filtroFechaInicio]);
+
+  const prevYearEnd = useMemo(() => {
+    if (!filtroFechaFin) return null;
+    const p = filtroFechaFin.split('-');
+    if (p.length !== 3) return null;
+    return `${parseInt(p[0]) - 1}-${p[1]}-${p[2]}`;
+  }, [filtroFechaFin]);
+
+  const pacientesPrevYear = useMemo(() => {
+    if (!prevYearStart || !prevYearEnd || !pacientesDB) return [];
+    const startMs = new Date(prevYearStart + 'T00:00:00').getTime();
+    const endMs = new Date(prevYearEnd + 'T23:59:59').getTime();
+    return pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
+  }, [pacientesDB, prevYearStart, prevYearEnd]);
+
+  const fracturasPrevYear = useMemo(() => {
+    return pacientesPrevYear.filter(p => {
+      const diag = (p.diagnosticoPrincipal || p.codigoDiagnostico || '').toLowerCase();
+      return diag.includes('fractura') || diag.includes('fx');
+    }).length;
+  }, [pacientesPrevYear]);
 
   // Pipeline de filtrado para pacientes con Fractura
   const pacientesFractura = useMemo(() => {
@@ -358,6 +386,11 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
     };
   }, [pacientesFractura, pacientesFiltrados]);
 
+  const yoyGrowth = useMemo(() => {
+    if (!fracturasPrevYear || fracturasPrevYear === 0) return null;
+    return ((stats.total - fracturasPrevYear) / fracturasPrevYear) * 100;
+  }, [stats.total, fracturasPrevYear]);
+
   // Datos para gráfico de barras por Edad y Sexo
   const dataGraficoEdad = useMemo(() => {
     return AGE_RANGES.map(range => ({
@@ -479,8 +512,8 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
         </p>
       </div>
 
-      {/* TARJETAS DE KPIS PRINCIPALES DE FRACTURAS (6 LÁMINAS SUPERIORES COMPLETAS) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+      {/* TARJETAS DE KPIS PRINCIPALES DE FRACTURAS (7 LÁMINAS SUPERIORES COMPLETAS) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
         
         {/* KPI 1: UNIVERSO EVALUADO Y CASOS FRACTURA */}
         <div className="bg-gradient-to-br from-rose-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-rose-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[135px]">
@@ -634,6 +667,27 @@ export default function AnalisisFracturas({ pacientesFiltrados }) {
               <span className="text-[7px] font-bold text-emerald-600 dark:text-emerald-400 block">hrs</span>
             </div>
           </div>
+        </div>
+
+        {/* KPI 7: COMPARATIVA AÑO ANTERIOR (YoY) */}
+        <div className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-sm flex flex-col justify-between min-h-[135px] theme-transition relative overflow-hidden group">
+          <div>
+            <div className="flex justify-between items-start mb-1">
+              <span className="text-[11px] font-black uppercase tracking-wider text-secondary-custom">Año Anterior (YoY)</span>
+              {yoyGrowth !== null && (
+                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-0.5 ${yoyGrowth >= 0 ? 'bg-amber-500/10 text-amber-600' : 'bg-emerald-500/10 text-emerald-600'}`}>
+                  {yoyGrowth >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  {yoyGrowth >= 0 ? '+' : ''}{yoyGrowth.toFixed(1)}%
+                </span>
+              )}
+            </div>
+            <div className="text-3xl font-black text-primary-custom mt-1">
+              {prevYearStart ? fracturasPrevYear : '-'}
+            </div>
+          </div>
+          <p className="text-[9px] text-secondary-custom font-semibold mt-auto leading-tight truncate" title={prevYearStart ? `Entre ${prevYearStart.split('-').reverse().join('/')} y ${prevYearEnd.split('-').reverse().join('/')}` : 'Sin rango'}>
+            {prevYearStart ? `${prevYearStart.split('-').reverse().join('/')} al ${prevYearEnd.split('-').reverse().join('/')}` : 'Sin rango seleccionado'}
+          </p>
         </div>
 
       </div>

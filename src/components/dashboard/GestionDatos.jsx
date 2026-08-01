@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2, BookOpen, ArrowRight, Zap, Trash2 } from 'lucide-react';
 import { collection, doc, writeBatch, serverTimestamp, onSnapshot, getDocs } from 'firebase/firestore';
+import { formatLocalDate } from '../../utils/helpers';
 
 const runWithTimeout = (promise, ms) => {
   return Promise.race([
@@ -72,14 +73,14 @@ export default function GestionDatos({
       turnosTarget = turnosDB.filter(t => t.fechaInicio && t.fechaInicio.startsWith(`${year}-${month}`));
       pacientesTarget = pacientesDB.filter(p => {
         if (!p.tAdmision) return false;
-        const pDate = new Date(p.tAdmision).toISOString().split('T')[0];
+        const pDate = formatLocalDate(p.tAdmision);
         return pDate.startsWith(`${year}-${month}`);
       });
     } else if (limpiezaModo === 'dia') {
       turnosTarget = turnosDB.filter(t => t.fechaInicio === limpiezaDia);
       pacientesTarget = pacientesDB.filter(p => {
         if (!p.tAdmision) return false;
-        const pDate = new Date(p.tAdmision).toISOString().split('T')[0];
+        const pDate = formatLocalDate(p.tAdmision);
         return pDate === limpiezaDia;
       });
     } else if (limpiezaModo === 'carga') {

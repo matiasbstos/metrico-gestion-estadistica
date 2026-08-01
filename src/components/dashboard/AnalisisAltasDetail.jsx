@@ -11,11 +11,36 @@ export default function AnalisisAltasDetail({
   filtroFechaInicio, 
   filtroFechaFin,
   statsKPI,
+  kpisBigQuery,
+  pacientesDB,
   modoComparativo,
   filtroFechaInicioB,
   filtroFechaFinB,
   pacientesFiltrados
 }) {
+  const prevYearStart = useMemo(() => {
+    if (!filtroFechaInicio) return null;
+    const p = filtroFechaInicio.split('-');
+    if (p.length !== 3) return null;
+    return `${parseInt(p[0]) - 1}-${p[1]}-${p[2]}`;
+  }, [filtroFechaInicio]);
+
+  const prevYearEnd = useMemo(() => {
+    if (!filtroFechaFin) return null;
+    const p = filtroFechaFin.split('-');
+    if (p.length !== 3) return null;
+    return `${parseInt(p[0]) - 1}-${p[1]}-${p[2]}`;
+  }, [filtroFechaFin]);
+
+  const altasPrevYear = useMemo(() => {
+    if (kpisBigQuery && kpisBigQuery.prevYearValues && kpisBigQuery.prevYearValues.altasAdmin !== undefined) {
+      return kpisBigQuery.prevYearValues.altasAdmin;
+    }
+    if (!prevYearStart || !prevYearEnd || !pacientesDB) return 0;
+    const startMs = new Date(prevYearStart + 'T00:00:00').getTime();
+    const endMs = new Date(prevYearEnd + 'T23:59:59').getTime();
+    return pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs && p.estado === 'Cancelada').length;
+  }, [kpisBigQuery, pacientesDB, prevYearStart, prevYearEnd]);
   
   // 1. Filtrar turnos según el rango seleccionado (Periodo A)
   const turnosFiltradosA = useMemo(() => {
@@ -240,7 +265,7 @@ export default function AnalisisAltasDetail({
       </div>
 
       {/* Grid de KPIs - Indicador de Selección y Total Anual (YTD) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         
         {/* KPI 1: Selección Actual */}
         <div className={`p-5 rounded-2xl border flex flex-col justify-between min-h-[135px] shadow-sm theme-transition bg-card-custom hover:z-30 hover:shadow-lg ${isAlertActive ? 'border-red-500 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 glow-red-alert' : 'border-card-custom'}`}>
@@ -349,6 +374,27 @@ export default function AnalisisAltasDetail({
             <span className="text-[9px] text-secondary-custom opacity-70 mt-2 font-medium">Pico máximo en un solo día</span>
           </div>
         )}
+
+        {/* KPI 5: Comparativa Año Anterior (YoY) */}
+        <div className="bg-card-custom p-5 rounded-2xl border border-card-custom flex flex-col justify-between min-h-[135px] shadow-sm theme-transition hover:z-30 hover:shadow-lg">
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-bold text-secondary-custom tracking-wider uppercase opacity-85">Año Anterior (YoY)</span>
+            {statsKPI?.altasAdmin?.growthYear !== undefined && (
+              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-0.5 ${statsKPI.altasAdmin.growthYear > 0 ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                {statsKPI.altasAdmin.growthYear > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                {statsKPI.altasAdmin.growthYear > 0 ? '+' : ''}{statsKPI.altasAdmin.growthYear.toFixed(1)}%
+              </span>
+            )}
+          </div>
+          <div className="flex justify-between items-end mt-2">
+            <span className="text-3xl font-black text-primary-custom">
+              {altasPrevYear} <span className="text-xs font-bold text-secondary-custom">altas</span>
+            </span>
+          </div>
+          <span className="text-[9px] text-secondary-custom opacity-70 mt-2 font-medium truncate" title={prevYearStart ? `${prevYearStart} al ${prevYearEnd}` : 'Sin datos'}>
+            {prevYearStart ? `${prevYearStart.split('-').reverse().join('/')} al ${prevYearEnd.split('-').reverse().join('/')}` : 'Mismo periodo año ant.'}
+          </span>
+        </div>
 
       </div>
 

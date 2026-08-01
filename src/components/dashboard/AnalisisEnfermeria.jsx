@@ -12,11 +12,25 @@ import InfoTooltip from '../InfoTooltip';
 
 const perc = (val, tot) => tot > 0 ? ((val / tot) * 100).toFixed(1) : '0.0';
 
-export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, turnosDB }) {
+export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, kpisBigQuery }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroCategoria, setFiltroCategoria] = useState('TODOS');
   const [filtroEnfermero, setFiltroEnfermero] = useState('TODOS');
   const [selectedDiagDetail, setSelectedDiagDetail] = useState(null);
+
+  const prevYearStart = useMemo(() => {
+    if (!filtroFechaInicio) return null;
+    const p = filtroFechaInicio.split('-');
+    if (p.length !== 3) return null;
+    return `${parseInt(p[0]) - 1}-${p[1]}-${p[2]}`;
+  }, [filtroFechaInicio]);
+
+  const prevYearEnd = useMemo(() => {
+    if (!filtroFechaFin) return null;
+    const p = filtroFechaFin.split('-');
+    if (p.length !== 3) return null;
+    return `${parseInt(p[0]) - 1}-${p[1]}-${p[2]}`;
+  }, [filtroFechaFin]);
 
   // Normalizar paciente para lectura segura de campos de triaje y enfermería
   const pacientesProcesados = useMemo(() => {
@@ -146,6 +160,28 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
       percHospital: perc(hospitalDestCount, total)
     };
   }, [pacientesFiltradosVista]);
+
+  const prevYearAvgCat1 = useMemo(() => {
+    if (!prevYearStart || !prevYearEnd || !pacientesDB) return 0;
+    const startMs = new Date(prevYearStart + 'T00:00:00').getTime();
+    const endMs = new Date(prevYearEnd + 'T23:59:59').getTime();
+    const prevYearPacs = pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
+    let sumPrev = 0; let countPrev = 0;
+    prevYearPacs.forEach(p => {
+      const tAdm = p.tAdmision;
+      const tC1 = p.tCat1 || p.tCatUlt;
+      if (tAdm && tC1 && tC1 >= tAdm) {
+        const m = (tC1 - tAdm) / 60000;
+        if (m <= 300) { sumPrev += m; countPrev++; }
+      }
+    });
+    return countPrev ? Math.round(sumPrev / countPrev) : 0;
+  }, [pacientesDB, prevYearStart, prevYearEnd]);
+
+  const yoyAvgCat1Growth = useMemo(() => {
+    if (!prevYearAvgCat1 || prevYearAvgCat1 === 0) return null;
+    return ((kpis.avgMinCat1 - prevYearAvgCat1) / prevYearAvgCat1) * 100;
+  }, [kpis.avgMinCat1, prevYearAvgCat1]);
 
   // Métricas agregadas por Profesional de Enfermería
   const statsPorProfesional = useMemo(() => {
@@ -361,7 +397,7 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
       </div>
 
       {/* TARJETAS KPI DE DESEMPEÑO DE ENFERMERÍA */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         
         {/* KPI 1: Tiempo a 1ª Categorización */}
         <div className="bg-card-custom p-5 rounded-2xl border border-card-custom shadow-sm relative overflow-hidden theme-transition">
@@ -419,6 +455,23 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
           </div>
         </div>
 
+        {/* KPI 5: Comparativa Año Anterior (YoY) */}
+        <div className="bg-card-custom p-5 rounded-2xl border border-card-custom shadow-sm relative overflow-hidden theme-transition flex flex-col justify-between">
+          <div className="flex justify-between items-start">
+            <span className="text-[10px] font-black text-secondary-custom uppercase tracking-wider">T. 1ª Cat. Año Anterior</span>
+            {yoyAvgCat1Growth !== null && (
+              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-0.5 ${yoyAvgCat1Growth <= 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                {yoyAvgCat1Growth <= 0 ? '📉 ' : '📈 +'}{yoyAvgCat1Growth.toFixed(1)}%
+              </span>
+            )}
+          </div>
+          <div className="mt-3">
+            <span className="text-3xl font-black text-primary-custom">{prevYearStart ? prevYearAvgCat1 : '-'} <span className="text-xs text-secondary-custom font-bold">min</span></span>
+            <p className="text-[10px] text-secondary-custom mt-1 font-semibold truncate" title={prevYearStart ? `${prevYearStart} al ${prevYearEnd}` : 'Sin datos'}>
+              {prevYearStart ? `${prevYearStart.split('-').reverse().join('/')} al ${prevYearEnd.split('-').reverse().join('/')}` : 'Mismo periodo año ant.'}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* FILTROS Y CONTROLES LOCALES */}

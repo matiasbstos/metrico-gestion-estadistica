@@ -8,9 +8,23 @@ import {
 import InfoTooltip from '../InfoTooltip';
 import { generateConstatacionesSummary } from '../../utils/summaryGenerator';
 
-export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin }) {
+export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, kpisBigQuery }) {
   const [filtroSexo, setFiltroSexo] = useState('TODOS');
   const [filtroComuna, setFiltroComuna] = useState('TODOS');
+
+  const prevYearStart = useMemo(() => {
+    if (!filtroFechaInicio) return null;
+    const p = filtroFechaInicio.split('-');
+    if (p.length !== 3) return null;
+    return `${parseInt(p[0]) - 1}-${p[1]}-${p[2]}`;
+  }, [filtroFechaInicio]);
+
+  const prevYearEnd = useMemo(() => {
+    if (!filtroFechaFin) return null;
+    const p = filtroFechaFin.split('-');
+    if (p.length !== 3) return null;
+    return `${parseInt(p[0]) - 1}-${p[1]}-${p[2]}`;
+  }, [filtroFechaFin]);
 
   // 1. Obtener la lista base de pacientes del período
   const targetPacientes = useMemo(() => {
@@ -182,6 +196,21 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
     };
   }, [pacientesLesiones, totalEvaluadosC3]);
 
+  const constatacionesPrevYear = useMemo(() => {
+    if (kpisBigQuery && kpisBigQuery.prevYearValues && kpisBigQuery.prevYearValues.constataciones !== undefined) {
+      return kpisBigQuery.prevYearValues.constataciones;
+    }
+    if (!prevYearStart || !prevYearEnd || !pacientesDB) return 0;
+    const startMs = new Date(prevYearStart + 'T00:00:00').getTime();
+    const endMs = new Date(prevYearEnd + 'T23:59:59').getTime();
+    return pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs && isConstatacionOficial(p)).length;
+  }, [kpisBigQuery, pacientesDB, prevYearStart, prevYearEnd]);
+
+  const yoyConstatacionesGrowth = useMemo(() => {
+    if (!constatacionesPrevYear || constatacionesPrevYear === 0) return null;
+    return ((statsGenerales.total - constatacionesPrevYear) / constatacionesPrevYear) * 100;
+  }, [statsGenerales.total, constatacionesPrevYear]);
+
   // 4. Matriz Cruzada 1: Sexo vs. Rango Etario (Cantidades)
   const matrizEdadSexo = useMemo(() => {
     const rangos = ['0-14', '15-29', '30-59', '60+'];
@@ -301,8 +330,8 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
         </p>
       </div>
 
-      {/* TARJETAS KPI DE CANTIDADES ABSOLUTAS */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* TARJETAS KPI DE CANTIDADES ABSOLUTAS Y YoY */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
         
         <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-between h-32 relative overflow-hidden">
           <div className="flex justify-between items-center">
@@ -359,6 +388,25 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
           </div>
           <span className="text-[10px] font-medium text-slate-500 flex items-center gap-1">
             <MapPin className="w-3 h-3 text-indigo-400" /> Principal origen territorial
+          </span>
+        </div>
+
+        {/* KPI 5: Comparativa Año Anterior (YoY) */}
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100 flex flex-col justify-between h-32 relative overflow-hidden">
+          <div className="flex justify-between items-center">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Año Anterior (YoY)</span>
+            {yoyConstatacionesGrowth !== null && (
+              <span className={`text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-0.5 ${yoyConstatacionesGrowth >= 0 ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                {yoyConstatacionesGrowth >= 0 ? '📈 +' : '📉 '}{yoyConstatacionesGrowth.toFixed(1)}%
+              </span>
+            )}
+          </div>
+          <div className="my-1">
+            <span className="text-3xl font-black text-slate-800">{prevYearStart ? constatacionesPrevYear : '-'}</span>
+            <span className="text-xs font-bold text-slate-400 ml-1.5">pacientes</span>
+          </div>
+          <span className="text-[10px] font-medium text-slate-500 truncate" title={prevYearStart ? `Entre ${prevYearStart} y ${prevYearEnd}` : 'Sin rango'}>
+            {prevYearStart ? `${prevYearStart.split('-').reverse().join('/')} al ${prevYearEnd.split('-').reverse().join('/')}` : 'Mismo periodo año ant.'}
           </span>
         </div>
 

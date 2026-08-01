@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { formatLocalDate } from '../utils/helpers';
 
 const truncateStr = (str, n) => {
   if (!str) return '';
@@ -85,10 +86,7 @@ export const useMetricoProfesionales = (pacientesDB, turnosDB, profFechaInicio, 
     
     pacientesProf.forEach(p => {
       if (!p.medico || !docsToCompare.includes(p.medico) || !p.tAdmision) return;
-      const date = new Date(p.tAdmision);
-      if(isNaN(date.getTime())) return;
-      
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = formatLocalDate(p.tAdmision);
       if (!daysMap[dateStr]) {
         daysMap[dateStr] = { date: dateStr };
         docsToCompare.forEach(doc => { daysMap[dateStr][`${doc}_sum`] = 0; daysMap[dateStr][`${doc}_count`] = 0; });

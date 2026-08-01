@@ -24,6 +24,7 @@ import AnalisisFracturas from './dashboard/AnalisisFracturas';
 import AnalisisEnfermeria from './dashboard/AnalisisEnfermeria';
 import AnalisisConstataciones from './dashboard/AnalisisConstataciones';
 import AnalisisTraslados from './dashboard/AnalisisTraslados';
+import { formatLocalDate } from '../utils/helpers';
 import Login from './Login';
 import { 
   Clock, Users, UserCheck, AlertTriangle, Activity, ArrowRight, 
@@ -401,9 +402,9 @@ const DashboardContent = () => {
             traslados: { current: curr.totalTraslados, growthMonth: getGrowth(curr.totalTraslados, pm.totalTraslados), growthYear: getGrowth(curr.totalTraslados, py.totalTraslados) },
             constataciones: { current: curr.totalConstataciones, growthMonth: getGrowth(curr.totalConstataciones, pm.totalConstataciones), growthYear: getGrowth(curr.totalConstataciones, py.totalConstataciones) },
             demo: {
-              avgEdad: demografiaStats?.avgEdad || 0,
-              fonasaPercent: demografiaStats?.fonasaPercent || 0,
-              meliPercent: demografiaStats?.meliPercent || 0
+              avgEdad: demografiaStats && demografiaStats.edadCount ? Number((demografiaStats.edadSum / demografiaStats.edadCount).toFixed(1)) : 0,
+              fonasaPercent: demografiaStats && demografiaStats.total ? (Object.entries(demografiaStats.prevs).filter(([k]) => k.includes('FONASA')).reduce((acc, [_, v]) => acc + v, 0) / demografiaStats.total) * 100 : 0,
+              meliPercent: demografiaStats && demografiaStats.total ? ((demografiaStats.comunas['MELIPILLA'] || 0) / demografiaStats.total) * 100 : 0
             },
             categorias: [
               { name: 'C1', current: curr.totalC1, growthMonth: getGrowth(curr.totalC1, pm.totalC1), growthYear: getGrowth(curr.totalC1, py.totalC1) },
@@ -610,12 +611,12 @@ const DashboardContent = () => {
         if (p.loteId === t.loteId) return true;
         if (!p.tAdmision) return false;
         const pDateObj = new Date(p.tAdmision);
-        let pDateStr = pDateObj.toISOString().split('T')[0];
+        let pDateStr = formatLocalDate(p.tAdmision);
         const hours = pDateObj.getHours();
         if (hours < 8) {
           const prev = new Date(p.tAdmision);
           prev.setDate(prev.getDate() - 1);
-          pDateStr = prev.toISOString().split('T')[0];
+          pDateStr = formatLocalDate(prev.getTime());
         }
         if (pDateStr !== t.fechaInicio) return false;
         const tHorario = String(t.horario).toLowerCase();
@@ -1410,6 +1411,8 @@ const DashboardContent = () => {
                 filtroFechaInicio={filtroFechaInicio} 
                 filtroFechaFin={filtroFechaFin} 
                 statsKPI={statsKPI}
+                kpisBigQuery={kpisBigQuery}
+                pacientesDB={pacientesDB}
                 modoComparativo={modoComparativo}
                 filtroFechaInicioB={filtroFechaInicioB}
                 filtroFechaFinB={filtroFechaFinB}
@@ -1418,11 +1421,23 @@ const DashboardContent = () => {
             )}
 
             {(activeTab === 'fracturas' || (activeTab === 'especificos' && subTabEspecifico === 'fracturas')) && (
-              <AnalisisFracturas pacientesFiltrados={pacientesFiltrados} />
+              <AnalisisFracturas 
+                pacientesFiltrados={pacientesFiltrados} 
+                pacientesDB={pacientesDB}
+                filtroFechaInicio={filtroFechaInicio}
+                filtroFechaFin={filtroFechaFin}
+              />
             )}
 
             {(activeTab === 'enfermeria' || (activeTab === 'especificos' && subTabEspecifico === 'enfermeria')) && (
-              <AnalisisEnfermeria pacientesFiltrados={pacientesFiltrados} pacientesDB={pacientesDB} turnosDB={turnosDB} />
+              <AnalisisEnfermeria 
+                pacientesFiltrados={pacientesFiltrados} 
+                pacientesDB={pacientesDB} 
+                turnosDB={turnosDB} 
+                filtroFechaInicio={filtroFechaInicio}
+                filtroFechaFin={filtroFechaFin}
+                kpisBigQuery={kpisBigQuery}
+              />
             )}
             
             {(activeTab === 'constataciones' || (activeTab === 'especificos' && subTabEspecifico === 'constataciones')) && (
@@ -1432,6 +1447,7 @@ const DashboardContent = () => {
                 turnosDB={turnosDB} 
                 filtroFechaInicio={filtroFechaInicio} 
                 filtroFechaFin={filtroFechaFin} 
+                kpisBigQuery={kpisBigQuery}
               />
             )}
 

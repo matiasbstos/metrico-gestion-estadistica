@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { formatLocalDate } from '../utils/helpers';
 
 const AGE_RANGES = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80+'];
 
@@ -86,12 +87,12 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
         if (p.loteId === t.loteId) return true;
         if (!p.tAdmision) return false;
         const pDateObj = new Date(p.tAdmision);
-        let pDateStr = pDateObj.toISOString().split('T')[0];
+        let pDateStr = formatLocalDate(p.tAdmision);
         const hours = pDateObj.getHours();
         if (hours < 8) {
           const prev = new Date(p.tAdmision);
           prev.setDate(prev.getDate() - 1);
-          pDateStr = prev.toISOString().split('T')[0];
+          pDateStr = formatLocalDate(prev.getTime());
         }
         if (pDateStr !== t.fechaInicio) return false;
         const tHorario = String(t.horario).toLowerCase();

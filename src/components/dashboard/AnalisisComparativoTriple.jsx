@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Calendar, TrendingUp, TrendingDown, Minus, Clock, Activity, AlertTriangle, Hospital, UserCheck, Users, ArrowRight } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { formatLocalDate } from '../../utils/helpers';
 
 export default function AnalisisComparativoTriple({ 
   pacientesDB, 
@@ -32,7 +33,7 @@ export default function AnalisisComparativoTriple({
       
       const pacs = pacientesDB.filter(p => {
         if (!p.tAdmision) return false;
-        const pDate = new Date(p.tAdmision).toISOString().split('T')[0];
+        const pDate = formatLocalDate(p.tAdmision);
         return pDate === date;
       });
 
