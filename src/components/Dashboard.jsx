@@ -378,7 +378,19 @@ const DashboardContent = () => {
               { name: 'C3 (L)', current: curr.totalC3Z518, growthMonth: getGrowth(curr.totalC3Z518, pm.totalC3Z518), growthYear: getGrowth(curr.totalC3Z518, py.totalC3Z518) },
               { name: 'C4', current: curr.totalC4, growthMonth: getGrowth(curr.totalC4, pm.totalC4), growthYear: getGrowth(curr.totalC4, py.totalC4) },
               { name: 'C5', current: curr.totalC5, growthMonth: getGrowth(curr.totalC5, pm.totalC5), growthYear: getGrowth(curr.totalC5, py.totalC5) }
-            ]
+            ],
+            prevYearValues: {
+              pacientes: py.totalAtenciones,
+              traslados: py.totalTraslados,
+              constataciones: py.totalConstataciones,
+              altasAdmin: py.totalAltas
+            },
+            prevMonthValues: {
+              pacientes: pm.totalAtenciones,
+              traslados: pm.totalTraslados,
+              constataciones: pm.totalConstataciones,
+              altasAdmin: pm.totalAltas
+            }
           };
 
           setKpisBigQuery(stats);
@@ -1262,6 +1274,7 @@ const DashboardContent = () => {
             horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
             maxDateLabel={maxDateLabel}
             handleClearFilters={handleClearFilters}
+            kpisBigQuery={kpisBigQuery}
           />
         )}
 
@@ -1377,6 +1390,7 @@ const DashboardContent = () => {
                 modoComparativo={modoComparativo}
                 filtroFechaInicioB={filtroFechaInicioB}
                 filtroFechaFinB={filtroFechaFinB}
+                kpisBigQuery={kpisBigQuery}
               />
             )}
           </div>

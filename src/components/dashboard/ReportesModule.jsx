@@ -21,7 +21,8 @@ export default function ReportesModule({
   filtroHoraFin, setFiltroHoraFin,
   horarioPreset, setHorarioPreset,
   maxDateLabel,
-  handleClearFilters
+  handleClearFilters,
+  kpisBigQuery
 }) {
   // Selección de Sub-reportes para incluir en la impresión
   const [incluirGeneral, setIncluirGeneral] = useState(true);
@@ -548,7 +549,12 @@ totalTriados,
     let prevYearPct = '0.0';
     let yoyGrowth = '0.0';
     
-    if (pacientesDB && filtroFechaInicio && filtroFechaFin) {
+    if (kpisBigQuery && kpisBigQuery.prevYearValues) {
+      prevYearTraslados = kpisBigQuery.prevYearValues.traslados || 0;
+      prevYearTotalAdms = kpisBigQuery.prevYearValues.pacientes || 0;
+      prevYearPct = prevYearTotalAdms > 0 ? ((prevYearTraslados / prevYearTotalAdms) * 100).toFixed(1) : '0.0';
+      yoyGrowth = (kpisBigQuery.traslados.growthYear || 0).toFixed(1);
+    } else if (pacientesDB && filtroFechaInicio && filtroFechaFin) {
       const pStart = filtroFechaInicio.split('-');
       const pEnd = filtroFechaFin.split('-');
       if (pStart.length === 3 && pEnd.length === 3) {

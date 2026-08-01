@@ -18,7 +18,8 @@ export default function AnalisisTraslados({
   filtroFechaFin,
   modoComparativo,
   filtroFechaInicioB,
-  filtroFechaFinB
+  filtroFechaFinB,
+  kpisBigQuery
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDetailPatients, setSelectedDetailPatients] = useState(null);
@@ -212,14 +213,20 @@ export default function AnalisisTraslados({
   }, [pacientesDB, prevYearStart, prevYearEnd]);
 
   const trasladosPrevYear = useMemo(() => {
+    if (kpisBigQuery && kpisBigQuery.prevYearValues) {
+      return kpisBigQuery.prevYearValues.traslados || 0;
+    }
     return pacientesPrevYear.filter(isTraslado).length;
-  }, [pacientesPrevYear]);
+  }, [pacientesPrevYear, kpisBigQuery]);
 
   const growthYOY = useMemo(() => {
+    if (kpisBigQuery && kpisBigQuery.prevYearValues) {
+      return kpisBigQuery.traslados.growthYear || 0;
+    }
     if (trasladosPrevYear === 0) return null;
     const current = pacientesTraslados.length;
     return ((current - trasladosPrevYear) / trasladosPrevYear) * 100;
-  }, [pacientesTraslados, trasladosPrevYear]);
+  }, [pacientesTraslados, trasladosPrevYear, kpisBigQuery]);
 
   // KPIs Adicionales de Frecuencia
   const maxTrasladosDay = useMemo(() => {
