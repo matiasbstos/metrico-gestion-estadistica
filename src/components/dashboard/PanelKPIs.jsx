@@ -249,37 +249,43 @@ export default function PanelKPIs({ statsKPI, onAltasClick, onTrasladosClick, on
                 </span>
               )}
             </div>
-            <div className="flex-1 grid grid-cols-3 md:grid-cols-6 gap-2 w-full">
+            <div className="flex-1 grid grid-cols-3 md:grid-cols-6 gap-3 w-full">
               {statsKPI.categorias.map(c => {
                  const colorKey = c.name === 'C3 (L)' ? 'c3_z518' : c.name.toLowerCase();
                  return (
-                    <div key={c.name} className="border border-card-custom rounded-xl py-3 flex flex-col items-center justify-center bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all">
-                      <span className="text-xl font-black" style={{color: COLORS[colorKey]}}>
+                    <div 
+                      key={c.name} 
+                      className="border border-card-custom rounded-2xl py-4 px-2.5 flex flex-col items-center justify-between bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all shadow-sm"
+                      style={{ borderTop: `4px solid ${COLORS[colorKey]}` }}
+                    >
+                      <span className="text-[11px] font-black uppercase text-secondary-custom/95 tracking-widest mb-1">{c.name}</span>
+                      
+                      <span className="text-3xl md:text-4xl font-black tracking-tighter" style={{color: COLORS[colorKey]}}>
                         {isLoading ? (
                           <span className="animate-pulse text-indigo-500/70">...</span>
                         ) : (
                           c.current
                         )}
                       </span>
-                      <span className="text-[10px] font-bold text-secondary-custom mt-1">{c.name}</span>
-                      <div className="mt-2 w-full px-2 flex flex-col gap-1">
+                      
+                      <div className="mt-3 w-full px-1.5 flex flex-col gap-1 text-[9px] font-bold text-secondary-custom border-t border-card-custom/20 pt-2.5">
                         {isLoading ? (
                           <div className="h-3 w-10 bg-slate-300/35 dark:bg-white/5 rounded animate-pulse mx-auto"></div>
                         ) : (
                           <>
                             {c.growthMonth !== undefined && (
                               <div className="flex justify-between items-center">
-                                <span className="text-[8px] font-bold text-secondary-custom opacity-70">M:</span>
-                                <span className={`text-[9px] font-bold ${c.growthMonth > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                                  {c.growthMonth > 0 ? '+' : ''}{c.growthMonth.toFixed(1)}%
+                                <span className="opacity-60">M:</span>
+                                <span className={`${c.growthMonth > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                                  {c.growthMonth > 0 ? '▲' : '▼'} {Math.abs(c.growthMonth).toFixed(1)}%
                                 </span>
                               </div>
                             )}
                             {c.growthYear !== undefined && (
                               <div className="flex justify-between items-center">
-                                <span className="text-[8px] font-bold text-secondary-custom opacity-70">A:</span>
-                                <span className={`text-[9px] font-bold ${c.growthYear > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                                  {c.growthYear > 0 ? '+' : ''}{c.growthYear.toFixed(1)}%
+                                <span className="opacity-60">A:</span>
+                                <span className={`${c.growthYear > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                                  {c.growthYear > 0 ? '▲' : '▼'} {Math.abs(c.growthYear).toFixed(1)}%
                                 </span>
                               </div>
                             )}
