@@ -1913,7 +1913,7 @@ totalTriados,
             )}
 
             {/* SECCIÓN DE CIERRE Y CONTROL DE VALIDEZ GLOBAL (SOLO CUANDO SE INCLUYEN OTROS REPORTES) */}
-            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirTraslados) && (
+            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados) && (
               <div className="print-page-break print-avoid-break space-y-6 pt-6 border-t-2 border-slate-950">
                 {/* Header Cierre */}
                 <div className="flex justify-between items-center border-b border-slate-300 pb-3">
@@ -1958,7 +1958,7 @@ totalTriados,
             )}
 
             {/* BLOQUE GLOBAL DE CIERRE DE INFORME Y VALIDACIÓN DE DATOS */}
-            {activeSheets.length > 0 && (
+            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados) && (
               <div className="print-avoid-break pt-8 border-t-2 border-slate-900 mt-8 space-y-6">
                 
                 {/* Cuadro de Tiempos y Operatividad */}
