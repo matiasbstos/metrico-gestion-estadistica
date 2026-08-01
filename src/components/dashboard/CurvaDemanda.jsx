@@ -125,7 +125,7 @@ export default function CurvaDemanda({
       </div>
 
       {/* Gráfico */}
-      <div className="flex-1 w-full min-h-[250px]">
+      <div className="h-[300px] w-full mt-2">
         {peakHoursData.some(d => d.atenciones > 0 || (modoComparativo && d.periodoB > 0)) ? (
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={peakHoursData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
