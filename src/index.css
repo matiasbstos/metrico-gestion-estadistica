@@ -39,7 +39,7 @@
   }
 
   /* Force the printed element to take full page width and natural height without top gaps */
-  #reporte-printable {
+  #reporte-printable, #ficha-bienvenida-printable {
     position: static !important;
     display: block !important;
     width: 100% !important;

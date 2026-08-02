@@ -5,7 +5,7 @@ import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { 
   Users, UserPlus, Shield, ShieldAlert, Lock, Unlock, Trash2, Edit3, Check, X, Clock, Eye, Activity,
   BarChart2, GitCompare, Calendar, Award, UserCheck, FileSpreadsheet, Database, ArrowLeftRight, ArrowLeft,
-  CheckCircle2, AlertCircle
+  CheckCircle2, AlertCircle, Printer, Copy, Sparkles, Key, Building2, RefreshCw
 } from 'lucide-react';
 import { firebaseConfig, appId } from '../../config/firebase';
 
@@ -32,18 +32,35 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
   // Modales y Vistas
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingUserPerms, setEditingUserPerms] = useState(null);
-  const [savingNotif, setSavingNotif] = useState(null); // Notificación central
+  const [savingNotif, setSavingNotif] = useState(null); // Notificación central de guardado
+  const [createdUserVoucher, setCreatedUserVoucher] = useState(null); // Ficha de bienvenida
+  const [copiedNotification, setCopiedNotification] = useState(false);
 
   // Formulario nuevo usuario
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newName, setNewName] = useState('');
+  const [newCentro, setNewCentro] = useState('SAR Elsa Romo Aravena');
   const [newRol, setNewRol] = useState('local');
   const [newPermisos, setNewPermisos] = useState(
     MODULE_LIST.reduce((acc, m) => ({ ...acc, [m.id]: true }), {})
   );
   const [creatingUser, setCreatingUser] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Generador de clave sugerida basada en el nombre
+  const generateSuggestedPassword = (name) => {
+    const cleanFirst = name ? name.trim().split(' ')[0] : 'Usuario';
+    const capitalized = cleanFirst.charAt(0).toUpperCase() + cleanFirst.slice(1).toLowerCase();
+    return `${capitalized}.2026!`;
+  };
+
+  const handleNameChange = (val) => {
+    setNewName(val);
+    if (!newPassword || newPassword.includes('.2026!')) {
+      setNewPassword(generateSuggestedPassword(val));
+    }
+  };
 
   // Cargar usuarios desde Firestore
   useEffect(() => {
@@ -77,20 +94,32 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
     }
   };
 
-  // Crear Usuario con app secundaria de Firebase Auth
+  // Crear Usuario con validación estricta de dominio @cormumel.cl
   const handleCreateUser = async (e) => {
     e.preventDefault();
-    if (!newEmail || !newPassword) {
-      setErrorMessage('Por favor ingrese correo y contraseña.');
+    setErrorMessage('');
+
+    let cleanEmail = newEmail.trim().toLowerCase();
+    if (cleanEmail && !cleanEmail.includes('@')) {
+      cleanEmail = cleanEmail + '@cormumel.cl';
+    }
+
+    if (!cleanEmail) {
+      setErrorMessage('Por favor ingrese el correo electrónico del usuario.');
       return;
     }
-    if (newPassword.length < 6) {
+
+    if (!cleanEmail.endsWith('@cormumel.cl') && !cleanEmail.endsWith('@cormumen.cl')) {
+      setErrorMessage('El correo electrónico debe pertenecer al dominio institucional @cormumel.cl.');
+      return;
+    }
+
+    if (!newPassword || newPassword.length < 6) {
       setErrorMessage('La contraseña debe tener al menos 6 caracteres.');
       return;
     }
 
     setCreatingUser(true);
-    setErrorMessage('');
 
     try {
       let secondaryApp = getApps().find(app => app.name === 'SecondaryAdminUserApp');
@@ -99,14 +128,15 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
       }
       const secondaryAuth = getAuth(secondaryApp);
 
-      const userCred = await createUserWithEmailAndPassword(secondaryAuth, newEmail, newPassword);
+      const userCred = await createUserWithEmailAndPassword(secondaryAuth, cleanEmail, newPassword);
       const uid = userCred.user.uid;
 
       const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', uid);
       const newUserData = {
         uid,
-        email: newEmail.trim().toLowerCase(),
-        nombre: newName.trim() || newEmail.split('@')[0],
+        email: cleanEmail,
+        nombre: newName.trim() || cleanEmail.split('@')[0],
+        centro: newCentro,
         rol: newRol,
         estado: 'activo',
         permisos: newPermisos,
@@ -116,17 +146,32 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
       };
 
       await setDoc(userDocRef, newUserData);
-      await logAuditAction('Carga Usuario', `Creado nuevo usuario "${newEmail}" con rol ${newRol.toUpperCase()}`);
+      await logAuditAction(
+        'Carga Usuario', 
+        `Creado nuevo usuario "${cleanEmail}" para el centro ${newCentro} con rol ${newRol.toUpperCase()}`
+      );
 
+      // Desplegar la Ficha Oficial de Bienvenida y Credenciales
+      setCreatedUserVoucher({
+        nombre: newUserData.nombre,
+        email: cleanEmail,
+        password: newPassword,
+        centro: newCentro,
+        rol: newRol,
+        createdAt: Date.now()
+      });
+
+      // Resetear campos y cerrar formulario de registro
       setNewEmail('');
       setNewPassword('');
       setNewName('');
+      setNewCentro('SAR Elsa Romo Aravena');
       setNewRol('local');
       setShowAddModal(false);
     } catch (err) {
       console.error('Error creando usuario:', err);
       if (err.code === 'auth/email-already-in-use') {
-        setErrorMessage('El correo electrónico ya está registrado.');
+        setErrorMessage('El correo electrónico ya está registrado en la plataforma.');
       } else {
         setErrorMessage(err.message || 'Error al crear el usuario.');
       }
@@ -169,7 +214,6 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
     if (!editingUserPerms) return;
     const targetIdentifier = editingUserPerms.email || editingUserPerms.nombre || editingUserPerms.id;
     
-    // 1. Mostrar notificación central de guardado
     setSavingNotif({ type: 'loading', text: 'Guardando configuración de permisos en Firebase y registrando auditoría...' });
 
     try {
@@ -179,13 +223,11 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
         rol: editingUserPerms.rol
       });
 
-      // 2. Registrar en auditoría
       await logAuditAction(
         'Edición Permisos', 
         `Actualizada matriz de permisos y rol de usuario "${targetIdentifier}" (Rol: ${editingUserPerms.rol.toUpperCase()})`
       );
 
-      // 3. Notificación de éxito
       setSavingNotif({ type: 'success', text: '¡Permisos actualizados y registrados en la auditoría con éxito!' });
 
       setTimeout(() => {
@@ -378,7 +420,7 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    onChange={() => {}} // Evento manejado en la tarjeta
+                    onChange={() => {}}
                     className="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer mt-1 shrink-0"
                   />
                 </div>
@@ -409,7 +451,7 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
 
   // VISTA 1: TABLA PRINCIPAL DE USUARIOS
   return (
-    <div className="bg-card-custom rounded-2xl shadow-sm border border-card-custom p-6 flex flex-col h-full theme-transition">
+    <div className="bg-card-custom rounded-2xl shadow-sm border border-card-custom p-6 flex flex-col h-full theme-transition relative">
       {/* Encabezado Principal */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-4 border-b border-card-custom/30">
         <div>
@@ -423,7 +465,14 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
 
         {isGlobalAdmin && (
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={() => {
+              setNewEmail('');
+              setNewName('');
+              setNewPassword('Melipilla.2026!');
+              setNewCentro('SAR Elsa Romo Aravena');
+              setNewRol('local');
+              setShowAddModal(true);
+            }}
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-xs font-black rounded-xl shadow-lg shadow-indigo-900/20 transition cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
@@ -438,6 +487,7 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
           <thead className="bg-black/5 dark:bg-white/5 border-b border-card-custom text-secondary-custom font-black uppercase text-[10px] tracking-wider sticky top-0 z-10 backdrop-blur-md">
             <tr>
               <th className="p-4">Usuario / Correo</th>
+              <th className="p-4">Recinto Asignado</th>
               <th className="p-4">Rol de Acceso</th>
               <th className="p-4">Estado</th>
               <th className="p-4"><div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-indigo-500"/> Último Inicio Sesión</div></th>
@@ -447,9 +497,9 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
           </thead>
           <tbody className="divide-y divide-card-custom/20">
             {loading ? (
-              <tr><td colSpan="6" className="p-12 text-center text-secondary-custom font-semibold">Cargando cuentas de usuario...</td></tr>
+              <tr><td colSpan="7" className="p-12 text-center text-secondary-custom font-semibold">Cargando cuentas de usuario...</td></tr>
             ) : users.length === 0 ? (
-              <tr><td colSpan="6" className="p-12 text-center text-secondary-custom font-semibold">No hay usuarios registrados en el sistema.</td></tr>
+              <tr><td colSpan="7" className="p-12 text-center text-secondary-custom font-semibold">No hay usuarios registrados en el sistema.</td></tr>
             ) : (
               users.map(u => {
                 const isBlocked = u.estado === 'bloqueado';
@@ -457,6 +507,7 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
                 const isGlobal = u.rol === 'global' || userEmail === 'matias.bustos@cormumel.cl';
                 const userNombre = String(u.nombre || (userEmail.includes('@') ? userEmail.split('@')[0] : userEmail)).trim();
                 const avatarInitial = (userNombre || userEmail || 'U')[0].toUpperCase();
+                const userCentro = u.centro || 'SAR Elsa Romo Aravena';
 
                 return (
                   <tr key={u.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
@@ -469,6 +520,13 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
                           <div className="font-black text-primary-custom text-xs">{userNombre}</div>
                           <div className="text-[10px] text-secondary-custom font-semibold">{userEmail}</div>
                         </div>
+                      </div>
+                    </td>
+
+                    <td className="p-4">
+                      <div className="flex items-center gap-1.5 font-bold text-xs text-primary-custom">
+                        <Building2 className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>{userCentro}</span>
                       </div>
                     </td>
 
@@ -536,7 +594,7 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
         </table>
       </div>
 
-      {/* MODAL: AGREGAR NUEVO USUARIO */}
+      {/* MODAL: AGREGAR NUEVO USUARIO CON DOMINIO @cormumel.cl Y RECINTO */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-card-custom border border-card-custom rounded-2xl shadow-2xl p-6 max-w-md w-full theme-transition animate-fade-in">
@@ -562,42 +620,70 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
 
             <form onSubmit={handleCreateUser} className="space-y-4">
               <div>
-                <label className="block text-[10px] font-black uppercase text-secondary-custom mb-1">Nombre Completo</label>
+                <label className="block text-[10px] font-black uppercase text-secondary-custom mb-1">Nombre Completo *</label>
                 <input
                   type="text"
+                  required
                   placeholder="Ej. Juan Pérez"
                   value={newName}
-                  onChange={e => setNewName(e.target.value)}
+                  onChange={e => handleNameChange(e.target.value)}
                   className="w-full px-3 py-2 bg-input-custom border border-card-custom rounded-xl text-xs font-bold text-primary-custom focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-secondary-custom mb-1">Correo Electrónico *</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="usuario@cormumel.cl"
-                  value={newEmail}
-                  onChange={e => setNewEmail(e.target.value)}
-                  className="w-full px-3 py-2 bg-input-custom border border-card-custom rounded-xl text-xs font-bold text-primary-custom focus:outline-none focus:border-indigo-500"
-                />
+                <label className="block text-[10px] font-black uppercase text-secondary-custom mb-1">Correo Electrónico (@cormumel.cl) *</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    placeholder="juan.perez@cormumel.cl"
+                    value={newEmail}
+                    onChange={e => setNewEmail(e.target.value)}
+                    className="w-full px-3 py-2 bg-input-custom border border-card-custom rounded-xl text-xs font-bold text-primary-custom focus:outline-none focus:border-indigo-500"
+                  />
+                  <span className="absolute right-3 top-2.5 text-[10px] font-bold text-secondary-custom opacity-60">@cormumel.cl</span>
+                </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-secondary-custom mb-1">Contraseña Inicial *</label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-[10px] font-black uppercase text-secondary-custom">Contraseña Inicial Provisoria *</label>
+                  <button
+                    type="button"
+                    onClick={() => setNewPassword(generateSuggestedPassword(newName))}
+                    className="text-[10px] font-bold text-indigo-500 hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <RefreshCw className="w-3 h-3" /> Sugerir
+                  </button>
+                </div>
                 <input
-                  type="password"
+                  type="text"
                   required
                   placeholder="Mínimo 6 caracteres"
                   value={newPassword}
                   onChange={e => setNewPassword(e.target.value)}
-                  className="w-full px-3 py-2 bg-input-custom border border-card-custom rounded-xl text-xs font-bold text-primary-custom focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 bg-input-custom border border-card-custom rounded-xl text-xs font-bold text-primary-custom font-mono focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-secondary-custom mb-1">Rol de Acceso</label>
+                <label className="block text-[10px] font-black uppercase text-secondary-custom mb-1">Recinto / Centro Asignado *</label>
+                <select
+                  value={newCentro}
+                  onChange={e => setNewCentro(e.target.value)}
+                  className="w-full px-3 py-2 bg-input-custom border border-card-custom rounded-xl text-xs font-bold text-primary-custom focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="SAR Elsa Romo Aravena">SAR Elsa Romo Aravena</option>
+                  <option value="CESFAM Florencia">CESFAM Florencia</option>
+                  <option value="CESFAM Boris Soler">CESFAM Boris Soler</option>
+                  <option value="CESFAM Elgueta">CESFAM Elgueta</option>
+                  <option value="Todos los Centros (Red Salud Cormumel)">Todos los Centros (Red Salud Cormumel)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase text-secondary-custom mb-1">Rol de Acceso *</label>
                 <select
                   value={newRol}
                   onChange={e => setNewRol(e.target.value)}
@@ -619,12 +705,127 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
                 <button
                   type="submit"
                   disabled={creatingUser}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-md cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-md cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
                 >
-                  {creatingUser ? 'Creando...' : 'Crear Usuario'}
+                  {creatingUser ? 'Registrando...' : 'Crear Usuario y Generar Ficha'}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* VISTA Y MODAL: FICHA OFICIAL DE BIENVENIDA Y CREDENCIALES IMPRIMIBLE / ENVIABLE */}
+      {createdUserVoucher && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto custom-scrollbar">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-8 max-w-2xl w-full theme-transition animate-fade-in my-auto">
+            
+            {/* SECCIÓN IMPRIMIBLE CON IDENTIDAD OFICIAL MÉTRICO */}
+            <div id="ficha-bienvenida-printable" className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm text-slate-800 space-y-6">
+              
+              {/* Encabezado Identidad Visual MÉTRICO */}
+              <div className="flex justify-between items-center pb-4 border-b-2 border-indigo-600">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-indigo-600 text-white rounded-2xl shadow-md">
+                    <Activity className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-black tracking-tight text-indigo-950 uppercase leading-none">MÉTRICO</h1>
+                    <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider mt-1">Gestión Estadística Asistencial • Red Salud Cormumel</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="px-3 py-1 bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 text-[10px] font-black rounded-full uppercase tracking-wider block w-fit ml-auto mb-1">
+                    ✓ Cuenta Creada Exitosamente
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-bold">{formatDate(createdUserVoucher.createdAt)}</span>
+                </div>
+              </div>
+
+              {/* Saludo y Bienvenida */}
+              <div className="bg-indigo-50/60 p-4 rounded-xl border border-indigo-100">
+                <h3 className="text-sm font-black text-indigo-950 uppercase tracking-wide flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-indigo-600" />
+                  Ficha Oficial de Alta e Inserción de Usuario
+                </h3>
+                <p className="text-xs text-slate-600 font-medium leading-relaxed mt-1">
+                  Estimado(a) <strong className="text-indigo-950">{createdUserVoucher.nombre}</strong>, se ha habilitado tu acceso oficial a la plataforma estadística **MÉTRICO** para la gestión asistencial y analítica operativa.
+                </p>
+              </div>
+
+              {/* Resumen de Credenciales */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">Credenciales de Acceso Asignadas</h4>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                    <span className="text-[10px] font-black text-slate-400 uppercase block">Nombre Completo</span>
+                    <span className="text-xs font-black text-slate-900 block mt-0.5">{createdUserVoucher.nombre}</span>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                    <span className="text-[10px] font-black text-slate-400 uppercase block">Correo / Usuario Institucional</span>
+                    <span className="text-xs font-black text-indigo-600 select-all block mt-0.5">{createdUserVoucher.email}</span>
+                  </div>
+
+                  <div className="p-3.5 bg-indigo-500/5 rounded-xl border border-indigo-500/20">
+                    <span className="text-[10px] font-black text-indigo-500 uppercase block">Contraseña Inicial Provisoria</span>
+                    <span className="text-sm font-black font-mono text-indigo-700 select-all block mt-0.5">{createdUserVoucher.password}</span>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                    <span className="text-[10px] font-black text-slate-400 uppercase block">Recinto / Centro Asignado</span>
+                    <span className="text-xs font-black text-slate-900 block mt-0.5">{createdUserVoucher.centro}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Indicaciones para el Usuario */}
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                <h4 className="text-xs font-black uppercase text-slate-700 flex items-center gap-1.5">
+                  <Key className="w-4 h-4 text-amber-500" />
+                  Instrucciones de Primer Acceso e Inserción
+                </h4>
+                <ol className="text-xs text-slate-600 font-medium space-y-1.5 list-decimal pl-4 leading-relaxed">
+                  <li>Ingrese a la plataforma estadística **MÉTRICO** desde el navegador de su equipo corporativo.</li>
+                  <li>Inicie sesión utilizando su correo (<strong className="text-slate-900">{createdUserVoucher.email}</strong>) y la clave inicial (<strong className="text-indigo-700">{createdUserVoucher.password}</strong>).</li>
+                  <li><strong>Cambio Obligatorio de Clave</strong>: Al ingresar por primera vez, diríjase a la parte inferior del menú lateral izquierdo y seleccione la opción <strong>"Cambiar Clave"</strong> para registrar su contraseña personal definitiva.</li>
+                </ol>
+              </div>
+            </div>
+
+            {/* Botones de Acción (Imprimir, Copiar para Correo, Cerrar) */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 border-t border-slate-200 dark:border-slate-800 no-print">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  onClick={() => window.print()}
+                  className="flex-1 sm:flex-none px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-black text-xs rounded-xl shadow-md transition cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <Printer className="w-4 h-4" />
+                  Imprimir / Descargar Ficha PDF
+                </button>
+
+                <button
+                  onClick={() => {
+                    const textToCopy = `¡Bienvenido(a) a MÉTRICO!\n\nEstimado(a) ${createdUserVoucher.nombre},\nSe ha habilitado tu acceso a la plataforma estadística MÉTRICO.\n\nCREDANCIALES DE ACCESO:\n- Correo: ${createdUserVoucher.email}\n- Contraseña Inicial: ${createdUserVoucher.password}\n- Centro Asignado: ${createdUserVoucher.centro}\n- Rol: ${createdUserVoucher.rol === 'global' ? 'Administrador Global' : 'Usuario Local'}\n\nINDICACIONES DE INGRESO:\n1. Ingrese a la plataforma MÉTRICO.\n2. Inicie sesión con su correo y contraseña inicial provista.\n3. Al ingresar por primera vez, haga clic en "Cambiar Clave" en el menú inferior izquierdo para personalizar su contraseña definitiva.`;
+                    navigator.clipboard.writeText(textToCopy);
+                    setCopiedNotification(true);
+                    setTimeout(() => setCopiedNotification(false), 2500);
+                  }}
+                  className="flex-1 sm:flex-none px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <Copy className="w-4 h-4" />
+                  {copiedNotification ? '¡Copiado al Portapapeles!' : 'Copiar Texto para Correo'}
+                </button>
+              </div>
+
+              <button
+                onClick={() => setCreatedUserVoucher(null)}
+                className="w-full sm:w-auto px-4 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl transition cursor-pointer"
+              >
+                Cerrar y Volver a Usuarios
+              </button>
+            </div>
           </div>
         </div>
       )}
