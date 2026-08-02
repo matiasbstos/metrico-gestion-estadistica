@@ -216,7 +216,7 @@ export default function AnalisisAltasDetail({
 
   const isAlertActive = statsA.pct > 5;
   
-  const summaryText = useMemo(() => generateAltasSummary(pacientesFiltrados), [pacientesFiltrados]);
+  const summaryText = useMemo(() => generateAltasSummary(pacientesFiltrados, statsA), [pacientesFiltrados, statsA]);
   
   // Total Anual YTD Estadísticas
   const totalAnualAltas = statsKPI?.anual?.altasAdmin?.current || 0;

@@ -24,11 +24,12 @@ const isInvalidDoctorName = (name) => {
   );
 };
 
-export const generateAltasSummary = (pacs) => {
+export const generateAltasSummary = (pacs, statsOverride = null) => {
   if (!pacs || pacs.length === 0) return 'Sin registros suficientes para generar análisis de altas administrativas.';
-  const total = pacs.length;
+  
   const altas = pacs.filter(p => p.estado === 'Cancelada');
-  const totalAltas = altas.length;
+  const totalAltas = (statsOverride && statsOverride.totalAltas !== undefined) ? statsOverride.totalAltas : altas.length;
+  const total = (statsOverride && statsOverride.totalPacientes !== undefined && statsOverride.totalPacientes > 0) ? statsOverride.totalPacientes : pacs.length;
   const pct = formatPct(totalAltas, total);
 
   // Médicos con más altas
