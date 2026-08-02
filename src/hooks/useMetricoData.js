@@ -42,9 +42,11 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
           setUserProfile({ email: u.email, rol: emailRol });
 
           try {
-            const { doc, getDoc, setDoc } = await import('firebase/firestore');
+            const { doc, getDoc, setDoc, updateDoc } = await import('firebase/firestore');
             const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', u.uid);
             const userSnap = await getDoc(userRef);
+            const now = Date.now();
+
             if (userSnap.exists()) {
               const data = userSnap.data();
               const rawRol = data.rol || 'local';
@@ -52,10 +54,20 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
               if (u.email === 'matias.bustos@cormumel.cl') {
                 cleanRol = 'global';
               }
-              setUserProfile({ ...data, rol: cleanRol });
+              const updatedProfile = { ...data, rol: cleanRol, ultimoInicioSesion: now, ultimaConsulta: now };
+              setUserProfile(updatedProfile);
+              updateDoc(userRef, { ultimoInicioSesion: now, ultimaConsulta: now }).catch(() => {});
             } else {
               const defaultRol = u.email === 'matias.bustos@cormumel.cl' ? 'global' : 'local';
-              const newProfile = { email: u.email, rol: defaultRol, createdAt: Date.now() };
+              const newProfile = { 
+                email: u.email, 
+                nombre: u.displayName || u.email.split('@')[0],
+                rol: defaultRol, 
+                estado: 'activo',
+                createdAt: now, 
+                ultimoInicioSesion: now, 
+                ultimaConsulta: now 
+              };
               await setDoc(userRef, newProfile);
               setUserProfile(newProfile);
             }

@@ -24,6 +24,7 @@ import AnalisisFracturas from './dashboard/AnalisisFracturas';
 import AnalisisEnfermeria from './dashboard/AnalisisEnfermeria';
 import AnalisisConstataciones from './dashboard/AnalisisConstataciones';
 import AnalisisTraslados from './dashboard/AnalisisTraslados';
+import GestionUsuarios from './dashboard/GestionUsuarios';
 import { formatLocalDate } from '../utils/helpers';
 import Login from './Login';
 import { 
@@ -707,6 +708,30 @@ const DashboardContent = () => {
     return <Login />;
   }
 
+  if (userProfile?.estado === 'bloqueado') {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-app-custom p-6 font-sans">
+        <div className="bg-card-custom border border-rose-500/30 rounded-2xl shadow-2xl p-8 max-w-md w-full text-center space-y-4">
+          <div className="w-16 h-16 bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center mx-auto border border-rose-500/20">
+            <Lock className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-black text-rose-500 uppercase tracking-wide">Acceso Suspendido</h2>
+          <p className="text-xs font-semibold text-secondary-custom leading-relaxed">
+            Su cuenta de usuario (<strong className="text-primary-custom">{user.email}</strong>) ha sido deshabilitada por un Administrador Global.
+          </p>
+          <div className="pt-4 border-t border-card-custom">
+            <button
+              onClick={handleLogout}
+              className="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs rounded-xl shadow-md cursor-pointer transition"
+            >
+              Cerrar Sesión
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const handleLogout = () => {
     import('firebase/auth').then(({ signOut }) => {
       signOut(auth);
@@ -1029,6 +1054,13 @@ const DashboardContent = () => {
                   className={`flex items-center rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'pauta' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
                   <Calendar className="w-4 h-4 flex-shrink-0" />
                   {!sidebarCollapsed && <span className="animate-fade-in truncate">Pauta de Turnos</span>}
+                </button>
+                <button 
+                  onClick={() => { setActiveTab('usuarios'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                  title="Gestión de Usuarios"
+                  className={`flex items-center rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'usuarios' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                  <Users className="w-4 h-4 flex-shrink-0" />
+                  {!sidebarCollapsed && <span className="animate-fade-in truncate">Gestión de Usuarios</span>}
                 </button>
                 <button 
                   onClick={() => { setActiveTab('auditoria'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
@@ -1522,6 +1554,14 @@ const DashboardContent = () => {
           <PautaTurnos 
             usePautasTurnos={pautasTurnosHook} 
             showNotif={showNotif} 
+            isGlobalAdmin={isGlobalAdmin} 
+          />
+        )}
+
+        {activeTab === 'usuarios' && (
+          <GestionUsuarios 
+            db={db} 
+            userProfile={userProfile} 
             isGlobalAdmin={isGlobalAdmin} 
           />
         )}

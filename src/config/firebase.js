@@ -25,4 +25,4 @@ try {
 
 const appId = import.meta.env.VITE_FIREBASE_APP_ID || 'urgencias-dashboard';
 
-export { app, auth, db, appId };
+export { app, auth, db, appId, firebaseConfig };
