@@ -38,6 +38,11 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
   const [createdUserVoucher, setCreatedUserVoucher] = useState(null); // Ficha de bienvenida
   const [copiedNotification, setCopiedNotification] = useState(false);
 
+  // Modal personalizado de eliminación/baja con justificación
+  const [deletingUser, setDeletingUser] = useState(null);
+  const [motivoBaja, setMotivoBaja] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Formulario nuevo usuario
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('Melipilla.2026!');
@@ -199,11 +204,10 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
   const handleAdminResetPassword = async (user) => {
     const targetEmail = String(user.email || user.id || '').trim();
     if (!targetEmail || !targetEmail.includes('@')) {
-      alert('El usuario seleccionado no posee un correo electrónico válido registrado.');
+      setSavingNotif({ type: 'error', text: 'El usuario seleccionado no posee un correo electrónico válido registrado.' });
+      setTimeout(() => setSavingNotif(null), 3000);
       return;
     }
-
-    if (!window.confirm(`¿Está seguro de enviar un correo oficial de restablecimiento de contraseña a "${targetEmail}"?`)) return;
 
     setSavingNotif({ type: 'loading', text: `Enviando correo de restablecimiento de contraseña a "${targetEmail}"...` });
 
@@ -246,16 +250,49 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
     }
   };
 
-  // Eliminar Perfil de Firestore
-  const handleDeleteUser = async (user) => {
-    const targetEmail = user.email || user.id;
-    if (!window.confirm(`¿Está seguro de eliminar el perfil de usuario "${targetEmail}"?`)) return;
+  // Confirmar y Procesar Eliminación / Baja de Usuario con Justificación de Auditoría
+  const handleConfirmDeleteUser = async () => {
+    if (!deletingUser) return;
+    const motivoLimpio = motivoBaja.trim();
+    if (!motivoLimpio || motivoLimpio.length < 5) {
+      alert('Por favor ingrese una justificación válida para dar de baja al usuario (mínimo 5 caracteres).');
+      return;
+    }
+
+    const targetEmail = deletingUser.email || deletingUser.id;
+    const targetNombre = deletingUser.nombre || targetEmail;
+    const targetCentro = deletingUser.centro || 'SAR Elsa Romo Aravena';
+    const targetRol = deletingUser.rol || 'local';
+
+    setIsDeleting(true);
+    setSavingNotif({ type: 'loading', text: `Procesando baja y eliminación de usuario "${targetEmail}"...` });
+
     try {
-      const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', user.id);
+      const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', deletingUser.id);
       await deleteDoc(userRef);
-      await logAuditAction('Eliminación Usuario', `Eliminado perfil de usuario "${targetEmail}"`);
+
+      await logAuditAction(
+        'Eliminación Usuario',
+        `DADO DE BAJA PERFIL DE USUARIO: "${targetNombre}" (${targetEmail}) | Centro: ${targetCentro} | Rol: ${targetRol.toUpperCase()}. Justificación de baja: "${motivoLimpio}"`
+      );
+
+      setSavingNotif({ 
+        type: 'success', 
+        text: `¡El usuario "${targetEmail}" ha sido dado de baja y registrado en auditoría exitosamente!` 
+      });
+
+      setDeletingUser(null);
+      setMotivoBaja('');
+      setTimeout(() => setSavingNotif(null), 2500);
     } catch (err) {
       console.error('Error al eliminar usuario:', err);
+      setSavingNotif({ 
+        type: 'error', 
+        text: 'Error al dar de baja el usuario: ' + (err.message || 'Intente nuevamente') 
+      });
+      setTimeout(() => setSavingNotif(null), 3500);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -987,12 +1024,12 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
                           {isBlocked ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
                         </button>
 
-                        {/* Eliminar Perfil */}
+                        {/* Eliminar / Dar de Baja Perfil con Justificación */}
                         {userEmail !== 'matias.bustos@cormumel.cl' && (
                           <button
-                            onClick={() => handleDeleteUser(u)}
+                            onClick={() => { setDeletingUser(u); setMotivoBaja(''); }}
                             className="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 rounded-lg transition cursor-pointer"
-                            title="Eliminar Perfil"
+                            title="Dar de Baja Perfil de Usuario"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -1006,6 +1043,85 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
           </tbody>
         </table>
       </div>
+
+      {/* MODAL PERSONALIZADO: DAR DE BAJA Y ELIMINAR USUARIO CON JUSTIFICACIÓN DE AUDITORÍA */}
+      {deletingUser && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-card-custom border border-card-custom rounded-3xl shadow-2xl p-6 sm:p-8 max-w-lg w-full theme-transition animate-fade-in my-auto">
+            
+            {/* Encabezado del Modal con Identidad MÉTRICO */}
+            <div className="flex items-center gap-4 pb-4 mb-4 border-b border-card-custom/30">
+              <div className="w-12 h-12 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center border border-rose-500/20 shrink-0">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-primary-custom uppercase tracking-wide">
+                  Confirmar Baja de Usuario
+                </h3>
+                <p className="text-xs text-secondary-custom font-semibold mt-0.5">
+                  Esta acción desactivará y eliminará la cuenta de usuario del sistema.
+                </p>
+              </div>
+            </div>
+
+            {/* Datos del Usuario Objetivo */}
+            <div className="p-4 bg-black/5 dark:bg-white/5 rounded-2xl border border-card-custom/30 space-y-2 mb-4 text-xs">
+              <div className="flex justify-between">
+                <span className="text-secondary-custom font-bold">Usuario / Nombre:</span>
+                <span className="font-black text-primary-custom">{deletingUser.nombre || deletingUser.email}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-secondary-custom font-bold">Correo Institucional:</span>
+                <span className="font-black text-indigo-500">{deletingUser.email || deletingUser.id}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-secondary-custom font-bold">Centro Asignado:</span>
+                <span className="font-bold text-primary-custom">{deletingUser.centro || 'SAR Elsa Romo Aravena'}</span>
+              </div>
+            </div>
+
+            {/* Apartado de Escritura: Motivo / Justificación Obligatoria */}
+            <div className="space-y-2 mb-6">
+              <label className="block text-xs font-black uppercase text-primary-custom flex items-center gap-1.5">
+                <ShieldAlert className="w-4 h-4 text-rose-500" />
+                Motivo / Justificación de Baja (Requerido para Auditoría) *
+              </label>
+              <textarea
+                rows={3}
+                required
+                placeholder="Describa la causa administrativa de la baja (ej: Desvinculación de la institución, traslado de establecimiento, fin de contrato, solicitud de jefatura...)"
+                value={motivoBaja}
+                onChange={e => setMotivoBaja(e.target.value)}
+                className="w-full p-3 bg-input-custom border border-card-custom rounded-2xl text-xs font-bold text-primary-custom focus:outline-none focus:border-rose-500 shadow-sm"
+              />
+              <p className="text-[10px] text-secondary-custom font-semibold">
+                Esta justificación quedará registrada de forma permanente en el módulo de **Auditoría del Sistema** con su nombre y fecha.
+              </p>
+            </div>
+
+            {/* Botones de Acción */}
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-card-custom/30">
+              <button
+                type="button"
+                onClick={() => { setDeletingUser(null); setMotivoBaja(''); }}
+                className="px-4 py-2.5 bg-black/10 dark:bg-white/10 text-secondary-custom hover:text-primary-custom font-bold text-xs rounded-xl cursor-pointer transition"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting || !motivoBaja.trim() || motivoBaja.trim().length < 5}
+                onClick={handleConfirmDeleteUser}
+                className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black text-xs rounded-xl shadow-lg shadow-rose-900/20 cursor-pointer disabled:opacity-40 transition flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                {isDeleting ? 'Procesando...' : 'Confirmar Baja y Registrar Auditoría'}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* VISTA Y MODAL: FICHA OFICIAL DE BIENVENIDA Y CREDENCIALES IMPRIMIBLE / ENVIABLE */}
       {createdUserVoucher && (
