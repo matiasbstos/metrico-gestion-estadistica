@@ -4,33 +4,35 @@ import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { 
   Users, UserPlus, Shield, ShieldAlert, Lock, Unlock, Trash2, Edit3, Check, X, Clock, Eye, Activity,
-  BarChart2, GitCompare, Calendar, Award, UserCheck, FileSpreadsheet, Database, ArrowLeftRight
+  BarChart2, GitCompare, Calendar, Award, UserCheck, FileSpreadsheet, Database, ArrowLeftRight, ArrowLeft,
+  CheckCircle2, AlertCircle
 } from 'lucide-react';
 import { firebaseConfig, appId } from '../../config/firebase';
 
 const MODULE_LIST = [
-  { id: 'resumen', name: 'Inicio / Resumen General', icon: BarChart2, color: 'text-indigo-500' },
-  { id: 'comparativo', name: 'Rendimiento Turno', icon: GitCompare, color: 'text-emerald-500' },
-  { id: 'calendario', name: 'Histórico Mensual', icon: Calendar, color: 'text-blue-500' },
-  { id: 'profesionales', name: 'Rendimiento Clínico', icon: Award, color: 'text-amber-500' },
-  { id: 'perfil_paciente', name: 'Perfil del Paciente', icon: Users, color: 'text-purple-500' },
-  { id: 'altas', name: 'Altas Administrativas', icon: UserCheck, color: 'text-rose-500' },
-  { id: 'fracturas', name: 'Estadísticas de Fractura', icon: Activity, color: 'text-rose-500' },
-  { id: 'enfermeria', name: 'Rendimiento Enfermería', icon: Activity, color: 'text-indigo-500' },
-  { id: 'constataciones', name: 'Constatación de Lesiones', icon: ShieldAlert, color: 'text-amber-500' },
-  { id: 'traslados', name: 'Traslados Hospitalarios', icon: ArrowLeftRight, color: 'text-indigo-500' },
-  { id: 'reportes', name: 'Reporte Ejecutivo', icon: FileSpreadsheet, color: 'text-emerald-500' },
-  { id: 'data', name: 'Gestión de Datos', icon: Database, color: 'text-teal-500' },
-  { id: 'auditoria', name: 'Registro de Auditoría', icon: Shield, color: 'text-indigo-500' }
+  { id: 'resumen', name: 'Inicio / Resumen General', description: 'Acceso al dashboard principal y tarjetas de KPIs globales.', icon: BarChart2, color: 'text-indigo-500' },
+  { id: 'comparativo', name: 'Rendimiento Turno', description: 'Comparativa tripartita de turnos y curvas de demanda.', icon: GitCompare, color: 'text-emerald-500' },
+  { id: 'calendario', name: 'Histórico Mensual', description: 'Cuadrícula mensual de turnos y mapa de calor de atenciones.', icon: Calendar, color: 'text-blue-500' },
+  { id: 'profesionales', name: 'Rendimiento Clínico', description: 'Auditoría de médicos, promedio de atenciones y prescripción.', icon: Award, color: 'text-amber-500' },
+  { id: 'perfil_paciente', name: 'Perfil del Paciente', description: 'Análisis sociodemográfico y procedencia por comuna.', icon: Users, color: 'text-purple-500' },
+  { id: 'altas', name: 'Altas Administrativas', description: 'Filtro y auditoría de cancelaciones no médicas en triaje.', icon: UserCheck, color: 'text-rose-500' },
+  { id: 'fracturas', name: 'Estadísticas de Fractura', description: 'Epidemiología ósea de lesiones CIE-10 (S02 a S92).', icon: Activity, color: 'text-rose-500' },
+  { id: 'enfermeria', name: 'Rendimiento Enfermería', description: 'Evaluación de categorización de triaje y enfermeros.', icon: Activity, color: 'text-indigo-500' },
+  { id: 'constataciones', name: 'Constatación de Lesiones', description: 'Análisis de atenciones clínico-legales Z51.8 y Z04.', icon: ShieldAlert, color: 'text-amber-500' },
+  { id: 'traslados', name: 'Traslados Hospitalarios', description: 'Derivaciones a centros de alta complejidad y Top 10.', icon: ArrowLeftRight, color: 'text-indigo-500' },
+  { id: 'reportes', name: 'Reporte Ejecutivo', description: 'Generación de informes ejecutivos e impresiones PDF.', icon: FileSpreadsheet, color: 'text-emerald-500' },
+  { id: 'data', name: 'Gestión de Datos', description: 'Carga masiva de Excel, sanitización y re-cálculo.', icon: Database, color: 'text-teal-500' },
+  { id: 'auditoria', name: 'Registro de Auditoría', description: 'Historial de modificaciones y acciones del sistema.', icon: Shield, color: 'text-indigo-500' }
 ];
 
 export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Modales
+  // Modales y Vistas
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingUserPerms, setEditingUserPerms] = useState(null);
+  const [savingNotif, setSavingNotif] = useState(null); // Notificación central
 
   // Formulario nuevo usuario
   const [newEmail, setNewEmail] = useState('');
@@ -116,7 +118,6 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
       await setDoc(userDocRef, newUserData);
       await logAuditAction('Carga Usuario', `Creado nuevo usuario "${newEmail}" con rol ${newRol.toUpperCase()}`);
 
-      // Resetear campos y cerrar modal
       setNewEmail('');
       setNewPassword('');
       setNewName('');
@@ -137,12 +138,13 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
   // Cambiar Estado (Bloquear / Desbloquear)
   const handleToggleBlockUser = async (user) => {
     const nuevoEstado = user.estado === 'bloqueado' ? 'activo' : 'bloqueado';
+    const targetEmail = user.email || user.id;
     try {
       const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', user.id);
       await updateDoc(userRef, { estado: nuevoEstado });
       await logAuditAction(
-        nuevoEstado === 'bloqueado' ? 'Edición Usuario' : 'Edición Usuario',
-        `Estado de usuario "${user.email}" cambiado a ${nuevoEstado.toUpperCase()}`
+        'Edición Usuario',
+        `Estado de usuario "${targetEmail}" cambiado a ${nuevoEstado.toUpperCase()}`
       );
     } catch (err) {
       console.error('Error al cambiar estado de usuario:', err);
@@ -151,29 +153,49 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
 
   // Eliminar Perfil de Firestore
   const handleDeleteUser = async (user) => {
-    if (!window.confirm(`¿Está seguro de eliminar el perfil de usuario "${user.email}"?`)) return;
+    const targetEmail = user.email || user.id;
+    if (!window.confirm(`¿Está seguro de eliminar el perfil de usuario "${targetEmail}"?`)) return;
     try {
       const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', user.id);
       await deleteDoc(userRef);
-      await logAuditAction('Eliminación Usuario', `Eliminado perfil de usuario "${user.email}"`);
+      await logAuditAction('Eliminación Usuario', `Eliminado perfil de usuario "${targetEmail}"`);
     } catch (err) {
       console.error('Error al eliminar usuario:', err);
     }
   };
 
-  // Guardar Cambios de Permisos
+  // Guardar Cambios de Permisos con Notificación Central y Registro de Auditoría
   const handleSavePermissions = async () => {
     if (!editingUserPerms) return;
+    const targetIdentifier = editingUserPerms.email || editingUserPerms.nombre || editingUserPerms.id;
+    
+    // 1. Mostrar notificación central de guardado
+    setSavingNotif({ type: 'loading', text: 'Guardando configuración de permisos en Firebase y registrando auditoría...' });
+
     try {
       const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', editingUserPerms.id);
       await updateDoc(userRef, {
         permisos: editingUserPerms.permisos,
         rol: editingUserPerms.rol
       });
-      await logAuditAction('Edición Permisos', `Actualizados permisos y rol de usuario "${editingUserPerms.email}"`);
-      setEditingUserPerms(null);
+
+      // 2. Registrar en auditoría
+      await logAuditAction(
+        'Edición Permisos', 
+        `Actualizada matriz de permisos y rol de usuario "${targetIdentifier}" (Rol: ${editingUserPerms.rol.toUpperCase()})`
+      );
+
+      // 3. Notificación de éxito
+      setSavingNotif({ type: 'success', text: '¡Permisos actualizados y registrados en la auditoría con éxito!' });
+
+      setTimeout(() => {
+        setSavingNotif(null);
+        setEditingUserPerms(null);
+      }, 1500);
     } catch (err) {
       console.error('Error al actualizar permisos:', err);
+      setSavingNotif({ type: 'error', text: 'Error al guardar permisos: ' + (err.message || 'Intente nuevamente') });
+      setTimeout(() => setSavingNotif(null), 3000);
     }
   };
 
@@ -184,6 +206,208 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
     return `${d.toLocaleDateString('es-CL')} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   };
 
+  // VISTA 2: CONFIGURACIÓN COMPLETA DE PERMISOS (PANEL COMPLETO ANCHO & FONDO BLANCO)
+  if (editingUserPerms) {
+    const userIdentifier = editingUserPerms.email || editingUserPerms.nombre || editingUserPerms.id;
+
+    return (
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col h-full theme-transition relative">
+        
+        {/* NOTIFICACIÓN CENTRAL AL GUARDAR */}
+        {savingNotif && (
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-4 animate-fade-in">
+              {savingNotif.type === 'loading' ? (
+                <div className="w-14 h-14 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto" />
+              ) : savingNotif.type === 'success' ? (
+                <div className="w-14 h-14 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+              ) : (
+                <div className="w-14 h-14 bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center mx-auto border border-rose-500/20">
+                  <AlertCircle className="w-8 h-8" />
+                </div>
+              )}
+              
+              <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-wide">
+                {savingNotif.type === 'loading' ? 'Guardando...' : savingNotif.type === 'success' ? '¡Éxito!' : 'Error'}
+              </h3>
+
+              <p className="text-xs font-bold text-slate-600 dark:text-slate-300 leading-relaxed">
+                {savingNotif.text}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* BARRA SUPERIOR DE NAVEGACIÓN Y ACCIONES */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setEditingUserPerms(null)}
+              className="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl transition cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+              title="Volver a la lista de usuarios"
+            >
+              <ArrowLeft className="w-4 h-4" /> Volver
+            </button>
+            <div>
+              <h2 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-wide flex items-center gap-2">
+                <Shield className="w-5 h-5 text-indigo-600" />
+                Matriz de Permisos y Credenciales
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                Usuario en edición: <strong className="text-indigo-600 dark:text-indigo-400 font-black">{userIdentifier}</strong>
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setEditingUserPerms(null)}
+              className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition cursor-pointer"
+            >
+              Volver
+            </button>
+            <button
+              onClick={handleSavePermissions}
+              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-xs font-black rounded-xl shadow-lg shadow-indigo-900/20 transition cursor-pointer flex items-center gap-2"
+            >
+              <Check className="w-4 h-4" /> Guardar Permisos
+            </button>
+          </div>
+        </div>
+
+        {/* CONTENIDO PRINCIPAL: ANCHO COMPLETO Y FONDO BLANCO */}
+        <div className="flex-1 overflow-auto space-y-6 pr-1 custom-scrollbar">
+          
+          {/* Fila 1: Configuración de Rol de Usuario */}
+          <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 block mb-1">Configuración de Rol</span>
+              <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                El rol determina la jerarquía del usuario en el sistema. Los administradores globales pueden modificar usuarios y planillas.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-200">Rol Asignado:</label>
+              <select
+                value={editingUserPerms.rol || 'local'}
+                onChange={e => setEditingUserPerms({ ...editingUserPerms, rol: e.target.value })}
+                className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 shadow-sm cursor-pointer"
+              >
+                <option value="local">Usuario Local (SAR Elsa Romo)</option>
+                <option value="global">Administrador Global</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Fila 2: Cabecera de Módulos y Botones de Selección Rápida */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div>
+              <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                <Activity className="w-4 h-4 text-indigo-600" />
+                Módulos y Funcionalidades Disponibles ({MODULE_LIST.length} Módulos)
+              </h3>
+              <p className="text-[11px] text-slate-500 font-semibold mt-0.5">
+                Marque los módulos que este usuario tendrá habilitados en su barra lateral.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  const allTrue = MODULE_LIST.reduce((acc, m) => ({ ...acc, [m.id]: true }), {});
+                  setEditingUserPerms({ ...editingUserPerms, permisos: allTrue });
+                }}
+                className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 text-xs font-black rounded-lg transition cursor-pointer"
+              >
+                ✓ Marcar Todos
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const allFalse = MODULE_LIST.reduce((acc, m) => ({ ...acc, [m.id]: false }), {});
+                  setEditingUserPerms({ ...editingUserPerms, permisos: allFalse });
+                }}
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-300 text-xs font-bold rounded-lg transition cursor-pointer"
+              >
+                ✕ Desmarcar Todos
+              </button>
+            </div>
+          </div>
+
+          {/* Fila 3: Grid Completo a 3 Columnas Amplias */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {MODULE_LIST.map(mod => {
+              const IconComponent = mod.icon;
+              const isChecked = editingUserPerms.permisos[mod.id] !== false;
+
+              return (
+                <div
+                  key={mod.id}
+                  onClick={() => {
+                    setEditingUserPerms({
+                      ...editingUserPerms,
+                      permisos: {
+                        ...editingUserPerms.permisos,
+                        [mod.id]: !isChecked
+                      }
+                    });
+                  }}
+                  className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start justify-between gap-4 ${
+                    isChecked 
+                      ? 'bg-white dark:bg-slate-800 border-indigo-500/50 shadow-md shadow-indigo-500/5 ring-1 ring-indigo-500/20' 
+                      : 'bg-slate-50/50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800 opacity-60'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`p-3 rounded-xl mt-0.5 ${isChecked ? 'bg-indigo-500/10 text-indigo-600' : 'bg-slate-200/50 dark:bg-slate-700/50 text-slate-400'}`}>
+                      <IconComponent className={`w-5 h-5 ${mod.color}`} />
+                    </div>
+                    <div>
+                      <span className="text-xs font-black text-slate-900 dark:text-white block">{mod.name}</span>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold leading-normal mt-0.5">{mod.description}</p>
+                      <span className={`inline-block text-[9px] font-black uppercase tracking-wider mt-2 px-2 py-0.5 rounded-md ${isChecked ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-500'}`}>
+                        {isChecked ? 'Habilitado' : 'Restringido'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => {}} // Evento manejado en la tarjeta
+                    className="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer mt-1 shrink-0"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* PIE DE PÁGINA INFERIOR DE ACCIONES */}
+        <div className="flex justify-between items-center pt-4 border-t border-slate-200 dark:border-slate-800 mt-4">
+          <button
+            onClick={() => setEditingUserPerms(null)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" /> Volver a Usuarios
+          </button>
+          
+          <button
+            onClick={handleSavePermissions}
+            className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-xs font-black rounded-xl shadow-lg shadow-indigo-900/20 transition cursor-pointer"
+          >
+            <Check className="w-4 h-4" /> Guardar Permisos
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // VISTA 1: TABLA PRINCIPAL DE USUARIOS
   return (
     <div className="bg-card-custom rounded-2xl shadow-sm border border-card-custom p-6 flex flex-col h-full theme-transition">
       {/* Encabezado Principal */}
@@ -401,93 +625,6 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL: MATRIZ DE PERMISOS Y ACCESOS */}
-      {editingUserPerms && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card-custom border border-card-custom rounded-2xl shadow-2xl p-6 max-w-xl w-full theme-transition animate-fade-in">
-            <div className="flex justify-between items-center mb-5 pb-3 border-b border-card-custom/30">
-              <div>
-                <h3 className="text-base font-black text-primary-custom uppercase tracking-wide flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-indigo-500" />
-                  Matriz de Permisos: {editingUserPerms.email || editingUserPerms.id || 'Usuario'}
-                </h3>
-                <p className="text-[10px] text-secondary-custom font-semibold mt-0.5">
-                  Seleccione los módulos visibles y las funcionalidades habilitadas para este usuario.
-                </p>
-              </div>
-              <button 
-                onClick={() => setEditingUserPerms(null)}
-                className="text-secondary-custom hover:text-primary-custom cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Selección de Rol */}
-            <div className="mb-5 p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-card-custom/30 flex items-center justify-between">
-              <span className="text-xs font-black text-primary-custom uppercase">Rol de Usuario:</span>
-              <select
-                value={editingUserPerms.rol || 'local'}
-                onChange={e => setEditingUserPerms({ ...editingUserPerms, rol: e.target.value })}
-                className="px-3 py-1.5 bg-input-custom border border-card-custom rounded-xl text-xs font-bold text-primary-custom"
-              >
-                <option value="local">Usuario Local</option>
-                <option value="global">Administrador Global</option>
-              </select>
-            </div>
-
-            {/* Grid de Checkboxes de Módulos */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-80 overflow-y-auto custom-scrollbar p-1 mb-6">
-              {MODULE_LIST.map(mod => {
-                const IconComponent = mod.icon;
-                const isChecked = editingUserPerms.permisos[mod.id] !== false;
-
-                return (
-                  <label
-                    key={mod.id}
-                    className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${isChecked ? 'bg-indigo-500/10 border-indigo-500/40 text-primary-custom font-bold' : 'bg-black/5 dark:bg-white/5 border-card-custom text-secondary-custom'}`}
-                  >
-                    <div className="flex items-center gap-2.5 truncate">
-                      <IconComponent className={`w-4 h-4 ${mod.color} shrink-0`} />
-                      <span className="text-xs font-bold truncate">{mod.name}</span>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={(e) => {
-                        setEditingUserPerms({
-                          ...editingUserPerms,
-                          permisos: {
-                            ...editingUserPerms.permisos,
-                            [mod.id]: e.target.checked
-                          }
-                        });
-                      }}
-                      className="w-4 h-4 text-indigo-600 rounded border-card-custom focus:ring-indigo-500 cursor-pointer"
-                    />
-                  </label>
-                );
-              })}
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4 border-t border-card-custom/30">
-              <button
-                onClick={() => setEditingUserPerms(null)}
-                className="px-4 py-2 bg-black/10 dark:bg-white/10 text-secondary-custom hover:text-primary-custom font-bold text-xs rounded-xl cursor-pointer"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSavePermissions}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-md cursor-pointer flex items-center gap-1.5"
-              >
-                <Check className="w-4 h-4" /> Guardar Permisos
-              </button>
-            </div>
           </div>
         </div>
       )}
