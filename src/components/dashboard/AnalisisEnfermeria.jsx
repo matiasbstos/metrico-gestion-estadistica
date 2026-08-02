@@ -187,8 +187,31 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
   const statsPorProfesional = useMemo(() => {
     const mapEnf = {};
 
+    const isInvalidNurseName = (name) => {
+      if (!name) return true;
+      const clean = String(name).trim().toUpperCase();
+      return (
+        clean === '' ||
+        clean === 'NO REGISTRADO' ||
+        clean === 'NO REGISTRADA' ||
+        clean === 'SIN ESPECIFICAR' ||
+        clean === 'SIN REGISTRO' ||
+        clean === 'NO ASIGNADO' ||
+        clean === 'S/R' ||
+        clean === 'NO ESPECIFICADO' ||
+        clean === 'SIN ENFERMERO' ||
+        clean === 'S/E' ||
+        clean === '-' ||
+        clean === 'N/A' ||
+        clean === 'UNDEFINED' ||
+        clean === 'NULL'
+      );
+    };
+
     pacientesFiltradosVista.forEach(p => {
-      const enf = p.enf1 !== 'No Registrado' ? p.enf1 : p.enfUlt;
+      const enf = p.enf1 && !isInvalidNurseName(p.enf1) ? p.enf1 : p.enfUlt;
+      if (isInvalidNurseName(enf)) return;
+
       if (!mapEnf[enf]) {
         mapEnf[enf] = {
           nombre: enf,
