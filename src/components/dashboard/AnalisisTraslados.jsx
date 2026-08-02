@@ -267,6 +267,33 @@ export default function AnalisisTraslados({
     };
   }, [pacientesTraslados]);
 
+  // Ranking Top 10 de Días y Turnos con mayor cantidad de traslados
+  const top10TurnosTraslados = useMemo(() => {
+    const counts = {};
+    const details = {};
+    const pacsGrouped = {};
+
+    pacientesTraslados.forEach(p => {
+      if (!p.tAdmision) return;
+      const det = obtenerTurnoDetallado(p.tAdmision);
+      const key = det.textoCompleto;
+      counts[key] = (counts[key] || 0) + 1;
+      details[key] = det;
+      if (!pacsGrouped[key]) pacsGrouped[key] = [];
+      pacsGrouped[key].push(p);
+    });
+
+    return Object.entries(counts)
+      .map(([key, count]) => ({
+        key,
+        count,
+        det: details[key],
+        pacientes: pacsGrouped[key]
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+  }, [pacientesTraslados]);
+
   const promedioDiarioTraslados = useMemo(() => {
     if (dailyDataA.length === 0) return 0;
     const total = dailyDataA.reduce((acc, d) => acc + d.count, 0);
@@ -665,6 +692,77 @@ export default function AnalisisTraslados({
             {prevYearStart ? `${prevYearStart.split('-').reverse().join('/')} al ${prevYearEnd.split('-').reverse().join('/')}` : 'Sin rango seleccionado'}
           </p>
         </div>
+      </div>
+
+      {/* SECCIÓN INTERACTIVA: TOP 10 DÍAS Y TURNOS CON MAYOR CANTIDAD DE TRASLADOS */}
+      <div className="bg-card-custom p-6 rounded-2xl border border-card-custom shadow-sm theme-transition">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-5 border-b border-card-custom/30 pb-3">
+          <div>
+            <h3 className="text-xs font-bold text-primary-custom uppercase tracking-wider flex items-center gap-2">
+              <Award className="w-4 h-4 text-amber-500" />
+              Top 10 Días y Turnos con Mayor Cantidad de Traslados
+            </h3>
+            <p className="text-[10px] text-secondary-custom font-medium mt-1">
+              Haz clic sobre cualquier turno para abrir el desglose completo de pacientes derivados en esa franja horaria.
+            </p>
+          </div>
+          <span className="text-[9px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-md uppercase tracking-wider shrink-0">
+            Ranking del Período
+          </span>
+        </div>
+
+        {top10TurnosTraslados.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+            {top10TurnosTraslados.map((item, idx) => {
+              const isFirst = idx === 0;
+              const isTop3 = idx < 3;
+              return (
+                <div
+                  key={idx}
+                  onClick={() => {
+                    setSelectedDetailPatients(item.pacientes);
+                    setDetailModalTitle(`Traslados - ${item.det.textoCompleto} (${item.count} pac.)`);
+                  }}
+                  className={`p-4 rounded-xl border transition-all duration-200 cursor-pointer flex flex-col justify-between group relative overflow-hidden ${
+                    isFirst
+                      ? 'bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent border-amber-500/40 hover:border-amber-500 shadow-md hover:shadow-amber-500/10 hover:-translate-y-0.5'
+                      : isTop3
+                      ? 'bg-gradient-to-br from-indigo-500/10 via-card-custom to-card-custom border-indigo-500/30 hover:border-indigo-500 shadow-sm hover:-translate-y-0.5'
+                      : 'bg-card-custom border-card-custom hover:border-indigo-500/60 hover:bg-black/5 dark:hover:bg-white/5 hover:-translate-y-0.5'
+                  }`}
+                >
+                  <ArrowUpRight className="absolute top-2.5 right-2.5 w-4 h-4 text-secondary-custom/30 group-hover:text-indigo-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200" />
+                  
+                  <div className="flex items-center justify-between gap-2 mb-2 pr-4">
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
+                      isFirst ? 'bg-amber-500 text-black font-black' : isTop3 ? 'bg-indigo-550 text-white font-bold' : 'bg-black/10 dark:bg-white/10 text-secondary-custom font-bold'
+                    }`}>
+                      #{idx + 1}
+                    </span>
+                    <span className="text-[10px] font-black text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-md whitespace-nowrap">
+                      {item.count} pac.
+                    </span>
+                  </div>
+
+                  <div>
+                    <div className="text-xs font-black text-primary-custom truncate" title={item.det.fechaTurno}>
+                      {item.det.fechaTurno}
+                    </div>
+                    <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 mt-0.5 truncate" title={`Turno ${item.det.turnoNum} (${item.det.tipo})`}>
+                      Turno {item.det.turnoNum} ({item.det.tipo})
+                    </div>
+                  </div>
+
+                  <div className="text-[9px] text-secondary-custom font-semibold mt-3 pt-2 border-t border-card-custom/20 truncate">
+                    🕒 {item.det.horario}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-xs text-secondary-custom text-center py-6">No se encontraron registros de traslados en el período seleccionado.</p>
+        )}
       </div>
 
       {/* SECCIÓN 2: DIAGNÓSTICOS Y SEXO */}
