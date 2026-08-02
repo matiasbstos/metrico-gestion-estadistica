@@ -483,7 +483,7 @@ export default function AnalisisTraslados({
     return pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
   }, [pacientesDB, localFechaInicio, localFechaFin]);
 
-  const summaryText = useMemo(() => generateTrasladosSummary(targetPacientes, prevYearPacs), [targetPacientes, prevYearPacs]);
+  const summaryText = useMemo(() => generateTrasladosSummary(pacientesTraslados, pacientesPrevYear), [pacientesTraslados, pacientesPrevYear]);
 
   return (
     <div className="space-y-6">
@@ -555,7 +555,7 @@ export default function AnalisisTraslados({
                 ) : (
                   <span className="text-secondary-custom">0.0%</span>
                 )}
-                <span className="text-secondary-custom opacity-70">vs 2025</span>
+                <span className="text-secondary-custom opacity-70">vs {prevYearStart ? prevYearStart.substring(0, 4) : 'año ant.'}</span>
               </div>
             ) : (
               <span className="text-[8px] font-bold text-secondary-custom/70">Sin comparación YoY</span>
@@ -643,18 +643,20 @@ export default function AnalisisTraslados({
           </p>
         </div>
 
-        {/* Tarjeta 6: Línea de Base Histórica 2025 */}
+        {/* Tarjeta 6: Línea de Base Histórica (Año Anterior YoY) */}
         <div 
           onClick={() => {
             const filtered = pacientesPrevYear.filter(isTraslado);
             setSelectedDetailPatients(filtered);
-            setDetailModalTitle(`Traslados Históricos Mismo Período 2025 (${filtered.length} pac.)`);
+            setDetailModalTitle(`Traslados Históricos Mismo Período ${prevYearStart ? prevYearStart.substring(0, 4) : 'Anterior'} (${filtered.length} pac.)`);
           }}
           className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-sm flex flex-col justify-between min-h-[140px] theme-transition relative overflow-hidden cursor-pointer hover:border-indigo-500 hover:-translate-y-0.5 hover:shadow-lg group"
         >
           <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-secondary-custom/40 group-hover:text-indigo-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200" />
           <div>
-            <span className="text-[9px] font-black text-secondary-custom tracking-wider uppercase opacity-85">PERÍODO 2025</span>
+            <span className="text-[9px] font-black text-secondary-custom tracking-wider uppercase opacity-85">
+              {prevYearStart ? `AÑO ${prevYearStart.substring(0, 4)} (YoY)` : 'PERÍODO ANTERIOR'}
+            </span>
             <div className="text-3xl font-black text-primary-custom mt-2 mb-1">
               {prevYearStart ? trasladosPrevYear : '-'}
             </div>
