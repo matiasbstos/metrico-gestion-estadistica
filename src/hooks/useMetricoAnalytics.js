@@ -11,19 +11,29 @@ const parseLocalDatetime = (dateStr, hourMinStr) => {
   return new Date(y, m - 1, d, h, min, 0).getTime();
 };
 
-const isPatientInWindow = (tAdmMs, startDayStr, endDayStr, startHourStr, endHourStr) => {
-  if (!tAdmMs) return false;
+export const getWindowRange = (startDayStr, endDayStr, startHourStr = '00:00', endHourStr = '23:59') => {
+  if (!startDayStr || !endDayStr) return null;
   const tStart = parseLocalDatetime(startDayStr, startHourStr || '00:00');
   let tEnd = parseLocalDatetime(endDayStr, endHourStr || '23:59');
-  if (isNaN(tStart) || isNaN(tEnd)) return false;
-  
+  if (isNaN(tStart) || isNaN(tEnd)) return null;
+
   if (startHourStr && endHourStr && startHourStr > endHourStr && startDayStr === endDayStr) {
     const endPlusOne = new Date(tEnd);
     endPlusOne.setDate(endPlusOne.getDate() + 1);
     tEnd = endPlusOne.getTime();
   }
-  
-  return tAdmMs >= tStart && tAdmMs <= tEnd;
+
+  return { start: tStart, end: tEnd };
+};
+
+export const isPatientInWindowRange = (tAdmMs, range) => {
+  if (!tAdmMs || !range) return false;
+  return tAdmMs >= range.start && tAdmMs <= range.end;
+};
+
+const isPatientInWindow = (tAdmMs, startDayStr, endDayStr, startHourStr, endHourStr) => {
+  const range = getWindowRange(startDayStr, endDayStr, startHourStr, endHourStr);
+  return isPatientInWindowRange(tAdmMs, range);
 };
 
 const isConstatacionLesion = (p) => {
@@ -50,8 +60,13 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     return Object.values(filtrosGlobales).some(val => val !== '' && val !== 'TODOS');
   }, [filtrosGlobales]);
 
+  const windowRange = useMemo(() => {
+    return getWindowRange(filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin);
+  }, [filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin]);
+
   const pacientesFiltrados = useMemo(() => {
-    let pacs = pacientesDB.filter(p => isPatientInWindow(p.tAdmision, filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin));
+    if (!windowRange) return [];
+    let pacs = pacientesDB.filter(p => isPatientInWindowRange(p.tAdmision, windowRange));
 
     if (hasGlobalFilters) {
       if (filtrosGlobales.sexo && filtrosGlobales.sexo !== 'TODOS') {
@@ -79,27 +94,45 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       }
     }
     return pacs;
-  }, [pacientesDB, filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin, filtrosGlobales, hasGlobalFilters]);
+  }, [pacientesDB, windowRange, filtrosGlobales, hasGlobalFilters]);
 
   const turnosFiltrados = useMemo(() => {
-    return turnosPorFecha.map(t => {
-      const pacs = pacientesFiltrados.filter(p => {
-        if (p.loteId === t.loteId) return true;
-        if (!p.tAdmision) return false;
+    if (!turnosPorFecha || turnosPorFecha.length === 0) return [];
+
+    const pacsByLote = new Map();
+    const pacsByShiftKey = new Map();
+
+    pacientesFiltrados.forEach(p => {
+      if (p.loteId) {
+        if (!pacsByLote.has(p.loteId)) pacsByLote.set(p.loteId, []);
+        pacsByLote.get(p.loteId).push(p);
+      }
+      if (p.tAdmision) {
         const pDateObj = new Date(p.tAdmision);
-        let pDateStr = formatLocalDate(p.tAdmision);
         const hours = pDateObj.getHours();
+        let pDateStr = formatLocalDate(p.tAdmision);
         if (hours < 8) {
-          const prev = new Date(p.tAdmision);
-          prev.setDate(prev.getDate() - 1);
-          pDateStr = formatLocalDate(prev.getTime());
+          pDateStr = formatLocalDate(p.tAdmision - 86400000);
         }
-        if (pDateStr !== t.fechaInicio) return false;
-        const tHorario = String(t.horario).toLowerCase();
-        const isNightT = tHorario.includes('noche') || tHorario.includes('17:00') || tHorario.includes('20:00');
         const isNightP = hours < 8 || hours >= 17;
-        return isNightT === isNightP;
-      });
+        const shiftKey = `${pDateStr}_${isNightP ? 'noche' : 'dia'}`;
+        if (!pacsByShiftKey.has(shiftKey)) pacsByShiftKey.set(shiftKey, []);
+        pacsByShiftKey.get(shiftKey).push(p);
+      }
+    });
+
+    return turnosPorFecha.map(t => {
+      const tHorario = String(t.horario || '').toLowerCase();
+      const isNightT = tHorario.includes('noche') || tHorario.includes('17:00') || tHorario.includes('20:00');
+      const shiftKey = `${t.fechaInicio}_${isNightT ? 'noche' : 'dia'}`;
+
+      let pacs = [];
+      if (t.loteId && pacsByLote.has(t.loteId)) {
+        pacs = pacsByLote.get(t.loteId);
+      } else if (pacsByShiftKey.has(shiftKey)) {
+        pacs = pacsByShiftKey.get(shiftKey);
+      }
+
       const pacsCount = pacs.length;
       const altasCount = pacs.filter(p => p.estado === 'Cancelada').length;
 
@@ -119,10 +152,13 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
         ...t,
         totalPacientes: pacsCount > 0 ? pacsCount : Number(t.totalPacientes || 0),
         altasAdmin: pacsCount > 0 ? altasCount : Number(t.altasAdmin || 0),
-        ...(pacsCount > 0 ? counts : {
-          c1: t.c1 || 0, c2: t.c2 || 0, c3: (t.c3 || 0) + (t.c3_z518 || 0), c3_z518: 0,
-          c4: t.c4 || 0, c5: t.c5 || 0, sincat: t.sincat || 0
-        })
+        c1: counts.c1,
+        c2: counts.c2,
+        c3: counts.c3,
+        c3_z518: counts.c3_z518,
+        c4: counts.c4,
+        c5: counts.c5,
+        pacientesList: pacs
       };
     });
   }, [turnosPorFecha, pacientesFiltrados]);

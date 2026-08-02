@@ -142,7 +142,7 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
     const mergeAndSetPacientes = () => {
       setPacientesDB(currentDocs);
       setPacientesLoaded(true);
-      if (currentDocs.length > 0) {
+      if (currentDocs.length > 0 && currentDocs.length <= 1500) {
         try { localStorage.setItem('metrico_cached_pacientes', JSON.stringify(currentDocs)); } catch (e) {}
       }
     };

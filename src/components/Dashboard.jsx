@@ -607,53 +607,81 @@ const DashboardContent = () => {
 
     return turnosFiltrados.slice().reverse().map(t => {
       const row = { name: t.fechaInicio === t.fechaFin ? t.fechaInicio : `${t.fechaInicio} - ${t.fechaFin}` };
-      const pacs = pacientesFiltrados.filter(p => {
-        if (p.loteId === t.loteId) return true;
-        if (!p.tAdmision) return false;
-        const pDateObj = new Date(p.tAdmision);
-        let pDateStr = formatLocalDate(p.tAdmision);
-        const hours = pDateObj.getHours();
-        if (hours < 8) {
-          const prev = new Date(p.tAdmision);
-          prev.setDate(prev.getDate() - 1);
-          pDateStr = formatLocalDate(prev.getTime());
+      const pacs = t.pacientesList || [];
+
+      let sumAdmCat = 0, countAdmCat = 0;
+      let sumCatAna = 0, countCatAna = 0;
+      let sumAnaAlt = 0, countAnaAlt = 0;
+      let sumAdmAlt = 0, countAdmAlt = 0;
+
+      let sexo_f = 0, sexo_m = 0;
+      let edad_0_14 = 0, edad_15_29 = 0, edad_30_59 = 0, edad_60_plus = 0;
+      let prev_fonasa = 0, prev_isapre = 0;
+      let com_melipilla = 0, com_otras = 0;
+      let nac_chilena = 0, nac_extranjera = 0;
+      let est_florencia = 0, est_boris = 0, est_elgueta = 0, est_otros = 0;
+
+      pacs.forEach(p => {
+        if (p.tAdmision && p.tCat1) { sumAdmCat += (p.tCat1 - p.tAdmision) / 60000; countAdmCat++; }
+        if (p.tCatUlt && p.tAnamnesis) { sumCatAna += (p.tAnamnesis - p.tCatUlt) / 60000; countCatAna++; }
+        if (p.tAnamnesis && p.tAlta) { sumAnaAlt += (p.tAlta - p.tAnamnesis) / 60000; countAnaAlt++; }
+        if (p.tAdmision && p.tAlta) { sumAdmAlt += (p.tAlta - p.tAdmision) / 60000; countAdmAlt++; }
+
+        const s = String(p.sexo || '').toUpperCase();
+        if (s.includes('F')) sexo_f++;
+        if (s.includes('M')) sexo_m++;
+
+        if (p.edad !== null && p.edad !== undefined && !isNaN(p.edad)) {
+          if (p.edad <= 14) edad_0_14++;
+          else if (p.edad <= 29) edad_15_29++;
+          else if (p.edad <= 59) edad_30_59++;
+          else edad_60_plus++;
         }
-        if (pDateStr !== t.fechaInicio) return false;
-        const tHorario = String(t.horario).toLowerCase();
-        const isNightT = tHorario.includes('noche') || tHorario.includes('17:00') || tHorario.includes('20:00');
-        const isNightP = hours < 8 || hours >= 17;
-        return isNightT === isNightP;
+
+        const prev = String(p.prevision || '').toUpperCase();
+        if (prev.includes('FONASA')) prev_fonasa++;
+        if (prev.includes('ISAPRE')) prev_isapre++;
+
+        const com = String(p.comuna || '').toUpperCase();
+        if (com === 'MELIPILLA') com_melipilla++;
+        else if (com) com_otras++;
+
+        const nac = String(p.nacionalidad || '').toUpperCase();
+        if (nac.includes('CHILEN')) nac_chilena++;
+        else if (nac) nac_extranjera++;
+
+        const est = String(p.establecimiento || '').toUpperCase();
+        if (est.includes('FLORENCIA')) est_florencia++;
+        else if (est.includes('BORIS')) est_boris++;
+        else if (est.includes('ELGUETA')) est_elgueta++;
+        else if (est) est_otros++;
       });
-      
+
+      row.tiempoAdmCat = countAdmCat > 0 ? Number((sumAdmCat / countAdmCat).toFixed(2)) : 0;
+      row.tiempoCatAna = countCatAna > 0 ? Number((sumCatAna / countCatAna).toFixed(2)) : 0;
+      row.tiempoAnaAlt = countAnaAlt > 0 ? Number((sumAnaAlt / countAnaAlt).toFixed(2)) : 0;
+      row.tiempoAdmAlt = countAdmAlt > 0 ? Number((sumAdmAlt / countAdmAlt).toFixed(2)) : 0;
+
+      row.sexo_f = sexo_f;
+      row.sexo_m = sexo_m;
+      row.edad_0_14 = edad_0_14;
+      row.edad_15_29 = edad_15_29;
+      row.edad_30_59 = edad_30_59;
+      row.edad_60_plus = edad_60_plus;
+      row.prev_fonasa = prev_fonasa;
+      row.prev_isapre = prev_isapre;
+      row.com_melipilla = com_melipilla;
+      row.com_otras = com_otras;
+      row.nac_chilena = nac_chilena;
+      row.nac_extranjera = nac_extranjera;
+      row.est_florencia = est_florencia;
+      row.est_boris = est_boris;
+      row.est_elgueta = est_elgueta;
+      row.est_otros = est_otros;
+
       allMetrics.forEach(m => {
-        if (['tiempoAdmCat', 'tiempoCatAna', 'tiempoAnaAlt', 'tiempoAdmAlt'].includes(m)) {
-          let sum = 0; let count = 0;
-          pacs.forEach(p => {
-            if (m === 'tiempoAdmCat' && p.tAdmision && p.tCat1) { sum += (p.tCat1 - p.tAdmision)/60000; count++; }
-            if (m === 'tiempoCatAna' && p.tCatUlt && p.tAnamnesis) { sum += (p.tAnamnesis - p.tCatUlt)/60000; count++; }
-            if (m === 'tiempoAnaAlt' && p.tAnamnesis && p.tAlta) { sum += (p.tAlta - p.tAnamnesis)/60000; count++; }
-            if (m === 'tiempoAdmAlt' && p.tAdmision && p.tAlta) { sum += (p.tAlta - p.tAdmision)/60000; count++; }
-          });
-          row[m] = count > 0 ? Number((sum / count).toFixed(2)) : 0;
-        } else if (METRIC_LABELS[m]) {
+        if (METRIC_LABELS[m]) {
           row[m] = Number(t[m] || 0);
-        } else {
-          if (m === 'sexo_f') row[m] = pacs.filter(p => String(p.sexo).toUpperCase().includes('F')).length;
-          else if (m === 'sexo_m') row[m] = pacs.filter(p => String(p.sexo).toUpperCase().includes('M')).length;
-          else if (m === 'edad_0_14') row[m] = pacs.filter(p => p.edad !== null && p.edad >= 0 && p.edad <= 14).length;
-          else if (m === 'edad_15_29') row[m] = pacs.filter(p => p.edad !== null && p.edad >= 15 && p.edad <= 29).length;
-          else if (m === 'edad_30_59') row[m] = pacs.filter(p => p.edad !== null && p.edad >= 30 && p.edad <= 59).length;
-          else if (m === 'edad_60_plus') row[m] = pacs.filter(p => p.edad !== null && p.edad >= 60).length;
-          else if (m === 'prev_fonasa') row[m] = pacs.filter(p => String(p.prevision).toUpperCase().includes('FONASA')).length;
-          else if (m === 'prev_isapre') row[m] = pacs.filter(p => String(p.prevision).toUpperCase().includes('ISAPRE')).length;
-          else if (m === 'com_melipilla') row[m] = pacs.filter(p => String(p.comuna).toUpperCase() === 'MELIPILLA').length;
-          else if (m === 'com_otras') row[m] = pacs.filter(p => p.comuna && String(p.comuna).toUpperCase() !== 'MELIPILLA').length;
-          else if (m === 'nac_chilena') row[m] = pacs.filter(p => String(p.nacionalidad).toUpperCase().includes('CHILEN')).length;
-          else if (m === 'nac_extranjera') row[m] = pacs.filter(p => p.nacionalidad && !String(p.nacionalidad).toUpperCase().includes('CHILEN')).length;
-          else if (m === 'est_florencia') row[m] = pacs.filter(p => String(p.establecimiento).toUpperCase().includes('FLORENCIA')).length;
-          else if (m === 'est_boris') row[m] = pacs.filter(p => String(p.establecimiento).toUpperCase().includes('BORIS')).length;
-          else if (m === 'est_elgueta') row[m] = pacs.filter(p => String(p.establecimiento).toUpperCase().includes('ELGUETA')).length;
-          else if (m === 'est_otros') row[m] = pacs.filter(p => p.establecimiento && !String(p.establecimiento).toUpperCase().match(/FLORENCIA|BORIS|ELGUETA/)).length;
         }
       });
 
