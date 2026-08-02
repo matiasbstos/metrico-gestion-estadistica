@@ -25,6 +25,7 @@ import AnalisisEnfermeria from './dashboard/AnalisisEnfermeria';
 import AnalisisConstataciones from './dashboard/AnalisisConstataciones';
 import AnalisisTraslados from './dashboard/AnalisisTraslados';
 import GestionUsuarios from './dashboard/GestionUsuarios';
+import ModalInactividad from './dashboard/ModalInactividad';
 import { formatLocalDate } from '../utils/helpers';
 import Login from './Login';
 import { 
@@ -732,7 +733,10 @@ const DashboardContent = () => {
     );
   }
 
-  const handleLogout = () => {
+  const handleLogout = (reason) => {
+    if (reason === 'inactividad') {
+      showNotif('La sesión se ha cerrado automáticamente por inactividad.', 'warning');
+    }
     import('firebase/auth').then(({ signOut }) => {
       signOut(auth);
     });
@@ -751,6 +755,9 @@ const DashboardContent = () => {
 
   return (
     <div className={`flex h-screen w-screen overflow-hidden bg-app-custom font-sans text-secondary-custom theme-transition theme-${tema}`}>
+      
+      {/* MODAL DE CONTROL DE INACTIVIDAD Y AUTO-LOGOUT */}
+      <ModalInactividad user={user} onLogout={handleLogout} />
       
       {/* OVERLAY FONDO OSCURO EN MÓVILES */}
       {!sidebarCollapsed && (
