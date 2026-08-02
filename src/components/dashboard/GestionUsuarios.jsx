@@ -220,15 +220,16 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
       const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', editingUserPerms.id);
       await updateDoc(userRef, {
         permisos: editingUserPerms.permisos,
-        rol: editingUserPerms.rol
+        rol: editingUserPerms.rol,
+        centro: editingUserPerms.centro || 'SAR Elsa Romo Aravena'
       });
 
       await logAuditAction(
         'Edición Permisos', 
-        `Actualizada matriz de permisos y rol de usuario "${targetIdentifier}" (Rol: ${editingUserPerms.rol.toUpperCase()})`
+        `Actualizados permisos, rol (${editingUserPerms.rol.toUpperCase()}) y centro (${editingUserPerms.centro || 'SAR Elsa Romo Aravena'}) de usuario "${targetIdentifier}"`
       );
 
-      setSavingNotif({ type: 'success', text: '¡Permisos actualizados y registrados en la auditoría con éxito!' });
+      setSavingNotif({ type: 'success', text: '¡Permisos y Centro Asignado actualizados con éxito!' });
 
       setTimeout(() => {
         setSavingNotif(null);
@@ -322,26 +323,49 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
         {/* CONTENIDO PRINCIPAL: ANCHO COMPLETO Y FONDO BLANCO */}
         <div className="flex-1 overflow-auto space-y-6 pr-1 custom-scrollbar">
           
-          {/* Fila 1: Configuración de Rol de Usuario */}
-          <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          {/* Fila 1: Configuración de Rol de Usuario y Recinto Asignado */}
+          <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
             <div>
-              <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 block mb-1">Configuración de Rol</span>
+              <span className="text-xs font-black uppercase text-slate-500 dark:text-slate-400 block mb-1">Jerarquía y Asignación de Recinto</span>
               <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
-                El rol determina la jerarquía del usuario en el sistema. Los administradores globales pueden modificar usuarios y planillas.
+                Defina el nivel de acceso del funcionario y el centro asistencial que administrará o visualizará en la plataforma.
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-200">Rol Asignado:</label>
-              <select
-                value={editingUserPerms.rol || 'local'}
-                onChange={e => setEditingUserPerms({ ...editingUserPerms, rol: e.target.value })}
-                className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 shadow-sm cursor-pointer"
-              >
-                <option value="global">🌐 Administrador Global General (Acceso Multicentro)</option>
-                <option value="admin_centro">🏥 Administrador Global de Centro (Exclusivo de Centro)</option>
-                <option value="local">👤 Usuario Local (Usuario Operativo de Centro)</option>
-              </select>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+              {/* Selector de Centro Asignado */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                  <Building2 className="w-3.5 h-3.5 text-indigo-600" /> Centro Asignado:
+                </label>
+                <select
+                  value={editingUserPerms.centro || 'SAR Elsa Romo Aravena'}
+                  onChange={e => setEditingUserPerms({ ...editingUserPerms, centro: e.target.value })}
+                  className="px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 shadow-sm cursor-pointer"
+                >
+                  <option value="SAR Elsa Romo Aravena">SAR Elsa Romo Aravena</option>
+                  <option value="CESFAM Florencia">CESFAM Florencia</option>
+                  <option value="CESFAM Boris Soler">CESFAM Boris Soler</option>
+                  <option value="CESFAM Elgueta">CESFAM Elgueta</option>
+                  <option value="Todos los Centros (Red Salud Cormumel)">Todos los Centros (Red Salud Cormumel)</option>
+                </select>
+              </div>
+
+              {/* Selector de Rol Asignado */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                  <Shield className="w-3.5 h-3.5 text-indigo-600" /> Rol Asignado:
+                </label>
+                <select
+                  value={editingUserPerms.rol || 'local'}
+                  onChange={e => setEditingUserPerms({ ...editingUserPerms, rol: e.target.value })}
+                  className="px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 shadow-sm cursor-pointer"
+                >
+                  <option value="global">Administrador Global General (Acceso Multicentro)</option>
+                  <option value="admin_centro">Administrador Global de Centro (Exclusivo de Centro)</option>
+                  <option value="local">Usuario Local (Usuario Operativo de Centro)</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -697,9 +721,9 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
                   onChange={e => setNewRol(e.target.value)}
                   className="w-full px-3 py-2 bg-input-custom border border-card-custom rounded-xl text-xs font-bold text-primary-custom focus:outline-none focus:border-indigo-500"
                 >
-                  <option value="global">🌐 Administrador Global General (Acceso Multicentro)</option>
-                  <option value="admin_centro">🏥 Administrador Global de Centro (Exclusivo de Centro)</option>
-                  <option value="local">👤 Usuario Local (Usuario Operativo de Centro)</option>
+                  <option value="global">Administrador Global General (Acceso Multicentro)</option>
+                  <option value="admin_centro">Administrador Global de Centro (Exclusivo de Centro)</option>
+                  <option value="local">Usuario Local (Usuario Operativo de Centro)</option>
                 </select>
               </div>
 
@@ -791,10 +815,10 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
                     <span className="text-[10px] font-black text-slate-400 uppercase block">Rol de Acceso Asignado</span>
                     <span className="text-xs font-black text-indigo-700 block mt-0.5">
                       {createdUserVoucher.rol === 'global' 
-                        ? '🌐 Administrador Global General (Acceso Multicentro a Toda la Red)' 
+                        ? 'Administrador Global General (Acceso Multicentro a Toda la Red)' 
                         : createdUserVoucher.rol === 'admin_centro'
-                        ? '🏥 Administrador Global de Centro (Gestión Exclusiva del Recinto)'
-                        : '👤 Usuario Local (Acceso Operativo de Centro)'}
+                        ? 'Administrador Global de Centro (Gestión Exclusiva del Recinto)'
+                        : 'Usuario Local (Acceso Operativo de Centro)'}
                     </span>
                   </div>
                 </div>
