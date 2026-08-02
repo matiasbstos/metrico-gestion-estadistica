@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Activity, FileSpreadsheet, X, Users, AlertTriangle } from 'lucide-react';
 
 const TEAM_COLORS = {
@@ -18,11 +18,38 @@ const TRIAGE_COLORS = {
   'C5': '#3b82f6'
 };
 
-export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
+export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [] }) {
   const [currentMonth, setCurrentMonth] = useState(() => {
+    if (turnosDB && turnosDB.length > 0) {
+      const validTurno = turnosDB.find(t => t.fechaInicio);
+      if (validTurno) {
+        const [y, m] = validTurno.fechaInicio.split('-').map(Number);
+        if (y && m) return new Date(y, m - 1, 1);
+      }
+    }
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
+
+  // Auto-ajustar al mes más reciente con turnos registrados si la vista actual no tiene turnos cargados
+  useEffect(() => {
+    if (turnosDB && turnosDB.length > 0) {
+      const year = currentMonth.getFullYear();
+      const monthStr = String(currentMonth.getMonth() + 1).padStart(2, '0');
+      const prefix = `${year}-${monthStr}`;
+      const hasTurnosInMonth = turnosDB.some(t => t.fechaInicio && t.fechaInicio.startsWith(prefix));
+      if (!hasTurnosInMonth) {
+        const latestTurno = turnosDB.find(t => t.fechaInicio);
+        if (latestTurno) {
+          const [y, m] = latestTurno.fechaInicio.split('-').map(Number);
+          if (y && m) {
+            setCurrentMonth(new Date(y, m - 1, 1));
+          }
+        }
+      }
+    }
+  }, [turnosDB]);
+
   const [selectedDay, setSelectedDay] = useState(null);
   const [customStartHour, setCustomStartHour] = useState('17:00');
   const [customEndHour, setCustomEndHour] = useState('08:00');
@@ -30,17 +57,19 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
   const [criterioVisualizacion, setCriterioVisualizacion] = useState('turno'); // 'turno' (por defecto) o 'tramo_24h' (00:00 a 23:59)
 
   const getStrictStats = (t) => {
+    const fallbackStats = {
+      total: Number(t.totalPacientes || 0),
+      altas: Number(t.altasAdmin || 0),
+      c1: Number(t.c1 || 0),
+      c2: Number(t.c2 || 0),
+      c3: Number(t.c3 || 0),
+      c3_z518: Number(t.c3_z518 || 0),
+      c4: Number(t.c4 || 0),
+      c5: Number(t.c5 || 0)
+    };
+
     if (!pacientesDB || pacientesDB.length === 0) {
-      return { 
-        total: t.totalPacientes, 
-        altas: t.altasAdmin, 
-        c1: t.c1 || 0, 
-        c2: t.c2 || 0, 
-        c3: t.c3 || 0, 
-        c3_z518: t.c3_z518 || 0, 
-        c4: t.c4 || 0, 
-        c5: t.c5 || 0 
-      };
+      return fallbackStats;
     }
     
     let startMs, endMs;
@@ -52,7 +81,6 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
     
     if (t.horario.includes('17:00')) {
       startMs = new Date(`${baseDateStr}T16:00:00-04:00`).getTime();
-      // Excepción: Si el turno empieza un viernes (day 5), termina a las 08:00 del sábado sin hora extra.
       const isFriday = baseD.getDay() === 5;
       const endHourStr = isFriday ? '08:00:00' : '09:00:00';
       endMs = new Date(`${nextDateStr}T${endHourStr}-04:00`).getTime();
@@ -63,19 +91,16 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
       startMs = new Date(`${baseDateStr}T19:00:00-04:00`).getTime();
       endMs = new Date(`${nextDateStr}T08:00:00-04:00`).getTime();
     } else {
-      return { 
-        total: t.totalPacientes, 
-        altas: t.altasAdmin, 
-        c1: t.c1 || 0, 
-        c2: t.c2 || 0, 
-        c3: t.c3 || 0, 
-        c3_z518: t.c3_z518 || 0, 
-        c4: t.c4 || 0, 
-        c5: t.c5 || 0 
-      };
+      return fallbackStats;
     }
     
     const inShift = pacientesDB.filter(p => p.tAdmision >= startMs && p.tAdmision <= endMs);
+    if (inShift.length === 0) {
+      // Si el conjunto pacientesDB no abarca la fecha de este turno (por un filtro global distinto),
+      // se utilizan las estadísticas pre-calculadas oficiales del turno en turnosDB.
+      return fallbackStats;
+    }
+
     const counts = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
     inShift.forEach(p => {
       if (counts[p.categoria] !== undefined) counts[p.categoria]++;
@@ -89,13 +114,29 @@ export default function CalendarioHistorico({ turnosDB, pacientesDB }) {
   };
 
   const get24hCivilStats = (dateStr) => {
-    if (!pacientesDB || pacientesDB.length === 0) return { total: 0, altas: 0, c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
+    const dayTurnos = turnosByDay[dateStr] || [];
+    const fallbackStats = {
+      total: dayTurnos.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0),
+      altas: dayTurnos.reduce((acc, t) => acc + Number(t.altasAdmin || 0), 0),
+      c1: dayTurnos.reduce((acc, t) => acc + Number(t.c1 || 0), 0),
+      c2: dayTurnos.reduce((acc, t) => acc + Number(t.c2 || 0), 0),
+      c3: dayTurnos.reduce((acc, t) => acc + Number(t.c3 || 0), 0),
+      c3_z518: dayTurnos.reduce((acc, t) => acc + Number(t.c3_z518 || 0), 0),
+      c4: dayTurnos.reduce((acc, t) => acc + Number(t.c4 || 0), 0),
+      c5: dayTurnos.reduce((acc, t) => acc + Number(t.c5 || 0), 0)
+    };
+
+    if (!pacientesDB || pacientesDB.length === 0) return fallbackStats;
     
     const [y, m, d] = dateStr.split('-').map(Number);
     const startMs = new Date(y, m - 1, d, 0, 0, 0).getTime();
     const endMs = new Date(y, m - 1, d, 23, 59, 59, 999).getTime();
     
     const inDay = pacientesDB.filter(p => p.tAdmision >= startMs && p.tAdmision <= endMs);
+    if (inDay.length === 0) {
+      return fallbackStats;
+    }
+
     const counts = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
     inDay.forEach(p => {
       if (counts[p.categoria] !== undefined) counts[p.categoria]++;
