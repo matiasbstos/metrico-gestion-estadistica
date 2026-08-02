@@ -73,16 +73,18 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
     let agresiones = 0;
     let mencionesPoliciales = 0;
 
-    targetPacientes.forEach(p => {
+    pacientesLesiones.forEach(p => {
       const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
       const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
       
-      const isZ51orZ04 = cod.includes('Z51') || cod.includes('Z04') || isConstatacionOficial(p);
-      if (isZ51orZ04) {
-        if (cod.includes('Z51') || diag.includes('LESIÓ') || diag.includes('LESION') || diag.includes('CONSTATAC')) lesionesDirectas++;
-        if (diag.includes('CIRCUNSTANCIAS LEGALES') || diag.includes('LEGAL')) circunstanciasLegales++;
-        if (diag.includes('AGRESIÓ') || diag.includes('AGRESION')) agresiones++;
-        if (diag.includes('POLICIAL') || diag.includes('CARABINERO') || diag.includes('PDI') || cod.includes('Z04')) mencionesPoliciales++;
+      if (diag.includes('CIRCUNSTANCIAS LEGALES') || diag.includes('LEGAL')) {
+        circunstanciasLegales++;
+      } else if (diag.includes('AGRESIÓ') || diag.includes('AGRESION') || diag.includes('VIOLENCIA')) {
+        agresiones++;
+      } else if (diag.includes('POLICIAL') || diag.includes('CARABINERO') || diag.includes('PDI') || cod.includes('Z04')) {
+        mencionesPoliciales++;
+      } else {
+        lesionesDirectas++;
       }
     });
 
@@ -92,7 +94,7 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
       agresiones,
       mencionesPoliciales
     };
-  }, [targetPacientes]);
+  }, [pacientesLesiones]);
 
   // Conteo de conciliación de códigos CIE-10 (Z51.8, Z518, Z04 y Glosas)
   const desgloseCodigosCIE10 = useMemo(() => {
