@@ -71,11 +71,11 @@ export const generateFracturasSummary = (pacs) => {
   if (!pacs || pacs.length === 0) return 'Sin registros suficientes para generar análisis de estadísticas de fracturas.';
   
   const total = pacs.length;
-  // Identificar fracturas
+  // Identificar exclusivamente fracturas óseas
   const listFracturas = pacs.filter(p => {
-    const cod = String(p.codigoDiagnostico || '').toUpperCase();
-    const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
-    return cod.startsWith('S') && (diag.includes('FRACTURA') || diag.includes('FRAC') || diag.includes('ESGUINCE') || diag.includes('TORCEDURA') || diag.includes('LUXACION'));
+    const cod = String(p.codigoDiagnostico || '').trim().toUpperCase();
+    const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').trim().toUpperCase();
+    return diag.includes('FRACTURA') || cod.includes('FRACTURA');
   });
   const totalFracturas = listFracturas.length;
   const pct = formatPct(totalFracturas, total);
@@ -91,16 +91,21 @@ export const generateFracturasSummary = (pacs) => {
     ? sortedDiags.map(([name, count]) => `"${name}" (${count} casos)`).join(' y ')
     : 'diagnósticos no especificados';
 
-  // Destino más frecuente de fracturas
+  // Destino más frecuente de fracturas (categorizado)
   const destCounts = {};
   listFracturas.forEach(p => {
-    const dest = p.destinoAlta || p.destino || 'Sin Especificar';
-    destCounts[dest] = (destCounts[dest] || 0) + 1;
+    const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
+    let cat = 'Otro Centro';
+    if (dest.includes('hospital') || dest.includes('emergencia') || dest.includes('derivac')) cat = 'Hospital / UEH (Atención Secundaria)';
+    else if (dest.includes('domicilio') || dest.includes('alta') || dest.includes('ambulatorio')) cat = 'Domicilio (Alta Ambulatoria)';
+    else if (!dest || dest === 'sin especificar') cat = 'Sin Registro';
+
+    destCounts[cat] = (destCounts[cat] || 0) + 1;
   });
   const sortedDests = Object.entries(destCounts).sort((a,b) => b[1] - a[1])[0];
   const topDestText = sortedDests ? `${sortedDests[0]} (${formatPct(sortedDests[1], totalFracturas)}% de los casos)` : 'Sin especificar';
 
-  return `Se identificó un total de ${totalFracturas} casos de fracturas y lesiones osteomusculares, que equivalen al ${pct}% de las admisiones totales del periodo. Las lesiones de mayor incidencia clínica corresponden a: ${topDiagsText}. El principal destino de resolución o derivación para estos pacientes fue ${topDestText}, reflejando la capacidad resolutiva local o la necesidad de traslado a centros de mayor complejidad según gravedad.`;
+  return `Se identificó un total de ${totalFracturas} casos de fracturas óseas, que equivalen al ${pct}% de las admisiones totales del periodo. Las lesiones de mayor incidencia clínica corresponden a: ${topDiagsText}. El principal destino de resolución o derivación para estos pacientes fue ${topDestText}, reflejando la necesidad de traslado a centros de mayor complejidad o la resolución ambulatoria según la severidad del trauma.`;
 };
 
 export const generateEnfermeriaSummary = (pacs) => {
