@@ -2,6 +2,28 @@
 
 const formatPct = (val, tot) => tot > 0 ? ((val / tot) * 100).toFixed(1) : '0.0';
 
+const isInvalidDoctorName = (name) => {
+  if (!name) return true;
+  const clean = String(name).trim().toUpperCase();
+  return (
+    clean === '' ||
+    clean === 'NO REGISTRADO' ||
+    clean === 'NO REGISTRADA' ||
+    clean === 'SIN ESPECIFICAR' ||
+    clean === 'SIN REGISTRO' ||
+    clean === 'NO ASIGNADO' ||
+    clean === 'S/R' ||
+    clean === 'NO ESPECIFICADO' ||
+    clean === 'SIN MEDICO' ||
+    clean === 'SIN MÉDICO' ||
+    clean === 'S/M' ||
+    clean === '-' ||
+    clean === 'N/A' ||
+    clean === 'UNDEFINED' ||
+    clean === 'NULL'
+  );
+};
+
 export const generateAltasSummary = (pacs) => {
   if (!pacs || pacs.length === 0) return 'Sin registros suficientes para generar análisis de altas administrativas.';
   const total = pacs.length;
@@ -11,14 +33,25 @@ export const generateAltasSummary = (pacs) => {
 
   // Médicos con más altas
   const medCounts = {};
+  let sinMedicoCount = 0;
   altas.forEach(p => {
-    const med = p.medico || 'Sin Especificar';
-    medCounts[med] = (medCounts[med] || 0) + 1;
+    const med = p.medico || p.profesional || '';
+    if (!isInvalidDoctorName(med)) {
+      const cleanName = med.trim();
+      medCounts[cleanName] = (medCounts[cleanName] || 0) + 1;
+    } else {
+      sinMedicoCount++;
+    }
   });
   const sortedMed = Object.entries(medCounts).sort((a,b) => b[1] - a[1]).slice(0, 2);
-  const topMedsText = sortedMed.length > 0
-    ? sortedMed.map(([name, count]) => `${name} (${count} altas)`).join(' y ')
-    : 'médicos no especificados';
+
+  let medText = '';
+  if (sortedMed.length > 0) {
+    const topMedsStr = sortedMed.map(([name, count]) => `${name} (${count} altas)`).join(' y ');
+    medText = `Los profesionales médicos con mayor registro de altas indicadas corresponden a: ${topMedsStr}${sinMedicoCount > 0 ? ` (${sinMedicoCount} en fase previa sin médico asignado)` : ''}.`;
+  } else {
+    medText = `La totalidad de estas atenciones fueron canceladas durante la fase previa a la evaluación médica (sin médico asignado en sala de espera o triaje).`;
+  }
 
   // Estadía promedio de las altas
   let sumEstadia = 0, countEstadia = 0;
@@ -30,7 +63,7 @@ export const generateAltasSummary = (pacs) => {
   });
   const avgEstadia = countEstadia > 0 ? Math.round(sumEstadia / countEstadia) : 0;
 
-  return `Durante el período consultado, se registraron un total de ${totalAltas} altas administrativas de un universo de ${total} admisiones, lo que representa una tasa de representatividad del ${pct}%. Los profesionales médicos con mayor cantidad de altas indicadas corresponden a: ${topMedsText}. La estadía promedio de estos pacientes fue de ${avgEstadia} minutos, demostrando un flujo de resolución administrativa rápido y eficiente.`;
+  return `Durante el período consultado, se registraron un total de ${totalAltas} altas administrativas de un universo de ${total} admisiones, lo que representa una tasa de representatividad del ${pct}%. ${medText} La estadía promedio de estos pacientes fue de ${avgEstadia} minutos, demostrando un flujo de resolución administrativa rápido y eficiente.`;
 };
 
 export const generateFracturasSummary = (pacs) => {
@@ -95,11 +128,14 @@ export const generateEnfermeriaSummary = (pacs) => {
   // Enfermero con mayor cantidad de atenciones
   const enfCounts = {};
   pacs.forEach(p => {
-    const enf = p.enfermeroCat1 || p.enfermeroCatUlt || 'Sin Especificar';
-    if (enf !== 'Sin Especificar') enfCounts[enf] = (enfCounts[enf] || 0) + 1;
+    const enf = p.enfermeroCat1 || p.enfermeroCatUlt || '';
+    if (!isInvalidDoctorName(enf)) {
+      const cleanEnf = enf.trim();
+      enfCounts[cleanEnf] = (enfCounts[cleanEnf] || 0) + 1;
+    }
   });
   const sortedEnf = Object.entries(enfCounts).sort((a,b) => b[1] - a[1])[0];
-  const topEnfText = sortedEnf ? `${sortedEnf[0]} (${sortedEnf[1]} categorizaciones)` : 'Sin especificar';
+  const topEnfText = sortedEnf ? `el/la profesional ${sortedEnf[0]} (${sortedEnf[1]} categorizaciones)` : 'profesionales con registro asistencial no especificativo';
 
   return `El análisis de triaje y enfermería registra un tiempo promedio de admisión a primera categorización de ${avgMinCat1} minutos, situándose dentro de los estándares óptimos de respuesta asistencial. Del total de ${total} pacientes evaluados, un ${pctReCat}% requirió re-categorización clínica. El profesional con mayor nivel de actividad y categorizaciones en el periodo fue ${topEnfText}.`;
 };
