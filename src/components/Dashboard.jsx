@@ -159,9 +159,17 @@ const DashboardContent = () => {
     }
   }, [turnosDB, hasAutoSelectedDate]);
 
-  const isGlobalAdmin = useMemo(() => {
+  const isSuperAdmin = useMemo(() => {
     return user?.email === 'matias.bustos@cormumel.cl' || userProfile?.rol === 'global';
   }, [user, userProfile]);
+
+  const isCenterAdmin = useMemo(() => {
+    return userProfile?.rol === 'admin_centro';
+  }, [userProfile]);
+
+  const isGlobalAdmin = useMemo(() => {
+    return isSuperAdmin || isCenterAdmin;
+  }, [isSuperAdmin, isCenterAdmin]);
 
   const maxDateLabel = useMemo(() => {
     if (!pacientesDB || pacientesDB.length === 0) return '';
@@ -809,14 +817,16 @@ const DashboardContent = () => {
               <div className="animate-fade-in w-full">
                 <label className="block text-[8px] font-black text-secondary-custom uppercase tracking-wider mb-1.5 opacity-60">Centro Activo</label>
                 <select 
-                  className="bg-input-custom text-primary-custom text-xs p-2.5 rounded-xl border border-card-custom outline-none w-full font-bold cursor-pointer transition-all focus:bg-card-custom"
-                  value={centroActivo} 
+                  className="bg-input-custom text-primary-custom text-xs p-2.5 rounded-xl border border-card-custom outline-none w-full font-bold cursor-pointer transition-all focus:bg-card-custom disabled:opacity-60 disabled:cursor-not-allowed"
+                  value={!isSuperAdmin && userProfile?.centro ? userProfile.centro : centroActivo} 
+                  disabled={!isSuperAdmin && !!userProfile?.centro}
                   onChange={e => setCentroActivo(e.target.value)}
                 >
                   <option value="SAR Elsa Romo Aravena">SAR Elsa Romo Aravena</option>
                   <option value="CESFAM Florencia">CESFAM Florencia</option>
                   <option value="CESFAM Boris Soler">CESFAM Boris Soler</option>
                   <option value="CESFAM Elgueta">CESFAM Elgueta</option>
+                  <option value="Todos los Centros (Red Salud Cormumel)">Todos los Centros (Red Salud Cormumel)</option>
                 </select>
               </div>
             )}
@@ -1085,7 +1095,9 @@ const DashboardContent = () => {
             <>
               <div className="mb-4 px-2 animate-fade-in">
                 <p className="text-xs font-bold text-primary-custom truncate" title={user.email}>{user.email}</p>
-                <p className="text-[10px] accent-text-custom font-medium uppercase mt-0.5">{isGlobalAdmin ? 'Administrador Global' : 'Usuario Local'}</p>
+                <p className="text-[10px] accent-text-custom font-black uppercase mt-0.5">
+                  {isSuperAdmin ? 'Admin. Global General' : isCenterAdmin ? 'Admin. Global de Centro' : 'Usuario Local'}
+                </p>
               </div>
               <button onClick={handlePasswordResetRequest} className="flex items-center gap-3 px-4 py-2 text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5 rounded-lg font-medium text-xs transition-all w-full mb-1">
                 <Lock className="w-3.5 h-3.5" /> Cambiar Clave

@@ -338,8 +338,9 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
                 onChange={e => setEditingUserPerms({ ...editingUserPerms, rol: e.target.value })}
                 className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-800 dark:text-white focus:outline-none focus:border-indigo-500 shadow-sm cursor-pointer"
               >
-                <option value="local">Usuario Local (SAR Elsa Romo)</option>
-                <option value="global">Administrador Global</option>
+                <option value="global">🌐 Administrador Global General (Acceso Multicentro)</option>
+                <option value="admin_centro">🏥 Administrador Global de Centro (Exclusivo de Centro)</option>
+                <option value="local">👤 Usuario Local (Usuario Operativo de Centro)</option>
               </select>
             </div>
           </div>
@@ -504,7 +505,8 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
               users.map(u => {
                 const isBlocked = u.estado === 'bloqueado';
                 const userEmail = String(u.email || u.id || 'Sin correo').trim();
-                const isGlobal = u.rol === 'global' || userEmail === 'matias.bustos@cormumel.cl';
+                const isSuperGlobal = u.rol === 'global' || userEmail === 'matias.bustos@cormumel.cl';
+                const isCenterAdmin = u.rol === 'admin_centro';
                 const userNombre = String(u.nombre || (userEmail.includes('@') ? userEmail.split('@')[0] : userEmail)).trim();
                 const avatarInitial = (userNombre || userEmail || 'U')[0].toUpperCase();
                 const userCentro = u.centro || 'SAR Elsa Romo Aravena';
@@ -531,8 +533,14 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
                     </td>
 
                     <td className="p-4">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${isGlobal ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'}`}>
-                        {isGlobal ? 'Administrador Global' : 'Usuario Local'}
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                        isSuperGlobal 
+                          ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' 
+                          : isCenterAdmin 
+                          ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20'
+                          : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                      }`}>
+                        {isSuperGlobal ? 'Admin. Global General' : isCenterAdmin ? 'Admin. Global de Centro' : 'Usuario Local'}
                       </span>
                     </td>
 
@@ -689,8 +697,9 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
                   onChange={e => setNewRol(e.target.value)}
                   className="w-full px-3 py-2 bg-input-custom border border-card-custom rounded-xl text-xs font-bold text-primary-custom focus:outline-none focus:border-indigo-500"
                 >
-                  <option value="local">Usuario Local (SAR Elsa Romo)</option>
-                  <option value="global">Administrador Global</option>
+                  <option value="global">🌐 Administrador Global General (Acceso Multicentro)</option>
+                  <option value="admin_centro">🏥 Administrador Global de Centro (Exclusivo de Centro)</option>
+                  <option value="local">👤 Usuario Local (Usuario Operativo de Centro)</option>
                 </select>
               </div>
 
@@ -776,6 +785,17 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
                   <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
                     <span className="text-[10px] font-black text-slate-400 uppercase block">Recinto / Centro Asignado</span>
                     <span className="text-xs font-black text-slate-900 block mt-0.5">{createdUserVoucher.centro}</span>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 sm:col-span-2">
+                    <span className="text-[10px] font-black text-slate-400 uppercase block">Rol de Acceso Asignado</span>
+                    <span className="text-xs font-black text-indigo-700 block mt-0.5">
+                      {createdUserVoucher.rol === 'global' 
+                        ? '🌐 Administrador Global General (Acceso Multicentro a Toda la Red)' 
+                        : createdUserVoucher.rol === 'admin_centro'
+                        ? '🏥 Administrador Global de Centro (Gestión Exclusiva del Recinto)'
+                        : '👤 Usuario Local (Acceso Operativo de Centro)'}
+                    </span>
                   </div>
                 </div>
               </div>
