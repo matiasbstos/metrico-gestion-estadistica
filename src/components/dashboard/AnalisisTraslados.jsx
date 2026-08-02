@@ -7,7 +7,7 @@ import {
   ComposedChart, Line, AreaChart, Area
 } from 'recharts';
 import * as XLSX from 'xlsx';
-import { obtenerTurnoDetallado } from '../../utils/helpers';
+import { obtenerTurnoDetallado, deduplicarPacientes } from '../../utils/helpers';
 import { generateTrasladosSummary } from '../../utils/summaryGenerator';
 
 export default function AnalisisTraslados({ 
@@ -68,9 +68,10 @@ export default function AnalisisTraslados({
     return dest.includes('hospital') || dest.includes('emergencia') || dest.includes('derivac');
   };
 
-  // 2. Filtrar pacientes de traslado
+  // 2. Filtrar y deduplicar pacientes de traslado (por Correlativo + Franja Horaria)
   const pacientesTraslados = useMemo(() => {
-    return targetPacientes.filter(isTraslado);
+    const raw = targetPacientes.filter(isTraslado);
+    return deduplicarPacientes(raw);
   }, [targetPacientes]);
 
   // 3. Filtrar dinámicamente por término de búsqueda (opcional para el listado)
@@ -112,9 +113,9 @@ export default function AnalisisTraslados({
     return list;
   };
 
-  // Datos diarios de traslados para Periodo A
+  // Datos diarios de traslados para Periodo A (usando pacientesTraslados desduplicados)
   const dailyDataA = useMemo(() => {
-    if (!pacientesDB || !localFechaInicio || !localFechaFin) return [];
+    if (!pacientesTraslados || !localFechaInicio || !localFechaFin) return [];
     const startMs = new Date(localFechaInicio + 'T00:00:00').getTime();
     const endMs = new Date(localFechaFin + 'T23:59:59').getTime();
 
@@ -122,9 +123,8 @@ export default function AnalisisTraslados({
     const counts = {};
     dateList.forEach(d => { counts[d] = 0; });
 
-    pacientesDB.forEach(p => {
+    pacientesTraslados.forEach(p => {
       if (!p.tAdmision || p.tAdmision < startMs || p.tAdmision > endMs) return;
-      if (!isTraslado(p)) return;
       const key = formatDate(p.tAdmision);
       if (counts[key] !== undefined) {
         counts[key]++;
@@ -135,9 +135,9 @@ export default function AnalisisTraslados({
       date,
       count: counts[date] || 0
     }));
-  }, [pacientesDB, localFechaInicio, localFechaFin]);
+  }, [pacientesTraslados, localFechaInicio, localFechaFin]);
 
-  // Datos diarios de traslados para Periodo B
+  // Datos diarios de traslados para Periodo B (con desduplicacion inteligente)
   const dailyDataB = useMemo(() => {
     if (!localModoComparativo || !pacientesDB || !localFechaInicioB || !localFechaFinB) return [];
     const startMs = new Date(localFechaInicioB + 'T00:00:00').getTime();
@@ -147,9 +147,10 @@ export default function AnalisisTraslados({
     const counts = {};
     dateList.forEach(d => { counts[d] = 0; });
 
-    pacientesDB.forEach(p => {
-      if (!p.tAdmision || p.tAdmision < startMs || p.tAdmision > endMs) return;
-      if (!isTraslado(p)) return;
+    const rawB = pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs && isTraslado(p));
+    const dedupB = deduplicarPacientes(rawB);
+
+    dedupB.forEach(p => {
       const key = formatDate(p.tAdmision);
       if (counts[key] !== undefined) {
         counts[key]++;
@@ -216,7 +217,8 @@ export default function AnalisisTraslados({
     if (kpisBigQuery && kpisBigQuery.prevYearValues) {
       return kpisBigQuery.prevYearValues.traslados || 0;
     }
-    return pacientesPrevYear.filter(isTraslado).length;
+    const rawPrev = pacientesPrevYear.filter(isTraslado);
+    return deduplicarPacientes(rawPrev).length;
   }, [pacientesPrevYear, kpisBigQuery]);
 
   const growthYOY = useMemo(() => {

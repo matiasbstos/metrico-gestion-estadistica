@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { formatLocalDate } from '../utils/helpers';
+import { formatLocalDate, deduplicarPacientes } from '../utils/helpers';
 
 const AGE_RANGES = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80+'];
 
@@ -353,9 +353,9 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     };
     const isConstatacion = isConstatacionLesion;
 
-    const currentTraslados = pacientesFiltrados.filter(isTraslado).length;
-    const pmTraslados = prevMonthPacientes.filter(isTraslado).length;
-    const pyTraslados = prevYearPacientes.filter(isTraslado).length;
+    const currentTraslados = deduplicarPacientes(pacientesFiltrados.filter(isTraslado)).length;
+    const pmTraslados = deduplicarPacientes(prevMonthPacientes.filter(isTraslado)).length;
+    const pyTraslados = deduplicarPacientes(prevYearPacientes.filter(isTraslado)).length;
 
     const currentConstataciones = pacientesFiltrados.filter(isConstatacion).length;
     const pmConstataciones = prevMonthPacientes.filter(isConstatacion).length;

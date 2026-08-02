@@ -83,3 +83,57 @@ export const formatLocalDate = (timestamp) => {
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 };
+
+/**
+ * Deduplica una lista de registros de pacientes/traslados asegurando que:
+ * 1. Coincidencias en correlativo + franja horaria / turno se identifiquen como duplicados y se conserve una sola instancia.
+ * 2. Si un paciente reingresa el mismo día en franjas horarias o turnos diferentes, se conserven sus atenciones legítimas.
+ */
+export const deduplicarPacientes = (pacientes) => {
+  if (!pacientes || !Array.isArray(pacientes) || pacientes.length === 0) return [];
+
+  const seenKeys = new Set();
+  const result = [];
+
+  pacientes.forEach(p => {
+    if (!p) return;
+
+    // 1. Extraer y normalizar correlativo / ID de atención
+    const rawCorr = p.correlativo || p.idPaciente || p.id || '';
+    const cleanCorr = String(rawCorr).trim().replace(/,/g, '').replace(/\.00$/, '');
+
+    // 2. Extraer franja horaria / turno de atención
+    let timeSlotKey = '';
+    if (p.tAdmision) {
+      const det = obtenerTurnoDetallado(p.tAdmision);
+      timeSlotKey = det.textoCompleto;
+    } else {
+      const fecha = String(p.fechaAdmision || p.fecha || '').trim();
+      const hora = String(p.horaAdmision || p.hora || '').trim();
+      timeSlotKey = `${fecha}_${hora}`;
+    }
+
+    // 3. Clave de desduplicación (Correlativo + Franja Horaria/Turno)
+    let dedupKey = '';
+    if (cleanCorr && cleanCorr !== '-' && cleanCorr !== '0' && cleanCorr !== 'null' && cleanCorr !== 'undefined') {
+      dedupKey = `${cleanCorr}_${timeSlotKey}`;
+    } else {
+      const rutOrName = String(p.rut || p.nombrePaciente || p.nombre || '').trim().toUpperCase();
+      const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').trim().toUpperCase();
+      if (rutOrName || diag) {
+        dedupKey = `ALT_${rutOrName}_${diag}_${timeSlotKey}`;
+      }
+    }
+
+    if (dedupKey) {
+      if (seenKeys.has(dedupKey)) {
+        return; // Registro duplicado en la misma franja horaria -> Omitir
+      }
+      seenKeys.add(dedupKey);
+    }
+
+    result.push(p);
+  });
+
+  return result;
+};
