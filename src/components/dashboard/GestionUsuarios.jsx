@@ -229,18 +229,21 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
             ) : (
               users.map(u => {
                 const isBlocked = u.estado === 'bloqueado';
-                const isGlobal = u.rol === 'global' || u.email === 'matias.bustos@cormumel.cl';
+                const userEmail = String(u.email || u.id || 'Sin correo').trim();
+                const isGlobal = u.rol === 'global' || userEmail === 'matias.bustos@cormumel.cl';
+                const userNombre = String(u.nombre || (userEmail.includes('@') ? userEmail.split('@')[0] : userEmail)).trim();
+                const avatarInitial = (userNombre || userEmail || 'U')[0].toUpperCase();
 
                 return (
                   <tr key={u.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs ${isBlocked ? 'bg-rose-500/10 text-rose-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
-                          {(u.nombre || u.email || 'U')[0].toUpperCase()}
+                          {avatarInitial}
                         </div>
                         <div>
-                          <div className="font-black text-primary-custom text-xs">{u.nombre || u.email.split('@')[0]}</div>
-                          <div className="text-[10px] text-secondary-custom font-semibold">{u.email}</div>
+                          <div className="font-black text-primary-custom text-xs">{userNombre}</div>
+                          <div className="text-[10px] text-secondary-custom font-semibold">{userEmail}</div>
                         </div>
                       </div>
                     </td>
@@ -290,7 +293,7 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
                         </button>
 
                         {/* Eliminar Perfil */}
-                        {u.email !== 'matias.bustos@cormumel.cl' && (
+                        {userEmail !== 'matias.bustos@cormumel.cl' && (
                           <button
                             onClick={() => handleDeleteUser(u)}
                             className="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 rounded-lg transition cursor-pointer"
@@ -410,7 +413,7 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
               <div>
                 <h3 className="text-base font-black text-primary-custom uppercase tracking-wide flex items-center gap-2">
                   <Shield className="w-5 h-5 text-indigo-500" />
-                  Matriz de Permisos: {editingUserPerms.email}
+                  Matriz de Permisos: {editingUserPerms.email || editingUserPerms.id || 'Usuario'}
                 </h3>
                 <p className="text-[10px] text-secondary-custom font-semibold mt-0.5">
                   Seleccione los módulos visibles y las funcionalidades habilitadas para este usuario.
