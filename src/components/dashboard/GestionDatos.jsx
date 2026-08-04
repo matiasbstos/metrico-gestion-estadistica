@@ -2383,16 +2383,16 @@ export default function GestionDatos({
 
       {/* MODAL DE DETALLE DE DIAGNÓSTICO DE AUDITORÍA */}
       {selectedAuditMonth && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fade-in text-slate-700">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fade-in text-primary-custom">
           <div className="bg-card-custom border border-card-custom rounded-3xl shadow-2xl max-w-2xl w-full p-6 flex flex-col max-h-[85vh] theme-transition animate-bounce-in text-left">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div className="flex justify-between items-center border-b border-slate-200/60 dark:border-white/10 pb-3">
               <div>
                 <h3 className="text-lg font-black text-primary-custom">Diagnóstico de Control: {selectedAuditMonth.monthName} {auditYear}</h3>
                 <p className="text-xs text-secondary-custom font-semibold">Auditoría detallada de la secuencia de correlativos de Rayen</p>
               </div>
               <button 
                 onClick={() => setSelectedAuditMonth(null)}
-                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1.5 rounded-full transition cursor-pointer"
+                className="text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5 p-1.5 rounded-full transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2406,21 +2406,21 @@ export default function GestionDatos({
                   Correlativos Duplicados ({selectedAuditMonth.duplicadosDetalles.length})
                 </h4>
                 {selectedAuditMonth.duplicadosDetalles.length === 0 ? (
-                  <p className="text-xs text-slate-400 bg-emerald-500/5 border border-emerald-500/10 p-3 rounded-lg font-semibold text-center">
-                    ✅ No se encontraron correlativos duplicados en este mes.
+                  <p className="text-xs text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-xl font-bold text-center flex items-center justify-center gap-1.5 shadow-sm">
+                    <span>✅</span> No se encontraron correlativos duplicados en este mes.
                   </p>
                 ) : (
-                  <div className="space-y-3 max-h-[300px] overflow-y-auto border border-slate-100 rounded-xl p-2.5">
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto border border-slate-200/60 dark:border-white/10 rounded-xl p-2.5">
                     {selectedAuditMonth.duplicadosDetalles.map((d, i) => (
                       <div key={i} className="bg-slate-50 dark:bg-white/5 border border-card-custom p-3 rounded-xl space-y-2 text-xs">
-                        <div className="flex justify-between font-bold text-slate-700">
+                        <div className="flex justify-between font-bold text-primary-custom">
                           <span>Correlativo: <span className="text-rose-600">#{d.correlativo}</span></span>
                           <span className="bg-rose-100 text-rose-800 text-[10px] px-2 py-0.5 rounded-full font-bold">Repetido {d.count} veces</span>
                         </div>
                         <div className="overflow-x-auto">
                           <table className="w-full text-[10px] text-left border-collapse">
                             <thead>
-                              <tr className="text-slate-400 border-b border-slate-200">
+                              <tr className="text-secondary-custom opacity-70 border-b border-slate-200 dark:border-white/10">
                                 <th className="pb-1">RUT / ID Paciente</th>
                                 <th className="pb-1">Fecha Admisión</th>
                                 <th className="pb-1 text-center font-bold">Cat.</th>
@@ -2428,14 +2428,14 @@ export default function GestionDatos({
                                 <th className="pb-1 text-right">Estado</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 text-slate-600">
+                            <tbody className="divide-y divide-slate-150 dark:divide-white/5 text-secondary-custom">
                               {d.patients.map((p, idx) => (
                                 <tr key={idx}>
                                   <td className="py-1 font-semibold">{p.idPaciente || '-'}</td>
                                   <td className="py-1">{new Date(p.tAdmision).toLocaleString('es-CL')}</td>
                                   <td className="py-1 text-center font-bold">{String(p.categoria).toUpperCase()}</td>
                                   <td className="py-1 truncate max-w-[150px]" title={p.diagnosticoPrincipal}>{p.diagnosticoPrincipal || '-'}</td>
-                                  <td className="py-1 text-right font-medium text-slate-700">{p.estado}</td>
+                                  <td className="py-1 text-right font-medium text-primary-custom">{p.estado}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -2454,17 +2454,17 @@ export default function GestionDatos({
                   Correlativos Faltantes / Huecos ({selectedAuditMonth.gaps.length})
                 </h4>
                 {selectedAuditMonth.gaps.length === 0 ? (
-                  <p className="text-xs text-slate-400 bg-emerald-500/5 border border-emerald-500/10 p-3 rounded-lg font-semibold text-center">
-                    ✅ La secuencia numérica de Rayen es perfecta. No faltan correlativos.
+                  <p className="text-xs text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 p-3.5 rounded-xl font-bold text-center flex items-center justify-center gap-1.5 shadow-sm">
+                    <span>✅</span> La secuencia numérica de Rayen es perfecta. No faltan correlativos.
                   </p>
                 ) : (
                   <div className="space-y-2">
-                    <p className="text-[11px] text-slate-500 font-medium">
+                    <p className="text-[11px] text-secondary-custom font-medium">
                       Los siguientes números de correlativo faltan entre el mínimo (#{selectedAuditMonth.minCorr}) y el máximo (#{selectedAuditMonth.maxCorr}) del mes:
                     </p>
-                    <div className="flex flex-wrap gap-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl max-h-[150px] overflow-y-auto">
+                    <div className="flex flex-wrap gap-1.5 p-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl max-h-[150px] overflow-y-auto">
                       {selectedAuditMonth.gaps.map((g, idx) => (
-                        <span key={idx} className="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded">
+                        <span key={idx} className="bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-200 text-[10px] font-bold px-2 py-0.5 rounded">
                           #{g}
                         </span>
                       ))}
@@ -2474,8 +2474,8 @@ export default function GestionDatos({
               </div>
             </div>
 
-            <div className="border-t border-slate-100 pt-3 flex justify-between items-center">
-              <span className="text-[10px] font-semibold text-slate-400">
+            <div className="border-t border-slate-200/60 dark:border-white/10 pt-3 flex justify-between items-center">
+              <span className="text-[10px] font-semibold text-secondary-custom opacity-70">
                 Rango Rayen: {selectedAuditMonth.minCorr} - {selectedAuditMonth.maxCorr}
               </span>
               <button 
