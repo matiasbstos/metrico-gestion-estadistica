@@ -255,7 +255,11 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
     if (!deletingUser) return;
     const motivoLimpio = motivoBaja.trim();
     if (!motivoLimpio || motivoLimpio.length < 5) {
-      alert('Por favor ingrese una justificación válida para dar de baja al usuario (mínimo 5 caracteres).');
+      setSavingNotif({ 
+        type: 'error', 
+        text: 'Por favor ingrese una justificación válida para dar de baja al usuario (mínimo 5 caracteres).' 
+      });
+      setTimeout(() => setSavingNotif(null), 3000);
       return;
     }
 

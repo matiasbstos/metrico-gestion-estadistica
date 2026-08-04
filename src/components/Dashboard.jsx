@@ -206,6 +206,49 @@ const DashboardContent = () => {
     localStorage.setItem('metrico_centro', centroActivo);
   }, [centroActivo]);
 
+  // Registrar automáticamente en auditoría cada navegación de módulo del usuario
+  useEffect(() => {
+    if (!db || !user?.email || !activeTab) return;
+    
+    const TAB_NAMES = {
+      resumen: 'Inicio / Resumen General',
+      comparativo: 'Rendimiento Turno',
+      calendario: 'Histórico Mensual',
+      profesionales: 'Rendimiento Clínico',
+      perfil_paciente: 'Perfil del Paciente',
+      altas: 'Altas Administrativas',
+      fracturas: 'Estadísticas de Fractura',
+      enfermeria: 'Rendimiento Enfermería',
+      constataciones: 'Constatación de Lesiones',
+      traslados: 'Traslados Hospitalarios',
+      reportes: 'Reporte Ejecutivo',
+      data: 'Gestión de Datos',
+      pauta: 'Pauta de Turnos',
+      usuarios: 'Gestión de Usuarios',
+      auditoria: 'Registro de Auditoría'
+    };
+
+    const moduloNombre = TAB_NAMES[activeTab] || activeTab;
+
+    const logNav = async () => {
+      try {
+        const { collection, doc, setDoc } = await import('firebase/firestore');
+        const auditRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs'));
+        await setDoc(auditRef, {
+          fecha: new Date().toISOString(),
+          accion: 'Consulta Módulo',
+          usuario: user.email,
+          centro: centroActivo || 'SAR ELSA ROMO ARAVENA',
+          detalles: `El usuario accedió al módulo "${moduloNombre}"`
+        });
+      } catch (err) {
+        console.error('Error logging navigation:', err);
+      }
+    };
+
+    logNav();
+  }, [activeTab, user?.email]);
+
   const [hasInitializedLatestDate, setHasInitializedLatestDate] = useState(false);
 
   useEffect(() => {
