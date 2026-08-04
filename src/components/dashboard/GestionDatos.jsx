@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2, BookOpen, ArrowRight, Zap, Trash2 } from 'lucide-react';
+import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2, BookOpen, ArrowRight, Zap, Trash2, Search, Eye, RefreshCw } from 'lucide-react';
 import { collection, doc, writeBatch, serverTimestamp, onSnapshot, getDocs } from 'firebase/firestore';
 import { formatLocalDate } from '../../utils/helpers';
 
@@ -44,6 +44,19 @@ export default function GestionDatos({
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [recalcProgress, setRecalcProgress] = useState(0);
   const [recalcStatus, setRecalcStatus] = useState('');
+
+  // Estados para Auditoría y Puntos de Control
+  const [auditYear, setAuditYear] = useState(2026);
+  const [isAuditing, setIsAuditing] = useState(false);
+  const [auditProgress, setAuditProgress] = useState(0);
+  const [auditStatus, setAuditStatus] = useState('');
+  const [auditResults, setAuditResults] = useState(null);
+  const [selectedAuditMonth, setSelectedAuditMonth] = useState(null);
+  const [fixingMonthIdx, setFixingMonthIdx] = useState(null);
+
+  // Estados para Auditoría y Puntos de Control
+  const [rayenControl, setRayenControl] = useState(23882);
+  const [ultimoPaciente, setUltimoPaciente] = useState(null);
 
   useEffect(() => {
     if (!db || !appId) return;
@@ -1188,6 +1201,257 @@ export default function GestionDatos({
     setSyncStatus('synced');
   };
 
+  // Funciones de Auditoría y Puntos de Control
+  const ejecutarAuditoriaAnual = async () => {
+    setIsAuditing(true);
+    setAuditStatus('Iniciando auditoría, conectando con la base de datos...');
+    setAuditProgress(10);
+    setAuditResults(null);
+
+    try {
+      const { query, where, getDocs } = await import('firebase/firestore');
+      const pacsRef = collection(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia');
+      
+      const startMs = new Date(auditYear, 0, 1, 0, 0, 0).getTime();
+      const endMs = new Date(auditYear, 11, 31, 23, 59, 59).getTime();
+
+      setAuditStatus(`Descargando registros de pacientes para el año ${auditYear}...`);
+      setAuditProgress(35);
+
+      const q = query(pacsRef, where('tAdmision', '>=', startMs), where('tAdmision', '<=', endMs));
+      const snap = await getDocs(q);
+      
+      setAuditProgress(70);
+      setAuditStatus('Procesando datos y analizando correlativos...');
+
+      const patients = [];
+      snap.forEach(doc => {
+        patients.push({ id: doc.id, ...doc.data() });
+      });
+
+      const monthlyBuckets = Array.from({ length: 12 }, (_, i) => ({
+        monthIdx: i,
+        monthName: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'][i],
+        patients: []
+      }));
+
+      patients.forEach(p => {
+        if (!p.tAdmision) return;
+        const d = new Date(p.tAdmision);
+        const m = d.getMonth();
+        if (m >= 0 && m < 12) {
+          monthlyBuckets[m].patients.push(p);
+        }
+      });
+
+      const results = monthlyBuckets.map(bucket => {
+        const pList = bucket.patients;
+        const cargados = pList.length;
+
+        if (cargados === 0) {
+          return {
+            monthIdx: bucket.monthIdx,
+            monthName: bucket.monthName,
+            minCorr: '-',
+            maxCorr: '-',
+            esperados: 0,
+            cargados: 0,
+            duplicadosCount: 0,
+            duplicadosIds: [],
+            duplicadosDetalles: [],
+            gaps: [],
+            discrepancia: 0,
+            estado: 'cuadrado'
+          };
+        }
+
+        const correlativosSet = new Set();
+        const correlativosMap = new Map();
+        const duplicadosIds = [];
+        const seenKeys = new Set();
+        const duplicatesList = [];
+
+        pList.forEach(p => {
+          const rawCorr = p.correlativo ? String(p.correlativo).trim() : '';
+          const cleanCorr = rawCorr.replace(/,/g, '').split('.')[0];
+          const numCorr = parseInt(cleanCorr, 10);
+
+          if (!isNaN(numCorr)) {
+            correlativosSet.add(numCorr);
+            if (!correlativosMap.has(numCorr)) {
+              correlativosMap.set(numCorr, []);
+            }
+            correlativosMap.get(numCorr).push(p);
+          }
+
+          const dupKey = `${cleanCorr}_${p.idPaciente || ''}_${p.tAdmision || ''}`;
+          if (seenKeys.has(dupKey)) {
+            duplicadosIds.push(p.id);
+          } else {
+            seenKeys.add(dupKey);
+          }
+        });
+
+        correlativosMap.forEach((list, corr) => {
+          if (list.length > 1) {
+            duplicatesList.push({
+              correlativo: corr,
+              count: list.length,
+              patients: list.map(item => ({
+                id: item.id,
+                tAdmision: item.tAdmision,
+                idPaciente: item.idPaciente,
+                categoria: item.categoria,
+                diagnosticoPrincipal: item.diagnosticoPrincipal,
+                estado: item.estado
+              }))
+            });
+          }
+        });
+
+        const uniqueNumeric = Array.from(correlativosSet).sort((a, b) => a - b);
+        const minCorr = uniqueNumeric.length > 0 ? uniqueNumeric[0] : null;
+        const maxCorr = uniqueNumeric.length > 0 ? uniqueNumeric[uniqueNumeric.length - 1] : null;
+        const esperados = (maxCorr !== null && minCorr !== null) ? (maxCorr - minCorr + 1) : 0;
+
+        const gaps = [];
+        if (minCorr !== null && maxCorr !== null) {
+          for (let i = minCorr; i <= maxCorr; i++) {
+            if (!correlativosSet.has(i)) {
+              gaps.push(i);
+            }
+          }
+        }
+
+        const discrepancia = cargados - esperados;
+        let estado = 'cuadrado';
+        if (duplicadosIds.length > 0) {
+          estado = 'duplicados';
+        } else if (gaps.length > 0) {
+          estado = 'incompleto';
+        } else if (discrepancia !== 0) {
+          estado = 'descuadrado';
+        }
+
+        return {
+          monthIdx: bucket.monthIdx,
+          monthName: bucket.monthName,
+          minCorr: minCorr !== null ? minCorr.toLocaleString('es-CL') : '-',
+          maxCorr: maxCorr !== null ? maxCorr.toLocaleString('es-CL') : '-',
+          esperados,
+          cargados,
+          duplicadosCount: duplicadosIds.length,
+          duplicadosIds,
+          duplicadosDetalles: duplicatesList,
+          gaps,
+          discrepancia,
+          estado
+        };
+      });
+
+      setAuditResults(results);
+
+      // Encontrar el último paciente por correlativo numérico más alto
+      let latestP = null;
+      let maxCorrVal = 0;
+      patients.forEach(p => {
+        if (!p.tAdmision) return;
+        const rawCorr = p.correlativo ? String(p.correlativo).trim() : '';
+        const clean = rawCorr.replace(/,/g, '').split('.')[0];
+        const numCorr = parseInt(clean, 10);
+        
+        if (!isNaN(numCorr) && numCorr > maxCorrVal) {
+          maxCorrVal = numCorr;
+          latestP = p;
+        }
+      });
+      setUltimoPaciente(latestP);
+
+      setAuditProgress(100);
+      showNotif(`Auditoría del año ${auditYear} completada con éxito.`, 'success');
+    } catch (e) {
+      console.error(e);
+      showNotif(`Error en la auditoría: ${e.message}`, 'error');
+    } finally {
+      setIsAuditing(false);
+    }
+  };
+
+  const corregirDuplicadosMes = async (monthResult) => {
+    if (!monthResult || monthResult.duplicadosCount === 0) return;
+
+    setFixingMonthIdx(monthResult.monthIdx);
+    setSyncStatus('syncing');
+
+    try {
+      const docIds = monthResult.duplicadosIds;
+      const batchSize = 400;
+      const totalBatches = Math.ceil(docIds.length / batchSize);
+
+      for (let i = 0; i < totalBatches; i++) {
+        const chunk = docIds.slice(i * batchSize, (i + 1) * batchSize);
+        const batch = writeBatch(db);
+        chunk.forEach(docId => {
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia', docId);
+          batch.delete(docRef);
+        });
+        await batch.commit();
+      }
+
+      showNotif(`¡Deduplicación del mes ${monthResult.monthName} completada! Se eliminaron ${docIds.length} registros duplicados.`, 'success');
+      
+      setAuditStatus(`Recalculando jornadas después de corregir duplicados...`);
+      await recalcularTurnosDesdePacientes();
+      await ejecutarAuditoriaAnual();
+    } catch (err) {
+      console.error(err);
+      showNotif(`Error al corregir duplicados: ${err.message}`, 'error');
+    } finally {
+      setFixingMonthIdx(null);
+      setSyncStatus('synced');
+    }
+  };
+
+  const corregirDuplicadosAñoCompleto = async () => {
+    if (!auditResults) return;
+    const allDupIds = auditResults.reduce((acc, m) => acc.concat(m.duplicadosIds), []);
+    if (allDupIds.length === 0) {
+      return showNotif("No hay registros duplicados en ningún mes para corregir.", "info");
+    }
+
+    setIsUploading(true);
+    setSyncStatus('syncing');
+    setAuditStatus('Eliminando registros duplicados de todo el año...');
+
+    try {
+      const batchSize = 400;
+      const totalBatches = Math.ceil(allDupIds.length / batchSize);
+
+      for (let i = 0; i < totalBatches; i++) {
+        const chunk = allDupIds.slice(i * batchSize, (i + 1) * batchSize);
+        const batch = writeBatch(db);
+        chunk.forEach(docId => {
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia', docId);
+          batch.delete(docRef);
+        });
+        await batch.commit();
+        setUploadProgress(Math.round(((i + 1) / totalBatches) * 100));
+      }
+
+      showNotif(`¡Deduplicación anual completada! Se eliminaron ${allDupIds.length} registros duplicados.`, 'success');
+      
+      setAuditStatus('Recalculando turnos para todo el año...');
+      await recalcularTurnosDesdePacientes();
+      await ejecutarAuditoriaAnual();
+    } catch (err) {
+      console.error(err);
+      showNotif(`Error al corregir duplicados anuales: ${err.message}`, 'error');
+    } finally {
+      setIsUploading(false);
+      setSyncStatus('synced');
+    }
+  };
+
   const handleManualSuccessClose = () => {
     if (manualSuccessResult) {
       if (manualSuccessResult.fechaInicio) {
@@ -1266,7 +1530,7 @@ export default function GestionDatos({
         <button 
           onClick={() => setActiveGestionTab('limpieza')}
           className={`px-6 py-3 font-bold text-sm border-b-2 transition-colors ${activeGestionTab === 'limpieza' ? 'border-rose-500 text-rose-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
-          Limpieza de Base de Datos
+          Limpieza y Control de Datos
         </button>
       </div>
 
@@ -1532,33 +1796,240 @@ export default function GestionDatos({
           </div>
         )}
 
-        {/* HERRAMIENTA DE DEPURACIÓN AUTOMÁTICA DE PACIENTES DUPLICADOS */}
+        {/* PUNTOS DE CONTROL (AUDITORÍA DE CORRELATIVOS Y DEDUPLICACIÓN) */}
         <div className="border-t border-slate-200/60 dark:border-white/5 my-6"></div>
         
-        <div className="flex items-center gap-2 mb-2">
-          <Trash2 className="text-rose-500 w-5 h-5"/>
-          <h2 className="text-lg font-bold text-slate-800">Depuración Automática de Registros Duplicados</h2>
+        <div className="flex items-center justify-between flex-wrap gap-4 mb-2 text-left">
+          <div className="flex items-center gap-2">
+            <Trash2 className="text-rose-500 w-5 h-5"/>
+            <h2 className="text-lg font-bold text-slate-800">Puntos de Control (Auditoría de Correlativos y Deduplicación)</h2>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-bold text-slate-500">Año de Auditoría:</span>
+            <select 
+              value={auditYear} 
+              onChange={e => setAuditYear(Number(e.target.value))}
+              className="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 outline-none focus:border-rose-500"
+            >
+              <option value={2026}>2026</option>
+              <option value={2025}>2025</option>
+              <option value={2024}>2024</option>
+            </select>
+            
+            <button 
+              onClick={ejecutarAuditoriaAnual}
+              disabled={isAuditing || isUploading}
+              className="bg-rose-600 hover:bg-rose-700 disabled:bg-slate-300 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer font-bold"
+            >
+              {isAuditing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
+              {isAuditing ? 'Auditando...' : 'Iniciar Auditoría'}
+            </button>
+          </div>
         </div>
-        <p className="text-sm text-slate-500 mb-4 text-left">
-          Escanea la base de datos completa de pacientes en busca de registros repetidos (coincidencia de RUT, correlativo, horario de admisión o diagnóstico) y conserva solo una copia única por atención, eliminando automáticamente los duplicados excedentes.
-        </p>
-        
-        <button 
-          onClick={depurarDuplicados}
-          disabled={isDeduplicating || !pacientesDB || pacientesDB.length === 0}
-          className="w-full bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 disabled:from-slate-400 disabled:to-slate-500 text-white font-bold py-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
-        >
-          <Trash2 className="w-5 h-5" />
-          {isDeduplicating ? "Depurando duplicados..." : "🔍 Analizar y Depurar Pacientes Duplicados"}
-        </button>
 
-        {isDeduplicating && (
-          <div className="mt-4 p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl text-left animate-fade-in">
-            <span className="text-xs font-black text-rose-600 dark:text-rose-400 block mb-1">PROGRESO DE DEPURACIÓN DE DUPLICADOS</span>
-            <div className="w-full bg-slate-200 dark:bg-white/10 h-2 rounded-full overflow-hidden mb-2">
-              <div className="bg-rose-600 h-full transition-all duration-300" style={{ width: `${dedupProgress}%` }}></div>
+        <p className="text-sm text-slate-500 mb-4 text-left leading-relaxed">
+          Compara la numeración correlativa del sistema Rayen contra los pacientes importados en la base de datos de Métrico. Un correlativo secuencial perfecto indica una carga íntegra y sin duplicados. Use esta auditoría para encontrar huecos (gaps) o registros repetidos por mes.
+        </p>
+
+        {isAuditing && (
+          <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 mb-4">
+            <span className="text-xs font-black text-rose-600 block mb-1 uppercase tracking-wider text-left">EJECUTANDO ESCANEO DE CORRELATIVOS</span>
+            <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+              <div className="bg-rose-600 h-full transition-all duration-300" style={{ width: `${auditProgress}%` }}></div>
+            </div>
+            <span className="text-[11px] font-bold text-slate-600 block text-left">{auditStatus}</span>
+          </div>
+        )}
+
+        {auditResults ? (
+          <div className="space-y-6 animate-fade-in">
+            {/* Tarjeta de Último Paciente Registrado (Cruce de Control) */}
+            {ultimoPaciente && (
+              <div className="bg-gradient-to-r from-emerald-500/5 to-blue-500/5 border border-emerald-500/10 p-5 rounded-2xl text-left space-y-4">
+                <div className="flex justify-between items-center flex-wrap gap-4 border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="text-emerald-500 w-5 h-5 animate-pulse" />
+                    <div>
+                      <h3 className="text-sm font-black text-slate-800">Cruce de Control: Último Paciente Registrado ({auditYear})</h3>
+                      <p className="text-[11px] text-slate-400 font-semibold">Corte oficial de la última carga en base al correlativo Rayen</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Correlativo Rayen Actual:</span>
+                    <input 
+                      type="number"
+                      value={rayenControl}
+                      onChange={e => setRayenControl(Number(e.target.value))}
+                      className="w-24 bg-slate-50 border border-slate-200 rounded px-2 py-0.5 text-xs font-black text-slate-700 outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs font-semibold text-slate-600">
+                  <div className="bg-white/40 p-3 rounded-xl border border-slate-100">
+                    <span className="text-[10px] text-slate-400 block font-bold uppercase mb-1">RUT / ID Paciente</span>
+                    <span className="text-slate-800 text-sm font-extrabold">{ultimoPaciente.idPaciente || '-'}</span>
+                  </div>
+                  <div className="bg-white/40 p-3 rounded-xl border border-slate-100">
+                    <span className="text-[10px] text-slate-400 block font-bold uppercase mb-1">Fecha de Admisión</span>
+                    <span className="text-slate-800 text-sm font-extrabold">{new Date(ultimoPaciente.tAdmision).toLocaleString('es-CL')}</span>
+                  </div>
+                  <div className="bg-white/40 p-3 rounded-xl border border-slate-100">
+                    <span className="text-[10px] text-slate-400 block font-bold uppercase mb-1">Correlativo Máximo</span>
+                    <span className="text-emerald-600 text-sm font-black">#{ultimoPaciente.correlativo}</span>
+                  </div>
+                  <div className="bg-white/40 p-3 rounded-xl border border-slate-100">
+                    <span className="text-[10px] text-slate-400 block font-bold uppercase mb-1">Categoría / Edad</span>
+                    <span className="text-slate-800 text-sm font-extrabold">
+                      {ultimoPaciente.categoria ? String(ultimoPaciente.categoria).toUpperCase() : '-'} | {ultimoPaciente.edad ? `${ultimoPaciente.edad} años` : '-'}
+                    </span>
+                  </div>
+                </div>
+                
+                {(() => {
+                  const maxCorrVal = parseInt(String(ultimoPaciente.correlativo).replace(/,/g,''), 10);
+                  const diff = rayenControl - maxCorrVal;
+                  
+                  return (
+                    <div className="p-3.5 bg-slate-50 border border-slate-150 rounded-xl text-[11px] font-bold text-slate-600 space-y-1">
+                      <div className="flex items-center gap-1.5 text-slate-700">
+                        <span className="text-xs">📊</span>
+                        <span>Diferencia con Rayen:</span>
+                        {diff > 0 ? (
+                          <span className="text-amber-600 font-extrabold">Pendientes por cargar: {diff.toLocaleString('es-CL')} pacientes</span>
+                        ) : diff < 0 ? (
+                          <span className="text-rose-600 font-extrabold">Exceso de registros: {Math.abs(diff).toLocaleString('es-CL')} pacientes</span>
+                        ) : (
+                          <span className="text-emerald-600 font-extrabold">✅ Cruce perfecto (Carga al día)</span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-slate-400 font-semibold leading-relaxed">
+                        El último registro corresponde a la admisión del <strong>{new Date(ultimoPaciente.tAdmision).toLocaleString('es-CL')}</strong>. 
+                        Comparado con el control de Rayen (#{rayenControl.toLocaleString('es-CL')}), {diff > 0 ? `faltan importar ${diff} registros para estar al día.` : diff < 0 ? `hay un excedente de ${Math.abs(diff)} registros en la base de datos.` : 'todas las admisiones están completamente cuadradas.'}
+                      </p>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            <div className="flex justify-between items-center bg-rose-500/5 border border-rose-500/10 p-4 rounded-xl flex-wrap gap-3">
+              <div className="text-xs font-semibold text-slate-600 text-left">
+                Resumen de Auditoría {auditYear}:{' '}
+                <span className="font-bold text-slate-800">
+                  {auditResults.reduce((acc, m) => acc + m.cargados, 0).toLocaleString('es-CL')} pacientes cargados
+                </span>{' '}
+                en total. Se encontraron{' '}
+                <span className="font-bold text-rose-500">
+                  {auditResults.reduce((acc, m) => acc + m.duplicadosCount, 0)} duplicados
+                </span>{' '}
+                y{' '}
+                <span className="font-bold text-indigo-500">
+                  {auditResults.reduce((acc, m) => acc + m.gaps.length, 0)} correlativos faltantes
+                </span>.
+              </div>
+              
+              {auditResults.reduce((acc, m) => acc + m.duplicadosCount, 0) > 0 && (
+                <button
+                  onClick={corregirDuplicadosAñoCompleto}
+                  disabled={isUploading}
+                  className="bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 disabled:from-slate-300 disabled:to-slate-400 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5 cursor-pointer font-bold"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Corregir Todos los Duplicados ({auditResults.reduce((acc, m) => acc + m.duplicadosCount, 0)})
+                </button>
+              )}
+            </div>
+
+            <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left border-collapse">
+                  <thead className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                    <tr>
+                      <th className="px-4 py-3">Mes</th>
+                      <th className="px-4 py-3 text-center">Rango Rayen (Min - Max)</th>
+                      <th className="px-4 py-3 text-center">Esperados (Rayen)</th>
+                      <th className="px-4 py-3 text-center">Cargados (Sistema)</th>
+                      <th className="px-4 py-3 text-center">Diferencia</th>
+                      <th className="px-4 py-3 text-center">Duplicados</th>
+                      <th className="px-4 py-3 text-center">Faltantes (Gaps)</th>
+                      <th className="px-4 py-3 text-center">Estado</th>
+                      <th className="px-4 py-3 text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200/60">
+                    {auditResults.map((m) => {
+                      const hasDups = m.duplicadosCount > 0;
+                      const hasGaps = m.gaps.length > 0;
+                      const isFixing = fixingMonthIdx === m.monthIdx;
+
+                      return (
+                        <tr key={m.monthIdx} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-4 py-3 font-bold text-slate-700">{m.monthName}</td>
+                          <td className="px-4 py-3 text-center font-medium text-slate-600">{m.minCorr} - {m.maxCorr}</td>
+                          <td className="px-4 py-3 text-center font-bold text-slate-600">{m.esperados > 0 ? m.esperados.toLocaleString('es-CL') : '-'}</td>
+                          <td className="px-4 py-3 text-center font-bold text-slate-700">{m.cargados > 0 ? m.cargados.toLocaleString('es-CL') : '-'}</td>
+                          <td className={`px-4 py-3 text-center font-black ${m.discrepancia > 0 ? 'text-rose-500' : m.discrepancia < 0 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                            {m.discrepancia > 0 ? `+${m.discrepancia}` : m.discrepancia < 0 ? m.discrepancia : '0'}
+                          </td>
+                          <td className={`px-4 py-3 text-center font-bold ${hasDups ? 'text-rose-500' : 'text-slate-400'}`}>
+                            {m.duplicadosCount}
+                          </td>
+                          <td className={`px-4 py-3 text-center font-bold ${hasGaps ? 'text-indigo-500' : 'text-slate-400'}`}>
+                            {m.gaps.length}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            {m.cargados === 0 ? (
+                              <span className="bg-slate-100 text-slate-500 text-[9px] font-bold px-2.5 py-1 rounded-full uppercase">Sin Cargas</span>
+                            ) : m.estado === 'cuadrado' && m.discrepancia === 0 ? (
+                              <span className="bg-emerald-100 text-emerald-700 text-[9px] font-black px-2.5 py-1 rounded-full uppercase">✅ Cuadrado</span>
+                            ) : (
+                              <span className={`text-[9px] font-black px-2.5 py-1 rounded-full uppercase ${m.estado === 'duplicados' ? 'bg-rose-100 text-rose-700' : m.estado === 'incompleto' ? 'bg-indigo-100 text-indigo-700' : 'bg-amber-100 text-amber-700'}`}>
+                                {m.estado === 'duplicados' ? '⚠️ Duplicados' : m.estado === 'incompleto' ? '🔍 Huecos' : '❌ Descuadrado'}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex justify-end gap-1.5 font-bold">
+                              {m.cargados > 0 && (
+                                <button
+                                  onClick={() => setSelectedAuditMonth(m)}
+                                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 p-1.5 rounded transition cursor-pointer"
+                                  title="Ver Detalles Diagnóstico"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                              {hasDups && (
+                                <button
+                                  onClick={() => corregirDuplicadosMes(m)}
+                                  disabled={isFixing || isUploading}
+                                  className="bg-rose-500 hover:bg-rose-600 disabled:bg-slate-200 text-white px-2.5 py-1 rounded text-[10px] font-bold transition flex items-center gap-1 cursor-pointer font-bold"
+                                  title="Depurar duplicados del mes y actualizar turnos"
+                                >
+                                  {isFixing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                                  Corregir
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
+        ) : (
+          !isAuditing && (
+            <div className="text-center py-12 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+              <Search className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <p className="font-bold text-slate-700">No se ha realizado la auditoría de correlativos</p>
+              <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">Selecciona el año y haz clic en "Iniciar Auditoría" para comenzar a escanear.</p>
+            </div>
+          )
         )}
       </div>
       )}
@@ -1854,6 +2325,117 @@ export default function GestionDatos({
           </div>
         </div>
       )}
+
+
+
+      {/* MODAL DE DETALLE DE DIAGNÓSTICO DE AUDITORÍA */}
+      {selectedAuditMonth && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fade-in text-slate-700">
+          <div className="bg-card-custom border border-card-custom rounded-3xl shadow-2xl max-w-2xl w-full p-6 flex flex-col max-h-[85vh] theme-transition animate-bounce-in text-left">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-lg font-black text-primary-custom">Diagnóstico de Control: {selectedAuditMonth.monthName} {auditYear}</h3>
+                <p className="text-xs text-secondary-custom font-semibold">Auditoría detallada de la secuencia de correlativos de Rayen</p>
+              </div>
+              <button 
+                onClick={() => setSelectedAuditMonth(null)}
+                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-1.5 rounded-full transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto my-4 pr-1 space-y-6">
+              {/* Sección 1: Duplicados */}
+              <div>
+                <h4 className="text-xs font-black text-rose-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4" />
+                  Correlativos Duplicados ({selectedAuditMonth.duplicadosDetalles.length})
+                </h4>
+                {selectedAuditMonth.duplicadosDetalles.length === 0 ? (
+                  <p className="text-xs text-slate-400 bg-emerald-500/5 border border-emerald-500/10 p-3 rounded-lg font-semibold text-center">
+                    ✅ No se encontraron correlativos duplicados en este mes.
+                  </p>
+                ) : (
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto border border-slate-100 rounded-xl p-2.5">
+                    {selectedAuditMonth.duplicadosDetalles.map((d, i) => (
+                      <div key={i} className="bg-slate-50 dark:bg-white/5 border border-card-custom p-3 rounded-xl space-y-2 text-xs">
+                        <div className="flex justify-between font-bold text-slate-700">
+                          <span>Correlativo: <span className="text-rose-600">#{d.correlativo}</span></span>
+                          <span className="bg-rose-100 text-rose-800 text-[10px] px-2 py-0.5 rounded-full font-bold">Repetido {d.count} veces</span>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-[10px] text-left border-collapse">
+                            <thead>
+                              <tr className="text-slate-400 border-b border-slate-200">
+                                <th className="pb-1">RUT / ID Paciente</th>
+                                <th className="pb-1">Fecha Admisión</th>
+                                <th className="pb-1 text-center font-bold">Cat.</th>
+                                <th className="pb-1">Diagnóstico</th>
+                                <th className="pb-1 text-right">Estado</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 text-slate-600">
+                              {d.patients.map((p, idx) => (
+                                <tr key={idx}>
+                                  <td className="py-1 font-semibold">{p.idPaciente || '-'}</td>
+                                  <td className="py-1">{new Date(p.tAdmision).toLocaleString('es-CL')}</td>
+                                  <td className="py-1 text-center font-bold">{String(p.categoria).toUpperCase()}</td>
+                                  <td className="py-1 truncate max-w-[150px]" title={p.diagnosticoPrincipal}>{p.diagnosticoPrincipal || '-'}</td>
+                                  <td className="py-1 text-right font-medium text-slate-700">{p.estado}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Sección 2: Huecos / Gaps */}
+              <div>
+                <h4 className="text-xs font-black text-indigo-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Search className="w-4 h-4" />
+                  Correlativos Faltantes / Huecos ({selectedAuditMonth.gaps.length})
+                </h4>
+                {selectedAuditMonth.gaps.length === 0 ? (
+                  <p className="text-xs text-slate-400 bg-emerald-500/5 border border-emerald-500/10 p-3 rounded-lg font-semibold text-center">
+                    ✅ La secuencia numérica de Rayen es perfecta. No faltan correlativos.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-[11px] text-slate-500 font-medium">
+                      Los siguientes números de correlativo faltan entre el mínimo (#{selectedAuditMonth.minCorr}) y el máximo (#{selectedAuditMonth.maxCorr}) del mes:
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 p-3 bg-slate-50 border border-slate-200 rounded-xl max-h-[150px] overflow-y-auto">
+                      {selectedAuditMonth.gaps.map((g, idx) => (
+                        <span key={idx} className="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded">
+                          #{g}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="border-t border-slate-100 pt-3 flex justify-between items-center">
+              <span className="text-[10px] font-semibold text-slate-400">
+                Rango Rayen: {selectedAuditMonth.minCorr} - {selectedAuditMonth.maxCorr}
+              </span>
+              <button 
+                onClick={() => setSelectedAuditMonth(null)}
+                className="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow-sm cursor-pointer"
+              >
+                Cerrar Diagnóstico
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MODAL DE ÉXITO DE PURGA CENTRADO */}
       {purgeResult && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fade-in">
