@@ -69,6 +69,59 @@ export default function GestionDatos({
     return () => unsub();
   }, [db, appId]);
 
+  // Cargar el último paciente del año seleccionado al montar o cambiar el año
+  useEffect(() => {
+    if (!db || !appId || !auditYear) return;
+
+    const cargarUltimoPacienteRapido = async () => {
+      try {
+        const { query, where, limit, orderBy, getDocs } = await import('firebase/firestore');
+        const pacsRef = collection(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia');
+        
+        const startMs = new Date(auditYear, 0, 1, 0, 0, 0).getTime();
+        const endMs = new Date(auditYear, 11, 31, 23, 59, 59).getTime();
+        
+        const q = query(
+          pacsRef, 
+          where('tAdmision', '>=', startMs), 
+          where('tAdmision', '<=', endMs),
+          orderBy('tAdmision', 'desc'),
+          limit(5)
+        );
+        
+        const snap = await getDocs(q);
+        let latestP = null;
+        let maxCorrVal = 0;
+
+        snap.forEach(doc => {
+          const data = doc.data();
+          const rawCorr = data.correlativo ? String(data.correlativo).trim() : '';
+          const clean = rawCorr.replace(/,/g, '').split('.')[0];
+          const numCorr = parseInt(clean, 10);
+          
+          if (!isNaN(numCorr) && numCorr > maxCorrVal) {
+            maxCorrVal = numCorr;
+            latestP = { id: doc.id, ...data };
+          }
+        });
+
+        if (!latestP && snap.size > 0) {
+          snap.forEach(doc => {
+            if (!latestP) {
+              latestP = { id: doc.id, ...doc.data() };
+            }
+          });
+        }
+
+        setUltimoPaciente(latestP);
+      } catch (err) {
+        console.error("Error al cargar último paciente rápido:", err);
+      }
+    };
+
+    cargarUltimoPacienteRapido();
+  }, [db, appId, auditYear]);
+
   const [manualForm, setManualForm] = useState({
     fechaInicio: '', fechaFin: '', horario: '17:00 - 08:00 (Semana Largo)', equipoTurno: 'Sin Asignar',
     c1: 0, c2: 0, c3: 0, c4: 0, c5: 0, altasAdmin: 0, totalPacientes: 0
@@ -1830,6 +1883,77 @@ export default function GestionDatos({
         <p className="text-sm text-slate-500 mb-4 text-left leading-relaxed">
           Compara la numeración correlativa del sistema Rayen contra los pacientes importados en la base de datos de Métrico. Un correlativo secuencial perfecto indica una carga íntegra y sin duplicados. Use esta auditoría para encontrar huecos (gaps) o registros repetidos por mes.
         </p>
+        
+        {/* Tarjeta de Último Paciente Registrado (Cruce de Control) */}
+        {ultimoPaciente && (
+          <div className="bg-gradient-to-r from-emerald-500/5 to-blue-500/5 border border-emerald-500/10 p-5 rounded-2xl text-left space-y-4 mb-6">
+            <div className="flex justify-between items-center flex-wrap gap-4 border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="text-emerald-500 w-5 h-5 animate-pulse" />
+                <div>
+                  <h3 className="text-sm font-black text-slate-800">Cruce de Control: Último Paciente Registrado ({auditYear})</h3>
+                  <p className="text-[11px] text-slate-400 font-semibold">Corte oficial de la última carga en base al correlativo Rayen</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase">Correlativo Rayen Actual:</span>
+                <input 
+                  type="number"
+                  value={rayenControl}
+                  onChange={e => setRayenControl(Number(e.target.value))}
+                  className="w-24 bg-slate-50 border border-slate-200 rounded px-2 py-0.5 text-xs font-black text-slate-700 outline-none focus:border-emerald-500"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs font-semibold text-slate-600">
+              <div className="bg-white/40 p-3 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 block font-bold uppercase mb-1">RUT / ID Paciente</span>
+                <span className="text-slate-800 text-sm font-extrabold">{ultimoPaciente.idPaciente || '-'}</span>
+              </div>
+              <div className="bg-white/40 p-3 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 block font-bold uppercase mb-1">Fecha de Admisión</span>
+                <span className="text-slate-800 text-sm font-extrabold">{new Date(ultimoPaciente.tAdmision).toLocaleString('es-CL')}</span>
+              </div>
+              <div className="bg-white/40 p-3 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 block font-bold uppercase mb-1">Correlativo Máximo</span>
+                <span className="text-emerald-600 text-sm font-black">#{ultimoPaciente.correlativo}</span>
+              </div>
+              <div className="bg-white/40 p-3 rounded-xl border border-slate-100">
+                <span className="text-[10px] text-slate-400 block font-bold uppercase mb-1">Categoría / Edad</span>
+                <span className="text-slate-800 text-sm font-extrabold">
+                  {ultimoPaciente.categoria ? String(ultimoPaciente.categoria).toUpperCase() : '-'} | {ultimoPaciente.edad ? `${ultimoPaciente.edad} años` : '-'}
+                </span>
+              </div>
+            </div>
+            
+            {(() => {
+              const maxCorrVal = parseInt(String(ultimoPaciente.correlativo).replace(/,/g,''), 10);
+              const diff = rayenControl - maxCorrVal;
+              
+              return (
+                <div className="p-3.5 bg-slate-50 border border-slate-150 rounded-xl text-[11px] font-bold text-slate-600 space-y-1">
+                  <div className="flex items-center gap-1.5 text-slate-700">
+                    <span className="text-xs">📊</span>
+                    <span>Diferencia con Rayen:</span>
+                    {diff > 0 ? (
+                      <span className="text-amber-600 font-extrabold">Pendientes por cargar: {diff.toLocaleString('es-CL')} pacientes</span>
+                    ) : diff < 0 ? (
+                      <span className="text-rose-600 font-extrabold">Exceso de registros: {Math.abs(diff).toLocaleString('es-CL')} pacientes</span>
+                    ) : (
+                      <span className="text-emerald-600 font-extrabold">✅ Cruce perfecto (Carga al día)</span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-semibold leading-relaxed">
+                    El último registro corresponde a la admisión del <strong>{new Date(ultimoPaciente.tAdmision).toLocaleString('es-CL')}</strong>. 
+                    Comparado con el control de Rayen (#{rayenControl.toLocaleString('es-CL')}), {diff > 0 ? `faltan importar ${diff} registros para estar al día.` : diff < 0 ? `hay un excedente de ${Math.abs(diff)} registros en la base de datos.` : 'todas las admisiones están completamente cuadradas.'}
+                  </p>
+                </div>
+              );
+            })()}
+          </div>
+        )}
 
         {isAuditing && (
           <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 mb-4">
@@ -1843,77 +1967,6 @@ export default function GestionDatos({
 
         {auditResults ? (
           <div className="space-y-6 animate-fade-in">
-            {/* Tarjeta de Último Paciente Registrado (Cruce de Control) */}
-            {ultimoPaciente && (
-              <div className="bg-gradient-to-r from-emerald-500/5 to-blue-500/5 border border-emerald-500/10 p-5 rounded-2xl text-left space-y-4">
-                <div className="flex justify-between items-center flex-wrap gap-4 border-b border-slate-100 pb-3">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="text-emerald-500 w-5 h-5 animate-pulse" />
-                    <div>
-                      <h3 className="text-sm font-black text-slate-800">Cruce de Control: Último Paciente Registrado ({auditYear})</h3>
-                      <p className="text-[11px] text-slate-400 font-semibold">Corte oficial de la última carga en base al correlativo Rayen</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase">Correlativo Rayen Actual:</span>
-                    <input 
-                      type="number"
-                      value={rayenControl}
-                      onChange={e => setRayenControl(Number(e.target.value))}
-                      className="w-24 bg-slate-50 border border-slate-200 rounded px-2 py-0.5 text-xs font-black text-slate-700 outline-none focus:border-emerald-500"
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs font-semibold text-slate-600">
-                  <div className="bg-white/40 p-3 rounded-xl border border-slate-100">
-                    <span className="text-[10px] text-slate-400 block font-bold uppercase mb-1">RUT / ID Paciente</span>
-                    <span className="text-slate-800 text-sm font-extrabold">{ultimoPaciente.idPaciente || '-'}</span>
-                  </div>
-                  <div className="bg-white/40 p-3 rounded-xl border border-slate-100">
-                    <span className="text-[10px] text-slate-400 block font-bold uppercase mb-1">Fecha de Admisión</span>
-                    <span className="text-slate-800 text-sm font-extrabold">{new Date(ultimoPaciente.tAdmision).toLocaleString('es-CL')}</span>
-                  </div>
-                  <div className="bg-white/40 p-3 rounded-xl border border-slate-100">
-                    <span className="text-[10px] text-slate-400 block font-bold uppercase mb-1">Correlativo Máximo</span>
-                    <span className="text-emerald-600 text-sm font-black">#{ultimoPaciente.correlativo}</span>
-                  </div>
-                  <div className="bg-white/40 p-3 rounded-xl border border-slate-100">
-                    <span className="text-[10px] text-slate-400 block font-bold uppercase mb-1">Categoría / Edad</span>
-                    <span className="text-slate-800 text-sm font-extrabold">
-                      {ultimoPaciente.categoria ? String(ultimoPaciente.categoria).toUpperCase() : '-'} | {ultimoPaciente.edad ? `${ultimoPaciente.edad} años` : '-'}
-                    </span>
-                  </div>
-                </div>
-                
-                {(() => {
-                  const maxCorrVal = parseInt(String(ultimoPaciente.correlativo).replace(/,/g,''), 10);
-                  const diff = rayenControl - maxCorrVal;
-                  
-                  return (
-                    <div className="p-3.5 bg-slate-50 border border-slate-150 rounded-xl text-[11px] font-bold text-slate-600 space-y-1">
-                      <div className="flex items-center gap-1.5 text-slate-700">
-                        <span className="text-xs">📊</span>
-                        <span>Diferencia con Rayen:</span>
-                        {diff > 0 ? (
-                          <span className="text-amber-600 font-extrabold">Pendientes por cargar: {diff.toLocaleString('es-CL')} pacientes</span>
-                        ) : diff < 0 ? (
-                          <span className="text-rose-600 font-extrabold">Exceso de registros: {Math.abs(diff).toLocaleString('es-CL')} pacientes</span>
-                        ) : (
-                          <span className="text-emerald-600 font-extrabold">✅ Cruce perfecto (Carga al día)</span>
-                        )}
-                      </div>
-                      <p className="text-[10px] text-slate-400 font-semibold leading-relaxed">
-                        El último registro corresponde a la admisión del <strong>{new Date(ultimoPaciente.tAdmision).toLocaleString('es-CL')}</strong>. 
-                        Comparado con el control de Rayen (#{rayenControl.toLocaleString('es-CL')}), {diff > 0 ? `faltan importar ${diff} registros para estar al día.` : diff < 0 ? `hay un excedente de ${Math.abs(diff)} registros en la base de datos.` : 'todas las admisiones están completamente cuadradas.'}
-                      </p>
-                    </div>
-                  );
-                })()}
-              </div>
-            )}
-
             <div className="flex justify-between items-center bg-rose-500/5 border border-rose-500/10 p-4 rounded-xl flex-wrap gap-3">
               <div className="text-xs font-semibold text-slate-600 text-left">
                 Resumen de Auditoría {auditYear}:{' '}
