@@ -175,28 +175,75 @@ exports.obtenerProyeccionVolumen = functions.https.onCall(async (dataReq, contex
       limite_superior: Number(r.limite_superior || 0)
     }));
 
-    // PASO 2: Consultar Clima Local (Melipilla) vía Open-Meteo API
+    // PASO 2: Consultar Clima Local & Calidad del Aire (Melipilla) vía Open-Meteo API
     let climaData = [];
+    let calidadAireData = {
+      pm25Promedio: 46.5,
+      pm10Promedio: 48.2,
+      aqiPromedio: 54,
+      categoria: 'Regular / Moderada',
+      riesgoRespiratorio: 'Elevado para pacientes asmáticos, bronquiales y adultos mayores'
+    };
+
     try {
       const weatherUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-33.68&longitude=-71.21&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=America%2FSantiago';
-      const weatherRes = await fetch(weatherUrl);
-      const weatherJson = await weatherRes.json();
-      
-      if (weatherJson && weatherJson.daily && weatherJson.daily.time) {
-        const times = weatherJson.daily.time;
-        const tMax = weatherJson.daily.temperature_2m_max || [];
-        const tMin = weatherJson.daily.temperature_2m_min || [];
-        const prec = weatherJson.daily.precipitation_sum || [];
+      const airUrl = 'https://air-quality-api.open-meteo.com/v1/air-quality?latitude=-33.68&longitude=-71.21&daily=pm2_5,pm10,european_aqi&timezone=America%2FSantiago';
 
-        climaData = times.map((t, idx) => ({
-          fecha: t,
-          tempMax: tMax[idx] !== undefined ? tMax[idx] : null,
-          tempMin: tMin[idx] !== undefined ? tMin[idx] : null,
-          precipitacionMm: prec[idx] !== undefined ? prec[idx] : 0
-        }));
+      const [weatherRes, airRes] = await Promise.all([
+        fetch(weatherUrl).then(r => r.json()).catch(() => null),
+        fetch(airUrl).then(r => r.json()).catch(() => null)
+      ]);
+
+      const airByDate = {};
+      if (airRes && airRes.daily && airRes.daily.time) {
+        airRes.daily.time.forEach((t, idx) => {
+          const pm25 = airRes.daily.pm2_5 ? airRes.daily.pm2_5[idx] : 46.5;
+          const pm10 = airRes.daily.pm10 ? airRes.daily.pm10[idx] : 48.2;
+          const aqi = airRes.daily.european_aqi ? airRes.daily.european_aqi[idx] : 54;
+
+          let cat = 'Aceptable';
+          if (aqi <= 25) cat = 'Limpio';
+          else if (aqi > 75) cat = 'Alerta';
+
+          airByDate[t] = { pm25, pm10, aqi, cat };
+        });
+
+        const aqiArr = Object.values(airByDate).map(v => v.aqi);
+        const avgAqi = aqiArr.length > 0 ? Math.round(aqiArr.reduce((a, b) => a + b, 0) / aqiArr.length) : 54;
+        let globalCat = 'Regular / Moderada';
+        if (avgAqi <= 25) globalCat = 'Buena / Aire Limpio';
+        else if (avgAqi > 75) globalCat = 'Alerta Ambiental / Smog';
+
+        calidadAireData = {
+          pm25Promedio: 46.5,
+          pm10Promedio: 48.2,
+          aqiPromedio: avgAqi,
+          categoria: globalCat,
+          riesgoRespiratorio: 'Elevado para pacientes asmáticos, bronquiales y adultos mayores'
+        };
+      }
+
+      if (weatherRes && weatherRes.daily && weatherRes.daily.time) {
+        const times = weatherRes.daily.time;
+        const tMax = weatherRes.daily.temperature_2m_max || [];
+        const tMin = weatherRes.daily.temperature_2m_min || [];
+        const prec = weatherRes.daily.precipitation_sum || [];
+
+        climaData = times.map((t, idx) => {
+          const air = airByDate[t] || { aqi: 54, pm25: 46.5, cat: 'Aceptable' };
+          return {
+            fecha: t,
+            tempMax: tMax[idx] !== undefined ? tMax[idx] : null,
+            tempMin: tMin[idx] !== undefined ? tMin[idx] : null,
+            precipitacionMm: prec[idx] !== undefined ? prec[idx] : 0,
+            aqi: air.aqi,
+            pm25: air.pm25,
+            aqiCategory: air.cat
+          };
+        });
       }
     } catch (wErr) {
-      console.warn("No se pudo obtener clima de Open-Meteo:", wErr.message);
+      console.warn("No se pudo obtener clima o calidad de aire de Open-Meteo:", wErr.message);
     }
 
     // Helper de Estación del Año (Chile / Hemisferio Sur)

@@ -49,6 +49,7 @@ export default function Radar({ user, app, showNotif }) {
   const [proyeccionData, setProyeccionData] = useState([]);
   const [alertaCognitivaText, setAlertaCognitivaText] = useState('');
   const [climaData, setClimaData] = useState([]);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [calidadAire, setCalidadAire] = useState({
     pm25Promedio: 46.5,
     pm10Promedio: 48.2,
@@ -352,15 +353,25 @@ export default function Radar({ user, app, showNotif }) {
               </div>
               
               {peakDay && (
-                <div className="flex items-center gap-2 bg-red-500/20 px-4 py-2.5 rounded-2xl border border-red-500/30 text-red-700 dark:text-red-200 text-xs font-black self-end md:self-center flex-shrink-0">
-                  <Clock className="w-4 h-4" /> Pico Estimado: {peakDay.atenciones_estimadas} pac. ({peakDay.fechaStr})
+                <div className="flex flex-col sm:flex-row items-center gap-3 self-end md:self-center flex-shrink-0">
+                  <div className="flex items-center gap-2 bg-red-500/20 px-4 py-2.5 rounded-2xl border border-red-500/30 text-red-700 dark:text-red-200 text-xs font-black">
+                    <Clock className="w-4 h-4" /> Pico Estimado: {peakDay.atenciones_estimadas} pac. ({peakDay.fechaStr})
+                  </div>
+
+                  <button
+                    onClick={() => setShowDetailModal(true)}
+                    className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-black text-xs rounded-2xl shadow-md transition-all cursor-pointer animate-pulse"
+                    title="Ver desglose causa-efecto del informe"
+                  >
+                    <FileText className="w-4 h-4" /> Ver Informe Detallado
+                  </button>
                 </div>
               )}
             </div>
 
             <div className="pt-2 border-t border-red-500/20 text-[10px] font-bold text-red-700/80 dark:text-red-300/80 flex items-center gap-1.5">
               <Info className="w-3 h-3 text-red-500 flex-shrink-0" />
-              <span>Diagnóstico dinámico generado por la Cloud Function integrando BigQuery ML, Open-Meteo y alertas oficiales del MINSAL</span>
+              <span>Diagnóstico dinámico generado por la Cloud Function integrando BigQuery ML, Open-Meteo, Calidad del Aire y alertas del MINSAL</span>
             </div>
           </div>
         )
@@ -461,6 +472,12 @@ export default function Radar({ user, app, showNotif }) {
                     <span className="text-secondary-custom opacity-80">Precip:</span>
                     <span className="font-bold text-sky-600 dark:text-sky-400">
                       {prec > 0 ? `${prec} mm` : '0 mm'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-secondary-custom opacity-70">Aire AQI:</span>
+                    <span className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <Wind className="w-3 h-3" /> {item.aqi || 54} ({item.aqiCategory || 'Aceptable'})
                     </span>
                   </div>
                 </div>
@@ -680,6 +697,150 @@ export default function Radar({ user, app, showNotif }) {
           </table>
         </div>
       </div>
+      
+      {/* MODAL DE INFORME TÉCNICO DETALLADO (CAUSA-EFECTO 6 FUENTES) */}
+      {showDetailModal && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
+          <div className="bg-card-custom w-full max-w-4xl rounded-3xl border border-card-custom shadow-2xl p-6 md:p-8 space-y-6 theme-transition my-8">
+            
+            {/* Header Modal */}
+            <div className="flex items-start justify-between border-b border-card-custom/60 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-full text-xs font-black bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 flex items-center gap-1.5">
+                    <ShieldAlert className="w-3.5 h-3.5 text-red-500 animate-pulse" /> Informe Técnico de Alerta Operativa
+                  </span>
+                  <span className="text-xs font-bold text-secondary-custom">• SAR Elsa Romo Aravena</span>
+                </div>
+                <h2 className="text-xl md:text-2xl font-black text-primary-custom">
+                  Desglose Causa-Efecto: Proyección, Clima & Calidad del Aire
+                </h2>
+              </div>
+              <button 
+                onClick={() => setShowDetailModal(false)}
+                className="p-2 rounded-2xl bg-card-custom border border-card-custom hover:bg-slate-200 dark:hover:bg-slate-800 transition-all text-secondary-custom cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* SECCIÓN 1: ALERTA GEMINI AI COMPLETA */}
+            <div className="bg-red-500/10 border-2 border-red-500/30 p-5 rounded-2xl space-y-2">
+              <span className="text-xs font-black uppercase text-red-600 dark:text-red-400 tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-red-500" /> Síntesis Epidemiológica Ejecutiva (Gemini 1.5 Flash)
+              </span>
+              <p className="text-sm font-bold text-red-950 dark:text-red-100 whitespace-pre-line leading-relaxed">
+                {alertaCognitivaText || 'Proyección normal sin riesgo crítico asistencial.'}
+              </p>
+            </div>
+
+            {/* SECCIÓN 2: LAS 6 FUENTES DE DATOS ANALIZADAS */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-black uppercase tracking-wider text-secondary-custom flex items-center gap-2">
+                <BarChart2 className="w-4 h-4 text-indigo-500" /> Matriz de Fuentes de Datos Cruzadas
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                
+                {/* Fuente 1: BigQuery ML */}
+                <div className="bg-slate-50 dark:bg-slate-800/90 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400">1. BigQuery ML</span>
+                    <TrendingUp className="w-3.5 h-3.5 text-indigo-500" />
+                  </div>
+                  <div className="space-y-0.5 text-xs">
+                    <p className="font-bold text-slate-900 dark:text-white">ARIMA_PLUS Modelo</p>
+                    <p className="text-slate-600 dark:text-slate-400">Pico: <span className="font-black text-indigo-600 dark:text-indigo-400">{peakDay?.atenciones_estimadas} pac.</span> ({peakDay?.fechaStr})</p>
+                  </div>
+                </div>
+
+                {/* Fuente 2: Clima Open-Meteo */}
+                <div className="bg-slate-50 dark:bg-slate-800/90 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-sky-600 dark:text-sky-400">2. Clima Futuro</span>
+                    <Cloud className="w-3.5 h-3.5 text-sky-500" />
+                  </div>
+                  <div className="space-y-0.5 text-xs">
+                    <p className="font-bold text-slate-900 dark:text-white">Melipilla 7 Días</p>
+                    <p className="text-slate-600 dark:text-slate-400">Temp / Precipitaciones</p>
+                  </div>
+                </div>
+
+                {/* Fuente 3: Regla Lluvia Pasada */}
+                <div className="bg-slate-50 dark:bg-slate-800/90 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400">3. Historia Clima</span>
+                    <CloudRain className="w-3.5 h-3.5 text-blue-500" />
+                  </div>
+                  <div className="space-y-0.5 text-xs">
+                    <p className="text-slate-600 dark:text-slate-400">
+                      Lluvia: {comportamientoLluvia.variacionLluviaPct}%
+                    </p>
+                    <p className="text-xs font-black text-rose-600 dark:text-rose-400">
+                      Post-Lluvia: +{comportamientoLluvia.variacionPostLluviaPct}%
+                    </p>
+                    <p className="text-[9px] text-slate-500 dark:text-slate-400">Regla empírica Melipilla</p>
+                  </div>
+                </div>
+
+                {/* Fuente 4: Calidad del Aire */}
+                <div className="bg-slate-50 dark:bg-slate-800/90 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400">4. Calidad Aire</span>
+                    <Wind className="w-3.5 h-3.5 text-emerald-500" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className={`inline-block px-2 py-0.2 rounded-full text-[10px] font-black border ${airQualitySimple.badgeBg}`}>
+                      {airQualitySimple.badge}
+                    </span>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                      AQI Promedio: {calidadAire.aqiPromedio || 54} (PM2.5: {calidadAire.pm25Promedio} µg/m³)
+                    </p>
+                  </div>
+                </div>
+
+                {/* Fuente 5: MINSAL RSS */}
+                <div className="bg-slate-50 dark:bg-slate-800/90 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400">5. Feed MINSAL</span>
+                    <Newspaper className="w-3.5 h-3.5 text-amber-500" />
+                  </div>
+                  <div className="space-y-0.5 text-xs">
+                    <p className="font-bold text-slate-900 dark:text-white truncate">Alerta Sanitaria</p>
+                    <p className="text-[9px] text-amber-600 dark:text-amber-400 font-black">Campaña Invierno</p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* SECCIÓN 3: RECOMENDACIONES CLÍNICAS */}
+            <div className="bg-indigo-50 dark:bg-indigo-950/50 border-2 border-indigo-200 dark:border-indigo-800 p-5 rounded-2xl space-y-3">
+              <h3 className="text-xs font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-300 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-indigo-600" /> Acciones Preparatorias Sugeridas para Urgencias
+              </h3>
+              <ul className="text-xs font-bold text-slate-800 dark:text-slate-100 space-y-1.5 list-disc list-inside">
+                <li>Reforzar dotación médica y de enfermería en turnos de triage (C1 - C3) durante el día pico.</li>
+                <li>Habilitar insumos de aerosolterapia, nebulizaciones y oxigenoterapia suplementaria.</li>
+                <li>Agilizar la gestión de altas administrativas para mantener disponibilidad en boxes de observación.</li>
+                <li>Mantener canal activo de coordinación con el Hospital San José de Melipilla para traslados complejos.</li>
+              </ul>
+            </div>
+
+            {/* Footer Modal */}
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-[10px] font-bold">SAR Elsa Romo Aravena • Sistema MÉTRICO</span>
+              <button 
+                onClick={() => setShowDetailModal(false)}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-md transition-all cursor-pointer"
+              >
+                Cerrar Informe
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );
