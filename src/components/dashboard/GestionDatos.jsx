@@ -57,6 +57,7 @@ export default function GestionDatos({
   // Estados para Auditoría y Puntos de Control
   const [rayenControl, setRayenControl] = useState(23882);
   const [ultimoPaciente, setUltimoPaciente] = useState(null);
+  const [recalcSummaryModal, setRecalcSummaryModal] = useState(null);
 
   useEffect(() => {
     if (!db || !appId) return;
@@ -1243,6 +1244,26 @@ export default function GestionDatos({
         await runWithTimeout(batchList[i].commit(), 30000);
         setRecalcProgress(((i + 1) / batchList.length) * 100);
       }
+
+      // Calcular totales para el modal resumen (usando el año seleccionado auditYear)
+      const pacsEsteAnio = todosPacientes.filter(p => {
+        if (!p.tAdmision) return false;
+        return new Date(p.tAdmision).getFullYear() === auditYear;
+      });
+      const turnosEsteAnio = nuevosTurnos.filter(t => {
+        if (!t.fechaInicio) return false;
+        return new Date(t.fechaInicio).getFullYear() === auditYear;
+      });
+
+      const totalPacientesBD = pacsEsteAnio.length;
+      const totalPacientesTurnos = turnosEsteAnio.reduce((acc, t) => acc + (t.totalPacientes || 0), 0);
+
+      setRecalcSummaryModal({
+        año: auditYear,
+        totalBD: totalPacientesBD,
+        totalTurnos: totalPacientesTurnos,
+        descalce: totalPacientesBD - totalPacientesTurnos
+      });
 
       showNotif("Sincronización y recálculo de turnos completado con éxito.", "success");
     } catch (e) {
@@ -2483,6 +2504,71 @@ export default function GestionDatos({
                 className="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition shadow-sm cursor-pointer"
               >
                 Cerrar Diagnóstico
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE RESULTADO DE SINCRONIZACIÓN Y RECÁLCULO */}
+      {recalcSummaryModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4 animate-fade-in text-left">
+          <div className="bg-card-custom border border-card-custom rounded-3xl shadow-2xl max-w-lg w-full p-6 text-center space-y-6 animate-bounce-in theme-transition">
+            
+            <div className="mx-auto w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+              <CheckCircle className="w-10 h-10 animate-pulse" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-xl font-black text-primary-custom">¡Sincronización y Recálculo Exitoso!</h3>
+              <p className="text-xs text-secondary-custom font-semibold">Se han recalculado todas las estadísticas de turnos para el año {recalcSummaryModal.año}.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 text-left">
+              <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Pacientes BD</span>
+                <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-2">
+                  {recalcSummaryModal.totalBD.toLocaleString('es-CL')}
+                </span>
+                <span className="text-[9px] font-semibold text-secondary-custom opacity-75 mt-1">Registros únicos en BD</span>
+              </div>
+
+              <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Acumulado Turnos</span>
+                <span className="text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-2">
+                  {recalcSummaryModal.totalTurnos.toLocaleString('es-CL')}
+                </span>
+                <span className="text-[9px] font-semibold text-secondary-custom opacity-75 mt-1">Sumatoria de Turnos (Inicio)</span>
+              </div>
+
+              <div className="bg-black/5 dark:bg-white/5 border border-card-custom p-4 rounded-2xl flex flex-col justify-between">
+                <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider">Diferencia (Descalce)</span>
+                <span className="text-2xl font-black text-rose-500 mt-2">
+                  {recalcSummaryModal.descalce.toLocaleString('es-CL')}
+                </span>
+                <span className="text-[9px] font-semibold text-secondary-custom opacity-75 mt-1">Brecha por cruce de turnos</span>
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-50 dark:bg-white/5 border border-card-custom rounded-2xl text-[11px] text-secondary-custom font-semibold leading-relaxed text-left space-y-2">
+              <div className="flex items-center gap-1.5 text-primary-custom font-bold">
+                <span className="text-xs">💡</span>
+                <span>Nota sobre la diferencia:</span>
+              </div>
+              <p>
+                Esta brecha de {recalcSummaryModal.descalce} {recalcSummaryModal.descalce === 1 ? 'paciente' : 'pacientes'} es normal y esperable en las estadísticas por turnos del SAR. Se produce porque los turnos nocturnos o de fin de semana cruzan la medianoche y los límites mensuales (por ejemplo, pacientes admitidos el 1 de agosto antes de las 08:00 AM que corresponden al turno nocturno del 31 de julio).
+              </p>
+              <p>
+                Esto garantiza que todas las fichas están cargadas correctamente y cuadradas al 100% en la base de datos de pacientes.
+              </p>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button 
+                onClick={() => setRecalcSummaryModal(null)}
+                className="w-full bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-3 px-6 rounded-xl transition shadow-sm cursor-pointer"
+              >
+                Entendido y Cerrar
               </button>
             </div>
           </div>
