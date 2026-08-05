@@ -29,6 +29,7 @@ import {
   ThermometerSun,
   Compass
 } from 'lucide-react';
+import AgenteRadarAdmin from './AgenteRadarAdmin';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { 
   ComposedChart, 
@@ -374,6 +375,16 @@ export default function Radar({ user, app, showNotif }) {
             </div>
           </div>
         )}
+
+      {/* MÓDULO DEL AGENTE ADMINISTRADOR DEL RADAR PREDICTIVO (IA GEMINI + SIMULADOR) */}
+      <AgenteRadarAdmin 
+        app={app} 
+        peakDay={peakDay} 
+        calidadAire={calidadAire} 
+        climaData={climaData} 
+        multivariableClimatico={multivariableClimatico} 
+        showNotif={showNotif} 
+      />
 
       {/* FASE 2: TARJETAS CLIMÁTICAS EN TIEMPO REAL A 7 DÍAS (OPEN-METEO MELIPILLA) */}
       <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-xs space-y-4 theme-transition backdrop-blur-md">
