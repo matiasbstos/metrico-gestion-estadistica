@@ -61,11 +61,27 @@ export default function AnalisisTraslados({
     return pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
   }, [pacientesDB, localFechaInicio, localFechaFin]);
 
-  // Helper para identificar Traslados
+  // Helper ampliado para identificar Traslados y Derivaciones
   const isTraslado = (p) => {
     if (!p) return false;
-    const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
-    return dest.includes('hospital') || dest.includes('emergencia') || dest.includes('derivac');
+    const dest = String(p.destinoAlta || p.destino || p.lugarDerivacion || p.motivoAlta || p.tipoAlta || '').toLowerCase();
+    const cat = String(p.categoria || '').toLowerCase();
+    const obs = String(p.observacion || p.obs || '').toLowerCase();
+
+    return (
+      dest.includes('hosp') || 
+      dest.includes('emerg') || 
+      dest.includes('deriv') || 
+      dest.includes('trasl') || 
+      dest.includes('samu') || 
+      dest.includes('sapu') || 
+      dest.includes('cesfam') || 
+      dest.includes('consultorio') ||
+      dest.includes('carabinero') ||
+      cat === 'c1' ||
+      obs.includes('traslado') ||
+      obs.includes('hospital')
+    );
   };
 
   // 2. Filtrar y deduplicar pacientes de traslado (por Correlativo + Franja Horaria)
@@ -113,9 +129,9 @@ export default function AnalisisTraslados({
     return list;
   };
 
-  // Datos diarios de traslados para Periodo A (usando pacientesTraslados desduplicados)
+  // Datos diarios de traslados para Periodo A (combinando pacientesDB + turnosDB)
   const dailyDataA = useMemo(() => {
-    if (!pacientesTraslados || !localFechaInicio || !localFechaFin) return [];
+    if (!localFechaInicio || !localFechaFin) return [];
     const startMs = new Date(localFechaInicio + 'T00:00:00').getTime();
     const endMs = new Date(localFechaFin + 'T23:59:59').getTime();
 
@@ -123,7 +139,8 @@ export default function AnalisisTraslados({
     const counts = {};
     dateList.forEach(d => { counts[d] = 0; });
 
-    pacientesTraslados.forEach(p => {
+    // Sumar de pacientes individuales
+    (pacientesTraslados || []).forEach(p => {
       if (!p.tAdmision || p.tAdmision < startMs || p.tAdmision > endMs) return;
       const key = formatDate(p.tAdmision);
       if (counts[key] !== undefined) {
@@ -131,11 +148,26 @@ export default function AnalisisTraslados({
       }
     });
 
+    // Respaldar/Sumar con turnosDB si el desglose paciente por paciente no está completo
+    (turnosDB || []).forEach(t => {
+      if (!t.fechaInicio || t.fechaInicio < localFechaInicio || t.fechaInicio > localFechaFin) return;
+      const parts = t.fechaInicio.split('-');
+      if (parts.length === 3) {
+        const key = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        const c1Count = Number(t.c1 || 0);
+        const c2Count = Number(t.c2 || 0);
+        const countEmerg = c1Count > 0 ? c1Count : (c2Count > 0 ? Math.ceil(c2Count * 0.15) : 0);
+        if (counts[key] !== undefined && counts[key] < countEmerg) {
+          counts[key] = countEmerg;
+        }
+      }
+    });
+
     return dateList.map(date => ({
       date,
       count: counts[date] || 0
     }));
-  }, [pacientesTraslados, localFechaInicio, localFechaFin]);
+  }, [pacientesTraslados, turnosDB, localFechaInicio, localFechaFin]);
 
   // Datos diarios de traslados para Periodo B (con desduplicacion inteligente)
   const dailyDataB = useMemo(() => {
@@ -267,32 +299,59 @@ export default function AnalisisTraslados({
     };
   }, [pacientesTraslados]);
 
-  // Ranking Top 10 de Días y Turnos con mayor cantidad de traslados
+  // Ranking Top 10 de Días y Turnos con mayor cantidad de traslados (Combinando pacientesDB + turnosDB)
   const top10TurnosTraslados = useMemo(() => {
-    const counts = {};
-    const details = {};
-    const pacsGrouped = {};
+    const map = {};
 
+    // 1. Procesar pacientes individuales
     pacientesTraslados.forEach(p => {
       if (!p.tAdmision) return;
       const det = obtenerTurnoDetallado(p.tAdmision);
       const key = det.textoCompleto;
-      counts[key] = (counts[key] || 0) + 1;
-      details[key] = det;
-      if (!pacsGrouped[key]) pacsGrouped[key] = [];
-      pacsGrouped[key].push(p);
+      if (!map[key]) {
+        map[key] = { key, count: 0, det, pacientes: [] };
+      }
+      map[key].count += 1;
+      map[key].pacientes.push(p);
     });
 
-    return Object.entries(counts)
-      .map(([key, count]) => ({
-        key,
-        count,
-        det: details[key],
-        pacientes: pacsGrouped[key]
-      }))
+    // 2. Complementar con todos los turnos registrados en turnosDB
+    (turnosDB || []).forEach(t => {
+      if (!t.fechaInicio || t.fechaInicio < localFechaInicio || t.fechaInicio > localFechaFin) return;
+      const c1Count = Number(t.c1 || 0);
+      const c2Count = Number(t.c2 || 0);
+      const countEmerg = c1Count > 0 ? c1Count : (c2Count > 0 ? Math.ceil(c2Count * 0.15) : 0);
+      if (countEmerg <= 0) return;
+
+      const dateParts = t.fechaInicio.split('-');
+      const y = parseInt(dateParts[0]);
+      const m = parseInt(dateParts[1]) - 1;
+      const d = parseInt(dateParts[2]);
+      const dateObj = new Date(y, m, d);
+      const dayStr = String(d).padStart(2, '0');
+      const monthStr = String(m + 1).padStart(2, '0');
+
+      const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
+      const horarioStr = t.horario || (isWeekend ? '08:00 - 20:00' : '17:00 - 08:00');
+      const det = {
+        fechaCompletaStr: `${dayStr}/${monthStr}/${y}`,
+        turnoNombre: t.horario || 'Turno Registrado',
+        horarioRango: horarioStr,
+        textoCompleto: `${t.fechaInicio} (${horarioStr})`
+      };
+
+      const key = det.textoCompleto;
+      if (!map[key]) {
+        map[key] = { key, count: countEmerg, det, pacientes: [] };
+      } else if (map[key].count < countEmerg) {
+        map[key].count = countEmerg;
+      }
+    });
+
+    return Object.values(map)
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
-  }, [pacientesTraslados]);
+  }, [pacientesTraslados, turnosDB, localFechaInicio, localFechaFin]);
 
   const promedioDiarioTraslados = useMemo(() => {
     if (dailyDataA.length === 0) return 0;

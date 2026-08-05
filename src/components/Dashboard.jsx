@@ -200,13 +200,25 @@ const DashboardContent = () => {
   }, [isSuperAdmin, isCenterAdmin]);
 
   const maxDateLabel = useMemo(() => {
-    if (!pacientesDB || pacientesDB.length === 0) return '';
     let maxTime = 0;
-    pacientesDB.forEach(p => {
-      if (p.tAdmision && p.tAdmision > maxTime) {
-        maxTime = p.tAdmision;
-      }
-    });
+    if (pacientesDB && pacientesDB.length > 0) {
+      pacientesDB.forEach(p => {
+        if (p.tAdmision && p.tAdmision > maxTime) {
+          maxTime = p.tAdmision;
+        }
+      });
+    }
+    if (turnosDB && turnosDB.length > 0) {
+      turnosDB.forEach(t => {
+        if (t.fechaInicio) {
+          const parts = t.fechaInicio.split('-');
+          if (parts.length === 3) {
+            const tMs = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 23, 57, 0).getTime();
+            if (tMs > maxTime) maxTime = tMs;
+          }
+        }
+      });
+    }
     if (maxTime === 0) return '';
     const d = new Date(maxTime);
     const day = String(d.getDate()).padStart(2, '0');
@@ -215,7 +227,7 @@ const DashboardContent = () => {
     const hours = String(d.getHours()).padStart(2, '0');
     const minutes = String(d.getMinutes()).padStart(2, '0');
     return `${day}/${month}/${year} ${hours}:${minutes}`;
-  }, [pacientesDB]);
+  }, [pacientesDB, turnosDB]);
   const pautasTurnosHook = usePautasTurnos();
 
   useEffect(() => {
