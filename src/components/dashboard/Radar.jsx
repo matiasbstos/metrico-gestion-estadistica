@@ -33,6 +33,7 @@ export default function Radar({ user, app, showNotif }) {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [proyeccionData, setProyeccionData] = useState([]);
+  const [alertaCognitivaText, setAlertaCognitivaText] = useState('');
 
   // Datos de respaldo estructurados según el entrenamiento ARIMA_PLUS
   const fallbackData = [
@@ -55,10 +56,21 @@ export default function Radar({ user, app, showNotif }) {
         const functions = getFunctions(app);
         const callProyeccion = httpsCallable(functions, 'obtenerProyeccionVolumen');
         const res = await callProyeccion({ horizon: 7, confidenceLevel: 0.95 });
-        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-          setProyeccionData(res.data);
+        const data = res.data;
+        if (data) {
+          if (Array.isArray(data) && data.length > 0) {
+            setProyeccionData(data);
+          } else if (data.proyecciones && Array.isArray(data.proyecciones)) {
+            setProyeccionData(data.proyecciones);
+            if (data.alertaCognitiva) {
+              setAlertaCognitivaText(data.alertaCognitiva);
+            }
+          } else {
+            setProyeccionData(fallbackData);
+          }
+
           if (isManualRefresh && showNotif) {
-            showNotif('Modelo predictivo de BigQuery sincronizado correctamente.', 'success');
+            showNotif('Modelo predictivo BigQuery + Agente AI de Clima sincronizados.', 'success');
           }
         } else {
           setProyeccionData(fallbackData);
@@ -205,7 +217,7 @@ export default function Radar({ user, app, showNotif }) {
         </div>
       </div>
 
-      {/* TARJETA DE ALERTA OPERATIVA (BANNER ROJO DINÁMICO) */}
+      {/* TARJETA DE ALERTA OPERATIVA (BANNER ROJO DINÁMICO DE AGENTE AI) */}
       {peakDay && peakDay.atenciones_estimadas >= 100 && (
         <div className="relative p-6 rounded-3xl bg-red-500/10 dark:bg-red-950/30 border-2 border-red-500/40 shadow-xl overflow-hidden animate-fade-in glow-red-alert">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
@@ -213,18 +225,15 @@ export default function Radar({ user, app, showNotif }) {
               <div className="p-3 bg-red-500/20 rounded-2xl border border-red-500/30 text-red-600 dark:text-red-400 flex-shrink-0 animate-pulse">
                 <ShieldAlert className="w-8 h-8" />
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-black uppercase tracking-wider text-red-600 dark:text-red-400 bg-red-500/20 px-2.5 py-0.5 rounded-full border border-red-500/30">
-                    Alerta Operativa Preventiva
+                  <span className="text-[11px] font-black uppercase tracking-wider text-red-600 dark:text-red-400 bg-red-500/20 px-3 py-1 rounded-full border border-red-500/30 flex items-center gap-1.5 shadow-xs">
+                    <Sparkles className="w-3.5 h-3.5 text-red-500 animate-pulse" /> Agente Epidemiológico MÉTRICO AI (Clima Melipilla)
                   </span>
                 </div>
-                <h3 className="text-lg font-black text-red-700 dark:text-red-300 tracking-tight leading-snug">
-                  ⚠️ Riesgo de sobrecarga para el {peakDay.fechaCompletaStr} (Proyección: {peakDay.atenciones_estimadas} pacientes).
+                <h3 className="text-sm md:text-base font-black text-red-700 dark:text-red-200 tracking-tight leading-relaxed">
+                  {alertaCognitivaText || `⚠️ Riesgo de sobrecarga para el ${peakDay.fechaCompletaStr} (Proyección: ${peakDay.atenciones_estimadas} pacientes). Se recomienda reforzar dotación médica y de enfermería.`}
                 </h3>
-                <p className="text-xs text-red-600/90 dark:text-red-300/90 font-medium">
-                  Se recomienda reforzar dotación médica y de enfermería.
-                </p>
               </div>
             </div>
             

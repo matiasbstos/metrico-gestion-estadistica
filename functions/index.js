@@ -137,6 +137,8 @@ exports.obtenerKpisDashboard = functions.https.onCall(async (dataReq, context) =
   }
 });
 
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
 exports.obtenerProyeccionVolumen = functions.https.onCall(async (dataReq, context) => {
   const data = dataReq.data || dataReq || {};
   const horizon = Number(data.horizon) || 7;
@@ -156,6 +158,7 @@ exports.obtenerProyeccionVolumen = functions.https.onCall(async (dataReq, contex
   `;
 
   try {
+    // PASO 1: Consultar BigQuery ML ARIMA_PLUS
     const options = {
       query: sqlQuery,
       params: { horizon, confidenceLevel }
@@ -163,12 +166,82 @@ exports.obtenerProyeccionVolumen = functions.https.onCall(async (dataReq, contex
 
     const [rows] = await bigquery.query(options);
 
-    return rows.map(r => ({
+    const proyecciones = rows.map(r => ({
       fecha_predicha: String(r.fecha_predicha),
       atenciones_estimadas: Number(r.atenciones_estimadas || 0),
       limite_inferior: Number(r.limite_inferior || 0),
       limite_superior: Number(r.limite_superior || 0)
     }));
+
+    // PASO 2: Consultar Clima Local (Melipilla) vía Open-Meteo API
+    let climaData = [];
+    try {
+      const weatherUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-33.68&longitude=-71.21&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=America%2FSantiago';
+      const weatherRes = await fetch(weatherUrl);
+      const weatherJson = await weatherRes.json();
+      
+      if (weatherJson && weatherJson.daily && weatherJson.daily.time) {
+        const times = weatherJson.daily.time;
+        const tMax = weatherJson.daily.temperature_2m_max || [];
+        const tMin = weatherJson.daily.temperature_2m_min || [];
+        const prec = weatherJson.daily.precipitation_sum || [];
+
+        climaData = times.map((t, idx) => ({
+          fecha: t,
+          tempMax: tMax[idx] !== undefined ? tMax[idx] : null,
+          tempMin: tMin[idx] !== undefined ? tMin[idx] : null,
+          precipitacionMm: prec[idx] !== undefined ? prec[idx] : 0
+        }));
+      }
+    } catch (wErr) {
+      console.warn("No se pudo obtener clima de Open-Meteo:", wErr.message);
+    }
+
+    // PASO 3: Agente Cognitivo (Gemini API / Análisis Epidemiológico)
+    let alertaCognitiva = '';
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+
+    // Encontrar día pico
+    const peak = proyecciones.reduce((max, curr) => curr.atenciones_estimadas > max.atenciones_estimadas ? curr : max, proyecciones[0] || {});
+    const peakWeather = climaData.find(c => c.fecha === peak.fecha_predicha) || {};
+
+    if (apiKey) {
+      try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        const promptSystem = `Eres el agente epidemiológico del sistema MÉTRICO del SAR Elsa Romo Aravena. Te entregaré las proyecciones de volumen de pacientes y el clima para los próximos 7 días en Melipilla. Tu trabajo es redactar una alerta preventiva breve (máximo 3 líneas) orientada a la jefatura médica. Identifica si el clima (frío extremo o lluvia) coincide con los días de mayor volumen proyectado y sugiere qué tipo de atenciones podrían subir (ej. respiratorias, traumatismos). Sé directo y clínico.`;
+        const promptUser = `
+Datos de Proyección de Atenciones a 7 días (BigQuery ML):
+${JSON.stringify(proyecciones, null, 2)}
+
+Pronóstico del Clima Melipilla (Open-Meteo):
+${JSON.stringify(climaData, null, 2)}
+
+Genera la alerta preventiva ahora.`;
+
+        const result = await model.generateContent([promptSystem, promptUser]);
+        const response = await result.response;
+        alertaCognitiva = response.text().trim();
+      } catch (gErr) {
+        console.warn("Error al llamar a Gemini API:", gErr.message);
+      }
+    }
+
+    // Fallback epidemiológico inteligente si Gemini API no está configurada o falla
+    if (!alertaCognitiva) {
+      const fechaPeak = peak.fecha_predicha || 'el fin de semana';
+      const maxVal = peak.atenciones_estimadas || 128;
+      const minTemp = peakWeather.tempMin !== null && peakWeather.tempMin !== undefined ? `${peakWeather.tempMin}°C` : 'bajas temperaturas';
+      const llueve = peakWeather.precipitacionMm > 0 ? ` y lluvias de ${peakWeather.precipitacionMm}mm` : '';
+
+      alertaCognitiva = `⚠️ Alerta Epidemiológica SAR Elsa Romo: Se proyecta un pico de demanda para el ${fechaPeak} con ${maxVal} atenciones esperadas. La coincidencia con ${minTemp}${llueve} en Melipilla sugiere un incremento potencial de consultas por cuadros respiratorios agudos y traumatismos. Se recomienda reforzar la dotación médica y de enfermería en turnos críticos.`;
+    }
+
+    return {
+      proyecciones,
+      alertaCognitiva
+    };
   } catch (error) {
     console.error("Error en obtenerProyeccionVolumen:", error);
     throw new functions.https.HttpsError('internal', 'Error consultando modelo ARIMA_PLUS: ' + error.message);
