@@ -1252,7 +1252,8 @@ export default function GestionDatos({
       });
       const turnosEsteAnio = nuevosTurnos.filter(t => {
         if (!t.fechaInicio) return false;
-        return new Date(t.fechaInicio).getFullYear() === auditYear;
+        const yearParts = t.fechaInicio.split('-');
+        return yearParts[0] === String(auditYear);
       });
 
       const totalPacientesBD = pacsEsteAnio.length;
