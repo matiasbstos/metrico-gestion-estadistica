@@ -148,28 +148,36 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
     const turnosRef = collection(db, 'artifacts', appId, 'public', 'data', 'turnos');
 
     const qCurrent = query(pacientesRef, where('tAdmision', '>=', ranges.current.start), where('tAdmision', '<=', ranges.current.end));
+    const qPrevYear = query(pacientesRef, where('tAdmision', '>=', ranges.prevYear.start), where('tAdmision', '<=', ranges.prevYear.end));
     const qTurnos = query(turnosRef, where('fechaInicio', '>=', `${ranges.minYear}-01-01`));
 
     let currentDocs = [];
+    let prevYearDocs = [];
     let unsubCurrent = () => {};
+    let unsubPrevYear = () => {};
     let active = true;
 
     const isLargeRange = (ranges.current.end - ranges.current.start) > (62 * 24 * 60 * 60 * 1000);
 
     const mergeAndSetPacientes = () => {
-      setPacientesDB(currentDocs);
+      const merged = [...currentDocs, ...prevYearDocs];
+      setPacientesDB(merged);
       setPacientesLoaded(true);
-      if (currentDocs.length > 0 && currentDocs.length <= 1500) {
-        try { localStorage.setItem('metrico_cached_pacientes', JSON.stringify(currentDocs)); } catch (e) {}
+      if (merged.length > 0 && merged.length <= 1500) {
+        try { localStorage.setItem('metrico_cached_pacientes', JSON.stringify(merged)); } catch (e) {}
       }
     };
 
     if (isLargeRange) {
       import('firebase/firestore').then(({ getDocs }) => {
         if (!active) return;
-        getDocs(qCurrent).then((snapshot) => {
+        Promise.all([
+          getDocs(qCurrent),
+          getDocs(qPrevYear)
+        ]).then(([snapCurrent, snapPrev]) => {
           if (!active) return;
-          currentDocs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          currentDocs = snapCurrent.docs.map(d => ({ id: d.id, ...d.data() }));
+          prevYearDocs = snapPrev.docs.map(d => ({ id: d.id, ...d.data() }));
           mergeAndSetPacientes();
         }).catch((err) => {
           console.error("Error cargando pacientes (getDocs):", err);
@@ -183,6 +191,13 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
       }, (err) => {
         console.error("Error cargando pacientes actuales:", err);
         if (active) setPacientesLoaded(true);
+      });
+
+      unsubPrevYear = onSnapshot(qPrevYear, (snapshot) => {
+        prevYearDocs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        mergeAndSetPacientes();
+      }, (err) => {
+        console.error("Error cargando pacientes año anterior:", err);
       });
     }
 
@@ -213,6 +228,7 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
     return () => { 
       active = false;
       unsubCurrent();
+      unsubPrevYear();
       unsubTurnos(); 
       clearTimeout(fallbackTimer); 
     };
