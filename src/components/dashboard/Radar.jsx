@@ -22,7 +22,12 @@ import {
   Newspaper,
   ShieldCheck,
   Wind,
-  CloudRain
+  CloudRain,
+  Sun,
+  Snowflake,
+  ThermometerSnowflake,
+  ThermometerSun,
+  Compass
 } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { 
@@ -58,6 +63,20 @@ export default function Radar({ user, app, showNotif }) {
     avgPostLluvia: 109,
     variacionPostLluviaPct: 28.2,
     patronLluviaObs: "En días de lluvia la atención cae un -15.3% (postergación de consultas). El día POST-LLUVIA registra un rebote del +28.2% por acumulación de atenciones."
+  });
+  const [multivariableClimatico, setMultivariableClimatico] = useState({
+    estacion: {
+      nombre: 'Invierno',
+      icono: '❄️',
+      focoClinico: 'Pico estacional respiratorio (SBO, neumonía, asma), frío extremo (<5°C), precipitaciones y rebote asistencial post-lluvia.',
+      alertaRiesgo: 'Sobrecarga en Triage C1-C3 por virus respiratorios, descompensación cardiovascular y caídas por humedad.'
+    },
+    avgNormal: 85,
+    reglaLluvia: { avgLluvia: 72, variacionPct: -15.3 },
+    reglaPostLluvia: { avgPostLluvia: 109, variacionPct: 28.2 },
+    reglaHeladasFrio: { diasHelada: 6, variacionPct: 18.5 },
+    reglaOlaCalor: { diasCalor: 4, variacionPct: 14.2 },
+    reglaAmplitudTermica: { variacionPct: 11.0 }
   });
 
   // Mapeo simple de Calidad del Aire para entendimiento directo
@@ -135,6 +154,9 @@ export default function Radar({ user, app, showNotif }) {
             }
             if (data.analisisComportamientoLluvia) {
               setComportamientoLluvia(data.analisisComportamientoLluvia);
+            }
+            if (data.analisisMultivariableClimatico) {
+              setMultivariableClimatico(data.analisisMultivariableClimatico);
             }
           } else {
             setProyeccionData(fallbackData);
@@ -330,64 +352,98 @@ export default function Radar({ user, app, showNotif }) {
         </div>
       )}
 
-      {/* SECCIÓN DE ANÁLISIS HISTÓRICO PATRÓN DE LLUVIA (CLIMA PASADO VS PACIENTES REALES) */}
-      <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-xs space-y-4 theme-transition">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* SECCIÓN DE ANÁLISIS ESTACIONAL Y MULTIVARIABLE METEOROLÓGICO */}
+      <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-xs space-y-5 theme-transition">
+        
+        {/* Cabecera Estacional */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-card-custom/60">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-blue-500/10 rounded-2xl text-blue-500 flex-shrink-0">
-              <CloudRain className="w-5 h-5" />
+            <div className="p-3 bg-indigo-500/10 rounded-2xl text-indigo-600 dark:text-indigo-400 text-2xl flex-shrink-0">
+              {multivariableClimatico?.estacion?.icono || '❄️'}
             </div>
             <div>
-              <h3 className="text-sm font-black text-primary-custom tracking-tight">
-                Patrón Histórico de Comportamiento Ante la Lluvia (Melipilla)
-              </h3>
-              <p className="text-xs text-secondary-custom font-medium">
-                Correlación empírica calculada cruzando clima pasado con asistencia diaria real de pacientes.
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black uppercase text-indigo-600 dark:text-indigo-400">
+                  Estación Activa: {multivariableClimatico?.estacion?.nombre || 'Invierno'} {multivariableClimatico?.estacion?.icono}
+                </span>
+                <span className="text-[10px] font-bold text-secondary-custom">• Melipilla</span>
+              </div>
+              <p className="text-xs text-primary-custom font-bold mt-0.5">
+                {multivariableClimatico?.estacion?.focoClinico}
               </p>
             </div>
           </div>
-          <span className="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 self-start sm:self-auto">
-            Inteligencia Predictiva Clima-Demanda
+
+          <span className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-300 bg-indigo-500/10 px-3 py-1.5 rounded-full border border-indigo-500/20 self-start md:self-auto flex items-center gap-1.5">
+            <Compass className="w-3.5 h-3.5 text-indigo-500" /> Motor Climático Multivariable
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Matriz de 4 Factores Meteorológicos Pasados y Futuros */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
-          {/* Tarjeta 1: Durante el día de lluvia */}
+          {/* Factor 1: Precipitaciones & Rebote */}
           <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                <CloudRain className="w-4 h-4 text-blue-500" /> 1. Durante un Día de Lluvia Activa
-              </span>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-500/20">
-                {comportamientoLluvia.variacionLluviaPct > 0 ? `+${comportamientoLluvia.variacionLluviaPct}%` : `${comportamientoLluvia.variacionLluviaPct}%`} variación
+                <CloudRain className="w-4 h-4 text-blue-500" /> 1. Precipitaciones & Rebote
               </span>
             </div>
-            <p className="text-xs text-slate-800 dark:text-slate-100 font-black">
-              {comportamientoLluvia.variacionLluviaPct < 0 
-                ? `📉 Moderación temporal: Demanda cae a ~${comportamientoLluvia.avgLluvia} pac/día (vs. ${comportamientoLluvia.avgSeco} promedio normal).`
-                : `📈 Asistencia normal-alta: ~${comportamientoLluvia.avgLluvia} pac/día.`}
-            </p>
-            <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
-              Comportamiento del usuario: La población posterga salidas no urgentes por mal tiempo. La atención se concentra en urgencias C1-C3.
+            <div className="space-y-1 text-xs font-bold">
+              <p className="text-blue-600 dark:text-blue-400">
+                Durante Lluvia: {multivariableClimatico?.reglaLluvia?.variacionPct}%
+              </p>
+              <p className="text-rose-600 dark:text-rose-400">
+                Día Post-Lluvia: +{multivariableClimatico?.reglaPostLluvia?.variacionPct}% Rebote
+              </p>
+            </div>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+              Efecto: Retención inicial de atenciones y sobrecarga asistencial diferida al día siguiente.
             </p>
           </div>
 
-          {/* Tarjeta 2: El día después de la lluvia (Rebote) */}
-          <div className="bg-rose-50 dark:bg-rose-950/40 p-4 rounded-2xl border-2 border-rose-200 dark:border-rose-800 space-y-2">
+          {/* Factor 2: Bajas Temperaturas & Heladas */}
+          <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-rose-900 dark:text-rose-200 flex items-center gap-1.5">
-                <Zap className="w-4 h-4 text-rose-600" /> 2. El Día DESPUÉS de la Lluvia (Efecto Rebote)
-              </span>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30 animate-pulse">
-                +{comportamientoLluvia.variacionPostLluviaPct}% ALZA PICO
+              <span className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <ThermometerSnowflake className="w-4 h-4 text-cyan-500" /> 2. Heladas / Frío (&lt;5°C)
               </span>
             </div>
-            <p className="text-xs text-rose-950 dark:text-rose-100 font-black">
-              ⚡ Sobrecarga Asistencial: Demanda sube a ~{comportamientoLluvia.avgPostLluvia} pac/día (+{comportamientoLluvia.variacionPostLluviaPct}% de aumento).
+            <p className="text-xs text-cyan-600 dark:text-cyan-400 font-black">
+              {multivariableClimatico?.reglaHeladasFrio?.variacionPct > 0 ? `+${multivariableClimatico?.reglaHeladasFrio?.variacionPct}%` : `${multivariableClimatico?.reglaHeladasFrio?.variacionPct}%`} Alza Asistencial
             </p>
-            <p className="text-[11px] text-rose-800 dark:text-rose-300 font-medium">
-              Comportamiento del usuario: Acumulación de atenciones diferidas el día anterior + alza en traumas por calzadas húmedas y bajas temperaturas post-frente.
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+              Efecto: Alza en descompensaciones de EPOC, bronquitis obstructiva y vasodilatación/hipertensión.
+            </p>
+          </div>
+
+          {/* Factor 3: Olas de Calor */}
+          <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <ThermometerSun className="w-4 h-4 text-amber-500" /> 3. Olas de Calor (&gt;28°C)
+              </span>
+            </div>
+            <p className="text-xs text-amber-600 dark:text-amber-400 font-black">
+              {multivariableClimatico?.reglaOlaCalor?.variacionPct > 0 ? `+${multivariableClimatico?.reglaOlaCalor?.variacionPct}%` : `${multivariableClimatico?.reglaOlaCalor?.variacionPct}%`} Alza Asistencial
+            </p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+              Efecto: Aumento de síncopes por deshidratación, gastroenteritis agudas e insolaciones.
+            </p>
+          </div>
+
+          {/* Factor 4: Amplitud Térmica Diurna */}
+          <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <Wind className="w-4 h-4 text-emerald-500" /> 4. Oscilación Térmica (&gt;12°C)
+              </span>
+            </div>
+            <p className="text-xs text-emerald-600 dark:text-emerald-400 font-black">
+              +{multivariableClimatico?.reglaAmplitudTermica?.variacionPct}% Alza por Choque
+            </p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+              Efecto: Choque térmico mañana/tarde e hiperreactividad bronquial por alérgenos estacionales.
             </p>
           </div>
 
