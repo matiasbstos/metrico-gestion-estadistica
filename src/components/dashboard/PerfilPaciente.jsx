@@ -113,13 +113,7 @@ export default function PerfilPaciente({
         </div>
       </div>
 
-      {/* BLOQUE 1: ANÁLISIS SOCIODEMOGRÁFICO Y ORIGEN */}
-      {demografiaStats && rankingCentros && (
-        <AnalisisSociodemografico 
-          demografiaStats={demografiaStats} 
-          rankingCentros={rankingCentros} 
-        />
-      )}
+
 
       {/* BLOQUE 2: EXPLORADOR INTERACTIVO DE PERFILES */}
       <div className="bg-card-custom rounded-[2rem] border border-card-custom p-6 md:p-8 shadow-sm flex flex-col gap-6">

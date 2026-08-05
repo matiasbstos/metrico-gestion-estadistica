@@ -1441,7 +1441,12 @@ const DashboardContent = () => {
           <TopDiagnosticos topDiagnosticos={topDiagnosticos} />
         )}
 
-        {/* Módulo sociodemográfico movido a la pestaña Perfil del Paciente */}
+        {demografiaStats && rankingCentros && (
+          <AnalisisSociodemografico 
+            demografiaStats={demografiaStats} 
+            rankingCentros={rankingCentros} 
+          />
+        )}
 
         <TablaTiemposEspera 
           metricsByCategory={metricsByCategory} 
