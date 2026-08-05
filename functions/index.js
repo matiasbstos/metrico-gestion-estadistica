@@ -136,3 +136,41 @@ exports.obtenerKpisDashboard = functions.https.onCall(async (dataReq, context) =
     throw new functions.https.HttpsError('internal', 'Error procesando métricas en BigQuery: ' + error.message);
   }
 });
+
+exports.obtenerProyeccionVolumen = functions.https.onCall(async (dataReq, context) => {
+  const data = dataReq.data || dataReq || {};
+  const horizon = Number(data.horizon) || 7;
+  const confidenceLevel = Number(data.confidenceLevel) || 0.95;
+
+  const sqlQuery = `
+    SELECT 
+      FORMAT_DATE('%Y-%m-%d', DATE(forecast_timestamp, 'America/Santiago')) as fecha_predicha,
+      CAST(ROUND(forecast_value) AS INT64) as atenciones_estimadas,
+      CAST(ROUND(prediction_interval_lower_bound) AS INT64) as limite_inferior,
+      CAST(ROUND(prediction_interval_upper_bound) AS INT64) as limite_superior
+    FROM ML.FORECAST(
+      MODEL \`metrico-dashboard-2026.metrico_analytics.prediccion_volumen_diario\`,
+      STRUCT(@horizon AS horizon, @confidenceLevel AS confidence_level)
+    )
+    ORDER BY forecast_timestamp ASC
+  `;
+
+  try {
+    const options = {
+      query: sqlQuery,
+      params: { horizon, confidenceLevel }
+    };
+
+    const [rows] = await bigquery.query(options);
+
+    return rows.map(r => ({
+      fecha_predicha: String(r.fecha_predicha),
+      atenciones_estimadas: Number(r.atenciones_estimadas || 0),
+      limite_inferior: Number(r.limite_inferior || 0),
+      limite_superior: Number(r.limite_superior || 0)
+    }));
+  } catch (error) {
+    console.error("Error en obtenerProyeccionVolumen:", error);
+    throw new functions.https.HttpsError('internal', 'Error consultando modelo ARIMA_PLUS: ' + error.message);
+  }
+});

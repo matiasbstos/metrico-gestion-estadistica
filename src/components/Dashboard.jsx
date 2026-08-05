@@ -26,6 +26,7 @@ import AnalisisConstataciones from './dashboard/AnalisisConstataciones';
 import AnalisisTraslados from './dashboard/AnalisisTraslados';
 import GestionUsuarios from './dashboard/GestionUsuarios';
 import ModalInactividad from './dashboard/ModalInactividad';
+import Radar from './dashboard/Radar';
 import { formatLocalDate } from '../utils/helpers';
 import Login from './Login';
 import { 
@@ -1021,6 +1022,14 @@ const DashboardContent = () => {
               {!sidebarCollapsed && <span className="animate-fade-in truncate">Perfil del Paciente</span>}
             </button>
 
+            <button 
+              onClick={() => { setActiveTab('radar'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+              title="Radar Predictivo"
+              className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'radar' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+              <TrendingUp className="w-4 h-4 flex-shrink-0" />
+              {!sidebarCollapsed && <span className="animate-fade-in truncate">Radar</span>}
+            </button>
+
             {/* APARTADO GENERAL: ANÁLISIS ESPECÍFICOS */}
             {sidebarCollapsed ? (
               <>
@@ -1292,7 +1301,8 @@ const DashboardContent = () => {
             </button>
             <span className="font-black text-xs tracking-wider text-primary-custom uppercase">
               {activeTab === 'resumen' ? 'Inicio' : 
-               activeTab === 'comparativo' ? 'Comparativo' : 
+               activeTab === 'radar' ? 'Radar Predictivo' : 
+               activeTab === 'comparativo' ? 'Rendimiento Turno' : 
                activeTab === 'calendario' ? 'Histórico Mensual' : 
                activeTab === 'profesionales' ? 'Rendimiento Clínico' : 
                activeTab === 'perfil_paciente' ? 'Perfil del Paciente' :
@@ -1457,6 +1467,14 @@ const DashboardContent = () => {
             loading={loading || loadingKpis}
             syncStatus={syncStatus}
             onSync={triggerRefresh}
+          />
+        )}
+
+        {activeTab === 'radar' && (
+          <Radar 
+            user={user}
+            app={app}
+            showNotif={showNotif}
           />
         )}
 
