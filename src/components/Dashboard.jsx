@@ -1650,6 +1650,31 @@ const DashboardContent = () => {
             </div>
         </div>
       </main>
+
+      {/* GLOBAL LOADING / SYNC OVERLAY */}
+      {(syncStatus === 'connecting' || syncStatus === 'syncing') && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[9999] flex items-center justify-center p-6 animate-fade-in">
+          <div className="bg-card-custom border border-card-custom rounded-3xl shadow-2xl p-8 max-w-md w-full text-center space-y-6 theme-transition">
+            <div className="relative flex items-center justify-center">
+              <div className="w-20 h-20 border-4 border-indigo-500/20 border-t-indigo-600 rounded-full animate-spin"></div>
+              <div className="w-10 h-10 bg-indigo-500/10 rounded-full animate-pulse absolute"></div>
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="text-xl font-black text-primary-custom tracking-tight">Sincronizando base de datos...</h3>
+              <p className="text-sm text-secondary-custom font-medium leading-relaxed">
+                Descargando registros clínicos y recalculando métricas desde la nube. Por favor, espere a que se complete para asegurar la integridad de la información.
+              </p>
+            </div>
+
+            <div className="pt-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 shadow-sm animate-pulse">
+                ✓ {pacientesDB.length.toLocaleString()} registros descargados
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
