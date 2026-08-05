@@ -1452,6 +1452,8 @@ const DashboardContent = () => {
             maxDateLabel={maxDateLabel}
             handleClearFilters={handleClearFilters}
             kpisBigQuery={kpisBigQuery}
+            loading={loading || loadingKpis}
+            syncStatus={syncStatus}
           />
         )}
 

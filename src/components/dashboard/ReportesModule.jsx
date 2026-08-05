@@ -22,7 +22,9 @@ export default function ReportesModule({
   horarioPreset, setHorarioPreset,
   maxDateLabel,
   handleClearFilters,
-  kpisBigQuery
+  kpisBigQuery,
+  loading,
+  syncStatus
 }) {
   // Selección de Sub-reportes para incluir en la impresión
   const [incluirGeneral, setIncluirGeneral] = useState(true);
@@ -958,12 +960,29 @@ totalTriados,
           </div>
           
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-            <button onClick={exportCSV} className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold rounded-xl text-xs hover:bg-emerald-500/20 transition-all cursor-pointer">
+            <button 
+              onClick={exportCSV} 
+              disabled={loading || syncStatus === 'connecting' || syncStatus === 'syncing'} 
+              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-bold rounded-xl text-xs hover:bg-emerald-500/20 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <Download className="w-4 h-4" /> CSV
             </button>
 
-            <button onClick={printReport} disabled={!hasData} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold rounded-xl text-xs shadow-md transition-all cursor-pointer disabled:opacity-50">
-              <Printer className="w-4 h-4" /> Imprimir / PDF (Hoja Carta)
+            <button 
+              onClick={printReport} 
+              disabled={!hasData || loading || syncStatus === 'connecting' || syncStatus === 'syncing'} 
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold rounded-xl text-xs shadow-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading || syncStatus === 'connecting' || syncStatus === 'syncing' ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Cargando...
+                </>
+              ) : (
+                <>
+                  <Printer className="w-4 h-4" /> Imprimir / PDF (Hoja Carta)
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -1029,7 +1048,25 @@ totalTriados,
       {/* REPORTE IMPRIMIBLE CON PAGINACIÓN HOJA CARTA */}
       <div id="reporte-printable" className="bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-slate-200 mx-auto w-full max-w-4xl text-slate-900">
         
-        {!hasData ? (
+        {loading || syncStatus === 'connecting' || syncStatus === 'syncing' ? (
+          <div className="flex flex-col items-center justify-center py-20 text-slate-500 space-y-6">
+            <div className="relative flex items-center justify-center">
+              <div className="w-16 h-16 border-4 border-indigo-500/20 border-t-indigo-600 rounded-full animate-spin"></div>
+              <div className="w-8 h-8 bg-indigo-500/10 rounded-full animate-pulse absolute"></div>
+            </div>
+            <div className="text-center space-y-2 max-w-md">
+              <p className="text-lg font-black text-slate-800 tracking-tight">Sincronizando base de datos...</p>
+              <p className="text-sm text-slate-500 font-medium">
+                Descargando registros y recalculando métricas desde la nube. Por favor, espere a que se complete para asegurar que su reporte contenga toda la información.
+              </p>
+              <div className="pt-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20 shadow-sm animate-pulse">
+                  ✓ {pacientesDB.length.toLocaleString()} registros descargados
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : !hasData ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-400">
             <Calendar className="w-12 h-12 mb-4 opacity-50" />
             <p className="text-lg font-medium">No hay registros para las fechas seleccionadas.</p>
