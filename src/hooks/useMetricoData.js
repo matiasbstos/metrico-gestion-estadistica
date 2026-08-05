@@ -150,6 +150,10 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
     const qTurnos = query(turnosRef, where('fechaInicio', '>=', `${ranges.minYear}-01-01`));
 
     let currentDocs = [];
+    let unsubCurrent = () => {};
+    let active = true;
+
+    const isLargeRange = (ranges.current.end - ranges.current.start) > (62 * 24 * 60 * 60 * 1000);
 
     const mergeAndSetPacientes = () => {
       setPacientesDB(currentDocs);
@@ -159,13 +163,27 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
       }
     };
 
-    const unsubCurrent = onSnapshot(qCurrent, (snapshot) => {
-      currentDocs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      mergeAndSetPacientes();
-    }, (err) => {
-      console.error("Error cargando pacientes actuales:", err);
-      setPacientesLoaded(true);
-    });
+    if (isLargeRange) {
+      import('firebase/firestore').then(({ getDocs }) => {
+        if (!active) return;
+        getDocs(qCurrent).then((snapshot) => {
+          if (!active) return;
+          currentDocs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          mergeAndSetPacientes();
+        }).catch((err) => {
+          console.error("Error cargando pacientes (getDocs):", err);
+          if (active) setPacientesLoaded(true);
+        });
+      });
+    } else {
+      unsubCurrent = onSnapshot(qCurrent, (snapshot) => {
+        currentDocs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        mergeAndSetPacientes();
+      }, (err) => {
+        console.error("Error cargando pacientes actuales:", err);
+        if (active) setPacientesLoaded(true);
+      });
+    }
 
     const unsubTurnos = onSnapshot(qTurnos, (snapshot) => {
       const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -192,6 +210,7 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
     }, 5000);
 
     return () => { 
+      active = false;
       unsubCurrent();
       unsubTurnos(); 
       clearTimeout(fallbackTimer); 

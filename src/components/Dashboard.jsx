@@ -454,11 +454,6 @@ const DashboardContent = () => {
             altasAdmin: { current: curr.totalAltas, growthMonth: getGrowth(curr.totalAltas, pm.totalAltas), growthYear: getGrowth(curr.totalAltas, py.totalAltas) },
             traslados: { current: curr.totalTraslados, growthMonth: getGrowth(curr.totalTraslados, pm.totalTraslados), growthYear: getGrowth(curr.totalTraslados, py.totalTraslados) },
             constataciones: { current: curr.totalConstataciones, growthMonth: getGrowth(curr.totalConstataciones, pm.totalConstataciones), growthYear: getGrowth(curr.totalConstataciones, py.totalConstataciones) },
-            demo: {
-              avgEdad: demografiaStats && demografiaStats.edadCount ? Number((demografiaStats.edadSum / demografiaStats.edadCount).toFixed(1)) : 0,
-              fonasaPercent: demografiaStats && demografiaStats.total ? (Object.entries(demografiaStats.prevs).filter(([k]) => k.includes('FONASA')).reduce((acc, [_, v]) => acc + v, 0) / demografiaStats.total) * 100 : 0,
-              meliPercent: demografiaStats && demografiaStats.total ? ((demografiaStats.comunas['MELIPILLA'] || 0) / demografiaStats.total) * 100 : 0
-            },
             categorias: [
               { name: 'C1', current: curr.totalC1, growthMonth: getGrowth(curr.totalC1, pm.totalC1), growthYear: getGrowth(curr.totalC1, py.totalC1) },
               { name: 'C2', current: curr.totalC2, growthMonth: getGrowth(curr.totalC2, pm.totalC2), growthYear: getGrowth(curr.totalC2, py.totalC2) },
@@ -491,7 +486,25 @@ const DashboardContent = () => {
     };
 
     fetchKpis();
-  }, [filtroFechaInicio, filtroFechaFin, demografiaStats]);
+  }, [filtroFechaInicio, filtroFechaFin, app]);
+
+  const statsKPIFinal = useMemo(() => {
+    const base = kpisBigQuery || statsKPI;
+    if (!base) return null;
+
+    if (kpisBigQuery && demografiaStats) {
+      const avgEdad = demografiaStats.edadCount ? Number((demografiaStats.edadSum / demografiaStats.edadCount).toFixed(1)) : 0;
+      const fonasaVal = Object.entries(demografiaStats.prevs).filter(([k]) => k.includes('FONASA')).reduce((acc, [_, v]) => acc + v, 0);
+      const fonasaPercent = demografiaStats.total ? (fonasaVal / demografiaStats.total) * 100 : 0;
+      const meliPercent = demografiaStats.total ? ((demografiaStats.comunas['MELIPILLA'] || 0) / demografiaStats.total) * 100 : 0;
+
+      return {
+        ...kpisBigQuery,
+        demo: { avgEdad, fonasaPercent, meliPercent }
+      };
+    }
+    return base;
+  }, [kpisBigQuery, statsKPI, demografiaStats]);
   const { turnosDemanda, pacientesDemanda, peakHoursData } = useMetricoDemanda(pacientesDB, turnosDB, demandaFechaInicio, demandaFechaFin, modoComparativo, filtroFechaInicioB, filtroFechaFinB, docsToCompare, tipoCorte, filtroHoraInicio, filtroHoraFin);
   const { turnosProf, pacientesProf, metricsByDoctor, filteredMetricsByDoctor, dailyDoctorData } = useMetricoProfesionales(pacientesDB, turnosDB, profFechaInicio, profFechaFin, docsToCompare, searchDoctor, tipoCorte, filtroHoraInicio, filtroHoraFin);
 
@@ -1347,9 +1360,9 @@ const DashboardContent = () => {
             </div>
 
             {/* DATOS DE RENDIMIENTO Y KPIs */}
-            {(kpisBigQuery || statsKPI) && (
+            {statsKPIFinal && (
               <PanelKPIs 
-                statsKPI={kpisBigQuery || statsKPI} 
+                statsKPI={statsKPIFinal} 
                 isLoading={loading || loadingKpis}
                 onAltasClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); }} 
                 onTrasladosClick={() => { setActiveTab('traslados'); setSubTabEspecifico('traslados'); }} 
