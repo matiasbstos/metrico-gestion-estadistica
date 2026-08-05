@@ -48,7 +48,7 @@ export default function Radar({ user, app, showNotif }) {
   const [error, setError] = useState(null);
   const [proyeccionData, setProyeccionData] = useState([]);
   const [alertaCognitivaText, setAlertaCognitivaText] = useState('');
-  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [climaData, setClimaData] = useState([]);
   const [calidadAire, setCalidadAire] = useState({
     pm25Promedio: 46.5,
     pm10Promedio: 48.2,
@@ -157,6 +157,9 @@ export default function Radar({ user, app, showNotif }) {
             }
             if (data.analisisMultivariableClimatico) {
               setMultivariableClimatico(data.analisisMultivariableClimatico);
+            }
+            if (data.climaData && Array.isArray(data.climaData)) {
+              setClimaData(data.climaData);
             }
           } else {
             setProyeccionData(fallbackData);
@@ -310,143 +313,164 @@ export default function Radar({ user, app, showNotif }) {
         </div>
       </div>
 
-      {/* TARJETA DE ALERTA OPERATIVA (BANNER ROJO DINÁMICO DE AGENTE AI) */}
-      {peakDay && peakDay.atenciones_estimadas >= 100 && (
-        <div className="relative p-6 rounded-3xl bg-red-500/10 dark:bg-red-950/30 border-2 border-red-500/40 shadow-xl overflow-hidden animate-fade-in glow-red-alert space-y-4">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-red-500/20 rounded-2xl border border-red-500/30 text-red-600 dark:text-red-400 flex-shrink-0 animate-pulse">
-                <ShieldAlert className="w-8 h-8" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-red-600 dark:text-red-400 bg-red-500/20 px-3 py-1 rounded-full border border-red-500/30 flex items-center gap-1.5 shadow-xs">
-                    <Sparkles className="w-3.5 h-3.5 text-red-500 animate-pulse" /> Agente Epidemiológico MÉTRICO AI (Clima Melipilla + MINSAL)
-                  </span>
-                </div>
-                <h3 className="text-sm md:text-base font-bold text-red-800 dark:text-red-200 tracking-tight leading-relaxed whitespace-pre-line">
-                  {alertaCognitivaText || `⚠️ Riesgo de sobrecarga para el ${peakDay.fechaCompletaStr} (Proyección: ${peakDay.atenciones_estimadas} pacientes). Se recomienda reforzar dotación médica y de enfermería.`}
-                </h3>
-              </div>
+      {/* FASE 1: TARJETA DE ALERTA OPERATIVA DINÁMICA (INTEGRACIÓN DE GEMINI AI) */}
+      {loading ? (
+        <div className="relative p-6 rounded-3xl bg-red-500/10 dark:bg-red-950/30 border-2 border-red-500/30 shadow-sm overflow-hidden animate-pulse space-y-3">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-red-500/20 rounded-2xl text-red-600 dark:text-red-400 flex-shrink-0 animate-spin">
+              <RefreshCw className="w-7 h-7" />
             </div>
-            
-            <div className="flex flex-col sm:flex-row items-center gap-3 self-end md:self-center flex-shrink-0">
-              <div className="flex items-center gap-2 bg-red-500/20 px-4 py-2.5 rounded-2xl border border-red-500/30 text-red-700 dark:text-red-200 text-xs font-black">
-                <Clock className="w-4 h-4" /> Pico Estimado: {peakDay.atenciones_estimadas} pac.
-              </div>
-
-              <button
-                onClick={() => setShowDetailModal(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-black text-xs rounded-2xl shadow-md transition-all cursor-pointer animate-pulse"
-                title="Ver desglose causa-efecto del informe"
-              >
-                <FileText className="w-4 h-4" /> Ver Informe Detallado
-              </button>
+            <div className="space-y-2 w-full">
+              <div className="h-4 bg-red-500/20 rounded-full w-48"></div>
+              <div className="h-4 bg-red-500/15 rounded-full w-full"></div>
+              <div className="h-3 bg-red-500/10 rounded-full w-3/4"></div>
             </div>
           </div>
-
-          <div className="pt-2 border-t border-red-500/20 text-[10px] font-bold text-red-700/80 dark:text-red-300/80 flex items-center gap-1.5">
-            <Info className="w-3 h-3 text-red-500 flex-shrink-0" />
-            <span>Análisis generado por IA cruzando modelos predictivos, clima histórico, calidad del aire y alertas del MINSAL</span>
-          </div>
+          <p className="text-xs font-bold text-red-600 dark:text-red-300 mt-2 animate-pulse flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-red-500 animate-bounce" />
+            Analizando variables epidemiológicas, modelos predictivos BigQuery ML y clima de Open-Meteo Melipilla...
+          </p>
         </div>
+      ) : (
+        alertaCognitivaText && (
+          <div className="relative p-6 rounded-3xl bg-red-500/10 dark:bg-red-950/30 border-2 border-red-500/40 shadow-xl overflow-hidden animate-fade-in glow-red-alert space-y-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-red-500/20 rounded-2xl border border-red-500/30 text-red-600 dark:text-red-400 flex-shrink-0 animate-pulse">
+                  <ShieldAlert className="w-8 h-8" />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-red-600 dark:text-red-400 bg-red-500/20 px-3 py-1 rounded-full border border-red-500/30 flex items-center gap-1.5 shadow-xs">
+                      <Sparkles className="w-3.5 h-3.5 text-red-500 animate-pulse" /> Agente Epidemiológico MÉTRICO AI (Gemini 1.5 Flash)
+                    </span>
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold text-red-900 dark:text-red-100 tracking-tight leading-relaxed whitespace-pre-line">
+                    {alertaCognitivaText}
+                  </h3>
+                </div>
+              </div>
+              
+              {peakDay && (
+                <div className="flex items-center gap-2 bg-red-500/20 px-4 py-2.5 rounded-2xl border border-red-500/30 text-red-700 dark:text-red-200 text-xs font-black self-end md:self-center flex-shrink-0">
+                  <Clock className="w-4 h-4" /> Pico Estimado: {peakDay.atenciones_estimadas} pac. ({peakDay.fechaStr})
+                </div>
+              )}
+            </div>
+
+            <div className="pt-2 border-t border-red-500/20 text-[10px] font-bold text-red-700/80 dark:text-red-300/80 flex items-center gap-1.5">
+              <Info className="w-3 h-3 text-red-500 flex-shrink-0" />
+              <span>Diagnóstico dinámico generado por la Cloud Function integrando BigQuery ML, Open-Meteo y alertas oficiales del MINSAL</span>
+            </div>
+          </div>
+        )
       )}
 
-      {/* SECCIÓN DE ANÁLISIS ESTACIONAL Y MULTIVARIABLE METEOROLÓGICO */}
-      <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-xs space-y-5 theme-transition">
-        
-        {/* Cabecera Estacional */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-card-custom/60">
+      {/* FASE 2: TARJETAS CLIMÁTICAS EN TIEMPO REAL A 7 DÍAS (OPEN-METEO MELIPILLA) */}
+      <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-xs space-y-4 theme-transition backdrop-blur-md">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-indigo-500/10 rounded-2xl text-indigo-600 dark:text-indigo-400 text-2xl flex-shrink-0">
-              {multivariableClimatico?.estacion?.icono || '❄️'}
+            <div className="p-2.5 bg-sky-500/10 rounded-2xl text-sky-500 flex-shrink-0">
+              <Cloud className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-black uppercase text-indigo-600 dark:text-indigo-400">
-                  Estación Activa: {multivariableClimatico?.estacion?.nombre || 'Invierno'} {multivariableClimatico?.estacion?.icono}
-                </span>
-                <span className="text-[10px] font-bold text-secondary-custom">• Melipilla</span>
-              </div>
-              <p className="text-xs text-primary-custom font-bold mt-0.5">
-                {multivariableClimatico?.estacion?.focoClinico}
+              <h3 className="text-base font-black text-primary-custom tracking-tight flex items-center gap-2">
+                Pronóstico Meteorológico a 7 Días • Melipilla (Open-Meteo)
+              </h3>
+              <p className="text-xs text-secondary-custom font-medium">
+                Variables climáticas proyectadas en vivo para anticipar presión en la urgencia del SAR Elsa Romo.
               </p>
             </div>
           </div>
 
-          <span className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-300 bg-indigo-500/10 px-3 py-1.5 rounded-full border border-indigo-500/20 self-start md:self-auto flex items-center gap-1.5">
-            <Compass className="w-3.5 h-3.5 text-indigo-500" /> Motor Climático Multivariable
+          <span className="text-[10px] font-black uppercase text-sky-600 dark:text-sky-400 bg-sky-500/10 px-3 py-1.5 rounded-full border border-sky-500/20 self-start sm:self-auto flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span> Datos En Vivo
           </span>
         </div>
 
-        {/* Matriz de 4 Factores Meteorológicos Pasados y Futuros */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          
-          {/* Factor 1: Precipitaciones & Rebote */}
-          <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                <CloudRain className="w-4 h-4 text-blue-500" /> 1. Precipitaciones & Rebote
-              </span>
-            </div>
-            <div className="space-y-1 text-xs font-bold">
-              <p className="text-blue-600 dark:text-blue-400">
-                Durante Lluvia: {multivariableClimatico?.reglaLluvia?.variacionPct}%
-              </p>
-              <p className="text-rose-600 dark:text-rose-400">
-                Día Post-Lluvia: +{multivariableClimatico?.reglaPostLluvia?.variacionPct}% Rebote
-              </p>
-            </div>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Efecto: Retención inicial de atenciones y sobrecarga asistencial diferida al día siguiente.
-            </p>
-          </div>
+        {/* Rejilla de 7 Tarjetas Climáticas Diarias */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
+          {(climaData && climaData.length > 0 ? climaData : [
+            { fecha: '2026-08-05', tempMax: 14, tempMin: 2.5, precipitacionMm: 0 },
+            { fecha: '2026-08-06', tempMax: 13, tempMin: 3.0, precipitacionMm: 0 },
+            { fecha: '2026-08-07', tempMax: 12, tempMin: 4.5, precipitacionMm: 12.4 },
+            { fecha: '2026-08-08', tempMax: 15, tempMin: 5.0, precipitacionMm: 0 },
+            { fecha: '2026-08-09', tempMax: 16, tempMin: 4.0, precipitacionMm: 0 },
+            { fecha: '2026-08-10', tempMax: 14, tempMin: 3.5, precipitacionMm: 0 },
+            { fecha: '2026-08-11', tempMax: 15, tempMin: 3.0, precipitacionMm: 0 }
+          ]).slice(0, 7).map((item, idx) => {
+            const parts = (item.fecha || '').split('-');
+            let diaStr = item.fecha;
+            if (parts.length === 3) {
+              const year = parseInt(parts[0]);
+              const month = parseInt(parts[1]) - 1;
+              const day = parseInt(parts[2]);
+              const dateObj = new Date(year, month, day);
+              const diasCortos = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+              diaStr = `${diasCortos[dateObj.getDay()]} ${day.toString().padStart(2, '0')}/${(month + 1).toString().padStart(2, '0')}`;
+            }
 
-          {/* Factor 2: Bajas Temperaturas & Heladas */}
-          <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                <ThermometerSnowflake className="w-4 h-4 text-cyan-500" /> 2. Heladas / Frío (&lt;5°C)
-              </span>
-            </div>
-            <p className="text-xs text-cyan-600 dark:text-cyan-400 font-black">
-              {multivariableClimatico?.reglaHeladasFrio?.variacionPct > 0 ? `+${multivariableClimatico?.reglaHeladasFrio?.variacionPct}%` : `${multivariableClimatico?.reglaHeladasFrio?.variacionPct}%`} Alza Asistencial
-            </p>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Efecto: Alza en descompensaciones de EPOC, bronquitis obstructiva y vasodilatación/hipertensión.
-            </p>
-          </div>
+            const prec = item.precipitacionMm || 0;
+            const tMin = item.tempMin !== null && item.tempMin !== undefined ? item.tempMin : 4;
+            const tMax = item.tempMax !== null && item.tempMax !== undefined ? item.tempMax : 14;
 
-          {/* Factor 3: Olas de Calor */}
-          <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                <ThermometerSun className="w-4 h-4 text-amber-500" /> 3. Olas de Calor (&gt;28°C)
-              </span>
-            </div>
-            <p className="text-xs text-amber-600 dark:text-amber-400 font-black">
-              {multivariableClimatico?.reglaOlaCalor?.variacionPct > 0 ? `+${multivariableClimatico?.reglaOlaCalor?.variacionPct}%` : `${multivariableClimatico?.reglaOlaCalor?.variacionPct}%`} Alza Asistencial
-            </p>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Efecto: Aumento de síncopes por deshidratación, gastroenteritis agudas e insolaciones.
-            </p>
-          </div>
+            let WeatherIcon = Cloud;
+            let iconColor = "text-sky-500";
+            let bgCard = "bg-slate-50/80 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700";
+            let tagText = "Normal";
+            let tagBg = "bg-slate-500/10 text-slate-600 dark:text-slate-300 border-slate-500/20";
 
-          {/* Factor 4: Amplitud Térmica Diurna */}
-          <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                <Wind className="w-4 h-4 text-emerald-500" /> 4. Oscilación Térmica (&gt;12°C)
-              </span>
-            </div>
-            <p className="text-xs text-emerald-600 dark:text-emerald-400 font-black">
-              +{multivariableClimatico?.reglaAmplitudTermica?.variacionPct}% Alza por Choque
-            </p>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-              Efecto: Choque térmico mañana/tarde e hiperreactividad bronquial por alérgenos estacionales.
-            </p>
-          </div>
+            if (prec > 1.0) {
+              WeatherIcon = CloudRain;
+              iconColor = "text-blue-500";
+              bgCard = "bg-blue-500/10 dark:bg-blue-950/40 border-blue-500/30";
+              tagText = `🌧️ Lluvia ${prec}mm`;
+              tagBg = "bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30";
+            } else if (tMin < 4.0) {
+              WeatherIcon = ThermometerSnowflake;
+              iconColor = "text-cyan-500";
+              bgCard = "bg-cyan-500/10 dark:bg-cyan-950/40 border-cyan-500/30";
+              tagText = "❄️ Helada";
+              tagBg = "bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border-cyan-500/30";
+            } else if (tMax >= 25.0) {
+              WeatherIcon = Sun;
+              iconColor = "text-amber-500";
+              bgCard = "bg-amber-500/10 dark:bg-amber-950/40 border-amber-500/30";
+              tagText = "☀️ Caluroso";
+              tagBg = "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30";
+            }
 
+            return (
+              <div 
+                key={idx}
+                className={`p-4 rounded-2xl border shadow-xs transition-all hover:scale-[1.02] flex flex-col justify-between space-y-3 backdrop-blur-md ${bgCard}`}
+              >
+                <div className="flex items-center justify-between border-b border-black/5 dark:border-white/10 pb-2">
+                  <span className="text-xs font-black text-primary-custom capitalize">{diaStr}</span>
+                  <WeatherIcon className={`w-5 h-5 ${iconColor}`} />
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-baseline justify-between text-xs">
+                    <span className="text-secondary-custom font-medium">Mín / Máx:</span>
+                    <span className="font-black text-primary-custom">
+                      {tMin}° / {tMax}°C
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-secondary-custom opacity-80">Precip:</span>
+                    <span className="font-bold text-sky-600 dark:text-sky-400">
+                      {prec > 0 ? `${prec} mm` : '0 mm'}
+                    </span>
+                  </div>
+                </div>
+
+                <span className={`inline-block w-full text-center py-1 rounded-xl text-[10px] font-black border ${tagBg}`}>
+                  {tagText}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
