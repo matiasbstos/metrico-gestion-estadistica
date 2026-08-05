@@ -32,6 +32,7 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
 
   const [pacientesLoaded, setPacientesLoaded] = useState(hasCache);
   const [turnosLoaded, setTurnosLoaded] = useState(hasCache);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     if (auth) {
@@ -215,7 +216,7 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
       unsubTurnos(); 
       clearTimeout(fallbackTimer); 
     };
-  }, [user, filtroFechaInicio, filtroFechaFin]);
+  }, [user, filtroFechaInicio, filtroFechaFin, refreshTrigger]);
 
   useEffect(() => {
     if (pacientesLoaded && turnosLoaded) {
@@ -234,7 +235,8 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
     pacientesDB, 
     turnosDB,
     pacientesLoaded,
-    turnosLoaded
+    turnosLoaded,
+    triggerRefresh: () => setRefreshTrigger(prev => prev + 1)
   };
 };
 

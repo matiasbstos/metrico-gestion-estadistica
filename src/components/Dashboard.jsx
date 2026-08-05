@@ -102,7 +102,7 @@ const DashboardContent = () => {
   const [filtroHoraFin, setFiltroHoraFin] = useState('23:59');
   const [horarioPreset, setHorarioPreset] = useState('civil');
 
-  const { user, userProfile, loading, syncStatus, setSyncStatus, setLoading, pacientesDB, turnosDB } = useMetricoData(filtroFechaInicio, filtroFechaFin);
+  const { user, userProfile, loading, syncStatus, setSyncStatus, setLoading, pacientesDB, turnosDB, triggerRefresh } = useMetricoData(filtroFechaInicio, filtroFechaFin);
 
   const [tema, setTema] = useState(() => localStorage.getItem('metrico-tema') || 'crextio');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
@@ -1356,6 +1356,8 @@ const DashboardContent = () => {
                 maxDateLabel={maxDateLabel}
                 onClearFilters={handleClearFilters}
                 isScrolled={isScrolled}
+                onSync={triggerRefresh}
+                syncStatus={syncStatus}
               />
             </div>
 
@@ -1454,6 +1456,7 @@ const DashboardContent = () => {
             kpisBigQuery={kpisBigQuery}
             loading={loading || loadingKpis}
             syncStatus={syncStatus}
+            onSync={triggerRefresh}
           />
         )}
 
@@ -1499,6 +1502,8 @@ const DashboardContent = () => {
               horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
               maxDateLabel={maxDateLabel}
               onClearFilters={handleClearFilters}
+              onSync={triggerRefresh}
+              syncStatus={syncStatus}
             />
 
             {/* SELECCIÓN DE SUB-MÓDULO DE ANÁLISIS ESPECÍFICO */}

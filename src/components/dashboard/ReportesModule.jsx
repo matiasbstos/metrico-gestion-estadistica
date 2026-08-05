@@ -24,7 +24,8 @@ export default function ReportesModule({
   handleClearFilters,
   kpisBigQuery,
   loading,
-  syncStatus
+  syncStatus,
+  onSync
 }) {
   // Selección de Sub-reportes para incluir en la impresión
   const [incluirGeneral, setIncluirGeneral] = useState(true);
@@ -942,6 +943,8 @@ totalTriados,
           horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
           maxDateLabel={maxDateLabel}
           onClearFilters={handleClearFilters}
+          onSync={onSync}
+          syncStatus={syncStatus}
         />
       </div>
 

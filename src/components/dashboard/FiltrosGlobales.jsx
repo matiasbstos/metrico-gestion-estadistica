@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Compass } from 'lucide-react';
+import { Calendar, Compass, RefreshCw } from 'lucide-react';
 
 export default function FiltrosGlobales({
   modoComparativo,
@@ -21,7 +21,9 @@ export default function FiltrosGlobales({
   setHorarioPreset,
   maxDateLabel,
   onClearFilters,
-  isScrolled
+  isScrolled,
+  onSync,
+  syncStatus
 }) {
   const [activePreset, setActivePreset] = useState('hoy');
 
@@ -169,6 +171,23 @@ export default function FiltrosGlobales({
                 <div className={`absolute top-[2px] w-3 h-3 rounded-full bg-white transition-transform ${modoComparativo ? 'left-[18px]' : 'left-[2px]'}`}></div>
               </button>
             </div>
+
+            {/* Sync button */}
+            {onSync && (
+              <button 
+                onClick={onSync} 
+                disabled={syncStatus === 'connecting' || syncStatus === 'syncing'}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border shadow-sm ${
+                  syncStatus === 'connecting' || syncStatus === 'syncing'
+                    ? 'bg-amber-500/10 border-amber-500/25 text-amber-500 cursor-not-allowed'
+                    : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 cursor-pointer'
+                }`}
+                title="Sincronizar base de datos con la nube"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${syncStatus === 'connecting' || syncStatus === 'syncing' ? 'animate-spin' : ''}`} />
+                <span className="hidden md:inline">Sincronizar</span>
+              </button>
+            )}
 
             {/* Clear filters button */}
             {onClearFilters && (
