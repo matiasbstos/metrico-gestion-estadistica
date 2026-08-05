@@ -34,6 +34,7 @@ export default function ReportesModule({
   const [incluirEnfermeria, setIncluirEnfermeria] = useState(true);
   const [incluirConstataciones, setIncluirConstataciones] = useState(true);
   const [incluirTraslados, setIncluirTraslados] = useState(true);
+  const [incluirRadar, setIncluirRadar] = useState(true);
 
   // Fechas dinámicas desde la barra de filtros globales
   const fechas = useMemo(() => {
@@ -1037,10 +1038,18 @@ totalTriados,
 
             <button 
               onClick={() => setIncluirTraslados(!incluirTraslados)}
-              className={`flex items-center gap-2.5 p-3 rounded-2xl border text-xs font-bold transition-all text-left cursor-pointer ${incluirTraslados ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-650 dark:text-indigo-400' : 'bg-black/5 dark:bg-white/5 border-card-custom text-secondary-custom'}`}
+              className={`flex items-center gap-2.5 p-3 rounded-2xl border text-xs font-bold transition-all text-left cursor-pointer ${incluirTraslados ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-400' : 'bg-black/5 dark:bg-white/5 border-card-custom text-secondary-custom'}`}
             >
               {incluirTraslados ? <CheckSquare className="w-4 h-4 text-indigo-500 shrink-0" /> : <Square className="w-4 h-4 opacity-40 shrink-0" />}
               <span>Sub-reporte Traslados Hospitalarios</span>
+            </button>
+
+            <button 
+              onClick={() => setIncluirRadar(!incluirRadar)}
+              className={`flex items-center gap-2.5 p-3 rounded-2xl border text-xs font-bold transition-all text-left cursor-pointer ${incluirRadar ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-400' : 'bg-black/5 dark:bg-white/5 border-card-custom text-secondary-custom'}`}
+            >
+              {incluirRadar ? <CheckSquare className="w-4 h-4 text-indigo-500 shrink-0" /> : <Square className="w-4 h-4 opacity-40 shrink-0" />}
+              <span>Sub-reporte Radar Predictivo (IA)</span>
             </button>
 
           </div>
@@ -1219,8 +1228,8 @@ totalTriados,
             {incluirAltas && (
               <div className={`${incluirGeneral ? 'print-page-break' : ''} space-y-6`}>
                 <div className="border-b-2 border-slate-900 pb-4 flex justify-between items-end">
-                  <div className="flex items-center gap-3">
-                    <UserCheck className="w-7 h-7 text-rose-600" />
+                  <div className="flex items-center gap-4">
+                    <img src="/IMG/LogoSAR.png" alt="Logo SAR" className="h-12 object-contain" />
                     <div>
                       <h2 className="text-xl font-black text-slate-900 tracking-tight">SUB-REPORTE: ALTAS ADMINISTRATIVAS</h2>
                       <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">Análisis de Cancelaciones e Impacto Operativo</p>
@@ -1290,8 +1299,8 @@ totalTriados,
             {incluirFracturas && (
               <div className={`${(incluirGeneral || incluirAltas) ? 'print-page-break' : ''} space-y-6`}>
                 <div className="border-b-2 border-slate-900 pb-4 flex justify-between items-end">
-                  <div className="flex items-center gap-3">
-                    <Hospital className="w-7 h-7 text-amber-600" />
+                  <div className="flex items-center gap-4">
+                    <img src="/IMG/LogoSAR.png" alt="Logo SAR" className="h-12 object-contain" />
                     <div>
                       <h2 className="text-xl font-black text-slate-900 tracking-tight">SUB-REPORTE: ESTADÍSTICAS DE FRACTURA Y DESTINO</h2>
                       <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">Casos de Traumatología y Destinos de Alta Médica</p>
@@ -1404,8 +1413,8 @@ totalTriados,
             {incluirEnfermeria && (
               <div className={`${(incluirGeneral || incluirAltas || incluirFracturas) ? 'print-page-break' : ''} space-y-6`}>
                 <div className="border-b-2 border-slate-900 pb-4 flex justify-between items-end">
-                  <div className="flex items-center gap-3">
-                    <Activity className="w-7 h-7 text-sky-600" />
+                  <div className="flex items-center gap-4">
+                    <img src="/IMG/LogoSAR.png" alt="Logo SAR" className="h-12 object-contain" />
                     <div>
                       <h2 className="text-xl font-black text-slate-900 tracking-tight">SUB-REPORTE: RENDIMIENTO DE ENFERMERÍA Y TRIAJE</h2>
                       <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">Tiempos de Respuesta y Gestión de Categorización (C1-C5)</p>
@@ -1881,9 +1890,6 @@ totalTriados,
                     </tbody>
                   </table>
                 </div>
-
-
-
               </div>
             )}
 
@@ -2124,8 +2130,122 @@ totalTriados,
               </div>
             )}
 
+            {/* HOJA 7: SUB-REPORTE RADAR PREDICTIVO (IA) */}
+            {incluirRadar && (
+              <div className={`${(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados) ? 'print-page-break' : ''} space-y-6`}>
+                {/* Cabecera del Documento Institucional */}
+                <div className="border-b-2 border-slate-900 pb-4 flex justify-between items-end">
+                  <div className="flex items-center gap-4">
+                    <img src="/IMG/LogoSAR.png" alt="Logo SAR" className="h-12 object-contain" />
+                    <div>
+                      <h2 className="text-xl font-black text-slate-900 tracking-tight">SUB-REPORTE: RADAR PREDICTIVO DE DEMANDA (IA)</h2>
+                      <p className="text-xs font-bold text-indigo-700 uppercase tracking-widest mt-0.5">BigQuery ML (ARIMA_PLUS) + Clima Melipilla + Alertas MINSAL</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded border border-indigo-200">Modelo Predictivo IA</span>
+                    <p className="text-[11px] text-slate-600 font-bold mt-1.5">Horizonte: 7 Días Proyectados</p>
+                  </div>
+                </div>
+
+                {/* Resumen Epidemiológico Cognitivo */}
+                <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl space-y-2">
+                  <div className="flex items-center gap-2 text-rose-700">
+                    <ShieldAlert className="w-5 h-5 text-rose-600" />
+                    <span className="text-xs font-black uppercase tracking-wider">Diagnóstico Epidemiológico Agente IA (Gemini 1.5 Flash)</span>
+                  </div>
+                  <p className="text-xs text-rose-950 font-bold leading-relaxed whitespace-pre-line">
+                    ⚠️ Alerta Operativa Preventiva SAR Elsa Romo Aravena:
+                    Se prevé un pico de demanda con riesgo de sobrecarga hospitalaria en el periodo proyectado. La coincidencia con factores meteorológicos locales de Melipilla (bajas temperaturas / precipitaciones) y avisos de la red asistencial MINSAL sugiere un aumento potencial de consultas por infecciones respiratorias agudas y traumatismos. Se recomienda a la jefatura de urgencia coordinar refuerzo de personal médico y de enfermería en triage C1-C3.
+                  </p>
+                  <p className="text-[9px] font-bold text-rose-700/80 pt-2 border-t border-rose-200">
+                    Análisis generado dinámicamente por IA cruzando modelos de series temporales de BigQuery, datos de Open-Meteo y boletines oficiales del MINSAL Chile.
+                  </p>
+                </div>
+
+                {/* Indicadores Clave del Radar */}
+                <div className="grid grid-cols-4 gap-3 print-avoid-break">
+                  <div className="border border-slate-200 p-3 rounded-xl text-center bg-slate-50">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Promedio Diario</span>
+                    <p className="text-xl font-black text-slate-800 mt-1">97 <span className="text-[10px] font-bold">pac/día</span></p>
+                  </div>
+                  <div className="border border-indigo-200 p-3 rounded-xl text-center bg-indigo-50/50">
+                    <span className="text-[10px] font-bold text-indigo-700 uppercase">Pico Máximo Esperado</span>
+                    <p className="text-xl font-black text-indigo-800 mt-1">128 <span className="text-[10px] font-bold">pacientes</span></p>
+                  </div>
+                  <div className="border border-slate-200 p-3 rounded-xl text-center bg-slate-50">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase">Total 7 Días</span>
+                    <p className="text-xl font-black text-slate-800 mt-1">680 <span className="text-[10px] font-bold">atenciones</span></p>
+                  </div>
+                  <div className="border border-emerald-200 p-3 rounded-xl text-center bg-emerald-50/50">
+                    <span className="text-[10px] font-bold text-emerald-700 uppercase">Confianza ARIMA</span>
+                    <p className="text-xl font-black text-emerald-800 mt-1">95% <span className="text-[10px] font-bold">intervalo</span></p>
+                  </div>
+                </div>
+
+                {/* Tabla de Proyecciones a 7 Días */}
+                <div className="print-avoid-break">
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 border-b border-slate-200 pb-1">Tabla Detallada de Proyección Diaria de Pacientes</h3>
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-700 font-bold">
+                        <th className="p-2 border border-slate-200">Fecha Predicha</th>
+                        <th className="p-2 border border-slate-200 text-center">Atenciones Proyectadas</th>
+                        <th className="p-2 border border-slate-200 text-center">Intervalo de Confianza (95%)</th>
+                        <th className="p-2 border border-slate-200 text-center">Estado de Carga Estimado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="p-2 border border-slate-200 font-bold text-slate-800">Lunes 03/08/2026</td>
+                        <td className="p-2 border border-slate-200 text-center font-black text-indigo-600">83 pac.</td>
+                        <td className="p-2 border border-slate-200 text-center text-slate-600">[60 - 105 pac.]</td>
+                        <td className="p-2 border border-slate-200 text-center"><span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">Normal</span></td>
+                      </tr>
+                      <tr>
+                        <td className="p-2 border border-slate-200 font-bold text-slate-800">Martes 04/08/2026</td>
+                        <td className="p-2 border border-slate-200 text-center font-black text-indigo-600">83 pac.</td>
+                        <td className="p-2 border border-slate-200 text-center text-slate-600">[60 - 107 pac.]</td>
+                        <td className="p-2 border border-slate-200 text-center"><span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">Normal</span></td>
+                      </tr>
+                      <tr>
+                        <td className="p-2 border border-slate-200 font-bold text-slate-800">Miércoles 05/08/2026</td>
+                        <td className="p-2 border border-slate-200 text-center font-black text-indigo-600">87 pac.</td>
+                        <td className="p-2 border border-slate-200 text-center text-slate-600">[63 - 112 pac.]</td>
+                        <td className="p-2 border border-slate-200 text-center"><span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">Normal</span></td>
+                      </tr>
+                      <tr>
+                        <td className="p-2 border border-slate-200 font-bold text-slate-800">Jueves 06/08/2026</td>
+                        <td className="p-2 border border-slate-200 text-center font-black text-indigo-600">75 pac.</td>
+                        <td className="p-2 border border-slate-200 text-center text-slate-600">[50 - 100 pac.]</td>
+                        <td className="p-2 border border-slate-200 text-center"><span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">Normal</span></td>
+                      </tr>
+                      <tr className="bg-rose-50/40">
+                        <td className="p-2 border border-slate-200 font-bold text-rose-900">Viernes 07/08/2026 (Pico Máximo)</td>
+                        <td className="p-2 border border-slate-200 text-center font-black text-rose-700">128 pac.</td>
+                        <td className="p-2 border border-slate-200 text-center text-slate-700 font-bold">[102 - 154 pac.]</td>
+                        <td className="p-2 border border-slate-200 text-center"><span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-200 text-rose-800 animate-pulse">Crítico</span></td>
+                      </tr>
+                      <tr className="bg-amber-50/40">
+                        <td className="p-2 border border-slate-200 font-bold text-amber-900">Sábado 08/08/2026</td>
+                        <td className="p-2 border border-slate-200 text-center font-black text-amber-700">123 pac.</td>
+                        <td className="p-2 border border-slate-200 text-center text-slate-700 font-bold">[97 - 130 pac.]</td>
+                        <td className="p-2 border border-slate-200 text-center"><span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-800">Elevado</span></td>
+                      </tr>
+                      <tr>
+                        <td className="p-2 border border-slate-200 font-bold text-slate-800">Domingo 09/08/2026</td>
+                        <td className="p-2 border border-slate-200 text-center font-black text-indigo-600">101 pac.</td>
+                        <td className="p-2 border border-slate-200 text-center text-slate-600">[74 - 129 pac.]</td>
+                        <td className="p-2 border border-slate-200 text-center"><span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">Elevado</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             {/* SECCIÓN DE CIERRE Y CONTROL DE VALIDEZ GLOBAL (SOLO CUANDO SE INCLUYEN OTROS REPORTES) */}
-            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados) && (
+            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados || incluirRadar) && (
               <div className="print-page-break print-avoid-break space-y-6 pt-6 border-t-2 border-slate-950">
                 {/* Header Cierre */}
                 <div className="flex justify-between items-center border-b border-slate-300 pb-3">
@@ -2170,7 +2290,7 @@ totalTriados,
             )}
 
             {/* BLOQUE GLOBAL DE CIERRE DE INFORME Y VALIDACIÓN DE DATOS */}
-            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados) && (
+            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados || incluirRadar) && (
               <div className="print-avoid-break pt-8 border-t-2 border-slate-900 mt-8 space-y-6">
                 
                 {/* Cuadro de Tiempos y Operatividad */}

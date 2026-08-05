@@ -54,6 +54,31 @@ import { COLORS, DOC_COLORS, AGE_RANGES, METRIC_LABELS } from '../config/constan
 
 // Colores Institucionales
 
+function AnimatedRadarIcon({ className = "w-5 h-5", hasAlert = true }) {
+  return (
+    <div className="relative flex items-center justify-center flex-shrink-0">
+      <svg 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        className={className}
+      >
+        <circle cx="12" cy="12" r="2" className={hasAlert ? "fill-red-500 text-red-500 animate-ping" : "fill-current"} />
+        <circle cx="12" cy="12" r="5" strokeDasharray="2 2" className="animate-spin opacity-80" style={{ animationDuration: '4s' }} />
+        <circle cx="12" cy="12" r="8" className="opacity-60" />
+        <circle cx="12" cy="12" r="11" className="opacity-40" />
+        <line x1="12" y1="12" x2="20" y2="4" className="animate-spin origin-center" style={{ animationDuration: '2.5s' }} />
+      </svg>
+      {hasAlert && (
+        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-ping"></span>
+      )}
+    </div>
+  );
+}
+
 
 
 const DashboardContent = () => {
@@ -1024,10 +1049,21 @@ const DashboardContent = () => {
 
             <button 
               onClick={() => { setActiveTab('radar'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
-              title="Radar Predictivo"
-              className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'radar' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-              <TrendingUp className="w-4 h-4 flex-shrink-0" />
-              {!sidebarCollapsed && <span className="animate-fade-in truncate">Radar</span>}
+              title="Radar Predictivo (IA)"
+              className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${
+                activeTab === 'radar' 
+                  ? 'accent-bg-custom text-white' 
+                  : 'bg-red-500/15 text-red-500 border border-red-500/30 animate-pulse glow-red-alert hover:bg-red-500/25'
+              }`}>
+              <AnimatedRadarIcon className={`w-5 h-5 flex-shrink-0 ${activeTab !== 'radar' ? 'text-red-500 animate-pulse' : 'text-white'}`} hasAlert={true} />
+              {!sidebarCollapsed && (
+                <span className="animate-fade-in truncate flex items-center justify-between w-full">
+                  <span>Radar</span>
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-red-500 text-white animate-bounce ml-2 shadow-xs">
+                    ALERTA
+                  </span>
+                </span>
+              )}
             </button>
 
             {/* APARTADO GENERAL: ANÁLISIS ESPECÍFICOS */}

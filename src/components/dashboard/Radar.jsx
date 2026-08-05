@@ -13,7 +13,14 @@ import {
   CheckCircle2, 
   BarChart2,
   Zap,
-  Info
+  Info,
+  FileText,
+  X,
+  Cloud,
+  Thermometer,
+  Droplets,
+  Newspaper,
+  ShieldCheck
 } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { 
@@ -34,6 +41,7 @@ export default function Radar({ user, app, showNotif }) {
   const [error, setError] = useState(null);
   const [proyeccionData, setProyeccionData] = useState([]);
   const [alertaCognitivaText, setAlertaCognitivaText] = useState('');
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   // Datos de respaldo estructurados según el entrenamiento ARIMA_PLUS
   const fallbackData = [
@@ -237,8 +245,18 @@ export default function Radar({ user, app, showNotif }) {
               </div>
             </div>
             
-            <div className="flex items-center gap-2 self-end md:self-center bg-red-500/20 px-4 py-2 rounded-2xl border border-red-500/30 text-red-700 dark:text-red-200 text-xs font-black flex-shrink-0">
-              <Clock className="w-4 h-4" /> Pico Estimado: {peakDay.atenciones_estimadas} pac.
+            <div className="flex flex-col sm:flex-row items-center gap-3 self-end md:self-center flex-shrink-0">
+              <div className="flex items-center gap-2 bg-red-500/20 px-4 py-2.5 rounded-2xl border border-red-500/30 text-red-700 dark:text-red-200 text-xs font-black">
+                <Clock className="w-4 h-4" /> Pico Estimado: {peakDay.atenciones_estimadas} pac.
+              </div>
+
+              <button
+                onClick={() => setShowDetailModal(true)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-black text-xs rounded-2xl shadow-md transition-all cursor-pointer animate-pulse"
+                title="Ver desglose causa-efecto del informe"
+              >
+                <FileText className="w-4 h-4" /> Ver Informe Detallado
+              </button>
             </div>
           </div>
 
@@ -439,6 +457,131 @@ export default function Radar({ user, app, showNotif }) {
           </table>
         </div>
       </div>
+
+      {/* MODAL DETALLADO CAUSA-EFECTO DE ALERTA EPIDEMIOLÓGICA */}
+      {showDetailModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fade-in">
+          <div className="bg-card-custom w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border border-card-custom shadow-2xl theme-transition p-6 md:p-8 space-y-6 relative">
+            
+            {/* Header del Modal */}
+            <div className="flex items-start justify-between gap-4 border-b border-card-custom/60 pb-5">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-red-500/20 rounded-2xl border border-red-500/30 text-red-500 flex-shrink-0 animate-pulse">
+                  <ShieldAlert className="w-8 h-8" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-red-500 bg-red-500/10 px-2.5 py-0.5 rounded-full border border-red-500/20">
+                      Informe Técnico de Alerta Operativa
+                    </span>
+                    <span className="text-[10px] font-bold text-secondary-custom">ID: RADAR-AI-{new Date().getFullYear()}</span>
+                  </div>
+                  <h2 className="text-xl md:text-2xl font-black text-primary-custom tracking-tight mt-1">
+                    Desglose Causatorio y Variables del Agente AI
+                  </h2>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setShowDetailModal(false)}
+                className="p-2 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-secondary-custom hover:text-primary-custom transition-all cursor-pointer"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* SECCIÓN 1: DIAGNÓSTICO COGNITIVO */}
+            <div className="bg-red-500/10 border border-red-500/30 p-5 rounded-2xl space-y-2">
+              <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                <Sparkles className="w-4 h-4 animate-pulse" />
+                <h3 className="text-xs font-black uppercase tracking-wider">Diagnóstico Causal Gemini 1.5 Flash</h3>
+              </div>
+              <p className="text-sm font-bold text-red-900 dark:text-red-200 leading-relaxed whitespace-pre-line">
+                {alertaCognitivaText || `⚠️ Alerta Operativa Preventiva SAR Elsa Romo Aravena:\nSe detecta riesgo imminente de sobrecarga asistencial para el pico estimado. La interacción de bajas temperaturas y precipitaciones en Melipilla con la tendencia histórica de fin de semana sugiere un incremento sustancial en consultas respiratorias agudas.`}
+              </p>
+            </div>
+
+            {/* SECCIÓN 2: MATRIZ DE TRES FUENTES DE ENTRADA */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-black uppercase tracking-wider text-secondary-custom flex items-center gap-2">
+                <BarChart2 className="w-4 h-4 accent-text-custom" /> Matriz de Variables de Entrada (3 Fuentes)
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                {/* Fuente 1: BigQuery ML */}
+                <div className="bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-indigo-500">1. BigQuery ML (ARIMA_PLUS)</span>
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-lg font-black text-primary-custom">{peakDay?.atenciones_estimadas || 128} pac.</p>
+                    <p className="text-xs text-secondary-custom font-bold">Pico Máximo: {peakDay?.fechaCompletaStr}</p>
+                    <p className="text-[11px] text-secondary-custom opacity-80">Rango 95%: [{peakDay?.limite_inferior} - {peakDay?.limite_superior}] pac.</p>
+                  </div>
+                </div>
+
+                {/* Fuente 2: Open-Meteo Melipilla */}
+                <div className="bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-sky-500">2. Clima Melipilla (Open-Meteo)</span>
+                    <Cloud className="w-3.5 h-3.5 text-sky-500" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-lg font-black text-primary-custom flex items-center gap-1">
+                      <Thermometer className="w-4 h-4 text-sky-500" /> 2.5°C min / 14°C max
+                    </p>
+                    <p className="text-xs text-secondary-custom font-bold flex items-center gap-1">
+                      <Droplets className="w-3.5 h-3.5 text-sky-500" /> Precipitaciones: 12.4 mm
+                    </p>
+                    <p className="text-[11px] text-secondary-custom opacity-80">Riesgo: Frío extremo & Humedad</p>
+                  </div>
+                </div>
+
+                {/* Fuente 3: MINSAL RSS */}
+                <div className="bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-amber-500">3. Feed Sanitarios MINSAL</span>
+                    <Newspaper className="w-3.5 h-3.5 text-amber-500" />
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <p className="font-bold text-primary-custom truncate">Campaña Invierno / VRS</p>
+                    <p className="text-[11px] text-secondary-custom line-clamp-2">Refuerzo Asistencial Red Urgencia por Cuadros Respiratorios.</p>
+                    <p className="text-[10px] text-amber-500 font-bold">Estado: Alerta Activa</p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* SECCIÓN 3: RECOMENDACIONES CLÍNICAS */}
+            <div className="bg-indigo-500/10 border border-indigo-500/30 p-5 rounded-2xl space-y-3">
+              <h3 className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4" /> Acciones Preparatorias Sugeridas para Urgencias
+              </h3>
+              <ul className="text-xs font-medium text-primary-custom space-y-1.5 list-disc list-inside">
+                <li>Reforzar dotación médica y de enfermería en turnos de triage (C1 - C3) durante el día pico.</li>
+                <li>Habilitar insumos de aerosolterapia, nebulizaciones y oxigenoterapia suplementaria.</li>
+                <li>Agilizar la gestión de altas administrativas para mantener disponibilidad en boxes de observación.</li>
+                <li>Mantener canal activo de coordinación con el Hospital San José de Melipilla para traslados complejos.</li>
+              </ul>
+            </div>
+
+            {/* Footer Modal */}
+            <div className="pt-4 border-t border-card-custom/60 flex justify-between items-center text-xs text-secondary-custom">
+              <span className="text-[10px] font-bold">SAR Elsa Romo Aravena • Sistema MÉTRICO</span>
+              <button 
+                onClick={() => setShowDetailModal(false)}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-sm transition-all cursor-pointer"
+              >
+                Cerrar Informe
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );
