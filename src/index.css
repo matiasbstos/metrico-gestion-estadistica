@@ -1,6 +1,22 @@
 @import "tailwindcss";
 
 @media print {
+  :root, .theme-dark, .theme-lordbank, .theme-crextio {
+    --bg-app: #ffffff !important;
+    --bg-sidebar: #ffffff !important;
+    --bg-card: #ffffff !important;
+    --border-card: #e2e8f0 !important;
+    --shadow-card: none !important;
+    --text-primary: #0f172a !important;
+    --text-secondary: #334155 !important;
+    --accent-color: #4f46e5 !important;
+    --backdrop-blur: none !important;
+    --radius-card: 0px !important;
+    --bg-input: #ffffff !important;
+    --border-input: #cbd5e1 !important;
+    --text-input: #0f172a !important;
+  }
+
   @page {
     size: letter portrait;
     margin: 8mm 12mm 10mm 12mm;

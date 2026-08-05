@@ -1279,10 +1279,10 @@ const DashboardContent = () => {
       )}
 
       {/* COLUMNA DERECHA: CANVAS DE SCROLL CONTINUO */}
-      <main ref={mainScrollRef} className="flex-1 h-full overflow-y-auto flex flex-col relative theme-transition">
+      <main ref={mainScrollRef} className="flex-1 h-full overflow-y-auto flex flex-col relative theme-transition print:p-0">
         
         {/* Mobile Top Header (Visible en pantallas < md) */}
-        <div className="md:hidden flex items-center justify-between bg-card-custom p-4 border-b border-card-custom sticky top-0 z-30 shadow-sm theme-transition">
+        <div className="md:hidden print:hidden flex items-center justify-between bg-card-custom p-4 border-b border-card-custom sticky top-0 z-30 shadow-sm theme-transition">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -1313,7 +1313,7 @@ const DashboardContent = () => {
         </div>
 
         {/* CONTENIDO INTERNO CON PADDING */}
-        <div className="p-4 md:p-8 space-y-6 flex-1 relative">
+        <div className="p-4 md:p-8 print:p-0 space-y-6 flex-1 relative">
           {notification && (
             <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg text-sm font-medium z-[9999] animate-bounce-in ${notification.type === 'error' ? 'bg-red-600 text-white' : notification.type === 'warning' ? 'bg-orange-500 text-white' : 'bg-emerald-600 text-white'}`}>
               {notification.msg}
