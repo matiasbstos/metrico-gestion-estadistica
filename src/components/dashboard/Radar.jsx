@@ -21,7 +21,8 @@ import {
   Droplets,
   Newspaper,
   ShieldCheck,
-  Wind
+  Wind,
+  CloudRain
 } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { 
@@ -49,6 +50,14 @@ export default function Radar({ user, app, showNotif }) {
     aqiPromedio: 54,
     categoria: 'Regular / Moderada',
     riesgoRespiratorio: 'Elevado para pacientes asmáticos, bronquiales y adultos mayores'
+  });
+  const [comportamientoLluvia, setComportamientoLluvia] = useState({
+    avgSeco: 85,
+    avgLluvia: 72,
+    variacionLluviaPct: -15.3,
+    avgPostLluvia: 109,
+    variacionPostLluviaPct: 28.2,
+    patronLluviaObs: "En días de lluvia la atención cae un -15.3% (postergación de consultas). El día POST-LLUVIA registra un rebote del +28.2% por acumulación de atenciones."
   });
 
   // Mapeo simple de Calidad del Aire para entendimiento directo
@@ -123,6 +132,9 @@ export default function Radar({ user, app, showNotif }) {
             }
             if (data.calidadAire) {
               setCalidadAire(data.calidadAire);
+            }
+            if (data.analisisComportamientoLluvia) {
+              setComportamientoLluvia(data.analisisComportamientoLluvia);
             }
           } else {
             setProyeccionData(fallbackData);
@@ -313,10 +325,74 @@ export default function Radar({ user, app, showNotif }) {
 
           <div className="pt-2 border-t border-red-500/20 text-[10px] font-bold text-red-700/80 dark:text-red-300/80 flex items-center gap-1.5">
             <Info className="w-3 h-3 text-red-500 flex-shrink-0" />
-            <span>Análisis generado por IA cruzando modelos predictivos, datos meteorológicos y alertas del MINSAL</span>
+            <span>Análisis generado por IA cruzando modelos predictivos, clima histórico, calidad del aire y alertas del MINSAL</span>
           </div>
         </div>
       )}
+
+      {/* SECCIÓN DE ANÁLISIS HISTÓRICO PATRÓN DE LLUVIA (CLIMA PASADO VS PACIENTES REALES) */}
+      <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-xs space-y-4 theme-transition">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-blue-500/10 rounded-2xl text-blue-500 flex-shrink-0">
+              <CloudRain className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-primary-custom tracking-tight">
+                Patrón Histórico de Comportamiento Ante la Lluvia (Melipilla)
+              </h3>
+              <p className="text-xs text-secondary-custom font-medium">
+                Correlación empírica calculada cruzando clima pasado con asistencia diaria real de pacientes.
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 self-start sm:self-auto">
+            Inteligencia Predictiva Clima-Demanda
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          {/* Tarjeta 1: Durante el día de lluvia */}
+          <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <CloudRain className="w-4 h-4 text-blue-500" /> 1. Durante un Día de Lluvia Activa
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-500/20">
+                {comportamientoLluvia.variacionLluviaPct > 0 ? `+${comportamientoLluvia.variacionLluviaPct}%` : `${comportamientoLluvia.variacionLluviaPct}%`} variación
+              </span>
+            </div>
+            <p className="text-xs text-slate-800 dark:text-slate-100 font-black">
+              {comportamientoLluvia.variacionLluviaPct < 0 
+                ? `📉 Moderación temporal: Demanda cae a ~${comportamientoLluvia.avgLluvia} pac/día (vs. ${comportamientoLluvia.avgSeco} promedio normal).`
+                : `📈 Asistencia normal-alta: ~${comportamientoLluvia.avgLluvia} pac/día.`}
+            </p>
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+              Comportamiento del usuario: La población posterga salidas no urgentes por mal tiempo. La atención se concentra en urgencias C1-C3.
+            </p>
+          </div>
+
+          {/* Tarjeta 2: El día después de la lluvia (Rebote) */}
+          <div className="bg-rose-50 dark:bg-rose-950/40 p-4 rounded-2xl border-2 border-rose-200 dark:border-rose-800 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-rose-900 dark:text-rose-200 flex items-center gap-1.5">
+                <Zap className="w-4 h-4 text-rose-600" /> 2. El Día DESPUÉS de la Lluvia (Efecto Rebote)
+              </span>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/30 animate-pulse">
+                +{comportamientoLluvia.variacionPostLluviaPct}% ALZA PICO
+              </span>
+            </div>
+            <p className="text-xs text-rose-950 dark:text-rose-100 font-black">
+              ⚡ Sobrecarga Asistencial: Demanda sube a ~{comportamientoLluvia.avgPostLluvia} pac/día (+{comportamientoLluvia.variacionPostLluviaPct}% de aumento).
+            </p>
+            <p className="text-[11px] text-rose-800 dark:text-rose-300 font-medium">
+              Comportamiento del usuario: Acumulación de atenciones diferidas el día anterior + alza en traumas por calzadas húmedas y bajas temperaturas post-frente.
+            </p>
+          </div>
+
+        </div>
+      </div>
 
       {/* METRICAS CLAVE DEL MODELO PREDICTIVO (CARDS DE 5 FUENTES) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -568,73 +644,86 @@ export default function Radar({ user, app, showNotif }) {
               </p>
             </div>
 
-            {/* SECCIÓN 2: MATRIZ DE CUATRO FUENTES DE ENTRADA */}
+            {/* SECCIÓN 2: MATRIZ DE CINCO FUENTES DE ENTRADA */}
             <div className="space-y-4">
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                <BarChart2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> Matriz Multivariable de Entrada (4 Fuentes en Tiempo Real)
+                <BarChart2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> Matriz Multivariable de Entrada (5 Fuentes Integradas)
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
                 
                 {/* Fuente 1: BigQuery ML */}
-                <div className="bg-slate-50 dark:bg-slate-800/90 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+                <div className="bg-slate-50 dark:bg-slate-800/90 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400">1. BigQuery ML</span>
                     <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-lg font-black text-slate-900 dark:text-white">{peakDay?.atenciones_estimadas || 128} pac.</p>
-                    <p className="text-xs text-slate-700 dark:text-slate-300 font-bold">Pico: {peakDay?.fechaCompletaStr}</p>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400">Rango 95%: [{peakDay?.limite_inferior} - {peakDay?.limite_superior}] pac.</p>
+                  <div className="space-y-0.5">
+                    <p className="text-base font-black text-slate-900 dark:text-white">{peakDay?.atenciones_estimadas || 128} pac.</p>
+                    <p className="text-[11px] text-slate-700 dark:text-slate-300 font-bold">Pico: {peakDay?.fechaCompletaStr}</p>
+                    <p className="text-[9px] text-slate-500 dark:text-slate-400">95%: [{peakDay?.limite_inferior} - {peakDay?.limite_superior}]</p>
                   </div>
                 </div>
 
                 {/* Fuente 2: Open-Meteo Clima */}
-                <div className="bg-slate-50 dark:bg-slate-800/90 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+                <div className="bg-slate-50 dark:bg-slate-800/90 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-sky-600 dark:text-sky-400">2. Clima Melipilla</span>
+                    <span className="text-[10px] font-black uppercase text-sky-600 dark:text-sky-400">2. Clima Futuro</span>
                     <Cloud className="w-3.5 h-3.5 text-sky-500" />
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-base font-black text-slate-900 dark:text-white flex items-center gap-1">
-                      <Thermometer className="w-4 h-4 text-sky-500" /> 2.5°C min / 14°C max
+                  <div className="space-y-0.5">
+                    <p className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1">
+                      <Thermometer className="w-3.5 h-3.5 text-sky-500" /> 2.5°C / 14°C
                     </p>
-                    <p className="text-xs text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1">
-                      <Droplets className="w-3.5 h-3.5 text-sky-500" /> Lluvia: 12.4 mm
+                    <p className="text-[11px] text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1">
+                      <Droplets className="w-3.5 h-3.5 text-sky-500" /> Precipitaciones: 12.4mm
                     </p>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Frío extremo & humedad</p>
+                    <p className="text-[9px] text-slate-500 dark:text-slate-400">Pronóstico 7 días</p>
                   </div>
                 </div>
 
-                {/* Fuente 3: Calidad del Aire Simplificada */}
-                <div className="bg-slate-50 dark:bg-slate-800/90 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+                {/* Fuente 3: Clima Pasado vs Pacientes (Regla de Lluvia) */}
+                <div className="bg-slate-50 dark:bg-slate-800/90 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400">3. Calidad del Aire</span>
+                    <span className="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400">3. Patrón Lluvia</span>
+                    <CloudRain className="w-3.5 h-3.5 text-blue-500" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-black text-blue-600 dark:text-blue-300">
+                      Lluvia: {comportamientoLluvia.variacionLluviaPct}%
+                    </p>
+                    <p className="text-xs font-black text-rose-600 dark:text-rose-400">
+                      Post-Lluvia: +{comportamientoLluvia.variacionPostLluviaPct}%
+                    </p>
+                    <p className="text-[9px] text-slate-500 dark:text-slate-400">Regla empírica Melipilla</p>
+                  </div>
+                </div>
+
+                {/* Fuente 4: Calidad del Aire Simplificada */}
+                <div className="bg-slate-50 dark:bg-slate-800/90 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400">4. Calidad Aire</span>
                     <Wind className="w-3.5 h-3.5 text-emerald-500" />
                   </div>
-                  <div className="space-y-1">
-                    <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-black border ${airQualitySimple.badgeBg}`}>
+                  <div className="space-y-0.5">
+                    <span className={`inline-block px-2 py-0.2 rounded-full text-[10px] font-black border ${airQualitySimple.badgeBg}`}>
                       {airQualitySimple.badge}
                     </span>
-                    <p className="text-xs font-bold text-slate-800 dark:text-slate-100">
-                      {airQualitySimple.impacto}
-                    </p>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
-                      Medición: {airQualitySimple.subtext}
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                      AQI: {calidadAire.aqiPromedio || 54}
                     </p>
                   </div>
                 </div>
 
-                {/* Fuente 4: MINSAL RSS */}
-                <div className="bg-slate-50 dark:bg-slate-800/90 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
+                {/* Fuente 5: MINSAL RSS */}
+                <div className="bg-slate-50 dark:bg-slate-800/90 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400">4. Feed MINSAL</span>
+                    <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400">5. Feed MINSAL</span>
                     <Newspaper className="w-3.5 h-3.5 text-amber-500" />
                   </div>
-                  <div className="space-y-1 text-xs">
-                    <p className="font-bold text-slate-900 dark:text-white truncate">Campaña Invierno / VRS</p>
-                    <p className="text-[10px] text-slate-600 dark:text-slate-300 line-clamp-2">Refuerzo Red Urgencia por Cuadros Respiratorios.</p>
-                    <p className="text-[10px] text-amber-600 dark:text-amber-400 font-black">Alerta Activa</p>
+                  <div className="space-y-0.5 text-xs">
+                    <p className="font-bold text-slate-900 dark:text-white truncate">Alerta Sanitaria</p>
+                    <p className="text-[9px] text-amber-600 dark:text-amber-400 font-black">Campaña Invierno</p>
                   </div>
                 </div>
 
