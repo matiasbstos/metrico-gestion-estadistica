@@ -26,6 +26,7 @@ import AnalisisConstataciones from './dashboard/AnalisisConstataciones';
 import AnalisisTraslados from './dashboard/AnalisisTraslados';
 import GestionUsuarios from './dashboard/GestionUsuarios';
 import ModalInactividad from './dashboard/ModalInactividad';
+import ModalMuroActualizaciones from './dashboard/ModalMuroActualizaciones';
 import Radar from './dashboard/Radar';
 import { formatLocalDate } from '../utils/helpers';
 import Login from './Login';
@@ -35,7 +36,7 @@ import {
   CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
   BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
   Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
-  HeartPulse, Shield, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight
+  HeartPulse, Shield, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
@@ -89,6 +90,7 @@ const DashboardContent = () => {
   const [pendingUpload, setPendingUpload] = useState(null);
   const [editModal, setEditModal] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [showMuroModal, setShowMuroModal] = useState(false);
   const [centroActivo, setCentroActivo] = useState(localStorage.getItem('metrico_centro') || 'SAR Elsa Romo Aravena');
   
   const [manualForm, setManualForm] = useState({
@@ -848,6 +850,9 @@ const DashboardContent = () => {
       
       {/* MODAL DE CONTROL DE INACTIVIDAD Y AUTO-LOGOUT */}
       <ModalInactividad user={user} onLogout={handleLogout} />
+
+      {/* MODAL DE MURO DE ACTUALIZACIONES & NOVEDADES */}
+      <ModalMuroActualizaciones isOpen={showMuroModal} onClose={() => setShowMuroModal(false)} />
       
       {/* OVERLAY FONDO OSCURO EN MÓVILES */}
       {!sidebarCollapsed && (
@@ -1061,6 +1066,22 @@ const DashboardContent = () => {
                   <span>Radar</span>
                   <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-red-500 text-white animate-bounce ml-2 shadow-xs">
                     ALERTA
+                  </span>
+                </span>
+              )}
+            </button>
+
+            {/* BOTÓN MURO DE ACTUALIZACIONES & NOVEDADES */}
+            <button 
+              onClick={() => { setShowMuroModal(true); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+              title="Muro de Actualizaciones"
+              className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20 hover:bg-indigo-500/20`}>
+              <Megaphone className="w-4 h-4 text-indigo-500 flex-shrink-0 animate-bounce" />
+              {!sidebarCollapsed && (
+                <span className="animate-fade-in truncate flex items-center justify-between w-full">
+                  <span>Actualizaciones</span>
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-600 text-white shadow-xs ml-2">
+                    v2.8.0
                   </span>
                 </span>
               )}
