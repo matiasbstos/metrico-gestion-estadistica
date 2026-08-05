@@ -20,7 +20,8 @@ import {
   Thermometer,
   Droplets,
   Newspaper,
-  ShieldCheck
+  ShieldCheck,
+  Wind
 } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { 
@@ -42,6 +43,13 @@ export default function Radar({ user, app, showNotif }) {
   const [proyeccionData, setProyeccionData] = useState([]);
   const [alertaCognitivaText, setAlertaCognitivaText] = useState('');
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [calidadAire, setCalidadAire] = useState({
+    pm25Promedio: 46.5,
+    pm10Promedio: 48.2,
+    aqiPromedio: 54,
+    categoria: 'Regular / Moderada',
+    riesgoRespiratorio: 'Elevado para pacientes asmáticos, bronquiales y adultos mayores'
+  });
 
   // Datos de respaldo estructurados según el entrenamiento ARIMA_PLUS
   const fallbackData = [
@@ -72,6 +80,9 @@ export default function Radar({ user, app, showNotif }) {
             setProyeccionData(data.proyecciones);
             if (data.alertaCognitiva) {
               setAlertaCognitivaText(data.alertaCognitiva);
+            }
+            if (data.calidadAire) {
+              setCalidadAire(data.calidadAire);
             }
           } else {
             setProyeccionData(fallbackData);
@@ -267,56 +278,68 @@ export default function Radar({ user, app, showNotif }) {
         </div>
       )}
 
-      {/* METRICAS CLAVE DEL MODELO PREDICTIVO (CARDS) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-xs theme-transition space-y-2">
+      {/* METRICAS CLAVE DEL MODELO PREDICTIVO (CARDS DE 5 FUENTES) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="bg-card-custom p-5 rounded-3xl border border-card-custom shadow-xs theme-transition space-y-2">
           <div className="flex items-center justify-between text-secondary-custom">
-            <span className="text-xs font-black uppercase tracking-wider">Promedio Diario</span>
-            <Users className="w-5 h-5 accent-text-custom" />
+            <span className="text-[11px] font-black uppercase tracking-wider">Promedio Diario</span>
+            <Users className="w-4 h-4 accent-text-custom" />
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-black text-primary-custom">{stats.promedio}</span>
-            <span className="text-xs font-bold text-secondary-custom">pacientes/día</span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl font-black text-primary-custom">{stats.promedio}</span>
+            <span className="text-[11px] font-bold text-secondary-custom">pac/día</span>
           </div>
-          <p className="text-[11px] text-secondary-custom font-medium opacity-80">Media móvil de 7 días proyectada</p>
+          <p className="text-[10px] text-secondary-custom font-medium opacity-80">Media móvil de 7 días</p>
         </div>
 
-        <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-xs theme-transition space-y-2">
+        <div className="bg-card-custom p-5 rounded-3xl border border-card-custom shadow-xs theme-transition space-y-2">
           <div className="flex items-center justify-between text-secondary-custom">
-            <span className="text-xs font-black uppercase tracking-wider">Pico Máximo Esperado</span>
-            <Zap className="w-5 h-5 text-amber-500" />
+            <span className="text-[11px] font-black uppercase tracking-wider">Pico Máximo</span>
+            <Zap className="w-4 h-4 text-amber-500" />
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-black text-amber-600 dark:text-amber-400">{stats.max}</span>
-            <span className="text-xs font-bold text-secondary-custom">pacientes</span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl font-black text-amber-600 dark:text-amber-400">{stats.max}</span>
+            <span className="text-[11px] font-bold text-amber-600/80 dark:text-amber-400/80">pacientes</span>
           </div>
-          <p className="text-[11px] text-amber-600 dark:text-amber-400 font-bold truncate">
-            {peakDay ? peakDay.fechaCompletaStr : '-'}
+          <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold truncate">{peakDay ? peakDay.fechaCompletaStr : 'Por definir'}</p>
+        </div>
+
+        <div className="bg-card-custom p-5 rounded-3xl border border-card-custom shadow-xs theme-transition space-y-2">
+          <div className="flex items-center justify-between text-secondary-custom">
+            <span className="text-[11px] font-black uppercase tracking-wider">Total Acumulado</span>
+            <BarChart2 className="w-4 h-4 text-indigo-500" />
+          </div>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl font-black text-primary-custom">{stats.totalSemana}</span>
+            <span className="text-[11px] font-bold text-secondary-custom">atenciones</span>
+          </div>
+          <p className="text-[10px] text-secondary-custom font-medium opacity-80">Volumen proyectado 7 días</p>
+        </div>
+
+        <div className="bg-card-custom p-5 rounded-3xl border border-card-custom shadow-xs theme-transition space-y-2">
+          <div className="flex items-center justify-between text-secondary-custom">
+            <span className="text-[11px] font-black uppercase tracking-wider">Calidad del Aire</span>
+            <Wind className="w-4 h-4 text-sky-500" />
+          </div>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl font-black text-sky-600 dark:text-sky-400">{calidadAire.aqiPromedio || 54}</span>
+            <span className="text-[10px] font-bold text-sky-600 dark:text-sky-400">AQI Index</span>
+          </div>
+          <p className="text-[10px] text-secondary-custom font-medium opacity-80 truncate">
+            PM2.5: {calidadAire.pm25Promedio} µg/m³ ({calidadAire.categoria})
           </p>
         </div>
 
-        <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-xs theme-transition space-y-2">
+        <div className="bg-card-custom p-5 rounded-3xl border border-card-custom shadow-xs theme-transition space-y-2">
           <div className="flex items-center justify-between text-secondary-custom">
-            <span className="text-xs font-black uppercase tracking-wider">Total Acumulado Semanal</span>
-            <BarChart2 className="w-5 h-5 text-indigo-500" />
+            <span className="text-[11px] font-black uppercase tracking-wider">Confianza 95%</span>
+            <Sparkles className="w-4 h-4 text-emerald-500" />
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-black text-primary-custom">{stats.total.toLocaleString()}</span>
-            <span className="text-xs font-bold text-secondary-custom">atenciones</span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">95%</span>
+            <span className="text-[11px] font-bold text-emerald-600/80 dark:text-emerald-400/80">intervalo</span>
           </div>
-          <p className="text-[11px] text-secondary-custom font-medium opacity-80">Volumen total proyectado 7 días</p>
-        </div>
-
-        <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-xs theme-transition space-y-2">
-          <div className="flex items-center justify-between text-secondary-custom">
-            <span className="text-xs font-black uppercase tracking-wider">Confianza Estadística</span>
-            <Sparkles className="w-5 h-5 text-emerald-500" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">95%</span>
-            <span className="text-xs font-bold text-secondary-custom">intervalo</span>
-          </div>
-          <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">Algoritmo ARIMA_PLUS BQ</p>
+          <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold truncate">BigQuery ARIMA_PLUS</p>
         </div>
       </div>
 
@@ -501,54 +524,71 @@ export default function Radar({ user, app, showNotif }) {
               </p>
             </div>
 
-            {/* SECCIÓN 2: MATRIZ DE TRES FUENTES DE ENTRADA */}
+            {/* SECCIÓN 2: MATRIZ DE CUATRO FUENTES DE ENTRADA */}
             <div className="space-y-4">
               <h3 className="text-xs font-black uppercase tracking-wider text-secondary-custom flex items-center gap-2">
-                <BarChart2 className="w-4 h-4 accent-text-custom" /> Matriz de Variables de Entrada (3 Fuentes)
+                <BarChart2 className="w-4 h-4 accent-text-custom" /> Matriz Multivariable de Entrada (4 Fuentes en Tiempo Real)
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 
                 {/* Fuente 1: BigQuery ML */}
                 <div className="bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-indigo-500">1. BigQuery ML (ARIMA_PLUS)</span>
+                    <span className="text-[10px] font-black uppercase text-indigo-500">1. BigQuery ML</span>
                     <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
                   </div>
                   <div className="space-y-1">
                     <p className="text-lg font-black text-primary-custom">{peakDay?.atenciones_estimadas || 128} pac.</p>
-                    <p className="text-xs text-secondary-custom font-bold">Pico Máximo: {peakDay?.fechaCompletaStr}</p>
-                    <p className="text-[11px] text-secondary-custom opacity-80">Rango 95%: [{peakDay?.limite_inferior} - {peakDay?.limite_superior}] pac.</p>
+                    <p className="text-xs text-secondary-custom font-bold">Pico: {peakDay?.fechaCompletaStr}</p>
+                    <p className="text-[10px] text-secondary-custom opacity-80">95%: [{peakDay?.limite_inferior} - {peakDay?.limite_superior}] pac.</p>
                   </div>
                 </div>
 
-                {/* Fuente 2: Open-Meteo Melipilla */}
+                {/* Fuente 2: Open-Meteo Clima */}
                 <div className="bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-sky-500">2. Clima Melipilla (Open-Meteo)</span>
+                    <span className="text-[10px] font-black uppercase text-sky-500">2. Clima Melipilla</span>
                     <Cloud className="w-3.5 h-3.5 text-sky-500" />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-lg font-black text-primary-custom flex items-center gap-1">
+                    <p className="text-base font-black text-primary-custom flex items-center gap-1">
                       <Thermometer className="w-4 h-4 text-sky-500" /> 2.5°C min / 14°C max
                     </p>
                     <p className="text-xs text-secondary-custom font-bold flex items-center gap-1">
-                      <Droplets className="w-3.5 h-3.5 text-sky-500" /> Precipitaciones: 12.4 mm
+                      <Droplets className="w-3.5 h-3.5 text-sky-500" /> Lluvia: 12.4 mm
                     </p>
-                    <p className="text-[11px] text-secondary-custom opacity-80">Riesgo: Frío extremo & Humedad</p>
+                    <p className="text-[10px] text-secondary-custom opacity-80">Frío extremo & humedad</p>
                   </div>
                 </div>
 
-                {/* Fuente 3: MINSAL RSS */}
+                {/* Fuente 3: Open-Meteo Air Quality */}
                 <div className="bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-amber-500">3. Feed Sanitarios MINSAL</span>
+                    <span className="text-[10px] font-black uppercase text-emerald-500">3. Calidad del Aire</span>
+                    <Wind className="w-3.5 h-3.5 text-emerald-500" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-base font-black text-primary-custom flex items-center gap-1">
+                      AQI: {calidadAire.aqiPromedio || 54} ({calidadAire.categoria || 'Regular'})
+                    </p>
+                    <p className="text-xs text-secondary-custom font-bold">
+                      PM2.5: {calidadAire.pm25Promedio} µg/m³ | PM10: {calidadAire.pm10Promedio}
+                    </p>
+                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold truncate">Riesgo Obstructivo Activo</p>
+                  </div>
+                </div>
+
+                {/* Fuente 4: MINSAL RSS */}
+                <div className="bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-amber-500">4. Feed MINSAL</span>
                     <Newspaper className="w-3.5 h-3.5 text-amber-500" />
                   </div>
                   <div className="space-y-1 text-xs">
                     <p className="font-bold text-primary-custom truncate">Campaña Invierno / VRS</p>
-                    <p className="text-[11px] text-secondary-custom line-clamp-2">Refuerzo Asistencial Red Urgencia por Cuadros Respiratorios.</p>
-                    <p className="text-[10px] text-amber-500 font-bold">Estado: Alerta Activa</p>
+                    <p className="text-[10px] text-secondary-custom line-clamp-2">Refuerzo Red Urgencia por Cuadros Respiratorios.</p>
+                    <p className="text-[10px] text-amber-500 font-bold">Alerta Activa</p>
                   </div>
                 </div>
 
