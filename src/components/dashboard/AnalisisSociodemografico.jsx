@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Users, HeartPulse, Shield, Globe, Building2 } from 'lucide-react';
 import InfoTooltip from '../InfoTooltip';
 import { perc } from '../../utils/helpers';
+import MapaProvinciaMelipilla from './MapaProvinciaMelipilla';
 
 export default function AnalisisSociodemografico({ demografiaStats, rankingCentros }) {
   if (!demografiaStats || !rankingCentros) return null;
@@ -16,14 +17,19 @@ export default function AnalisisSociodemografico({ demografiaStats, rankingCentr
     .sort((a, b) => b[1] - a[1]).slice(0, 4);
 
   return (
-    <div className="bg-card-custom rounded-2xl border border-card-custom p-6 mt-6 shadow-sm theme-transition">
-      <div className="flex items-center gap-2 mb-6">
-        <Users className="accent-text-custom w-5 h-5"/>
-        <h2 className="text-base font-bold text-primary-custom">
-          Análisis Sociodemográfico y Origen 
-          <InfoTooltip title="Análisis Sociodemográfico" text="Visualiza la distribución de pacientes por edad y origen comunal. Ayuda a identificar la huella sociodemográfica de la demanda." />
-        </h2>
-      </div>
+    <div className="space-y-6">
+      
+      {/* SECCIÓN DEL MAPA INTERACTIVO PROVINCIAL */}
+      <MapaProvinciaMelipilla demografiaStats={demografiaStats} />
+
+      <div className="bg-card-custom rounded-2xl border border-card-custom p-6 mt-6 shadow-sm theme-transition">
+        <div className="flex items-center gap-2 mb-6">
+          <Users className="accent-text-custom w-5 h-5"/>
+          <h2 className="text-base font-bold text-primary-custom">
+            Análisis Sociodemográfico y Origen 
+            <InfoTooltip title="Análisis Sociodemográfico" text="Visualiza la distribución de pacientes por edad y origen comunal. Ayuda a identificar la huella sociodemográfica de la demanda." />
+          </h2>
+        </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         
@@ -155,6 +161,7 @@ export default function AnalisisSociodemografico({ demografiaStats, rankingCentr
           </div>
         </div>
 
+        </div>
       </div>
     </div>
   );
