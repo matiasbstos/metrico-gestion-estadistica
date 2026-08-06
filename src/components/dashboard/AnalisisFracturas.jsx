@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Activity, Clock, Stethoscope, Hospital, Users, Search, Download, Filter, AlertCircle, Award, Calendar, ChevronRight, ChevronDown, ChevronUp, ArrowRightLeft, Info } from 'lucide-react';
+import { Activity, Clock, Stethoscope, Hospital, Users, Search, Download, Filter, AlertCircle, Award, Calendar, ChevronRight, ChevronDown, ChevronUp, ArrowRightLeft, Info, TrendingUp, TrendingDown } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
 import InfoTooltip from '../InfoTooltip';
 import { generateFracturasSummary } from '../../utils/summaryGenerator';
