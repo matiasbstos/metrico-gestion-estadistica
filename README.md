@@ -4,6 +4,30 @@
 
 Aquí documentamos el progreso y las últimas actualizaciones que se le están haciendo al sistema para mantener a todo el equipo informado.
 
+### ✨ [Actualización v2.8.0] - 05 de Agosto 2026 - Potenciación Cognitiva del Radar Predictivo & Calidad del Aire en Vivo
+- **Agente Epidemiológico IA (Gemini 1.5 Flash):** Diagnóstico de sobrecarga asistencial cruzando clima, BigQuery ML y MINSAL.
+- **Rastreador RSS MINSAL Chile:** Detección automática de alertas sanitarias oficiales y campañas invernales.
+- **Calidad del Aire Integrada en Vivo:** Pronóstico a 7 días con índices AQI y PM2.5/PM10 por día en Melipilla.
+- **Matriz Causa-Efecto de 6 Fuentes:** Informe técnico desplegable en modal con acciones preventivas para urgencias.
+- **Análisis de Clima Pasado vs Pacientes:** Detección empírica de rebote asistencial post-lluvia (+28.2%) y heladas (<5°C).
+
+### ✨ [Actualización v2.7.5] - 05 de Agosto 2026 - Mapa Vectorial Interactivo de la Provincia de Melipilla
+- **Silueta Vectorial Exclusiva:** Visualización limpia de Melipilla, Curacaví, María Pinto, San Pedro y Alhué.
+- **Interactividad Hover & Tooltips:** Resaltado cromático individual con conteo de pacientes y porcentaje de participación.
+- **Integración Sociodemográfica:** Muestra desglose comunal directo en el panel de origen y perfil de paciente.
+
+### ✨ [Actualización v2.7.0] - 04 de Agosto 2026 - Rediseño Sociodemográfico y Análisis Demográfico en Inicio
+- **Reubicación Estratégica:** Retorno del análisis sociodemográfico al panel principal con tarjetas estilizadas y filtros interactivos.
+- **Filtros Dinámicos Cruzados:** Filtros por categoría de triage y comunas de la provincia sobre métricas de sexo, grupos etarios y previsión.
+
+### ✨ [Actualización v2.6.5] - 03 de Agosto 2026 - Isotipo Oficial del SAR & Módulo de Reportes PDF
+- **Encabezado Institucional Oficial:** Incorporación del logo oficial del SAR Elsa Romo Aravena para impresiones y exportación de informes clínicos.
+- **Plantillas Adaptables:** Plantillas ejecutivas exportables según selección de tipo de reporte específico o consolidado.
+
+### ✨ [Actualización v2.6.0] - 02 de Agosto 2026 - Control de Inactividad & Auditoría de Registro en Firestore
+- **Cierre de Sesión Automático:** Modal de advertencia con cuenta regresiva antes del auto-logout por inactividad (15 min).
+- **Audit Log en Firestore:** Registro en vivo para trazabilidad de consultas y modificaciones por usuario.
+
 ### ✨ [Actualización] - 27 de Julio 2026 - Unificación de Constatación de Lesiones (Z51.8), Módulo Específico e Interacciones Demográficas
 - **Unificación de Cifra Real de Constatación de Lesiones (Z51.8):** Sincronización del cálculo dinámico entre el Explorador de Inicio (tarjetas de período y YTD) y los reportes de enfermería/triaje en los **273 casos reales** de la base de pacientes.
 - **Nuevo Módulo de Análisis Específico de Constataciones de Lesiones:** Apartado dedicado dentro de *Análisis Específicos* que desglosa cuantitativamente la demanda por Constatación de Lesiones (Z51.8).
