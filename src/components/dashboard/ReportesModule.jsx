@@ -169,6 +169,14 @@ export default function ReportesModule({
     let fracturasDomicilio = 0;
     let fracturasOtros = 0;
 
+    let sumAdmCatFrac = 0, countAdmCatFrac = 0;
+    let sumCatAnaFrac = 0, countCatAnaFrac = 0;
+    let sumAnaAltFrac = 0, countAnaAltFrac = 0;
+    let sumAdmAltFrac = 0, countAdmAltFrac = 0;
+
+    let sumAnaAltTrasladoFrac = 0, countAnaAltTrasladoFrac = 0;
+    let sumAdmAltTrasladoFrac = 0, countAdmAltTrasladoFrac = 0;
+
     const diagMap = {};
 
     pacs.forEach(p => {
@@ -190,6 +198,39 @@ export default function ReportesModule({
           fracturasDomicilio++;
         } else {
           fracturasOtros++;
+        }
+
+        // Tiempos de atención para fracturas
+        let tCat = null;
+        if (typeof p.tCat1 === 'number' && typeof p.tCatUlt === 'number') tCat = (p.tCat1 + p.tCatUlt) / 2;
+        else if (typeof p.tCat1 === 'number') tCat = p.tCat1;
+        else if (typeof p.tCatUlt === 'number') tCat = p.tCatUlt;
+
+        if (typeof p.tAdmision === 'number' && typeof tCat === 'number' && tCat >= p.tAdmision) {
+          sumAdmCatFrac += (tCat - p.tAdmision) / 3600000;
+          countAdmCatFrac++;
+        }
+        if (typeof tCat === 'number' && typeof p.tAnamnesis === 'number' && p.tAnamnesis >= tCat) {
+          sumCatAnaFrac += (p.tAnamnesis - tCat) / 3600000;
+          countCatAnaFrac++;
+        }
+        if (typeof p.tAnamnesis === 'number' && typeof p.tAlta === 'number' && p.tAlta >= p.tAnamnesis) {
+          const dAnaAlt = (p.tAlta - p.tAnamnesis) / 3600000;
+          sumAnaAltFrac += dAnaAlt;
+          countAnaAltFrac++;
+          if (isTraslado) {
+            sumAnaAltTrasladoFrac += dAnaAlt;
+            countAnaAltTrasladoFrac++;
+          }
+        }
+        if (typeof p.tAdmision === 'number' && typeof p.tAlta === 'number' && p.tAlta >= p.tAdmision) {
+          const dAdmAlt = (p.tAlta - p.tAdmision) / 3600000;
+          sumAdmAltFrac += dAdmAlt;
+          countAdmAltFrac++;
+          if (isTraslado) {
+            sumAdmAltTrasladoFrac += dAdmAlt;
+            countAdmAltTrasladoFrac++;
+          }
         }
       }
 
@@ -230,6 +271,14 @@ export default function ReportesModule({
       }
     }
 
+    const avgAdmCatFrac = countAdmCatFrac > 0 ? (sumAdmCatFrac / countAdmCatFrac) : null;
+    const avgCatAnaFrac = countCatAnaFrac > 0 ? (sumCatAnaFrac / countCatAnaFrac) : null;
+    const avgAnaAltFrac = countAnaAltFrac > 0 ? (sumAnaAltFrac / countAnaAltFrac) : null;
+    const avgEstadiaTotalFrac = countAdmAltFrac > 0 ? (sumAdmAltFrac / countAdmAltFrac) : null;
+
+    const avgAnaAltTrasladoFrac = countAnaAltTrasladoFrac > 0 ? (sumAnaAltTrasladoFrac / countAnaAltTrasladoFrac) : null;
+    const avgEstadiaTrasladoFrac = countAdmAltTrasladoFrac > 0 ? (sumAdmAltTrasladoFrac / countAdmAltTrasladoFrac) : null;
+
     return { 
       totalPacientes: pacs.length, 
       totalFracturas, 
@@ -243,7 +292,13 @@ export default function ReportesModule({
       fracturasOtros,
       prevYearFracturas,
       prevYearPct,
-      yoyGrowth
+      yoyGrowth,
+      avgAdmCatFrac,
+      avgCatAnaFrac,
+      avgAnaAltFrac,
+      avgEstadiaTotalFrac,
+      avgAnaAltTrasladoFrac,
+      avgEstadiaTrasladoFrac
     };
   }, [pacientesFiltrados, pacientesDB, filtroFechaInicio, filtroFechaFin]);
 
@@ -1379,6 +1434,39 @@ totalTriados,
                       <span className={`text-[9px] font-bold ${Number(fracturasStats.yoyGrowth) >= 0 ? 'text-amber-700' : 'text-emerald-700'}`}>
                         {Number(fracturasStats.yoyGrowth) >= 0 ? '📈 +' : '📉 '}{fracturasStats.yoyGrowth}% YoY
                       </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tiempos de Atención y Estadía en Fracturas */}
+                <div className="bg-sky-50/40 border border-sky-200/70 p-4 rounded-2xl space-y-3 print-avoid-break">
+                  <h3 className="text-xs font-bold text-sky-900 uppercase tracking-wider border-b border-sky-200 pb-1.5 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-sky-600" /> Tiempos Promedio de Atención y Estadía en Fracturas (Horas)
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="bg-white border border-slate-200 p-3 rounded-xl">
+                      <span className="text-[10px] font-bold text-sky-600 uppercase block">1. Ingreso → Categorización</span>
+                      <p className="text-xl font-black text-slate-800 mt-1">
+                        {fracturasStats.avgAdmCatFrac !== null ? `${fracturasStats.avgAdmCatFrac.toFixed(1)} hrs` : '-'}
+                      </p>
+                    </div>
+                    <div className="bg-white border border-slate-200 p-3 rounded-xl">
+                      <span className="text-[10px] font-bold text-indigo-600 uppercase block">2. Categorización → Anamnesis</span>
+                      <p className="text-xl font-black text-slate-800 mt-1">
+                        {fracturasStats.avgCatAnaFrac !== null ? `${fracturasStats.avgCatAnaFrac.toFixed(1)} hrs` : '-'}
+                      </p>
+                    </div>
+                    <div className="bg-white border border-slate-200 p-3 rounded-xl">
+                      <span className="text-[10px] font-bold text-purple-600 uppercase block">3. Anamnesis → Traslado</span>
+                      <p className="text-xl font-black text-purple-700 mt-1">
+                        {fracturasStats.avgAnaAltTrasladoFrac !== null ? `${fracturasStats.avgAnaAltTrasladoFrac.toFixed(1)} hrs` : '-'}
+                      </p>
+                    </div>
+                    <div className="bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl">
+                      <span className="text-[10px] font-bold text-rose-700 uppercase block">Estadía Prom. hasta Traslado</span>
+                      <p className="text-xl font-black text-rose-700 mt-1">
+                        {fracturasStats.avgEstadiaTrasladoFrac !== null ? `${fracturasStats.avgEstadiaTrasladoFrac.toFixed(1)} hrs` : '-'}
+                      </p>
                     </div>
                   </div>
                 </div>

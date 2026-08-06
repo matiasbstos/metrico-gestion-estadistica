@@ -93,19 +93,55 @@ export const generateFracturasSummary = (pacs) => {
 
   // Destino más frecuente de fracturas (categorizado)
   const destCounts = {};
+  let sumAdmCat = 0, cAdmCat = 0;
+  let sumCatAna = 0, cCatAna = 0;
+  let sumAnaTras = 0, cAnaTras = 0;
+  let sumEstTras = 0, cEstTras = 0;
+
   listFracturas.forEach(p => {
     const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
     let cat = 'Otro Centro';
-    if (dest.includes('hospital') || dest.includes('emergencia') || dest.includes('derivac')) cat = 'Hospital / UEH (Atención Secundaria)';
+    const isTraslado = dest.includes('hospital') || dest.includes('emergencia') || dest.includes('derivac');
+    if (isTraslado) cat = 'Hospital / UEH (Atención Secundaria)';
     else if (dest.includes('domicilio') || dest.includes('alta') || dest.includes('ambulatorio')) cat = 'Domicilio (Alta Ambulatoria)';
     else if (!dest || dest === 'sin especificar') cat = 'Sin Registro';
 
     destCounts[cat] = (destCounts[cat] || 0) + 1;
+
+    let tCat = null;
+    if (typeof p.tCat1 === 'number' && typeof p.tCatUlt === 'number') tCat = (p.tCat1 + p.tCatUlt) / 2;
+    else if (typeof p.tCat1 === 'number') tCat = p.tCat1;
+    else if (typeof p.tCatUlt === 'number') tCat = p.tCatUlt;
+
+    if (typeof p.tAdmision === 'number' && typeof tCat === 'number' && tCat >= p.tAdmision) {
+      sumAdmCat += (tCat - p.tAdmision) / 3600000;
+      cAdmCat++;
+    }
+    if (typeof tCat === 'number' && typeof p.tAnamnesis === 'number' && p.tAnamnesis >= tCat) {
+      sumCatAna += (p.tAnamnesis - tCat) / 3600000;
+      cCatAna++;
+    }
+    if (isTraslado) {
+      if (typeof p.tAnamnesis === 'number' && typeof p.tAlta === 'number' && p.tAlta >= p.tAnamnesis) {
+        sumAnaTras += (p.tAlta - p.tAnamnesis) / 3600000;
+        cAnaTras++;
+      }
+      if (typeof p.tAdmision === 'number' && typeof p.tAlta === 'number' && p.tAlta >= p.tAdmision) {
+        sumEstTras += (p.tAlta - p.tAdmision) / 3600000;
+        cEstTras++;
+      }
+    }
   });
+
   const sortedDests = Object.entries(destCounts).sort((a,b) => b[1] - a[1])[0];
   const topDestText = sortedDests ? `${sortedDests[0]} (${formatPct(sortedDests[1], totalFracturas)}% de los casos)` : 'Sin especificar';
 
-  return `Se identificó un total de ${totalFracturas} casos de fracturas óseas, que equivalen al ${pct}% de las admisiones totales del periodo. Las lesiones de mayor incidencia clínica corresponden a: ${topDiagsText}. El principal destino de resolución o derivación para estos pacientes fue ${topDestText}, reflejando la necesidad de traslado a centros de mayor complejidad o la resolución ambulatoria según la severidad del trauma.`;
+  const avgEstTrasText = cEstTras > 0 ? `${(sumEstTras / cEstTras).toFixed(1)} hrs` : 'N/A';
+  const avgAdmCatText = cAdmCat > 0 ? `${(sumAdmCat / cAdmCat).toFixed(1)} hrs` : '-';
+  const avgCatAnaText = cCatAna > 0 ? `${(sumCatAna / cCatAna).toFixed(1)} hrs` : '-';
+  const avgAnaTrasText = cAnaTras > 0 ? `${(sumAnaTras / cAnaTras).toFixed(1)} hrs` : '-';
+
+  return `Se identificó un total de ${totalFracturas} casos de fracturas óseas, que equivalen al ${pct}% de las admisiones totales del periodo. Las lesiones de mayor incidencia corresponden a: ${topDiagsText}. La estadía promedio hasta el traslado al hospital fue de ${avgEstTrasText} (desglosado en: ${avgAdmCatText} de ingreso a categorización, ${avgCatAnaText} de categorización a anamnesis y ${avgAnaTrasText} de anamnesis a traslado). El principal destino de resolución fue ${topDestText}.`;
 };
 
 export const generateEnfermeriaSummary = (pacs) => {

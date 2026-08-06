@@ -141,6 +141,11 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
     let sumAnaAltTotal = 0, countAnaAltTotal = 0;
     let sumAdmAltTotal = 0, countAdmAltTotal = 0;
 
+    let sumAdmCatHospital = 0, countAdmCatHospital = 0;
+    let sumCatAnaHospital = 0, countCatAnaHospital = 0;
+    let sumAnaAltHospital = 0, countAnaAltHospital = 0;
+    let sumAdmAltHospital = 0, countAdmAltHospital = 0;
+
     let p0_14 = 0;
     let p15_29 = 0;
     let p30_59 = 0;
@@ -193,6 +198,10 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
         dAdmCat = (tCat - p.tAdmision) / 3600000;
         sumAdmCatTotal += dAdmCat;
         countAdmCatTotal++;
+        if (catDest === 'hospital') {
+          sumAdmCatHospital += dAdmCat;
+          countAdmCatHospital++;
+        }
       }
 
       // 2. Categorización -> Anamnesis (en Horas)
@@ -201,6 +210,10 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
         dCatAna = (p.tAnamnesis - tCat) / 3600000;
         sumCatAnaTotal += dCatAna;
         countCatAnaTotal++;
+        if (catDest === 'hospital') {
+          sumCatAnaHospital += dCatAna;
+          countCatAnaHospital++;
+        }
       }
 
       // 3. Anamnesis -> Trasladado / Alta (en Horas)
@@ -209,6 +222,10 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
         dAnaAlt = (p.tAlta - p.tAnamnesis) / 3600000;
         sumAnaAltTotal += dAnaAlt;
         countAnaAltTotal++;
+        if (catDest === 'hospital') {
+          sumAnaAltHospital += dAnaAlt;
+          countAnaAltHospital++;
+        }
       }
 
       // 4. Estadía Total: Admisión -> Trasladado / Alta (en Horas)
@@ -217,6 +234,10 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
         dAdmAlt = (p.tAlta - p.tAdmision) / 3600000;
         sumAdmAltTotal += dAdmAlt;
         countAdmAltTotal++;
+        if (catDest === 'hospital') {
+          sumAdmAltHospital += dAdmAlt;
+          countAdmAltHospital++;
+        }
       }
 
       if (p.edad !== null && p.edad !== undefined && p.edad !== '' && !isNaN(Number(p.edad))) {
@@ -331,6 +352,11 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
     const avgAnaAltGlobal = countAnaAltTotal > 0 ? (sumAnaAltTotal / countAnaAltTotal) : null;
     const avgAdmAltGlobal = countAdmAltTotal > 0 ? (sumAdmAltTotal / countAdmAltTotal) : null;
 
+    const avgAdmCatHospital = countAdmCatHospital > 0 ? (sumAdmCatHospital / countAdmCatHospital) : null;
+    const avgCatAnaHospital = countCatAnaHospital > 0 ? (sumCatAnaHospital / countCatAnaHospital) : null;
+    const avgAnaAltHospital = countAnaAltHospital > 0 ? (sumAnaAltHospital / countAnaAltHospital) : null;
+    const avgEstadiaTraslado = countAdmAltHospital > 0 ? (sumAdmAltHospital / countAdmAltHospital) : null;
+
     const totalEvaluados = pacientesFiltrados ? pacientesFiltrados.length : 0;
 
     return {
@@ -371,6 +397,11 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
       avgCatAnaGlobal, countCatAnaTotal,
       avgAnaAltGlobal, countAnaAltTotal,
       avgAdmAltGlobal, countAdmAltTotal,
+
+      avgAdmCatHospital, countAdmCatHospital,
+      avgCatAnaHospital, countCatAnaHospital,
+      avgAnaAltHospital, countAnaAltHospital,
+      avgEstadiaTraslado, countAdmAltHospital,
 
       top5Diagnosticos: listaDiagnosticos.slice(0, 5),
 
@@ -533,10 +564,10 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
           </div>
         </div>
 
-        {/* KPI 2: TRASLADOS A HOSPITAL / UEH */}
+        {/* KPI 2: TRASLADOS A HOSPITAL / UEH CON ESTADÍA PROMEDIO */}
         <div className="bg-gradient-to-br from-purple-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-purple-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[135px]">
           <div>
-            <div className="flex justify-between items-start mb-2">
+            <div className="flex justify-between items-start mb-1">
               <span className="text-[11px] font-black uppercase tracking-wider text-purple-500">Traslados Hospital</span>
               <Hospital className="w-4 h-4 text-purple-500 opacity-80" />
             </div>
@@ -545,8 +576,11 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
               <span className="text-xs font-bold text-purple-500">({stats.percHospital}%)</span>
             </div>
           </div>
-          <div className="mt-2 pt-2 border-t border-card-custom/50 text-[10px] text-secondary-custom font-medium truncate">
-            Derivados a urgencia secundaria
+          <div className="mt-2 pt-2 border-t border-card-custom/50 flex items-center justify-between text-[10px]">
+            <span className="text-secondary-custom font-bold">Estadía Traslado:</span>
+            <span className="px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-300 font-black border border-purple-500/30">
+              {stats.avgEstadiaTraslado !== null ? `${stats.avgEstadiaTraslado.toFixed(1)} hrs` : '-'}
+            </span>
           </div>
         </div>
 
@@ -619,23 +653,23 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
           </div>
         </div>
 
-        {/* KPI 6: DESGLOSE DE TIEMPOS DE ATENCIÓN (4 ETAPAS EN HORAS) */}
+        {/* KPI 6: DESGLOSE DE TIEMPOS DE ATENCIÓN Y TRASLADO */}
         <div className="bg-gradient-to-br from-sky-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-sky-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[135px]">
           <div className="flex justify-between items-start mb-1">
             <div className="flex items-center gap-1">
               <Clock className="w-3.5 h-3.5 text-sky-500" />
               <span className="text-[11px] font-black uppercase tracking-wider text-sky-500 truncate">
-                Flujo Atenciones
+                Tiempos Etapas
               </span>
             </div>
             <InfoTooltip 
-              title="Promedios del Flujo de Atención" 
-              text="Duraciones promedio en horas (1 decimal): Admisión a Categorización (promedio Cat1/CatUlt), Categorización a Anamnesis, Anamnesis a Traslado/Alta, y Estadía Total." 
+              title="Promedios del Flujo de Atención y Traslado" 
+              text="1. Ingreso a Categorización. 2. Categorización a Anamnesis. 3. Anamnesis a Traslado (derivados a hospital). 4. Estadía Total hasta Traslado." 
             />
           </div>
 
           <div className="grid grid-cols-4 gap-1 mt-1">
-            <div className="bg-black/5 dark:bg-white/5 p-1 rounded-lg text-center border border-card-custom/50" title={`Admisión → Categorización (${stats.countAdmCatTotal} pac.)`}>
+            <div className="bg-black/5 dark:bg-white/5 p-1 rounded-lg text-center border border-card-custom/50" title={`Ingreso → Categorización (${stats.countAdmCatTotal} pac.)`}>
               <span className="text-[7px] font-bold uppercase text-sky-500 block truncate">Adm-Cat</span>
               <span className="text-xs font-black text-primary-custom">
                 {stats.avgAdmCatGlobal !== null ? stats.avgAdmCatGlobal.toFixed(1) : '-'}
@@ -651,20 +685,20 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
               <span className="text-[7px] font-bold text-indigo-500 block">hrs</span>
             </div>
 
-            <div className="bg-black/5 dark:bg-white/5 p-1 rounded-lg text-center border border-card-custom/50" title={`Anamnesis → Traslado/Alta (${stats.countAnaAltTotal} pac.)`}>
-              <span className="text-[7px] font-bold uppercase text-amber-500 block truncate">Ana-Tras</span>
-              <span className="text-xs font-black text-primary-custom">
-                {stats.avgAnaAltGlobal !== null ? stats.avgAnaAltGlobal.toFixed(1) : '-'}
+            <div className="bg-purple-500/10 p-1 rounded-lg text-center border border-purple-500/20" title={`Anamnesis → Traslado en derivados hospital (${stats.countAnaAltHospital} pac.)`}>
+              <span className="text-[7px] font-bold uppercase text-purple-600 dark:text-purple-400 block truncate">Ana-Tras</span>
+              <span className="text-xs font-black text-purple-600 dark:text-purple-400">
+                {stats.avgAnaAltHospital !== null ? stats.avgAnaAltHospital.toFixed(1) : (stats.avgAnaAltGlobal !== null ? stats.avgAnaAltGlobal.toFixed(1) : '-')}
               </span>
-              <span className="text-[7px] font-bold text-amber-500 block">hrs</span>
+              <span className="text-[7px] font-bold text-purple-600 dark:text-purple-400 block">hrs</span>
             </div>
 
-            <div className="bg-emerald-500/10 p-1 rounded-lg text-center border border-emerald-500/20" title={`Estadía Total (${stats.countAdmAltTotal} pac.)`}>
-              <span className="text-[7px] font-bold uppercase text-emerald-600 dark:text-emerald-400 block truncate">Total</span>
-              <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
-                {stats.avgAdmAltGlobal !== null ? stats.avgAdmAltGlobal.toFixed(1) : '-'}
+            <div className="bg-rose-500/10 p-1 rounded-lg text-center border border-rose-500/20" title={`Estadía Total hasta Traslado (${stats.countAdmAltHospital} pac.)`}>
+              <span className="text-[7px] font-bold uppercase text-rose-600 dark:text-rose-400 block truncate">Est. Tras</span>
+              <span className="text-xs font-black text-rose-600 dark:text-rose-400">
+                {stats.avgEstadiaTraslado !== null ? stats.avgEstadiaTraslado.toFixed(1) : '-'}
               </span>
-              <span className="text-[7px] font-bold text-emerald-600 dark:text-emerald-400 block">hrs</span>
+              <span className="text-[7px] font-bold text-rose-600 dark:text-rose-400 block">hrs</span>
             </div>
           </div>
         </div>
