@@ -543,11 +543,11 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
         </p>
       </div>
 
-      {/* TARJETAS DE KPIS PRINCIPALES DE FRACTURAS (7 LÁMINAS SUPERIORES COMPLETAS) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
+      {/* TARJETAS DE KPIS PRINCIPALES DE FRACTURAS (FILA 1: 5 KPIS FUNDAMENTALES) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5 mb-5">
         
         {/* KPI 1: UNIVERSO EVALUADO Y CASOS FRACTURA */}
-        <div className="bg-gradient-to-br from-rose-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-rose-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[135px]">
+        <div className="bg-gradient-to-br from-rose-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-rose-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[140px]">
           <div>
             <div className="flex justify-between items-start mb-2">
               <span className="text-[11px] font-black uppercase tracking-wider text-rose-500">Universo & Fracturas</span>
@@ -564,8 +564,8 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
           </div>
         </div>
 
-        {/* KPI 2: TRASLADOS A HOSPITAL / UEH CON ESTADÍA PROMEDIO */}
-        <div className="bg-gradient-to-br from-purple-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-purple-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[135px]">
+        {/* KPI 2: TRASLADOS A HOSPITAL / UEH CON ESTADÍA PROMEDIO DESTACADA */}
+        <div className="bg-gradient-to-br from-purple-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-purple-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[140px]">
           <div>
             <div className="flex justify-between items-start mb-1">
               <span className="text-[11px] font-black uppercase tracking-wider text-purple-500">Traslados Hospital</span>
@@ -578,14 +578,14 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
           </div>
           <div className="mt-2 pt-2 border-t border-card-custom/50 flex items-center justify-between text-[10px]">
             <span className="text-secondary-custom font-bold">Estadía Traslado:</span>
-            <span className="px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-300 font-black border border-purple-500/30">
+            <span className="px-2.5 py-1 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-300 font-black text-xs border border-purple-500/30 shadow-2xs">
               {stats.avgEstadiaTraslado !== null ? `${stats.avgEstadiaTraslado.toFixed(1)} hrs` : '-'}
             </span>
           </div>
         </div>
 
-        {/* KPI 3: ALTAS A DOMICILIO Y OTROS */}
-        <div className="bg-gradient-to-br from-emerald-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-emerald-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[135px]">
+        {/* KPI 3: ALTAS A DOMICILIO */}
+        <div className="bg-gradient-to-br from-emerald-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-emerald-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[140px]">
           <div>
             <div className="flex justify-between items-start mb-2">
               <span className="text-[11px] font-black uppercase tracking-wider text-emerald-500">Altas Domicilio</span>
@@ -601,8 +601,8 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
           </div>
         </div>
 
-        {/* KPI 4: FRACTURA MÁS FRECUENTE (RESTAURADA) */}
-        <div className="bg-gradient-to-br from-amber-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-amber-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[135px]">
+        {/* KPI 4: FRACTURA MÁS FRECUENTE */}
+        <div className="bg-gradient-to-br from-amber-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-amber-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[140px]">
           <div>
             <div className="flex justify-between items-start mb-1">
               <span className="text-[11px] font-black uppercase tracking-wider text-amber-500">Fractura Frecuente</span>
@@ -627,8 +627,8 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
           </div>
         </div>
 
-        {/* KPI 5: GRUPO ETARIO MÁS AFECTADO (RESTAURADA) */}
-        <div className="bg-gradient-to-br from-indigo-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-indigo-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[135px]">
+        {/* KPI 5: GRUPO ETARIO MÁS AFECTADO */}
+        <div className="bg-gradient-to-br from-indigo-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-indigo-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[140px]">
           <div>
             <div className="flex justify-between items-start mb-1">
               <span className="text-[11px] font-black uppercase tracking-wider text-indigo-500">Edad Afectada</span>
@@ -653,57 +653,108 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
           </div>
         </div>
 
-        {/* KPI 6: DESGLOSE DE TIEMPOS DE ATENCIÓN Y TRASLADO */}
-        <div className="bg-gradient-to-br from-sky-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-sky-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[135px]">
-          <div className="flex justify-between items-start mb-1">
-            <div className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-sky-500" />
-              <span className="text-[11px] font-black uppercase tracking-wider text-sky-500 truncate">
-                Tiempos Etapas
-              </span>
+      </div>
+
+      {/* BLOQUE DESTACADO DE TIEMPOS DE ATENCIÓN Y PERMANENCIA (FILA 2: 4 ETAPAS CLARAS + YOY) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3.5 mb-6">
+        
+        {/* ETAPA 1: INGRESO A CATEGORIZACIÓN */}
+        <div className="bg-gradient-to-br from-sky-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-sky-500/20 shadow-sm flex flex-col justify-between min-h-[135px]">
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[11px] font-black uppercase tracking-wider text-sky-500">1. Ingreso a Triage</span>
+              <Clock className="w-4 h-4 text-sky-500 opacity-80" />
             </div>
-            <InfoTooltip 
-              title="Promedios del Flujo de Atención y Traslado" 
-              text="1. Ingreso a Categorización. 2. Categorización a Anamnesis. 3. Anamnesis a Traslado (derivados a hospital). 4. Estadía Total hasta Traslado." 
-            />
+            <div className="flex items-baseline gap-2 mt-1.5">
+              <span className="text-2xl font-black text-primary-custom">
+                {stats.avgAdmCatGlobal !== null ? `${stats.avgAdmCatGlobal.toFixed(1)} hrs` : '-'}
+              </span>
+              {stats.avgAdmCatGlobal !== null && (
+                <span className="text-xs font-bold text-sky-500">
+                  (~{Math.round(stats.avgAdmCatGlobal * 60)} min)
+                </span>
+              )}
+            </div>
           </div>
-
-          <div className="grid grid-cols-4 gap-1 mt-1">
-            <div className="bg-black/5 dark:bg-white/5 p-1 rounded-lg text-center border border-card-custom/50" title={`Ingreso → Categorización (${stats.countAdmCatTotal} pac.)`}>
-              <span className="text-[7px] font-bold uppercase text-sky-500 block truncate">Adm-Cat</span>
-              <span className="text-xs font-black text-primary-custom">
-                {stats.avgAdmCatGlobal !== null ? stats.avgAdmCatGlobal.toFixed(1) : '-'}
-              </span>
-              <span className="text-[7px] font-bold text-sky-500 block">hrs</span>
-            </div>
-
-            <div className="bg-black/5 dark:bg-white/5 p-1 rounded-lg text-center border border-card-custom/50" title={`Categorización → Anamnesis (${stats.countCatAnaTotal} pac.)`}>
-              <span className="text-[7px] font-bold uppercase text-indigo-500 block truncate">Cat-Ana</span>
-              <span className="text-xs font-black text-primary-custom">
-                {stats.avgCatAnaGlobal !== null ? stats.avgCatAnaGlobal.toFixed(1) : '-'}
-              </span>
-              <span className="text-[7px] font-bold text-indigo-500 block">hrs</span>
-            </div>
-
-            <div className="bg-purple-500/10 p-1 rounded-lg text-center border border-purple-500/20" title={`Anamnesis → Traslado en derivados hospital (${stats.countAnaAltHospital} pac.)`}>
-              <span className="text-[7px] font-bold uppercase text-purple-600 dark:text-purple-400 block truncate">Ana-Tras</span>
-              <span className="text-xs font-black text-purple-600 dark:text-purple-400">
-                {stats.avgAnaAltHospital !== null ? stats.avgAnaAltHospital.toFixed(1) : (stats.avgAnaAltGlobal !== null ? stats.avgAnaAltGlobal.toFixed(1) : '-')}
-              </span>
-              <span className="text-[7px] font-bold text-purple-600 dark:text-purple-400 block">hrs</span>
-            </div>
-
-            <div className="bg-rose-500/10 p-1 rounded-lg text-center border border-rose-500/20" title={`Estadía Total hasta Traslado (${stats.countAdmAltHospital} pac.)`}>
-              <span className="text-[7px] font-bold uppercase text-rose-600 dark:text-rose-400 block truncate">Est. Tras</span>
-              <span className="text-xs font-black text-rose-600 dark:text-rose-400">
-                {stats.avgEstadiaTraslado !== null ? stats.avgEstadiaTraslado.toFixed(1) : '-'}
-              </span>
-              <span className="text-[7px] font-bold text-rose-600 dark:text-rose-400 block">hrs</span>
-            </div>
+          <div className="mt-2 pt-2 border-t border-card-custom/50 text-[10px] text-secondary-custom font-medium truncate">
+            Admisión → Categorización
           </div>
         </div>
 
-        {/* KPI 7: COMPARATIVA AÑO ANTERIOR (YoY) */}
+        {/* ETAPA 2: CATEGORIZACIÓN A ANAMNESIS */}
+        <div className="bg-gradient-to-br from-indigo-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-indigo-500/20 shadow-sm flex flex-col justify-between min-h-[135px]">
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[11px] font-black uppercase tracking-wider text-indigo-500">2. Triage a Diagnóstico</span>
+              <Stethoscope className="w-4 h-4 text-indigo-500 opacity-80" />
+            </div>
+            <div className="flex items-baseline gap-2 mt-1.5">
+              <span className="text-2xl font-black text-primary-custom">
+                {stats.avgCatAnaGlobal !== null ? `${stats.avgCatAnaGlobal.toFixed(1)} hrs` : '-'}
+              </span>
+              {stats.avgCatAnaGlobal !== null && (
+                <span className="text-xs font-bold text-indigo-500">
+                  (~{Math.round(stats.avgCatAnaGlobal * 60)} min)
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="mt-2 pt-2 border-t border-card-custom/50 text-[10px] text-secondary-custom font-medium truncate">
+            Categorización → Atención Médica
+          </div>
+        </div>
+
+        {/* ETAPA 3: ESTANCIA DESPUÉS DE DIAGNÓSTICO (ANAMNESIS A TRASLADO) */}
+        <div className="bg-gradient-to-br from-purple-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-purple-500/20 shadow-sm flex flex-col justify-between min-h-[135px]">
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[11px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400" title="Estancia después de diagnóstico hasta traslado">
+                3. Post-Diagnóstico
+              </span>
+              <ArrowRightLeft className="w-4 h-4 text-purple-500 opacity-80" />
+            </div>
+            <div className="flex items-baseline gap-2 mt-1.5">
+              <span className="text-2xl font-black text-purple-600 dark:text-purple-400">
+                {stats.avgAnaAltHospital !== null ? `${stats.avgAnaAltHospital.toFixed(1)} hrs` : (stats.avgAnaAltGlobal !== null ? `${stats.avgAnaAltGlobal.toFixed(1)} hrs` : '-')}
+              </span>
+              {stats.avgAnaAltHospital !== null && (
+                <span className="text-xs font-bold text-purple-500">
+                  (~{Math.round(stats.avgAnaAltHospital * 60)} min)
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="mt-2 pt-2 border-t border-card-custom/50 text-[10px] text-secondary-custom font-medium truncate" title="Desde indicación de traslado hasta salida efectiva">
+            Diagnóstico → Traslado Hospital
+          </div>
+        </div>
+
+        {/* ETAPA 4: ESTADÍA TOTAL HASTA TRASLADO */}
+        <div className="bg-gradient-to-br from-rose-500/15 via-card-custom to-card-custom p-4 rounded-2xl border border-rose-500/30 shadow-md flex flex-col justify-between min-h-[135px]">
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[11px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                Estadía Total Traslado
+              </span>
+              <Hospital className="w-4 h-4 text-rose-500 opacity-80" />
+            </div>
+            <div className="flex items-baseline gap-2 mt-1.5">
+              <span className="text-3xl font-black text-rose-600 dark:text-rose-400">
+                {stats.avgEstadiaTraslado !== null ? `${stats.avgEstadiaTraslado.toFixed(1)} hrs` : '-'}
+              </span>
+              {stats.avgEstadiaTraslado !== null && (
+                <span className="text-xs font-bold text-rose-500">
+                  (~{Math.round(stats.avgEstadiaTraslado * 60)} min)
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="mt-2 pt-2 border-t border-card-custom/50 text-[10px] text-secondary-custom font-medium truncate">
+            Permanencia total en SAR
+          </div>
+        </div>
+
+        {/* KPI 5: COMPARATIVA AÑO ANTERIOR (YoY) */}
         <div className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-sm flex flex-col justify-between min-h-[135px] theme-transition relative overflow-hidden group">
           <div>
             <div className="flex justify-between items-start mb-1">
