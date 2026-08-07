@@ -141,7 +141,27 @@ export const generateFracturasSummary = (pacs) => {
   const avgCatAnaText = cCatAna > 0 ? `${(sumCatAna / cCatAna).toFixed(1)} hrs` : '-';
   const avgAnaTrasText = cAnaTras > 0 ? `${(sumAnaTras / cAnaTras).toFixed(1)} hrs` : '-';
 
-  return `Se identificó un total de ${totalFracturas} casos de fracturas óseas, que equivalen al ${pct}% de las admisiones totales del periodo. Las lesiones de mayor incidencia corresponden a: ${topDiagsText}. La estadía promedio hasta el traslado al hospital fue de ${avgEstTrasText} (desglosado en: ${avgAdmCatText} de ingreso a categorización, ${avgCatAnaText} de categorización a anamnesis y ${avgAnaTrasText} de anamnesis a traslado). El principal destino de resolución fue ${topDestText}.`;
+  // Grupo etario con mayor porcentaje de fracturas
+  const ageGroupCounts = {};
+  listFracturas.forEach(p => {
+    let edadNum = null;
+    if (typeof p.edadNum === 'number') edadNum = p.edadNum;
+    else if (p.edad) {
+      const parsed = parseInt(String(p.edad).replace(/\D/g, ''));
+      if (!isNaN(parsed)) edadNum = parsed;
+    }
+    if (edadNum !== null) {
+      let r5 = edadNum >= 80 ? '80+' : `${Math.floor(edadNum / 5) * 5}-${Math.floor(edadNum / 5) * 5 + 4}`;
+      ageGroupCounts[r5] = (ageGroupCounts[r5] || 0) + 1;
+    }
+  });
+
+  const sortedAgeGroups = Object.entries(ageGroupCounts).sort((a,b) => b[1] - a[1]);
+  const topAgeGroupText = sortedAgeGroups.length > 0
+    ? ` El grupo etario con mayor concentración de fracturas corresponde al tramo de ${sortedAgeGroups[0][0]} años (${sortedAgeGroups[0][1]} casos, ${formatPct(sortedAgeGroups[0][1], totalFracturas)}% del total).`
+    : '';
+
+  return `Se identificó un total de ${totalFracturas} casos de fracturas óseas, que equivalen al ${pct}% de las admisiones totales del periodo.${topAgeGroupText} Las lesiones de mayor incidencia corresponden a: ${topDiagsText}. La estadía promedio hasta el traslado al hospital fue de ${avgEstTrasText} (desglosado en: ${avgAdmCatText} de ingreso a categorización, ${avgCatAnaText} de categorización a anamnesis y ${avgAnaTrasText} de anamnesis a traslado). El principal destino de resolución fue ${topDestText}.`;
 };
 
 export const generateEnfermeriaSummary = (pacs) => {

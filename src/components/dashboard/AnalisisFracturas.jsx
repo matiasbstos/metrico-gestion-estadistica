@@ -627,29 +627,31 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
           </div>
         </div>
 
-        {/* KPI 5: GRUPO ETARIO MÁS AFECTADO */}
-        <div className="bg-gradient-to-br from-indigo-500/10 via-card-custom to-card-custom p-4 rounded-2xl border border-indigo-500/20 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[140px]">
+        {/* KPI 5: GRUPO ETARIO CON MAYOR PORCENTAJE DE FRACTURAS */}
+        <div className="bg-gradient-to-br from-indigo-500/15 via-card-custom to-card-custom p-4 rounded-2xl border-2 border-indigo-500/30 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[140px]">
           <div>
             <div className="flex justify-between items-start mb-1">
-              <span className="text-[11px] font-black uppercase tracking-wider text-indigo-500">Edad Afectada</span>
-              <Users className="w-4 h-4 text-indigo-500 opacity-80" />
+              <span className="text-[11px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Mayor % Fracturas</span>
+              <Users className="w-4 h-4 text-indigo-500 opacity-90" />
             </div>
             {stats.rangoMasFrecuente && stats.rangoMasFrecuente.total > 0 ? (
               <div className="mt-1">
-                <span className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 block">
+                <span className="text-[11px] font-black text-indigo-600 dark:text-indigo-300 block">
                   Tramo {stats.rangoMasFrecuente.rango} años
                 </span>
                 <div className="flex items-baseline gap-1.5 mt-0.5">
-                  <span className="text-2xl font-black text-primary-custom">{stats.rangoMasFrecuente.total}</span>
-                  <span className="text-[10px] font-bold text-indigo-500">({perc(stats.rangoMasFrecuente.total, stats.total)}%)</span>
+                  <span className="text-2xl font-black text-primary-custom">{stats.rangoMasFrecuente.total} <span className="text-xs font-bold text-secondary-custom">casos</span></span>
+                  <span className="text-xs font-black text-indigo-600 bg-indigo-500/10 px-1.5 py-0.5 rounded-md">
+                    {perc(stats.rangoMasFrecuente.total, stats.total)}%
+                  </span>
                 </div>
               </div>
             ) : (
               <span className="text-xs text-secondary-custom font-bold">Sin datos</span>
             )}
           </div>
-          <div className="mt-2 pt-2 border-t border-card-custom/50 text-[10px] text-secondary-custom font-medium truncate">
-            Concentración Máxima por Edad
+          <div className="mt-2 pt-2 border-t border-card-custom/50 text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider truncate">
+            Grupo Etario Predominante
           </div>
         </div>
 

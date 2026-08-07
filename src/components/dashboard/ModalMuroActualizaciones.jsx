@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Megaphone, Sparkles, X, Calendar, CheckCircle2, ShieldAlert, MapPin, Cpu, BarChart2, Filter, Layers, Clock } from 'lucide-react';
+import { Megaphone, Sparkles, X, Calendar, CheckCircle2, ShieldAlert, MapPin, Cpu, BarChart2, Filter, Layers, Clock, HelpCircle, BookOpen, Lightbulb, Eye } from 'lucide-react';
 
 export default function ModalMuroActualizaciones({ isOpen, onClose }) {
   const [selectedCat, setSelectedCat] = useState('TODOS');
@@ -18,13 +18,18 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
       icon: Sparkles,
       iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
       summary: 'Sistema de verificación dinámica de control cuantitativo (SAR Elsa Romo Aravena), tarjetas mensuales con acordeón desplegable y adaptación del vocabulario asistencial a español chileno.',
+      instructivo: {
+        paraQueSirve: 'Sirve para auditar y certificar que las cifras estadísticas registradas en MÉTRICO coinciden en un 100% matemático exacto con los informes oficiales en PDF/Excel emitidos por la dirección del SAR Elsa Romo Aravena.',
+        quePuedesVer: 'En la pestaña "Demanda de Atención", encontrarás el nuevo botón verde "Ejecutar Prueba de Control". Al presionarlo, se abre un modal interactivo donde puedes seleccionar cualquier año/mes, digitar tus cifras oficiales y ver la matriz comparativa en tiempo real.',
+        ejemploUso: 'Ejemplo: Para auditar Mayo 2026, abres el modal, seleccionas Mayo 2026, digitas 4.110 Admitidos, 3.676 Completados, 93 Sin Atención y 341 Egreso Admin. El sistema valida automáticamente que 3676 + 93 + 341 = 4110 y marca el mes con el sello verde de "Control SAR Verificado".'
+      },
       changes: [
         'Formulario de Prueba de Control en Vivo: Permite ingresar datos de reportes oficiales (Admitidos, Atendidos, Altas sin Atención, Egresos Admin) y ejecutar auditorías de concordancia 100%.',
         'Validación Matemática en Tiempo Real: Comprueba automáticamente que Admitidos == Completados + Sin Atención + Egreso Admin, alertando cualquier incoherencia en los datos.',
-        'Certificación de Control SAR: Sello de verificado para Mayo 2026 (4.110 admitidos, 3.676 atendidos y 434 altas administratatividad exactos).',
+        'Certificación de Control SAR: Sello de verificado para Mayo 2026 (4.110 admitidos, 3.676 atendidos y 434 altas administrativas exactos).',
         'Tarjetas Mensuales Desplegables: Rediseño protagónico para Pacientes Admitidos con botón de acordeón para revelar Atendidos y Altas.',
         'Estandarización Vocabulario Asistencial Chileno: Sustitución de la palabra "pico" por Peak Asistencial, Peak de Demanda y Sobrecarga Hospitalaria en todo el sistema.',
-        'Solución en Estadísticas de Fractura: Corrección de error de ejecución en comparativas interanuales YoY.'
+        'Solución en Estadísticas de Fractura: Corrección de error de ejecución en comparativas interanuales YoY e inclusión del grupo etario con mayor porcentaje de fracturas.'
       ]
     },
     {
@@ -38,6 +43,11 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
       icon: Sparkles,
       iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
       summary: 'Integración completa de la IA de Gemini 1.5 Flash, alertas sanitarias MINSAL en tiempo real y calidad de aire diaria por Open-Meteo.',
+      instructivo: {
+        paraQueSirve: 'Sirve para anticipar sobrecargas hospitalarias cruzando pronóstico del clima a 7 días, índice de calidad del aire AQI y alertas epidemiológicas oficiales del MINSAL.',
+        quePuedesVer: 'En la pestaña "Radar Predictivo", verás 7 tarjetas climáticas diarias con temperatura mín/máx, mm de lluvia e índice AQI, además del Agente Administrador IA Gemini que responde consultas clínicas en tiempo real.',
+        ejemploUso: 'Ejemplo: Ante un pronóstico de helada (<5°C) seguido de lluvia en Melipilla, el Radar genera una alerta automática recomendando reforzar el triage C1-C3 y aumentar el stock de nebulizaciones y salbutamol para el día viernes.'
+      },
       changes: [
         'Agente Epidemiológico IA (Gemini 1.5 Flash): Diagnóstico de sobrecarga asistencial cruzando clima, BigQuery ML y MINSAL.',
         'Rastreador RSS MINSAL Chile: Detección automática de alertas sanitarias oficiales y campañas invernales.',
@@ -57,6 +67,11 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
       icon: MapPin,
       iconBg: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
       summary: 'Nuevo mapa recortado exclusivamente a la silueta de las 5 comunas provinciales sin elementos geográficos externos.',
+      instructivo: {
+        paraQueSirve: 'Sirve para visualizar espacialmente de dónde provienen los pacientes atendidos en la urgencia y detectar comunas con mayor presión asistencial.',
+        quePuedesVer: 'En la pestaña "Sociodemográfico y Origen", verás el mapa exclusivo recortado con la silueta de Melipilla, María Pinto, Curacaví, San Pedro y Alhué con códigos de color de participación.',
+        ejemploUso: 'Ejemplo: Al pasar el cursor sobre la comuna de Melipilla o Bollenar, el mapa despliega un tooltip dinámico mostrando el número exacto de pacientes admitidos y el % del total del mes.'
+      },
       changes: [
         'Silueta Vectorial Exclusiva: Visualización limpia de Melipilla, Curacaví, María Pinto, San Pedro y Alhué.',
         'Interactividad Hover & Tooltips: Resaltado cromático individual con conteo de pacientes y porcentaje de participación.',
@@ -74,6 +89,11 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
       icon: BarChart2,
       iconBg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
       summary: 'Retorno del análisis sociodemográfico al panel principal con tarjetas estilizadas y filtros interactivos.',
+      instructivo: {
+        paraQueSirve: 'Permite caracterizar la población usuaria del SAR según sexo, rango de edad y previsión (FONASA/ISAPRE).',
+        quePuedesVer: 'En el Inicio, verás gráficos circulares y de barras con la distribución de usuarios por tramo de edad.',
+        ejemploUso: 'Ejemplo: Filtrar por Triage C2 para identificar qué grupo etario demanda atención de mayor complejidad en la urgencia.'
+      },
       changes: [
         'Reubicación estratégica de métricas de sexo, grupos etarios y previsión FONASA/ISAPRE.',
         'Filtros dinámicos cruzados por categoría de triage y comunas de la provincia.'
@@ -90,6 +110,11 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
       icon: Layers,
       iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
       summary: 'Incorporación del logo institucional del SAR Elsa Romo Aravena en reportes ejecutivos exportables.',
+      instructivo: {
+        paraQueSirve: 'Generar informes descargables en PDF con membrete institucional para la dirección del servicio y SSMOC.',
+        quePuedesVer: 'En la sección "Generador de Reportes Ejecutivos", puedes seleccionar sub-reportes específicos y exportar en PDF.',
+        ejemploUso: 'Ejemplo: Exportar el informe mensual de Fracturas o Altas con el logo oficial del SAR listo para presentar en reuniones de gestión.'
+      },
       changes: [
         'Encabezado institucional oficial para impresiones y exportación de informes clínicos.',
         'Plantillas adaptables según selección de tipo de reporte específico o consolidado.'
@@ -106,6 +131,11 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
       icon: Cpu,
       iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
       summary: 'Sistema automático de cierre de sesión por inactividad y registro en vivo de navegaciones en Firestore.',
+      instructivo: {
+        paraQueSirve: 'Garantizar la protección de datos de salud cerrando sesiones inactivas automáticamente.',
+        quePuedesVer: 'Un aviso emergente con cuenta regresiva de 60 segundos antes de cerrar sesión tras 15 minutos sin uso.',
+        ejemploUso: 'Ejemplo: Si dejas el equipo desatendido en el box médico, el sistema protege los datos cerrando sesión de forma segura.'
+      },
       changes: [
         'Modal de advertencia con cuenta regresiva antes del auto-logout por inactividad (15 min).',
         'Audit Log en Firestore para trazabilidad de consultas y modificaciones por usuario.'
@@ -130,12 +160,14 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
-                  Histórico de Versiones & Novedades
+                  Histórico de Versiones & Instructivos
                 </span>
-                <span className="text-[10px] font-bold text-secondary-custom">v2.8.0 (Estable)</span>
+                <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                  v2.8.5 (Activa)
+                </span>
               </div>
               <h2 className="text-xl md:text-2xl font-black text-primary-custom tracking-tight mt-1">
-                Muro de Actualizaciones del Sistema MÉTRICO
+                Muro de Novedades e Instructivos del Sistema MÉTRICO
               </h2>
             </div>
           </div>
@@ -154,7 +186,7 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
           <span className="text-xs font-bold text-secondary-custom flex items-center gap-1 mr-2">
             <Filter className="w-3.5 h-3.5" /> Filtrar por:
           </span>
-          {['TODOS', 'IA & Radar', 'Geolocalización', 'Rendimiento Clínico', 'Seguridad'].map(cat => (
+          {['TODOS', 'Integridad & Control', 'IA & Radar', 'Geolocalización', 'Rendimiento Clínico', 'Seguridad'].map(cat => (
             <button
               key={cat}
               onClick={() => setSelectedCat(cat)}
@@ -169,7 +201,7 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
           ))}
         </div>
 
-        {/* LISTADO TIPO TIMELINE / MURO DE NOVEDADES */}
+        {/* LISTADO TIPO TIMELINE / MURO DE NOVEDADES CON INSTRUCTIVO */}
         <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
           {filteredUpdates.map((item) => {
             const IconComp = item.icon;
@@ -206,6 +238,38 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
                   {item.summary}
                 </p>
 
+                {/* BLOQUE DE INSTRUCTIVO Y GUÍA PRÁCTICA */}
+                {item.instructivo && (
+                  <div className="bg-indigo-500/5 dark:bg-indigo-950/20 border border-indigo-500/20 p-4 rounded-2xl space-y-3">
+                    <h4 className="text-xs font-black uppercase text-indigo-600 dark:text-indigo-300 tracking-wider flex items-center gap-1.5">
+                      <HelpCircle className="w-4 h-4 text-indigo-500" /> Instructivo & Guía Práctica de Uso:
+                    </h4>
+                    
+                    <div className="space-y-2 text-xs">
+                      <div className="bg-card-custom p-3 rounded-xl border border-card-custom/60 space-y-0.5">
+                        <span className="font-black text-indigo-600 dark:text-indigo-400 flex items-center gap-1 text-[11px]">
+                          <BookOpen className="w-3.5 h-3.5" /> ¿Para qué sirve?
+                        </span>
+                        <p className="text-primary-custom font-medium leading-relaxed">{item.instructivo.paraQueSirve}</p>
+                      </div>
+
+                      <div className="bg-card-custom p-3 rounded-xl border border-card-custom/60 space-y-0.5">
+                        <span className="font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1 text-[11px]">
+                          <Eye className="w-3.5 h-3.5" /> ¿Qué puedes ver y hacer?
+                        </span>
+                        <p className="text-primary-custom font-medium leading-relaxed">{item.instructivo.quePuedesVer}</p>
+                      </div>
+
+                      <div className="bg-card-custom p-3 rounded-xl border border-card-custom/60 space-y-0.5">
+                        <span className="font-black text-amber-600 dark:text-amber-400 flex items-center gap-1 text-[11px]">
+                          <Lightbulb className="w-3.5 h-3.5" /> Ejemplo Concreto de Uso:
+                        </span>
+                        <p className="text-primary-custom font-medium leading-relaxed">{item.instructivo.ejemploUso}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* CAMBIOS DETALLADOS */}
                 <div className="bg-card-custom p-3.5 rounded-xl border border-card-custom/60 space-y-2">
                   <h4 className="text-[10px] font-black uppercase text-secondary-custom tracking-wider flex items-center gap-1">
@@ -226,7 +290,7 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
         {/* FOOTER MODAL */}
         <div className="pt-4 border-t border-card-custom flex items-center justify-between text-xs text-secondary-custom">
-          <span className="font-bold text-[11px]">MÉTRICO Clinico Predictivo • SAR Elsa Romo Aravena</span>
+          <span className="font-bold text-[11px]">MÉTRICO Clínico Predictivo • SAR Elsa Romo Aravena</span>
           <button 
             onClick={onClose}
             className="px-5 py-2.5 accent-bg-custom text-white font-black rounded-2xl shadow-md transition-all cursor-pointer"

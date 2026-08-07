@@ -1093,8 +1093,8 @@ const DashboardContent = () => {
               {!sidebarCollapsed && (
                 <span className="animate-fade-in truncate flex items-center justify-between w-full">
                   <span>Actualizaciones</span>
-                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-600 text-white shadow-xs ml-2">
-                    v2.8.0
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs ml-2 animate-pulse">
+                    v2.8.5 NUEVO ✨
                   </span>
                 </span>
               )}

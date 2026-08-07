@@ -279,6 +279,31 @@ export default function ReportesModule({
     const avgAnaAltTrasladoFrac = countAnaAltTrasladoFrac > 0 ? (sumAnaAltTrasladoFrac / countAnaAltTrasladoFrac) : null;
     const avgEstadiaTrasladoFrac = countAdmAltTrasladoFrac > 0 ? (sumAdmAltTrasladoFrac / countAdmAltTrasladoFrac) : null;
 
+    // Grupo etario con mayor porcentaje de fracturas
+    const ageGroupCounts = {};
+    pacs.forEach(p => {
+      const diag = (p.diagnosticoPrincipal || p.codigoDiagnostico || '').toLowerCase();
+      if (diag.includes('fractura') || diag.includes('fx')) {
+        let edadNum = null;
+        if (typeof p.edadNum === 'number') edadNum = p.edadNum;
+        else if (p.edad) {
+          const parsed = parseInt(String(p.edad).replace(/\D/g, ''));
+          if (!isNaN(parsed)) edadNum = parsed;
+        }
+        if (edadNum !== null) {
+          let r5 = edadNum >= 80 ? '80+' : `${Math.floor(edadNum / 5) * 5}-${Math.floor(edadNum / 5) * 5 + 4}`;
+          ageGroupCounts[r5] = (ageGroupCounts[r5] || 0) + 1;
+        }
+      }
+    });
+
+    const sortedAgeGroups = Object.entries(ageGroupCounts).sort((a,b) => b[1] - a[1]);
+    const topAgeGroup = sortedAgeGroups.length > 0 ? {
+      rango: sortedAgeGroups[0][0],
+      total: sortedAgeGroups[0][1],
+      pct: totalFracturas > 0 ? ((sortedAgeGroups[0][1] / totalFracturas) * 100).toFixed(1) : '0.0'
+    } : { rango: 'N/A', total: 0, pct: '0.0' };
+
     return { 
       totalPacientes: pacs.length, 
       totalFracturas, 
@@ -287,6 +312,7 @@ export default function ReportesModule({
       otrosCount, 
       sinRegistroCount, 
       topFracturas,
+      topAgeGroup,
       fracturasTrasladadas,
       fracturasDomicilio,
       fracturasOtros,
@@ -1435,6 +1461,22 @@ totalTriados,
                         {Number(fracturasStats.yoyGrowth) >= 0 ? '📈 +' : '📉 '}{fracturasStats.yoyGrowth}% YoY
                       </span>
                     </div>
+                  </div>
+
+                  {/* Tarjeta de Grupo Etario con Mayor Porcentaje de Fracturas */}
+                  <div className="bg-indigo-500/10 border border-indigo-500/20 p-3.5 rounded-2xl flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <Users className="w-5 h-5 text-indigo-600" />
+                      <div>
+                        <span className="text-[10px] font-black text-indigo-700 uppercase tracking-wider block">Grupo Etario con Mayor Porcentaje de Fracturas</span>
+                        <p className="text-sm font-black text-slate-800">
+                          Tramo de {fracturasStats.topAgeGroup.rango} años ({fracturasStats.topAgeGroup.total} casos de fractura)
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-lg font-black text-indigo-600 bg-white px-3 py-1 rounded-xl border border-indigo-200 shadow-xs">
+                      {fracturasStats.topAgeGroup.pct}% del total
+                    </span>
                   </div>
                 </div>
 
