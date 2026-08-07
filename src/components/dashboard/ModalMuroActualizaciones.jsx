@@ -8,11 +8,31 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v2.8.5',
+      version: 'v2.8.5',
+      fecha: '07 de Agosto, 2026',
+      badge: 'ÚLTIMA VERSIÓN',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Módulo Interactivo de Prueba de Control e Integridad de Datos + Tarjetas Desplegables',
+      categoria: 'Integridad & Control',
+      icon: Sparkles,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Sistema de verificación dinámica de control cuantitativo (SAR Elsa Romo Aravena), tarjetas mensuales con acordeón desplegable y adaptación del vocabulario asistencial a español chileno.',
+      changes: [
+        'Formulario de Prueba de Control en Vivo: Permite ingresar datos de reportes oficiales (Admitidos, Atendidos, Altas sin Atención, Egresos Admin) y ejecutar auditorías de concordancia 100%.',
+        'Validación Matemática en Tiempo Real: Comprueba automáticamente que Admitidos == Completados + Sin Atención + Egreso Admin, alertando cualquier incoherencia en los datos.',
+        'Certificación de Control SAR: Sello de verificado para Mayo 2026 (4.110 admitidos, 3.676 atendidos y 434 altas administratatividad exactos).',
+        'Tarjetas Mensuales Desplegables: Rediseño protagónico para Pacientes Admitidos con botón de acordeón para revelar Atendidos y Altas.',
+        'Estandarización Vocabulario Asistencial Chileno: Sustitución de la palabra "pico" por Peak Asistencial, Peak de Demanda y Sobrecarga Hospitalaria en todo el sistema.',
+        'Solución en Estadísticas de Fractura: Corrección de error de ejecución en comparativas interanuales YoY.'
+      ]
+    },
+    {
       id: 'v2.8.0',
       version: 'v2.8.0',
       fecha: '05 de Agosto, 2026',
-      badge: 'ÚLTIMA VERSIÓN',
-      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      badge: 'ACTUALIZACIÓN',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
       title: 'Potenciación Cognitiva del Radar Predictivo & Calidad del Aire en Vivo',
       categoria: 'IA & Radar',
       icon: Sparkles,
