@@ -24,6 +24,7 @@ import AnalisisFracturas from './dashboard/AnalisisFracturas';
 import AnalisisEnfermeria from './dashboard/AnalisisEnfermeria';
 import AnalisisConstataciones from './dashboard/AnalisisConstataciones';
 import AnalisisTraslados from './dashboard/AnalisisTraslados';
+import AnalisisDemandaAtencion from './dashboard/AnalisisDemandaAtencion';
 import GestionUsuarios from './dashboard/GestionUsuarios';
 import ModalInactividad from './dashboard/ModalInactividad';
 import ModalMuroActualizaciones from './dashboard/ModalMuroActualizaciones';
@@ -1103,6 +1104,12 @@ const DashboardContent = () => {
             {sidebarCollapsed ? (
               <>
                 <button 
+                  onClick={() => { setActiveTab('demanda'); setSubTabEspecifico('demanda'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                  title="Demanda de Atención"
+                  className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'demanda' ? 'bg-indigo-500/20 text-indigo-500 font-black border border-indigo-500/30' : 'bg-transparent text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10'}`}>
+                  <BarChart2 className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                </button>
+                <button 
                   onClick={() => { setActiveTab('constataciones'); setSubTabEspecifico('constataciones'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
                   title="Constatación de Lesiones"
                   className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'constataciones' ? 'bg-amber-500/20 text-amber-500 font-black border border-amber-500/30' : 'bg-transparent text-secondary-custom hover:text-amber-500 hover:bg-amber-500/10'}`}>
@@ -1137,14 +1144,15 @@ const DashboardContent = () => {
               <div className="space-y-1 w-full">
                 <button 
                   onClick={() => {
-                    if (!['especificos', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados'].includes(activeTab)) {
+                    if (!['especificos', 'demanda', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados'].includes(activeTab)) {
                       setIsEspecificosOpen(true);
                     } else {
                       setIsEspecificosOpen(!isEspecificosOpen);
                     }
-                    setActiveTab('especificos');
+                    setActiveTab('demanda');
+                    setSubTabEspecifico('demanda');
                   }}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 cursor-pointer ${['especificos', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados'].includes(activeTab) ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 cursor-pointer ${['especificos', 'demanda', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados'].includes(activeTab) ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
                   <div className="flex items-center gap-3">
                     <Layers className="w-4 h-4" /> Análisis Específicos
                   </div>
@@ -1153,6 +1161,11 @@ const DashboardContent = () => {
 
                 {isEspecificosOpen && (
                   <div className="pl-6 flex flex-col gap-1 py-1 transition-all">
+                    <button 
+                      onClick={() => { setActiveTab('demanda'); setSubTabEspecifico('demanda'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'demanda' || (activeTab === 'especificos' && subTabEspecifico === 'demanda') ? 'bg-indigo-500/20 text-indigo-500 font-black border border-indigo-500/30' : 'text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10'}`}>
+                      <BarChart2 className="w-3.5 h-3.5 text-indigo-400" /> Demanda de Atención
+                    </button>
                     <button 
                       onClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
                       className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'altas' || (activeTab === 'especificos' && subTabEspecifico === 'altas') ? 'bg-black/10 dark:bg-white/10 text-primary-custom font-black border border-card-custom' : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
@@ -1578,7 +1591,7 @@ const DashboardContent = () => {
           />
         )}
 
-        {['especificos', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados'].includes(activeTab) && (
+        {['especificos', 'demanda', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados'].includes(activeTab) && (
           <div className="space-y-6">
             {/* SECTOR DE FILTROS Y CONTROL DE CONTEXTO */}
             <FiltrosGlobales 
@@ -1600,6 +1613,13 @@ const DashboardContent = () => {
 
             {/* SELECCIÓN DE SUB-MÓDULO DE ANÁLISIS ESPECÍFICO */}
             <div className="flex gap-2 bg-card-custom p-1.5 rounded-2xl border border-card-custom shadow-sm w-fit theme-transition flex-wrap">
+              <button
+                onClick={() => { setActiveTab('demanda'); setSubTabEspecifico('demanda'); }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'demanda' || (activeTab === 'especificos' && subTabEspecifico === 'demanda') ? 'bg-indigo-600 text-white shadow-sm' : 'text-secondary-custom hover:text-indigo-600 hover:bg-indigo-600/10'}`}
+              >
+                <BarChart2 className="w-4 h-4 text-indigo-400" />
+                Demanda de Atención
+              </button>
               <button
                 onClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'altas' || (activeTab === 'especificos' && subTabEspecifico === 'altas') ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}
@@ -1638,6 +1658,16 @@ const DashboardContent = () => {
             </div>
 
             <hr className="border-card-custom/40 my-4 theme-transition" />
+
+            {(activeTab === 'demanda' || (activeTab === 'especificos' && subTabEspecifico === 'demanda')) && (
+              <AnalisisDemandaAtencion 
+                pacientesDB={pacientesDB} 
+                turnosDB={turnosDB} 
+                filtroFechaInicio={filtroFechaInicio} 
+                filtroFechaFin={filtroFechaFin} 
+                kpisBigQuery={kpisBigQuery}
+              />
+            )}
 
             {(activeTab === 'altas' || (activeTab === 'especificos' && subTabEspecifico === 'altas')) && (
               <AnalisisAltasDetail 
