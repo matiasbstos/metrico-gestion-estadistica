@@ -2244,7 +2244,7 @@ totalTriados,
                   </div>
                   <p className="text-xs text-rose-950 font-bold leading-relaxed whitespace-pre-line">
                     ⚠️ Alerta Operativa Preventiva SAR Elsa Romo Aravena:
-                    Se prevé un pico de demanda con riesgo de sobrecarga hospitalaria en el periodo proyectado. La coincidencia con factores meteorológicos locales de Melipilla (bajas temperaturas / precipitaciones) y avisos de la red asistencial MINSAL sugiere un aumento potencial de consultas por infecciones respiratorias agudas y traumatismos. Se recomienda a la jefatura de urgencia coordinar refuerzo de personal médico y de enfermería en triage C1-C3.
+                    Se prevé una sobrecarga de demanda asistencial con riesgo de saturación en el periodo proyectado. La coincidencia con factores meteorológicos locales de Melipilla (bajas temperaturas / precipitaciones) y avisos de la red asistencial MINSAL sugiere un aumento potencial de consultas por infecciones respiratorias agudas y traumatismos. Se recomienda a la jefatura de urgencia coordinar refuerzo de personal médico y de enfermería en triage C1-C3.
                   </p>
                   <p className="text-[9px] font-bold text-rose-700/80 pt-2 border-t border-rose-200">
                     Análisis generado dinámicamente por IA cruzando modelos de series temporales de BigQuery, datos de Open-Meteo y boletines oficiales del MINSAL Chile.
@@ -2258,7 +2258,7 @@ totalTriados,
                     <p className="text-xl font-black text-slate-800 mt-1">97 <span className="text-[10px] font-bold">pac/día</span></p>
                   </div>
                   <div className="border border-indigo-200 p-3 rounded-xl text-center bg-indigo-50/50">
-                    <span className="text-[10px] font-bold text-indigo-700 uppercase">Pico Máximo Esperado</span>
+                    <span className="text-[10px] font-bold text-indigo-700 uppercase">Peak Máximo Esperado</span>
                     <p className="text-xl font-black text-indigo-800 mt-1">128 <span className="text-[10px] font-bold">pacientes</span></p>
                   </div>
                   <div className="border border-slate-200 p-3 rounded-xl text-center bg-slate-50">
@@ -2309,7 +2309,7 @@ totalTriados,
                         <td className="p-2 border border-slate-200 text-center"><span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">Normal</span></td>
                       </tr>
                       <tr className="bg-rose-50/40">
-                        <td className="p-2 border border-slate-200 font-bold text-rose-900">Viernes 07/08/2026 (Pico Máximo)</td>
+                        <td className="p-2 border border-slate-200 font-bold text-rose-900">Viernes 07/08/2026 (Peak Máximo)</td>
                         <td className="p-2 border border-slate-200 text-center font-black text-rose-700">128 pac.</td>
                         <td className="p-2 border border-slate-200 text-center text-slate-700 font-bold">[102 - 154 pac.]</td>
                         <td className="p-2 border border-slate-200 text-center"><span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-200 text-rose-800 animate-pulse">Crítico</span></td>

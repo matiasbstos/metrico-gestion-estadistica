@@ -35,14 +35,14 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
   const [cardExpandedTop5, setCardExpandedTop5] = useState({});
 
   const prevYearStart = useMemo(() => {
-    if (!filtroFechaInicio) return null;
+    if (!filtroFechaInicio || typeof filtroFechaInicio !== 'string') return null;
     const p = filtroFechaInicio.split('-');
     if (p.length !== 3) return null;
     return `${parseInt(p[0]) - 1}-${p[1]}-${p[2]}`;
   }, [filtroFechaInicio]);
 
   const prevYearEnd = useMemo(() => {
-    if (!filtroFechaFin) return null;
+    if (!filtroFechaFin || typeof filtroFechaFin !== 'string') return null;
     const p = filtroFechaFin.split('-');
     if (p.length !== 3) return null;
     return `${parseInt(p[0]) - 1}-${p[1]}-${p[2]}`;
@@ -649,7 +649,7 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
             )}
           </div>
           <div className="mt-2 pt-2 border-t border-card-custom/50 text-[10px] text-secondary-custom font-medium truncate">
-            Pico de casos por edad
+            Concentración Máxima por Edad
           </div>
         </div>
 
@@ -770,8 +770,8 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
               {prevYearStart ? fracturasPrevYear : '-'}
             </div>
           </div>
-          <p className="text-[9px] text-secondary-custom font-semibold mt-auto leading-tight truncate" title={prevYearStart ? `Entre ${prevYearStart.split('-').reverse().join('/')} y ${prevYearEnd.split('-').reverse().join('/')}` : 'Sin rango'}>
-            {prevYearStart ? `${prevYearStart.split('-').reverse().join('/')} al ${prevYearEnd.split('-').reverse().join('/')}` : 'Sin rango seleccionado'}
+          <p className="text-[9px] text-secondary-custom font-semibold mt-auto leading-tight truncate" title={prevYearStart && prevYearEnd ? `Entre ${prevYearStart.split('-').reverse().join('/')} y ${prevYearEnd.split('-').reverse().join('/')}` : 'Sin rango'}>
+            {prevYearStart && prevYearEnd ? `${prevYearStart.split('-').reverse().join('/')} al ${prevYearEnd.split('-').reverse().join('/')}` : 'Sin rango seleccionado'}
           </p>
         </div>
 

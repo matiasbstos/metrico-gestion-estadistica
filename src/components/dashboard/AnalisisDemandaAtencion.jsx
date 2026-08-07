@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { 
   TrendingUp, TrendingDown, Users, Calendar, BarChart2, Activity, ArrowUpRight, ArrowDownRight,
   Sparkles, FileSpreadsheet, Download, RefreshCw, Filter, CheckCircle2, ShieldAlert, Info,
-  Sun, Snowflake, ThermometerSun, Wind, HelpCircle, ChevronRight
+  Sun, Snowflake, ThermometerSun, Wind, HelpCircle, ChevronRight, ChevronDown, ChevronUp, Layers
 } from 'lucide-react';
 import { 
   ComposedChart, Line, Area, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
@@ -21,6 +21,27 @@ export default function AnalisisDemandaAtencion({
   const [compareYear, setCompareYear] = useState(currentYearDefault - 1);
   const [metricMode, setMetricMode] = useState('admitidos'); // 'admitidos' | 'atendidos' | 'altas'
   const [selectedMonthModal, setSelectedMonthModal] = useState(null);
+  
+  // Estado de tarjetas desplegadas (Acordeón por mes)
+  const [expandedCards, setExpandedCards] = useState({});
+  const [allExpanded, setAllExpanded] = useState(false);
+
+  const toggleCard = (monthKey) => {
+    setExpandedCards(prev => ({
+      ...prev,
+      [monthKey]: !prev[monthKey]
+    }));
+  };
+
+  const toggleAllCards = () => {
+    const nextState = !allExpanded;
+    setAllExpanded(nextState);
+    const updated = {};
+    mesesNombres.forEach(m => {
+      updated[m.key] = nextState;
+    });
+    setExpandedCards(updated);
+  };
 
   const mesesNombres = [
     { num: 1, key: '01', short: 'Ene', full: 'Enero', estacion: 'Verano ☀️' },
@@ -123,7 +144,7 @@ export default function AnalisisDemandaAtencion({
         [`Año ${compareYear} (Admitidos)`]: prev.admitidos,
         [`Año ${compareYear} (Atendidos)`]: prev.atendidos,
         [`Año ${compareYear} (Altas)`]: prev.altas,
-        // Valores dinámicos según métrica seleccionada
+
         valCurrent: metricMode === 'admitidos' ? cur.admitidos : (metricMode === 'atendidos' ? cur.atendidos : cur.altas),
         valCompare: metricMode === 'admitidos' ? prev.admitidos : (metricMode === 'atendidos' ? prev.atendidos : prev.altas)
       };
@@ -303,7 +324,7 @@ export default function AnalisisDemandaAtencion({
           </div>
 
           <div className="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-2xl border border-card-custom space-y-1">
-            <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider">Mes Pico de Sobrecarga</span>
+            <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider">Mes de Máxima Sobrecarga</span>
             <div className="flex items-baseline justify-between">
               <span className="text-lg font-black text-rose-600 dark:text-rose-400">{totalesYear.peakMonth.name}</span>
               <span className="text-xs font-black text-rose-600">{totalesYear.peakMonth.val.toLocaleString('es-CL')} pac</span>
@@ -383,82 +404,110 @@ export default function AnalisisDemandaAtencion({
         </div>
       </div>
 
-      {/* 2. TARJETAS DE MÉTRICAS MENSUALES (GRID INTERACTIVO 12 MESES) */}
+      {/* 2. TARJETAS DE MÉTRICAS MENSUALES (GRID INTERACTIVO 12 MESES - DESPLEGABLE) */}
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-card-custom/50 pb-3">
           <div>
             <h3 className="text-lg font-black text-primary-custom flex items-center gap-2">
               <Calendar className="w-5 h-5 text-indigo-500" />
               Tarjetas de Métricas Mensuales (Desglose de los 12 Meses de {selectedYear})
             </h3>
             <p className="text-xs text-secondary-custom font-medium">
-              Estructura detallada: Admitidos (principal), Atendidos (secundario), Altas Administrativas y % de crecimiento vs {compareYear}.
+              Protagonismo absoluto para <strong>Pacientes Admitidos</strong>. Haz clic en desplegar para ver Atendidos y Altas Administrativas.
             </p>
           </div>
+
+          {/* BOTÓN PARA DESPLEGAR O PLEGAR TODAS LAS TARJETAS */}
+          <button
+            onClick={toggleAllCards}
+            className="px-3.5 py-1.5 rounded-2xl text-xs font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20 hover:bg-indigo-500/20 transition-all flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>{allExpanded ? 'Plegar Todas' : 'Desplegar Todas'}</span>
+          </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {tarjetasMensuales.map((m) => (
-            <div 
-              key={m.key}
-              onClick={() => setSelectedMonthModal(m)}
-              className="bg-card-custom rounded-3xl p-5 border border-card-custom shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer space-y-4 hover:border-indigo-500/40 relative overflow-hidden group"
-            >
-              {/* Encabezado del mes */}
-              <div className="flex items-center justify-between border-b border-card-custom/40 pb-2.5">
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-wider text-secondary-custom block">{m.estacion}</span>
-                  <h4 className="text-base font-black text-primary-custom group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                    {m.full}
-                  </h4>
-                </div>
-                <span className="text-xs font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 px-2.5 py-1 rounded-xl">
-                  {selectedYear}
-                </span>
-              </div>
+          {tarjetasMensuales.map((m) => {
+            const isExpanded = expandedCards[m.key] || false;
 
-              {/* DATO PRINCIPAL: PACIENTES ADMITIDOS */}
-              <div className="space-y-1">
-                <span className="text-[10px] font-black uppercase tracking-wider text-secondary-custom">
-                  1. Pacientes Admitidos (Principal)
-                </span>
-                <div className="flex items-baseline justify-between">
-                  <span className="text-2xl font-black text-primary-custom tracking-tight">
-                    {m.admitidos.toLocaleString('es-CL')} <span className="text-xs font-bold text-secondary-custom">pac.</span>
-                  </span>
-                  <span className={`text-[11px] font-black px-2 py-0.5 rounded-full flex items-center gap-0.5 ${
-                    m.growthAdmitidos.startsWith('+') ? 'bg-emerald-500/15 text-emerald-600' : 'bg-rose-500/15 text-rose-600'
-                  }`}>
-                    {m.growthAdmitidos.startsWith('+') ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                    {m.growthAdmitidos}
+            return (
+              <div 
+                key={m.key}
+                className="bg-card-custom rounded-3xl p-5 border border-card-custom shadow-xs hover:shadow-md transition-all duration-200 space-y-4 hover:border-indigo-500/40 relative overflow-hidden group"
+              >
+                {/* Encabezado del mes */}
+                <div className="flex items-center justify-between border-b border-card-custom/40 pb-2.5">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-secondary-custom block">{m.estacion}</span>
+                    <h4 className="text-base font-black text-primary-custom group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                      {m.full}
+                    </h4>
+                  </div>
+                  <span className="text-xs font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 px-2.5 py-1 rounded-xl">
+                    {selectedYear}
                   </span>
                 </div>
-              </div>
 
-              {/* DATO SECUNDARIO: PACIENTES ATENDIDOS */}
-              <div className="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-2xl space-y-1 border border-card-custom/40">
-                <div className="flex justify-between items-center text-[10px] font-bold text-secondary-custom">
-                  <span>2. Pacientes Atendidos:</span>
-                  <span className="font-black text-indigo-600 dark:text-indigo-400 text-xs">{m.atendidos.toLocaleString('es-CL')} pac.</span>
-                </div>
-                <div className="flex justify-between items-center text-[10px] font-medium text-secondary-custom">
-                  <span>Crecimiento YoY:</span>
-                  <span className={`font-bold ${m.growthAtendidos.startsWith('+') ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {m.growthAtendidos} vs {compareYear}
+                {/* DATO PRINCIPAL PROTAGÓNICO: PACIENTES ADMITIDOS */}
+                <div className="bg-gradient-to-br from-indigo-500/10 via-card-custom to-card-custom p-4 rounded-2xl border-2 border-indigo-500/20 shadow-xs space-y-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-300 block">
+                    Pacientes Admitidos (Principal)
                   </span>
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-3xl font-black text-primary-custom tracking-tight">
+                      {m.admitidos.toLocaleString('es-CL')} <span className="text-xs font-bold text-secondary-custom">pac.</span>
+                    </span>
+                    <span className={`text-[11px] font-black px-2 py-0.5 rounded-full flex items-center gap-0.5 ${
+                      m.growthAdmitidos.startsWith('+') ? 'bg-emerald-500/15 text-emerald-600' : 'bg-rose-500/15 text-rose-600'
+                    }`}>
+                      {m.growthAdmitidos.startsWith('+') ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+                      {m.growthAdmitidos}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {/* TERCER DATO: ALTAS ADMINISTRATIVAS */}
-              <div className="flex justify-between items-center pt-1 text-xs">
-                <span className="text-[11px] font-bold text-secondary-custom">3. Altas Admin:</span>
-                <div className="flex items-center gap-1.5">
-                  <span className="font-black text-amber-600 dark:text-amber-400">{m.altas} altas</span>
-                  <span className="text-[9px] font-bold text-secondary-custom">({m.growthAltas})</span>
-                </div>
+                {/* BOTÓN INTERACTIVO PARA DESPLEGAR OTROS DATOS */}
+                <button
+                  onClick={() => toggleCard(m.key)}
+                  className="w-full py-1.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-900 text-[11px] font-bold text-secondary-custom hover:text-indigo-600 dark:hover:text-indigo-300 flex items-center justify-between border border-card-custom/60 transition-all cursor-pointer"
+                >
+                  <span>{isExpanded ? 'Ocultar Desglose' : 'Desplegar Atendidos y Altas'}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isExpanded ? 'rotate-180 text-indigo-500' : ''}`} />
+                </button>
+
+                {/* CONTENIDO DESPLEGABLE: ATENDIDOS Y ALTAS ADMIN */}
+                {isExpanded && (
+                  <div className="space-y-3 pt-1 border-t border-card-custom/40 animate-fade-in">
+                    
+                    {/* DATO SECUNDARIO: PACIENTES ATENDIDOS */}
+                    <div className="bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-2xl space-y-1 border border-card-custom/40">
+                      <div className="flex justify-between items-center text-[10px] font-bold text-secondary-custom">
+                        <span>Pacientes Atendidos:</span>
+                        <span className="font-black text-indigo-600 dark:text-indigo-400 text-xs">{m.atendidos.toLocaleString('es-CL')} pac.</span>
+                      </div>
+                      <div className="flex justify-between items-center text-[10px] font-medium text-secondary-custom">
+                        <span>Crecimiento YoY:</span>
+                        <span className={`font-bold ${m.growthAtendidos.startsWith('+') ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          {m.growthAtendidos} vs {compareYear}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* TERCER DATO: ALTAS ADMINISTRATIVAS */}
+                    <div className="flex justify-between items-center text-xs px-1">
+                      <span className="text-[11px] font-bold text-secondary-custom">Altas Admin:</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-black text-amber-600 dark:text-amber-400">{m.altas} altas</span>
+                        <span className="text-[9px] font-bold text-secondary-custom">({m.growthAltas})</span>
+                      </div>
+                    </div>
+
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -482,7 +531,7 @@ export default function AnalisisDemandaAtencion({
           
           <div className="bg-slate-50 dark:bg-slate-900/60 p-5 rounded-2xl border border-card-custom space-y-2">
             <span className="text-xs font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider flex items-center gap-1.5">
-              <Activity className="w-4 h-4" /> Presión y Picos Asistenciales
+              <Activity className="w-4 h-4" /> Presión y Sobrecarga Asistencial
             </span>
             <p className="text-xs text-primary-custom leading-relaxed font-medium">
               El mes de mayor sobrecarga asistencial en {selectedYear} corresponde a <strong className="text-indigo-600">{totalesYear.peakMonth.name}</strong> con un total de <strong>{totalesYear.peakMonth.val.toLocaleString('es-CL')} pacientes admitidos</strong>. Se recomienda concentrar la programación de turnos de reemplazo y stock de insumos en dicha franja.
@@ -494,7 +543,7 @@ export default function AnalisisDemandaAtencion({
               <TrendingUp className="w-4 h-4" /> Tendencia Interanual (YoY)
             </span>
             <p className="text-xs text-primary-custom leading-relaxed font-medium">
-              En comparación con el año {compareYear}, la demanda global registró una variación interanual del <strong className={Number(totalesYear.totalGrowth) >= 0 ? 'text-emerald-600' : 'text-rose-600'}>{totalesYear.totalGrowth}%</strong>. El flujo constante en los picos de invierno reafirma la necesidad de reforzar triage inicial.
+              En comparación con el año {compareYear}, la demanda global registró una variación interanual del <strong className={Number(totalesYear.totalGrowth) >= 0 ? 'text-emerald-600' : 'text-rose-600'}>{totalesYear.totalGrowth}%</strong>. El flujo constante en los peaks de invierno reafirma la necesidad de reforzar triage inicial.
             </p>
           </div>
 

@@ -70,7 +70,7 @@ export default function Radar({ user, app, showNotif }) {
     estacion: {
       nombre: 'Invierno',
       icono: '❄️',
-      focoClinico: 'Pico estacional respiratorio (SBO, neumonía, asma), frío extremo (<5°C), precipitaciones y rebote asistencial post-lluvia.',
+      focoClinico: 'Peak estacional respiratorio (SBO, neumonía, asma), frío extremo (<5°C), precipitaciones y rebote asistencial post-lluvia.',
       alertaRiesgo: 'Sobrecarga en Triage C1-C3 por virus respiratorios, descompensación cardiovascular y caídas por humedad.'
     },
     avgNormal: 85,
@@ -355,7 +355,7 @@ export default function Radar({ user, app, showNotif }) {
             {peakDay && (
               <div className="flex flex-col sm:flex-row items-center gap-3 self-end md:self-center flex-shrink-0">
                 <div className="flex items-center gap-2 bg-red-500/20 px-4 py-2.5 rounded-2xl border border-red-500/30 text-red-700 dark:text-red-200 text-xs font-black">
-                  <Clock className="w-4 h-4" /> Pico Estimado: {peakDay.atenciones_estimadas} pac. ({peakDay.fechaStr})
+                  <Clock className="w-4 h-4" /> Peak Estimado: {peakDay.atenciones_estimadas} pac. ({peakDay.fechaStr})
                 </div>
 
                 <button
@@ -516,7 +516,7 @@ export default function Radar({ user, app, showNotif }) {
 
         <div className="bg-card-custom p-5 rounded-3xl border border-card-custom shadow-xs theme-transition space-y-2">
           <div className="flex items-center justify-between text-secondary-custom">
-            <span className="text-[11px] font-black uppercase tracking-wider">Pico Máximo</span>
+            <span className="text-[11px] font-black uppercase tracking-wider">Peak Máximo</span>
             <Zap className="w-4 h-4 text-amber-500" />
           </div>
           <div className="flex items-baseline gap-1.5">
@@ -759,7 +759,7 @@ export default function Radar({ user, app, showNotif }) {
                   </div>
                   <div className="space-y-0.5 text-xs">
                     <p className="font-bold text-slate-900 dark:text-white">ARIMA_PLUS Modelo</p>
-                    <p className="text-slate-600 dark:text-slate-400">Pico: <span className="font-black text-indigo-600 dark:text-indigo-400">{peakDay?.atenciones_estimadas} pac.</span> ({peakDay?.fechaStr})</p>
+                    <p className="text-slate-600 dark:text-slate-400">Peak Estimado: <span className="font-black text-indigo-600 dark:text-indigo-400">{peakDay?.atenciones_estimadas} pac.</span> ({peakDay?.fechaStr})</p>
                   </div>
                 </div>
 
@@ -829,7 +829,7 @@ export default function Radar({ user, app, showNotif }) {
                 <ShieldCheck className="w-4 h-4 text-indigo-600" /> Acciones Preparatorias Sugeridas para Urgencias
               </h3>
               <ul className="text-xs font-bold text-slate-800 dark:text-slate-100 space-y-1.5 list-disc list-inside">
-                <li>Reforzar dotación médica y de enfermería en turnos de triage (C1 - C3) durante el día pico.</li>
+                <li>Reforzar dotación médica y de enfermería en turnos de triage (C1 - C3) durante el día de máxima demanda.</li>
                 <li>Habilitar insumos de aerosolterapia, nebulizaciones y oxigenoterapia suplementaria.</li>
                 <li>Agilizar la gestión de altas administrativas para mantener disponibilidad en boxes de observación.</li>
                 <li>Mantener canal activo de coordinación con el Hospital San José de Melipilla para traslados complejos.</li>

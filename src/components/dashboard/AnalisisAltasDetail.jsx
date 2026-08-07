@@ -371,7 +371,7 @@ export default function AnalisisAltasDetail({
                 </span>
               </span>
             </div>
-            <span className="text-[9px] text-secondary-custom opacity-70 mt-2 font-medium">Pico máximo en un solo día</span>
+            <span className="text-[9px] text-secondary-custom opacity-70 mt-2 font-medium">Peak máximo en un solo día</span>
           </div>
         )}
 
@@ -434,7 +434,7 @@ export default function AnalisisAltasDetail({
         <div className="bg-card-custom p-6 rounded-2xl border border-card-custom shadow-sm flex flex-col theme-transition">
           <div>
             <h3 className="text-xs font-bold text-primary-custom uppercase tracking-wider mb-1">Evolución de Altas Administrativas</h3>
-            <p className="text-[10px] text-secondary-custom font-medium mb-4">Comportamiento diario de las altas para detectar variaciones y picos en el periodo principal</p>
+            <p className="text-[10px] text-secondary-custom font-medium mb-4">Comportamiento diario de las altas para detectar variaciones y sobrecargas en el periodo principal</p>
           </div>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">

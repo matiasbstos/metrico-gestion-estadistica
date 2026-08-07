@@ -25,7 +25,7 @@ export default function AgenteRadarAdmin({ app, peakDay, calidadAire, climaData,
   const [thresholdElevado, setThresholdElevated] = useState(95);
 
   const quickPrompts = [
-    { label: '📋 Plan de Contingencia', prompt: 'Genera un plan de contingencia clínica para el pico proyectado de pacientes.' },
+    { label: '📋 Plan de Contingencia', prompt: 'Genera un plan de contingencia clínica para la sobrecarga asistencial proyectada.' },
     { label: '❄️ Impacto de Bajas Temp.', prompt: '¿Cómo impactará la helada en las consultas respiratorias de adultos mayores?' },
     { label: '🏥 Stock Insumos Urgencia', prompt: '¿Qué insumos (aerocámaras, salbutamol, O2) debemos reforzar?' },
     { label: '👨‍⚕️ Dotación Turno Noche', prompt: '¿Se requiere reforzar médicos o enfermería para el turno nocturno?' },
@@ -78,7 +78,7 @@ export default function AgenteRadarAdmin({ app, peakDay, calidadAire, climaData,
     } catch (err) {
       console.warn("Respuesta local de contingencia del Agente Radar:", err.message);
       // Respuesta inteligente local
-      let localResp = `📋 **Recomendación Operativa del Agente Radar (SAR Elsa Romo):**\n\nRespecto a "*${textQuery}*":\n- **Plan Recomendado:** Incrementar triage inicial durante el pico asistencial proyectado de ${peakDay?.atenciones_estimadas || 128} pacientes.\n- **Insumos:** Disponer de stock ampliado en salbutamol, nebulizadores, aerocámaras infantiles y oxígeno suplementario.\n- **Derivaciones:** Mantener línea prioritaria abierta con el Hospital San José de Melipilla para casos C1 y C2 graves.`;
+      let localResp = `📋 **Recomendación Operativa del Agente Radar (SAR Elsa Romo):**\n\nRespecto a "*${textQuery}*":\n- **Plan Recomendado:** Incrementar triage inicial durante el peak asistencial proyectado de ${peakDay?.atenciones_estimadas || 128} pacientes.\n- **Insumos:** Disponer de stock ampliado en salbutamol, nebulizadores, aerocámaras infantiles y oxígeno suplementario.\n- **Derivaciones:** Mantener línea prioritaria abierta con el Hospital San José de Melipilla para casos C1 y C2 graves.`;
 
       const agentMsg = {
         id: Date.now() + 1,

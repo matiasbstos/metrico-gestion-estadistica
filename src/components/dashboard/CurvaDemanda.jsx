@@ -79,7 +79,7 @@ export default function CurvaDemanda({
             <Zap className="w-5 h-5 text-amber-500 animate-pulse"/>
             <h2 className="text-base font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
               Curva de Demanda Continua (00:00 - 23:59)
-              <InfoTooltip title="Curva de Demanda" text="Analiza los 'Peak Hours' o picos de congestión a lo largo del día seleccionado." />
+              <InfoTooltip title="Curva de Demanda" text="Analiza los 'Peak Hours' o franjas de máxima congestión a lo largo del día seleccionado." />
             </h2>
          </div>
          
@@ -102,9 +102,9 @@ export default function CurvaDemanda({
           <span className="text-[9px] font-bold text-slate-400 block mt-1">Registrados en la curva</span>
         </div>
         
-        {/* Tarjeta 2: Hora Pico */}
+        {/* Tarjeta 2: Hora Peak */}
         <div className="bg-rose-500/5 border border-rose-500/10 rounded-2xl p-4 shadow-sm theme-transition">
-          <span className="text-[9px] font-black text-rose-500 dark:text-rose-400 uppercase tracking-wider block">Pico Máximo de Demanda</span>
+          <span className="text-[9px] font-black text-rose-500 dark:text-rose-400 uppercase tracking-wider block">Peak Máximo de Demanda</span>
           <p className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{stats.horaPico}</p>
           <span className="text-[9px] font-bold text-rose-400 dark:text-rose-500/60 block mt-1">{stats.maxPacientes} admisiones en esa hora</span>
         </div>
