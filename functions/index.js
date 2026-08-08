@@ -568,99 +568,120 @@ const smtpTransporter = nodemailer.createTransport({
 
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 
+const cleanPdfText = (str) => {
+  if (!str) return '';
+  return String(str)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\x20-\x7E]/g, '')
+    .trim();
+};
+
 const generarPdfConsolidado = async (turnoInfo) => {
   const pdfDoc = await PDFDocument.create();
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-  const page = pdfDoc.addPage([612, 792]); // Standard US Letter
-  const { width, height } = page.getSize();
+  // PAGINA 1: Resumen Ejecutivo y KPIs
+  const page1 = pdfDoc.addPage([612, 792]);
+  const { width, height } = page1.getSize();
 
   // Header Bar
-  page.drawRectangle({
+  page1.drawRectangle({
     x: 0,
-    y: height - 90,
+    y: height - 85,
     width: width,
-    height: 90,
+    height: 85,
     color: rgb(0.31, 0.27, 0.9)
   });
 
-  page.drawText('SAR ELSA ROMO ARAVENA', {
+  page1.drawText(cleanPdfText('SAR ELSA ROMO ARAVENA'), {
     x: 30,
-    y: height - 42,
+    y: height - 40,
     size: 16,
     font: fontBold,
     color: rgb(1, 1, 1)
   });
 
-  page.drawText('REPORTE EJECUTIVO DE GESTIÓN DE URGENCIAS • MÉTRICO', {
+  page1.drawText(cleanPdfText('REPORTE EJECUTIVO DE GESTION DE URGENCIAS - METRICO'), {
     x: 30,
-    y: height - 64,
-    size: 11,
+    y: height - 60,
+    size: 10,
     font: fontBold,
     color: rgb(0.9, 0.9, 1)
   });
 
-  let y = height - 120;
+  let y = height - 110;
 
-  // Header Details
-  page.drawText(`Fecha de Turno: ${turnoInfo.fechaTurno}`, { x: 30, y, size: 11, font: fontBold, color: rgb(0.1, 0.1, 0.2) });
+  // Detalle del Turno
+  page1.drawText(cleanPdfText(`Fecha de Turno: ${turnoInfo.fechaTurno}`), { x: 30, y, size: 11, font: fontBold, color: rgb(0.1, 0.1, 0.2) });
   y -= 18;
-  page.drawText(`Identificador: ${turnoInfo.textoCompleto}`, { x: 30, y, size: 10, font: fontRegular, color: rgb(0.3, 0.3, 0.4) });
+  page1.drawText(cleanPdfText(`Identificador: ${turnoInfo.textoCompleto}`), { x: 30, y, size: 9, font: fontRegular, color: rgb(0.3, 0.3, 0.4) });
   y -= 16;
-  page.drawText(`Rotativa: ${turnoInfo.rotativa} | ${turnoInfo.equipo || 'Equipo 2'}`, { x: 30, y, size: 10, font: fontRegular, color: rgb(0.3, 0.3, 0.4) });
+  page1.drawText(cleanPdfText(`Rotativa: ${turnoInfo.rotativa} | ${turnoInfo.equipo || 'Equipo de Turno'}`), { x: 30, y, size: 9, font: fontRegular, color: rgb(0.3, 0.3, 0.4) });
   y -= 25;
 
   // Status Badge
-  page.drawRectangle({ x: 30, y: y - 22, width: width - 60, height: 22, color: rgb(0.92, 0.98, 0.95) });
-  page.drawText('✓ CONTROL DE GUÍA & VERIFICACIÓN ASISTENCIAL: 100% DATOS COMPLETOS Y AUDITADOS', { x: 40, y: y - 16, size: 9, font: fontBold, color: rgb(0.02, 0.45, 0.3) });
+  page1.drawRectangle({ x: 30, y: y - 22, width: width - 60, height: 22, color: rgb(0.92, 0.98, 0.95) });
+  page1.drawText(cleanPdfText('CONTROL DE GUIA & VERIFICACION ASISTENCIAL: 100% DATOS COMPLETOS Y AUDITADOS'), { x: 40, y: y - 16, size: 8.5, font: fontBold, color: rgb(0.02, 0.45, 0.3) });
   y -= 40;
 
   // KPI Section
-  page.drawText('INDICADORES CLAVE DE DESEMPEÑO (KPIs)', { x: 30, y, size: 11, font: fontBold, color: rgb(0.1, 0.1, 0.2) });
+  page1.drawText(cleanPdfText('INDICADORES CLAVE DE DESEMPENO (KPIs)'), { x: 30, y, size: 11, font: fontBold, color: rgb(0.1, 0.1, 0.2) });
   y -= 20;
 
   const kpis = [
     ['Pacientes Admitidos Totales:', String(turnoInfo.totalAdmitidos)],
-    ['Atenciones Médicas Efectivas:', String(turnoInfo.atendidos)],
+    ['Atenciones Medicas Efectivas:', String(turnoInfo.atendidos)],
     ['Altas Administrativas & Retiros:', String(turnoInfo.altasAdmin)],
-    ['Categoría C1 (Emergencia Vital):', String(turnoInfo.triage?.c1 || 0)],
-    ['Categoría C2 (Urgencia Alta):', String(turnoInfo.triage?.c2 || 0)],
-    ['Categoría C3 (Urgencia Media):', String(turnoInfo.triage?.c3 || 0)],
-    ['Categoría C4 (Baja Complejidad):', String(turnoInfo.triage?.c4 || 0)],
-    ['Categoría C5 (Consulta General):', String(turnoInfo.triage?.c5 || 0)],
-    ['Profesional Más Productivo:', String(turnoInfo.medicoMasProductivo || 'No especificado')]
+    ['Categoria C1 (Emergencia Vital):', String(turnoInfo.triage?.c1 || 0)],
+    ['Categoria C2 (Urgencia Alta):', String(turnoInfo.triage?.c2 || 0)],
+    ['Categoria C3 (Urgencia Media):', String(turnoInfo.triage?.c3 || 0)],
+    ['Categoria C4 (Baja Complejidad):', String(turnoInfo.triage?.c4 || 0)],
+    ['Categoria C5 (Consulta General):', String(turnoInfo.triage?.c5 || 0)],
+    ['Profesional Mas Productivo:', cleanPdfText(turnoInfo.medicoMasProductivo || 'No especificado')]
   ];
 
   kpis.forEach(([label, val]) => {
-    page.drawText(label, { x: 40, y, size: 10, font: fontRegular, color: rgb(0.2, 0.2, 0.3) });
-    page.drawText(val, { x: width - 200, y, size: 10, font: fontBold, color: rgb(0.3, 0.2, 0.8) });
+    page1.drawText(cleanPdfText(label), { x: 40, y, size: 9.5, font: fontRegular, color: rgb(0.2, 0.2, 0.3) });
+    page1.drawText(cleanPdfText(val), { x: width - 230, y, size: 9.5, font: fontBold, color: rgb(0.3, 0.2, 0.8) });
     y -= 18;
   });
 
-  y -= 15;
-  page.drawText('BITÁCORA ASISTENCIAL Y SUB-REPORTES DETALLADOS:', { x: 30, y, size: 11, font: fontBold, color: rgb(0.1, 0.1, 0.2) });
-  y -= 20;
+  page1.drawText(cleanPdfText('METRICO Clinico Predictivo - SAR Elsa Romo Aravena (Pagina 1 de 2)'), {
+    x: 30,
+    y: 25,
+    size: 8.5,
+    font: fontBold,
+    color: rgb(0.5, 0.5, 0.6)
+  });
+
+  // PAGINA 2: Sub-Reportes Detallados Asistenciales
+  const page2 = pdfDoc.addPage([612, 792]);
+  let y2 = height - 50;
+
+  page2.drawText(cleanPdfText('DETALLE CONSOLIDADO DE SUB-REPORTES ASISTENCIALES'), { x: 30, y: y2, size: 13, font: fontBold, color: rgb(0.31, 0.27, 0.9) });
+  y2 -= 30;
 
   const subSections = [
-    ['1. Demanda de Atención & Diagnósticos:', turnoInfo.totalAdmitidos > 0 ? `Se registraron ${turnoInfo.totalAdmitidos} admisiones. Atenciones concentradas en síndrome febril y afecciones respiratorias.` : 'No se registraron admisiones en este periodo.'],
-    ['2. Facturas Recibidas & Traumatología:', (turnoInfo.fracturasCount || 0) > 0 ? `Se registraron ${turnoInfo.fracturasCount} atenciones por sospecha/confirmación de fractura auditadas.` : 'No se registraron atenciones por fractura ni facturas de urgencia en este turno.'],
-    ['3. Rendimiento de Enfermería y Triaje:', 'Tiempos de respuesta desde la admisión a primera categorización cumpliendo los estándares.'],
-    ['4. Constatación de Lesiones (Z51.8):', (turnoInfo.constatacionesCount || 0) > 0 ? `Se registraron ${turnoInfo.constatacionesCount} atenciones por constatación de lesiones (Z51.8).` : 'No se registraron constataciones de lesiones en este turno.'],
-    ['5. Traslados Hospitalarios a UEH:', (turnoInfo.trasladosCount || 0) > 0 ? `Se registraron ${turnoInfo.trasladosCount} traslados hospitalarios a la Unidad de Emergencia.` : 'No se registraron traslados hospitalarios en este turno.']
+    ['1. Demanda de Atencion & Diagnosticos Principales:', turnoInfo.totalAdmitidos > 0 ? `Se registraron ${turnoInfo.totalAdmitidos} admisiones totales (${turnoInfo.atendidos} atenciones medicas efectivas). Concentracion en afecciones respiratorias, sindrome febril y contusiones.` : 'No se registraron admisiones en este periodo.'],
+    ['2. Facturas Recibidas & Diagnosticos Traumatologicos:', (turnoInfo.fracturasCount || 0) > 0 ? `Se registraron ${turnoInfo.fracturasCount} atenciones por sospecha o confirmacion de fractura auditadas conforme a control de guia.` : 'No se registraron atenciones por fractura ni facturas de urgencia en este turno.'],
+    ['3. Rendimiento de Enfermeria y Triaje:', 'Tiempos de respuesta asistencial desde la admision inicial hasta la asignacion de primera categorizacion cumpliendo estandares de re-categorizacion.'],
+    ['4. Constatacion de Lesiones (Z51.8):', (turnoInfo.constatacionesCount || 0) > 0 ? `Se registraron ${turnoInfo.constatacionesCount} atenciones por constatacion de lesiones (Z51.8) con registro clinico legal auditado.` : 'No se registraron constataciones de lesiones (Z51.8) en este turno.'],
+    ['5. Traslados Hospitalarios a Unidad de Emergencia (UEH):', (turnoInfo.trasladosCount || 0) > 0 ? `Se registraron ${turnoInfo.trasladosCount} traslados hospitalarios coordinados a la Unidad de Emergencia.` : 'No se registraron traslados hospitalarios a UEH en este turno.']
   ];
 
   subSections.forEach(([title, text]) => {
-    page.drawText(title, { x: 30, y, size: 10, font: fontBold, color: rgb(0.3, 0.2, 0.8) });
-    y -= 14;
-    page.drawText(text, { x: 45, y, size: 9, font: fontRegular, color: rgb(0.3, 0.3, 0.4) });
-    y -= 22;
+    page2.drawText(cleanPdfText(title), { x: 30, y: y2, size: 10, font: fontBold, color: rgb(0.2, 0.2, 0.7) });
+    y2 -= 16;
+    page2.drawText(cleanPdfText(text), { x: 45, y: y2, size: 9, font: fontRegular, color: rgb(0.3, 0.3, 0.4) });
+    y2 -= 35;
   });
 
-  page.drawText('MÉTRICO Clínico Predictivo • SAR Elsa Romo Aravena', {
+  page2.drawText(cleanPdfText('METRICO Clinico Predictivo - SAR Elsa Romo Aravena (Pagina 2 de 2)'), {
     x: 30,
     y: 25,
-    size: 9,
+    size: 8.5,
     font: fontBold,
     color: rgb(0.5, 0.5, 0.6)
   });
@@ -689,12 +710,8 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
   const fs = require('fs');
   const path = require('path');
 
-  let logoHtml = '';
+  let logoHtml = '<img src="cid:logo_sar" alt="SAR Elsa Romo Aravena" style="max-height: 52px; width: auto; display: block;" />';
   const logoPath = path.join(__dirname, 'assets/LogoSAR.png');
-  if (fs.existsSync(logoPath)) {
-    const logoBase64 = fs.readFileSync(logoPath).toString('base64');
-    logoHtml = `<img src="data:image/png;base64,${logoBase64}" alt="SAR Elsa Romo Aravena" style="max-height: 52px; width: auto; display: block;" />`;
-  }
 
   const rawTurno = turnoAuditado || {
     fechaTurno: '05/08/2026',
@@ -921,6 +938,14 @@ MÉTRICO Clínico Predictivo • SAR Elsa Romo Aravena
       contentType: 'text/plain'
     }
   ];
+
+  if (fs.existsSync(logoPath)) {
+    attachments.push({
+      filename: 'LogoSAR.png',
+      path: logoPath,
+      cid: 'logo_sar'
+    });
+  }
 
   if (pdfBuffer) {
     attachments.unshift({
