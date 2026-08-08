@@ -4,6 +4,12 @@
 
 Aquí documentamos el progreso y las últimas actualizaciones que se le están haciendo al sistema para mantener a todo el equipo informado.
 
+### ✨ [Actualización v2.9.5] - 08 de Agosto 2026 - Auditoría Histórica Sin Restricción de Filtros + PDF 2 Páginas Hoja Carta + Logo CID Inline
+- **Desacoplamiento de Filtros UI:** La auditoría consulta la base de datos completa de los últimos 30 días sin verse limitada por el rango de fechas seleccionado en la pantalla.
+- **Documento PDF Oficial de 2 Páginas:** Página 1 con Banner institucional, Badge de auditoría y matriz KPI; Página 2 con el desglose consolidado de los 5 sub-reportes asistenciales.
+- **Optimización de Logo CID Inline:** Reemplazo del Base64 por adjunto CID, reduciendo el HTML a 4KB y evitando el colapso de mensajes en Gmail.
+- **Sanitización de Caracteres en PDF:** Implementación de la función `cleanPdfText` para compilación ultrarrápida sin errores tipográficos.
+
 ### ✨ [Actualización v2.9.0] - 08 de Agosto 2026 - Despacho Automático de Correos, Adjunto PDF Hoja Carta & Auditoría de Turnos
 - **Despacho de Adjuntos Físicos en PDF (Hoja Carta):** Generación nativa en tiempo real del archivo PDF oficial con todos los sub-reportes seleccionados y tabla de KPIs.
 - **Desglose Estricto por Día y Equipo de Turno:** Separación en fin de semana y festivos para el Turno Día (08:00 - 20:00) y Turno Noche (20:00 - 08:00) asignados al Equipo correspondiente (Equipos 1, 2 y 3).

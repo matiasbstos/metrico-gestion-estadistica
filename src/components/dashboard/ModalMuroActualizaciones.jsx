@@ -8,11 +8,34 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
-      id: 'v2.9.0',
-      version: 'v2.9.0',
+      id: 'v2.9.5',
+      version: 'v2.9.5',
       fecha: '08 de Agosto, 2026',
       badge: 'ÚLTIMA VERSIÓN',
       badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Solución Definitiva de Auditoría Histórica + Formato PDF Hoja Carta de 2 Páginas + CID Logo Inline',
+      categoria: 'Despacho & Auditoría',
+      icon: Mail,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Desacoplamiento total de la auditoría de turnos frente a los filtros de fecha de la interfaz visual, adjunto automático de PDF Hoja Carta en 2 páginas con subreportes detallados e incrustación CID del logo para evitar el recorte de mensajes en Gmail.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que los informes por correo siempre reconozcan y envíen el último turno 100% cerrado (retrocediendo automáticamente al día previo si el día actual no ha finalizado) y adjunten el PDF oficial de 2 páginas con todos los indicadores asistenciales.',
+        quePuedesVer: 'Al ingresar al modal de configuración de correo, el sistema seleccionará y auditará automáticamente el turno cerrado anterior (ej. 05/08/2026), mostrando todos sus adjuntos físicos (PDF de 2 páginas, CSV y Bitácora).',
+        ejemploUso: 'Ejemplo: Si estás viendo el día 06/08 en la pantalla y el turno está incompleto, el motor de auditoría busca en la base de datos completa de 30 días, selecciona el turno del 05/08/2026 y despacha el correo con el informe completo sin recortarse en Gmail.'
+      },
+      changes: [
+        'Desacoplamiento de Filtros UI: La auditoría consulta la base de datos completa de los últimos 30 días sin verse limitada por el rango de fechas seleccionado en la pantalla.',
+        'Documento PDF Oficial de 2 Páginas: Página 1 con Banner institucional, Badge de auditoría y matriz KPI; Página 2 con el desglose consolidado de los 5 sub-reportes asistenciales.',
+        'Optimización de Logo CID Inline: Reemplazo del Base64 por adjunto CID, reduciendo el HTML a 4KB y evitando el colapso de mensajes en Gmail.',
+        'Sanitización de Caracteres en PDF: Implementación de la función cleanPdfText para compilación ultrarrápida sin errores tipográficos.'
+      ]
+    },
+    {
+      id: 'v2.9.0',
+      version: 'v2.9.0',
+      fecha: '08 de Agosto, 2026',
+      badge: 'MEJORA',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
       title: 'Sistema Automatizado de Envío de Informes Ejecutivos por Correo + Adjunto PDF Hoja Carta + Auditoría de Turnos',
       categoria: 'Despacho & Auditoría',
       icon: Mail,
