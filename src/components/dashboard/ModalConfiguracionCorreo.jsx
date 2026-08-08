@@ -103,11 +103,29 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
     };
 
     try {
-      // 1. Guardar registro en Firestore (Colección mail y envios_correos) si db está disponible
+      // 1. Guardar registro en Firestore (Colección mail, envios_correos y audit_logs)
       if (typeof db !== 'undefined' && db) {
         import('firebase/firestore').then(({ collection, addDoc }) => {
           addDoc(collection(db, 'mail'), mailPayload).catch(e => console.warn('Firestore mail write:', e));
           addDoc(collection(db, 'envios_correos'), mailPayload).catch(e => console.warn('Firestore envios_correos write:', e));
+
+          const auditRecord = {
+            accion: 'Envío de Correo',
+            usuario: 'Jefatura de Gestión / Sistema',
+            centro: 'SAR Elsa Romo Aravena',
+            detalles: `Despacho de Informe Auditado: ${auditResult.turnoInfo?.textoCompleto || 'Turno Auditado'}. Destinatarios: ${emails}. Adjuntos: PDF Hoja Carta + CSV Consolidado.`,
+            fecha: new Date().toISOString(),
+            estado: 'EXITOSO'
+          };
+
+          addDoc(collection(db, 'audit_logs'), auditRecord).catch(e => console.warn('Audit root write err:', e));
+          addDoc(collection(db, 'artifacts', 'metrico-dashboard-2026', 'public', 'data', 'audit_logs'), auditRecord).catch(e => console.warn('Audit public write err:', e));
+          addDoc(collection(db, 'informes_enviados'), {
+            key: `${auditResult.turnoInfo?.fechaTurno}_T${auditResult.turnoInfo?.turnoNum}`,
+            enviado: true,
+            enviadoAt: new Date().toISOString(),
+            destinatarios: emails
+          }).catch(e => console.warn('Informes enviados err:', e));
         }).catch(err => console.warn('Import firestore err:', err));
       }
 

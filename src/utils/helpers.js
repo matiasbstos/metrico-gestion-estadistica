@@ -26,6 +26,8 @@ export const obtenerTurnoDetallado = (timestamp) => {
   if (isNaN(d.getTime())) return { turnoNum: '-', equipo: '-', tipo: '-', horario: '-', fechaTurno: '-', textoCompleto: '-' };
 
   const hours = d.getHours();
+  const mins = d.getMinutes();
+  const totalMins = hours * 60 + mins;
   const dayOfWeek = d.getDay(); // 0 = Domingo, 6 = Sábado
   const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
 
@@ -47,15 +49,17 @@ export const obtenerTurnoDetallado = (timestamp) => {
     }
   } else {
     // Día de semana (Lunes a Viernes)
-    if (hours >= 17 || hours < 8) {
+    // Tolerancia de inicio: 1 hora antes (desde las 16:00 hrs = 960 mins)
+    // Tolerancia de término: 1 hora después (hasta las 09:00 AM = 540 mins)
+    if (totalMins >= 960 || totalMins < 540) {
       turnoNum = 2;
       tipo = 'Turno Largo Semana';
-      horario = '17:00 a 08:00 hrs';
-      if (hours < 8) logicalDate.setDate(logicalDate.getDate() - 1);
+      horario = '17:00 a 08:00 hrs (16:00 - 09:00 c/tolerancia)';
+      if (totalMins < 540) logicalDate.setDate(logicalDate.getDate() - 1);
     } else {
       turnoNum = 1;
       tipo = 'Refuerzo Diurno Semana';
-      horario = '08:00 a 17:00 hrs';
+      horario = '09:00 a 16:00 hrs';
     }
   }
 
