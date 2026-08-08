@@ -191,10 +191,10 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
     }
   }
 
-  // Si ningún turno cumple la prueba estricta (por corte de carga de datos), tomar el grupo más completo con más pacientes
+  // Si ningún turno cumple la prueba estricta (por corte de carga de datos), tomar el grupo más reciente
   if (!verifiedShift && sortedGroupKeys.length > 0) {
     const allGroups = Object.values(shiftGroups);
-    allGroups.sort((a, b) => b.pacientes.length - a.pacientes.length);
+    allGroups.sort((a, b) => b.maxTimestamp - a.maxTimestamp);
     verifiedShift = allGroups[0];
   }
 

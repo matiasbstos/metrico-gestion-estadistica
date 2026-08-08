@@ -366,7 +366,7 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
         {/* FOOTER DEL MODAL */}
         <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-card-custom flex items-center justify-between">
           <span className="text-[11px] font-bold text-secondary-custom">
-            MÉTRICO v2.8.5 • SAR Elsa Romo Aravena
+            MÉTRICO v2.9.0 • SAR Elsa Romo Aravena
           </span>
 
           <div className="flex items-center gap-3">
