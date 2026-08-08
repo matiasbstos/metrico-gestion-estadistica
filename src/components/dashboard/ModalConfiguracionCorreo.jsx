@@ -219,16 +219,26 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
               <h4 className="text-xs font-black text-indigo-600 dark:text-indigo-300 uppercase tracking-wider flex items-center gap-2">
                 <Cpu className="w-4 h-4 text-indigo-500" /> 1. Verificación de Datos e Integridad del Turno Cerrado
               </h4>
-              <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Datos 100% Auditados
-              </span>
+              {auditResult.esTurnoCompleto ? (
+                <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Datos 100% Auditados
+                </span>
+              ) : (
+                <span className="text-[10px] font-black text-amber-600 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3 text-amber-500" /> Turno Parcial / En Curso
+                </span>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
               <div className="bg-card-custom p-3 rounded-xl border border-card-custom/60 space-y-1">
                 <span className="text-[10px] font-black text-secondary-custom uppercase block">Turno Auditado Detectado</span>
                 <p className="font-black text-primary-custom text-xs">{turnoInfo.textoCompleto}</p>
-                <span className="text-[10px] text-emerald-600 font-bold block">✓ Turno Cerrado (Carga Completa)</span>
+                {auditResult.esTurnoCompleto ? (
+                  <span className="text-[10px] text-emerald-600 font-bold block">✓ Turno Cerrado (Carga Completa 100%)</span>
+                ) : (
+                  <span className="text-[10px] text-amber-600 font-bold block">⚠️ Turno en Curso / Incompleto (Carga Parcial)</span>
+                )}
               </div>
 
               <div className="bg-card-custom p-3 rounded-xl border border-card-custom/60 space-y-1">

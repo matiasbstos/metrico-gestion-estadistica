@@ -163,6 +163,7 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
   const sortedGroupKeys = Object.keys(shiftGroups).sort((a, b) => shiftGroups[b].maxTimestamp - shiftGroups[a].maxTimestamp);
 
   let verifiedShift = null;
+  let isVerifiedShiftComplete = true;
 
   for (const groupKey of sortedGroupKeys) {
     const group = shiftGroups[groupKey];
@@ -187,6 +188,7 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
 
     if (isComplete) {
       verifiedShift = group;
+      isVerifiedShiftComplete = true;
       break;
     }
   }
@@ -196,10 +198,11 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
     const allGroups = Object.values(shiftGroups);
     allGroups.sort((a, b) => b.maxTimestamp - a.maxTimestamp);
     verifiedShift = allGroups[0];
+    isVerifiedShiftComplete = false;
   }
 
   if (!verifiedShift) {
-    return { exito: false, mensaje: 'No se encontraron turnos cerrados validos.', turnoInfo: null };
+    return { exito: false, esTurnoCompleto: false, mensaje: 'No se encontraron turnos cerrados validos.', turnoInfo: null };
   }
 
   const pacsTurno = verifiedShift.pacientes;
@@ -220,8 +223,8 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
     const cat = String(p.categoria || p.triage || '').toUpperCase();
 
     if (diag.includes('fractura') || diag.includes('fx')) fracturasCount++;
-    if (diag.includes('z51.8') || diag.includes('z518') || diag.includes('constatac') || cat.includes('Z518')) constatacionesCount++;
-    if (dest.includes('hospital') || dest.includes('emergencia') || dest.includes('derivac')) trasladosCount++;
+    if (diag.includes('z51.8') || diag.includes('z518') || diag.includes('constatacion') || diag.includes('lesiones')) constatacionesCount++;
+    if (dest.includes('hospital') || dest.includes('ueh') || dest.includes('derivado') || dest.includes('traslado')) trasladosCount++;
 
     if (cat.includes('C1')) triage.c1++;
     else if (cat.includes('C2')) triage.c2++;
@@ -229,9 +232,9 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
     else if (cat.includes('C4')) triage.c4++;
     else if (cat.includes('C5')) triage.c5++;
 
-    const med = String(p.medico || p.profesional || '').trim();
-    if (med && !med.includes('SIN MEDICO') && !med.includes('NO REGISTRADO')) {
-      medMap[med] = (medMap[med] || 0) + 1;
+    const medName = String(p.medico || p.profesional || '').trim();
+    if (medName && medName !== '-' && medName.length > 3) {
+      medMap[medName] = (medMap[medName] || 0) + 1;
     }
   });
 
@@ -240,7 +243,7 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
 
   return {
     exito: true,
-    esTurnoCompleto: true,
+    esTurnoCompleto: isVerifiedShiftComplete,
     turnoInfo: {
       fechaTurno: verifiedShift.fechaTurno,
       turnoNum: verifiedShift.turnoNum,
@@ -256,7 +259,8 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
       constatacionesCount,
       trasladosCount,
       triage,
-      medicoMasProductivo
+      medicoMasProductivo,
+      esCompleto: isVerifiedShiftComplete
     }
   };
 };
