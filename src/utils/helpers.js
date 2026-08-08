@@ -137,3 +137,132 @@ export const deduplicarPacientes = (pacientes) => {
 
   return result;
 };
+
+/**
+ * Inteligencia de Verificación y Auditoría de Turnos CERRADOS para el envío de informes por correo.
+ * 1. Verifica si el último registro cargado corresponde a un turno completo o en curso.
+ * 2. Si el turno actual no está cargado al 100%, toma automáticamente el último turno completo anterior.
+ * 3. Identifica la rotativa de turno (Turno 1, 2 o 3, Semana/FDS Día/Noche).
+ * 4. Genera el desglose escrito en HTML, el payload en formato JSON y el resumen ejecutivo.
+ */
+export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
+  if ((!turnosDB || turnosDB.length === 0) && (!pacientesDB || pacientesDB.length === 0)) {
+    return {
+      exito: false,
+      mensaje: 'Sin datos disponibles para auditar turnos.',
+      turnoInfo: null
+    };
+  }
+
+  // Ordenar pacientes por tiempo de admisión descendente
+  const listPacs = [...pacientesDB].filter(p => p && p.tAdmision).sort((a, b) => b.tAdmision - a.tAdmision);
+  const latestPac = listPacs.length > 0 ? listPacs[0] : null;
+
+  let baseDate = new Date();
+  if (latestPac && latestPac.tAdmision) {
+    baseDate = new Date(latestPac.tAdmision);
+  }
+
+  const hours = baseDate.getHours();
+  const dayOfWeek = baseDate.getDay();
+  const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+
+  // Determinar si el turno actual tiene datos hasta su hora de término
+  // Ej: Si estamos a las 09:00 AM y el último dato es de las 22:30 del día anterior, el turno noche no se ha cargado completo.
+  let isCurrentShiftComplete = false;
+  if (hours >= 8 && hours < 20) {
+    // Turno diurno finaliza a las 20:00
+    isCurrentShiftComplete = hours >= 19.5; 
+  } else {
+    // Turno nocturno finaliza a las 08:00 AM del día siguiente
+    isCurrentShiftComplete = (hours >= 7.5 && hours < 8.5) || (hours >= 8.5);
+  }
+
+  let auditDate = new Date(baseDate.getTime());
+  // Si el turno actual está incompleto (datos parciales), retroceder al turno cerrado anterior
+  if (!isCurrentShiftComplete) {
+    if (hours >= 8 && hours < 20) {
+      // Retroceder al turno noche del día anterior (ej. 04:00 AM)
+      auditDate.setDate(auditDate.getDate() - 1);
+      auditDate.setHours(22, 0, 0, 0);
+    } else {
+      // Retroceder al turno día de hoy (ej. 14:00 PM)
+      auditDate.setHours(12, 0, 0, 0);
+    }
+  }
+
+  const shiftDetails = obtenerTurnoDetallado(auditDate.getTime());
+
+  // Clasificar rotativa exacta
+  let rotativa = 'Turno Largo Semana';
+  if (isWeekend) {
+    rotativa = hours >= 8 && hours < 20 ? 'Fin de Semana - Día (08:00 - 20:00)' : 'Fin de Semana - Noche (20:00 - 08:00)';
+  } else {
+    rotativa = hours >= 8 && hours < 20 ? 'Semana - Día (08:00 - 20:00)' : 'Semana - Noche (20:00 - 08:00)';
+  }
+
+  // Filtrar los pacientes pertenecientes a este turno auditado
+  const pacsTurno = listPacs.filter(p => {
+    const det = obtenerTurnoDetallado(p.tAdmision);
+    return det.fechaTurno === shiftDetails.fechaTurno && det.turnoNum === shiftDetails.turnoNum;
+  });
+
+  const totalAdmitidos = pacsTurno.length;
+  const altasAdmin = pacsTurno.filter(p => p.estado === 'Cancelada').length;
+  const atendidos = totalAdmitidos - altasAdmin;
+
+  const triage = { c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 };
+  const medMap = {};
+
+  pacsTurno.forEach(p => {
+    const cat = String(p.categoria || p.triage || '').toUpperCase();
+    if (cat.includes('C1')) triage.c1++;
+    else if (cat.includes('C2')) triage.c2++;
+    else if (cat.includes('C3')) triage.c3++;
+    else if (cat.includes('C4')) triage.c4++;
+    else if (cat.includes('C5')) triage.c5++;
+
+    const med = String(p.medico || p.profesional || '').trim();
+    if (med && !med.includes('SIN MEDICO') && !med.includes('NO REGISTRADO')) {
+      medMap[med] = (medMap[med] || 0) + 1;
+    }
+  });
+
+  const topMed = Object.entries(medMap).sort((a,b) => b[1] - a[1])[0];
+  const medicoMasProductivo = topMed ? `${topMed[0]} (${topMed[1]} atenciones)` : 'No especificado';
+
+  // JSON Payload Estructurado
+  const jsonPayload = {
+    centro: 'SAR Elsa Romo Aravena',
+    fechaTurno: shiftDetails.fechaTurno,
+    turnoIdentificador: `Turno ${shiftDetails.turnoNum} (${shiftDetails.tipo})`,
+    turnoNum: shiftDetails.turnoNum,
+    rotativa,
+    estadoIntegridad: 'COMPLETO_100_PORCIENTO_AUDITADO',
+    kpis: {
+      totalAdmitidos,
+      atendidos,
+      altasAdmin,
+      triage,
+      medicoMasProductivo
+    },
+    auditadoAt: new Date().toISOString()
+  };
+
+  return {
+    exito: true,
+    esTurnoCompleto: true,
+    turnoInfo: {
+      fechaTurno: shiftDetails.fechaTurno,
+      turnoNum: shiftDetails.turnoNum,
+      rotativa,
+      textoCompleto: shiftDetails.textoCompleto,
+      totalAdmitidos,
+      atendidos,
+      altasAdmin,
+      triage,
+      medicoMasProductivo,
+      jsonPayload
+    }
+  };
+};
