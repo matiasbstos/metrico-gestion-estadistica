@@ -894,6 +894,14 @@ MÉTRICO Clínico Predictivo • SAR Elsa Romo Aravena
     }
   ];
 
+  if (pdfBuffer) {
+    attachments.unshift({
+      filename: `Reporte_Ejecutivo_Consolidado_SAR_Elsa_Romo_${safeFecha}.pdf`,
+      content: pdfBuffer,
+      contentType: 'application/pdf'
+    });
+  }
+
   // Si se envían reportes PDF adicionales en base64 desde la app, adjuntarlos también
   if (data.adjuntosPdf && Array.isArray(data.adjuntosPdf)) {
     data.adjuntosPdf.forEach((pdfObj, idx) => {
