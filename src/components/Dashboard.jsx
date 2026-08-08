@@ -28,6 +28,7 @@ import AnalisisDemandaAtencion from './dashboard/AnalisisDemandaAtencion';
 import GestionUsuarios from './dashboard/GestionUsuarios';
 import ModalInactividad from './dashboard/ModalInactividad';
 import ModalMuroActualizaciones from './dashboard/ModalMuroActualizaciones';
+import ModalConfiguracionCorreo from './dashboard/ModalConfiguracionCorreo';
 import Radar from './dashboard/Radar';
 import { formatLocalDate } from '../utils/helpers';
 import Login from './Login';
@@ -92,6 +93,7 @@ const DashboardContent = () => {
   const [editModal, setEditModal] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [showMuroModal, setShowMuroModal] = useState(false);
+  const [showCorreoModal, setShowCorreoModal] = useState(false);
   const [centroActivo, setCentroActivo] = useState(localStorage.getItem('metrico_centro') || 'SAR Elsa Romo Aravena');
   
   const [manualForm, setManualForm] = useState({
@@ -867,6 +869,16 @@ const DashboardContent = () => {
       {/* MODAL DE MURO DE ACTUALIZACIONES & NOVEDADES */}
       <ModalMuroActualizaciones isOpen={showMuroModal} onClose={() => setShowMuroModal(false)} />
       
+      {/* MODAL DE CONFIGURACIÓN DE CORREOS PROGRAMADOS POR TURNO */}
+      <ModalConfiguracionCorreo 
+        isOpen={showCorreoModal} 
+        onClose={() => setShowCorreoModal(false)} 
+        app={app} 
+        showNotif={showNotif} 
+        pacientesDB={pacientesDB} 
+        turnosDB={turnosDB} 
+      />
+      
       {/* OVERLAY FONDO OSCURO EN MÓVILES */}
       {!sidebarCollapsed && (
         <div 
@@ -1068,33 +1080,17 @@ const DashboardContent = () => {
             <button 
               onClick={() => { setActiveTab('radar'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
               title="Radar Predictivo (IA)"
-              className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${
+              className={`flex items-center rounded-xl font-bold text-sm transition-all duration-200 my-1.5 overflow-visible ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${
                 activeTab === 'radar' 
-                  ? 'accent-bg-custom text-white' 
-                  : 'bg-red-500/15 text-red-500 border border-red-500/30 animate-pulse glow-red-alert hover:bg-red-500/25'
+                  ? 'accent-bg-custom text-white shadow-md' 
+                  : 'bg-red-500/15 text-red-500 border border-red-500/40 hover:bg-red-500/25 shadow-xs'
               }`}>
-              <AnimatedRadarIcon className={`w-5 h-5 flex-shrink-0 ${activeTab !== 'radar' ? 'text-red-500 animate-pulse' : 'text-white'}`} hasAlert={true} />
+              <AnimatedRadarIcon className={`w-5 h-5 flex-shrink-0 ${activeTab !== 'radar' ? 'text-red-500' : 'text-white'}`} hasAlert={true} />
               {!sidebarCollapsed && (
                 <span className="animate-fade-in truncate flex items-center justify-between w-full">
                   <span>Radar</span>
-                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-red-500 text-white animate-bounce ml-2 shadow-xs">
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-red-500 text-white animate-pulse ml-2 shadow-xs shrink-0">
                     ALERTA
-                  </span>
-                </span>
-              )}
-            </button>
-
-            {/* BOTÓN MURO DE ACTUALIZACIONES & NOVEDADES */}
-            <button 
-              onClick={() => { setShowMuroModal(true); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
-              title="Muro de Actualizaciones"
-              className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20 hover:bg-indigo-500/20`}>
-              <Megaphone className="w-4 h-4 text-indigo-500 flex-shrink-0 animate-bounce" />
-              {!sidebarCollapsed && (
-                <span className="animate-fade-in truncate flex items-center justify-between w-full">
-                  <span>Actualizaciones</span>
-                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs ml-2 animate-pulse">
-                    v2.8.5 NUEVO ✨
                   </span>
                 </span>
               )}
@@ -1237,19 +1233,72 @@ const DashboardContent = () => {
             )}
           </nav>
         </div>
-        <div className={`p-4 border-t border-card-custom ${sidebarCollapsed ? 'flex flex-col items-center gap-2' : ''}`}>
+        <div className={`p-3.5 border-t border-card-custom/60 space-y-2.5 ${sidebarCollapsed ? 'flex flex-col items-center' : ''}`}>
+          
+          {/* BOTONES DE HERRAMIENTAS INFERIORES: EMAIL Y ACTUALIZACIONES */}
+          {!sidebarCollapsed ? (
+            <div className="space-y-1.5 w-full">
+              {/* BOTÓN ENVIAR INFORME POR CORREO */}
+              <button
+                onClick={() => setShowCorreoModal(true)}
+                title="Configuración de Envíos por Correo"
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20 hover:bg-indigo-500/20 transition-all font-bold text-xs cursor-pointer shadow-xs"
+              >
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-indigo-500" />
+                  <span>Informe por Correo</span>
+                </div>
+                <span className="text-[9px] font-black uppercase bg-indigo-600 text-white px-1.5 py-0.5 rounded-md">
+                  PROG
+                </span>
+              </button>
+
+              {/* BOTÓN MURO DE ACTUALIZACIONES & NOVEDADES */}
+              <button
+                onClick={() => setShowMuroModal(true)}
+                title="Muro de Novedades e Instructivos"
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-500/10 text-secondary-custom hover:text-primary-custom border border-card-custom hover:bg-black/5 dark:hover:bg-white/5 transition-all font-bold text-xs cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <Megaphone className="w-4 h-4 text-emerald-500" />
+                  <span>Novedades</span>
+                </div>
+                <span className="text-[9px] font-black uppercase bg-emerald-600 text-white px-1.5 py-0.5 rounded-md animate-pulse">
+                  v2.8.5
+                </span>
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-1.5 w-full">
+              <button
+                onClick={() => setShowCorreoModal(true)}
+                title="Envíos por Correo"
+                className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 hover:bg-indigo-500/20 transition-all cursor-pointer"
+              >
+                <Mail className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setShowMuroModal(true)}
+                title="Actualizaciones (v2.8.5)"
+                className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer"
+              >
+                <Megaphone className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
           {!sidebarCollapsed ? (
             <>
-              <div className="mb-4 px-2 animate-fade-in">
+              <div className="pt-2 border-t border-card-custom/40 px-1 animate-fade-in">
                 <p className="text-xs font-bold text-primary-custom truncate" title={user.email}>{user.email}</p>
                 <p className="text-[10px] accent-text-custom font-black uppercase mt-0.5">
                   {isSuperAdmin ? 'Admin. Global General' : isCenterAdmin ? 'Admin. Global de Centro' : 'Usuario Local'}
                 </p>
               </div>
-              <button onClick={handlePasswordResetRequest} className="flex items-center gap-3 px-4 py-2 text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5 rounded-lg font-medium text-xs transition-all w-full mb-1">
+              <button onClick={handlePasswordResetRequest} className="flex items-center gap-3 px-3 py-1.5 text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5 rounded-lg font-medium text-xs transition-all w-full">
                 <Lock className="w-3.5 h-3.5" /> Cambiar Clave
               </button>
-              <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2 text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5 rounded-lg font-medium text-xs transition-all w-full">
+              <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-1.5 text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5 rounded-lg font-medium text-xs transition-all w-full">
                 <XCircle className="w-3.5 h-3.5" /> Cerrar Sesión
               </button>
             </>
@@ -1554,6 +1603,7 @@ const DashboardContent = () => {
             loading={loading || loadingKpis}
             syncStatus={syncStatus}
             onSync={triggerRefresh}
+            onOpenCorreoModal={() => setShowCorreoModal(true)}
           />
         )}
 

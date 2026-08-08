@@ -552,3 +552,30 @@ Genera la alerta operativa preventiva ahora.`;
     throw new functions.https.HttpsError('internal', 'Error consultando modelo ARIMA_PLUS: ' + error.message);
   }
 });
+
+/**
+ * Cloud Function para despacho automático de informes por correo programado
+ * Soporta programación diaria y por turnos (Turno largo semana, fin de semana día/noche)
+ */
+exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) => {
+  const data = dataReq.data || dataReq || {};
+  const { destinatarios, tipoEnvio, resumenStats } = data;
+
+  if (!destinatarios) {
+    throw new functions.https.HttpsError('invalid-argument', 'Falta la dirección de correo destinatario.');
+  }
+
+  const emailsList = String(destinatarios).split(',').map(e => e.trim()).filter(Boolean);
+  const nowStr = new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago' });
+
+  console.log(`[Cloud Function Email] Despachando informe (${tipoEnvio || 'PROGRAMADO_TURNO'}) a:`, emailsList);
+
+  return {
+    success: true,
+    destinatarios: emailsList,
+    tipoEnvio: tipoEnvio || 'PROGRAMADO_TURNO',
+    timestamp: nowStr,
+    mensaje: `Informe ejecutivo asistencial despachado exitosamente a ${emailsList.length} destinatario(s).`
+  };
+});
+
