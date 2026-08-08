@@ -17,6 +17,15 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
     }
   });
 
+  const [allPacientesDB, setAllPacientesDB] = useState(() => {
+    try {
+      const cached = localStorage.getItem('metrico_cached_pacientes');
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
   const [turnosDB, setTurnosDB] = useState(() => {
     try {
       const cached = localStorage.getItem('metrico_cached_turnos');
@@ -26,7 +35,7 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
     }
   });
 
-  const hasCache = pacientesDB.length > 0;
+  const hasCache = pacientesDB.length > 0 || allPacientesDB.length > 0;
   const [loading, setLoading] = useState(!hasCache);
   const [syncStatus, setSyncStatus] = useState(hasCache ? 'synced' : 'connecting');
 
@@ -149,12 +158,19 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
 
     const qCurrent = query(pacientesRef, where('tAdmision', '>=', ranges.current.start), where('tAdmision', '<=', ranges.current.end));
     const qPrevYear = query(pacientesRef, where('tAdmision', '>=', ranges.prevYear.start), where('tAdmision', '<=', ranges.prevYear.end));
+    
+    // Consulta amplia de los últimos 30 días para asegurar auditoría de turnos cerrados sin restricciones de UI
+    const thirtyDaysAgoMs = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    const qAuditRecent = query(pacientesRef, where('tAdmision', '>=', thirtyDaysAgoMs));
+
     const qTurnos = query(turnosRef, where('fechaInicio', '>=', `${ranges.minYear}-01-01`));
 
     let currentDocs = [];
     let prevYearDocs = [];
+    let recentDocs = [];
     let unsubCurrent = () => {};
     let unsubPrevYear = () => {};
+    let unsubRecent = () => {};
     let active = true;
 
     const isLargeRange = (ranges.current.end - ranges.current.start) > (62 * 24 * 60 * 60 * 1000);
@@ -162,9 +178,23 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
     const mergeAndSetPacientes = () => {
       const merged = [...currentDocs, ...prevYearDocs];
       setPacientesDB(merged);
+      
+      const allMergedMap = new Map();
+      [...recentDocs, ...merged].forEach(p => {
+        if (p && p.tAdmision) {
+          const id = p.id || p.docId || `${p.tAdmision}_${p.correlativo || p.nombrePaciente}`;
+          allMergedMap.set(id, p);
+        }
+      });
+      const allMerged = Array.from(allMergedMap.values()).sort((a, b) => b.tAdmision - a.tAdmision);
+      setAllPacientesDB(allMerged);
+
       setPacientesLoaded(true);
-      if (merged.length > 0 && merged.length <= 1500) {
-        try { localStorage.setItem('metrico_cached_pacientes', JSON.stringify(merged)); } catch (e) {}
+      if (allMerged.length > 0) {
+        try { 
+          // Guardar los últimos 1000 pacientes para instant-load
+          localStorage.setItem('metrico_cached_pacientes', JSON.stringify(allMerged.slice(0, 1000))); 
+        } catch (e) {}
       }
     };
 
@@ -173,11 +203,13 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
         if (!active) return;
         Promise.all([
           getDocs(qCurrent),
-          getDocs(qPrevYear)
-        ]).then(([snapCurrent, snapPrev]) => {
+          getDocs(qPrevYear),
+          getDocs(qAuditRecent)
+        ]).then(([snapCurrent, snapPrev, snapRecent]) => {
           if (!active) return;
           currentDocs = snapCurrent.docs.map(d => ({ id: d.id, ...d.data() }));
           prevYearDocs = snapPrev.docs.map(d => ({ id: d.id, ...d.data() }));
+          recentDocs = snapRecent.docs.map(d => ({ id: d.id, ...d.data() }));
           mergeAndSetPacientes();
         }).catch((err) => {
           console.error("Error cargando pacientes (getDocs):", err);
@@ -198,6 +230,13 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
         mergeAndSetPacientes();
       }, (err) => {
         console.error("Error cargando pacientes año anterior:", err);
+      });
+
+      unsubRecent = onSnapshot(qAuditRecent, (snapshot) => {
+        recentDocs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        mergeAndSetPacientes();
+      }, (err) => {
+        console.error("Error cargando pacientes recientes auditoria:", err);
       });
     }
 
@@ -249,6 +288,7 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
     setSyncStatus, 
     setLoading, 
     pacientesDB, 
+    allPacientesDB,
     turnosDB,
     pacientesLoaded,
     turnosLoaded,
