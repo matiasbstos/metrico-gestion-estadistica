@@ -874,6 +874,7 @@ const DashboardContent = () => {
         isOpen={showCorreoModal} 
         onClose={() => setShowCorreoModal(false)} 
         app={app} 
+        db={db}
         showNotif={showNotif} 
         pacientesDB={pacientesDB} 
         turnosDB={turnosDB} 

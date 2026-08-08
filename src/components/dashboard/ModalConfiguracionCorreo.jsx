@@ -4,7 +4,7 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import { auditarUltimoTurnoCompleto } from '../../utils/helpers';
 import { generateAltasSummary, generateFracturasSummary, generateEnfermeriaSummary, generateConstatacionesSummary, generateTrasladosSummary } from '../../utils/summaryGenerator';
 
-export default function ModalConfiguracionCorreo({ isOpen, onClose, app, showNotif, pacientesDB = [], turnosDB = [] }) {
+export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, showNotif, pacientesDB = [], turnosDB = [] }) {
   const [emails, setEmails] = useState('jefatura.sar@cormumel.cl, direccion.sar@cormumel.cl');
   const [activo, setActivo] = useState(true);
   
@@ -103,12 +103,12 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, showNot
     };
 
     try {
-      // 1. Guardar registro en Firestore (Colección mail y envios_correos)
-      if (db) {
+      // 1. Guardar registro en Firestore (Colección mail y envios_correos) si db está disponible
+      if (typeof db !== 'undefined' && db) {
         import('firebase/firestore').then(({ collection, addDoc }) => {
           addDoc(collection(db, 'mail'), mailPayload).catch(e => console.warn('Firestore mail write:', e));
           addDoc(collection(db, 'envios_correos'), mailPayload).catch(e => console.warn('Firestore envios_correos write:', e));
-        });
+        }).catch(err => console.warn('Import firestore err:', err));
       }
 
       // 2. Intentar llamada Cloud Function
