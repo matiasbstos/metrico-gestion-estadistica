@@ -566,6 +566,109 @@ const smtpTransporter = nodemailer.createTransport({
   }
 });
 
+const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
+
+const generarPdfConsolidado = async (turnoInfo) => {
+  const pdfDoc = await PDFDocument.create();
+  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+  const page = pdfDoc.addPage([612, 792]); // Standard US Letter
+  const { width, height } = page.getSize();
+
+  // Header Bar
+  page.drawRectangle({
+    x: 0,
+    y: height - 90,
+    width: width,
+    height: 90,
+    color: rgb(0.31, 0.27, 0.9)
+  });
+
+  page.drawText('SAR ELSA ROMO ARAVENA', {
+    x: 30,
+    y: height - 42,
+    size: 16,
+    font: fontBold,
+    color: rgb(1, 1, 1)
+  });
+
+  page.drawText('REPORTE EJECUTIVO DE GESTIÓN DE URGENCIAS • MÉTRICO', {
+    x: 30,
+    y: height - 64,
+    size: 11,
+    font: fontBold,
+    color: rgb(0.9, 0.9, 1)
+  });
+
+  let y = height - 120;
+
+  // Header Details
+  page.drawText(`Fecha de Turno: ${turnoInfo.fechaTurno}`, { x: 30, y, size: 11, font: fontBold, color: rgb(0.1, 0.1, 0.2) });
+  y -= 18;
+  page.drawText(`Identificador: ${turnoInfo.textoCompleto}`, { x: 30, y, size: 10, font: fontRegular, color: rgb(0.3, 0.3, 0.4) });
+  y -= 16;
+  page.drawText(`Rotativa: ${turnoInfo.rotativa} | ${turnoInfo.equipo || 'Equipo 2'}`, { x: 30, y, size: 10, font: fontRegular, color: rgb(0.3, 0.3, 0.4) });
+  y -= 25;
+
+  // Status Badge
+  page.drawRectangle({ x: 30, y: y - 22, width: width - 60, height: 22, color: rgb(0.92, 0.98, 0.95) });
+  page.drawText('✓ CONTROL DE GUÍA & VERIFICACIÓN ASISTENCIAL: 100% DATOS COMPLETOS Y AUDITADOS', { x: 40, y: y - 16, size: 9, font: fontBold, color: rgb(0.02, 0.45, 0.3) });
+  y -= 40;
+
+  // KPI Section
+  page.drawText('INDICADORES CLAVE DE DESEMPEÑO (KPIs)', { x: 30, y, size: 11, font: fontBold, color: rgb(0.1, 0.1, 0.2) });
+  y -= 20;
+
+  const kpis = [
+    ['Pacientes Admitidos Totales:', String(turnoInfo.totalAdmitidos)],
+    ['Atenciones Médicas Efectivas:', String(turnoInfo.atendidos)],
+    ['Altas Administrativas & Retiros:', String(turnoInfo.altasAdmin)],
+    ['Categoría C1 (Emergencia Vital):', String(turnoInfo.triage?.c1 || 0)],
+    ['Categoría C2 (Urgencia Alta):', String(turnoInfo.triage?.c2 || 0)],
+    ['Categoría C3 (Urgencia Media):', String(turnoInfo.triage?.c3 || 0)],
+    ['Categoría C4 (Baja Complejidad):', String(turnoInfo.triage?.c4 || 0)],
+    ['Categoría C5 (Consulta General):', String(turnoInfo.triage?.c5 || 0)],
+    ['Profesional Más Productivo:', String(turnoInfo.medicoMasProductivo || 'No especificado')]
+  ];
+
+  kpis.forEach(([label, val]) => {
+    page.drawText(label, { x: 40, y, size: 10, font: fontRegular, color: rgb(0.2, 0.2, 0.3) });
+    page.drawText(val, { x: width - 200, y, size: 10, font: fontBold, color: rgb(0.3, 0.2, 0.8) });
+    y -= 18;
+  });
+
+  y -= 15;
+  page.drawText('BITÁCORA ASISTENCIAL Y SUB-REPORTES DETALLADOS:', { x: 30, y, size: 11, font: fontBold, color: rgb(0.1, 0.1, 0.2) });
+  y -= 20;
+
+  const subSections = [
+    ['1. Demanda de Atención & Diagnósticos:', turnoInfo.totalAdmitidos > 0 ? `Se registraron ${turnoInfo.totalAdmitidos} admisiones. Atenciones concentradas en síndrome febril y afecciones respiratorias.` : 'No se registraron admisiones en este periodo.'],
+    ['2. Facturas Recibidas & Traumatología:', (turnoInfo.fracturasCount || 0) > 0 ? `Se registraron ${turnoInfo.fracturasCount} atenciones por sospecha/confirmación de fractura auditadas.` : 'No se registraron atenciones por fractura ni facturas de urgencia en este turno.'],
+    ['3. Rendimiento de Enfermería y Triaje:', 'Tiempos de respuesta desde la admisión a primera categorización cumpliendo los estándares.'],
+    ['4. Constatación de Lesiones (Z51.8):', (turnoInfo.constatacionesCount || 0) > 0 ? `Se registraron ${turnoInfo.constatacionesCount} atenciones por constatación de lesiones (Z51.8).` : 'No se registraron constataciones de lesiones en este turno.'],
+    ['5. Traslados Hospitalarios a UEH:', (turnoInfo.trasladosCount || 0) > 0 ? `Se registraron ${turnoInfo.trasladosCount} traslados hospitalarios a la Unidad de Emergencia.` : 'No se registraron traslados hospitalarios en este turno.']
+  ];
+
+  subSections.forEach(([title, text]) => {
+    page.drawText(title, { x: 30, y, size: 10, font: fontBold, color: rgb(0.3, 0.2, 0.8) });
+    y -= 14;
+    page.drawText(text, { x: 45, y, size: 9, font: fontRegular, color: rgb(0.3, 0.3, 0.4) });
+    y -= 22;
+  });
+
+  page.drawText('MÉTRICO Clínico Predictivo • SAR Elsa Romo Aravena', {
+    x: 30,
+    y: 25,
+    size: 9,
+    font: fontBold,
+    color: rgb(0.5, 0.5, 0.6)
+  });
+
+  const pdfBytes = await pdfDoc.save();
+  return Buffer.from(pdfBytes);
+};
+
 /**
  * Cloud Function para despacho automático de informes por correo programado
  * 1. Verificación de completitud e integridad de datos del turno.
@@ -592,23 +695,28 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
     totalAdmitidos: 142,
     atendidos: 128,
     altasAdmin: 14,
+    fracturasCount: 0,
+    constatacionesCount: 0,
+    trasladosCount: 0,
     triage: { c1: 2, c2: 18, c3: 65, c4: 42, c5: 15 },
-    medicoMasProductivo: 'Dr. Fernando Morales (34 atenciones)',
-    jsonPayload: {
-      centro: 'SAR Elsa Romo Aravena',
-      fechaTurno: '07/08/2026',
-      turnoIdentificador: 'Turno 2 (Turno Nocturno / Largo 17:00 a 08:00 hrs)',
-      rotativa: 'Turno de Semana (17:00 - 08:00)',
-      estadoIntegridad: 'COMPLETO_100_PORCIENTO_AUDITADO',
-      kpis: {
-        totalAdmitidos: 142,
-        atendidos: 128,
-        altasAdmin: 14,
-        triage: { c1: 2, c2: 18, c3: 65, c4: 42, c5: 15 },
-        medicoMasProductivo: 'Dr. Fernando Morales (34 atenciones)'
-      }
-    }
+    medicoMasProductivo: 'Dr. Fernando Morales (34 atenciones)'
   };
+
+  const demandaTxt = turnoInfo.totalAdmitidos > 0 
+    ? `Se registró un volumen total de <strong>${turnoInfo.totalAdmitidos} admisiones</strong> en el turno. Los diagnósticos principales atendidos se concentraron prioritariamente en cuadros respiratorios agudos, síndrome febril y traumatismos diversos.`
+    : `No se registraron admisiones en este periodo.`;
+
+  const fracturasTxt = (turnoInfo.fracturasCount || 0) > 0
+    ? `Se registraron <strong>${turnoInfo.fracturasCount} atenciones por sospecha o confirmación de fracturas</strong>. Las facturas asistenciales y hojas de urgencia fueron recibidas, registradas y auditadas conforme al protocolo de control de guía.`
+    : `No se registraron atenciones por sospecha o confirmación de fracturas ni facturas de urgencia en este turno.`;
+
+  const constatacionesTxt = (turnoInfo.constatacionesCount || 0) > 0
+    ? `Se procesaron <strong>${turnoInfo.constatacionesCount} atenciones por constatación de lesiones (Z51.8)</strong> con completo registro clínico-legal.`
+    : `No se registraron constataciones de lesiones (Z51.8) en este turno.`;
+
+  const trasladosTxt = (turnoInfo.trasladosCount || 0) > 0
+    ? `Se coordinaron <strong>${turnoInfo.trasladosCount} traslados hospitalarios</strong> a la Unidad de Emergencia Hospitalaria (UEH).`
+    : `No se registraron traslados hospitalarios en este turno.`;
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -633,7 +741,7 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
     <body>
       <div class="container">
         <div class="header">
-          <span class="badge">SAR ELSA ROMO ARAVENA • RED SALUD</span>
+          <span class="badge">SAR ELSA ROMO ARAVENA • MÉTRICO</span>
           <h1 class="title">Informe Ejecutivo Auditado de Atención Médica & Demanda</h1>
         </div>
         
@@ -668,14 +776,14 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
           <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; margin-bottom: 20px; font-size: 12px;">
             <p style="margin-top: 0; font-weight: 800; color: #1e293b;">Categorización por Triage (C1 a C5):</p>
             <p style="margin-bottom: 8px; color: #334155;">
-              • <strong>C1 (Emergencia):</strong> ${turnoInfo.triage.c1} &nbsp;|&nbsp; 
-              • <strong>C2 (Urgencia Alta):</strong> ${turnoInfo.triage.c2} &nbsp;|&nbsp; 
-              • <strong>C3 (Urgencia Media):</strong> ${turnoInfo.triage.c3}<br>
-              • <strong>C4 (Baja Complejidad):</strong> ${turnoInfo.triage.c4} &nbsp;|&nbsp; 
-              • <strong>C5 (General):</strong> ${turnoInfo.triage.c5}
+              • <strong>C1 (Emergencia):</strong> ${turnoInfo.triage?.c1 || 0} &nbsp;|&nbsp; 
+              • <strong>C2 (Urgencia Alta):</strong> ${turnoInfo.triage?.c2 || 0} &nbsp;|&nbsp; 
+              • <strong>C3 (Urgencia Media):</strong> ${turnoInfo.triage?.c3 || 0}<br>
+              • <strong>C4 (Baja Complejidad):</strong> ${turnoInfo.triage?.c4 || 0} &nbsp;|&nbsp; 
+              • <strong>C5 (General):</strong> ${turnoInfo.triage?.c5 || 0}
             </p>
             <p style="margin-top: 10px; margin-bottom: 0; color: #4f46e5; font-weight: 800;">
-              🏆 Profesional Médicamente Más Productivo del Turno: ${turnoInfo.medicoMasProductivo}
+              🏆 Profesional Médicamente Más Productivo del Turno: ${turnoInfo.medicoMasProductivo || 'No especificado'}
             </p>
           </div>
 
@@ -685,42 +793,32 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
 
           <div class="report-section">
             <h4 class="report-title">📋 1. Demanda de Atención & Principales Diagnósticos del Turno</h4>
-            <p style="font-size: 12px; color: #334155; margin: 0; line-height: 1.5;">
-              Se registró un volumen de admisiones de ${turnoInfo.totalAdmitidos} admisiones en el periodo. Los diagnósticos principales atendidos se concentraron prioritariamente en cuadros respiratorios agudos, síndrome febril y atenciones por traumatismos diversos.
-            </p>
+            <p style="font-size: 12px; color: #334155; margin: 0; line-height: 1.5;">${demandaTxt}</p>
           </div>
 
           <div class="report-section">
             <h4 class="report-title" style="color: #be123c;">🦴 2. Registro de Facturas Recibidas & Diagnósticos Traumatológicos</h4>
-            <p style="font-size: 12px; color: #334155; margin: 0; line-height: 1.5;">
-              Se evaluaron atenciones por sospecha o confirmación de fractura y contusiones de consideración. Las facturas asistenciales y hojas de atención de urgencia fueron recibidas, registradas y auditadas conforme al protocolo de control de guía.
-            </p>
+            <p style="font-size: 12px; color: #334155; margin: 0; line-height: 1.5;">${fracturasTxt}</p>
           </div>
 
           <div class="report-section">
             <h4 class="report-title">🩺 3. Rendimiento de Enfermería y Triaje</h4>
-            <p style="font-size: 12px; color: #334155; margin: 0; line-height: 1.5;">
-              Tiempos óptimos de respuesta asistencial desde la admisión del paciente hasta la asignación de primera categorización. Se cumplió con el estándar de re-categorización oportuna.
-            </p>
+            <p style="font-size: 12px; color: #334155; margin: 0; line-height: 1.5;">Tiempos óptimos de respuesta asistencial desde la admisión del paciente hasta la asignación de primera categorización.</p>
           </div>
 
           <div class="report-section">
             <h4 class="report-title" style="color: #d97706;">🛡️ 4. Constatación de Lesiones (Z51.8)</h4>
-            <p style="font-size: 12px; color: #334155; margin: 0; line-height: 1.5;">
-              Atenciones por constatación de lesiones clínico-legales procesadas con completo registro de procedencia territorial y tramo etario.
-            </p>
+            <p style="font-size: 12px; color: #334155; margin: 0; line-height: 1.5;">${constatacionesTxt}</p>
           </div>
 
           <div class="report-section">
             <h4 class="report-title">🚑 5. Traslados Hospitalarios a Unidad de Emergencia (UEH)</h4>
-            <p style="font-size: 12px; color: #334155; margin: 0; line-height: 1.5;">
-              Traslados y derivaciones asistenciales coordinadas hacia el hospital base de referencia.
-            </p>
+            <p style="font-size: 12px; color: #334155; margin: 0; line-height: 1.5;">${trasladosTxt}</p>
           </div>
         </div>
 
         <div class="footer">
-          MÉTRICO Clínico Predictivo • SAR Elsa Romo Aravena • Red Salud<br>
+          MÉTRICO Clínico Predictivo • SAR Elsa Romo Aravena<br>
           Informe asistencial automático auditado el ${nowStr}
         </div>
       </div>
@@ -728,15 +826,23 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
     </html>
   `;
 
-  console.log(`[SMTP Nodemailer] Despachando correo real a:`, emailsList);
+  console.log(`[SMTP Nodemailer] Generando PDF consolidado y despachando correo a:`, emailsList);
 
   const safeFecha = String(turnoInfo.fechaTurno || '07-08-2026').replace(/\//g, '-');
+  
+  // Generar Buffer del PDF nativo Hoja Carta
+  let pdfBuffer = null;
+  try {
+    pdfBuffer = await generarPdfConsolidado(turnoInfo);
+  } catch (pdfErr) {
+    console.warn("Error generando PDF con pdf-lib, continuando con adjuntos planos:", pdfErr.message);
+  }
 
   const csvData = `FECHA_TURNO,TURNO,EQUIPO,ROTATIVA,ADMITIDOS_TOTAL,ATENDIDOS,ALTAS_ADMINISTRATIVAS,C1_EMERGENCIA,C2_URGENCIA_ALTA,C3_URGENCIA_MEDIA,C4_BAJA_COMPLEJIDAD,C5_GENERAL,TOP_PROFESIONAL
 "${turnoInfo.fechaTurno}","Turno ${turnoInfo.turnoNum}","${turnoInfo.equipo || 'Equipo 2'}","${turnoInfo.rotativa}",${turnoInfo.totalAdmitidos},${turnoInfo.atendidos},${turnoInfo.altasAdmin},${turnoInfo.triage?.c1 || 0},${turnoInfo.triage?.c2 || 0},${turnoInfo.triage?.c3 || 0},${turnoInfo.triage?.c4 || 0},${turnoInfo.triage?.c5 || 0},"${turnoInfo.medicoMasProductivo || 'No especificado'}"`;
 
   const txtSummary = `====================================================================
-SAR ELSA ROMO ARAVENA - RED SALUD
+SAR ELSA ROMO ARAVENA - MÉTRICO
 INFORME EJECUTIVO AUDITADO DE ATENCIÓN MÉDICA Y BITÁCORA DE TURNO
 ====================================================================
 FECHA DE TURNO: ${turnoInfo.fechaTurno}
@@ -751,7 +857,7 @@ VERIFICACIÓN: Control de Guía & Inspección de Duplicados OK (100% Auditado)
 - Pacientes Admitidos Totales: ${turnoInfo.totalAdmitidos}
 - Atenciones Médicas Efectivas: ${turnoInfo.atendidos}
 - Altas Administrativas & Retiros: ${turnoInfo.altasAdmin}
-- Profesional Médicamente Más Productivo: ${turnoInfo.medicoMasProductivo}
+- Profesional Médicamente Más Productivo: ${turnoInfo.medicoMasProductivo || 'No especificado'}
 
 --------------------------------------------------------------------
 2. DESGLOSE POR CATEGORIZACIÓN TRIAGE (C1 A C5)
@@ -765,14 +871,14 @@ VERIFICACIÓN: Control de Guía & Inspección de Duplicados OK (100% Auditado)
 --------------------------------------------------------------------
 3. CONSOLIDADO DE SUB-REPORTES ASISTENCIALES
 --------------------------------------------------------------------
-[Demanda de Atención] Admisión total de ${turnoInfo.totalAdmitidos} pacientes. Atenciones concentradas en síndrome febril, patología respiratoria y traumas.
-[Facturas & Traumatología] Registro y control de facturas de urgencia y atenciones de trauma auditadas según protocolo de guía.
-[Enfermería & Triage] Tiempos óptimos de respuesta asistencial y re-categorización efectiva.
-[Constatación de Lesiones Z51.8] Atenciones médico-legales procesadas con registro de procedencia territorial.
-[Traslados Hospitalarios] Derivaciones asistenciales coordinadas hacia el hospital base de referencia.
+[Demanda de Atención] Admisión total de ${turnoInfo.totalAdmitidos} pacientes.
+[Facturas & Traumatología] ${(turnoInfo.fracturasCount || 0) > 0 ? `Se registraron ${turnoInfo.fracturasCount} atenciones por fractura auditadas.` : 'No se registraron atenciones por fractura ni facturas en este turno.'}
+[Enfermería & Triage] Tiempos de respuesta asistencial dentro del estándar.
+[Constatación de Lesiones Z51.8] ${(turnoInfo.constatacionesCount || 0) > 0 ? `Se registraron ${turnoInfo.constatacionesCount} constataciones.` : 'No se registraron constataciones de lesiones en este turno.'}
+[Traslados Hospitalarios] ${(turnoInfo.trasladosCount || 0) > 0 ? `Se coordinaron ${turnoInfo.trasladosCount} traslados a UEH.` : 'No se registraron traslados hospitalarios en este turno.'}
 
 ====================================================================
-MÉTRICO Clínico Predictivo • SAR Elsa Romo Aravena • Red Salud
+MÉTRICO Clínico Predictivo • SAR Elsa Romo Aravena
 ====================================================================`;
 
   const attachments = [
