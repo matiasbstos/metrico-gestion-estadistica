@@ -118,21 +118,15 @@ export const deduplicarPacientes = (pacientes) => {
   return result;
 };
 
-/**
- * Inteligencia de Verificación y Auditoría de Turnos CERRADOS para el envío de informes por correo.
- * 1. Agrupa los datos por turno.
- * 2. Verifica que el turno tenga dispersión temporal completa (en turno noche debe extenderse hasta la mañana siguiente >06:00 AM).
- * 3. Si el turno más reciente está cortado a medianoche, retrocede automáticamente al turno completo anterior.
- */
 export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
   if (!pacientesDB || pacientesDB.length === 0) {
-    return { exito: false, mensaje: 'Sin datos para auditar turnos.', turnoInfo: null };
+    return { exito: false, esTurnoCompleto: false, mensaje: 'Sin datos para auditar turnos.', turnoInfo: null };
   }
 
   // Deduplicar y ordenar pacientes por timestamp descendente
   const listPacs = deduplicarPacientes(pacientesDB).filter(p => p && p.tAdmision).sort((a, b) => b.tAdmision - a.tAdmision);
   if (listPacs.length === 0) {
-    return { exito: false, mensaje: 'Sin admisiones validas.', turnoInfo: null };
+    return { exito: false, esTurnoCompleto: false, mensaje: 'Sin admisiones validas.', turnoInfo: null };
   }
 
   // Agrupar pacientes por (fechaTurno + turnoNum)
@@ -169,21 +163,23 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
     const group = shiftGroups[groupKey];
     
     // Verificación estricta de turno cerrado:
-    // La diferencia de horas entre el primer y último registro debe ser >= 11 horas
-    // Y para turnos de noche, el último registro debe ser posterior a las 06:00 AM del día siguiente
+    // La diferencia de horas entre el primer y último registro debe ser >= 9 horas
+    // Y para turnos de noche, el último registro debe ser el día siguiente después de las 05:30 AM
     const timeSpanHours = (group.maxTimestamp - group.minTimestamp) / (1000 * 60 * 60);
     const maxDate = new Date(group.maxTimestamp);
+    const minDate = new Date(group.minTimestamp);
     const maxHours = maxDate.getHours();
 
     const isNightShift = group.tipo.includes('Noche') || group.tipo.includes('Largo');
+    const isDifferentDay = maxDate.getDate() !== minDate.getDate() || maxDate.getMonth() !== minDate.getMonth();
     
     let isComplete = false;
     if (isNightShift) {
-      // Un turno noche completo DEBE tener admisiones registradas al día siguiente entre las 06:00 AM y 09:30 AM
-      isComplete = timeSpanHours >= 11 && (maxHours >= 6 && maxHours <= 10);
+      // Un turno noche completo DEBE extenderse al día siguiente Y tener admisiones entre las 05:30 AM y 10:00 AM
+      isComplete = isDifferentDay && timeSpanHours >= 9 && (maxHours >= 5 && maxHours <= 10);
     } else {
       // Turno día completo (08:00 a 20:00)
-      isComplete = timeSpanHours >= 10 && maxHours >= 19;
+      isComplete = timeSpanHours >= 9 && maxHours >= 19;
     }
 
     if (isComplete) {

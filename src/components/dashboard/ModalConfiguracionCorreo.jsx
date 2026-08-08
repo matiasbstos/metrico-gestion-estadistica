@@ -27,10 +27,28 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
   const [previewModal, setPreviewModal] = useState(false);
   const [previewTab, setPreviewTab] = useState('cuerpo'); // 'cuerpo' | 'json' | 'reportes'
 
+  // Combinar admisiones filtradas con el histórico en caché local para asegurar auditoría completa entre días
+  const combinedPacientes = useMemo(() => {
+    let cached = [];
+    try {
+      const c = localStorage.getItem('metrico_cached_pacientes');
+      if (c) cached = JSON.parse(c);
+    } catch (e) {}
+
+    const map = new Map();
+    [...(pacientesDB || []), ...cached].forEach(p => {
+      if (!p) return;
+      const id = p.id || p.docId || p.correlativo || p.rutPaciente || p.tAdmision;
+      if (id && !map.has(id)) map.set(id, p);
+    });
+
+    return Array.from(map.values());
+  }, [pacientesDB]);
+
   // Inteligencia de Verificación de Datos e Integridad del Turno CERRADO
   const auditResult = useMemo(() => {
-    return auditarUltimoTurnoCompleto(turnosDB, pacientesDB);
-  }, [turnosDB, pacientesDB]);
+    return auditarUltimoTurnoCompleto(turnosDB, combinedPacientes);
+  }, [turnosDB, combinedPacientes]);
 
   // Generación de resúmenes analíticos para los 6 sub-reportes
   const subReportSummaries = useMemo(() => {
