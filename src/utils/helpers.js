@@ -14,16 +14,16 @@ export const truncateStr = (str, n) => {
 };
 
 /**
- * Determina el Turno Asociado (Turno 1, 2 o 3), el tipo de turno y su horario de atención.
- * - Turno 1 (Largo / Diurno): 08:00 a 17:00 / 20:00 hrs
- * - Turno 2 (Noche / Nocturno): 17:00 a 08:00 hrs del día siguiente
- * - Turno 3 (Fin de Semana / Relevo Noche 24h): 20:00 a 08:00 hrs
+ * Determina el Turno Asociado (Turno 1, 2 o 3), el equipo asignado y su horario oficial de urgencia.
+ * - Turno de Semana: 17:00 a 08:00 hrs del día siguiente.
+ * - Fin de Semana (Día): 08:00 a 20:00 hrs.
+ * - Fin de Semana (Noche): 20:00 a 08:00 hrs del día siguiente.
  */
 export const obtenerTurnoDetallado = (timestamp) => {
-  if (!timestamp) return { turnoNum: '-', tipo: '-', horario: '-', fechaTurno: '-', textoCompleto: '-' };
+  if (!timestamp) return { turnoNum: '-', equipo: '-', tipo: '-', horario: '-', fechaTurno: '-', textoCompleto: '-' };
 
   const d = new Date(timestamp);
-  if (isNaN(d.getTime())) return { turnoNum: '-', tipo: '-', horario: '-', fechaTurno: '-', textoCompleto: '-' };
+  if (isNaN(d.getTime())) return { turnoNum: '-', equipo: '-', tipo: '-', horario: '-', fechaTurno: '-', textoCompleto: '-' };
 
   const hours = d.getHours();
   const dayOfWeek = d.getDay(); // 0 = Domingo, 6 = Sábado
@@ -31,8 +31,8 @@ export const obtenerTurnoDetallado = (timestamp) => {
 
   let logicalDate = new Date(timestamp);
   let turnoNum = 1;
-  let tipo = 'Largo Diurno';
-  let horario = '08:00 a 17:00 hrs';
+  let tipo = 'Turno de Semana';
+  let horario = '17:00 a 08:00 hrs';
 
   if (isWeekend) {
     if (hours >= 8 && hours < 20) {
@@ -46,27 +46,34 @@ export const obtenerTurnoDetallado = (timestamp) => {
       if (hours < 8) logicalDate.setDate(logicalDate.getDate() - 1);
     }
   } else {
-    if (hours >= 8 && hours < 17) {
-      turnoNum = 1;
-      tipo = 'Turno Largo Diurno';
-      horario = '08:00 a 17:00 hrs';
-    } else {
+    // Día de semana (Lunes a Viernes)
+    if (hours >= 17 || hours < 8) {
       turnoNum = 2;
-      tipo = 'Turno Nocturno / Largo';
+      tipo = 'Turno Largo Semana';
       horario = '17:00 a 08:00 hrs';
       if (hours < 8) logicalDate.setDate(logicalDate.getDate() - 1);
+    } else {
+      turnoNum = 1;
+      tipo = 'Refuerzo Diurno Semana';
+      horario = '08:00 a 17:00 hrs';
     }
   }
+
+  // Rotativa asignada de Equipo (Equipo 1, Equipo 2, Equipo 3)
+  const dayOfYear = Math.floor((logicalDate - new Date(logicalDate.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+  const equipoNum = ((dayOfYear + turnoNum) % 3) + 1;
+  const equipo = `Equipo ${equipoNum}`;
 
   const y = logicalDate.getFullYear();
   const m = String(logicalDate.getMonth() + 1).padStart(2, '0');
   const day = String(logicalDate.getDate()).padStart(2, '0');
   const fechaTurno = `${day}/${m}/${y}`;
 
-  const textoCompleto = `${fechaTurno} - Turno ${turnoNum} (${tipo} ${horario})`;
+  const textoCompleto = `${fechaTurno} - Turno ${turnoNum} (${equipo} • ${tipo} ${horario})`;
 
   return {
     turnoNum,
+    equipo,
     tipo,
     horario,
     fechaTurno,
