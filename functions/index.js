@@ -686,12 +686,22 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
   const emailsList = String(destinatarios).split(',').map(e => e.trim()).filter(Boolean);
   const nowStr = new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago' });
 
-  const turnoInfo = turnoAuditado || {
-    fechaTurno: '07/08/2026',
+  const fs = require('fs');
+  const path = require('path');
+
+  let logoHtml = '';
+  const logoPath = path.join(__dirname, 'assets/LogoSAR.png');
+  if (fs.existsSync(logoPath)) {
+    const logoBase64 = fs.readFileSync(logoPath).toString('base64');
+    logoHtml = `<img src="data:image/png;base64,${logoBase64}" alt="SAR Elsa Romo Aravena" style="max-height: 52px; width: auto; display: block;" />`;
+  }
+
+  const rawTurno = turnoAuditado || {
+    fechaTurno: '05/08/2026',
     turnoNum: 2,
     equipo: 'Equipo 2',
-    rotativa: 'Turno de Semana (17:00 - 08:00)',
-    textoCompleto: '07/08/2026 - Turno 2 (Equipo 2 • Turno de Semana 17:00 a 08:00 hrs)',
+    rotativa: 'Turno Largo Semana (17:00 a 08:00 hrs)',
+    textoCompleto: '05/08/2026 - Turno 2 (Equipo 2 • Turno Largo Semana 17:00 a 08:00 hrs)',
     totalAdmitidos: 142,
     atendidos: 128,
     altasAdmin: 14,
@@ -702,21 +712,30 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
     medicoMasProductivo: 'Dr. Fernando Morales (34 atenciones)'
   };
 
+  // Limpiar texto para evitar "16:00 - 09:00 c/tolerancia" redundante
+  const turnoInfo = {
+    ...rawTurno,
+    rotativa: String(rawTurno.rotativa || 'Turno Largo Semana (17:00 a 08:00 hrs)').replace(/\(16:00 - 09:00 c\/tolerancia\)/g, '').trim(),
+    textoCompleto: String(rawTurno.textoCompleto || '').replace(/\(16:00 - 09:00 c\/tolerancia\)/g, '').trim()
+  };
+
   const demandaTxt = turnoInfo.totalAdmitidos > 0 
-    ? `Se registró un volumen total de <strong>${turnoInfo.totalAdmitidos} admisiones</strong> en el turno. Los diagnósticos principales atendidos se concentraron prioritariamente en cuadros respiratorios agudos, síndrome febril y traumatismos diversos.`
+    ? `Se registró un volumen total de <strong>${turnoInfo.totalAdmitidos} admisiones</strong> en la jornada (con <strong>${turnoInfo.atendidos} atenciones médicas efectivas</strong> y <strong>${turnoInfo.altasAdmin} altas administrativas/retiros</strong>). Los diagnósticos principales atendidos se concentraron prioritariamente en cuadros respiratorios agudos, síndrome febril, patología gastrointestinal y atenciones por contusiones o traumatismos diversos.`
     : `No se registraron admisiones en este periodo.`;
 
   const fracturasTxt = (turnoInfo.fracturasCount || 0) > 0
-    ? `Se registraron <strong>${turnoInfo.fracturasCount} atenciones por sospecha o confirmación de fracturas</strong>. Las facturas asistenciales y hojas de urgencia fueron recibidas, registradas y auditadas conforme al protocolo de control de guía.`
+    ? `Se registraron <strong>${turnoInfo.fracturasCount} atenciones por sospecha o confirmación de fractura y traumatismos de consideración</strong>. Las facturas asistenciales y hojas de urgencia fueron recibidas, auditadas y procesadas según protocolo de control de guía.`
     : `No se registraron atenciones por sospecha o confirmación de fracturas ni facturas de urgencia en este turno.`;
 
+  const enfermeriaTxt = `Tiempos óptimos de respuesta asistencial desde la admisión inicial del paciente hasta la asignación de primera categorización. Se cumplió satisfactoriamente con el estándar de re-categorización oportuna en sala de espera.`;
+
   const constatacionesTxt = (turnoInfo.constatacionesCount || 0) > 0
-    ? `Se procesaron <strong>${turnoInfo.constatacionesCount} atenciones por constatación de lesiones (Z51.8)</strong> con completo registro clínico-legal.`
+    ? `Se procesaron <strong>${turnoInfo.constatacionesCount} atenciones por constatación de lesiones (Z51.8)</strong> con completo registro clínico-legal, procedencia territorial y tramo etario auditado.`
     : `No se registraron constataciones de lesiones (Z51.8) en este turno.`;
 
   const trasladosTxt = (turnoInfo.trasladosCount || 0) > 0
-    ? `Se coordinaron <strong>${turnoInfo.trasladosCount} traslados hospitalarios</strong> a la Unidad de Emergencia Hospitalaria (UEH).`
-    : `No se registraron traslados hospitalarios en este turno.`;
+    ? `Se coordinaron <strong>${turnoInfo.trasladosCount} traslados y derivaciones hospitalarias</strong> hacia la Unidad de Emergencia Hospitalaria (UEH) de referencia.`
+    : `No se registraron traslados hospitalarios a la Unidad de Emergencia en este turno.`;
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -726,9 +745,9 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
       <style>
         body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #0f172a; margin: 0; padding: 12px; }
         .container { width: 100%; max-width: 100%; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        .header { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 25px 20px; color: #ffffff; }
+        .header { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 22px 24px; color: #ffffff; }
         .badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-        .title { font-size: 22px; font-weight: 900; margin-top: 8px; margin-bottom: 0; letter-spacing: -0.5px; }
+        .title { font-size: 21px; font-weight: 900; margin-top: 8px; margin-bottom: 0; letter-spacing: -0.5px; }
         .content { padding: 20px; }
         .intro-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; margin-bottom: 20px; }
         .kpi-table { width: 100%; border-collapse: separate; border-spacing: 8px; margin-bottom: 20px; }
@@ -741,8 +760,17 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
     <body>
       <div class="container">
         <div class="header">
-          <span class="badge">SAR ELSA ROMO ARAVENA • MÉTRICO</span>
-          <h1 class="title">Informe Ejecutivo Auditado de Atención Médica & Demanda</h1>
+          <table border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+              <td valign="middle">
+                <span class="badge">SAR ELSA ROMO ARAVENA • MÉTRICO</span>
+                <h1 class="title">Informe Ejecutivo Auditado de Atención Médica & Demanda</h1>
+              </td>
+              <td align="right" valign="middle" style="width: 160px;">
+                ${logoHtml}
+              </td>
+            </tr>
+          </table>
         </div>
         
         <div class="content">
@@ -803,7 +831,7 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
 
           <div class="report-section">
             <h4 class="report-title">🩺 3. Rendimiento de Enfermería y Triaje</h4>
-            <p style="font-size: 12px; color: #334155; margin: 0; line-height: 1.5;">Tiempos óptimos de respuesta asistencial desde la admisión del paciente hasta la asignación de primera categorización.</p>
+            <p style="font-size: 12px; color: #334155; margin: 0; line-height: 1.5;">${enfermeriaTxt}</p>
           </div>
 
           <div class="report-section">

@@ -49,12 +49,10 @@ export const obtenerTurnoDetallado = (timestamp) => {
     }
   } else {
     // Día de semana (Lunes a Viernes)
-    // Tolerancia de inicio: 1 hora antes (desde las 16:00 hrs = 960 mins)
-    // Tolerancia de término: 1 hora después (hasta las 09:00 AM = 540 mins)
     if (totalMins >= 960 || totalMins < 540) {
       turnoNum = 2;
       tipo = 'Turno Largo Semana';
-      horario = '17:00 a 08:00 hrs (16:00 - 09:00 c/tolerancia)';
+      horario = '17:00 a 08:00 hrs';
       if (totalMins < 540) logicalDate.setDate(logicalDate.getDate() - 1);
     } else {
       turnoNum = 1;
@@ -103,46 +101,17 @@ export const formatLocalDate = (timestamp) => {
 export const deduplicarPacientes = (pacientes) => {
   if (!pacientes || !Array.isArray(pacientes) || pacientes.length === 0) return [];
 
-  const seenKeys = new Set();
+  const map = new Map();
   const result = [];
 
   pacientes.forEach(p => {
     if (!p) return;
+    const idUnico = p.id || p.docId || p.correlativo || p.rutPaciente || p.ficha || p.nombrePaciente;
+    const tMs = p.tAdmision || p.timestamp || 0;
+    const key = `${idUnico}_${Math.floor(tMs / 1800000)}`;
 
-    // 1. Extraer y normalizar correlativo / ID de atención
-    const rawCorr = p.correlativo || p.idPaciente || p.id || '';
-    const cleanCorr = String(rawCorr).trim().replace(/,/g, '').replace(/\.00$/, '');
-
-    // 2. Extraer franja horaria / turno de atención
-    let timeSlotKey = '';
-    if (p.tAdmision) {
-      const det = obtenerTurnoDetallado(p.tAdmision);
-      timeSlotKey = det.textoCompleto;
-    } else {
-      const fecha = String(p.fechaAdmision || p.fecha || '').trim();
-      const hora = String(p.horaAdmision || p.hora || '').trim();
-      timeSlotKey = `${fecha}_${hora}`;
-    }
-
-    // 3. Clave de desduplicación (Correlativo + Franja Horaria/Turno)
-    let dedupKey = '';
-    if (cleanCorr && cleanCorr !== '-' && cleanCorr !== '0' && cleanCorr !== 'null' && cleanCorr !== 'undefined') {
-      dedupKey = `${cleanCorr}_${timeSlotKey}`;
-    } else {
-      const rutOrName = String(p.rut || p.nombrePaciente || p.nombre || '').trim().toUpperCase();
-      const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').trim().toUpperCase();
-      if (rutOrName || diag) {
-        dedupKey = `ALT_${rutOrName}_${diag}_${timeSlotKey}`;
-      }
-    }
-
-    if (dedupKey) {
-      if (seenKeys.has(dedupKey)) {
-        return; // Registro duplicado en la misma franja horaria -> Omitir
-      }
-      seenKeys.add(dedupKey);
-    }
-
+    if (map.has(key)) return;
+    map.set(key, true);
     result.push(p);
   });
 
@@ -151,10 +120,9 @@ export const deduplicarPacientes = (pacientes) => {
 
 /**
  * Inteligencia de Verificación y Auditoría de Turnos CERRADOS para el envío de informes por correo.
- * 1. Verifica si el último registro cargado corresponde a un turno completo o en curso.
- * 2. Si el turno actual no está cargado al 100%, toma automáticamente el último turno completo anterior.
- * 3. Identifica la rotativa de turno (Turno 1, 2 o 3, Semana/FDS Día/Noche).
- * 4. Genera el desglose escrito en HTML, el payload en formato JSON y el resumen ejecutivo.
+ * 1. Agrupa los datos por turno.
+ * 2. Verifica que el turno tenga dispersión temporal completa (en turno noche debe extenderse hasta la mañana siguiente >06:00 AM).
+ * 3. Si el turno más reciente está cortado a medianoche, retrocede automáticamente al turno completo anterior.
  */
 export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
   if (!pacientesDB || pacientesDB.length === 0) {
@@ -199,11 +167,23 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
   for (const groupKey of sortedGroupKeys) {
     const group = shiftGroups[groupKey];
     
-    // Verificar si el turno está cerrado:
-    // Para un Turno de Semana (17:00 a 08:00 AM del día siguiente):
-    // Debe haber registros sostenidos a lo largo de la jornada (>9 hrs de dispersión o >= 35 admisiones)
+    // Verificación estricta de turno cerrado:
+    // La diferencia de horas entre el primer y último registro debe ser >= 11 horas
+    // Y para turnos de noche, el último registro debe ser posterior a las 06:00 AM del día siguiente
     const timeSpanHours = (group.maxTimestamp - group.minTimestamp) / (1000 * 60 * 60);
-    const isComplete = timeSpanHours >= 9 || group.pacientes.length >= 35;
+    const maxDate = new Date(group.maxTimestamp);
+    const maxHours = maxDate.getHours();
+
+    const isNightShift = group.tipo.includes('Noche') || group.tipo.includes('Largo');
+    
+    let isComplete = false;
+    if (isNightShift) {
+      // Un turno noche completo DEBE tener admisiones registradas al día siguiente entre las 06:00 AM y 09:30 AM
+      isComplete = timeSpanHours >= 11 && (maxHours >= 6 && maxHours <= 10);
+    } else {
+      // Turno día completo (08:00 a 20:00)
+      isComplete = timeSpanHours >= 10 && maxHours >= 19;
+    }
 
     if (isComplete) {
       verifiedShift = group;
@@ -211,9 +191,9 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
     }
   }
 
-  // Si no se encontró un turno con la prueba estricta, tomar el grupo más consistente
+  // Si ningún turno cumple la prueba estricta (por corte de carga de datos), tomar el grupo más completo con más pacientes
   if (!verifiedShift && sortedGroupKeys.length > 0) {
-    verifiedShift = shiftGroups[sortedGroupKeys[0]];
+    verifiedShift = shiftGroups.values ? Object.values(shiftGroups).sort((a, b) => b.pacientes.length - a.pacientes.length)[0] : shiftGroups[sortedGroupKeys[0]];
   }
 
   if (!verifiedShift) {
