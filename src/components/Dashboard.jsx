@@ -1265,7 +1265,7 @@ const DashboardContent = () => {
                   <span>Novedades</span>
                 </div>
                 <span className="text-[9px] font-black uppercase bg-emerald-600 text-white px-1.5 py-0.5 rounded-md animate-pulse">
-                  v2.8.5
+                  v2.9.0
                 </span>
               </button>
             </div>
@@ -1280,7 +1280,7 @@ const DashboardContent = () => {
               </button>
               <button
                 onClick={() => setShowMuroModal(true)}
-                title="Actualizaciones (v2.8.5)"
+                title="Actualizaciones (v2.9.0)"
                 className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer"
               >
                 <Megaphone className="w-4 h-4" />

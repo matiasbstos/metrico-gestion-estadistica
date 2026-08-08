@@ -4,7 +4,15 @@
 
 Aquí documentamos el progreso y las últimas actualizaciones que se le están haciendo al sistema para mantener a todo el equipo informado.
 
-### ✨ [Actualización v2.8.0] - 05 de Agosto 2026 - Potenciación Cognitiva del Radar Predictivo & Calidad del Aire en Vivo
+### ✨ [Actualización v2.9.0] - 08 de Agosto 2026 - Despacho Automático de Correos, Adjunto PDF Hoja Carta & Auditoría de Turnos
+- **Despacho de Adjuntos Físicos en PDF (Hoja Carta):** Generación nativa en tiempo real del archivo PDF oficial con todos los sub-reportes seleccionados y tabla de KPIs.
+- **Desglose Estricto por Día y Equipo de Turno:** Separación en fin de semana y festivos para el Turno Día (08:00 - 20:00) y Turno Noche (20:00 - 08:00) asignados al Equipo correspondiente (Equipos 1, 2 y 3).
+- **Cómputo Inteligente de Tolerancia de Turnos:** Conteo de admisiones de semana desde las 16:00 hrs e inclusión de extensión hasta las 09:00 AM para continuidad de cierre.
+- **Prueba Estricta de Completitud (100% Auditado):** Verificación automática que descarta turnos parciales (cortados a medianoche) y busca el último turno con datos 100% cerrados.
+- **Incrustación de Identidad Visual SAR Elsa Romo Aravena:** Logo oficial del SAR incrustado en la cabecera superior del correo.
+- **Registro en Tiempo Real en el Módulo de Auditoría:** Registro de cada envío manual o automático en el panel de auditoría con fecha, hora, turno, destinatarios y lista de adjuntos.
+
+### ✨ [Actualización v2.8.5] - 07 de Agosto 2026 - Módulo Interactivo de Prueba de Control e Integridad de Datos + Tarjetas Desplegables
 - **Agente Epidemiológico IA (Gemini 1.5 Flash):** Diagnóstico de sobrecarga asistencial cruzando clima, BigQuery ML y MINSAL.
 - **Rastreador RSS MINSAL Chile:** Detección automática de alertas sanitarias oficiales y campañas invernales.
 - **Calidad del Aire Integrada en Vivo:** Pronóstico a 7 días con índices AQI y PM2.5/PM10 por día en Melipilla.

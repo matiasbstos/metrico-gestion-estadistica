@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Megaphone, Sparkles, X, Calendar, CheckCircle2, ShieldAlert, MapPin, Cpu, BarChart2, Filter, Layers, Clock, HelpCircle, BookOpen, Lightbulb, Eye } from 'lucide-react';
+import { Megaphone, Sparkles, X, Calendar, CheckCircle2, ShieldAlert, MapPin, Cpu, BarChart2, Filter, Layers, Clock, HelpCircle, BookOpen, Lightbulb, Eye, Mail } from 'lucide-react';
 
 export default function ModalMuroActualizaciones({ isOpen, onClose }) {
   const [selectedCat, setSelectedCat] = useState('TODOS');
@@ -8,11 +8,36 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v2.9.0',
+      version: 'v2.9.0',
+      fecha: '08 de Agosto, 2026',
+      badge: 'ÚLTIMA VERSIÓN',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Sistema Automatizado de Envío de Informes Ejecutivos por Correo + Adjunto PDF Hoja Carta + Auditoría de Turnos',
+      categoria: 'Despacho & Auditoría',
+      icon: Mail,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Despacho automatizado de informes ejecutivos auditados con adjuntos PDF en Hoja Carta, control estricto de completitud de turnos (semana y fin de semana por equipo), logo institucional del SAR y registro en vivo en el Panel de Auditoría.',
+      instructivo: {
+        paraQueSirve: 'Sirve para programar y enviar automáticamente los informes de urgencia a las jefaturas y dirección asistencial por correo electrónico en formato PDF y CSV, manteniendo la rotativa oficial de equipos (Equipos 1, 2 y 3) y garantizando que ningún turno se duplique ni se envíe incompleto.',
+        quePuedesVer: 'En el menú lateral encontrarás el nuevo botón "Informe por Correo". Al presionar el botón de prueba o guardar la configuración, el sistema genera el informe, adjunta el PDF en Hoja Carta y registra la constancia en el módulo de "Auditoría".',
+        ejemploUso: 'Ejemplo: El lunes a las 09:00 AM, el sistema realiza el barrido automático de fin de semana y envía 3 correos y PDFs independientes correspondientes al Viernes Noche, Sábado (Día y Noche) y Domingo (Día y Noche), indicando en cada uno el Equipo de Turno responsable (Equipo 1, 2 o 3).'
+      },
+      changes: [
+        'Despacho de Adjuntos Físicos en PDF (Hoja Carta): Generación nativa en tiempo real del archivo PDF oficial con todos los sub-reportes seleccionados y tabla de KPIs.',
+        'Desglose Estricto por Día y Equipo de Turno: Separación en fin de semana y festivos para el Turno Día (08:00 - 20:00) y Turno Noche (20:00 - 08:00) asignados al Equipo correspondiente (Equipos 1, 2 y 3).',
+        'Cómputo Inteligente de Tolerancia de Turnos: Conteo de admisiones de semana desde las 16:00 hrs e inclusión de extensión hasta las 09:00 AM para continuidad de cierre.',
+        'Prueba Estricta de Completitud (100% Auditado): Verificación automática que descarta turnos parciales (cortados a medianoche) y busca el último turno con datos 100% cerrados.',
+        'Incrustación de Identidad Visual SAR Elsa Romo Aravena: Logo oficial del SAR incrustado en la cabecera superior del correo.',
+        'Registro en Tiempo Real en el Módulo de Auditoría: Registro de cada envío manual o automático en el panel de auditoría con fecha, hora, turno, destinatarios y lista de adjuntos.'
+      ]
+    },
+    {
       id: 'v2.8.5',
       version: 'v2.8.5',
       fecha: '07 de Agosto, 2026',
-      badge: 'ÚLTIMA VERSIÓN',
-      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      badge: 'ACTUALIZACIÓN',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
       title: 'Módulo Interactivo de Prueba de Control e Integridad de Datos + Tarjetas Desplegables',
       categoria: 'Integridad & Control',
       icon: Sparkles,
