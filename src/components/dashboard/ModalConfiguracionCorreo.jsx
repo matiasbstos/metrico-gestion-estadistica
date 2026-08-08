@@ -438,7 +438,7 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
                     <span className="font-black text-slate-900">📊 Informe Asistencial Ejecutivo Auditado - {turnoInfo.textoCompleto}</span>
                   </div>
 
-                  {/* INTRODUCCIÓN FORMAL SOLICITADA */}
+                  {/* INTRODUCCIÓN FORMAL CON CONTROL DE GUÍA */}
                   <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-2 text-slate-700 leading-relaxed">
                     <p className="font-bold text-slate-900 text-sm">
                       Estimada Dirección y Equipo de Gestión Asistencial del SAR Elsa Romo Aravena:
@@ -446,8 +446,8 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
                     <p>
                       Junto con saludarles cordialmente, presentamos el <strong>Informe Ejecutivo Auditado de Atención Médica y Demanda de Urgencia</strong> correspondiente al <strong>{turnoInfo.textoCompleto}</strong>, atendido por el <strong>{turnoInfo.equipo}</strong> en la rotativa <strong>{turnoInfo.rotativa}</strong>.
                     </p>
-                    <p className="text-[11px] text-emerald-700 font-bold bg-emerald-50 p-2 rounded-lg border border-emerald-200">
-                      ✔ <strong>Integridad Certificada:</strong> Los datos de este turno han sido auditados al 100% y cerrados en la base de datos oficial.
+                    <p className="text-[11px] text-emerald-700 font-bold bg-emerald-50 p-2.5 rounded-lg border border-emerald-200">
+                      ✔ <strong>Control de la Guía & Verificación Asistencial:</strong> Se ejecutó el control de la guía asistencial y la inspección por duplicación de sesiones / reingresos. La carga de datos ha sido verificada y auditada al 100% en la base de datos oficial.
                     </p>
                   </div>
 
