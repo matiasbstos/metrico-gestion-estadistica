@@ -38,7 +38,7 @@ import {
   CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
   BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
   Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
-  HeartPulse, Shield, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone
+  HeartPulse, Shield, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
