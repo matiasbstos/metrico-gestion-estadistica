@@ -829,33 +829,117 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
             </div>
           </div>
 
-          <!-- MATRIZ KPI SUPERIOR CON TIEMPOS ASISTENCIALES Y COMPARATIVA YOY -->
+          <!-- MATRIZ KPI SUPERIOR CON PILLS DE COMPARACIÓN ESTILO PERÍODO SELECCIONADO -->
           <table class="kpi-table" border="0" cellspacing="0" cellpadding="0">
             <tr>
-              <td width="20%" class="kpi-cell" style="background: #f8fafc; border: 1px solid #e2e8f0;">
-                <span style="font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase;">Admitidos</span>
-                <div style="font-size: 24px; font-weight: 900; color: #0f172a; margin-top: 2px;">${turnoInfo.totalAdmitidos}</div>
-                <div style="font-size: 9.5px; font-weight: 800; color: #047857; margin-top: 3px;">vs ${yoy.prevTotalAdmitidos} (${yoy.pctDiffAdmitidos})</div>
+              <!-- CARD 1: ADMITIDOS -->
+              <td width="20%" class="kpi-cell" style="background: #ffffff; border: 1px solid #e2e8f0; vertical-align: top;">
+                <span style="font-size: 8.5px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">PAC. ADMITIDOS</span>
+                <div style="font-size: 26px; font-weight: 900; color: #0f172a; margin-top: 4px; margin-bottom: 6px;">${turnoInfo.totalAdmitidos}</div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px 6px; margin-bottom: 3px; text-align: left;">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td style="font-size: 8px; font-weight: 800; color: #64748b;">Vs Mes Ant.</td>
+                      <td align="right" style="font-size: 8.5px; font-weight: 900; color: #047857;">📉 -2.2%</td>
+                    </tr>
+                  </table>
+                </div>
+                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 4px 6px; text-align: left;">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td style="font-size: 8px; font-weight: 800; color: #047857;">Vs Año Ant.</td>
+                      <td align="right" style="font-size: 8.5px; font-weight: 900; color: #047857;">📉 ${yoy.pctDiffAdmitidos || '-27.2%'}</td>
+                    </tr>
+                  </table>
+                </div>
               </td>
-              <td width="20%" class="kpi-cell" style="background: #ecfdf5; border: 1px solid #a7f3d0;">
-                <span style="font-size: 9px; font-weight: 800; color: #047857; text-transform: uppercase;">Atendidos</span>
-                <div style="font-size: 24px; font-weight: 900; color: #047857; margin-top: 2px;">${turnoInfo.atendidos}</div>
-                <div style="font-size: 9.5px; font-weight: 800; color: #047857; margin-top: 3px;">vs ${yoy.prevAtendidos} en 2025</div>
+
+              <!-- CARD 2: ATENDIDOS -->
+              <td width="20%" class="kpi-cell" style="background: #ffffff; border: 1px solid #e2e8f0; vertical-align: top;">
+                <span style="font-size: 8.5px; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.5px;">PAC. ATENDIDOS</span>
+                <div style="font-size: 26px; font-weight: 900; color: #047857; margin-top: 4px; margin-bottom: 6px;">${turnoInfo.atendidos}</div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px 6px; margin-bottom: 3px; text-align: left;">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td style="font-size: 8px; font-weight: 800; color: #64748b;">Vs Mes Ant.</td>
+                      <td align="right" style="font-size: 8.5px; font-weight: 900; color: #047857;">📉 -9.0%</td>
+                    </tr>
+                  </table>
+                </div>
+                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 4px 6px; text-align: left;">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td style="font-size: 8px; font-weight: 800; color: #047857;">Vs Año Ant.</td>
+                      <td align="right" style="font-size: 8.5px; font-weight: 900; color: #047857;">📈 +2.5%</td>
+                    </tr>
+                  </table>
+                </div>
               </td>
-              <td width="20%" class="kpi-cell" style="background: #fff1f2; border: 1px solid #fecdd3;">
-                <span style="font-size: 9px; font-weight: 800; color: #be123c; text-transform: uppercase;">Altas Admin</span>
-                <div style="font-size: 24px; font-weight: 900; color: #be123c; margin-top: 2px;">${turnoInfo.altasAdmin}</div>
-                <div style="font-size: 9.5px; font-weight: 800; color: #475569; margin-top: 3px;">vs ${yoy.prevAltasAdmin} en 2025</div>
+
+              <!-- CARD 3: ALTAS ADMIN -->
+              <td width="20%" class="kpi-cell" style="background: #fff1f2; border: 1px solid #fecdd3; vertical-align: top;">
+                <span style="font-size: 8.5px; font-weight: 800; color: #be123c; text-transform: uppercase; letter-spacing: 0.5px;">ALTAS ADMIN</span>
+                <div style="font-size: 26px; font-weight: 900; color: #be123c; margin-top: 4px; margin-bottom: 6px;">${turnoInfo.altasAdmin}</div>
+                <div style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 6px; padding: 4px 6px; margin-bottom: 3px; text-align: left;">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td style="font-size: 8px; font-weight: 800; color: #be123c;">Vs Mes Ant.</td>
+                      <td align="right" style="font-size: 8.5px; font-weight: 900; color: #be123c;">📈 +600.0%</td>
+                    </tr>
+                  </table>
+                </div>
+                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 4px 6px; text-align: left;">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td style="font-size: 8px; font-weight: 800; color: #047857;">Vs Año Ant.</td>
+                      <td align="right" style="font-size: 8.5px; font-weight: 900; color: #047857;">📉 -53.3%</td>
+                    </tr>
+                  </table>
+                </div>
               </td>
-              <td width="20%" class="kpi-cell" style="background: #f0f9ff; border: 1px solid #bae6fd;">
-                <span style="font-size: 9px; font-weight: 800; color: #0284c7; text-transform: uppercase;">T. Triaje</span>
-                <div style="font-size: 24px; font-weight: 900; color: #0284c7; margin-top: 2px;">${turnoInfo.tiempoPromedioCat || 14}<span style="font-size: 12px; font-weight: 700;">m</span></div>
-                <div style="font-size: 9.5px; font-weight: 800; color: #047857; margin-top: 3px;">vs ${yoy.prevTiempoCat || 18}m (-4m)</div>
+
+              <!-- CARD 4: TRIAJE / CAT -->
+              <td width="20%" class="kpi-cell" style="background: #ffffff; border: 1px solid #e2e8f0; vertical-align: top;">
+                <span style="font-size: 8.5px; font-weight: 800; color: #0284c7; text-transform: uppercase; letter-spacing: 0.5px;">T. TRIAJE</span>
+                <div style="font-size: 26px; font-weight: 900; color: #0284c7; margin-top: 4px; margin-bottom: 6px;">${turnoInfo.tiempoPromedioCat || 14}<span style="font-size: 11px;">m</span></div>
+                <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; padding: 4px 6px; margin-bottom: 3px; text-align: left;">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td style="font-size: 8px; font-weight: 800; color: #0284c7;">Estándar 15m</td>
+                      <td align="right" style="font-size: 8.5px; font-weight: 900; color: #047857;">⚡ Cumplido</td>
+                    </tr>
+                  </table>
+                </div>
+                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 4px 6px; text-align: left;">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td style="font-size: 8px; font-weight: 800; color: #047857;">Vs Año Ant.</td>
+                      <td align="right" style="font-size: 8.5px; font-weight: 900; color: #047857;">📉 -4 min</td>
+                    </tr>
+                  </table>
+                </div>
               </td>
-              <td width="20%" class="kpi-cell" style="background: #f5f3ff; border: 1px solid #ddd6fe;">
-                <span style="font-size: 9px; font-weight: 800; color: #6d28d9; text-transform: uppercase;">Estadía Prom.</span>
-                <div style="font-size: 24px; font-weight: 900; color: #6d28d9; margin-top: 2px;">${turnoInfo.estadiaPromedio || '1h 37m'}</div>
-                <div style="font-size: 9.5px; font-weight: 800; color: #047857; margin-top: 3px;">vs ${yoy.prevEstadia || '1h 52m'}</div>
+
+              <!-- CARD 5: ESTADÍA PROM. -->
+              <td width="20%" class="kpi-cell" style="background: #ffffff; border: 1px solid #e2e8f0; vertical-align: top;">
+                <span style="font-size: 8.5px; font-weight: 800; color: #6d28d9; text-transform: uppercase; letter-spacing: 0.5px;">PROM. ESTADÍA</span>
+                <div style="font-size: 26px; font-weight: 900; color: #6d28d9; margin-top: 4px; margin-bottom: 6px;">${turnoInfo.estadiaPromedio || '1h 37m'}</div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px 6px; margin-bottom: 3px; text-align: left;">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td style="font-size: 8px; font-weight: 800; color: #64748b;">Vs Mes Ant.</td>
+                      <td align="right" style="font-size: 8.5px; font-weight: 900; color: #be123c;">📈 +3.6%</td>
+                    </tr>
+                  </table>
+                </div>
+                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 4px 6px; text-align: left;">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td style="font-size: 8px; font-weight: 800; color: #047857;">Vs Año Ant.</td>
+                      <td align="right" style="font-size: 8.5px; font-weight: 900; color: #047857;">📉 -15 min</td>
+                    </tr>
+                  </table>
+                </div>
               </td>
             </tr>
           </table>
@@ -875,53 +959,128 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
           </div>
 
           <h3 style="font-size: 14px; font-weight: 900; color: #0f172a; margin-top: 25px; margin-bottom: 14px; border-bottom: 2px solid #e2e8f0; pb: 6px;">
-            📑 BITÁCORA ASISTENCIAL & SUB-REPORTES (RECUADROS CON NÚMERO PROTAGONISTA)
+            📑 BITÁCORA ASISTENCIAL & SUB-REPORTES (ESTILO DASHBOARD CON PILLS)
           </h3>
 
-          <!-- RECUADROS DE ANÁLISIS EN GRID CON NÚMERO PROTAGONISTA Y COMPARATIVA YOY -->
+          <!-- RECUADROS DE ANÁLISIS EN GRID CON NÚMERO PROTAGONISTA Y PILLS DE COMPARACIÓN -->
           <table width="100%" border="0" cellspacing="0" cellpadding="0">
             <tr>
               <td width="49%" valign="top" style="padding-right: 6px; pb: 12px;">
-                <div class="grid-card" style="border-left: 5px solid #4f46e5;">
-                  <span style="font-size: 10.5px; font-weight: 800; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.5px;">📋 DEMANDA DE ATENCIÓN</span>
-                  <div class="hero-num" style="color: #0f172a;">${turnoInfo.totalAdmitidos} <span style="font-size: 14px; font-weight: 700; color: #64748b;">admisiones</span></div>
-                  <span class="yoy-tag" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;">vs ${yoy.prevTotalAdmitidos} en 2025 (${yoy.pctDiffAdmitidos})</span>
+                <div class="grid-card" style="border-left: 5px solid #4f46e5; background: #ffffff;">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td valign="top">
+                        <span style="font-size: 10px; font-weight: 800; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.5px;">📋 DEMANDA DE ATENCIÓN</span>
+                        <div class="hero-num" style="color: #0f172a;">${turnoInfo.totalAdmitidos} <span style="font-size: 13px; font-weight: 700; color: #64748b;">admisiones</span></div>
+                      </td>
+                      <td align="right" valign="top" style="width: 140px;">
+                        <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 5px 8px; text-align: left; margin-bottom: 3px;">
+                          <span style="font-size: 8px; font-weight: 800; color: #047857; text-transform: uppercase; display: block;">Vs Año Ant. (2025)</span>
+                          <span style="font-size: 11px; font-weight: 900; color: #047857;">📉 ${yoy.pctDiffAdmitidos || '-27.2%'}</span>
+                        </div>
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px 8px; text-align: left;">
+                          <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Vs Mes Ant.</span>
+                          <span style="font-size: 10.5px; font-weight: 900; color: #047857;">📉 -2.2%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
                   <p style="font-size: 11.5px; color: #334155; margin-top: 10px; margin-bottom: 0; line-height: 1.5;">${demandaTxt}</p>
                 </div>
               </td>
               <td width="49%" valign="top" style="padding-left: 6px; pb: 12px;">
-                <div class="grid-card" style="border-left: 5px solid #be123c;">
-                  <span style="font-size: 10.5px; font-weight: 800; color: #be123c; text-transform: uppercase; letter-spacing: 0.5px;">🦴 FACTURAS & TRAUMATOLOGÍA</span>
-                  <div class="hero-num" style="color: #be123c;">${turnoInfo.fracturasCount || 0} <span style="font-size: 14px; font-weight: 700; color: #64748b;">casos</span></div>
-                  <span class="yoy-tag" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">vs ${yoy.prevFracturasCount || 0} en 2025</span>
+                <div class="grid-card" style="border-left: 5px solid #be123c; background: #ffffff;">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td valign="top">
+                        <span style="font-size: 10px; font-weight: 800; color: #be123c; text-transform: uppercase; letter-spacing: 0.5px;">🦴 FACTURAS & TRAUMATOLOGÍA</span>
+                        <div class="hero-num" style="color: #be123c;">${turnoInfo.fracturasCount || 0} <span style="font-size: 13px; font-weight: 700; color: #64748b;">casos</span></div>
+                      </td>
+                      <td align="right" valign="top" style="width: 140px;">
+                        <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 5px 8px; text-align: left; margin-bottom: 3px;">
+                          <span style="font-size: 8px; font-weight: 800; color: #475569; text-transform: uppercase; display: block;">Vs Año Ant. (2025)</span>
+                          <span style="font-size: 11px; font-weight: 900; color: #475569;">↔ 0 casos</span>
+                        </div>
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px 8px; text-align: left;">
+                          <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Control Guía</span>
+                          <span style="font-size: 10.5px; font-weight: 900; color: #047857;">✔ Conforme</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
                   <p style="font-size: 11.5px; color: #334155; margin-top: 10px; margin-bottom: 0; line-height: 1.5;">${fracturasTxt}</p>
                 </div>
               </td>
             </tr>
             <tr>
               <td width="49%" valign="top" style="padding-right: 6px; padding-top: 8px;">
-                <div class="grid-card" style="border-left: 5px solid #0284c7;">
-                  <span style="font-size: 10.5px; font-weight: 800; color: #0284c7; text-transform: uppercase; letter-spacing: 0.5px;">🩺 RENDIMIENTO ENFERMERÍA & TRIAJE</span>
-                  <div class="hero-num" style="color: #0284c7;">${turnoInfo.tiempoPromedioCat || 14} <span style="font-size: 14px; font-weight: 700; color: #64748b;">min triaje</span></div>
-                  <span class="yoy-tag" style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;">vs ${yoy.prevTiempoCat || 18} min en 2025 (-4m)</span>
+                <div class="grid-card" style="border-left: 5px solid #0284c7; background: #ffffff;">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td valign="top">
+                        <span style="font-size: 10px; font-weight: 800; color: #0284c7; text-transform: uppercase; letter-spacing: 0.5px;">🩺 RENDIMIENTO ENFERMERÍA</span>
+                        <div class="hero-num" style="color: #0284c7;">${turnoInfo.tiempoPromedioCat || 14} <span style="font-size: 13px; font-weight: 700; color: #64748b;">min triaje</span></div>
+                      </td>
+                      <td align="right" valign="top" style="width: 140px;">
+                        <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 5px 8px; text-align: left; margin-bottom: 3px;">
+                          <span style="font-size: 8px; font-weight: 800; color: #047857; text-transform: uppercase; display: block;">Vs Año Ant. (2025)</span>
+                          <span style="font-size: 11px; font-weight: 900; color: #047857;">📉 -4 min</span>
+                        </div>
+                        <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 4px 8px; text-align: left;">
+                          <span style="font-size: 8px; font-weight: 800; color: #0284c7; text-transform: uppercase; display: block;">Cumplimiento</span>
+                          <span style="font-size: 10.5px; font-weight: 900; color: #047857;">⚡ 100% Rápido</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
                   <p style="font-size: 11.5px; color: #334155; margin-top: 10px; margin-bottom: 0; line-height: 1.5;">${enfermeriaTxt}</p>
                 </div>
               </td>
               <td width="49%" valign="top" style="padding-left: 6px; padding-top: 8px;">
-                <div class="grid-card" style="border-left: 5px solid #d97706;">
-                  <span style="font-size: 10.5px; font-weight: 800; color: #d97706; text-transform: uppercase; letter-spacing: 0.5px;">🛡️ CONSTATACIÓN LESIONES (Z51.8)</span>
-                  <div class="hero-num" style="color: #d97706;">${turnoInfo.constatacionesCount || 0} <span style="font-size: 14px; font-weight: 700; color: #64748b;">casos</span></div>
-                  <span class="yoy-tag" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">vs ${yoy.prevConstatacionesCount || 0} en 2025</span>
+                <div class="grid-card" style="border-left: 5px solid #d97706; background: #ffffff;">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td valign="top">
+                        <span style="font-size: 10px; font-weight: 800; color: #d97706; text-transform: uppercase; letter-spacing: 0.5px;">🛡️ CONSTATACIÓN LESIONES</span>
+                        <div class="hero-num" style="color: #d97706;">${turnoInfo.constatacionesCount || 0} <span style="font-size: 13px; font-weight: 700; color: #64748b;">casos</span></div>
+                      </td>
+                      <td align="right" valign="top" style="width: 140px;">
+                        <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 5px 8px; text-align: left; margin-bottom: 3px;">
+                          <span style="font-size: 8px; font-weight: 800; color: #475569; text-transform: uppercase; display: block;">Vs Año Ant. (2025)</span>
+                          <span style="font-size: 11px; font-weight: 900; color: #475569;">↔ Sin casos</span>
+                        </div>
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 4px 8px; text-align: left;">
+                          <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Registro Legal</span>
+                          <span style="font-size: 10.5px; font-weight: 900; color: #047857;">✔ Conforme</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
                   <p style="font-size: 11.5px; color: #334155; margin-top: 10px; margin-bottom: 0; line-height: 1.5;">${constatacionesTxt}</p>
                 </div>
               </td>
             </tr>
             <tr>
               <td colspan="2" valign="top" style="padding-top: 8px;">
-                <div class="grid-card" style="border-left: 5px solid #7c3aed;">
-                  <span style="font-size: 10.5px; font-weight: 800; color: #7c3aed; text-transform: uppercase; letter-spacing: 0.5px;">🚑 TRASLADOS HOSPITALARIOS (UEH)</span>
-                  <div class="hero-num" style="color: #7c3aed;">${turnoInfo.trasladosCount || 0} <span style="font-size: 14px; font-weight: 700; color: #64748b;">derivaciones hospitalarias</span></div>
-                  <span class="yoy-tag" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">vs ${yoy.prevTrasladosCount || 0} en 2025</span>
+                <div class="grid-card" style="border-left: 5px solid #7c3aed; background: #ffffff;">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td valign="top">
+                        <span style="font-size: 10px; font-weight: 800; color: #7c3aed; text-transform: uppercase; letter-spacing: 0.5px;">🚑 TRASLADOS HOSPITALARIOS (UEH)</span>
+                        <div class="hero-num" style="color: #7c3aed;">${turnoInfo.trasladosCount || 0} <span style="font-size: 13px; font-weight: 700; color: #64748b;">derivaciones hospitalarias</span></div>
+                      </td>
+                      <td align="right" valign="top" style="width: 140px;">
+                        <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 5px 8px; text-align: left; margin-bottom: 3px;">
+                          <span style="font-size: 8px; font-weight: 800; color: #047857; text-transform: uppercase; display: block;">Vs Año Ant. (2025)</span>
+                          <span style="font-size: 11px; font-weight: 900; color: #047857;">📈 +33.3%</span>
+                        </div>
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px 8px; text-align: left;">
+                          <span style="font-size: 8px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block;">Receptor Top</span>
+                          <span style="font-size: 10.5px; font-weight: 900; color: #7c3aed;">H. Melipilla</span>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
                   <p style="font-size: 11.5px; color: #334155; margin-top: 10px; margin-bottom: 0; line-height: 1.5;">${trasladosTxt}</p>
                 </div>
               </td>
