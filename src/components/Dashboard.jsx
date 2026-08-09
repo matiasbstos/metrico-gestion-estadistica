@@ -27,6 +27,7 @@ import AnalisisTraslados from './dashboard/AnalisisTraslados';
 import AnalisisDemandaAtencion from './dashboard/AnalisisDemandaAtencion';
 import GestionUsuarios from './dashboard/GestionUsuarios';
 import ModalInactividad from './dashboard/ModalInactividad';
+import ModalVerificacionSesion from './dashboard/ModalVerificacionSesion';
 import ModalMuroActualizaciones from './dashboard/ModalMuroActualizaciones';
 import ModalConfiguracionCorreo from './dashboard/ModalConfiguracionCorreo';
 import Radar from './dashboard/Radar';
@@ -178,8 +179,8 @@ const DashboardContent = () => {
           const firstDay = `${y}-${String(m).padStart(2, '0')}-01`;
           const lastDay = new Date(y, m, 0).toISOString().split('T')[0];
 
-          setFiltroFechaInicio(firstDay);
-          setFiltroFechaFin(lastDay);
+          setFiltroFechaInicio(maxDate);
+          setFiltroFechaFin(maxDate);
           setDemandaFechaInicio(firstDay);
           setDemandaFechaFin(lastDay);
           setProfFechaInicio(firstDay);
@@ -841,6 +842,7 @@ const DashboardContent = () => {
   }
 
   const handleLogout = (reason) => {
+    sessionStorage.removeItem('metrico_session_verified');
     if (reason === 'inactividad') {
       showNotif('La sesión se ha cerrado automáticamente por inactividad.', 'warning');
     }
@@ -863,7 +865,10 @@ const DashboardContent = () => {
   return (
     <div className={`flex h-screen w-screen overflow-hidden bg-app-custom font-sans text-secondary-custom theme-transition theme-${tema}`}>
       
-      {/* MODAL DE CONTROL DE INACTIVIDAD Y AUTO-LOGOUT */}
+      {/* MODAL DE VERIFICACIÓN DE SEGURIDAD & IDENTIDAD AL ABRIR NAVEGADOR */}
+      <ModalVerificacionSesion user={user} userProfile={userProfile} onLogout={handleLogout} />
+
+      {/* MODAL DE CONTROL DE INACTIVIDAD Y AUTO-LOGOUT (14 MIN + 60s TEMPORIZADOR) */}
       <ModalInactividad user={user} onLogout={handleLogout} />
 
       {/* MODAL DE MURO DE ACTUALIZACIONES & NOVEDADES */}
