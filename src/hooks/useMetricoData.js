@@ -1,48 +1,35 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore';
 import { auth, db, appId } from '../config/firebase';
+import { savePacientesToIDB, loadPacientesFromIDB, saveTurnosToIDB, loadTurnosFromIDB } from '../utils/indexedDB';
 
 export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
 
-  // Inicialización instantánea con caché local
-  const [pacientesDB, setPacientesDB] = useState(() => {
-    try {
-      const cached = localStorage.getItem('metrico_cached_pacientes');
-      return cached ? JSON.parse(cached) : [];
-    } catch (e) {
-      return [];
-    }
+  const [pacientesDB, setPacientesDB] = useState([]);
+  const [allPacientesDB, setAllPacientesDB] = useState([]);
+  const [turnosDB, setTurnosDB] = useState([]);
+
+  // Estado del indicador de progreso en tiempo real
+  const [syncProgress, setSyncProgress] = useState({
+    active: false,
+    pct: 0,
+    loadedCount: 0,
+    totalCount: 0,
+    message: '',
+    isHistorical: false
   });
 
-  const [allPacientesDB, setAllPacientesDB] = useState(() => {
-    try {
-      const cached = localStorage.getItem('metrico_cached_pacientes');
-      return cached ? JSON.parse(cached) : [];
-    } catch (e) {
-      return [];
-    }
-  });
-
-  const [turnosDB, setTurnosDB] = useState(() => {
-    try {
-      const cached = localStorage.getItem('metrico_cached_turnos');
-      return cached ? JSON.parse(cached) : [];
-    } catch (e) {
-      return [];
-    }
-  });
-
-  const hasCache = pacientesDB.length > 0 || allPacientesDB.length > 0;
-  const [loading, setLoading] = useState(!hasCache);
-  const [syncStatus, setSyncStatus] = useState(hasCache ? 'synced' : 'connecting');
-
-  const [pacientesLoaded, setPacientesLoaded] = useState(hasCache);
-  const [turnosLoaded, setTurnosLoaded] = useState(hasCache);
+  const [loading, setLoading] = useState(true);
+  const [syncStatus, setSyncStatus] = useState('connecting');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  // Referencia para almacenamiento global en memoria
+  const globalPacientesMapRef = useRef(new Map());
+
+  // 1. Manejo de autenticación
   useEffect(() => {
     if (auth) {
       const unsubscribeAuth = onAuthStateChanged(auth, async (u) => {
@@ -59,11 +46,8 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
 
             if (userSnap.exists()) {
               const data = userSnap.data();
-              const rawRol = data.rol || 'local';
-              let cleanRol = rawRol.replace(/['"]/g, '').trim().toLowerCase();
-              if (u.email === 'matias.bustos@cormumel.cl') {
-                cleanRol = 'global';
-              }
+              let cleanRol = (data.rol || 'local').replace(/['"]/g, '').trim().toLowerCase();
+              if (u.email === 'matias.bustos@cormumel.cl') cleanRol = 'global';
               const updatedProfile = { ...data, rol: cleanRol, ultimoInicioSesion: now, ultimaConsulta: now };
               setUserProfile(updatedProfile);
               updateDoc(userRef, { ultimoInicioSesion: now, ultimaConsulta: now }).catch(() => {});
@@ -95,204 +79,229 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
     }
   }, []);
 
+  // 2. Carga inicial instantánea desde IndexedDB + Sincronización de 6 Meses con Barra de Progreso
   useEffect(() => {
-    if (!user || !db) return; 
+    if (!user || !db) return;
 
-    // Helper para determinar los rangos de consulta optimizados
-    const getQueryRanges = (startStr, endStr) => {
-      let startYear = new Date().getFullYear();
-      let startMonth = 0;
-      let startDay = 1;
-      let endYear = new Date().getFullYear();
-      let endMonth = 11;
-      let endDay = 31;
+    let isSubscribed = true;
 
-      try {
-        if (startStr && typeof startStr === 'string' && startStr.includes('-')) {
-          const parts = startStr.split('-');
-          if (parts.length === 3) {
-            startYear = parseInt(parts[0]) || startYear;
-            startMonth = (parseInt(parts[1]) - 1) || 0;
-            startDay = parseInt(parts[2]) || 1;
-          }
-        }
-        if (endStr && typeof endStr === 'string' && endStr.includes('-')) {
-          const parts = endStr.split('-');
-          if (parts.length === 3) {
-            endYear = parseInt(parts[0]) || endYear;
-            endMonth = (parseInt(parts[1]) - 1) || 11;
-            endDay = parseInt(parts[2]) || 31;
-          }
-        }
-      } catch (e) {}
-
-      const startMs = new Date(startYear, startMonth, startDay, 0, 0, 0).getTime();
-      const endMs = new Date(endYear, endMonth, endDay, 23, 59, 59).getTime();
-
-      // YoY (Periodo Mismo Mes Año Anterior)
-      const prevYearStartMs = new Date(startYear - 1, startMonth, startDay, 0, 0, 0).getTime();
-      const prevYearEndMs = new Date(endYear - 1, endMonth, endDay, 23, 59, 59).getTime();
-
-      // MoM (Periodo Mismo Intervalo Mes Anterior)
-      const durationMs = endMs - startMs;
-      const prevMonthEndMs = startMs - 1;
-      const prevMonthStartMs = prevMonthEndMs - durationMs;
-
-      return {
-        current: { start: startMs, end: endMs },
-        prevYear: { start: prevYearStartMs, end: prevYearEndMs },
-        prevMonth: { start: prevMonthStartMs, end: prevMonthEndMs },
-        minYear: startYear - 1
-      };
-    };
-
-    const ranges = getQueryRanges(filtroFechaInicio, filtroFechaFin);
-
-    setLoading(true);
-    setSyncStatus('connecting');
-    setPacientesLoaded(false);
-    setTurnosLoaded(false);
-
-    const pacientesRef = collection(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia');
-    const turnosRef = collection(db, 'artifacts', appId, 'public', 'data', 'turnos');
-
-    const qCurrent = query(pacientesRef, where('tAdmision', '>=', ranges.current.start), where('tAdmision', '<=', ranges.current.end));
-    const qPrevYear = query(pacientesRef, where('tAdmision', '>=', ranges.prevYear.start), where('tAdmision', '<=', ranges.prevYear.end));
-    
-    // Consulta amplia de los últimos 30 días para asegurar auditoría de turnos cerrados sin restricciones de UI
-    const thirtyDaysAgoMs = Date.now() - (30 * 24 * 60 * 60 * 1000);
-    const qAuditRecent = query(pacientesRef, where('tAdmision', '>=', thirtyDaysAgoMs));
-
-    const qTurnos = query(turnosRef, where('fechaInicio', '>=', `${ranges.minYear}-01-01`));
-
-    let currentDocs = [];
-    let prevYearDocs = [];
-    let recentDocs = [];
-    let unsubCurrent = () => {};
-    let unsubPrevYear = () => {};
-    let unsubRecent = () => {};
-    let active = true;
-
-    const isLargeRange = (ranges.current.end - ranges.current.start) > (62 * 24 * 60 * 60 * 1000);
-
-    const mergeAndSetPacientes = () => {
-      const merged = [...currentDocs, ...prevYearDocs];
-      setPacientesDB(merged);
+    const runPreload6Months = async () => {
+      setSyncStatus('connecting');
       
-      const allMergedMap = new Map();
-      [...recentDocs, ...merged].forEach(p => {
-        if (p && p.tAdmision) {
+      // Paso A: Carga previa instantánea desde IndexedDB
+      const cachedPacs = await loadPacientesFromIDB();
+      const cachedTurnos = await loadTurnosFromIDB();
+
+      if (cachedPacs && cachedPacs.length > 0 && isSubscribed) {
+        cachedPacs.forEach(p => {
           const id = p.id || p.docId || `${p.tAdmision}_${p.correlativo || p.nombrePaciente}`;
-          allMergedMap.set(id, p);
-        }
-      });
-      const allMerged = Array.from(allMergedMap.values()).sort((a, b) => b.tAdmision - a.tAdmision);
-      setAllPacientesDB(allMerged);
-
-      setPacientesLoaded(true);
-      if (allMerged.length > 0) {
-        try { 
-          // Guardar los últimos 1000 pacientes para instant-load
-          localStorage.setItem('metrico_cached_pacientes', JSON.stringify(allMerged.slice(0, 1000))); 
-        } catch (e) {}
-      }
-    };
-
-    if (isLargeRange) {
-      import('firebase/firestore').then(({ getDocs }) => {
-        if (!active) return;
-        Promise.all([
-          getDocs(qCurrent),
-          getDocs(qPrevYear),
-          getDocs(qAuditRecent)
-        ]).then(([snapCurrent, snapPrev, snapRecent]) => {
-          if (!active) return;
-          currentDocs = snapCurrent.docs.map(d => ({ id: d.id, ...d.data() }));
-          prevYearDocs = snapPrev.docs.map(d => ({ id: d.id, ...d.data() }));
-          recentDocs = snapRecent.docs.map(d => ({ id: d.id, ...d.data() }));
-          mergeAndSetPacientes();
-        }).catch((err) => {
-          console.error("Error cargando pacientes (getDocs):", err);
-          if (active) setPacientesLoaded(true);
+          globalPacientesMapRef.current.set(id, p);
         });
-      });
-    } else {
-      unsubCurrent = onSnapshot(qCurrent, (snapshot) => {
-        currentDocs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        mergeAndSetPacientes();
-      }, (err) => {
-        console.error("Error cargando pacientes actuales:", err);
-        if (active) setPacientesLoaded(true);
-      });
-
-      unsubPrevYear = onSnapshot(qPrevYear, (snapshot) => {
-        prevYearDocs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        mergeAndSetPacientes();
-      }, (err) => {
-        console.error("Error cargando pacientes año anterior:", err);
-      });
-
-      unsubRecent = onSnapshot(qAuditRecent, (snapshot) => {
-        recentDocs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        mergeAndSetPacientes();
-      }, (err) => {
-        console.error("Error cargando pacientes recientes auditoria:", err);
-      });
-    }
-
-    const unsubTurnos = onSnapshot(qTurnos, (snapshot) => {
-      const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      const sorted = data.sort((a, b) => {
-        const dateA = a.fechaInicio ? new Date(a.fechaInicio) : new Date(0);
-        const dateB = b.fechaInicio ? new Date(b.fechaInicio) : new Date(0);
-        return dateB - dateA;
-      });
-      setTurnosDB(sorted);
-      setTurnosLoaded(true);
-      if (sorted.length > 0) {
-        try { localStorage.setItem('metrico_cached_turnos', JSON.stringify(sorted)); } catch (e) {}
+        const arr = Array.from(globalPacientesMapRef.current.values()).sort((a, b) => b.tAdmision - a.tAdmision);
+        setPacientesDB(arr);
+        setAllPacientesDB(arr);
+        setLoading(false);
       }
-    }, (err) => {
-      console.error("Error cargando turnos:", err);
-      setSyncStatus('error'); 
-      setTurnosLoaded(true);
-    });
 
-    const fallbackTimer = setTimeout(() => {
-      setPacientesLoaded(true);
-      setTurnosLoaded(true);
-      setLoading(false);
-    }, 5000);
+      if (cachedTurnos && cachedTurnos.length > 0 && isSubscribed) {
+        setTurnosDB(cachedTurnos);
+      }
 
-    return () => { 
-      active = false;
-      unsubCurrent();
-      unsubPrevYear();
-      unsubTurnos(); 
-      clearTimeout(fallbackTimer); 
+      // Paso B: Carga progresiva en tiempo real de los últimos 6 meses desde Firestore
+      const nowMs = Date.now();
+      const sixMonthsAgoMs = nowMs - (180 * 24 * 60 * 60 * 1000); // 180 días
+
+      setSyncProgress({
+        active: true,
+        pct: 5,
+        loadedCount: globalPacientesMapRef.current.size,
+        totalCount: 0,
+        message: 'Iniciando descarga de los últimos 6 meses de datos asistenciales...',
+        isHistorical: false
+      });
+
+      const pacientesRef = collection(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia');
+      const turnosRef = collection(db, 'artifacts', appId, 'public', 'data', 'turnos');
+
+      // Dividir los 6 meses en 6 bloques mensuales para calcular el progreso porcentual exacto
+      const monthChunks = [];
+      for (let i = 5; i >= 0; i--) {
+        const chunkStart = nowMs - ((i + 1) * 30 * 24 * 60 * 60 * 1000);
+        const chunkEnd = nowMs - (i * 30 * 24 * 60 * 60 * 1000);
+        monthChunks.push({ start: chunkStart, end: chunkEnd, label: `Mes ${6 - i} de 6` });
+      }
+
+      let totalFetched = 0;
+      for (let idx = 0; idx < monthChunks.length; idx++) {
+        if (!isSubscribed) break;
+        const chunk = monthChunks[idx];
+
+        const qChunk = query(
+          pacientesRef, 
+          where('tAdmision', '>=', chunk.start), 
+          where('tAdmision', '<=', chunk.end)
+        );
+
+        try {
+          const snap = await getDocs(qChunk);
+          snap.docs.forEach(d => {
+            const p = { id: d.id, ...d.data() };
+            globalPacientesMapRef.current.set(d.id, p);
+          });
+
+          totalFetched += snap.docs.length;
+          const currentPct = Math.round(((idx + 1) / monthChunks.length) * 100);
+
+          if (isSubscribed) {
+            const updatedList = Array.from(globalPacientesMapRef.current.values()).sort((a, b) => b.tAdmision - a.tAdmision);
+            setPacientesDB(updatedList);
+            setAllPacientesDB(updatedList);
+            setLoading(false);
+
+            setSyncProgress({
+              active: true,
+              pct: currentPct,
+              loadedCount: updatedList.length,
+              totalCount: totalFetched,
+              message: `Sincronizando registros asistenciales (${currentPct}%)...`,
+              isHistorical: false
+            });
+          }
+        } catch (err) {
+          console.warn(`Error cargando bloque de 6m (${chunk.label}):`, err);
+        }
+      }
+
+      // Cargar Turnos
+      try {
+        const qTurnos = query(turnosRef, where('fechaInicio', '>=', '2025-01-01'));
+        const snapTurnos = await getDocs(qTurnos);
+        const turnosList = snapTurnos.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => {
+          return new Date(b.fechaInicio || 0) - new Date(a.fechaInicio || 0);
+        });
+        if (isSubscribed) {
+          setTurnosDB(turnosList);
+          saveTurnosToIDB(turnosList);
+        }
+      } catch (err) {
+        console.warn("Error cargando turnos:", err);
+      }
+
+      if (isSubscribed) {
+        const finalList = Array.from(globalPacientesMapRef.current.values()).sort((a, b) => b.tAdmision - a.tAdmision);
+        savePacientesToIDB(finalList);
+
+        setSyncProgress({
+          active: true,
+          pct: 100,
+          loadedCount: finalList.length,
+          totalCount: finalList.length,
+          message: 'Sincronización completada. Datos de los últimos 6 meses en caché.',
+          isHistorical: false
+        });
+
+        setTimeout(() => {
+          if (isSubscribed) {
+            setSyncProgress(prev => ({ ...prev, active: false }));
+            setSyncStatus('synced');
+          }
+        }, 2200);
+      }
     };
-  }, [user, filtroFechaInicio, filtroFechaFin, refreshTrigger]);
 
+    runPreload6Months();
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, [user, refreshTrigger]);
+
+  // 3. Consulta bajo demanda en tiempo real para fechas solicitadas fuera de los 6 meses
   useEffect(() => {
-    if (pacientesLoaded && turnosLoaded) {
-      setLoading(false);
-      setSyncStatus('synced');
-    }
-  }, [pacientesLoaded, turnosLoaded]);
+    if (!user || !db || !filtroFechaInicio || !filtroFechaFin) return;
+
+    let isSubscribed = true;
+
+    const checkAndFetchHistoricalData = async () => {
+      const [y1, m1, d1] = filtroFechaInicio.split('-').map(Number);
+      const [y2, m2, d2] = filtroFechaFin.split('-').map(Number);
+      if (!y1 || !y2) return;
+
+      const reqStartMs = new Date(y1, m1 - 1, d1, 0, 0, 0).getTime();
+      const reqEndMs = new Date(y2, m2 - 1, d2, 23, 59, 59).getTime();
+
+      const sixMonthsAgoMs = Date.now() - (180 * 24 * 60 * 60 * 1000);
+
+      // Si la fecha solicitada va más atrás de los 6 meses pre-cargados
+      if (reqStartMs < sixMonthsAgoMs) {
+        setSyncProgress({
+          active: true,
+          pct: 25,
+          loadedCount: globalPacientesMapRef.current.size,
+          totalCount: 0,
+          message: `Consultando registros históricos fuera de los 6 meses (${filtroFechaInicio} a ${filtroFechaFin})...`,
+          isHistorical: true
+        });
+
+        const pacientesRef = collection(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia');
+        const qHistorical = query(
+          pacientesRef, 
+          where('tAdmision', '>=', reqStartMs), 
+          where('tAdmision', '<=', reqEndMs)
+        );
+
+        try {
+          const snap = await getDocs(qHistorical);
+          if (isSubscribed) {
+            setSyncProgress(prev => ({ ...prev, pct: 75, message: `Procesando ${snap.docs.length} registros históricos descargados...` }));
+            
+            snap.docs.forEach(d => {
+              const p = { id: d.id, ...d.data() };
+              globalPacientesMapRef.current.set(d.id, p);
+            });
+
+            const mergedList = Array.from(globalPacientesMapRef.current.values()).sort((a, b) => b.tAdmision - a.tAdmision);
+            setPacientesDB(mergedList);
+            setAllPacientesDB(mergedList);
+
+            setSyncProgress({
+              active: true,
+              pct: 100,
+              loadedCount: mergedList.length,
+              totalCount: mergedList.length,
+              message: 'Carga de datos históricos completada.',
+              isHistorical: true
+            });
+
+            setTimeout(() => {
+              if (isSubscribed) setSyncProgress(prev => ({ ...prev, active: false }));
+            }, 1800);
+          }
+        } catch (err) {
+          console.error("Error consultando datos históricos:", err);
+          if (isSubscribed) setSyncProgress(prev => ({ ...prev, active: false }));
+        }
+      }
+    };
+
+    checkAndFetchHistoricalData();
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, [user, filtroFechaInicio, filtroFechaFin]);
 
   return { 
     user, 
     userProfile, 
-    loading: (pacientesDB.length === 0 && loading), 
+    loading, 
     syncStatus, 
     setSyncStatus, 
     setLoading, 
     pacientesDB, 
     allPacientesDB,
     turnosDB,
-    pacientesLoaded,
-    turnosLoaded,
+    syncProgress,
     triggerRefresh: () => setRefreshTrigger(prev => prev + 1)
   };
 };
-

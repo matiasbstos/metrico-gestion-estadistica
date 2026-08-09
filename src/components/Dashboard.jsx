@@ -30,6 +30,7 @@ import ModalInactividad from './dashboard/ModalInactividad';
 import ModalVerificacionSesion from './dashboard/ModalVerificacionSesion';
 import ModalMuroActualizaciones from './dashboard/ModalMuroActualizaciones';
 import ModalConfiguracionCorreo from './dashboard/ModalConfiguracionCorreo';
+import BarraProgresoCarga from './dashboard/BarraProgresoCarga';
 import Radar from './dashboard/Radar';
 import { formatLocalDate } from '../utils/helpers';
 import Login from './Login';
@@ -1864,6 +1865,9 @@ const DashboardContent = () => {
           </div>
         </div>
       )}
+
+      {/* BARRA DE PROGRESO DE DESCARGA EN TIEMPO REAL */}
+      <BarraProgresoCarga syncProgress={syncProgress} />
     </div>
   );
 }
