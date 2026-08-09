@@ -346,23 +346,34 @@ const DashboardContent = () => {
   };
 
   const applyDatePreset = (preset) => {
-    const today = new Date();
+    let maxTime = 0;
+    if (pacientesDB && pacientesDB.length > 0) {
+      pacientesDB.forEach(p => {
+        if (p.tAdmision && p.tAdmision > maxTime) {
+          maxTime = p.tAdmision;
+        }
+      });
+    }
+
+    const baseDate = maxTime > 0 ? new Date(maxTime) : new Date();
     const formatDate = (d) => isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
     let startA, endA, startB, endB;
+
     if (preset === 'mes') {
-      startA = new Date(today.getFullYear(), today.getMonth(), 1);
-      endA = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-      startB = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-      endB = new Date(today.getFullYear(), today.getMonth(), 0);
+      startA = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
+      endA = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 0);
+      startB = new Date(baseDate.getFullYear(), baseDate.getMonth() - 1, 1);
+      endB = new Date(baseDate.getFullYear(), baseDate.getMonth(), 0);
     } else if (preset === 'semana') {
-      const firstDay = new Date(today.setDate(today.getDate() - today.getDay() + 1));
-      const lastDay = new Date(today.setDate(today.getDate() - today.getDay() + 7));
+      const current = new Date(baseDate);
+      const firstDay = new Date(current.setDate(current.getDate() - current.getDay() + 1));
+      const lastDay = new Date(current.setDate(current.getDate() - current.getDay() + 7));
       startA = firstDay; endA = lastDay;
       startB = new Date(firstDay.getTime() - 7 * 24 * 60 * 60 * 1000);
       endB = new Date(lastDay.getTime() - 7 * 24 * 60 * 60 * 1000);
-    } else if (preset === 'dia') {
-      startA = endA = new Date();
-      startB = endB = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+    } else if (preset === 'dia' || preset === 'hoy') {
+      startA = endA = baseDate;
+      startB = endB = new Date(baseDate.getTime() - 24 * 60 * 60 * 1000);
     } else if (preset === 'invierno_2026') {
       startA = new Date(2026, 5, 1);
       endA = new Date(2026, 8, 0);

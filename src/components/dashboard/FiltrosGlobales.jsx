@@ -96,7 +96,13 @@ export default function FiltrosGlobales({
             <input 
               type="date" 
               value={filtroFechaInicio} 
-              onChange={e => setFiltroFechaInicio(e.target.value)} 
+              onChange={e => {
+                const newStart = e.target.value;
+                setFiltroFechaInicio(newStart);
+                if (!filtroFechaFin || filtroFechaFin < newStart || activePreset === 'hoy' || activePreset === 'dia') {
+                  setFiltroFechaFin(newStart);
+                }
+              }} 
               className="text-xs font-semibold text-primary-custom outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" 
             />
             <input 
@@ -112,7 +118,13 @@ export default function FiltrosGlobales({
             <input 
               type="date" 
               value={filtroFechaFin} 
-              onChange={e => setFiltroFechaFin(e.target.value)} 
+              onChange={e => {
+                const newEnd = e.target.value;
+                setFiltroFechaFin(newEnd);
+                if (filtroFechaInicio && newEnd < filtroFechaInicio) {
+                  setFiltroFechaInicio(newEnd);
+                }
+              }} 
               className="text-xs font-semibold text-primary-custom outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" 
             />
             <input 
