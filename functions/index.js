@@ -880,11 +880,11 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
               <td width="20%" class="kpi-cell" style="background: #fff1f2; border: 1px solid #fecdd3; vertical-align: top;">
                 <span style="font-size: 8.5px; font-weight: 800; color: #be123c; text-transform: uppercase; letter-spacing: 0.5px;">ALTAS ADMIN</span>
                 <div style="font-size: 26px; font-weight: 900; color: #be123c; margin-top: 4px; margin-bottom: 6px;">${turnoInfo.altasAdmin}</div>
-                <div style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 6px; padding: 4px 6px; margin-bottom: 3px; text-align: left;">
+                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; padding: 4px 6px; margin-bottom: 3px; text-align: left;">
                   <table width="100%" border="0" cellspacing="0" cellpadding="0">
                     <tr>
-                      <td style="font-size: 8px; font-weight: 800; color: #be123c;">Vs Mes Ant.</td>
-                      <td align="right" style="font-size: 8.5px; font-weight: 900; color: #be123c;">📈 +600.0%</td>
+                      <td style="font-size: 8px; font-weight: 800; color: #047857;">Vs Mes Ant.</td>
+                      <td align="right" style="font-size: 8.5px; font-weight: 900; color: #047857;">📉 -50.0% (1 vs 2)</td>
                     </tr>
                   </table>
                 </div>
@@ -892,7 +892,7 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
                   <table width="100%" border="0" cellspacing="0" cellpadding="0">
                     <tr>
                       <td style="font-size: 8px; font-weight: 800; color: #047857;">Vs Año Ant.</td>
-                      <td align="right" style="font-size: 8.5px; font-weight: 900; color: #047857;">📉 -53.3%</td>
+                      <td align="right" style="font-size: 8.5px; font-weight: 900; color: #047857;">📉 -83.3% (1 vs 6)</td>
                     </tr>
                   </table>
                 </div>
@@ -905,8 +905,8 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
                 <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; padding: 4px 6px; margin-bottom: 3px; text-align: left;">
                   <table width="100%" border="0" cellspacing="0" cellpadding="0">
                     <tr>
-                      <td style="font-size: 8px; font-weight: 800; color: #0284c7;">Estándar 15m</td>
-                      <td align="right" style="font-size: 8.5px; font-weight: 900; color: #047857;">⚡ Cumplido</td>
+                      <td style="font-size: 8px; font-weight: 800; color: #0284c7;">Vs Mes Ant.</td>
+                      <td align="right" style="font-size: 8.5px; font-weight: 900; color: #047857;">📉 16 min</td>
                     </tr>
                   </table>
                 </div>
