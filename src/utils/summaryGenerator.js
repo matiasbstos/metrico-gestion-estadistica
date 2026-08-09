@@ -252,24 +252,42 @@ export const generateConstatacionesSummary = (pacs) => {
   return `Se registraron un total de ${totalConst} constataciones de lesiones de urgencia en el periodo. La distribución demográfica indica una presencia de ${hombresPct}% hombres frente a un ${mujeresPct}% mujeres, con una concentración prioritaria en el rango etario de ${topRangoText}. La procedencia territorial del mayor volumen de atenciones clínico-legales corresponde a la comuna de ${topComText}.`;
 };
 
-export const generateTrasladosSummary = (pacs, prevYearPacs = []) => {
+export const generateTrasladosSummary = (pacs, prevYearPacs = [], globalTotalPacientes = null) => {
   if (!pacs || pacs.length === 0) return 'Sin registros suficientes para generar análisis de traslados hospitalarios.';
 
   const isTraslado = (p) => {
-    const dest = (p.destinoAlta || p.destino || '').toLowerCase();
-    return dest.includes('hospital') || dest.includes('emergencia') || dest.includes('derivac');
+    if (!p) return false;
+    const dest = String(p.destinoAlta || p.destino || p.lugarDerivacion || p.motivoAlta || p.tipoAlta || '').toLowerCase();
+    const cat = String(p.categoria || p.triage || '').toLowerCase();
+    const obs = String(p.observacion || p.obs || '').toLowerCase();
+
+    return (
+      dest.includes('hosp') || 
+      dest.includes('emerg') || 
+      dest.includes('deriv') || 
+      dest.includes('trasl') || 
+      dest.includes('samu') || 
+      dest.includes('sapu') || 
+      dest.includes('cesfam') || 
+      dest.includes('consultorio') ||
+      dest.includes('carabinero') ||
+      cat === 'c1' ||
+      obs.includes('traslado') ||
+      obs.includes('hospital')
+    );
   };
 
-  const listTraslados = pacs.filter(isTraslado);
+  const listTraslados = pacs.some(p => !isTraslado(p)) ? pacs.filter(isTraslado) : pacs;
   const total = listTraslados.length;
   if (total === 0) return 'No se registraron traslados hospitalarios en el período seleccionado.';
 
-  const pct = formatPct(total, pacs.length);
+  const universeTotal = globalTotalPacientes || (pacs.length > total ? pacs.length : total);
+  const pct = formatPct(total, universeTotal);
 
-  // Principal hospital receptor
+  // Principal centro receptor
   const destCounts = {};
   listTraslados.forEach(p => {
-    const dest = p.destinoAlta || p.destino || 'Sin Especificar';
+    const dest = p.destinoAlta || p.destino || p.lugarDerivacion || 'Sin Especificar';
     destCounts[dest] = (destCounts[dest] || 0) + 1;
   });
   const sortedDests = Object.entries(destCounts).sort((a,b) => b[1] - a[1])[0];
@@ -278,10 +296,11 @@ export const generateTrasladosSummary = (pacs, prevYearPacs = []) => {
   // Comparativa año anterior
   let compText = '';
   if (prevYearPacs && prevYearPacs.length > 0) {
-    const prevTras = prevYearPacs.filter(isTraslado).length;
-    const prevPct = formatPct(prevTras, prevYearPacs.length);
+    const prevTras = prevYearPacs.some(p => !isTraslado(p)) ? prevYearPacs.filter(isTraslado).length : prevYearPacs.length;
+    const prevUniverse = prevYearPacs.length > prevTras ? prevYearPacs.length : prevTras;
+    const prevPct = formatPct(prevTras, prevUniverse);
     compText = ` (en comparación con el ${prevPct}% del mismo periodo del año anterior)`;
   }
 
-  return `El volumen total de traslados a centros de mayor complejidad asistencial en el periodo alcanzó los ${total} pacientes, representando el ${pct}% del total de admisiones de urgencia${compText}. El principal centro receptor fue el ${topDestText}. Este flujo continuo de derivaciones refleja el comportamiento y la demanda operativa de urgencias externas.`;
+  return `El volumen total de traslados y derivaciones a centros de mayor complejidad asistencial y red primaria en el periodo alcanzó los ${total.toLocaleString('es-CL')} pacientes, representando el ${pct}% del total de admisiones de urgencia${compText}. El principal centro receptor fue ${topDestText}. Este flujo continuo de derivaciones refleja el comportamiento y la demanda operativa de urgencias externas.`;
 };

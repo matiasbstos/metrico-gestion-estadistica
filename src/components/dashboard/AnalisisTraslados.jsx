@@ -569,7 +569,10 @@ export default function AnalisisTraslados({
     return pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
   }, [pacientesDB, localFechaInicio, localFechaFin]);
 
-  const summaryText = useMemo(() => generateTrasladosSummary(pacientesTraslados, pacientesPrevYear), [pacientesTraslados, pacientesPrevYear]);
+  const summaryText = useMemo(() => 
+    generateTrasladosSummary(pacientesTraslados, pacientesPrevYear, targetPacientes.length), 
+    [pacientesTraslados, pacientesPrevYear, targetPacientes]
+  );
 
   return (
     <div className="space-y-6">
