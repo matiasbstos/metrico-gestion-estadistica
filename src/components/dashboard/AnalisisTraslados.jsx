@@ -61,26 +61,27 @@ export default function AnalisisTraslados({
     return pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
   }, [pacientesDB, localFechaInicio, localFechaFin]);
 
-  // Helper ampliado para identificar Traslados y Derivaciones
+  // Regla Oficial Estricta: Traslado a Hospital / Servicio de Urgencia / Urgencias
   const isTraslado = (p) => {
     if (!p) return false;
     const dest = String(p.destinoAlta || p.destino || p.lugarDerivacion || p.motivoAlta || p.tipoAlta || '').toLowerCase();
-    const cat = String(p.categoria || '').toLowerCase();
+    const cat = String(p.categoria || p.triage || '').toLowerCase();
     const obs = String(p.observacion || p.obs || '').toLowerCase();
 
+    const isConsultorioOAmb = dest.includes('consultorio') || dest.includes('cesfam') || dest.includes('domicilio');
+    const hasHospitalOUrgencia = dest.includes('hosp') || dest.includes('urgenc') || dest.includes('emergenc') || dest.includes('ueh');
+
+    if (isConsultorioOAmb && !hasHospitalOUrgencia) {
+      return false;
+    }
+
     return (
-      dest.includes('hosp') || 
-      dest.includes('emerg') || 
-      dest.includes('deriv') || 
-      dest.includes('trasl') || 
-      dest.includes('samu') || 
-      dest.includes('sapu') || 
-      dest.includes('cesfam') || 
-      dest.includes('consultorio') ||
-      dest.includes('carabinero') ||
-      cat === 'c1' ||
-      obs.includes('traslado') ||
-      obs.includes('hospital')
+      hasHospitalOUrgencia ||
+      dest.includes('samu') ||
+      obs.includes('hosp') ||
+      obs.includes('urgenc') ||
+      obs.includes('traslado a') ||
+      cat === 'c1'
     );
   };
 
