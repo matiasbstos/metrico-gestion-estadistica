@@ -8,11 +8,36 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v3.0.0',
+      version: 'v3.0.0',
+      fecha: '09 de Agosto, 2026',
+      badge: 'NUEVA VERSIÓN',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Motor de Pre-Carga 6 Meses IndexedDB + Barra de Progreso en Vivo + Rediseño Correo + Arquitectura BigQuery SSOT',
+      categoria: 'Arquitectura & Rendimiento',
+      icon: Cpu,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Implementación del motor de pre-carga local en IndexedDB para los últimos 6 meses de atenciones con barra de progreso flotante en tiempo real, rediseño de correos en cápsulas apiladas idénticas al Dashboard y refactorización total en Google BigQuery.',
+      instructivo: {
+        paraQueSirve: 'Garantiza una velocidad de respuesta instantánea al abrir la aplicación guardando los últimos 6 meses en caché IndexedDB, mientras permite consultar bajo demanda cualquier rango histórico previo con barra de progreso en vivo.',
+        quePuedesVer: 'Al ingresar o sincronizar, verás en la parte inferior derecha la nueva Barra de Progreso Flotante en Tiempo Real. En los informes ejecutivos por correo, las comparativas muestran cápsulas apiladas idénticas al panel "Periodo Seleccionado".',
+        ejemploUso: 'Ejemplo: Al abrir el sitio, el motor precarga los últimos 6 meses mostrando el porcentaje (0% a 100%) y volumen descargado. Si cambias el filtro a un periodo histórico de 2025, el indicador te informa el progreso de la consulta en vivo.'
+      },
+      changes: [
+        'Pre-Carga de 6 Meses en IndexedDB: Almacenamiento local de alto rendimiento que elimina demoras de carga inicial.',
+        'Barra de Progreso Flotante en Tiempo Real: Indicador de avance con porcentaje (0% a 100%) y volumen de admisiones descargadas.',
+        'Rediseño de Correos Ejecutivos Estilo Dashboard: Tarjetas KPI superior y bitácora asistencial con cápsulas apiladas (Vs Mes Ant. y Vs Año Ant.).',
+        'Auto-Sincronización de Filtros de Fecha: Ajuste automático del día fin al seleccionar una fecha de inicio para encuadre directo.',
+        'Ajuste Asistencial de Triaje: Eliminación de estándares artificiales de 15m en favor de métricas de optimización operacionales reales.',
+        'Arquitectura BigQuery (SSOT): Creación de la vista maestra SQL metrico_analytics.v_pacientes_urgencia_master como única fuente de verdad.'
+      ]
+    },
+    {
       id: 'v2.9.5',
       version: 'v2.9.5',
       fecha: '08 de Agosto, 2026',
-      badge: 'ÚLTIMA VERSIÓN',
-      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      badge: 'ACTUALIZACIÓN',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
       title: 'Solución Definitiva de Auditoría Histórica + Formato PDF Hoja Carta de 2 Páginas + CID Logo Inline',
       categoria: 'Despacho & Auditoría',
       icon: Mail,
