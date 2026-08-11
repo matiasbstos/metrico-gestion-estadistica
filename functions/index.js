@@ -1229,6 +1229,7 @@ MÉTRICO Clínico Predictivo • SAR Elsa Romo Aravena
 // ====================================================================================
 exports.verificarDatosMaster = functions.https.onCall(async (dataReq, context) => {
   const BASELINE = {
+    periodo_cobertura: 'Desde el 02/12/2024 (20 Meses Históricos Auditados)',
     total_admitidos: 64037,
     total_atendidos: 58190,
     total_altas_admin: 5847,

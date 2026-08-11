@@ -2,6 +2,7 @@ const { BigQuery } = require('@google-cloud/bigquery');
 const bigquery = new BigQuery();
 
 const BASELINE = {
+  periodo_cobertura: '02/12/2024 al 08/08/2026 (20 Meses Históricos Auditados)',
   total_admitidos: 64037,
   total_atendidos: 58190,
   total_altas_admin: 5847,
@@ -13,6 +14,7 @@ const BASELINE = {
 async function runShadowTesting() {
   console.log("\n==========================================================================================");
   console.log("🔍 SHADOW TESTING: INTEGRIDAD DE DATOS VISTA MAESTRA (v_pacientes_urgencia_master) VS BASELINE");
+  console.log(`📅 Cobertura Histórica Auditada: Desde el 02/12/2024 hasta la fecha activa`);
   console.log("==========================================================================================\n");
 
   const sqlQuery = `
