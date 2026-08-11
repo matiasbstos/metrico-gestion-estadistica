@@ -51,14 +51,14 @@ export default function FiltrosGlobales({
       setFiltroHoraInicio('00:00');
       setFiltroHoraFin('23:59');
     } else if (preset === 'largo') {
-      setFiltroHoraInicio('17:00');
-      setFiltroHoraFin('08:00');
+      setFiltroHoraInicio('16:00'); // 1 hora antes con tolerancia asistencial
+      setFiltroHoraFin('09:00');   // 1 hora después con tolerancia asistencial
     } else if (preset === 'finde_dia') {
-      setFiltroHoraInicio('08:00');
-      setFiltroHoraFin('20:00');
+      setFiltroHoraInicio('08:00'); // Sin extensión antes ni después
+      setFiltroHoraFin('20:00');   // Sin extensión antes ni después
     } else if (preset === 'finde_noche') {
-      setFiltroHoraInicio('20:00');
-      setFiltroHoraFin('08:00');
+      setFiltroHoraInicio('20:00'); // Sin extensión antes ni después
+      setFiltroHoraFin('08:00');   // Sin extensión antes ni después
     }
   };
 
