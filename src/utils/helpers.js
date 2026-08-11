@@ -102,20 +102,27 @@ export const deduplicarPacientes = (pacientes) => {
   if (!pacientes || !Array.isArray(pacientes) || pacientes.length === 0) return [];
 
   const map = new Map();
-  const result = [];
+  const sorted = [...pacientes].sort((a, b) => (b.tAdmision || 0) - (a.tAdmision || 0));
 
-  pacientes.forEach(p => {
+  sorted.forEach(p => {
     if (!p) return;
-    const idUnico = p.id || p.docId || p.correlativo || p.rutPaciente || p.ficha || p.nombrePaciente;
+    const correlativo = String(p.correlativo || p.correlativo_raw || p.id || '').replace(/\.0$/, '').trim();
     const tMs = p.tAdmision || p.timestamp || 0;
-    const key = `${idUnico}_${Math.floor(tMs / 1800000)}`;
+    
+    let key;
+    if (correlativo && tMs > 0) {
+      const det = obtenerTurnoDetallado(tMs);
+      key = `${correlativo}_${det.fechaTurno}_T${det.turnoNum}`;
+    } else {
+      key = p.id || p.docId || `${tMs}_${Math.random()}`;
+    }
 
-    if (map.has(key)) return;
-    map.set(key, true);
-    result.push(p);
+    if (!map.has(key)) {
+      map.set(key, p);
+    }
   });
 
-  return result;
+  return Array.from(map.values());
 };
 
 export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
