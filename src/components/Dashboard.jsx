@@ -1842,24 +1842,42 @@ const DashboardContent = () => {
       </main>
 
       {/* GLOBAL LOADING / SYNC OVERLAY */}
-      {(syncStatus === 'connecting' || syncStatus === 'syncing') && (
+      {(syncStatus === 'connecting' || syncStatus === 'syncing' || (syncProgress && syncProgress.active)) && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[9999] flex items-center justify-center p-6 animate-fade-in">
-          <div className="bg-card-custom border border-card-custom rounded-3xl shadow-2xl p-8 max-w-md w-full text-center space-y-6 theme-transition">
+          <div className="bg-card-custom border border-card-custom rounded-3xl shadow-2xl p-8 max-w-md w-full text-center space-y-6 theme-transition relative overflow-hidden">
+            {/* Glow animado */}
+            <div 
+              className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-emerald-500/10 pointer-events-none transition-all duration-300"
+              style={{ opacity: (syncProgress?.pct || 0) / 100 }}
+            />
+
             <div className="relative flex items-center justify-center">
               <div className="w-20 h-20 border-4 border-indigo-500/20 border-t-indigo-600 rounded-full animate-spin"></div>
-              <div className="w-10 h-10 bg-indigo-500/10 rounded-full animate-pulse absolute"></div>
+              <div className="w-10 h-10 bg-indigo-500/10 rounded-full animate-pulse absolute flex items-center justify-center text-xs font-black text-indigo-500 font-mono">
+                {syncProgress?.pct ? `${Math.round(syncProgress.pct)}%` : ''}
+              </div>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-2 relative z-10">
               <h3 className="text-xl font-black text-primary-custom tracking-tight">Sincronizando base de datos...</h3>
               <p className="text-sm text-secondary-custom font-medium leading-relaxed">
-                Descargando registros clínicos y recalculando métricas desde la nube. Por favor, espere a que se complete para asegurar la integridad de la información.
+                {syncProgress?.message || 'Descargando registros clínicos y recalculando métricas desde la nube. Por favor, espere a que se complete para asegurar la integridad de la información.'}
               </p>
             </div>
 
-            <div className="pt-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 shadow-sm animate-pulse">
-                ✓ {pacientesDB.length.toLocaleString()} registros descargados
+            {/* Barra de Avance Interna */}
+            {syncProgress?.pct > 0 && (
+              <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-3 overflow-hidden border border-card-custom p-0.5 relative z-10">
+                <div 
+                  className="bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400 h-full rounded-full transition-all duration-300 shadow-md"
+                  style={{ width: `${Math.min(100, Math.max(3, syncProgress.pct))}%` }}
+                />
+              </div>
+            )}
+
+            <div className="pt-1 relative z-10">
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/25 shadow-sm animate-pulse">
+                ✓ {(syncProgress?.loadedCount || pacientesDB.length).toLocaleString()} registros cargados
               </span>
             </div>
           </div>

@@ -6,9 +6,23 @@ const AGE_RANGES = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '
 const perc = (val, tot) => tot > 0 ? ((val / tot) * 100).toFixed(1) : 0;
 
 const parseLocalDatetime = (dateStr, hourMinStr) => {
-  const [y, m, d] = dateStr.split('-').map(Number);
+  if (!dateStr) return NaN;
+  let y, m, d;
+  const str = String(dateStr).trim();
+  if (str.includes('-')) {
+    const parts = str.split('-').map(Number);
+    if (parts[0] > 1000) { [y, m, d] = parts; }
+    else { [d, m, y] = parts; }
+  } else if (str.includes('/')) {
+    const parts = str.split('/').map(Number);
+    if (parts[2] > 1000) { [d, m, y] = parts; }
+    else if (parts[0] > 1000) { [y, m, d] = parts; }
+    else { [m, d, y] = parts; }
+  } else {
+    return NaN;
+  }
   const [h, min] = (hourMinStr || '00:00').split(':').map(Number);
-  return new Date(y, m - 1, d, h, min, 0).getTime();
+  return new Date(y, m - 1, d, h || 0, min || 0, 0).getTime();
 };
 
 export const getWindowRange = (startDayStr, endDayStr, startHourStr = '00:00', endHourStr = '23:59') => {

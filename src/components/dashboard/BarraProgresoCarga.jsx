@@ -7,7 +7,7 @@ export default function BarraProgresoCarga({ syncProgress }) {
   const { pct = 0, message = 'Cargando datos...', loadedCount = 0, totalCount = 0, isHistorical = false } = syncProgress;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 max-w-md w-full animate-fade-in shadow-2xl">
+    <div className="fixed bottom-6 right-6 z-[100000] max-w-md w-full animate-fade-in shadow-2xl">
       <div className="bg-slate-900/95 backdrop-blur-xl border border-indigo-500/30 text-white rounded-2xl p-4 shadow-2xl relative overflow-hidden">
         {/* Glow de fondo animado */}
         <div 
