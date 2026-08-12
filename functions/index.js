@@ -85,7 +85,7 @@ exports.obtenerKpisDashboard = functions.https.onCall(async (dataReq, context) =
         COUNTIF(flag_alta_administrativa) as totalAltas,
         COUNTIF(flag_traslado_hospitalario) as totalTraslados,
         COUNTIF(flag_constatacion_z518) as totalConstataciones,
-        COALESCE(AVG(estadia_minutos), 0) as avgEstadia
+        COALESCE(AVG(estadia_total_min), 0) as avgEstadia
       FROM \`metrico-dashboard-2026.metrico_analytics.v_pacientes_urgencia_master\`
       WHERE t_admision >= TIMESTAMP(@inicio) AND t_admision <= TIMESTAMP(@fin)
     `;
@@ -195,7 +195,7 @@ exports.obtenerMetricasMaster = functions.https.onCall(async (dataReq, context) 
       COUNTIF(flag_traslado_hospitalario) as total_traslados,
       COUNTIF(flag_fractura) as total_fracturas,
       COUNTIF(flag_constatacion_z518) as total_constataciones,
-      COALESCE(AVG(estadia_minutos), 0) as prom_estadia_min,
+      COALESCE(AVG(estadia_total_min), 0) as prom_estadia_min,
       COUNTIF(categoria_triage = 'C1') as c1,
       COUNTIF(categoria_triage = 'C2') as c2,
       COUNTIF(categoria_triage = 'C3') as c3,
