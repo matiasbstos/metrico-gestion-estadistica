@@ -1875,17 +1875,29 @@ const DashboardContent = () => {
               </div>
             )}
 
-            <div className="pt-1 relative z-10">
+            <div className="pt-1 relative z-10 flex flex-col items-center gap-3">
               <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/25 shadow-sm animate-pulse">
                 ✓ {(syncProgress?.loadedCount || pacientesDB.length).toLocaleString()} registros cargados
               </span>
+
+              {/* Botón de Cancelar Sincronización */}
+              <button
+                onClick={() => {
+                  setSyncStatus('synced');
+                  setLoading(false);
+                }}
+                className="mt-2 text-xs font-bold text-rose-500 hover:text-rose-600 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-xl px-4 py-2 transition-all duration-200 shadow-sm flex items-center gap-1.5"
+              >
+                <X className="w-4 h-4" />
+                Cancelar Sincronización y Ver Datos Cargados
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* BARRA DE PROGRESO DE DESCARGA EN TIEMPO REAL */}
-      <BarraProgresoCarga syncProgress={syncProgress} />
+      {/* BARRA DE PROGRESO DE DESCARGA EN TIEMPO REAL (Oculta si el modal central está activo) */}
+      <BarraProgresoCarga syncProgress={syncProgress} isOverlayOpen={syncStatus === 'connecting' || syncStatus === 'syncing' || (syncProgress && syncProgress.active)} />
     </div>
   );
 }

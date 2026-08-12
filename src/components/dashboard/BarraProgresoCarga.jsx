@@ -1,8 +1,8 @@
 import React from 'react';
 import { Database, RefreshCw, CheckCircle2, CloudDownload, AlertCircle } from 'lucide-react';
 
-export default function BarraProgresoCarga({ syncProgress }) {
-  if (!syncProgress || !syncProgress.active) return null;
+export default function BarraProgresoCarga({ syncProgress, isOverlayOpen = false }) {
+  if (!syncProgress || !syncProgress.active || isOverlayOpen) return null;
 
   const { pct = 0, message = 'Cargando datos...', loadedCount = 0, totalCount = 0, isHistorical = false } = syncProgress;
 
