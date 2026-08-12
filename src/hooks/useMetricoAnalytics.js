@@ -140,7 +140,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
         }
       }
     }
-    return pacs;
+    return deduplicarPacientes(pacs);
   }, [pacientesDB, windowRange, filtrosGlobales, hasGlobalFilters]);
 
   const turnosFiltrados = useMemo(() => {
