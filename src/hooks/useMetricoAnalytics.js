@@ -36,12 +36,45 @@ const isPatientInWindow = (tAdmMs, startDayStr, endDayStr, startHourStr, endHour
   return isPatientInWindowRange(tAdmMs, range);
 };
 
-const isConstatacionLesion = (p) => {
+export const isConstatacionLesion = (p) => {
   if (!p) return false;
+  if (p.flag_constatacion_z518 !== undefined) return Boolean(p.flag_constatacion_z518);
   if (p.categoria === 'c3_z518') return true;
-  const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
+  const cod = String(p.codigoDiagnostico || p.codigo || '').toUpperCase();
   const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
-  return cod.includes('Z51.8') || cod.includes('Z518') || diag.includes('CONSTATAC');
+  return cod.includes('Z51.8') || cod.includes('Z518') || diag.includes('CONSTATAC') || diag.includes('LESION');
+};
+
+export const isAltaAdmin = (p) => {
+  if (!p) return false;
+  if (p.flag_alta_administrativa !== undefined) return Boolean(p.flag_alta_administrativa);
+  if (p.estado === 'Cancelada' || p.destinoAlta === 'ALTA ADMINISTRATIVA' || p.destinoAlta === 'RETIRO SIN ATENCIÓN' || p.destinoAlta === 'RETIRO') return true;
+  const med = String(p.medico || p.profesional || p.medico_tratante || '').trim().toUpperCase();
+  const invalidMeds = ['NO REGISTRADO', 'NO REGISTRADA', 'SIN ESPECIFICAR', 'SIN REGISTRO', 'NO ASIGNADO', 'S/R', 'NO ESPECIFICADO', 'SIN MEDICO', 'SIN MÉDICO', 'S/M', '-', 'N/A', 'UNDEFINED', 'NULL', ''];
+  return p.estado !== 'Finalizada' && invalidMeds.includes(med);
+};
+
+export const isTraslado = (p) => {
+  if (!p) return false;
+  if (p.flag_traslado_hospitalario !== undefined) return Boolean(p.flag_traslado_hospitalario);
+  const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
+  const obs = String(p.observacion || p.obs || '').toUpperCase();
+  const cat = String(p.categoria || '').toUpperCase();
+  const isTrans = dest.includes('HOSP') || dest.includes('URGENC') || dest.includes('EMERGENC') || dest.includes('UEH') || dest.includes('SAMU') ||
+                  obs.includes('HOSP') || obs.includes('URGENC') || obs.includes('EMERGENC') || obs.includes('UEH') || obs.includes('SAMU') ||
+                  cat === 'C1';
+  const isRoutine = (dest.includes('CONSULTORIO') || dest.includes('CESFAM') || dest.includes('DOMICILIO')) &&
+                    !(dest.includes('HOSP') || dest.includes('URGENC') || dest.includes('EMERGENC') || dest.includes('UEH'));
+  return isTrans && !isRoutine;
+};
+
+export const isFractura = (p) => {
+  if (!p) return false;
+  if (p.flag_fractura !== undefined) return Boolean(p.flag_fractura);
+  const cod = String(p.codigoDiagnostico || p.codigo || '').toUpperCase();
+  const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
+  return /^(S02|S12|S22|S32|S42|S52|S62|S72|S82|S92|T02|T08|T10|T12)/.test(cod) ||
+         /FRACTURA|\bFX\b|TRAUMATISM/.test(diag);
 };
 
 export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales = {}, tipoCorte = 'turno', filtroHoraInicio = '00:00', filtroHoraFin = '23:59') => {
@@ -310,8 +343,8 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     prevMonthVol = prevMonthPacientes.length;
     prevYearVol = prevYearPacientes.length;
 
-    pmAltasAdmin = prevMonthPacientes.filter(p => p.estado === 'Cancelada').length;
-    pyAltasAdmin = prevYearPacientes.filter(p => p.estado === 'Cancelada').length;
+    pmAltasAdmin = prevMonthPacientes.filter(isAltaAdmin).length;
+    pyAltasAdmin = prevYearPacientes.filter(isAltaAdmin).length;
 
     pmEstadia = calcEstadia(prevMonthPacientes);
     pyEstadia = calcEstadia(prevYearPacientes);
@@ -336,7 +369,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     countCategories(prevYearPacientes, pyCats);
 
     const currentVol = pacientesFiltrados.length;
-    const currentAltas = pacientesFiltrados.filter(p => p.estado === 'Cancelada').length;
+    const currentAltas = pacientesFiltrados.filter(isAltaAdmin).length;
     const currentEstadiaVal = calcEstadia(pacientesFiltrados);
 
     const currentHours = getHoursInPeriod(filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin);
@@ -347,10 +380,6 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
 
     const getGrowth = (curr, prev) => prev === 0 ? (curr > 0 ? 100 : 0) : ((curr - prev) / prev) * 100;
 
-    const isTraslado = (p) => {
-      const d = String(p.destinoAlta || p.destino || '').toLowerCase();
-      return d.includes('hospital') || d.includes('emergencia') || d.includes('derivac');
-    };
     const isConstatacion = isConstatacionLesion;
 
     const currentTraslados = deduplicarPacientes(pacientesFiltrados.filter(isTraslado)).length;
