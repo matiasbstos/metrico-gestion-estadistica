@@ -8,7 +8,8 @@ const perc = (val, tot) => tot > 0 ? ((val / tot) * 100).toFixed(1) : 0;
 const parseLocalDatetime = (dateStr, hourMinStr = '00:00') => {
   if (!dateStr) return NaN;
   const str = String(dateStr).trim();
-  
+  const [h, min] = (hourMinStr || '00:00').split(':').map(Number);
+
   let y, m, d;
 
   if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/.test(str)) {
@@ -18,24 +19,22 @@ const parseLocalDatetime = (dateStr, hourMinStr = '00:00') => {
     const parts = str.split(/[-/]/).map(Number);
     if (parts[0] > 12) {
       [d, m, y] = parts;
-    } else if (parts[1] > 12) {
-      [m, d, y] = parts;
     } else {
-      [d, m, y] = parts;
+      [m, d, y] = parts;
     }
   } else {
-    const parsed = new Date(str);
-    if (!isNaN(parsed.getTime())) {
-      y = parsed.getFullYear();
-      m = parsed.getMonth() + 1;
-      d = parsed.getDate();
+    const dt = new Date(str);
+    if (!isNaN(dt.getTime())) {
+      y = dt.getFullYear();
+      m = dt.getMonth() + 1;
+      d = dt.getDate();
     } else {
       return NaN;
     }
   }
 
-  const [h, min] = (hourMinStr || '00:00').split(':').map(Number);
-  return new Date(y, m - 1, d, h || 0, min || 0, 0).getTime();
+  const resultDate = new Date(y, m - 1, d, h || 0, min || 0, 0);
+  return resultDate.getTime();
 };
 
 export const getWindowRange = (startDayStr, endDayStr, startHourStr = '00:00', endHourStr = '23:59') => {
