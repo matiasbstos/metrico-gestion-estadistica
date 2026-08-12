@@ -435,7 +435,22 @@ const DashboardContent = () => {
       try {
         const functions = getFunctions(app);
         const callKpis = httpsCallable(functions, 'obtenerKpisDashboard');
-        const res = await callKpis({ fechaInicio: filtroFechaInicio, fechaFin: filtroFechaFin });
+
+        const cleanDateStr = (str) => {
+          if (!str) return '';
+          const s = String(str).trim();
+          if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+          if (/^\d{1,2}[-/]\d{1,2}[-/]\d{4}$/.test(s)) {
+            const [d, m, y] = s.split(/[-/]/).map(Number);
+            return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+          }
+          return s;
+        };
+
+        const fIni = cleanDateStr(filtroFechaInicio);
+        const fFin = cleanDateStr(filtroFechaFin);
+
+        const res = await callKpis({ fechaInicio: fIni, fechaFin: fFin });
         
         const data = res.data;
         if (data && data.current) {
