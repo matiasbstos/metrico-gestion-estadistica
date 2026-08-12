@@ -102,25 +102,50 @@ export const isFractura = (p) => {
          /FRACTURA|\bFX\b|TRAUMATISM/.test(diag);
 };
 
+const isShiftInWindowRange = (t, windowRange) => {
+  if (!t || !windowRange) return true;
+  const startDay = t.fechaInicio;
+  const endDay = t.fechaFin || t.fechaInicio;
+  const horarioStr = String(t.horario || '');
+  let startH = '00:00', endH = '23:59';
+
+  if (horarioStr.includes('17:00')) {
+    startH = '16:00'; endH = '09:00';
+  } else if (horarioStr.includes('20:00')) {
+    startH = '20:00'; endH = '08:00';
+  } else if (horarioStr.includes('08:00')) {
+    startH = '08:00'; endH = '20:00';
+  }
+
+  const tStart = parseLocalDatetime(startDay, startH);
+  let tEnd = parseLocalDatetime(endDay, endH);
+  if (isNaN(tStart) || isNaN(tEnd)) return true;
+
+  if ((horarioStr.includes('17:00') || horarioStr.includes('20:00')) && startDay === endDay) {
+    tEnd += 24 * 3600 * 1000;
+  }
+
+  return tStart < windowRange.end && tEnd > windowRange.start;
+};
+
 export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales = {}, tipoCorte = 'turno', filtroHoraInicio = '00:00', filtroHoraFin = '23:59') => {
   // =========================================================================
   // 1. PIPELINE DE DATOS GLOBAL (Afecta KPIs, Triaje, Tabla Global)
   // =========================================================================
+  const windowRange = useMemo(() => {
+    return getWindowRange(filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin);
+  }, [filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin]);
+
   const turnosPorFecha = useMemo(() => {
     return turnosDB.filter(t => {
-      if (filtroFechaInicio && t.fechaInicio < filtroFechaInicio) return false;
-      if (filtroFechaFin && t.fechaFin > filtroFechaFin) return false;
-      return true;
+      if (!windowRange) return true;
+      return isShiftInWindowRange(t, windowRange);
     });
-  }, [turnosDB, filtroFechaInicio, filtroFechaFin]);
+  }, [turnosDB, windowRange]);
 
   const hasGlobalFilters = useMemo(() => {
     return Object.values(filtrosGlobales).some(val => val !== '' && val !== 'TODOS');
   }, [filtrosGlobales]);
-
-  const windowRange = useMemo(() => {
-    return getWindowRange(filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin);
-  }, [filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin]);
 
   const pacientesFiltrados = useMemo(() => {
     if (!windowRange) return [];
