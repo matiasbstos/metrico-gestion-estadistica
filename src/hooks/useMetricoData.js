@@ -107,73 +107,9 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
         setTurnosDB(cachedTurnos);
       }
 
-      // Paso B: Carga progresiva en tiempo real de los últimos 6 meses desde Firestore
-      const nowMs = Date.now();
-      const sixMonthsAgoMs = nowMs - (180 * 24 * 60 * 60 * 1000); // 180 días
-
-      setSyncProgress({
-        active: true,
-        pct: 5,
-        loadedCount: globalPacientesMapRef.current.size,
-        totalCount: 0,
-        message: 'Iniciando descarga de los últimos 6 meses de datos asistenciales...',
-        isHistorical: false
-      });
-
-      const pacientesRef = collection(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia');
-      const turnosRef = collection(db, 'artifacts', appId, 'public', 'data', 'turnos');
-
-      // Dividir los 6 meses en 6 bloques mensuales para calcular el progreso porcentual exacto
-      const monthChunks = [];
-      for (let i = 5; i >= 0; i--) {
-        const chunkStart = nowMs - ((i + 1) * 30 * 24 * 60 * 60 * 1000);
-        const chunkEnd = nowMs - (i * 30 * 24 * 60 * 60 * 1000);
-        monthChunks.push({ start: chunkStart, end: chunkEnd, label: `Mes ${6 - i} de 6` });
-      }
-
-      let totalFetched = 0;
-      for (let idx = 0; idx < monthChunks.length; idx++) {
-        if (!isSubscribed) break;
-        const chunk = monthChunks[idx];
-
-        const qChunk = query(
-          pacientesRef, 
-          where('tAdmision', '>=', chunk.start), 
-          where('tAdmision', '<=', chunk.end)
-        );
-
-        try {
-          const snap = await getDocs(qChunk);
-          snap.docs.forEach(d => {
-            const p = { id: d.id, ...d.data() };
-            globalPacientesMapRef.current.set(d.id, p);
-          });
-
-          totalFetched += snap.docs.length;
-          const currentPct = Math.round(((idx + 1) / monthChunks.length) * 100);
-
-          if (isSubscribed) {
-            const updatedList = Array.from(globalPacientesMapRef.current.values()).sort((a, b) => b.tAdmision - a.tAdmision);
-            setPacientesDB(updatedList);
-            setAllPacientesDB(updatedList);
-            setLoading(false);
-
-            setSyncProgress({
-              active: true,
-              pct: currentPct,
-              loadedCount: updatedList.length,
-              totalCount: totalFetched,
-              message: `Sincronizando registros asistenciales (${currentPct}%)...`,
-              isHistorical: false
-            });
-          }
-        } catch (err) {
-          console.warn(`Error cargando bloque de 6m (${chunk.label}):`, err);
-        }
-      }
-
-      // Cargar Turnos
+      // Cargar Turnos directamente
       try {
+        const turnosRef = collection(db, 'artifacts', appId, 'public', 'data', 'turnos');
         const qTurnos = query(turnosRef, where('fechaInicio', '>=', '2025-01-01'));
         const snapTurnos = await getDocs(qTurnos);
         const turnosList = snapTurnos.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => {
@@ -188,24 +124,16 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
       }
 
       if (isSubscribed) {
-        const finalList = Array.from(globalPacientesMapRef.current.values()).sort((a, b) => b.tAdmision - a.tAdmision);
-        savePacientesToIDB(finalList);
-
+        setLoading(false);
         setSyncProgress({
-          active: true,
+          active: false,
           pct: 100,
-          loadedCount: finalList.length,
-          totalCount: finalList.length,
-          message: 'Sincronización completada. Datos de los últimos 6 meses en caché.',
+          loadedCount: globalPacientesMapRef.current.size,
+          totalCount: globalPacientesMapRef.current.size,
+          message: 'Conectado a BigQuery SSOT en tiempo real.',
           isHistorical: false
         });
-
-        setTimeout(() => {
-          if (isSubscribed) {
-            setSyncProgress(prev => ({ ...prev, active: false }));
-            setSyncStatus('synced');
-          }
-        }, 2200);
+        setSyncStatus('synced');
       }
     };
 

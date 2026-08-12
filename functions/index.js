@@ -175,6 +175,84 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Parser = require('rss-parser');
 const rssParser = new Parser({ timeout: 5000 });
 
+exports.obtenerMetricasMaster = functions.https.onCall(async (dataReq, context) => {
+  const data = dataReq.data || dataReq || {};
+  const { startMs, endMs, filtrosGlobales } = data;
+
+  if (!startMs || !endMs) {
+    throw new functions.https.HttpsError('invalid-argument', 'Faltan parámetros startMs o endMs.');
+  }
+
+  const startTimestamp = Number(startMs);
+  const endTimestamp = Number(endMs);
+
+  let filterClause = '';
+  const params = { startMs: startTimestamp, endMs: endTimestamp };
+
+  if (filtrosGlobales) {
+    if (filtrosGlobales.sexo && filtrosGlobales.sexo !== 'TODOS') {
+      filterClause += ' AND UPPER(sexo) LIKE @sexo';
+      params.sexo = `%${filtrosGlobales.sexo}%`;
+    }
+    if (filtrosGlobales.prevision && filtrosGlobales.prevision !== 'TODOS') {
+      filterClause += ' AND UPPER(prevision) LIKE @prevision';
+      params.prevision = `%${filtrosGlobales.prevision}%`;
+    }
+    if (filtrosGlobales.establecimiento && filtrosGlobales.establecimiento !== 'TODOS') {
+      if (filtrosGlobales.establecimiento === 'OTROS') {
+        filterClause += " AND (establecimiento IS NULL OR NOT REGEXP_CONTAINS(UPPER(establecimiento), 'FLORENCIA|BORIS|ELGUETA'))";
+      } else {
+        filterClause += ' AND UPPER(establecimiento) LIKE @establecimiento';
+        params.establecimiento = `%${filtrosGlobales.establecimiento}%`;
+      }
+    }
+  }
+
+  const sqlQuery = `
+    SELECT 
+      COUNT(*) as total_admitidos,
+      COUNTIF(t_alta IS NOT NULL OR estado = 'Finalizada') as total_atendidos,
+      COUNTIF(flag_alta_administrativa) as total_altas_admin,
+      COUNTIF(flag_traslado_hospitalario) as total_traslados,
+      COUNTIF(flag_fractura) as total_fracturas,
+      COUNTIF(flag_constatacion_lesion) as total_constataciones,
+      COALESCE(AVG(estadia_minutos), 0) as prom_estadia_min,
+      COUNTIF(categoria = 'C1') as c1,
+      COUNTIF(categoria = 'C2') as c2,
+      COUNTIF(categoria = 'C3') as c3,
+      COUNTIF(categoria = 'C4') as c4,
+      COUNTIF(categoria = 'C5') as c5
+    FROM \`metrico-dashboard-2026.metrico_analytics.v_pacientes_urgencia_master\`
+    WHERE t_admision >= SAFE.TIMESTAMP_MILLIS(@startMs)
+      AND t_admision <= SAFE.TIMESTAMP_MILLIS(@endMs)
+      ${filterClause}
+  `;
+
+  try {
+    const [rows] = await bigquery.query({ query: sqlQuery, params });
+    const row = rows[0] || {};
+    return {
+      totalAdmitidos: Number(row.total_admitidos || 0),
+      totalAtendidos: Number(row.total_atendidos || 0),
+      totalAltasAdmin: Number(row.total_altas_admin || 0),
+      totalTraslados: Number(row.total_traslados || 0),
+      totalFracturas: Number(row.total_fracturas || 0),
+      totalConstataciones: Number(row.total_constataciones || 0),
+      avgEstadia: Math.round(Number(row.prom_estadia_min || 0)),
+      triage: {
+        c1: Number(row.c1 || 0),
+        c2: Number(row.c2 || 0),
+        c3: Number(row.c3 || 0),
+        c4: Number(row.c4 || 0),
+        c5: Number(row.c5 || 0)
+      }
+    };
+  } catch (err) {
+    console.error("Error ejecutando obtenerMetricasMaster en BigQuery:", err);
+    throw new functions.https.HttpsError('internal', `Error procesando métricas en BigQuery: ${err.message}`);
+  }
+});
+
 exports.obtenerProyeccionVolumen = functions.https.onCall(async (dataReq, context) => {
   const data = dataReq.data || dataReq || {};
   const horizon = Number(data.horizon) || 7;
