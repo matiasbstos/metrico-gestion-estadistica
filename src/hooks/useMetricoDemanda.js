@@ -1,17 +1,9 @@
-import { useMemo } from 'react';
-
-const parseLocalDatetime = (dateStr, hourMinStr) => {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const [h, min] = (hourMinStr || '00:00').split(':').map(Number);
-  return new Date(y, m - 1, d, h, min, 0).getTime();
-};
+import { getWindowRange, isPatientInWindowRange } from './useMetricoAnalytics';
 
 const isPatientInWindow = (tAdmMs, startDayStr, endDayStr, startHourStr, endHourStr) => {
   if (!tAdmMs) return false;
-  const tStart = parseLocalDatetime(startDayStr, startHourStr || '00:00');
-  const tEnd = parseLocalDatetime(endDayStr, endHourStr || '23:59');
-  if (isNaN(tStart) || isNaN(tEnd)) return false;
-  return tAdmMs >= tStart && tAdmMs <= tEnd;
+  const range = getWindowRange(startDayStr, endDayStr, startHourStr, endHourStr);
+  return isPatientInWindowRange(tAdmMs, range);
 };
 
 export const useMetricoDemanda = (pacientesDB, turnosDB, demandaFechaInicio, demandaFechaFin, modoComparativo, filtroFechaInicioB, filtroFechaFinB, docsToCompare, tipoCorte = 'turno', filtroHoraInicio = '00:00', filtroHoraFin = '23:59') => {

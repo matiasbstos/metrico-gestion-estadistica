@@ -12,16 +12,15 @@ const parseLocalDatetime = (dateStr, hourMinStr = '00:00') => {
 
   let y, m, d;
 
+  // Formato ISO: YYYY-MM-DD o YYYY/MM/DD (proveniente de HTML <input type="date">)
   if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/.test(str)) {
     const parts = str.split(/[-/]/).map(Number);
     [y, m, d] = parts;
-  } else if (/^\d{1,2}[-/]\d{1,2}[-/]\d{4}$/.test(str)) {
+  }
+  // Formato Estándar Chileno: DD-MM-YYYY o DD/MM/YYYY (Día siempre primero, Mes segundo)
+  else if (/^\d{1,2}[-/]\d{1,2}[-/]\d{4}$/.test(str)) {
     const parts = str.split(/[-/]/).map(Number);
-    if (parts[0] > 12) {
-      [d, m, y] = parts;
-    } else {
-      [m, d, y] = parts;
-    }
+    [d, m, y] = parts;
   } else {
     const dt = new Date(str);
     if (!isNaN(dt.getTime())) {
