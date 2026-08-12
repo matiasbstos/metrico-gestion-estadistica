@@ -75,32 +75,19 @@ exports.obtenerKpisDashboard = functions.https.onCall(async (dataReq, context) =
   const runPeriodQuery = async (startIso, endIso) => {
     const sqlQuery = `
       SELECT 
-        COUNT(document_id) as totalAtenciones,
-        SUM(CASE WHEN LOWER(JSON_EXTRACT_SCALAR(data, '$.categoria')) = 'c1' THEN 1 ELSE 0 END) as totalC1,
-        SUM(CASE WHEN LOWER(JSON_EXTRACT_SCALAR(data, '$.categoria')) = 'c2' THEN 1 ELSE 0 END) as totalC2,
-        SUM(CASE WHEN LOWER(JSON_EXTRACT_SCALAR(data, '$.categoria')) = 'c3' THEN 1 ELSE 0 END) as totalC3,
-        SUM(CASE WHEN LOWER(JSON_EXTRACT_SCALAR(data, '$.categoria')) = 'c3_z518' THEN 1 ELSE 0 END) as totalC3Z518,
-        SUM(CASE WHEN LOWER(JSON_EXTRACT_SCALAR(data, '$.categoria')) = 'c4' THEN 1 ELSE 0 END) as totalC4,
-        SUM(CASE WHEN LOWER(JSON_EXTRACT_SCALAR(data, '$.categoria')) = 'c5' THEN 1 ELSE 0 END) as totalC5,
-        SUM(CASE WHEN LOWER(JSON_EXTRACT_SCALAR(data, '$.estado')) = 'cancelada' THEN 1 ELSE 0 END) as totalAltas,
-        SUM(CASE WHEN LOWER(JSON_EXTRACT_SCALAR(data, '$.destinoAlta')) LIKE '%hospital%' 
-                      OR LOWER(JSON_EXTRACT_SCALAR(data, '$.destinoAlta')) LIKE '%emergencia%' 
-                      OR LOWER(JSON_EXTRACT_SCALAR(data, '$.destinoAlta')) LIKE '%derivac%' 
-                      OR LOWER(JSON_EXTRACT_SCALAR(data, '$.destino')) LIKE '%hospital%' 
-                      OR LOWER(JSON_EXTRACT_SCALAR(data, '$.destino')) LIKE '%emergencia%' 
-                      OR LOWER(JSON_EXTRACT_SCALAR(data, '$.destino')) LIKE '%derivac%' THEN 1 ELSE 0 END) as totalTraslados,
-        SUM(CASE WHEN LOWER(JSON_EXTRACT_SCALAR(data, '$.categoria')) = 'c3_z518' 
-                      OR UPPER(JSON_EXTRACT_SCALAR(data, '$.codigoDiagnostico')) LIKE '%Z51.8%' 
-                      OR UPPER(JSON_EXTRACT_SCALAR(data, '$.codigoDiagnostico')) LIKE '%Z518%' 
-                      OR UPPER(JSON_EXTRACT_SCALAR(data, '$.diagnostico')) LIKE '%Z51.8%' 
-                      OR UPPER(JSON_EXTRACT_SCALAR(data, '$.diagnostico')) LIKE '%Z518%' 
-                      OR UPPER(JSON_EXTRACT_SCALAR(data, '$.diagnosticoPrincipal')) LIKE '%CONSTATAC%' 
-                      OR UPPER(JSON_EXTRACT_SCALAR(data, '$.diagnostico')) LIKE '%CONSTATAC%' THEN 1 ELSE 0 END) as totalConstataciones,
-        AVG(CASE WHEN JSON_EXTRACT_SCALAR(data, '$.tAdmision') IS NOT NULL AND JSON_EXTRACT_SCALAR(data, '$.tAlta') IS NOT NULL 
-                 THEN (CAST(JSON_EXTRACT_SCALAR(data, '$.tAlta') AS INT64) - CAST(JSON_EXTRACT_SCALAR(data, '$.tAdmision') AS INT64)) / 60000.0 
-                 ELSE NULL END) as avgEstadia
-      FROM \`metrico-dashboard-2026.metrico_analytics.pacientes_urgencia_raw_latest\`
-      WHERE TIMESTAMP_MILLIS(CAST(JSON_EXTRACT_SCALAR(data, '$.tAdmision') AS INT64)) BETWEEN TIMESTAMP(@inicio) AND TIMESTAMP(@fin)
+        COUNT(*) as totalAtenciones,
+        COUNTIF(categoria = 'C1') as totalC1,
+        COUNTIF(categoria = 'C2') as totalC2,
+        COUNTIF(categoria = 'C3') as totalC3,
+        COUNTIF(categoria = 'C3_Z518' OR flag_constatacion_lesion) as totalC3Z518,
+        COUNTIF(categoria = 'C4') as totalC4,
+        COUNTIF(categoria = 'C5') as totalC5,
+        COUNTIF(flag_alta_administrativa) as totalAltas,
+        COUNTIF(flag_traslado_hospitalario) as totalTraslados,
+        COUNTIF(flag_constatacion_lesion) as totalConstataciones,
+        COALESCE(AVG(estadia_minutos), 0) as avgEstadia
+      FROM \`metrico-dashboard-2026.metrico_analytics.v_pacientes_urgencia_master\`
+      WHERE t_admision >= TIMESTAMP(@inicio) AND t_admision <= TIMESTAMP(@fin)
     `;
 
     const options = {
@@ -116,11 +103,11 @@ exports.obtenerKpisDashboard = functions.https.onCall(async (dataReq, context) =
     const sqlQuery = `
       WITH daily_counts AS (
         SELECT 
-          EXTRACT(DATE FROM TIMESTAMP_MILLIS(CAST(JSON_EXTRACT_SCALAR(data, '$.tAdmision') AS INT64)) AT TIME ZONE 'America/Santiago') as date_val,
-          COUNT(document_id) as total_pacs,
-          SUM(CASE WHEN LOWER(JSON_EXTRACT_SCALAR(data, '$.estado')) = 'cancelada' THEN 1 ELSE 0 END) as total_altas
-        FROM \`metrico-dashboard-2026.metrico_analytics.pacientes_urgencia_raw_latest\`
-        WHERE TIMESTAMP_MILLIS(CAST(JSON_EXTRACT_SCALAR(data, '$.tAdmision') AS INT64)) BETWEEN TIMESTAMP(@inicio) AND TIMESTAMP(@fin)
+          EXTRACT(DATE FROM t_admision AT TIME ZONE 'America/Santiago') as date_val,
+          COUNT(*) as total_pacs,
+          COUNTIF(flag_alta_administrativa) as total_altas
+        FROM \`metrico-dashboard-2026.metrico_analytics.v_pacientes_urgencia_master\`
+        WHERE t_admision >= TIMESTAMP(@inicio) AND t_admision <= TIMESTAMP(@fin)
         GROUP BY date_val
       ),
       wknd_pacs AS (
