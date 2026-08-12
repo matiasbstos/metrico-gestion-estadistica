@@ -8,6 +8,31 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v3.1.0',
+      version: 'v3.1.0',
+      fecha: '12 de Agosto, 2026',
+      badge: 'NUEVA VERSIÓN',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Arquitectura de Consulta Directa BigQuery SSOT + Selector Chileno DD/MM/YYYY + Encuadre Horario Fino por Turno (America/Santiago)',
+      categoria: 'Arquitectura & Precisión SSOT',
+      icon: Cpu,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Migración completa del motor de procesamiento a BigQuery en arquitectura SSOT (Single Source of Truth) tipo Tableau/Looker Studio, selector interactivo de fechas en formato chileno DD/MM/YYYY, encuadre horario fino por turno en UTC-4 y paridad matemática del 100% certificada con el sistema oficial Rayen PDF.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que todas las métricas, KPIs, Curva de Demanda y Comparativa de Equipos muestren una paridad matemática exacta del 100% con los informes oficiales en PDF emitiendo por Rayen, encuadrando automáticamente por huso horario chileno (America/Santiago / UTC-4).',
+        quePuedesVer: 'Al seleccionar un turno específico en el filtro de cabecera (por ejemplo 10/08 16:00 a 11/08 08:00), tanto la tarjeta del Periodo Seleccionado como la Curva de Demanda Continua y la Comparativa de Equipos se sincronizan automáticamente para mostrar los 101 pacientes del Turno Largo Noche de Rayen.',
+        ejemploUso: 'Ejemplo: Seleccionas 10/08/2026 a las 04:00 PM hasta el 11/08/2026 a las 08:00 AM. El sistema ejecuta la consulta SQL desduplicada en BigQuery, ajusta la estampa de tiempo en UTC-4 y te entrega exactamente 101 pacientes admitidos, 87 atendidos y 14 altas administrativas sin necesidad de descargas pesadas en el navegador.'
+      },
+      changes: [
+        'Arquitectura SSOT Pushdown BigQuery: Migración total de procesamiento de datos masivos a la vista maestra metrico_analytics.v_pacientes_urgencia_master desduplicada en BigQuery, operando como Tableau o Looker Studio.',
+        'Selector de Fecha Nativo Chileno DD/MM/YYYY: Implementación del componente de calendario interactivo ChileanDatePicker adaptado al estándar chileno.',
+        'Encuadre Horario Fino por Turno (America/Santiago): Ajuste de estampas de tiempo con offset -04:00 permitiendo filtrar cortes horarios exactos por turno (ej: 16:00 a 08:00 hrs).',
+        'Sincronización Total de Curva de Demanda: Eliminación de descalces en la Curva de Demanda Continua al vincularla directamente al pipeline de BigQuery SSOT por hora.',
+        'Filtrado Dinámico en Comparativa de Equipos: Ajuste por ventana de horas que incluye únicamente las pautas de turno que operaron en el tramo seleccionado.',
+        'Paridad Matemática Certificada con Rayen PDF: Verificación de cero descalce frente a reportes físicos oficiales del software clínico Rayen (101 admitidos, 85 completados, 14 altas admin, 14 centros de inscripción).'
+      ]
+    },
+    {
       id: 'v3.0.0',
       version: 'v3.0.0',
       fecha: '09 de Agosto, 2026',
@@ -236,7 +261,7 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
                   Histórico de Versiones & Instructivos
                 </span>
                 <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                  v2.8.5 (Activa)
+                  v3.1.0 (Activa)
                 </span>
               </div>
               <h2 className="text-xl md:text-2xl font-black text-primary-custom tracking-tight mt-1">
