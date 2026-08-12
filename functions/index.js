@@ -215,9 +215,41 @@ exports.obtenerMetricasMaster = functions.https.onCall(async (dataReq, context) 
       ${filterClause}
   `;
 
+  const sqlHourly = `
+    SELECT 
+      EXTRACT(HOUR FROM t_admision AT TIME ZONE 'America/Santiago') as hora,
+      COUNT(*) as cantidad
+    FROM \`metrico-dashboard-2026.metrico_analytics.v_pacientes_urgencia_master\`
+    WHERE t_admision >= SAFE.TIMESTAMP_MILLIS(@startMs)
+      AND t_admision <= SAFE.TIMESTAMP_MILLIS(@endMs)
+      ${filterClause}
+    GROUP BY hora
+    ORDER BY hora ASC
+  `;
+
   try {
-    const [rows] = await bigquery.query({ query: sqlQuery, params });
+    const [[rows], [hourlyRows]] = await Promise.all([
+      bigquery.query({ query: sqlQuery, params }),
+      bigquery.query({ query: sqlHourly, params })
+    ]);
+
     const row = rows[0] || {};
+    const hourlyMap = {};
+    (hourlyRows || []).forEach(r => {
+      hourlyMap[r.hora] = Number(r.cantidad || 0);
+    });
+
+    const hourlyCurve = Array(24).fill(0).map((_, i) => {
+      const hStr = String(i).padStart(2, '0');
+      return {
+        hora: i,
+        horaFiltro: hStr,
+        horaTooltip: `${hStr}:00 - ${hStr}:59`,
+        horaCorta: `${hStr}:00`,
+        atenciones: hourlyMap[i] || 0
+      };
+    });
+
     return {
       totalAdmitidos: Number(row.total_admitidos || 0),
       totalAtendidos: Number(row.total_atendidos || 0),
@@ -232,7 +264,8 @@ exports.obtenerMetricasMaster = functions.https.onCall(async (dataReq, context) 
         c3: Number(row.c3 || 0),
         c4: Number(row.c4 || 0),
         c5: Number(row.c5 || 0)
-      }
+      },
+      hourlyCurve
     };
   } catch (err) {
     console.error("Error ejecutando obtenerMetricasMaster en BigQuery:", err);

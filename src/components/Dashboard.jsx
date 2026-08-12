@@ -428,6 +428,11 @@ const DashboardContent = () => {
   const { turnosFiltrados, pacientesFiltrados, demografiaStats, promediosGlobales, metricsByCategory, statsKPI, rankingCentros, topDiagnosticos } = useMetricoAnalytics(pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales, tipoCorte, filtroHoraInicio, filtroHoraFin);
 
   useEffect(() => {
+    if (filtroFechaInicio) setDemandaFechaInicio(filtroFechaInicio);
+    if (filtroFechaFin) setDemandaFechaFin(filtroFechaFin);
+  }, [filtroFechaInicio, filtroFechaFin]);
+
+  useEffect(() => {
     if (!filtroFechaInicio || !filtroFechaFin || !app) return;
 
     const fetchKpis = async () => {
@@ -581,7 +586,7 @@ const DashboardContent = () => {
     }
     return base;
   }, [kpisBigQuery, statsKPI, demografiaStats]);
-  const { turnosDemanda, pacientesDemanda, peakHoursData } = useMetricoDemanda(pacientesDB, turnosDB, demandaFechaInicio, demandaFechaFin, modoComparativo, filtroFechaInicioB, filtroFechaFinB, docsToCompare, tipoCorte, filtroHoraInicio, filtroHoraFin);
+  const { turnosDemanda, pacientesDemanda, peakHoursData } = useMetricoDemanda(pacientesDB, turnosDB, demandaFechaInicio, demandaFechaFin, modoComparativo, filtroFechaInicioB, filtroFechaFinB, docsToCompare, tipoCorte, filtroHoraInicio, filtroHoraFin, kpisBigQuery);
   const { turnosProf, pacientesProf, metricsByDoctor, filteredMetricsByDoctor, dailyDoctorData } = useMetricoProfesionales(pacientesDB, turnosDB, profFechaInicio, profFechaFin, docsToCompare, searchDoctor, tipoCorte, filtroHoraInicio, filtroHoraFin);
 
   const toggleDocToCompare = (docName) => {

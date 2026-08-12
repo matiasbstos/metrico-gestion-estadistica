@@ -7,7 +7,7 @@ const isPatientInWindow = (tAdmMs, startDayStr, endDayStr, startHourStr, endHour
   return isPatientInWindowRange(tAdmMs, range);
 };
 
-export const useMetricoDemanda = (pacientesDB, turnosDB, demandaFechaInicio, demandaFechaFin, modoComparativo, filtroFechaInicioB, filtroFechaFinB, docsToCompare, tipoCorte = 'turno', filtroHoraInicio = '00:00', filtroHoraFin = '23:59') => {
+export const useMetricoDemanda = (pacientesDB, turnosDB, demandaFechaInicio, demandaFechaFin, modoComparativo, filtroFechaInicioB, filtroFechaFinB, docsToCompare, tipoCorte = 'turno', filtroHoraInicio = '00:00', filtroHoraFin = '23:59', masterMetrics = null) => {
   // =========================================================================
   // 2. PIPELINE DE DATOS DEMANDA (Afecta solo Curva 24 hrs)
   // =========================================================================
@@ -32,16 +32,25 @@ export const useMetricoDemanda = (pacientesDB, turnosDB, demandaFechaInicio, dem
       return base;
     });
     
-    pacientesDemanda.forEach(p => {
-      if (p.tAdmision) {
-        const date = new Date(p.tAdmision);
-        if (!isNaN(date.getTime())) {
-          const h = date.getHours();
-          hours[h].atenciones++;
-          if (docsToCompare.includes(p.medico)) hours[h][p.medico]++;
+    if (masterMetrics && masterMetrics.hourlyCurve && masterMetrics.hourlyCurve.length === 24) {
+      masterMetrics.hourlyCurve.forEach(item => {
+        const h = item.hora;
+        if (hours[h]) {
+          hours[h].atenciones = item.atenciones;
         }
-      }
-    });
+      });
+    } else {
+      pacientesDemanda.forEach(p => {
+        if (p.tAdmision) {
+          const date = new Date(p.tAdmision);
+          if (!isNaN(date.getTime())) {
+            const h = date.getHours();
+            hours[h].atenciones++;
+            if (docsToCompare.includes(p.medico)) hours[h][p.medico]++;
+          }
+        }
+      });
+    }
 
     if (modoComparativo) {
       const pacsB = pacientesDB.filter(p => isPatientInWindow(p.tAdmision, filtroFechaInicioB, filtroFechaFinB, filtroHoraInicio, filtroHoraFin));
@@ -54,7 +63,7 @@ export const useMetricoDemanda = (pacientesDB, turnosDB, demandaFechaInicio, dem
     }
 
     return hours;
-  }, [pacientesDemanda, pacientesDB, filtroFechaInicioB, filtroFechaFinB, modoComparativo, docsToCompare, filtroHoraInicio, filtroHoraFin]);
+  }, [pacientesDemanda, pacientesDB, filtroFechaInicioB, filtroFechaFinB, modoComparativo, docsToCompare, filtroHoraInicio, filtroHoraFin, masterMetrics]);
 
   return { turnosDemanda, pacientesDemanda, peakHoursData };
 };
