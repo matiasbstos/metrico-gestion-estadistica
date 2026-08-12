@@ -5,7 +5,7 @@ const bigquery = new BigQuery();
 exports.obtenerKpisDashboard = functions.https.onCall(async (dataReq, context) => {
   // Soporte para firmas de Firebase onCall v1 y v2
   const data = dataReq.data || dataReq || {};
-  const { fechaInicio, fechaFin } = data;
+  const { fechaInicio, fechaFin, horaInicio, horaFin } = data;
 
   if (!fechaInicio || !fechaFin) {
     throw new functions.https.HttpsError('invalid-argument', 'Faltan los parámetros fechaInicio o fechaFin.');
@@ -42,9 +42,12 @@ exports.obtenerKpisDashboard = functions.https.onCall(async (dataReq, context) =
     return new Date(y, m - 1, d, defaultHour, defaultMin, defaultSec);
   };
 
-  const getRanges = (startStr, endStr) => {
-    const currentStart = parseDateStr(startStr, 0, 0, 0);
-    const currentEnd = parseDateStr(endStr, 23, 59, 59);
+  const getRanges = (startStr, endStr, startHourStr = '00:00', endHourStr = '23:59') => {
+    const [sh, smin] = (startHourStr || '00:00').split(':').map(Number);
+    const [eh, emin] = (endHourStr || '23:59').split(':').map(Number);
+
+    const currentStart = parseDateStr(startStr, sh || 0, smin || 0, 0);
+    const currentEnd = parseDateStr(endStr, eh || 23, emin || 59, 59);
 
     const sy = currentStart.getFullYear();
     const sm = currentStart.getMonth() + 1;
@@ -54,11 +57,11 @@ exports.obtenerKpisDashboard = functions.https.onCall(async (dataReq, context) =
     const em = currentEnd.getMonth() + 1;
     const ed = currentEnd.getDate();
 
-    const pmStart = new Date(sy, sm - 2, sd, 0, 0, 0);
-    const pmEnd = new Date(ey, em - 2, ed, 23, 59, 59);
+    const pmStart = new Date(sy, sm - 2, sd, sh || 0, smin || 0, 0);
+    const pmEnd = new Date(ey, em - 2, ed, eh || 23, emin || 59, 59);
 
-    const pyStart = new Date(sy - 1, sm - 1, sd, 0, 0, 0);
-    const pyEnd = new Date(ey - 1, em - 1, ed, 23, 59, 59);
+    const pyStart = new Date(sy - 1, sm - 1, sd, sh || 0, smin || 0, 0);
+    const pyEnd = new Date(ey - 1, em - 1, ed, eh || 23, emin || 59, 59);
 
     const ytdStart = new Date(ey, 0, 1, 0, 0, 0);
 
@@ -70,7 +73,7 @@ exports.obtenerKpisDashboard = functions.https.onCall(async (dataReq, context) =
     };
   };
 
-  const ranges = getRanges(fechaInicio, fechaFin);
+  const ranges = getRanges(fechaInicio, fechaFin, horaInicio, horaFin);
 
   const runPeriodQuery = async (startIso, endIso) => {
     const sqlQuery = `

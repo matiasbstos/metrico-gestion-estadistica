@@ -450,7 +450,12 @@ const DashboardContent = () => {
         const fIni = cleanDateStr(filtroFechaInicio);
         const fFin = cleanDateStr(filtroFechaFin);
 
-        const res = await callKpis({ fechaInicio: fIni, fechaFin: fFin });
+        const res = await callKpis({ 
+          fechaInicio: fIni, 
+          fechaFin: fFin, 
+          horaInicio: filtroHoraInicio, 
+          horaFin: filtroHoraFin 
+        });
         
         const data = res.data;
         if (data && data.current) {
@@ -557,7 +562,7 @@ const DashboardContent = () => {
     };
 
     fetchKpis();
-  }, [filtroFechaInicio, filtroFechaFin, app]);
+  }, [filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin, app]);
 
   const statsKPIFinal = useMemo(() => {
     const base = kpisBigQuery || statsKPI;
