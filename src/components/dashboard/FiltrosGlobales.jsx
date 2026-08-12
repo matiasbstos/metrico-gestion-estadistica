@@ -1,6 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Compass, RefreshCw } from 'lucide-react';
 
+function ChileanDatePicker({ value, onChange, className = '' }) {
+  const formatDateDisplay = (val) => {
+    if (!val) return 'DD/MM/YYYY';
+    const str = String(val).trim();
+    if (str.includes('-')) {
+      const parts = str.split('-');
+      if (parts[0].length === 4) {
+        const [y, m, d] = parts;
+        return `${d.padStart(2, '0')}/${m.padStart(2, '0')}/${y}`;
+      } else {
+        const [d, m, y] = parts;
+        return `${d.padStart(2, '0')}/${m.padStart(2, '0')}/${y}`;
+      }
+    } else if (str.includes('/')) {
+      const parts = str.split('/');
+      if (parts[2].length === 4) {
+        const [d, m, y] = parts;
+        return `${d.padStart(2, '0')}/${m.padStart(2, '0')}/${y}`;
+      }
+    }
+    return val;
+  };
+
+  return (
+    <div className="relative inline-flex items-center group">
+      <div className={`px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold font-mono text-primary-custom tracking-wider group-hover:border-indigo-500 transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs ${className}`}>
+        <span>{formatDateDisplay(value)}</span>
+      </div>
+      <input 
+        type="date" 
+        value={value} 
+        onChange={onChange} 
+        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+      />
+    </div>
+  );
+}
+
 export default function FiltrosGlobales({
   modoComparativo,
   setModoComparativo,
