@@ -51,14 +51,14 @@ export default function FiltrosGlobales({
       setFiltroHoraInicio('00:00');
       setFiltroHoraFin('23:59');
     } else if (preset === 'largo') {
-      setFiltroHoraInicio('16:00'); // 1 hora antes con tolerancia asistencial
-      setFiltroHoraFin('09:00');   // 1 hora después con tolerancia asistencial
+      setFiltroHoraInicio('16:00');
+      setFiltroHoraFin('09:00');
     } else if (preset === 'finde_dia') {
-      setFiltroHoraInicio('08:00'); // Sin extensión antes ni después
-      setFiltroHoraFin('20:00');   // Sin extensión antes ni después
+      setFiltroHoraInicio('08:00');
+      setFiltroHoraFin('20:00');
     } else if (preset === 'finde_noche') {
-      setFiltroHoraInicio('20:00'); // Sin extensión antes ni después
-      setFiltroHoraFin('08:00');   // Sin extensión antes ni después
+      setFiltroHoraInicio('20:00');
+      setFiltroHoraFin('08:00');
     }
   };
 
@@ -93,17 +93,15 @@ export default function FiltrosGlobales({
           {/* Main date and hour picker */}
           <div className="flex items-center bg-card-custom border border-card-custom rounded-xl p-1.5 shadow-sm gap-2 theme-transition">
             <Calendar className="w-4 h-4 text-secondary-custom mx-1" />
-            <input 
-              type="date" 
-              value={filtroFechaInicio} 
+            <ChileanDatePicker 
+              value={filtroFechaInicio}
               onChange={e => {
                 const newStart = e.target.value;
                 setFiltroFechaInicio(newStart);
                 if (!filtroFechaFin || filtroFechaFin < newStart || activePreset === 'hoy' || activePreset === 'dia') {
                   setFiltroFechaFin(newStart);
                 }
-              }} 
-              className="text-xs font-semibold text-primary-custom outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" 
+              }}
             />
             <input 
               type="time" 
@@ -115,17 +113,15 @@ export default function FiltrosGlobales({
               className="text-xs font-bold accent-text-custom outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" 
             />
             <span className="text-secondary-custom mx-1">-</span>
-            <input 
-              type="date" 
-              value={filtroFechaFin} 
+            <ChileanDatePicker 
+              value={filtroFechaFin}
               onChange={e => {
                 const newEnd = e.target.value;
                 setFiltroFechaFin(newEnd);
                 if (filtroFechaInicio && newEnd < filtroFechaInicio) {
                   setFiltroFechaInicio(newEnd);
                 }
-              }} 
-              className="text-xs font-semibold text-primary-custom outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" 
+              }}
             />
             <input 
               type="time" 
@@ -217,9 +213,9 @@ export default function FiltrosGlobales({
           <div className="flex justify-end mt-1 animate-fade-in w-full">
             <div className="flex items-center bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-1.5 shadow-sm w-full lg:w-auto justify-between gap-2 theme-transition">
               <Calendar className="w-4 h-4 text-indigo-500 dark:text-indigo-400 mx-2" />
-              <input type="date" value={filtroFechaInicioB} onChange={e => setFiltroFechaInicioB(e.target.value)} className="text-xs font-bold text-indigo-600 dark:text-indigo-400 outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" />
+              <ChileanDatePicker value={filtroFechaInicioB} onChange={e => setFiltroFechaInicioB(e.target.value)} />
               <span className="text-indigo-500 dark:text-indigo-400 mx-2">-</span>
-              <input type="date" value={filtroFechaFinB} onChange={e => setFiltroFechaFinB(e.target.value)} className="text-xs font-bold text-indigo-600 dark:text-indigo-400 outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" />
+              <ChileanDatePicker value={filtroFechaFinB} onChange={e => setFiltroFechaFinB(e.target.value)} />
             </div>
           </div>
         )}
