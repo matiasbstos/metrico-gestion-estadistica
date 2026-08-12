@@ -76,15 +76,15 @@ exports.obtenerKpisDashboard = functions.https.onCall(async (dataReq, context) =
     const sqlQuery = `
       SELECT 
         COUNT(*) as totalAtenciones,
-        COUNTIF(categoria = 'C1') as totalC1,
-        COUNTIF(categoria = 'C2') as totalC2,
-        COUNTIF(categoria = 'C3') as totalC3,
-        COUNTIF(categoria = 'C3_Z518' OR flag_constatacion_lesion) as totalC3Z518,
-        COUNTIF(categoria = 'C4') as totalC4,
-        COUNTIF(categoria = 'C5') as totalC5,
+        COUNTIF(categoria_triage = 'C1') as totalC1,
+        COUNTIF(categoria_triage = 'C2') as totalC2,
+        COUNTIF(categoria_triage = 'C3') as totalC3,
+        COUNTIF(categoria_triage = 'C3_Z518' OR flag_constatacion_z518) as totalC3Z518,
+        COUNTIF(categoria_triage = 'C4') as totalC4,
+        COUNTIF(categoria_triage = 'C5') as totalC5,
         COUNTIF(flag_alta_administrativa) as totalAltas,
         COUNTIF(flag_traslado_hospitalario) as totalTraslados,
-        COUNTIF(flag_constatacion_lesion) as totalConstataciones,
+        COUNTIF(flag_constatacion_z518) as totalConstataciones,
         COALESCE(AVG(estadia_minutos), 0) as avgEstadia
       FROM \`metrico-dashboard-2026.metrico_analytics.v_pacientes_urgencia_master\`
       WHERE t_admision >= TIMESTAMP(@inicio) AND t_admision <= TIMESTAMP(@fin)
@@ -185,30 +185,22 @@ exports.obtenerMetricasMaster = functions.https.onCall(async (dataReq, context) 
       filterClause += ' AND UPPER(prevision) LIKE @prevision';
       params.prevision = `%${filtrosGlobales.prevision}%`;
     }
-    if (filtrosGlobales.establecimiento && filtrosGlobales.establecimiento !== 'TODOS') {
-      if (filtrosGlobales.establecimiento === 'OTROS') {
-        filterClause += " AND (establecimiento IS NULL OR NOT REGEXP_CONTAINS(UPPER(establecimiento), 'FLORENCIA|BORIS|ELGUETA'))";
-      } else {
-        filterClause += ' AND UPPER(establecimiento) LIKE @establecimiento';
-        params.establecimiento = `%${filtrosGlobales.establecimiento}%`;
-      }
-    }
   }
 
   const sqlQuery = `
     SELECT 
       COUNT(*) as total_admitidos,
-      COUNTIF(t_alta IS NOT NULL OR estado = 'Finalizada') as total_atendidos,
+      COUNTIF(t_alta IS NOT NULL OR estado_atencion = 'FINALIZADA') as total_atendidos,
       COUNTIF(flag_alta_administrativa) as total_altas_admin,
       COUNTIF(flag_traslado_hospitalario) as total_traslados,
       COUNTIF(flag_fractura) as total_fracturas,
-      COUNTIF(flag_constatacion_lesion) as total_constataciones,
+      COUNTIF(flag_constatacion_z518) as total_constataciones,
       COALESCE(AVG(estadia_minutos), 0) as prom_estadia_min,
-      COUNTIF(categoria = 'C1') as c1,
-      COUNTIF(categoria = 'C2') as c2,
-      COUNTIF(categoria = 'C3') as c3,
-      COUNTIF(categoria = 'C4') as c4,
-      COUNTIF(categoria = 'C5') as c5
+      COUNTIF(categoria_triage = 'C1') as c1,
+      COUNTIF(categoria_triage = 'C2') as c2,
+      COUNTIF(categoria_triage = 'C3') as c3,
+      COUNTIF(categoria_triage = 'C4') as c4,
+      COUNTIF(categoria_triage = 'C5') as c5
     FROM \`metrico-dashboard-2026.metrico_analytics.v_pacientes_urgencia_master\`
     WHERE t_admision >= SAFE.TIMESTAMP_MILLIS(@startMs)
       AND t_admision <= SAFE.TIMESTAMP_MILLIS(@endMs)
