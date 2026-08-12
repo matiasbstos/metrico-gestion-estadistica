@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { getWindowRange, isPatientInWindowRange } from './useMetricoAnalytics';
 
 const isPatientInWindow = (tAdmMs, startDayStr, endDayStr, startHourStr, endHourStr) => {
