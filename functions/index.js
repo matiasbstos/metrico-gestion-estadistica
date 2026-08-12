@@ -11,8 +11,8 @@ exports.obtenerKpisDashboard = functions.https.onCall(async (dataReq, context) =
     throw new functions.https.HttpsError('invalid-argument', 'Faltan los parámetros fechaInicio o fechaFin.');
   }
 
-  const parseDateStr = (dateStr, defaultHour = 0, defaultMin = 0, defaultSec = 0) => {
-    if (!dateStr) return new Date();
+  const parseDateParts = (dateStr) => {
+    if (!dateStr) return { y: 2026, m: 8, d: 11 };
     const str = String(dateStr).trim();
     let y, m, d;
 
@@ -21,7 +21,7 @@ exports.obtenerKpisDashboard = functions.https.onCall(async (dataReq, context) =
       [y, m, d] = parts;
     } else if (/^\d{1,2}[-/]\d{1,2}[-/]\d{4}$/.test(str)) {
       const parts = str.split(/[-/]/).map(Number);
-      [d, m, y] = parts; // Formato Chileno DD/MM/YYYY
+      [d, m, y] = parts;
     } else {
       const dt = new Date(str);
       if (!isNaN(dt.getTime())) {
@@ -39,37 +39,42 @@ exports.obtenerKpisDashboard = functions.https.onCall(async (dataReq, context) =
     if (y < 100) y += 2000;
     if (y > 9999) y = 2026;
 
-    return new Date(y, m - 1, d, defaultHour, defaultMin, defaultSec);
+    return { y, m, d };
+  };
+
+  const formatChileIso = (y, m, d, h = 0, min = 0, sec = 0) => {
+    const YYYY = String(y).padStart(4, '0');
+    const MM = String(m).padStart(2, '0');
+    const DD = String(d).padStart(2, '0');
+    const HH = String(h).padStart(2, '0');
+    const MIN = String(min).padStart(2, '0');
+    const SS = String(sec).padStart(2, '0');
+    return `${YYYY}-${MM}-${DD}T${HH}:${MIN}:${SS}-04:00`;
   };
 
   const getRanges = (startStr, endStr, startHourStr = '00:00', endHourStr = '23:59') => {
     const [sh, smin] = (startHourStr || '00:00').split(':').map(Number);
     const [eh, emin] = (endHourStr || '23:59').split(':').map(Number);
 
-    const currentStart = parseDateStr(startStr, sh || 0, smin || 0, 0);
-    const currentEnd = parseDateStr(endStr, eh || 23, emin || 59, 59);
+    const s = parseDateParts(startStr);
+    const e = parseDateParts(endStr);
 
-    const sy = currentStart.getFullYear();
-    const sm = currentStart.getMonth() + 1;
-    const sd = currentStart.getDate();
+    const currentStart = formatChileIso(s.y, s.m, s.d, sh || 0, smin || 0, 0);
+    const currentEnd = formatChileIso(e.y, e.m, e.d, eh || 23, emin || 59, 59);
 
-    const ey = currentEnd.getFullYear();
-    const em = currentEnd.getMonth() + 1;
-    const ed = currentEnd.getDate();
+    const pmStart = formatChileIso(s.y, s.m - 1, s.d, sh || 0, smin || 0, 0);
+    const pmEnd = formatChileIso(e.y, e.m - 1, e.d, eh || 23, emin || 59, 59);
 
-    const pmStart = new Date(sy, sm - 2, sd, sh || 0, smin || 0, 0);
-    const pmEnd = new Date(ey, em - 2, ed, eh || 23, emin || 59, 59);
+    const pyStart = formatChileIso(s.y - 1, s.m, s.d, sh || 0, smin || 0, 0);
+    const pyEnd = formatChileIso(e.y - 1, e.m, e.d, eh || 23, emin || 59, 59);
 
-    const pyStart = new Date(sy - 1, sm - 1, sd, sh || 0, smin || 0, 0);
-    const pyEnd = new Date(ey - 1, em - 1, ed, eh || 23, emin || 59, 59);
-
-    const ytdStart = new Date(ey, 0, 1, 0, 0, 0);
+    const ytdStart = formatChileIso(e.y, 1, 1, 0, 0, 0);
 
     return {
-      current: { start: currentStart.toISOString(), end: currentEnd.toISOString() },
-      prevMonth: { start: pmStart.toISOString(), end: pmEnd.toISOString() },
-      prevYear: { start: pyStart.toISOString(), end: pyEnd.toISOString() },
-      ytd: { start: ytdStart.toISOString(), end: currentEnd.toISOString() }
+      current: { start: currentStart, end: currentEnd },
+      prevMonth: { start: pmStart, end: pmEnd },
+      prevYear: { start: pyStart, end: pyEnd },
+      ytd: { start: ytdStart, end: currentEnd }
     };
   };
 
