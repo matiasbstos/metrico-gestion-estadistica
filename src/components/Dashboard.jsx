@@ -135,7 +135,7 @@ const DashboardContent = () => {
   const [filtroHoraFin, setFiltroHoraFin] = useState('23:59');
   const [horarioPreset, setHorarioPreset] = useState('civil');
 
-  const { user, userProfile, loading, syncStatus, setSyncStatus, setLoading, pacientesDB, allPacientesDB, turnosDB, triggerRefresh } = useMetricoData(filtroFechaInicio, filtroFechaFin);
+  const { user, userProfile, loading, syncStatus, syncProgress, setSyncStatus, setLoading, pacientesDB, allPacientesDB, turnosDB, triggerRefresh } = useMetricoData(filtroFechaInicio, filtroFechaFin);
 
   const [tema, setTema] = useState(() => localStorage.getItem('metrico-tema') || 'crextio');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
