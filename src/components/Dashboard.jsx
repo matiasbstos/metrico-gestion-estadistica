@@ -135,7 +135,7 @@ const DashboardContent = () => {
   const [filtroHoraFin, setFiltroHoraFin] = useState('23:59');
   const [horarioPreset, setHorarioPreset] = useState('civil');
 
-  const { user, userProfile, loading, syncStatus, syncProgress, setSyncStatus, setLoading, pacientesDB, allPacientesDB, turnosDB, triggerRefresh } = useMetricoData(filtroFechaInicio, filtroFechaFin);
+  const { user, userProfile, loading, syncStatus, syncProgress, setSyncStatus, setLoading, pacientesDB, allPacientesDB, turnosDB, triggerRefresh, lastSyncTime } = useMetricoData(filtroFechaInicio, filtroFechaFin);
 
   const [tema, setTema] = useState(() => localStorage.getItem('metrico-tema') || 'crextio');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
@@ -586,6 +586,21 @@ const DashboardContent = () => {
     }
     return base;
   }, [kpisBigQuery, statsKPI, demografiaStats]);
+
+  const integrityIncidencesCount = useMemo(() => {
+    if (!kpisBigQuery || !statsKPIFinal) return 0;
+    let count = 0;
+    const bq = kpisBigQuery;
+    const st = statsKPIFinal;
+    
+    if (bq.pacientes?.current && st.pacientes?.current && Math.abs(bq.pacientes.current - st.pacientes.current) > 2) count++;
+    if (bq.atendidos?.current && st.atendidos?.current && Math.abs(bq.atendidos.current - st.atendidos.current) > 2) count++;
+    if (bq.altasAdmin?.current && st.altasAdmin?.current && Math.abs(bq.altasAdmin.current - st.altasAdmin.current) > 2) count++;
+    if (bq.traslados?.current && st.traslados?.current && Math.abs(bq.traslados.current - st.traslados.current) > 2) count++;
+    if (bq.constataciones?.current && st.constataciones?.current && Math.abs(bq.constataciones.current - st.constataciones.current) > 2) count++;
+
+    return count;
+  }, [kpisBigQuery, statsKPIFinal]);
   const { turnosDemanda, pacientesDemanda, peakHoursData } = useMetricoDemanda(pacientesDB, turnosDB, demandaFechaInicio, demandaFechaFin, modoComparativo, filtroFechaInicioB, filtroFechaFinB, docsToCompare, tipoCorte, filtroHoraInicio, filtroHoraFin, kpisBigQuery);
   const { turnosProf, pacientesProf, metricsByDoctor, filteredMetricsByDoctor, dailyDoctorData } = useMetricoProfesionales(pacientesDB, turnosDB, profFechaInicio, profFechaFin, docsToCompare, searchDoctor, tipoCorte, filtroHoraInicio, filtroHoraFin);
 
@@ -1069,13 +1084,25 @@ const DashboardContent = () => {
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <span className="text-xs font-black text-emerald-500">Sistema En Línea</span>
+                        <div className={`w-2.5 h-2.5 rounded-full ${integrityIncidencesCount > 0 ? 'bg-rose-500 animate-ping' : 'bg-emerald-500 animate-pulse'}`}></div>
+                        <span className={`text-xs font-black ${integrityIncidencesCount > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                          {integrityIncidencesCount > 0 ? `Alerta Integridad (${integrityIncidencesCount})` : 'Sistema En Línea'}
+                        </span>
                       </div>
                     </div>
-                    <p className="text-[10px] text-secondary-custom font-bold pt-1">
-                      ✓ {(pacientesDB.length + turnosDB.length).toLocaleString()} registros
-                    </p>
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-[10px] text-secondary-custom font-bold">
+                        ✓ {(pacientesDB.length + turnosDB.length).toLocaleString()} registros
+                      </span>
+                      {integrityIncidencesCount > 0 && (
+                        <button
+                          onClick={() => setActiveTab('auditoria')}
+                          className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-rose-500 text-white animate-pulse cursor-pointer shadow-sm"
+                        >
+                          Ver Bitácora
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -1542,6 +1569,7 @@ const DashboardContent = () => {
                 isScrolled={isScrolled}
                 onSync={triggerRefresh}
                 syncStatus={syncStatus}
+                lastSyncTime={lastSyncTime}
               />
             </div>
 
@@ -1844,7 +1872,7 @@ const DashboardContent = () => {
         )}
 
         {activeTab === 'auditoria' && (
-          <AuditLog db={db} appId={appId} centroActivo={centroActivo} />
+          <AuditLog db={db} appId={appId} centroActivo={centroActivo} kpisBigQuery={kpisBigQuery} statsKPIFinal={statsKPIFinal} lastSyncTime={lastSyncTime} />
         )}
 
         {activeTab === 'pauta' && (

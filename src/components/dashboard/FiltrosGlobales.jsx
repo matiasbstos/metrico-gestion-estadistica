@@ -39,7 +39,8 @@ export default function FiltrosGlobales({
   onClearFilters,
   isScrolled,
   onSync,
-  syncStatus
+  syncStatus,
+  lastSyncTime
 }) {
   const [activePreset, setActivePreset] = useState('hoy');
 
@@ -206,10 +207,15 @@ export default function FiltrosGlobales({
                     ? 'bg-amber-500/10 border-amber-500/25 text-amber-500 cursor-not-allowed'
                     : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 cursor-pointer'
                 }`}
-                title="Sincronizar base de datos con la nube"
+                title="Sincronizar base de datos con la nube y reevaluar todos los módulos en vivo"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${syncStatus === 'connecting' || syncStatus === 'syncing' ? 'animate-spin' : ''}`} />
                 <span className="hidden md:inline">Sincronizar</span>
+                {lastSyncTime && (
+                  <span className="hidden xl:inline text-[8px] font-mono px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-500 dark:text-indigo-300 normal-case ml-0.5">
+                    {lastSyncTime}
+                  </span>
+                )}
               </button>
             )}
 

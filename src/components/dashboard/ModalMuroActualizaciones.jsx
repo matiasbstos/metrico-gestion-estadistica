@@ -8,6 +8,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v3.2.0',
+      version: 'v3.2.0',
+      fecha: '14 de Agosto, 2026',
+      badge: 'NUEVA VERSIÓN',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Protocolo de Auto-Sincronización Profunda 5m + Paridad Médica Policial/Judicial (Z04/Carabineros/PDI) + Motor Auditoría de Integridad',
+      categoria: 'Integridad de Datos & Sincronización',
+      icon: Cpu,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Implementación del Protocolo de Auto-Sincronización Profunda en segundo plano cada 5 minutos, paridad médica ampliada para constataciones médico-legales y custodia policial (Carabineros, PDI, Comisaría, Z04, Z65, Z02.7), botón Sincronizar con re-consulta activa a BigQuery/Firestore y Motor de Detección de Incidencias en la Barra Lateral y Pestaña de Auditoría.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que todos los paneles, gráficos, reportes ejecutivos y subreportes del sitio (Resumen, Triage con J, Demanda, Profesionales, Constataciones, Altas Admin, Traslados y Radar) se mantengan 100% sincronizados con los datos fidedignos de la nube, alertando automáticamente ante cualquier discrepancia entre BigQuery y la BD.',
+        quePuedesVer: 'Verás la hora exacta de la última sincronización en el botón de la cabecera (ej: 18:44 hrs). En la barra lateral izquierda, el nuevo Monitor de Integridad mostrará "Sistema En Línea" en verde si todo coincide, o "ALERTA INTEGRIDAD" en rojo si hay un descalce. En el módulo Auditoría, la nueva sub-pestaña "Bitácora de Integridad" te muestra el desglose comparativo indicador por indicador.',
+        ejemploUso: 'Ejemplo: Cada 5 minutos el sistema consulta automáticamente la nube de forma silenciosa. Si un paciente es ingresado y derivado a Carabineros con código Z04.8, el sistema lo categoriza de inmediato en el subreporte de Constataciones y verifica que el contador coincida al 100% entre BigQuery y la BD local.'
+      },
+      changes: [
+        'Protocolo de Auto-Sincronización Profunda cada 5m: Temporizador silencioso en segundo plano que actualiza la base de datos sin interrumpir al usuario.',
+        'Botón Sincronizar en Vivo: Re-consulta activa a Firestore y a la Cloud Function de BigQuery (obtenerKpisDashboard), con insignia de hora exacta de última sync.',
+        'Paridad Médico-Legal Policial (Z04/Z65/Carabineros/PDI): Detección ampliada de atenciones médico-legales y custodia policial (Carabineros, PDI, Comisaría, Z04, Z65, Z02.7), recuperando +75 registros históricos en 2026.',
+        'Motor de Detección de Incidencias en Sidebar: Alerta roja intermitente (ALERTA INTEGRIDAD) en el menú lateral ante cualquier descalce >0.5% entre BigQuery SSOT y la BD.',
+        'Sub-Pestaña Bitácora de Integridad en Auditoría: Nueva vista comparativa indicador por indicador (Admitidos, Atendidos, Altas, Traslados, Constataciones y Triage) dentro del módulo de Auditoría.'
+      ]
+    },
+    {
       id: 'v3.1.0',
       version: 'v3.1.0',
       fecha: '12 de Agosto, 2026',
