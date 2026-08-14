@@ -10,6 +10,25 @@ const runWithTimeout = (promise, ms) => {
   ]);
 };
 
+const cleanUndefinedValues = (obj) => {
+  if (obj === undefined) return null;
+  if (!obj || typeof obj !== 'object') return obj;
+  const clean = Array.isArray(obj) ? [] : {};
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const val = obj[key];
+      if (val === undefined) {
+        clean[key] = null;
+      } else if (val !== null && typeof val === 'object' && !(val instanceof Date)) {
+        clean[key] = cleanUndefinedValues(val);
+      } else {
+        clean[key] = val;
+      }
+    }
+  }
+  return clean;
+};
+
 export default function GestionDatos({ 
   user, db, appId, loading,
   setLoading, setSyncStatus, showNotif, 
@@ -317,12 +336,17 @@ export default function GestionDatos({
       });
       setSelectedCarga(null);
     } catch(e) {
-      console.error(e);
+      console.error("Error al purgar los datos:", e);
+      const rawMsg = String(e?.message || e || '');
       let errMsg = "Error al purgar los datos.";
-      if (String(e.message).includes("Timeout")) {
-        errMsg = "Tiempo de espera agotado. Verifica tu conexión o cuota de base de datos de Firebase.";
+      if (rawMsg.includes("resource-exhausted") || rawMsg.includes("quota") || rawMsg.includes("Quota")) {
+        errMsg = "Error de cuota: Se ha alcanzado el límite diario de escrituras en Firebase (20.000 operaciones/día).";
+      } else if (rawMsg.includes("Timeout")) {
+        errMsg = "Tiempo de espera agotado al conectar con Firebase.";
+      } else if (rawMsg.includes("permission-denied") || rawMsg.includes("Permission")) {
+        errMsg = "Error de permisos: Tu usuario no tiene permisos para eliminar registros en Firebase.";
       } else {
-        errMsg = "Se ha excedido el límite de operaciones o la cuota gratuita diaria de la base de datos de Firebase.";
+        errMsg = `Error al purgar datos: ${rawMsg}`;
       }
       setPurgeError(errMsg);
     }
@@ -918,7 +942,7 @@ export default function GestionDatos({
         };
 
         const turnoRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'turnos'));
-        currentBatch.set(turnoRef, turnoDoc);
+        currentBatch.set(turnoRef, cleanUndefinedValues(turnoDoc));
         opCounter++;
         
         const pacRef = collection(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia');
@@ -931,7 +955,7 @@ export default function GestionDatos({
               opCounter = 0;
             }
             const newPacDoc = doc(pacRef);
-            currentBatch.set(newPacDoc, { ...p, loteId, cargaId });
+            currentBatch.set(newPacDoc, cleanUndefinedValues({ ...p, loteId, cargaId }));
             opCounter++;
             successCount++;
           }
@@ -946,7 +970,7 @@ export default function GestionDatos({
             opCounter = 0;
           }
           const pacDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia', item.id);
-          currentBatch.update(pacDocRef, item.data);
+          currentBatch.update(pacDocRef, cleanUndefinedValues(item.data));
           opCounter++;
         }
       }
@@ -989,10 +1013,10 @@ export default function GestionDatos({
       };
       
       const lastBatch = writeBatch(db);
-      lastBatch.set(doc(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs')), auditLog);
+      lastBatch.set(doc(collection(db, 'artifacts', appId, 'public', 'data', 'audit_logs')), cleanUndefinedValues(auditLog));
       
       const auditoriaRef = doc(db, 'artifacts', appId, 'public', 'data', 'auditoria_cargas', cargaId);
-      lastBatch.set(auditoriaRef, auditoriaCargasDoc);
+      lastBatch.set(auditoriaRef, cleanUndefinedValues(auditoriaCargasDoc));
       batchList.push(lastBatch);
 
       setUploadProgress(0);
@@ -1005,7 +1029,7 @@ export default function GestionDatos({
           throw new Error("CANCELLED_BY_USER");
         }
         setCurrentBatchIndex(i + 1);
-        await runWithTimeout(batchList[i].commit(), 30000);
+        await runWithTimeout(batchList[i].commit(), 35000);
         const batchProgress = i + 1;
         const pct = (batchProgress / batchList.length) * 100;
         setUploadProgress(pct);
@@ -1042,15 +1066,20 @@ export default function GestionDatos({
       setUploadSuccess(true);
 
     } catch (err) { 
-      console.error(err);
+      console.error("Error al guardar lote en Firebase:", err);
       if (err.message === "CANCELLED_BY_USER") {
-        setUploadError("Operación cancelada por el usuario. Es posible que algunos lotes iniciales ya se hayan guardado en la nube. Se recomienda purgar este periodo si deseas repetir el proceso.");
+        setUploadError("Operación cancelada por el usuario.");
       } else {
+        const rawErrStr = String(err?.message || err || '');
         let errMsg = "Error al guardar lote en la nube.";
-        if (String(err.message).includes("Timeout")) {
-          errMsg = "Error de conexión: tiempo de espera agotado. Esto suele ocurrir cuando se agota la cuota gratuita diaria de Firebase.";
+        if (rawErrStr.includes("resource-exhausted") || rawErrStr.includes("quota") || rawErrStr.includes("Quota")) {
+          errMsg = "Error de cuota: Se ha alcanzado el límite diario de escrituras en Firebase (20.000 operaciones/día). Inténtalo más tarde.";
+        } else if (rawErrStr.includes("Timeout")) {
+          errMsg = "Error de conexión: Tiempo de espera agotado al comunicar con Firebase. Inténtalo nuevamente.";
+        } else if (rawErrStr.includes("permission-denied") || rawErrStr.includes("Permission")) {
+          errMsg = "Error de permisos: Tu usuario no tiene permisos de escritura en Firebase.";
         } else {
-          errMsg = "Error al guardar el lote. Se ha excedido la cuota de base de datos de Firebase.";
+          errMsg = `Fallo al Guardar en Firebase: ${rawErrStr}`;
         }
         setUploadError(errMsg);
         showNotif(errMsg, "error");
