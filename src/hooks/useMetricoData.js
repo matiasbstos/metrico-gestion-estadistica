@@ -12,6 +12,7 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
   const [allPacientesDB, setAllPacientesDB] = useState([]);
   const [turnosDB, setTurnosDB] = useState([]);
   const [lastSyncTime, setLastSyncTime] = useState(null);
+  const [syncToast, setSyncToast] = useState(null);
 
   // Estado del indicador de progreso en tiempo real
   const [syncProgress, setSyncProgress] = useState({
@@ -132,9 +133,22 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
       setAllPacientesDB(arr);
       savePacientesToIDB(arr);
 
-      setLastSyncTime(getFormattedTime());
+      const formattedTime = getFormattedTime();
+      setLastSyncTime(formattedTime);
       setSyncStatus('synced');
       setLoading(false);
+
+      // Disparar Notificación Pop-up Alerta
+      setSyncToast({
+        id: Date.now(),
+        type: isSilent ? 'auto' : 'manual',
+        title: isSilent ? 'Auto-Sincronización Silenciosa (5m)' : 'Sincronización Profunda Exitosa',
+        message: isSilent 
+          ? `Base de datos al día. Sincronizado automáticamente a las ${formattedTime} hrs.`
+          : `Re-evaluación completada a las ${formattedTime} hrs. ${arr.length.toLocaleString()} registros verificados al 100%.`,
+        timestamp: formattedTime,
+        count: arr.length
+      });
 
       if (!isSilent) {
         setSyncProgress({
@@ -248,7 +262,8 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
           const mergedList = Array.from(globalPacientesMapRef.current.values()).sort((a, b) => b.tAdmision - a.tAdmision);
           setPacientesDB(mergedList);
           setAllPacientesDB(mergedList);
-          setLastSyncTime(getFormattedTime());
+          const formattedTime = getFormattedTime();
+          setLastSyncTime(formattedTime);
 
           setSyncProgress({
             active: true,
@@ -288,6 +303,8 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
     turnosDB,
     syncProgress,
     lastSyncTime,
+    syncToast,
+    clearSyncToast: () => setSyncToast(null),
     forceDeepSync,
     triggerRefresh: () => {
       setRefreshTrigger(prev => prev + 1);

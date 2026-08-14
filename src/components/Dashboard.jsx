@@ -32,6 +32,7 @@ import ModalMuroActualizaciones from './dashboard/ModalMuroActualizaciones';
 import ModalConfiguracionCorreo from './dashboard/ModalConfiguracionCorreo';
 import BarraProgresoCarga from './dashboard/BarraProgresoCarga';
 import Radar from './dashboard/Radar';
+import PopUpSincronizacion from './dashboard/PopUpSincronizacion';
 import { formatLocalDate } from '../utils/helpers';
 import Login from './Login';
 import { 
@@ -135,7 +136,7 @@ const DashboardContent = () => {
   const [filtroHoraFin, setFiltroHoraFin] = useState('23:59');
   const [horarioPreset, setHorarioPreset] = useState('civil');
 
-  const { user, userProfile, loading, syncStatus, syncProgress, setSyncStatus, setLoading, pacientesDB, allPacientesDB, turnosDB, triggerRefresh, lastSyncTime } = useMetricoData(filtroFechaInicio, filtroFechaFin);
+  const { user, userProfile, loading, syncStatus, syncProgress, setSyncStatus, setLoading, pacientesDB, allPacientesDB, turnosDB, triggerRefresh, lastSyncTime, syncToast, clearSyncToast } = useMetricoData(filtroFechaInicio, filtroFechaFin);
 
   const [tema, setTema] = useState(() => localStorage.getItem('metrico-tema') || 'crextio');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
@@ -1951,6 +1952,9 @@ const DashboardContent = () => {
 
       {/* BARRA DE PROGRESO DE DESCARGA EN TIEMPO REAL (Oculta si el modal central está activo) */}
       <BarraProgresoCarga syncProgress={syncProgress} isOverlayOpen={syncStatus === 'connecting' || syncStatus === 'syncing' || (syncProgress && syncProgress.active)} />
+
+      {/* NOTIFICACIÓN POP-UP ALERTA DE SINCRONIZACIÓN (MANUAL Y 5M AUTOSYNC) */}
+      <PopUpSincronizacion toast={syncToast} onClose={clearSyncToast} />
     </div>
   );
 }
