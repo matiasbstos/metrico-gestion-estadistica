@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { Sparkles, Clock, Sun, Moon, AlertCircle, CheckCircle2, Info, X } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Sparkles, Clock, Sun, Moon, AlertCircle, X } from 'lucide-react';
 
 export default function SugerenciasTurnosBar({
   filtroFechaInicio,
@@ -8,15 +8,10 @@ export default function SugerenciasTurnosBar({
   filtroHoraFin,
   setFiltroHoraInicio,
   setFiltroHoraFin,
-  setHorarioPreset
+  setHorarioPreset,
+  isOpen,
+  onClose
 }) {
-  const [userDismissed, setUserDismissed] = useState(false);
-
-  // Re-mostrar la ventana flotante cuando el usuario cambie fecha u hora
-  useEffect(() => {
-    setUserDismissed(false);
-  }, [filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin]);
-
   const contextInfo = useMemo(() => {
     if (!filtroFechaInicio) return null;
 
@@ -105,7 +100,7 @@ export default function SugerenciasTurnosBar({
           id: 'largo_semana',
           title: 'Turno Largo Semana',
           rangeLabel: '17:00 a 08:00 hrs (+1d)',
-          ruleText: 'Oficial 17:00 - 08:00 hrs (Sistema aplica 16:00 - 09:00 AM para encasillamiento completo)',
+          ruleText: 'Oficial 17:00 - 08:00 hrs (Sistema aplica 16:00 - 09:00 AM internamente)',
           horaInicio: '16:00',
           horaFin: '09:00',
           preset: 'largo',
@@ -124,13 +119,13 @@ export default function SugerenciasTurnosBar({
     };
   }, [filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin]);
 
-  if (!contextInfo || contextInfo.suggestions.length === 0 || userDismissed) return null;
+  if (!isOpen || !contextInfo || contextInfo.suggestions.length === 0) return null;
 
   const applySuggestion = (sug) => {
     setFiltroHoraInicio(sug.horaInicio);
     setFiltroHoraFin(sug.horaFin);
     setHorarioPreset(sug.preset);
-    setUserDismissed(true); // Cerrar ventana flotante al seleccionar
+    if (onClose) onClose();
   };
 
   return (
@@ -141,8 +136,8 @@ export default function SugerenciasTurnosBar({
           <span>Sugerencia de Turno Detectada</span>
         </div>
         <button
-          onClick={() => setUserDismissed(true)}
-          className="p-1 rounded-lg text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+          onClick={onClose}
+          className="p-1 rounded-lg text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer"
           title="Cerrar sugerencia"
         >
           <X className="w-3.5 h-3.5" />

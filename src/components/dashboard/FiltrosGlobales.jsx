@@ -3,53 +3,101 @@ import { Calendar, Compass, RefreshCw, Info } from 'lucide-react';
 import CampanaNotificaciones from './CampanaNotificaciones';
 import SugerenciasTurnosBar from './SugerenciasTurnosBar';
 
-function ChileanDatePicker({ value, onChange, className = '' }) {
+function EncasillamientoInfoBadge({ horarioPreset, filtroHoraInicio, filtroHoraFin }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const isEncasillamientoLargo = horarioPreset === 'largo' || (filtroHoraInicio === '16:00' && filtroHoraFin === '09:00');
+
+  if (!isEncasillamientoLargo) return null;
+
+  return (
+    <div className="relative inline-block animate-fade-in">
+      <button 
+        type="button"
+        onClick={() => setShowTooltip(!showTooltip)}
+        onMouseEnter={() => setShowTooltip(true)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30 text-[10px] font-bold shadow-sm transition-all relative group cursor-pointer"
+      >
+        {/* Indicador pulsante de alarma sutil */}
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+        </span>
+        <Info className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+        <span className="hidden sm:inline">Turno Largo: 17:00 a 08:00 hrs</span>
+        <span className="sm:hidden">Turno Largo</span>
+      </button>
+
+      {/* TOOLTIP/POPOVER PERSONALIZADO CON ESTILO DEL SITIO */}
+      {showTooltip && (
+        <div 
+          className="absolute top-full left-0 mt-2 z-[999] w-72 p-3.5 rounded-2xl bg-slate-900/95 dark:bg-slate-900/95 text-slate-100 border border-indigo-500/40 shadow-2xl backdrop-blur-xl animate-fade-in"
+          onMouseLeave={() => setShowTooltip(false)}
+        >
+          <div className="flex items-center justify-between pb-2 border-b border-indigo-500/20 mb-2">
+            <div className="flex items-center gap-1.5 text-xs font-black text-indigo-400 uppercase tracking-wide">
+              <Info className="w-4 h-4 text-indigo-400 shrink-0" />
+              <span>Criterio de Encasillamiento</span>
+            </div>
+            <button onClick={() => setShowTooltip(false)} className="text-slate-400 hover:text-white text-xs font-bold cursor-pointer">✕</button>
+          </div>
+          <div className="space-y-1.5 text-[11px] font-medium leading-relaxed">
+            <div className="flex items-center justify-between bg-white/5 px-2 py-1 rounded-lg">
+              <span className="text-slate-400">Horario Oficial:</span>
+              <span className="font-bold text-indigo-300">17:00 a 08:00 hrs</span>
+            </div>
+            <div className="flex items-center justify-between bg-indigo-500/15 px-2 py-1 rounded-lg border border-indigo-500/30">
+              <span className="text-slate-300">Encasillamiento Interno:</span>
+              <span className="font-mono font-bold text-emerald-400">16:00 a 09:00 AM</span>
+            </div>
+            <p className="text-[10px] text-slate-400 mt-2 pt-1 border-t border-white/5">
+              💡 <strong>¿Por qué 16:00 a 09:00 AM?</strong> Se aplica un margen extendido (+1 hora antes y después) para capturar el 100% de las admisiones del Turno Largo de Semana.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChileanDatePicker({ value, onChange, className = '', onClick }) {
   return (
     <input 
       type="date" 
       value={value || ''} 
       onChange={onChange} 
       onClick={(e) => {
+        if (onClick) onClick(e);
         try {
           if (e.target.showPicker) e.target.showPicker();
         } catch (err) {}
       }}
-      className={`px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold font-mono text-primary-custom tracking-wider cursor-pointer outline-none focus:ring-2 focus:ring-indigo-500 transition-all ${className}`}
+      className={`text-xs font-bold accent-text-custom outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0 ${className}`} 
     />
   );
 }
 
 export default function FiltrosGlobales({
-  modoComparativo,
-  setModoComparativo,
-  filtroFechaInicio,
-  setFiltroFechaInicio,
-  filtroFechaFin,
-  setFiltroFechaFin,
-  filtroFechaInicioB,
-  setFiltroFechaInicioB,
-  filtroFechaFinB,
-  setFiltroFechaFinB,
+  filtroFechaInicio, setFiltroFechaInicio,
+  filtroFechaFin, setFiltroFechaFin,
+  filtroHoraInicio, setFiltroHoraInicio,
+  filtroHoraFin, setFiltroHoraFin,
+  horarioPreset, setHorarioPreset,
   applyDatePreset,
-  tipoCorte,
-  setTipoCorte,
-  filtroHoraInicio,
-  setFiltroHoraInicio,
-  filtroHoraFin,
-  setFiltroHoraFin,
-  horarioPreset,
-  setHorarioPreset,
-  maxDateLabel,
+  modoComparativo, setModoComparativo,
+  filtroFechaInicioB, setFiltroFechaInicioB,
+  filtroFechaFinB, setFiltroFechaFinB,
   onClearFilters,
-  isScrolled,
   onSync,
   syncStatus,
   lastSyncTime,
   syncToast,
   integrityIncidencesCount,
-  onNavigateTab
+  onNavigateTab,
+  maxDateLabel,
+  isScrolled
 }) {
   const [activePreset, setActivePreset] = useState('hoy');
+  const [showSuggestionsPopover, setShowSuggestionsPopover] = useState(false);
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -114,23 +162,21 @@ export default function FiltrosGlobales({
       
       <div className="flex flex-col items-end gap-2 w-full lg:w-auto">
         <div className="flex flex-wrap items-center justify-end gap-2 w-full lg:w-auto relative">
-          {/* Leyenda explicativa de encasillamiento ampliado para Turno Largo Semana */}
-          {(horarioPreset === 'largo' || (filtroHoraInicio === '16:00' && filtroHoraFin === '09:00')) && (
-            <div 
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-500/25 text-[10px] font-bold shadow-sm animate-fade-in" 
-              title="Horario Oficial Turno Largo: 17:00 a 08:00 hrs. Se aplica encasillamiento extendido de 16:00 a 09:00 AM para capturar todas las admisiones correspondientes a este turno."
-            >
-              <Info className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-              <span>Turno Largo: 17:00 a 08:00 hrs (Encasillamiento 16:00 - 09:00 AM)</span>
-            </div>
-          )}
+          {/* Leyenda explicativa interactiva con Popover de Encasillamiento Ampliado */}
+          <EncasillamientoInfoBadge 
+            horarioPreset={horarioPreset} 
+            filtroHoraInicio={filtroHoraInicio} 
+            filtroHoraFin={filtroHoraFin} 
+          />
 
           {/* Main date and hour picker */}
           <div className="flex items-center bg-card-custom border border-card-custom rounded-xl p-1.5 shadow-sm gap-2 theme-transition">
             <Calendar className="w-4 h-4 text-secondary-custom mx-1" />
             <ChileanDatePicker 
               value={filtroFechaInicio}
+              onClick={() => setShowSuggestionsPopover(true)}
               onChange={e => {
+                setShowSuggestionsPopover(true);
                 const newStart = e.target.value;
                 setFiltroFechaInicio(newStart);
                 if (!filtroFechaFin || filtroFechaFin < newStart || activePreset === 'hoy' || activePreset === 'dia') {
@@ -141,7 +187,10 @@ export default function FiltrosGlobales({
             <input 
               type="time" 
               value={filtroHoraInicio} 
+              onFocus={() => setShowSuggestionsPopover(true)}
+              onClick={() => setShowSuggestionsPopover(true)}
               onChange={e => {
+                setShowSuggestionsPopover(true);
                 setFiltroHoraInicio(e.target.value);
                 setHorarioPreset('custom');
               }} 
@@ -150,7 +199,9 @@ export default function FiltrosGlobales({
             <span className="text-secondary-custom mx-1">-</span>
             <ChileanDatePicker 
               value={filtroFechaFin}
+              onClick={() => setShowSuggestionsPopover(true)}
               onChange={e => {
+                setShowSuggestionsPopover(true);
                 const newEnd = e.target.value;
                 setFiltroFechaFin(newEnd);
                 if (filtroFechaInicio && newEnd < filtroFechaInicio) {
@@ -161,7 +212,10 @@ export default function FiltrosGlobales({
             <input 
               type="time" 
               value={filtroHoraFin} 
+              onFocus={() => setShowSuggestionsPopover(true)}
+              onClick={() => setShowSuggestionsPopover(true)}
               onChange={e => {
+                setShowSuggestionsPopover(true);
                 setFiltroHoraFin(e.target.value);
                 setHorarioPreset('custom');
               }} 
@@ -169,7 +223,7 @@ export default function FiltrosGlobales({
             />
           </div>
 
-          {/* POP-UP FLOTANTE DE SUGERENCIAS INTELIGENTES DE TURNOS */}
+          {/* POP-UP FLOTANTE DE SUGERENCIAS INTELIGENTES DE TURNOS (Solo visible al interactuar) */}
           <SugerenciasTurnosBar 
             filtroFechaInicio={filtroFechaInicio}
             filtroFechaFin={filtroFechaFin}
@@ -178,6 +232,8 @@ export default function FiltrosGlobales({
             setFiltroHoraInicio={setFiltroHoraInicio}
             setFiltroHoraFin={setFiltroHoraFin}
             setHorarioPreset={setHorarioPreset}
+            isOpen={showSuggestionsPopover}
+            onClose={() => setShowSuggestionsPopover(false)}
           />
           
           <div className="flex flex-wrap items-center gap-2">
