@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Sparkles, Clock, Sun, Moon, AlertCircle, CheckCircle2, ChevronRight, X } from 'lucide-react';
+import { Sparkles, Clock, Sun, Moon, AlertCircle, CheckCircle2, Info, X } from 'lucide-react';
 
 export default function SugerenciasTurnosBar({
   filtroFechaInicio,
@@ -12,7 +12,7 @@ export default function SugerenciasTurnosBar({
 }) {
   const [userDismissed, setUserDismissed] = useState(false);
 
-  // Re-mostrar sugerencias cuando el usuario cambie la fecha u hora
+  // Re-mostrar la ventana flotante cuando el usuario cambie fecha u hora
   useEffect(() => {
     setUserDismissed(false);
   }, [filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin]);
@@ -31,7 +31,6 @@ export default function SugerenciasTurnosBar({
     const dayOfWeek = startDateObj.getDay(); // 0 = Domingo, 6 = Sábado
     const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
 
-    // Calcular duración del rango horario ingresado
     const startHourStr = filtroHoraInicio || '00:00';
     const endHourStr = filtroHoraFin || '23:59';
     
@@ -41,7 +40,6 @@ export default function SugerenciasTurnosBar({
     const startDateTime = new Date(year, month, day, hStart || 0, mStart || 0);
     let endDateTime = new Date(year, month, day, hEnd || 23, mEnd || 59);
 
-    // Si la hora de fin es menor a la de inicio en el mismo día, cruza medianoche (+1d)
     if (endDateTime <= startDateTime && filtroFechaInicio === (filtroFechaFin || filtroFechaInicio)) {
       endDateTime.setDate(endDateTime.getDate() + 1);
     } else if (filtroFechaFin && filtroFechaFin > filtroFechaInicio) {
@@ -54,7 +52,6 @@ export default function SugerenciasTurnosBar({
     const diffMs = endDateTime.getTime() - startDateTime.getTime();
     const durationHours = Math.max(0, diffMs / (1000 * 60 * 60));
 
-    // Determinar sugerencias según el contexto ingresado
     const isShortWindow = durationHours < 6 && durationHours > 0;
     const isLongWindow = durationHours > 24;
 
@@ -73,7 +70,6 @@ export default function SugerenciasTurnosBar({
     let list = [];
 
     if (isLongWindow) {
-      // Si el rango es mayor a 24 horas, solo sugerir Día Completo o nada
       list = [commonFullDay];
     } else if (isWeekend) {
       list = [
@@ -108,8 +104,8 @@ export default function SugerenciasTurnosBar({
         {
           id: 'largo_semana',
           title: 'Turno Largo Semana',
-          rangeLabel: '16:00 a 09:00 hrs (+1d)',
-          ruleText: 'Encasillamiento 16:00 - 09:00 AM (+1 hora)',
+          rangeLabel: '17:00 a 08:00 hrs (+1d)',
+          ruleText: 'Oficial 17:00 - 08:00 hrs (Sistema aplica 16:00 - 09:00 AM para encasillamiento completo)',
           horaInicio: '16:00',
           horaFin: '09:00',
           preset: 'largo',
@@ -134,58 +130,67 @@ export default function SugerenciasTurnosBar({
     setFiltroHoraInicio(sug.horaInicio);
     setFiltroHoraFin(sug.horaFin);
     setHorarioPreset(sug.preset);
+    setUserDismissed(true); // Cerrar ventana flotante al seleccionar
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5 animate-fade-in py-1 px-2 rounded-xl bg-card-custom/50 border border-card-custom/40 shadow-sm theme-transition">
-      <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 shrink-0">
-        <Sparkles className="w-3.5 h-3.5 animate-pulse text-indigo-500" />
-        <span>Sugerencia según horario digitado:</span>
+    <div className="absolute top-full right-0 mt-2 z-50 w-80 p-3.5 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-indigo-500/30 shadow-2xl backdrop-blur-xl animate-fade-in">
+      <div className="flex items-center justify-between pb-2 border-b border-card-custom/20 mb-2.5">
+        <div className="flex items-center gap-1.5 text-xs font-black uppercase text-indigo-600 dark:text-indigo-400">
+          <Sparkles className="w-4 h-4 animate-pulse text-indigo-500" />
+          <span>Sugerencia de Turno Detectada</span>
+        </div>
+        <button
+          onClick={() => setUserDismissed(true)}
+          className="p-1 rounded-lg text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+          title="Cerrar sugerencia"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
       </div>
 
-      {/* Advertencia si el rango digitado es muy corto (< 6h) */}
       {contextInfo.isShortWindow && (
-        <div className="flex items-center gap-1 text-[9px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20">
-          <AlertCircle className="w-3 h-3" />
-          <span>Rango corto ({contextInfo.durationHours}h). ¿Ajustar a turno oficial?</span>
+        <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 p-2 rounded-xl border border-amber-500/20 mb-2">
+          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+          <span>Rango digitado ({contextInfo.durationHours}h). ¿Ajustar al turno clínico oficial?</span>
         </div>
       )}
 
-      {/* Chips de Sugerencia */}
-      {contextInfo.suggestions.map((sug) => {
-        const IconComponent = sug.icon;
-        const isActive = (filtroHoraInicio === sug.horaInicio && filtroHoraFin === sug.horaFin);
+      <div className="space-y-2">
+        {contextInfo.suggestions.map((sug) => {
+          const IconComponent = sug.icon;
+          const isActive = (filtroHoraInicio === sug.horaInicio && filtroHoraFin === sug.horaFin);
 
-        return (
-          <button
-            key={sug.id}
-            onClick={() => applySuggestion(sug)}
-            className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all border shadow-sm cursor-pointer ${
-              isActive
-                ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-indigo-400 shadow-indigo-500/25 scale-[1.02] ring-2 ring-indigo-500/40'
-                : `bg-gradient-to-r ${sug.badgeColor} hover:scale-[1.02] hover:shadow-md`
-            }`}
-            title={`Filtrar ${sug.title} (${sug.ruleText})`}
-          >
-            <IconComponent className={`w-3.5 h-3.5 ${isActive ? 'text-white' : ''}`} />
-            <span>{sug.title}</span>
-            <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded-md ${
-              isActive ? 'bg-white/20 text-white' : 'bg-black/10 dark:bg-white/10 opacity-90'
-            }`}>
-              {sug.rangeLabel}
-            </span>
-          </button>
-        );
-      })}
-
-      {/* Botón Ocultar Sugerencias */}
-      <button
-        onClick={() => setUserDismissed(true)}
-        className="p-1 rounded-lg text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5 transition-all ml-auto"
-        title="Ocultar sugerencias de turno"
-      >
-        <X className="w-3 h-3" />
-      </button>
+          return (
+            <button
+              key={sug.id}
+              onClick={() => applySuggestion(sug)}
+              className={`w-full text-left p-2.5 rounded-xl border transition-all flex items-center justify-between cursor-pointer ${
+                isActive
+                  ? 'bg-indigo-600 text-white border-indigo-400 shadow-md ring-2 ring-indigo-400/30'
+                  : 'bg-card-custom/60 hover:bg-card-custom border-card-custom text-primary-custom hover:border-indigo-500/40 shadow-sm'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <div className={`p-1.5 rounded-lg ${isActive ? 'bg-white/20 text-white' : 'bg-indigo-500/10 text-indigo-500'}`}>
+                  <IconComponent className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-black">{sug.title}</div>
+                  <div className={`text-[10px] font-medium ${isActive ? 'text-indigo-100' : 'text-secondary-custom'}`}>
+                    {sug.ruleText}
+                  </div>
+                </div>
+              </div>
+              <span className={`text-[10px] font-mono px-2 py-0.5 rounded-md font-bold shrink-0 ml-2 ${
+                isActive ? 'bg-white/20 text-white' : 'bg-black/10 dark:bg-white/10 text-indigo-600 dark:text-indigo-400'
+              }`}>
+                {sug.rangeLabel}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

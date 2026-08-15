@@ -113,7 +113,18 @@ export default function FiltrosGlobales({
       )}
       
       <div className="flex flex-col items-end gap-2 w-full lg:w-auto">
-        <div className="flex flex-wrap items-center justify-end gap-2 w-full lg:w-auto">
+        <div className="flex flex-wrap items-center justify-end gap-2 w-full lg:w-auto relative">
+          {/* Leyenda explicativa de encasillamiento ampliado para Turno Largo Semana */}
+          {(horarioPreset === 'largo' || (filtroHoraInicio === '16:00' && filtroHoraFin === '09:00')) && (
+            <div 
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border border-indigo-500/25 text-[10px] font-bold shadow-sm animate-fade-in" 
+              title="Horario Oficial Turno Largo: 17:00 a 08:00 hrs. Se aplica encasillamiento extendido de 16:00 a 09:00 AM para capturar todas las admisiones correspondientes a este turno."
+            >
+              <Info className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+              <span>Turno Largo: 17:00 a 08:00 hrs (Encasillamiento 16:00 - 09:00 AM)</span>
+            </div>
+          )}
+
           {/* Main date and hour picker */}
           <div className="flex items-center bg-card-custom border border-card-custom rounded-xl p-1.5 shadow-sm gap-2 theme-transition">
             <Calendar className="w-4 h-4 text-secondary-custom mx-1" />
@@ -157,6 +168,17 @@ export default function FiltrosGlobales({
               className="text-xs font-bold accent-text-custom outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" 
             />
           </div>
+
+          {/* POP-UP FLOTANTE DE SUGERENCIAS INTELIGENTES DE TURNOS */}
+          <SugerenciasTurnosBar 
+            filtroFechaInicio={filtroFechaInicio}
+            filtroFechaFin={filtroFechaFin}
+            filtroHoraInicio={filtroHoraInicio}
+            filtroHoraFin={filtroHoraFin}
+            setFiltroHoraInicio={setFiltroHoraInicio}
+            setFiltroHoraFin={setFiltroHoraFin}
+            setHorarioPreset={setHorarioPreset}
+          />
           
           <div className="flex flex-wrap items-center gap-2">
             {/* Date presets */}
@@ -244,19 +266,6 @@ export default function FiltrosGlobales({
               </button>
             )}
           </div>
-        </div>
-
-        {/* BARRA DE SUGERENCIAS INTELIGENTES DE TURNOS SEGÚN FECHA SELECCIONADA */}
-        <div className="flex justify-end mt-1.5 w-full">
-          <SugerenciasTurnosBar 
-            filtroFechaInicio={filtroFechaInicio}
-            filtroFechaFin={filtroFechaFin}
-            filtroHoraInicio={filtroHoraInicio}
-            filtroHoraFin={filtroHoraFin}
-            setFiltroHoraInicio={setFiltroHoraInicio}
-            setFiltroHoraFin={setFiltroHoraFin}
-            setHorarioPreset={setHorarioPreset}
-          />
         </div>
 
         {modoComparativo && (
