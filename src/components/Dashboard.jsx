@@ -869,7 +869,7 @@ const DashboardContent = () => {
     })).filter(d => d.value > 0);
   }, [turnosFiltrados, modoComparativo]);
 
-  const isDataInitializing = loading || (!hasInitializedLatestDate && pacientesDB.length > 0);
+  const isDataInitializing = loading;
 
   if (isDataInitializing) {
     return <LoadingProgress syncStatus={syncStatus} totalRecords={pacientesDB.length + turnosDB.length} />;
