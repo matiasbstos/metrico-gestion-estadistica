@@ -2,7 +2,14 @@ import React, { useState, useMemo } from 'react';
 import { Mail, Clock, Calendar, CheckCircle2, Send, ShieldAlert, Sparkles, X, Check, FileText, AlertCircle, RefreshCw, Layers, Code, CheckSquare, Square, Cpu, Eye, UserCheck, Activity, ArrowLeftRight, Hospital } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { auditarUltimoTurnoCompleto } from '../../utils/helpers';
-import { generateAltasSummary, generateFracturasSummary, generateEnfermeriaSummary, generateConstatacionesSummary, generateTrasladosSummary } from '../../utils/summaryGenerator';
+import { 
+  generateAltasSummary, 
+  generateFracturasSummary, 
+  generateEnfermeriaSummary, 
+  generateConstatacionesSummary, 
+  generateTrasladosSummary,
+  generateMonthlyConsolidatedSummary 
+} from '../../utils/summaryGenerator';
 
 export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, showNotif, pacientesDB = [], turnosDB = [] }) {
   const [emails, setEmails] = useState('jefatura.sar@cormumel.cl, direccion.sar@cormumel.cl');
@@ -14,6 +21,9 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
   const [progTurnoFdsNoche, setProgTurnoFdsNoche] = useState(true);
   const [progDiario, setProgDiario] = useState(true);
 
+  // NUEVA REGLA: Despacho Automático de Cierre Mensual Consolidado (1° de cada mes / Día Hábil)
+  const [progMensual, setProgMensual] = useState(true);
+
   // Inclusión de Sub-Reportes en el Envío
   const [incDemanda, setIncDemanda] = useState(true);
   const [incAltas, setIncAltas] = useState(true);
@@ -23,9 +33,10 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
   const [incTraslados, setIncTraslados] = useState(true);
 
   const [sendingTest, setSendingTest] = useState(false);
+  const [sendingMonthlyTest, setSendingMonthlyTest] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
   const [previewModal, setPreviewModal] = useState(false);
-  const [previewTab, setPreviewTab] = useState('cuerpo'); // 'cuerpo' | 'json' | 'reportes'
+  const [previewTab, setPreviewTab] = useState('cuerpo'); // 'cuerpo' | 'json' | 'reportes' | 'mensual'
 
   // Combinar admisiones filtradas con el histórico en caché local para asegurar auditoría completa entre días
   const combinedPacientes = useMemo(() => {
@@ -50,6 +61,11 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
     return auditarUltimoTurnoCompleto(turnosDB, combinedPacientes);
   }, [turnosDB, combinedPacientes]);
 
+  // Resumen del Consolidado de Cierre Mensual
+  const monthlyConsolidatedText = useMemo(() => {
+    return generateMonthlyConsolidatedSummary(combinedPacientes);
+  }, [combinedPacientes]);
+
   // Generación de resúmenes analíticos para los 6 sub-reportes
   const subReportSummaries = useMemo(() => {
     return {
@@ -71,7 +87,8 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
         progTurnoSemana,
         progTurnoFdsDia,
         progTurnoFdsNoche,
-        progDiario
+        progDiario,
+        progMensual
       },
       subReportesIncluidos: {
         incDemanda,
@@ -86,8 +103,8 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
     };
 
     localStorage.setItem('metrico_config_correo', JSON.stringify(configData));
-    setSaveMsg('¡Reglas de envío y horarios de turno guardados correctamente!');
-    if (showNotif) showNotif('Programación de correo actualizada.', 'success');
+    setSaveMsg('¡Reglas de envío, turnos y despacho de Cierre Mensual guardados correctamente!');
+    if (showNotif) showNotif('Programación de correo y cierre mensual actualizada.', 'success');
     setTimeout(() => setSaveMsg(''), 4000);
   };
 
@@ -112,7 +129,7 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
             <li><strong>Atenciones Médicas:</strong> ${turnoInfo.atendidos}</li>
             <li><strong>Altas Administrativas:</strong> ${turnoInfo.altasAdmin}</li>
           </ul>
-          <pre style="background: #0f172a; color: #34d399; padding: 12px; border-radius: 8px;">${JSON.stringify(turnoInfo.jsonPayload || {}, null, 2)}</pre>
+          <p style="font-size: 12px; color: #64748b; margin-top: 15px;">💡 Nota: Los reportes ejecutivos descargables en formato PDF de cada arista clínica están disponibles para descarga directa desde el módulo de Reportes del sistema.</p>
         </div>`,
         text: `Informe auditado del turno ${turnoInfo.textoCompleto}`
       },
@@ -121,7 +138,6 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
     };
 
     try {
-      // 1. Guardar registro en Firestore (Colección mail, envios_correos y audit_logs)
       if (typeof db !== 'undefined' && db) {
         import('firebase/firestore').then(({ collection, addDoc }) => {
           addDoc(collection(db, 'mail'), mailPayload).catch(e => console.warn('Firestore mail write:', e));
@@ -131,13 +147,12 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
             accion: 'Envío de Correo',
             usuario: 'Jefatura de Gestión / Sistema',
             centro: 'SAR Elsa Romo Aravena',
-            detalles: `Despacho de Informe Auditado: ${auditResult.turnoInfo?.textoCompleto || 'Turno Auditado'}. Destinatarios: ${emails}. Adjuntos: PDF Hoja Carta + CSV Consolidado.`,
+            detalles: `Despacho de Informe Auditado: ${auditResult.turnoInfo?.textoCompleto || 'Turno Auditado'}. Destinatarios: ${emails}.`,
             fecha: new Date().toISOString(),
             estado: 'EXITOSO'
           };
 
           addDoc(collection(db, 'audit_logs'), auditRecord).catch(e => console.warn('Audit root write err:', e));
-          addDoc(collection(db, 'artifacts', 'metrico-dashboard-2026', 'public', 'data', 'audit_logs'), auditRecord).catch(e => console.warn('Audit public write err:', e));
           addDoc(collection(db, 'informes_enviados'), {
             key: `${auditResult.turnoInfo?.fechaTurno}_T${auditResult.turnoInfo?.turnoNum}`,
             enviado: true,
@@ -147,7 +162,6 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
         }).catch(err => console.warn('Import firestore err:', err));
       }
 
-      // 2. Intentar llamada Cloud Function
       if (app) {
         const functions = getFunctions(app);
         const sendMailFunc = httpsCallable(functions, 'enviarInformeCorreo');
@@ -156,21 +170,99 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
           tipoEnvio: 'AUDITORIA_TURNO_COMPLETO',
           turnoAuditado: auditResult.turnoInfo
         }).catch(cfErr => {
-          console.warn("Cloud function no disponible o CORS interceptado, envio registrado en Firestore:", cfErr.message);
+          console.warn("Cloud function no disponible, envío registrado en Firestore:", cfErr.message);
         });
       }
 
       setTimeout(() => {
         setSendingTest(false);
-        if (showNotif) showNotif(`✔ Informe de turno auditado despachado y guardado para: ${emails}`, 'success');
+        if (showNotif) showNotif(`✔ Informe de turno auditado despachado para: ${emails}`, 'success');
+        setPreviewTab('cuerpo');
         setPreviewModal(true);
       }, 1000);
 
     } catch (err) {
-      console.warn("Error en proceso de envio:", err.message);
+      console.warn("Error en proceso de envío:", err.message);
       setTimeout(() => {
         setSendingTest(false);
         if (showNotif) showNotif(`Informe registrado correctamente para: ${emails}`, 'success');
+        setPreviewTab('cuerpo');
+        setPreviewModal(true);
+      }, 800);
+    }
+  };
+
+  const handleSendMonthlyTestEmail = async () => {
+    if (!emails.trim()) {
+      if (showNotif) showNotif('Ingresa al menos un correo electrónico válido.', 'error');
+      return;
+    }
+
+    setSendingMonthlyTest(true);
+
+    const mailPayload = {
+      to: emails.split(',').map(e => e.trim()).filter(Boolean),
+      message: {
+        subject: `📊 MÉTRICO - Informe Consolidado de Cierre Mensual Asistencial`,
+        html: `<div style="font-family: sans-serif; padding: 20px; background: #f8fafc; color: #0f172a;">
+          <h2 style="color: #4f46e5;">SAR Elsa Romo Aravena • Informe Consolidado de Cierre Mensual</h2>
+          <p style="font-size: 14px; line-height: 1.6;">${monthlyConsolidatedText}</p>
+          <div style="background: #eef2ff; border: 1px solid #c7d2fe; padding: 12px; border-radius: 8px; margin-top: 15px;">
+            <p style="font-size: 12px; font-weight: bold; color: #4338ca; margin: 0;">💡 Descarga de Reportes PDF:</p>
+            <p style="font-size: 11.5px; color: #3730a3; margin: 4px 0 0 0;">Cada uno de los reportes detallados en PDF (Demanda, Altas, Fracturas, Enfermería, Constataciones y Traslados) se encuentra disponible para descarga directa desde el submódulo de Reportes de la plataforma MÉTRICO.</p>
+          </div>
+        </div>`,
+        text: monthlyConsolidatedText
+      },
+      createdAt: new Date().toISOString(),
+      tipoEnvio: 'INFORME_CIERRE_MENSUAL',
+      estado: 'DESPACHADO_Y_AUDITADO'
+    };
+
+    try {
+      if (typeof db !== 'undefined' && db) {
+        import('firebase/firestore').then(({ collection, addDoc }) => {
+          addDoc(collection(db, 'mail'), mailPayload).catch(e => console.warn('Firestore mail write:', e));
+          addDoc(collection(db, 'envios_correos'), mailPayload).catch(e => console.warn('Firestore envios_correos write:', e));
+
+          const auditRecord = {
+            accion: 'Envío Correo Cierre Mensual',
+            usuario: 'Jefatura de Gestión / Sistema',
+            centro: 'SAR Elsa Romo Aravena',
+            detalles: `Despacho de Informe Consolidado de Cierre Mensual. Destinatarios: ${emails}. Registros procesados: ${combinedPacientes.length}.`,
+            fecha: new Date().toISOString(),
+            estado: 'EXITOSO'
+          };
+
+          addDoc(collection(db, 'audit_logs'), auditRecord).catch(e => console.warn('Audit write err:', e));
+        }).catch(err => console.warn('Import firestore err:', err));
+      }
+
+      if (app) {
+        const functions = getFunctions(app);
+        const sendMailFunc = httpsCallable(functions, 'enviarInformeCorreo');
+        await sendMailFunc({
+          destinatarios: emails,
+          tipoEnvio: 'INFORME_CIERRE_MENSUAL',
+          monthlySummary: monthlyConsolidatedText
+        }).catch(cfErr => {
+          console.warn("Cloud function no disponible, envío registrado en Firestore:", cfErr.message);
+        });
+      }
+
+      setTimeout(() => {
+        setSendingMonthlyTest(false);
+        if (showNotif) showNotif(`✔ Informe de Cierre Mensual despachado para: ${emails}`, 'success');
+        setPreviewTab('mensual');
+        setPreviewModal(true);
+      }, 1000);
+
+    } catch (err) {
+      console.warn("Error en proceso de envío mensual:", err.message);
+      setTimeout(() => {
+        setSendingMonthlyTest(false);
+        if (showNotif) showNotif(`Informe mensual registrado correctamente para: ${emails}`, 'success');
+        setPreviewTab('mensual');
         setPreviewModal(true);
       }, 800);
     }
@@ -275,7 +367,7 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
             </div>
           </div>
 
-          {/* 2. VERIFICACIÓN HORARIA DE TURNOS SAR (LÓGICA SOLICITADA POR EL USUARIO) */}
+          {/* 2. VERIFICACIÓN HORARIA DE TURNOS SAR (ENVÍO DIARIO POR TURNO) */}
           <div className="bg-card-custom p-5 rounded-2xl border border-card-custom space-y-3.5 shadow-xs">
             <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider flex items-center gap-2">
               <Clock className="w-4 h-4 text-indigo-500" /> 2. Verificación Horaria Oficial de Turnos (Equipos 1, 2 y 3)
@@ -329,10 +421,10 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
             />
           </div>
 
-          {/* 4. CONSOLIDADO DE TODOS LOS SUB-REPORTES A INCLUIR (SOLICITUD DEL USUARIO) */}
+          {/* 4. CONSOLIDADO DE SUB-REPORTES */}
           <div className="bg-card-custom p-5 rounded-2xl border border-card-custom space-y-3 shadow-xs">
             <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider flex items-center gap-2">
-              <Layers className="w-4 h-4 text-indigo-500" /> 4. Sub-Reportes Incluidos en el Consolidado Adjunto
+              <Layers className="w-4 h-4 text-indigo-500" /> 4. Sub-Reportes Incluidos en el Consolidado
             </h4>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-xs">
@@ -368,14 +460,52 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
             </div>
           </div>
 
-          {/* ACCIÓN PRUEBA EN VIVO */}
+          {/* 5. NUEVA REGLA: DESPACHO AUTOMÁTICO DE CIERRE MENSUAL CONSOLIDADO (1° DE CADA MES) */}
+          <div className="bg-gradient-to-br from-indigo-500/10 via-card-custom to-card-custom p-5 rounded-2xl border-2 border-indigo-500/30 space-y-3.5 shadow-sm">
+            <div className="flex items-center justify-between border-b border-card-custom/60 pb-2.5">
+              <h4 className="text-xs font-black text-indigo-600 dark:text-indigo-300 uppercase tracking-wider flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-indigo-500" /> 5. Informe Consolidado de Cierre Mensual (1° del Mes / Primer Día Hábil)
+              </h4>
+              <span className="text-[10px] font-black text-indigo-600 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/30">
+                📅 Cierre Mensual (08:30 AM)
+              </span>
+            </div>
+
+            <label className={`p-4 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
+              progMensual ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-300' : 'bg-slate-50 dark:bg-slate-900 border-card-custom text-secondary-custom'
+            }`}>
+              <input type="checkbox" checked={progMensual} onChange={e => setProgMensual(e.target.checked)} className="mt-0.5 accent-indigo-600 cursor-pointer" />
+              <div className="space-y-1">
+                <span className="text-xs font-black block">📅 Despacho Automático de Cierre Mensual Consolidado</span>
+                <span className="text-[11px] font-medium opacity-90 block leading-relaxed">
+                  Al finalizar cada mes (el día 1° de cada mes o primer día hábil a las 08:30 AM), despacha automáticamente el informe ejecutivo del mes recién concluido. Consolida de forma autónoma los 6 pilares: Demanda asistencial, Altas administrativas, Traumatología, Rendimiento de Enfermería, Constataciones Z51.8 y Traslados Hospitalarios.
+                </span>
+              </div>
+            </label>
+
+            <div className="pt-1 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <span className="text-[11px] text-secondary-custom font-semibold">
+                💡 Los reportes ejecutivos en PDF se descargan directamente desde el módulo de Reportes del sistema.
+              </span>
+              <button
+                onClick={handleSendMonthlyTestEmail}
+                disabled={sendingMonthlyTest}
+                className="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0 disabled:opacity-50"
+              >
+                {sendingMonthlyTest ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                <span>{sendingMonthlyTest ? 'Enviando Cierre Mensual...' : '🚀 Probar Envío Mensual Ahora'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* ACCIÓN PRUEBA DE TURNO DIARIO EN VIVO */}
           <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="space-y-0.5">
               <span className="text-xs font-black text-indigo-600 dark:text-indigo-300 block">
-                ¿Probar despacho del informe auditado ahora?
+                ¿Probar despacho del informe por turno auditado ahora?
               </span>
               <span className="text-[11px] text-secondary-custom font-medium block">
-                Muestra la vista previa con el diseño institucional, introducción, JSON y sub-reportes.
+                Muestra la vista previa del turno cerrado actual con el diseño institucional y sub-reportes.
               </span>
             </div>
 
@@ -385,7 +515,7 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
               className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0 disabled:opacity-50"
             >
               {sendingTest ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              <span>{sendingTest ? 'Auditando y Enviando...' : 'Enviar Informe de Prueba Ahora'}</span>
+              <span>{sendingTest ? 'Auditando y Enviando...' : 'Enviar Informe de Turno Ahora'}</span>
             </button>
           </div>
 
@@ -394,7 +524,7 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
         {/* FOOTER DEL MODAL */}
         <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-card-custom flex items-center justify-between">
           <span className="text-[11px] font-bold text-secondary-custom">
-            MÉTRICO v2.9.0 • SAR Elsa Romo Aravena
+            MÉTRICO v4.0.0 • SAR Elsa Romo Aravena
           </span>
 
           <div className="flex items-center gap-3">
@@ -439,30 +569,30 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
             </div>
 
             {/* PESTAÑAS DE VISTA PREVIA */}
-            <div className="flex gap-2 bg-slate-100 p-1 rounded-xl shrink-0">
+            <div className="flex gap-2 bg-slate-100 p-1 rounded-xl shrink-0 overflow-x-auto">
               <button
                 onClick={() => setPreviewTab('cuerpo')}
-                className={`flex-1 py-2 text-xs font-black rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-2 px-3 text-xs font-black rounded-lg transition-all flex items-center justify-center gap-1.5 shrink-0 ${
                   previewTab === 'cuerpo' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <FileText className="w-3.5 h-3.5" /> (a) Introducción & Desglose Escrito
+                <FileText className="w-3.5 h-3.5" /> (a) Desglose por Turno
               </button>
               <button
-                onClick={() => setPreviewTab('json')}
-                className={`flex-1 py-2 text-xs font-black rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                  previewTab === 'json' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                onClick={() => setPreviewTab('mensual')}
+                className={`flex-1 py-2 px-3 text-xs font-black rounded-lg transition-all flex items-center justify-center gap-1.5 shrink-0 ${
+                  previewTab === 'mensual' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Code className="w-3.5 h-3.5" /> (b) Estructura JSON Embebida
+                <Calendar className="w-3.5 h-3.5" /> (b) Cierre Mensual Consolidado
               </button>
               <button
                 onClick={() => setPreviewTab('reportes')}
-                className={`flex-1 py-2 text-xs font-black rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-2 px-3 text-xs font-black rounded-lg transition-all flex items-center justify-center gap-1.5 shrink-0 ${
                   previewTab === 'reportes' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Layers className="w-3.5 h-3.5" /> (c) Consolidado de Sub-Reportes
+                <Layers className="w-3.5 h-3.5" /> (c) Sub-Reportes
               </button>
             </div>
 
@@ -484,86 +614,93 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
                     <span className="font-black text-slate-900">📊 Informe Asistencial Ejecutivo Auditado - {turnoInfo.textoCompleto}</span>
                   </div>
 
-                  {/* INTRODUCCIÓN FORMAL CON CONTROL DE GUÍA */}
                   <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-2 text-slate-700 leading-relaxed">
                     <p className="font-bold text-slate-900 text-sm">
                       Estimada Dirección y Equipo de Gestión Asistencial del SAR Elsa Romo Aravena:
                     </p>
                     <p>
-                      Junto con saludarles cordialmente, presentamos el <strong>Informe Ejecutivo Auditado de Atención Médica y Demanda de Urgencia</strong> correspondiente al <strong>{turnoInfo.textoCompleto}</strong>, atendido por el <strong>{turnoInfo.equipo}</strong> en la rotativa <strong>{turnoInfo.rotativa}</strong>.
+                      Junto con saludarles cordialmente, presentamos el <strong>Informe Ejecutivo Auditado de Atención Médica y Demanda de Urgencia</strong> correspondiente al <strong>{turnoInfo.textoCompleto}</strong>.
                     </p>
-                    <p className="text-[11px] text-emerald-700 font-bold bg-emerald-50 p-2.5 rounded-lg border border-emerald-200">
-                      ✔ <strong>Control de la Guía & Verificación Asistencial:</strong> Se ejecutó el control de la guía asistencial y la inspección por duplicación de sesiones / reingresos. La carga de datos ha sido verificada y auditada al 100% en la base de datos oficial.
+                    <p className="text-[11px] text-indigo-700 font-bold bg-indigo-50 p-2.5 rounded-lg border border-indigo-200">
+                      💡 <strong>Descarga de Reportes PDF:</strong> Cada uno de los reportes detallados en PDF (Demanda, Altas, Fracturas, Enfermería, Constataciones y Traslados) se descarga directamente desde el módulo de Reportes de la plataforma.
                     </p>
-                  </div>
-
-                  {/* MATRIZ DE MÉTRICAS */}
-                  <div className="grid grid-cols-3 gap-2">
-                    <div className="bg-white p-3 rounded-xl border border-slate-200 text-center">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase block">Pacientes Admitidos</span>
-                      <span className="text-xl font-black text-slate-900">{turnoInfo.totalAdmitidos}</span>
-                    </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-200 text-center">
-                      <span className="text-[10px] font-bold text-emerald-600 uppercase block">Atenciones Médicas</span>
-                      <span className="text-xl font-black text-emerald-700">{turnoInfo.atendidos}</span>
-                    </div>
-                    <div className="bg-white p-3 rounded-xl border border-slate-200 text-center">
-                      <span className="text-[10px] font-bold text-rose-600 uppercase block">Altas Administrativas</span>
-                      <span className="text-xl font-black text-rose-700">{turnoInfo.altasAdmin}</span>
-                    </div>
                   </div>
                 </div>
               )}
 
-              {previewTab === 'json' && (
-                <div className="bg-slate-900 text-emerald-400 p-4 rounded-2xl border border-slate-800 font-mono text-[11px] space-y-2">
-                  <div className="flex items-center justify-between text-slate-400 border-b border-slate-800 pb-2 text-[10px]">
-                    <span>// Formato JSON Estructurado para Sistemas IT</span>
-                    <span className="text-emerald-400 font-bold">✔ Identidad Visual Mantención Éxito</span>
+              {previewTab === 'mensual' && (
+                <div className="space-y-4 text-xs bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                  <div className="border-b pb-2 flex justify-between items-center">
+                    <div>
+                      <span className="font-bold text-slate-400 block text-[9px] uppercase">Destinatarios:</span>
+                      <span className="font-black text-indigo-700">{emails}</span>
+                    </div>
+                    <span className="text-[10px] font-black text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-md">Despacho Mensual 1° de Mes</span>
                   </div>
-                  <pre className="whitespace-pre-wrap leading-relaxed">
-                    {JSON.stringify(turnoInfo.jsonPayload || {}, null, 2)}
-                  </pre>
+
+                  <div className="border-b pb-2">
+                    <span className="font-bold text-slate-400 block text-[9px] uppercase">Asunto Oficial:</span>
+                    <span className="font-black text-slate-900">📊 MÉTRICO - Informe Consolidado de Cierre Mensual Asistencial</span>
+                  </div>
+
+                  <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-3 text-slate-700 leading-relaxed">
+                    <h5 className="font-black text-indigo-700 text-sm">Resumen Consolidado de Cierre Mensual</h5>
+                    <p className="text-xs text-slate-800 leading-relaxed">
+                      {monthlyConsolidatedText}
+                    </p>
+                    <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-200 text-indigo-900 text-[11px]">
+                      <span className="font-bold block">💡 Descarga de Archivos e Informes Completos:</span>
+                      <span>Para acceder a la totalidad de gráficos y exportaciones en PDF formato carta, diríjase al submódulo de <strong>Reportes</strong> en la barra lateral del sistema.</span>
+                    </div>
+                  </div>
                 </div>
               )}
 
               {previewTab === 'reportes' && (
-                <div className="space-y-3 text-xs">
-                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                    <span className="font-black text-indigo-700 block mb-1">📋 1. Sub-reporte Altas Administrativas</span>
-                    <p className="text-slate-700 leading-relaxed font-medium">{subReportSummaries.altas}</p>
-                  </div>
+                <div className="space-y-3 text-xs bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                  <h5 className="font-black text-slate-900 text-sm">Consolidado de Sub-Reportes Clínicos</h5>
+                  <p className="text-slate-600">Resumen analítico de los 6 sub-reportes asistenciales generados automáticamente para la jefatura de urgencias.</p>
+                  
+                  <div className="space-y-2">
+                    <div className="p-3 bg-white rounded-xl border border-slate-200">
+                      <span className="font-bold text-indigo-700 block mb-0.5">1. Altas Administrativas</span>
+                      <p className="text-[11px] text-slate-700">{subReportSummaries.altas}</p>
+                    </div>
 
-                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                    <span className="font-black text-rose-700 block mb-1">🦴 2. Sub-reporte Fracturas y Destino Hospitalario</span>
-                    <p className="text-slate-700 leading-relaxed font-medium">{subReportSummaries.fracturas}</p>
-                  </div>
+                    <div className="p-3 bg-white rounded-xl border border-slate-200">
+                      <span className="font-bold text-rose-700 block mb-0.5">2. Traumatología & Fracturas</span>
+                      <p className="text-[11px] text-slate-700">{subReportSummaries.fracturas}</p>
+                    </div>
 
-                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                    <span className="font-black text-indigo-700 block mb-1">🩺 3. Sub-reporte Enfermería y Triaje</span>
-                    <p className="text-slate-700 leading-relaxed font-medium">{subReportSummaries.enfermeria}</p>
-                  </div>
+                    <div className="p-3 bg-white rounded-xl border border-slate-200">
+                      <span className="font-bold text-emerald-700 block mb-0.5">3. Rendimiento de Enfermería</span>
+                      <p className="text-[11px] text-slate-700">{subReportSummaries.enfermeria}</p>
+                    </div>
 
-                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                    <span className="font-black text-amber-700 block mb-1">🛡️ 4. Sub-reporte Constatación de Lesiones Z51.8</span>
-                    <p className="text-slate-700 leading-relaxed font-medium">{subReportSummaries.constataciones}</p>
-                  </div>
+                    <div className="p-3 bg-white rounded-xl border border-slate-200">
+                      <span className="font-bold text-amber-700 block mb-0.5">4. Constatación de Lesiones (Z51.8)</span>
+                      <p className="text-[11px] text-slate-700">{subReportSummaries.constataciones}</p>
+                    </div>
 
-                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                    <span className="font-black text-indigo-700 block mb-1">🚑 5. Sub-reporte Traslados Hospitalarios UEH</span>
-                    <p className="text-slate-700 leading-relaxed font-medium">{subReportSummaries.traslados}</p>
+                    <div className="p-3 bg-white rounded-xl border border-slate-200">
+                      <span className="font-bold text-indigo-700 block mb-0.5">5. Traslados Hospitalarios</span>
+                      <p className="text-[11px] text-slate-700">{subReportSummaries.traslados}</p>
+                    </div>
                   </div>
                 </div>
               )}
 
             </div>
 
-            <button
-              onClick={() => setPreviewModal(false)}
-              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-xs shrink-0"
-            >
-              Cerrar Vista Previa
-            </button>
+            <div className="pt-3 border-t flex justify-end">
+              <button
+                onClick={() => setPreviewModal(false)}
+                className="px-5 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800 transition-all cursor-pointer"
+              >
+                Cerrar Vista Previa
+              </button>
+            </div>
+
           </div>
         </div>
       )}

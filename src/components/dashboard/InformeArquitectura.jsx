@@ -8,6 +8,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.0.0',
+    version_tag: 'v4.0.0',
+    fecha_despliegue: '15 de Agosto, 2026',
+    proposito_actualizacion: 'Incorporación del Despacho Automático de Cierre Mensual Consolidado (1° de cada mes a las 08:30 AM / Día Hábil) con Resumen Ejecutivo de los 6 Pilares Clínicos.',
+    medios_y_stack: [
+      'React 18.3 & Vite Build Engine',
+      'ModalConfiguracionCorreo Section 5 (Cierre Mensual Consolidado)',
+      'generateMonthlyConsolidatedSummary Engine (summaryGenerator.js)',
+      'Cloud Function enviarInformeCorreo con variante INFORME_CIERRE_MENSUAL'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Mantención estricta del envío diario por turno cerrado auditado + Adición de la regla de despacho mensual el día 1° a las 08:30 AM. Redirección explícita a la descarga directa de PDFs desde el módulo de Reportes.',
+      firestore_collections: ['mail', 'envios_correos', 'audit_logs', 'informes_enviados'],
+      query_optimization: 'Evaluación síncrona en memoria y almacenamiento local con firma auditada.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo', 'summaryGenerator', 'enviarInformeCorreo', 'InformeArquitectura'],
+    detalles_tecnicos: [
+      'Se mantiene 100% la auditoría y despacho diario por turno cerrado.',
+      'Añadida la Sección 5 en el modal con botón "🚀 Probar Envío Mensual Ahora".',
+      'Pestaña de vista previa "(b) Cierre Mensual Consolidado" en formato institucional HTML.'
+    ]
+  },
+  {
     id: 'v3.9.0',
     version_tag: 'v3.9.0',
     fecha_despliegue: '15 de Agosto, 2026',

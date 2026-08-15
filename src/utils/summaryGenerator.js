@@ -318,3 +318,35 @@ export const generateTrasladosSummary = (pacs, prevYearPacs = [], globalTotalPac
 
   return `El volumen total de traslados a centros de mayor complejidad asistencial (Hospital y Servicios de Urgencia) en el periodo alcanzó los ${total.toLocaleString('es-CL')} pacientes, representando el ${pct}% del total de admisiones de urgencia${compText}. El principal centro receptor fue ${topDestText}. Este flujo continuo de derivaciones refleja el comportamiento y la demanda operativa de urgencias externas.`;
 };
+
+export const generateMonthlyConsolidatedSummary = (pacs) => {
+  if (!pacs || pacs.length === 0) return 'Sin registros suficientes para generar el consolidado de cierre mensual.';
+
+  const total = pacs.length;
+  const atendidos = pacs.filter(p => p.estado === 'Atendido' || p.tAnamnesis || p.tAlta).length;
+  const altas = pacs.filter(p => p.estado === 'Cancelada').length;
+  const fracturas = pacs.filter(p => {
+    const cod = String(p.codigoDiagnostico || '').trim().toUpperCase();
+    const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').trim().toUpperCase();
+    return diag.includes('FRACTURA') || cod.includes('FRACTURA');
+  }).length;
+  
+  const constataciones = pacs.filter(p => {
+    const cod = String(p.codigoDiagnostico || '').trim().toUpperCase();
+    const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').trim().toUpperCase();
+    const obs = String(p.observacion || p.obs || '').trim().toUpperCase();
+    return cod.includes('Z51.8') || cod.includes('Z518') || cod.includes('Z04') || cod.includes('Z65') || diag.includes('CONSTATAC') || obs.includes('CONSTATAC') || obs.includes('CARABINERO') || obs.includes('PDI');
+  }).length;
+
+  const traslados = pacs.filter(p => {
+    const dest = String(p.destinoAlta || p.destino || p.lugarDerivacion || p.motivoAlta || p.tipoAlta || '').toLowerCase();
+    const obs = String(p.observacion || p.obs || '').toLowerCase();
+    const cat = String(p.categoria || p.triage || '').toLowerCase();
+    return dest.includes('hosp') || dest.includes('urgenc') || dest.includes('emergenc') || dest.includes('ueh') || dest.includes('samu') || obs.includes('traslado') || cat === 'c1';
+  }).length;
+
+  const pctAtendidos = formatPct(atendidos, total);
+  const pctAltas = formatPct(altas, total);
+
+  return `En el cierre consolidado mensual se registraron un total de ${total.toLocaleString('es-CL')} admisiones asistenciales. De ellas, ${atendidos.toLocaleString('es-CL')} correspondieron a atenciones médicas efectivas (${pctAtendidos}%), ${altas.toLocaleString('es-CL')} a altas administrativas (${pctAltas}%), ${fracturas.toLocaleString('es-CL')} casos de traumatología y fracturas, ${constataciones.toLocaleString('es-CL')} constataciones de lesiones con requerimiento legal y ${traslados.toLocaleString('es-CL')} traslados hospitalarios a centros de mayor complejidad. El reporte detallado de cada arista clínica puede ser descargado directamente desde el módulo de Reportes del sistema.`;
+};
