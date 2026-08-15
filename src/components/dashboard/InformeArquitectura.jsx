@@ -8,6 +8,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.1.0',
+    version_tag: 'v4.1.0',
+    fecha_despliegue: '15 de Agosto, 2026',
+    proposito_actualizacion: 'Paridad Matemática del 100% y Desduplicación SSOT entre Histórico Mensual y Explorador Global de Urgencias + Corrección de Parseo de Fechas Locale.',
+    medios_y_stack: [
+      'React 18.3 & Vite Build Engine',
+      'CalendarioHistorico con Motor deduplicarPacientes SSOT',
+      'Prop pass-through de allPacientesDB en Dashboard.jsx (line 1745)',
+      'Parseo robusto de cadenas de fecha parseLocalDatetime (useMetricoAnalytics)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Eliminación del descalce entre 192 (registros brutos de admisiones repetidas en turno) vs 116 (pacientes únicos desduplicados). CalendarioHistorico procesa el 100% del dataset maestro desduplicado.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Desduplicación por correlativo y timestamp de admisión con encasillamiento de 15h por turno.'
+    },
+    modulos_afectados: ['CalendarioHistorico', 'Dashboard', 'useMetricoAnalytics', 'InformeArquitectura'],
+    detalles_tecnicos: [
+      'Garantía de coincidencia al 100% (116 admisiones desduplicadas) en Miércoles 12/08/2026.',
+      'Soporte completo de formatos de fecha ISO (YYYY-MM-DD), Chileno (DD/MM/YYYY) y US locale (MM/DD/YYYY).',
+      'Paso del universo maestro allPacientesDB al módulo Histórico Mensual.'
+    ]
+  },
+  {
     id: 'v4.0.0',
     version_tag: 'v4.0.0',
     fecha_despliegue: '15 de Agosto, 2026',

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Activity, FileSpreadsheet, X, Users, AlertTriangle } from 'lucide-react';
+import { deduplicarPacientes } from '../../utils/helpers';
 
 const TEAM_COLORS = {
   'Turno 1': '#10b981', // Verde
@@ -94,7 +95,8 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [] })
       return fallbackStats;
     }
     
-    const inShift = pacientesDB.filter(p => p.tAdmision >= startMs && p.tAdmision <= endMs);
+    const rawInShift = pacientesDB.filter(p => p.tAdmision >= startMs && p.tAdmision <= endMs);
+    const inShift = deduplicarPacientes(rawInShift);
     if (inShift.length === 0) {
       // Si el conjunto pacientesDB no abarca la fecha de este turno (por un filtro global distinto),
       // se utilizan las estadísticas pre-calculadas oficiales del turno en turnosDB.
@@ -132,7 +134,8 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [] })
     const startMs = new Date(y, m - 1, d, 0, 0, 0).getTime();
     const endMs = new Date(y, m - 1, d, 23, 59, 59, 999).getTime();
     
-    const inDay = pacientesDB.filter(p => p.tAdmision >= startMs && p.tAdmision <= endMs);
+    const rawInDay = pacientesDB.filter(p => p.tAdmision >= startMs && p.tAdmision <= endMs);
+    const inDay = deduplicarPacientes(rawInDay);
     if (inDay.length === 0) {
       return fallbackStats;
     }
@@ -164,7 +167,8 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [] })
     }
     const endMs = new Date(y, m - 1, endDay, eh, emin, 0).getTime();
     
-    const filtered = pacientesDB.filter(p => p.tAdmision >= startMs && p.tAdmision <= endMs);
+    const rawFiltered = pacientesDB.filter(p => p.tAdmision >= startMs && p.tAdmision <= endMs);
+    const filtered = deduplicarPacientes(rawFiltered);
     const totalAdmitidos = filtered.length;
     const altasAdmin = filtered.filter(p => p.estado === 'Cancelada').length;
     const atendidos = totalAdmitidos - altasAdmin;

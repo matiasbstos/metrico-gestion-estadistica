@@ -1742,7 +1742,7 @@ const DashboardContent = () => {
         )}
 
         {activeTab === 'calendario' && (
-          <CalendarioHistorico pacientesDB={pacientesDB} turnosDB={turnosDB} />
+          <CalendarioHistorico pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB} turnosDB={turnosDB} />
         )}
 
         {activeTab === 'profesionales' && (

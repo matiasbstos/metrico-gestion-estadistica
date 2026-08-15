@@ -17,10 +17,22 @@ const parseLocalDatetime = (dateStr, hourMinStr = '00:00') => {
     const parts = str.split(/[-/]/).map(Number);
     [y, m, d] = parts;
   }
-  // Formato Estándar Chileno: DD-MM-YYYY o DD/MM/YYYY (Día siempre primero, Mes segundo)
+  // Formato con 4 dígitos al final: DD-MM-YYYY o MM-DD-YYYY
   else if (/^\d{1,2}[-/]\d{1,2}[-/]\d{4}$/.test(str)) {
     const parts = str.split(/[-/]/).map(Number);
-    [d, m, y] = parts;
+    const p1 = parts[0];
+    const p2 = parts[1];
+    y = parts[2];
+
+    if (p1 <= 12 && p2 > 12) {
+      // p2 > 12 indica que p2 es el día y p1 es el mes (MM/DD/YYYY)
+      m = p1;
+      d = p2;
+    } else {
+      // Estándar Chileno: p1 es Día, p2 es Mes (DD/MM/YYYY)
+      d = p1;
+      m = p2;
+    }
   } else {
     const dt = new Date(str);
     if (!isNaN(dt.getTime())) {
