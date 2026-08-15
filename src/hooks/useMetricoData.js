@@ -235,6 +235,16 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
       const reqStartMs = new Date(y1, m1 - 1, d1, 0, 0, 0).getTime();
       const reqEndMs = new Date(y2, m2 - 1, d2, 23, 59, 59).getTime();
 
+      // Verificar si los registros del rango solicitado ya existen en la memoria local / IndexedDB
+      const existingInMap = Array.from(globalPacientesMapRef.current.values()).filter(p => p.tAdmision >= reqStartMs && p.tAdmision <= reqEndMs);
+      if (existingInMap.length > 0 || globalPacientesMapRef.current.size >= 20000) {
+        // Los datos ya se encuentran en memoria/caché local, evitar peticiones repetidas a Firestore
+        const mergedList = Array.from(globalPacientesMapRef.current.values()).sort((a, b) => b.tAdmision - a.tAdmision);
+        setPacientesDB(mergedList);
+        setAllPacientesDB(mergedList);
+        return;
+      }
+
       setSyncProgress({
         active: true,
         pct: 25,
@@ -276,11 +286,18 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
 
           setTimeout(() => {
             if (isSubscribed) setSyncProgress(prev => ({ ...prev, active: false }));
-          }, 1500);
+          }, 800);
         }
       } catch (err) {
-        console.error("Error consultando datos por rango:", err);
-        if (isSubscribed) setSyncProgress(prev => ({ ...prev, active: false }));
+        console.warn("Consulta Firestore limitada (usando caché local):", err);
+        if (isSubscribed) {
+          const mergedList = Array.from(globalPacientesMapRef.current.values()).sort((a, b) => b.tAdmision - a.tAdmision);
+          if (mergedList.length > 0) {
+            setPacientesDB(mergedList);
+            setAllPacientesDB(mergedList);
+          }
+          setSyncProgress(prev => ({ ...prev, active: false }));
+        }
       }
     };
 

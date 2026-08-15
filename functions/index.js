@@ -59,22 +59,35 @@ exports.obtenerKpisDashboard = functions.https.onCall(async (dataReq, context) =
     const s = parseDateParts(startStr);
     const e = parseDateParts(endStr);
 
-    const currentStart = formatChileIso(s.y, s.m, s.d, sh || 0, smin || 0, 0);
-    const currentEnd = formatChileIso(e.y, e.m, e.d, eh || 23, emin || 59, 59);
+    const dCurrentStart = new Date(s.y, s.m - 1, s.d, sh || 0, smin || 0, 0);
+    const dCurrentEnd = new Date(e.y, e.m - 1, e.d, eh || 23, emin || 59, 59);
 
-    const pmStart = formatChileIso(s.y, s.m - 1, s.d, sh || 0, smin || 0, 0);
-    const pmEnd = formatChileIso(e.y, e.m - 1, e.d, eh || 23, emin || 59, 59);
+    // Mes anterior (restar 1 mes usando Date math para evitar mes 00)
+    const dPmStart = new Date(s.y, s.m - 2, s.d, sh || 0, smin || 0, 0);
+    const dPmEnd = new Date(e.y, e.m - 2, e.d, eh || 23, emin || 59, 59);
 
-    const pyStart = formatChileIso(s.y - 1, s.m, s.d, sh || 0, smin || 0, 0);
-    const pyEnd = formatChileIso(e.y - 1, e.m, e.d, eh || 23, emin || 59, 59);
+    // Año anterior (restar 1 año)
+    const dPyStart = new Date(s.y - 1, s.m - 1, s.d, sh || 0, smin || 0, 0);
+    const dPyEnd = new Date(e.y - 1, e.m - 1, e.d, eh || 23, emin || 59, 59);
 
-    const ytdStart = formatChileIso(e.y, 1, 1, 0, 0, 0);
+    // YTD (1 de enero del año de fin)
+    const dYtdStart = new Date(e.y, 0, 1, 0, 0, 0);
+
+    const toChileIso = (d) => {
+      const YYYY = String(d.getFullYear()).padStart(4, '0');
+      const MM = String(d.getMonth() + 1).padStart(2, '0');
+      const DD = String(d.getDate()).padStart(2, '0');
+      const HH = String(d.getHours()).padStart(2, '0');
+      const MIN = String(d.getMinutes()).padStart(2, '0');
+      const SS = String(d.getSeconds()).padStart(2, '0');
+      return `${YYYY}-${MM}-${DD}T${HH}:${MIN}:${SS}-04:00`;
+    };
 
     return {
-      current: { start: currentStart, end: currentEnd },
-      prevMonth: { start: pmStart, end: pmEnd },
-      prevYear: { start: pyStart, end: pyEnd },
-      ytd: { start: ytdStart, end: currentEnd }
+      current: { start: toChileIso(dCurrentStart), end: toChileIso(dCurrentEnd) },
+      prevMonth: { start: toChileIso(dPmStart), end: toChileIso(dPmEnd) },
+      prevYear: { start: toChileIso(dPyStart), end: toChileIso(dPyEnd) },
+      ytd: { start: toChileIso(dYtdStart), end: toChileIso(dCurrentEnd) }
     };
   };
 
