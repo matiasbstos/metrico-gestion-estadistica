@@ -11,7 +11,7 @@ import {
   generateMonthlyConsolidatedSummary 
 } from '../../utils/summaryGenerator';
 
-export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, showNotif, pacientesDB = [], turnosDB = [] }) {
+export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, showNotif, pacientesDB = [], turnosDB = [], onOpenReportes }) {
   const [emails, setEmails] = useState('jefatura.sar@cormumel.cl, direccion.sar@cormumel.cl');
   const [activo, setActivo] = useState(true);
   
@@ -648,9 +648,25 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
                     <p className="text-xs text-slate-800 leading-relaxed">
                       {monthlyConsolidatedText}
                     </p>
-                    <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-200 text-indigo-900 text-[11px]">
-                      <span className="font-bold block">💡 Descarga de Archivos e Informes Completos:</span>
-                      <span>Para acceder a la totalidad de gráficos y exportaciones en PDF formato carta, diríjase al submódulo de <strong>Reportes</strong> en la barra lateral del sistema.</span>
+                    <div className="p-3.5 bg-indigo-50 rounded-xl border border-indigo-200 text-indigo-900 text-[11px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      <div>
+                        <span className="font-bold block">💡 Descarga de Archivos e Informes Completos:</span>
+                        <span>Para acceder a la totalidad de gráficos y exportaciones en PDF formato carta, diríjase al submódulo de <strong>Reportes</strong> en la barra lateral del sistema.</span>
+                      </div>
+                      {onOpenReportes && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPreviewModal(false);
+                            onClose();
+                            onOpenReportes();
+                          }}
+                          className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>Descargar PDF en Reportes</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

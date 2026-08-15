@@ -957,6 +957,10 @@ const DashboardContent = () => {
         showNotif={showNotif} 
         pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB} 
         turnosDB={turnosDB} 
+        onOpenReportes={() => {
+          setShowCorreoModal(false);
+          setActiveTab('reportes');
+        }}
       />
       
       {/* OVERLAY FONDO OSCURO EN MÓVILES */}
