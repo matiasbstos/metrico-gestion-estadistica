@@ -34,6 +34,7 @@ import BarraProgresoCarga from './dashboard/BarraProgresoCarga';
 import Radar from './dashboard/Radar';
 import PopUpSincronizacion from './dashboard/PopUpSincronizacion';
 import InformeArquitectura from './dashboard/InformeArquitectura';
+import DevLogModule from './dashboard/DevLogModule';
 import { formatLocalDate } from '../utils/helpers';
 import { playIntegrityAlertChime } from '../utils/audioNotifications';
 import Login from './Login';
@@ -43,7 +44,7 @@ import {
   CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
   BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
   Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
-  HeartPulse, Shield, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail, BookOpen
+  HeartPulse, Shield, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail, BookOpen, Terminal
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
@@ -1327,6 +1328,13 @@ const DashboardContent = () => {
                   <BookOpen className="w-4 h-4 flex-shrink-0 text-indigo-400" />
                   {!sidebarCollapsed && <span className="animate-fade-in truncate">Informe Arquitectura</span>}
                 </button>
+                <button 
+                  onClick={() => { setActiveTab('devlog'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                  title="Bitácora de Desarrollo"
+                  className={`flex items-center rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'devlog' ? 'accent-bg-custom text-white font-bold' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                  <Terminal className="w-4 h-4 flex-shrink-0 text-emerald-400" />
+                  {!sidebarCollapsed && <span className="animate-fade-in truncate">Bitácora de Desarrollo</span>}
+                </button>
               </>
             )}
           </nav>
@@ -1928,6 +1936,15 @@ const DashboardContent = () => {
 
         {activeTab === 'arquitectura' && (
           <InformeArquitectura 
+            user={user} 
+            userProfile={userProfile} 
+            isGlobalAdmin={isGlobalAdmin} 
+            db={db}
+          />
+        )}
+
+        {activeTab === 'devlog' && (
+          <DevLogModule 
             user={user} 
             userProfile={userProfile} 
             isGlobalAdmin={isGlobalAdmin} 

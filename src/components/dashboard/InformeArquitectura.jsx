@@ -8,6 +8,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v3.8.5',
+    version_tag: 'v3.8.5',
+    fecha_despliegue: '15 de Agosto, 2026',
+    proposito_actualizacion: 'Implementación del Sistema "Zero-Click DevLog" para la Bitácora de Desarrollo Autónoma con Generador de Posts de LinkedIn y Pipeline de Snapshots 1080p.',
+    medios_y_stack: [
+      'React 18.3 & Vite Build Engine',
+      'DevLogModule Grid Layout (grid-cols-1 md:grid-cols-2 lg:grid-cols-3)',
+      'Puppeteer/Playwright Autonomous Snapshot Pipeline (scripts/take_devlog_snapshot.cjs)',
+      'Gemini 1.5 Flash API LinkedIn Post Synthesizer (generarDevlogPostGemini)',
+      'Firebase Firestore (Colección linkedin_devlog)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Auto-genera publicaciones estructuradas para LinkedIn (1. El Problema. 2. Cómo lo abordamos. 3. Cómo lo solucionamos) con el tono empírico de Matías. Permite previsualización en cuadrícula, descarga de capturas PNG 1080p y copiado a 1 clic.',
+      firestore_collections: ['linkedin_devlog', 'audit_logs'],
+      query_optimization: 'Fusión síncrona de registros iniciales pre-poblados con subscripción en vivo a Firestore.'
+    },
+    modulos_afectados: ['DevLogModule', 'Dashboard', 'generateDevlogPost', 'take_devlog_snapshot', 'InformeArquitectura'],
+    detalles_tecnicos: [
+      'Módulo exclusivo para administración global (isGlobalAdmin).',
+      'Soporte para generación de posts bajo demanda con el prompt estricto de Gemini.',
+      'Script de fotógrafo autónomo para evidencia visual de alta definición.'
+    ]
+  },
+  {
     id: 'v3.7.5',
     version_tag: 'v3.7.5',
     fecha_despliegue: '15 de Agosto, 2026',
