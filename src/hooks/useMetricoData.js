@@ -111,8 +111,8 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
       if (filtroFechaInicio && filtroFechaFin) {
         const [y1, m1, d1] = filtroFechaInicio.split('-').map(Number);
         const [y2, m2, d2] = filtroFechaFin.split('-').map(Number);
-        const startMs = new Date(y1, m1 - 1, d1, 0, 0, 0).getTime();
-        const endMs = new Date(y2, m2 - 1, d2, 23, 59, 59).getTime();
+        const startMs = new Date(y1, m1 - 1, d1 - 1, 0, 0, 0).getTime();
+        const endMs = new Date(y2, m2 - 1, d2 + 1, 23, 59, 59).getTime();
 
         const pacientesRef = collection(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia');
         const qRange = query(

@@ -3,9 +3,9 @@ import { Calendar, Compass, RefreshCw, Info } from 'lucide-react';
 import CampanaNotificaciones from './CampanaNotificaciones';
 import SugerenciasTurnosBar from './SugerenciasTurnosBar';
 
-function EncasillamientoInfoBadge({ horarioPreset, filtroHoraInicio, filtroHoraFin }) {
+function EncasillamientoInfoBadge({ horarioPreset }) {
   const [showTooltip, setShowTooltip] = useState(false);
-  const isEncasillamientoLargo = horarioPreset === 'largo' || (filtroHoraInicio === '16:00' && filtroHoraFin === '09:00');
+  const isEncasillamientoLargo = horarioPreset === 'largo';
 
   if (!isEncasillamientoLargo) return null;
 

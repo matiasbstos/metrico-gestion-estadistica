@@ -242,10 +242,11 @@ const DashboardContent = () => {
 
   useEffect(() => {
     if (initialCompletedShiftSetRef.current) return;
-    if (!pacientesDB || pacientesDB.length === 0) return;
+    const records = (allPacientesDB && allPacientesDB.length > 0) ? allPacientesDB : pacientesDB;
+    if (!records || records.length === 0) return;
 
     let maxTime = 0;
-    pacientesDB.forEach(p => {
+    records.forEach(p => {
       if (p.tAdmision && p.tAdmision > maxTime) {
         maxTime = p.tAdmision;
       }
@@ -270,13 +271,13 @@ const DashboardContent = () => {
         setFiltroFechaFin(maxDateStr);
         setFiltroHoraInicio('20:00');
         setFiltroHoraFin('08:00');
-        setHorarioPreset('finde_noche');
+        setHorarioPreset('custom');
       } else {
         setFiltroFechaInicio(maxDateStr);
         setFiltroFechaFin(maxDateStr);
         setFiltroHoraInicio('08:00');
         setFiltroHoraFin('20:00');
-        setHorarioPreset('finde_dia');
+        setHorarioPreset('custom');
       }
     } else {
       // Día hábil de semana (ej. 13/08/2026)
@@ -288,13 +289,13 @@ const DashboardContent = () => {
       const prevD = String(prevDate.getDate()).padStart(2, '0');
       const prevDateStr = `${prevY}-${prevM}-${prevD}`;
 
-      setFiltroFechaInicio(prevDateStr); // e.g. 2026-08-12
-      setFiltroFechaFin(maxDateStr);     // e.g. 2026-08-13
+      setFiltroFechaInicio(prevDateStr); // 2026-08-12
+      setFiltroFechaFin(maxDateStr);     // 2026-08-13
       setFiltroHoraInicio('16:00');
       setFiltroHoraFin('09:00');
-      setHorarioPreset('largo');
+      setHorarioPreset('custom'); // Mantener badge de información oculto en la carga inicial
     }
-  }, [pacientesDB]);
+  }, [pacientesDB, allPacientesDB]);
 
   useEffect(() => {
     const loadSheetJS = () => {
