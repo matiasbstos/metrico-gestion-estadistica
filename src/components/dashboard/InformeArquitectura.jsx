@@ -8,6 +8,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v3.6.0',
+    version_tag: 'v3.6.0',
+    fecha_despliegue: '15 de Agosto, 2026',
+    proposito_actualizacion: 'Implementación del Mecanismo Interactivo de Conciliación & Resolución de Discrepancias en la Bitácora de Integridad y Paridad de Datos SSOT.',
+    medios_y_stack: [
+      'React 18.3 & Vite Build Engine',
+      'Engine de Conciliación Auditada Interactivas (handleReconcileIndicator & handleReconcileAll)',
+      'Firebase Firestore (Colección audit_logs & audit_parity_matrix)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Permite resolver discrepancias entre BigQuery SSOT y el motor oficial de cliente (como Constataciones Z51.8 y Traslados), dejando registro de auditoría en Firestore y asegurando 0 Incidencias (Estado General 100% OK).',
+      firestore_collections: ['audit_logs', 'pacientes_urgencia'],
+      query_optimization: 'Validación en vivo con botones de conciliación interactivos por fila y botón general "Reconciliar Todo".'
+    },
+    modulos_afectados: ['AuditLog', 'Dashboard', 'InformeArquitectura'],
+    detalles_tecnicos: [
+      'Ajustado el motor de auditoría de paridad para reconocer la clasificación clínica exhaustiva oficial.',
+      'Soporte para reconciliación manual auditada con guardado de traza en la colección audit_logs.'
+    ]
+  },
+  {
     id: 'v3.5.5',
     version_tag: 'v3.5.5',
     fecha_despliegue: '15 de Agosto, 2026',

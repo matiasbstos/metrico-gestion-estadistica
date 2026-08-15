@@ -1898,7 +1898,7 @@ const DashboardContent = () => {
         )}
 
         {activeTab === 'auditoria' && (
-          <AuditLog db={db} appId={appId} centroActivo={centroActivo} kpisBigQuery={kpisBigQuery} statsKPIFinal={statsKPIFinal} lastSyncTime={lastSyncTime} />
+          <AuditLog db={db} appId={appId} centroActivo={centroActivo} kpisBigQuery={kpisBigQuery} statsKPIFinal={statsKPIFinal} lastSyncTime={lastSyncTime} userProfile={userProfile} />
         )}
 
         {activeTab === 'pauta' && (
