@@ -580,21 +580,23 @@ const DashboardContent = () => {
   }, [filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin, app]);
 
   const statsKPIFinal = useMemo(() => {
+    if (!statsKPI && !kpisBigQuery) return null;
     const base = kpisBigQuery || statsKPI;
-    if (!base) return null;
 
-    if (kpisBigQuery && demografiaStats) {
-      const avgEdad = demografiaStats.edadCount ? Number((demografiaStats.edadSum / demografiaStats.edadCount).toFixed(1)) : 0;
-      const fonasaVal = Object.entries(demografiaStats.prevs).filter(([k]) => k.includes('FONASA')).reduce((acc, [_, v]) => acc + v, 0);
-      const fonasaPercent = demografiaStats.total ? (fonasaVal / demografiaStats.total) * 100 : 0;
-      const meliPercent = demografiaStats.total ? ((demografiaStats.comunas['MELIPILLA'] || 0) / demografiaStats.total) * 100 : 0;
+    const avgEdad = demografiaStats?.edadCount ? Number((demografiaStats.edadSum / demografiaStats.edadCount).toFixed(1)) : (base?.demo?.avgEdad || 0);
+    const fonasaVal = demografiaStats ? Object.entries(demografiaStats.prevs).filter(([k]) => k.includes('FONASA')).reduce((acc, [_, v]) => acc + v, 0) : 0;
+    const fonasaPercent = demografiaStats?.total ? (fonasaVal / demografiaStats.total) * 100 : (base?.demo?.fonasaPercent || 0);
+    const meliPercent = demografiaStats?.total ? ((demografiaStats.comunas['MELIPILLA'] || 0) / demografiaStats.total) * 100 : (base?.demo?.meliPercent || 0);
 
-      return {
-        ...kpisBigQuery,
-        demo: { avgEdad, fonasaPercent, meliPercent }
-      };
-    }
-    return base;
+    return {
+      ...base,
+      // Garantizar paridad 100% entre las tarjetas del Resumen y los sub-módulos específicos (Constataciones, Traslados, Altas)
+      constataciones: statsKPI?.constataciones || base.constataciones,
+      traslados: statsKPI?.traslados || base.traslados,
+      altasAdmin: statsKPI?.altasAdmin || base.altasAdmin,
+      categorias: statsKPI?.categorias || base.categorias,
+      demo: { avgEdad, fonasaPercent, meliPercent }
+    };
   }, [kpisBigQuery, statsKPI, demografiaStats]);
 
   const integrityIncidencesCount = useMemo(() => {

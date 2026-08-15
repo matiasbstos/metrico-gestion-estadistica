@@ -8,6 +8,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v3.5.5',
+    version_tag: 'v3.5.5',
+    fecha_despliegue: '15 de Agosto, 2026',
+    proposito_actualizacion: 'Garantía de Paridad Absoluta (100%) entre las tarjetas KPI del Resumen Inicial y los Sub-módulos de Análisis Específicos (Constataciones, Traslados y Triaje C3-L).',
+    medios_y_stack: [
+      'React 18.3 & Vite Build Engine',
+      'Unified Analytics Parity Engine (statsKPI & isConstatacionLesion)',
+      'Firebase Cloud Functions & Firestore'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Asegura que el contador de Constataciones de Lesiones, Traslados y Distribución C3(L) en las tarjetas superiores del Resumen coincida exactamente al 100% con las cifras de los sub-módulos de análisis específicos, eliminando discrepancias por consultas estrictas.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Fusión reactiva de statsKPI y kpisBigQuery con prioridad en las clasificaciones oficiales locales.'
+    },
+    modulos_afectados: ['Dashboard', 'useMetricoAnalytics', 'AnalisisConstataciones', 'PanelKPIs'],
+    detalles_tecnicos: [
+      'Resuelta discrepancia entre la consulta estricta de BigQuery (Z51.8 puro) y el desglosador exhaustivo (Z51.8, Z04, Z65, Z02.7 y unidades policiales).',
+      'Integración inmediata en las tarjetas de Periodo Seleccionado y Distribución de Triaje C3 (L).'
+    ]
+  },
+  {
     id: 'v3.5.0',
     version_tag: 'v3.5.0',
     fecha_despliegue: '15 de Agosto, 2026',
