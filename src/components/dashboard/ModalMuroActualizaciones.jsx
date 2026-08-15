@@ -8,6 +8,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.0.0',
+      version: 'v4.0.0',
+      fecha: '15 de Agosto, 2026',
+      badge: 'NUEVA VERSIÓN',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Despacho Automático de Cierre Mensual Consolidado (1° de Mes / Día Hábil) + Bitácora Zero-Click DevLog con Tono Pragmático y Capturas Reales',
+      categoria: 'Despacho de Informes & Bitácora de Desarrollo',
+      icon: Mail,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Incorporación de la regla de despacho automático de cierre mensual el día 1° de cada mes a las 08:30 AM (o primer día hábil) con resumen gerencial de los 6 pilares asistenciales, vinculación directa a los PDF oficiales del módulo Reportes, y actualización del Zero-Click DevLog con tono fluido reflexivo y capturas de pantalla reales en 1080p.',
+      instructivo: {
+        paraQueSirve: 'Permite configurar el envío automático del consolidado completo del mes recién concluido sin adjuntos pesados, ofreciendo navegación directa hacia la generación de PDF en el módulo Reportes y un muro de novedades técnico-operativo con lenguaje fluido.',
+        quePuedesVer: 'En el modal de "Informe por Correo" verás la Sección 5 dedicada al Cierre Mensual Consolidado con el botón "🚀 Probar Envío Mensual Ahora" y enlace directo "📄 Abrir Módulo de Reportes PDF". En la Bitácora de Desarrollo, las publicaciones muestran fotos reales del sistema en alta definición y una narrativa continua que concluye con "Seguimos construyendo."',
+        ejemploUso: 'Ejemplo: El día 1 de cada mes a las 08:30 AM el sistema envía automáticamente el informe de cierre del mes anterior a la Jefatura. Al recibir el correo, el usuario puede presionar el enlace institucional para ir directo al módulo Reportes y descargar el PDF Carta certificado.'
+      },
+      changes: [
+        'Despacho Automático de Cierre Mensual (1° del Mes / Día Hábil): Configuración de regla de envío automático del consolidado del mes anterior a las 08:30 AM.',
+        'Vinculación Directa con Módulo de Reportes PDF: Botones y enlaces institucionales que redirigen de inmediato a la descarga de informes en PDF carta.',
+        'Preservación 100% de Auditoría por Turno: Mantención de los 3 esquemas de turnos cerrados diarios (Semana 17-08h, Finde Día 08-20h y Finde Noche 20-08h).',
+        'Narrativa Fluida en Zero-Click DevLog: Redacción pragmática estilo desarrollador sin listas numeradas robóticas ni jerga irrelevante, finalizando siempre con "Seguimos construyendo."',
+        'Fotógrafo Autónomo 1080p Real: Captura en tiempo real del motor de producción de MÉTRICO integrada en el bucket y vista del Muro de Novedades.'
+      ]
+    },
+    {
       id: 'v3.4.0',
       version: 'v3.4.0',
       fecha: '14 de Agosto, 2026',
