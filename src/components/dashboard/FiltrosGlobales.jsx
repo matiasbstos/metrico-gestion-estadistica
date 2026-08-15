@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Compass, RefreshCw } from 'lucide-react';
+import { Calendar, Compass, RefreshCw, Info } from 'lucide-react';
 import CampanaNotificaciones from './CampanaNotificaciones';
 import SugerenciasTurnosBar from './SugerenciasTurnosBar';
 
