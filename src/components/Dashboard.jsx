@@ -33,6 +33,7 @@ import ModalConfiguracionCorreo from './dashboard/ModalConfiguracionCorreo';
 import BarraProgresoCarga from './dashboard/BarraProgresoCarga';
 import Radar from './dashboard/Radar';
 import PopUpSincronizacion from './dashboard/PopUpSincronizacion';
+import InformeArquitectura from './dashboard/InformeArquitectura';
 import { formatLocalDate } from '../utils/helpers';
 import Login from './Login';
 import { 
@@ -41,7 +42,7 @@ import {
   CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
   BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
   Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
-  HeartPulse, Shield, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail
+  HeartPulse, Shield, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail, BookOpen
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
@@ -1300,6 +1301,13 @@ const DashboardContent = () => {
                   <Shield className="w-4 h-4 flex-shrink-0" />
                   {!sidebarCollapsed && <span className="animate-fade-in truncate">Auditoría</span>}
                 </button>
+                <button 
+                  onClick={() => { setActiveTab('arquitectura'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                  title="Informe de Arquitectura"
+                  className={`flex items-center rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'arquitectura' ? 'accent-bg-custom text-white font-bold' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                  <BookOpen className="w-4 h-4 flex-shrink-0 text-indigo-400" />
+                  {!sidebarCollapsed && <span className="animate-fade-in truncate">Informe Arquitectura</span>}
+                </button>
               </>
             )}
           </nav>
@@ -1892,6 +1900,15 @@ const DashboardContent = () => {
             db={db} 
             userProfile={userProfile} 
             isGlobalAdmin={isGlobalAdmin} 
+          />
+        )}
+
+        {activeTab === 'arquitectura' && (
+          <InformeArquitectura 
+            user={user} 
+            userProfile={userProfile} 
+            isGlobalAdmin={isGlobalAdmin} 
+            db={db}
           />
         )}
             </div>

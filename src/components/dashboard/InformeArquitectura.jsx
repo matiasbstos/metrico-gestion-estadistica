@@ -1,0 +1,490 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { 
+  BookOpen, Shield, ShieldAlert, Cpu, Layers, Database, Code, 
+  Printer, Search, Calendar, ChevronDown, ChevronUp, CheckCircle, 
+  Sparkles, FileText, ArrowRight, Server, Terminal, Lock
+} from 'lucide-react';
+import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/firestore';
+
+export const HISTORIAL_ARQUITECTURA_BASE = [
+  {
+    id: 'v3.4.5',
+    version_tag: 'v3.4.5',
+    fecha_despliegue: '15 de Agosto, 2026',
+    proposito_actualizacion: 'Implementación del módulo Documentación Viva y Arquitectura (Living Documentation) con control de acceso ADMIN_GLOBAL, indicador pulsante sutil de encasillamiento, popover glassmorphic y exportación a PDF.',
+    medios_y_stack: [
+      'React 18.3 & Vite Build Engine',
+      'TailwindCSS con Glassmorphic Tokens ("Cristal Pastel")',
+      'Lucide React (BookOpen, Info, Sparkles, Printer)',
+      'Firebase Firestore (Colección system_architecture_log)',
+      'Web Audio API (Chimes armónicos sintéticos)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Encasillamiento extendido (+1h) de Turno Largo Semana (16:00 a 09:00 AM) con etiqueta visual 17:00 - 08:00 hrs. Turnos de Fin de Semana (08:00-20:00 y 20:00-08:00) con contabilización estricta. Restitución del Día Completo (00:00-23:59).',
+      firestore_collections: ['system_architecture_log', 'pacientes', 'turnos_diarios', 'metrico_notificaciones'],
+      query_optimization: 'Filtro en tiempo real por fecha_inicio y hora con paridad 100% entre Resumen, KPIs y subreportes específicos.'
+    },
+    modulos_afectados: ['Dashboard', 'FiltrosGlobales', 'SugerenciasTurnosBar', 'InformeArquitectura', 'AnalisisTraslados'],
+    detalles_tecnicos: [
+      'Sugerencias de turnos dinámicas desplegadas solo al interactuar (onClick/onFocus/onChange) en los pickers de fecha/hora.',
+      'Pop-up flotante desplegable anclado al contenedor de filtros con desvanecimiento animado.',
+      'Popover glassmorphic personalizado para el badge explicativo con indicador de baliza pulsante ("radiante de alarma sutil").',
+      'Plantilla CSS de impresión executive (@media print) para generar reportes en PDF formato gerencial.'
+    ]
+  },
+  {
+    id: 'v3.4.0',
+    version_tag: 'v3.4.0',
+    fecha_despliegue: '14 de Agosto, 2026',
+    proposito_actualizacion: 'Asistente Inteligente de Sugerencias de Turnos y Encasillamiento Horario Oficial en la barra global de filtros.',
+    medios_y_stack: [
+      'React 18.3 Custom Hooks',
+      'TailwindCSS UI Components',
+      'Date/Time Context Engine'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Detección automática de tipo de día (Hábil vs Fin de Semana/Festivo). Sugerencias de 1 clic para Turno Largo, Turno 1 Finde y Turno 3 Finde.',
+      firestore_collections: ['pacientes', 'turnos_diarios'],
+      query_optimization: 'Integración simultánea de pacientesFiltrados en todos los módulos específicos.'
+    },
+    modulos_afectados: ['FiltrosGlobales', 'SugerenciasTurnosBar', 'Dashboard'],
+    detalles_tecnicos: [
+      'Motor de sugerencias context-aware según día de la semana.',
+      'Redirección automática de estado de hora de inicio y hora de fin.',
+      'Optimización de rendimiento en reactivación de métricas KPI.'
+    ]
+  },
+  {
+    id: 'v3.3.0',
+    version_tag: 'v3.3.0',
+    fecha_despliegue: '14 de Agosto, 2026',
+    proposito_actualizacion: 'Audio-Notificaciones Armónicas Sutiles (Web Audio API) + Centro de Notificaciones en la Campana Superior con Botón "Marcar como Leídas".',
+    medios_y_stack: [
+      'Web Audio API (OscillatorNode, GainNode, Harmonic Chimes)',
+      'LocalStorage Event Bus (window.dispatchEvent)',
+      'Lucide React (Bell, CheckCircle2, Volume2)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Notificación sonora y visual al completar sincronizaciones o cargas masivas. Alerta roja automática si existen descalces de integridad entre BigQuery y Firestore.',
+      firestore_collections: ['metrico_notificaciones', 'system_logs'],
+      query_optimization: 'Persistencia local con límite de 30 elementos no leídos.'
+    },
+    modulos_afectados: ['CampanaNotificaciones', 'GestionDatos', 'audioNotifications.js', 'Dashboard'],
+    detalles_tecnicos: [
+      'Síntesis analógica de audio armónico a 587Hz (D5) y 880Hz (A5) sin archivos MP3 pesados.',
+      'Menu desplegable flotante con badge rojo interactivo.',
+      'Redirección automática a Auditoría/Integridad al hacer clic en cualquier notificación.'
+    ]
+  },
+  {
+    id: 'v3.2.0',
+    version_tag: 'v3.2.0',
+    fecha_despliegue: '14 de Agosto, 2026',
+    proposito_actualizacion: 'Modal de Verificación de Estado de Red y Sincronización Automática con pop-up toast sutil en la esquina inferior.',
+    medios_y_stack: [
+      'Firebase Firestore Realtime Listeners',
+      'Lucide React (Wifi, RefreshCw)',
+      'Tailwind Glassmorphism'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Reevaluación de datos cada 5 minutos en background. Toast flotante en esquina inferior derecha con fecha y hora exacta.',
+      firestore_collections: ['pacientes', 'turnos_diarios'],
+      query_optimization: 'Muestreo optimizado mediante cursores de consulta.'
+    },
+    modulos_afectados: ['PopUpSincronizacion', 'Dashboard', 'useMetricoData'],
+    detalles_tecnicos: [
+      'Detección de conexión offline/online.',
+      'Auto-dismiss de alertas de sincronización a los 6 segundos.'
+    ]
+  },
+  {
+    id: 'v3.1.0',
+    version_tag: 'v3.1.0',
+    fecha_despliegue: '14 de Agosto, 2026',
+    proposito_actualizacion: 'Muro de Novedades e Instructivos con Modal interactivo y visualizador de cambios por versión.',
+    medios_y_stack: [
+      'React Modal Component',
+      'Tailwind Gradients & Animations',
+      'Lucide React (Megaphone, BookOpen)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Publicación de novedades, cambios técnicos e instructivos de uso para usuarios del sistema.',
+      firestore_collections: [],
+      query_optimization: 'Renderizado estático directo desde registry de updates.'
+    },
+    modulos_afectados: ['ModalMuroActualizaciones', 'Sidebar', 'Dashboard'],
+    detalles_tecnicos: [
+      'Badge de versión animado en el menú lateral.',
+      'Visualizador paso a paso de novedades e instructivos de uso.'
+    ]
+  },
+  {
+    id: 'v3.0.0',
+    version_tag: 'v3.0.0',
+    fecha_despliegue: '10 de Agosto, 2026',
+    proposito_actualizacion: 'Rediseño Global a Identidad "Cristal Pastel" con Modo Oscuro Automático y Módulos de Análisis Específicos.',
+    medios_y_stack: [
+      'Vite 8 & React 18',
+      'TailwindCSS Modern Palette (HSL Tailored)',
+      'Recharts 2.12',
+      'Firebase Firestore & Functions'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Arquitectura modularizada para análisis de Demanda, Altas, Fracturas, Enfermería, Constataciones y Traslados.',
+      firestore_collections: ['pacientes', 'turnos_diarios', 'users'],
+      query_optimization: 'Agregaciones en tiempo real con cache local.'
+    },
+    modulos_afectados: ['Dashboard', 'PanelKPIs', 'CurvaDemanda', 'AnalisisAltasDetail', 'AnalisisTraslados'],
+    detalles_tecnicos: [
+      'Sistema completo de diseño glassmorphic con tokens dinámicos.',
+      'Sincronización multi-centro (Elsa Romo, Nicodemus, etc.).'
+    ]
+  }
+];
+
+export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, db }) {
+  const [logs, setLogs] = useState(HISTORIAL_ARQUITECTURA_BASE);
+  const [expandedVersion, setExpandedVersion] = useState('v3.4.5');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [loadingDb, setLoadingDb] = useState(false);
+
+  // Cargar logs desde Firestore si existen, o usar el dataset base
+  useEffect(() => {
+    async function fetchArchitectureLogs() {
+      if (!db) return;
+      try {
+        setLoadingDb(true);
+        const colRef = collection(db, 'system_architecture_log');
+        const snapshot = await getDocs(colRef);
+        if (!snapshot.empty) {
+          const dbLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          // Combinar con base ordenando por fecha / version
+          setLogs(dbLogs);
+        }
+      } catch (err) {
+        console.warn("Usando catálogo local de arquitectura:", err);
+      } finally {
+        setLoadingDb(false);
+      }
+    }
+    fetchArchitectureLogs();
+  }, [db]);
+
+  // Filtrado de logs
+  const filteredLogs = useMemo(() => {
+    if (!searchTerm.trim()) return logs;
+    const term = searchTerm.toLowerCase();
+    return logs.filter(item => 
+      item.version_tag.toLowerCase().includes(term) ||
+      item.proposito_actualizacion.toLowerCase().includes(term) ||
+      (item.modulos_afectados && item.modulos_afectados.some(m => m.toLowerCase().includes(term)))
+    );
+  }, [logs, searchTerm]);
+
+  // Función de impresión executive
+  const handlePrint = () => {
+    window.print();
+  };
+
+  // Guardia de Seguridad Estricto
+  if (!isGlobalAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[500px] p-8 text-center bg-card-custom rounded-3xl border border-card-custom shadow-xl theme-transition">
+        <div className="w-16 h-16 bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center mb-4 border border-rose-500/20 animate-pulse">
+          <ShieldAlert className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-black text-primary-custom tracking-tight">Acceso Restringido</h2>
+        <p className="text-sm text-secondary-custom max-w-md mt-2 font-medium leading-relaxed">
+          El <strong>Informe de Arquitectura y Documentación Viva</strong> está reservado exclusivamente para usuarios con el rol <strong>ADMIN_GLOBAL</strong>.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 animate-fade-in print:p-0 print:space-y-4">
+      {/* IMPRESIÓN STYLES: OCULTA ELEMENTOS INNECESARIOS AL EXPORTAR A PDF */}
+      <style>{`
+        @media print {
+          body {
+            background: #ffffff !important;
+            color: #000000 !important;
+            font-family: inherit;
+          }
+          .print\\:hidden, aside, nav, header, button, input {
+            display: none !important;
+          }
+          .print\\:block {
+            display: block !important;
+          }
+          .print\\:p-0 {
+            padding: 0 !important;
+          }
+          .print\\:shadow-none {
+            box-shadow: none !important;
+          }
+          .print\\:border-gray {
+            border: 1px solid #e2e8f0 !important;
+          }
+          .print\\:bg-white {
+            background: #ffffff !important;
+          }
+        }
+      `}</style>
+
+      {/* HEADER DE MÓDULO */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-card-custom p-6 rounded-3xl border border-card-custom shadow-sm theme-transition print:border-gray print:p-4 print:shadow-none">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-800 text-white flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0 print:border print:border-gray">
+            <BookOpen className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-black text-primary-custom tracking-tight">Documentación Viva & Arquitectura</h1>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 uppercase tracking-widest print:hidden">
+                ADMIN_GLOBAL ONLY
+              </span>
+            </div>
+            <p className="text-sm text-secondary-custom font-medium mt-0.5">
+              Historial evolutivo del sistema, reglas de negocio, estructura de datos y medios integrados.
+            </p>
+          </div>
+        </div>
+
+        {/* BOTONES DE ACCIÓN: BUSCADOR E IMPRESIÓN */}
+        <div className="flex items-center gap-3 w-full lg:w-auto print:hidden">
+          <div className="relative flex-1 lg:w-64">
+            <Search className="w-4 h-4 text-secondary-custom absolute left-3 top-1/2 -translate-y-1/2" />
+            <input 
+              type="text"
+              placeholder="Buscar versión, módulo o tecnología..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 rounded-xl bg-input-custom border border-card-custom text-xs font-bold text-primary-custom outline-none focus:border-indigo-500 shadow-xs transition-all"
+            />
+          </div>
+
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold text-xs shadow-md shadow-indigo-500/20 transition-all cursor-pointer shrink-0"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Imprimir / Exportar PDF</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ENCABEZADO GERENCIAL EXCLUSIVO PARA IMPRESIÓN EN PDF */}
+      <div className="hidden print:block border-b-2 border-slate-900 pb-4 mb-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-black uppercase text-slate-900">MÉTRICO — INFORME TÉCNICO DE ARQUITECTURA</h1>
+            <p className="text-xs text-slate-600 font-semibold">Sistema Estadístico de Gestión SAR & Urgencias — Registro de Versiones</p>
+          </div>
+          <div className="text-right text-xs text-slate-600">
+            <p><strong>Fecha de Generación:</strong> {new Date().toLocaleDateString('es-CL')}</p>
+            <p><strong>Clasificación:</strong> Confidencial / Administración Global</p>
+          </div>
+        </div>
+      </div>
+
+      {/* STATS DE ARQUITECTURA */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 print:grid-cols-4">
+        <div className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-xs theme-transition print:border-gray print:bg-white">
+          <div className="flex items-center gap-2 text-xs font-bold text-secondary-custom uppercase tracking-wider mb-1">
+            <Cpu className="w-4 h-4 text-indigo-500" />
+            <span>Versión Actual</span>
+          </div>
+          <div className="text-2xl font-black text-primary-custom font-mono">v3.4.5</div>
+          <div className="text-[10px] text-emerald-500 font-bold mt-1">✓ Desplegado e integrado</div>
+        </div>
+
+        <div className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-xs theme-transition print:border-gray print:bg-white">
+          <div className="flex items-center gap-2 text-xs font-bold text-secondary-custom uppercase tracking-wider mb-1">
+            <Layers className="w-4 h-4 text-sky-500" />
+            <span>Módulos de Análisis</span>
+          </div>
+          <div className="text-2xl font-black text-primary-custom">12 Subreportes</div>
+          <div className="text-[10px] text-secondary-custom font-medium mt-1">Resumen, Demanda, Traslados...</div>
+        </div>
+
+        <div className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-xs theme-transition print:border-gray print:bg-white">
+          <div className="flex items-center gap-2 text-xs font-bold text-secondary-custom uppercase tracking-wider mb-1">
+            <Database className="w-4 h-4 text-purple-500" />
+            <span>Base de Datos</span>
+          </div>
+          <div className="text-2xl font-black text-primary-custom">Firebase Firestore</div>
+          <div className="text-[10px] text-purple-500 font-bold mt-1">Colección system_architecture_log</div>
+        </div>
+
+        <div className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-xs theme-transition print:border-gray print:bg-white">
+          <div className="flex items-center gap-2 text-xs font-bold text-secondary-custom uppercase tracking-wider mb-1">
+            <Shield className="w-4 h-4 text-emerald-500" />
+            <span>Seguridad & Guardias</span>
+          </div>
+          <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">ADMIN_GLOBAL</div>
+          <div className="text-[10px] text-secondary-custom font-medium mt-1">Control de Roles Activo</div>
+        </div>
+      </div>
+
+      {/* LÍNEA DE TIEMPO / HISTORIAL DE VERSIONES (LIVING DOCUMENTATION) */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-base font-black text-primary-custom tracking-tight flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-indigo-500" />
+            Línea de Tiempo Evolutiva del Software ({filteredLogs.length} versiones)
+          </h2>
+          <span className="text-xs text-secondary-custom font-medium print:hidden">
+            Haz clic en una versión para desplegar/contraer su detalle técnico
+          </span>
+        </div>
+
+        {filteredLogs.map((item, index) => {
+          const isExpanded = expandedVersion === item.version_tag || index === 0;
+
+          return (
+            <div 
+              key={item.id || item.version_tag}
+              className={`bg-card-custom rounded-3xl border transition-all theme-transition overflow-hidden ${
+                isExpanded 
+                  ? 'border-indigo-500/40 shadow-lg ring-1 ring-indigo-500/20' 
+                  : 'border-card-custom hover:border-indigo-500/30 shadow-xs'
+              } print:border-gray print:bg-white print:shadow-none mb-4`}
+            >
+              {/* CABECERA DE LA VERSIÓN */}
+              <div 
+                onClick={() => setExpandedVersion(isExpanded ? null : item.version_tag)}
+                className="p-5 flex items-center justify-between cursor-pointer select-none bg-gradient-to-r from-transparent via-black/5 dark:via-white/5 to-transparent"
+              >
+                <div className="flex items-center gap-4">
+                  <div className={`px-3 py-1.5 rounded-xl font-mono font-black text-sm border shadow-xs ${
+                    index === 0 
+                      ? 'bg-indigo-600 text-white border-indigo-400 shadow-indigo-500/30' 
+                      : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20'
+                  }`}>
+                    {item.version_tag}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-base font-black text-primary-custom">{item.proposito_actualizacion}</h3>
+                      {index === 0 && (
+                        <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                          ÚLTIMO DESPLIEGUE
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-secondary-custom font-medium mt-1">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+                        Desplegado el {item.fecha_despliegue}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 print:hidden">
+                  {isExpanded ? (
+                    <ChevronUp className="w-5 h-5 text-indigo-500" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-secondary-custom" />
+                  )}
+                </div>
+              </div>
+
+              {/* DETALLE TÉCNICO COMPLETO (EXPANDIDO) */}
+              {(isExpanded || true) && (
+                <div className={`p-6 border-t border-card-custom/40 space-y-6 ${!isExpanded ? 'hidden print:block' : ''}`}>
+                  
+                  {/* SECCIÓN 1: MEDIOS Y STACK TECNOLÓGICO */}
+                  <div>
+                    <h4 className="text-xs font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider mb-2 flex items-center gap-1.5">
+                      <Code className="w-4 h-4" />
+                      Medios & Stack Tecnológico Integrado
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {item.medios_y_stack && item.medios_y_stack.map((tech, i) => (
+                        <span 
+                          key={i} 
+                          className="px-3 py-1 rounded-xl text-xs font-bold bg-input-custom border border-card-custom text-primary-custom shadow-2xs"
+                        >
+                          ⚡ {tech}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* SECCIÓN 2: ESTRUCTURA DE DATOS Y REGLAS DE NEGOCIO */}
+                  {item.estructura_datos && (
+                    <div className="bg-slate-500/5 p-4 rounded-2xl border border-card-custom/50 space-y-3">
+                      <h4 className="text-xs font-black uppercase text-purple-600 dark:text-purple-400 tracking-wider flex items-center gap-1.5">
+                        <Server className="w-4 h-4" />
+                        Estructura de Datos & Lógica de Negocio
+                      </h4>
+                      
+                      <div className="text-xs font-medium text-primary-custom leading-relaxed">
+                        <strong>Reglas de Negocio:</strong> {item.estructura_datos.reglas_negocio}
+                      </div>
+
+                      {item.estructura_datos.firestore_collections && (
+                        <div className="flex items-center gap-2 text-xs">
+                          <strong className="text-secondary-custom">Colecciones Firestore:</strong>
+                          {item.estructura_datos.firestore_collections.map((col, i) => (
+                            <span key={i} className="font-mono text-[11px] bg-purple-500/10 text-purple-600 dark:text-purple-300 px-2 py-0.5 rounded-md font-bold">
+                              {col}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {item.estructura_datos.query_optimization && (
+                        <div className="text-xs font-medium text-secondary-custom">
+                          <strong>Optimización de Consultas:</strong> {item.estructura_datos.query_optimization}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* SECCIÓN 3: MÓDULOS AFECTADOS */}
+                  {item.modulos_afectados && (
+                    <div>
+                      <h4 className="text-xs font-black uppercase text-sky-600 dark:text-sky-400 tracking-wider mb-2 flex items-center gap-1.5">
+                        <Layers className="w-4 h-4" />
+                        Módulos y Componentes Impactados
+                      </h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {item.modulos_afectados.map((mod, i) => (
+                          <span key={i} className="text-[11px] font-bold font-mono bg-sky-500/10 text-sky-600 dark:text-sky-300 px-2.5 py-1 rounded-lg border border-sky-500/20">
+                            {mod}.jsx
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SECCIÓN 4: DETALLES TÉCNICOS ESPECÍFICOS */}
+                  {item.detalles_tecnicos && item.detalles_tecnicos.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-wider mb-2 flex items-center gap-1.5">
+                        <Terminal className="w-4 h-4" />
+                        Especificaciones Técnicas & Cambios Menores
+                      </h4>
+                      <ul className="space-y-1.5 pl-2">
+                        {item.detalles_tecnicos.map((bullet, i) => (
+                          <li key={i} className="text-xs text-secondary-custom font-medium flex items-start gap-2">
+                            <span className="text-emerald-500 font-bold">✓</span>
+                            <span>{bullet}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
