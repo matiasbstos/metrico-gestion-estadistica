@@ -4,6 +4,7 @@ import {
   Shield, Search, Clock, User, Activity, Calendar, X, Filter, 
   CheckCircle2, AlertTriangle, RefreshCw, Database, Sparkles, Check
 } from 'lucide-react';
+import { playSuccessChime } from '../../utils/audioNotifications';
 
 export default function AuditLog({ db, appId, centroActivo, kpisBigQuery, statsKPIFinal, lastSyncTime, userProfile }) {
   const [logs, setLogs] = useState([]);
@@ -86,6 +87,7 @@ export default function AuditLog({ db, appId, centroActivo, kpisBigQuery, statsK
   // Función de Reconciliación e Integridad de Discrepancias
   const handleReconcileIndicator = async (indicatorName) => {
     setReconciledMap(prev => ({ ...prev, [indicatorName]: true }));
+    playSuccessChime();
     
     // Registrar en la Bitácora de Auditoría de Firestore
     try {
@@ -114,6 +116,7 @@ export default function AuditLog({ db, appId, centroActivo, kpisBigQuery, statsK
     const newMap = {};
     allIndicators.forEach(k => newMap[k] = true);
     setReconciledMap(newMap);
+    playSuccessChime();
 
     try {
       if (db && appId) {

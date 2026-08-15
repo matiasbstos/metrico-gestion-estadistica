@@ -35,6 +35,7 @@ import Radar from './dashboard/Radar';
 import PopUpSincronizacion from './dashboard/PopUpSincronizacion';
 import InformeArquitectura from './dashboard/InformeArquitectura';
 import { formatLocalDate } from '../utils/helpers';
+import { playIntegrityAlertChime } from '../utils/audioNotifications';
 import Login from './Login';
 import { 
   Clock, Users, UserCheck, AlertTriangle, Activity, ArrowRight, 
@@ -613,6 +614,15 @@ const DashboardContent = () => {
 
     return count;
   }, [kpisBigQuery, statsKPIFinal]);
+
+  const prevIntegrityCountRef = useRef(0);
+
+  useEffect(() => {
+    if (integrityIncidencesCount > 0 && prevIntegrityCountRef.current === 0) {
+      playIntegrityAlertChime();
+    }
+    prevIntegrityCountRef.current = integrityIncidencesCount;
+  }, [integrityIncidencesCount]);
   const { turnosDemanda, pacientesDemanda, peakHoursData } = useMetricoDemanda(pacientesDB, turnosDB, demandaFechaInicio, demandaFechaFin, modoComparativo, filtroFechaInicioB, filtroFechaFinB, docsToCompare, tipoCorte, filtroHoraInicio, filtroHoraFin, kpisBigQuery);
   const { turnosProf, pacientesProf, metricsByDoctor, filteredMetricsByDoctor, dailyDoctorData } = useMetricoProfesionales(pacientesDB, turnosDB, profFechaInicio, profFechaFin, docsToCompare, searchDoctor, tipoCorte, filtroHoraInicio, filtroHoraFin);
 

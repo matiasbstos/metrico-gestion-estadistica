@@ -87,3 +87,41 @@ export const playErrorChime = () => {
     console.warn("Audio Context sound blocked or not supported:", err);
   }
 };
+
+// Chime de Alerta sutil para Detección de Discrepancias / Incidencias de Integridad
+export const playIntegrityAlertChime = () => {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+
+    // Tono 1: A5 (880 Hz) - Alerta armónica sutil de alta frecuencia
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(880, now);
+    gain1.gain.setValueAtTime(0.06, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.25);
+
+    // Tono 2: F#5 (739.99 Hz) - Tono suave a los 100ms
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(739.99, now + 0.1);
+    gain2.gain.setValueAtTime(0.07, now + 0.1);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.1);
+    osc2.stop(now + 0.4);
+  } catch (err) {
+    console.warn("Audio Context sound blocked or not supported:", err);
+  }
+};

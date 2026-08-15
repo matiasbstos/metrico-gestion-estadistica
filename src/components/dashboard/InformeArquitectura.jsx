@@ -8,6 +8,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v3.7.0',
+    version_tag: 'v3.7.0',
+    fecha_despliegue: '15 de Agosto, 2026',
+    proposito_actualizacion: 'Incorporación del Sonido Sutil de Alerta Armónica (playIntegrityAlertChime con Web Audio API) al detectar discrepancias o incidencias de integridad.',
+    medios_y_stack: [
+      'Web Audio API Native Synthesizer (sin archivos mp3 externos)',
+      'Dual High-Frequency Sine Wave Tone (880 Hz -> 740 Hz)',
+      'Audio Trigger Reactor (useEffect & prevIntegrityCountRef)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Emite una señal sonora armónica sutil cuando el detector automático identifica la transición a una Alerta de Integridad (>0 incidencias). Reproduce un chime de éxito armónico al ejecutar conciliaciones.',
+      firestore_collections: ['audit_logs', 'pacientes_urgencia'],
+      query_optimization: 'Sintetizador Web Audio API de 0 bytes de latencia y 0 consumo de red.'
+    },
+    modulos_afectados: ['audioNotifications', 'Dashboard', 'AuditLog', 'InformeArquitectura'],
+    detalles_tecnicos: [
+      'Implementada la función playIntegrityAlertChime() con decaimiento exponencial.',
+      'Sincronizada con las conciliaciones y el detector global de paridad.'
+    ]
+  },
+  {
     id: 'v3.6.5',
     version_tag: 'v3.6.5',
     fecha_despliegue: '15 de Agosto, 2026',
