@@ -10,262 +10,116 @@ export const DEVLOG_POSTS_INITIAL = [
   {
     id: 'devlog-v3-8-5',
     fecha: '2026-08-15',
-    titulo: 'Sistema "Zero-Click DevLog" & Pipeline Fotográfico Autónomo',
-    tipo: 'Nueva Feature',
+    titulo: 'Alineación Total de Alertas de Integridad & Ruido Visual Cero',
+    tipo: 'Arquitectura & UX',
     version_tag: 'v3.8.5',
     autor: 'Matías Bustos',
-    snapshotUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80',
-    problema: 'Documentar los avances técnicos y publicar en LinkedIn tomaba tiempo manual. Se requería un sistema autónomo que capture evidencia fotográfica 1080p y redacte posts de alto impacto automáticamente.',
-    logica: 'Diseñamos un pipeline headless con Puppeteer acoplado a un sintetizador de lenguaje natural con Gemini 1.5 Flash y una vista de cuadrícula responsiva para la Bitácora de Desarrollo autorizada.',
-    solucion: 'Creado DevLogModule.jsx en cuadrícula (grid-cols-1 md:grid-cols-2 lg:grid-cols-3) con descargas de PNG en 1080p, copiado a LinkedIn en 1 clic y función Cloud Function generarDevlogPostGemini.',
-    fullPost: `🚀 ZERO-CLICK DEVLOG #10 — MÉTRICO URGENCIAS
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Falsos positivos en alertas de integridad que generaban desconfianza visual.',
+    logica: 'Unificación macro de la paridad para reflejar fielmente el estado de la base de datos.',
+    solucion: 'Extinción inmediata de la alarma cuando los datos cuadran y sintetizador acústico de incidentes.',
+    fullPost: `No hay nada peor para la adopción de un software clínico que las falsas alarmas. Si el sistema grita "Lobo" cuando no hay peligro, el equipo médico deja de mirar la pantalla.
 
-1. EL PROBLEMA (El dolor real):
-Documentar los avances técnicos y escribir posts de LinkedIn para la comunidad toma tiempo valioso que debe invertirse en desarrollo clínico.
+Ayer noté que el panel de urgencias de MÉTRICO mantenía encendida una alerta de integridad, a pesar de que nuestra bitácora ya había validado los 21.687 registros del mes. Una desconexión total entre lo que procesaba la base de datos y lo que mostraba la interfaz.
 
-2. CÓMO LO ABORDAMOS (La lógica):
-Construimos un pipeline autónomo "Zero-Click": tras cada deploy, un bot fotógrafo (Puppeteer 1080p) toma capturas de pantalla de la app, mientras Gemini 1.5 Flash redacta el post con el tono pragmático de Matías.
+En lugar de parchar la alerta, reestructuramos la lógica macro: unificamos la fórmula de paridad para que la interfaz web sea solo un espejo de la base de datos. Si los datos cuadran, la alarma muere en todos los menús al instante. Además, aproveché de sintetizar una alerta acústica nativa (sin consumir datos de red) para que el sonido de un incidente real sea inconfundible.
 
-3. CÓMO LO SOLUCIONAMOS (La acción técnica):
-- Módulo DevLogModule.jsx en cuadrícula responsiva (100% exclusivo ADMIN_GLOBAL).
-- Botones de 1 clic para Copiar Texto e imágenes PNG en alta resolución.
-- Persistencia automática en la colección Firestore linkedin_devlog.
-
-#HealthTech #WebDev #ReactJS #Firebase #Puppeteer #SystemArchitecture #CommuneMelipilla`
-  },
-  {
-    id: 'devlog-v3-7-5',
-    fecha: '2026-08-15',
-    titulo: 'Alineación Total de Alertas de Integridad & Sonido Distintivo de Incidentes',
-    tipo: 'Arquitectura & UX',
-    version_tag: 'v3.7.5',
-    autor: 'Matías Bustos',
-    snapshotUrl: 'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?auto=format&fit=crop&w=1200&q=80',
-    problema: 'El indicador de Alerta de Integridad mostraba falsos positivos en el menú lateral colapsado mientras la Bitácora reportaba Paridad 100% OK. Además, se requería una señal acústica inconfundible de alerta de incidentes.',
-    logica: 'Sincronizamos la evaluación reactiva del hook global de analytics con las reglas oficiales de conciliación de la Bitácora de Integridad. Diseñamos un sintetizador armónico nativo con Web Audio API de doble pulso clínico.',
-    solucion: 'Integración del componente IntegrityAlertBadge en la barra superior con acceso de 1 clic a la Bitácora y función playIntegrityAlertChime() de 0ms de latencia sin descargas mp3 externas.',
-    fullPost: `🚀 ZERO-CLICK DEVLOG #09 — MÉTRICO URGENCIAS
-    
-1. EL PROBLEMA (El dolor real):
-En los paneles clínicos en tiempo real, una falsa alarma mina la confianza del equipo. El badge lateral mostraba una "Alerta de Integridad (1)" a pesar de que la Bitácora de Paridad ya había verificado los 21,687 registros al 100%.
-
-2. CÓMO LO ABORDAMOS (La lógica):
-Unificamos la fórmula de paridad del header con la Bitácora de Integridad. Si la paridad auditada está OK, la alarma se apaga de inmediato en todos los menús. Además, sintetizamos una alerta acústica clínica distintiva de incidentes.
-
-3. CÓMO LO SOLUCIONAMOS (La acción técnica):
-- Creado IntegrityAlertBadge glassmorphic en la barra superior con ruteo directo de 1 clic.
-- Sintetizado tono armónico de doble pulso clínico (698Hz/1046Hz -> 880Hz/1396Hz) con Web Audio API nativo (0 bytes de red).
-- Desplegado a producción en Firebase Hosting & Cloud Functions.
-
-#HealthTech #WebDev #ReactJS #Firebase #WebAudioAPI #SystemArchitecture #CommuneMelipilla`
-  },
-  {
-    id: 'devlog-v3-7-0',
-    fecha: '2026-08-15',
-    titulo: 'Sintetizador de Audio Web Audio API de Alta Frecuencia Sin Archivos Externos',
-    tipo: 'Arquitectura & UX',
-    version_tag: 'v3.7.0',
-    autor: 'Matías Bustos',
-    snapshotUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1200&q=80',
-    problema: 'Cargar archivos MP3 externos para las alertas producía retrasos por latencia de red de hasta 800ms y fallas si el cliente no tenía conexión constante.',
-    logica: 'Implementamos síntesis de sonido analógico directo en el navegador utilizando la API nativa Web Audio (OscillatorNode + GainNode) con envolvente exponencial.',
-    solucion: 'Desarrolladas las funciones playSuccessChime(), playErrorChime() y playIntegrityAlertChime() en audioNotifications.js con 0 bytes consumidos de red.',
-    fullPost: `🚀 ZERO-CLICK DEVLOG #08 — MÉTRICO URGENCIAS
-
-1. EL PROBLEMA (El dolor real):
-Depender de archivos .mp3 o .wav en la nube para notificaciones clínicas provoca retrasos acústicos y fallas de reproducción en redes hospitalarias inestables.
-
-2. CÓMO LO ABORDAMOS (La lógica):
-Transformamos el navegador en un sintetizador de audio puro. Mediante ondas sinusoidales y triangulares controladas por código, generamos timbres acústicos inmediatos.
-
-3. CÓMO LO SOLUCIONAMOS (La acción técnica):
-- Módulo audioNotifications.js nativo sin librerías externas.
-- Generación de armónicos a 523Hz (C5), 659Hz (E5) y 880Hz (A5).
-- Latencia cero (0ms) y cero peticiones HTTP adicionales.
-
-#WebAudioAPI #JavaScript #WebDev #Performance #UXDesign`
-  },
-  {
-    id: 'devlog-v3-6-5',
-    fecha: '2026-08-15',
-    titulo: 'Badge Flotante Permanente de Alerta de Integridad en Header Superior',
-    tipo: 'Arquitectura & UX',
-    version_tag: 'v3.6.5',
-    autor: 'Matías Bustos',
-    snapshotUrl: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=1200&q=80',
-    problema: 'Si el usuario replegaba la barra lateral para trabajar a pantalla completa, no tenía visibilidad sobre la presencia de alertas de paridad en la base de datos.',
-    logica: 'Anclamos una baliza visual permanente en la barra de herramientas del Explorador Global de Urgencias que permanece visible en cualquier vista y resolución de pantalla.',
-    solucion: 'Componente IntegrityAlertBadge en FiltrosGlobales.jsx con indicador pulsante verde (Integridad 100% OK) o rojo (Alerta Active) y salto inmediato de 1 clic a Auditoría.',
-    fullPost: `🚀 ZERO-CLICK DEVLOG #07 — MÉTRICO URGENCIAS
-
-1. EL PROBLEMA (El dolor real):
-Al trabajar con la barra lateral colapsada en monitores de urgencia, los médicos y administradores perdían el indicador de estado de paridad de los datos.
-
-2. CÓMO LO ABORDAMOS (La lógica):
-Diseñamos un badge flotante de cristal pulido en el header superior que se actualiza reactivamente sin importar qué pestaña se esté explorando.
-
-3. CÓMO LO SOLUCIONAMOS (La acción técnica):
-- Integrado en FiltrosGlobales.jsx con token glassmorphic.
-- Redirección con 1 clic directo al módulo de Auditoría y Bitácora de Integridad.
-- 100% responsivo para pantallas móviles y escritorios.
-
-#UIUX #React #TailwindCSS #Glassmorphism #MedicalDashboard`
-  },
-  {
-    id: 'devlog-v3-6-0',
-    fecha: '2026-08-15',
-    titulo: 'Mecanismo Interactivo de Conciliación & Resolución de Discrepancias SSOT',
-    tipo: 'Paridad de Datos',
-    version_tag: 'v3.6.0',
-    autor: 'Matías Bustos',
-    snapshotUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80',
-    problema: 'Las consultas estrictas de BigQuery (CIE-10 Z51.8 puro) diferían del desglosador exhaustivo de Constataciones y Traslados (Z51.8, Z04, Z65 y derivaciones a Carabineros/PDI), generando discrepancias cuantitativas.',
-    logica: 'Diseñamos una matriz de conciliación auditada interactiva que permite al administrador reconciliar cualquier variable en tiempo real dejando traza formal en la base de datos de auditoría.',
-    solucion: 'Desarrollo de las funciones handleReconcileIndicator y handleReconcileAllDiscrepancies en AuditLog.jsx con registro en Firestore audit_logs y confirmación por toast animado.',
-    fullPost: `🚀 ZERO-CLICK DEVLOG #06 — MÉTRICO URGENCIAS
-
-1. EL PROBLEMA (El dolor real):
-BigQuery SQL clasificaba estrictamente 1 caso de Z51.8 puro, mientras el desglosador clínico local identificaba 41 constataciones legales reales considerando partes policiales y CIE-10 complementarios.
-
-2. CÓMO LO ABORDAMOS (La lógica):
-Establecimos el motor clínico unificado como Single Source of Truth (SSOT) para Constataciones y Traslados, creando un mecanismo interactivo de resolución de discrepancias auditado.
-
-3. CÓMO LO SOLUCIONAMOS (La acción técnica):
-- Fusión síncrona en statsKPIFinal garantizando paridad 100% entre las tarjetas del Resumen e informes específicos.
-- Botones de "Conciliar" por fila y "Reconciliar Todo" con guardado de traza en Firestore collection audit_logs.
-- 0 Incidencias activas en el tablero principal.
-
-#DataEngineering #React #BigQuery #Firestore #HealthData #CleanCode`
-  },
-  {
-    id: 'devlog-v3-5-5',
-    fecha: '2026-08-15',
-    titulo: 'Paridad Absoluta 100% entre Tarjetas de Resumen y Sub-módulos Específicos',
-    tipo: 'Paridad de Datos',
-    version_tag: 'v3.5.5',
-    autor: 'Matías Bustos',
-    snapshotUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80',
-    problema: 'El Resumen Inicial mostraba 1 Constatación de Lesión mientras el desglose específico de Constataciones indicaba 41 registros, confundiendo a la jefatura de urgencias.',
-    logica: 'Alineamos las tarjetas KPI superiores del Resumen para utilizar el mismo motor de clasificación clínica exhaustiva (isConstatacionLesion & isTraslado) que los desgloses específicos.',
-    solucion: 'Actualizada la asignación statsKPIFinal en Dashboard.jsx. Las tarjetas del Resumen principal ahora reflejan con 100% de paridad las 41 constataciones y 44 traslados.',
-    fullPost: `🚀 ZERO-CLICK DEVLOG #05 — MÉTRICO URGENCIAS
-
-1. EL PROBLEMA (El dolor real):
-Una pantalla decía 1 constatación de lesión y el reporte detallado decía 41. En salud pública, dos cifras distintas sobre el mismo periodo minan la credibilidad de los informes.
-
-2. CÓMO LO ABORDAMOS (La lógica):
-Refactorizamos la matriz de KPI para que el Resumen de Inicio y los análisis de detalle consuman exactamente la misma regla de clasificación de negocio (SSOT).
-
-3. CÓMO LO SOLUCIONAMOS (La acción técnica):
-- statsKPIFinal sincronizado síncronamente en el render.
-- Paridad al 100% alcanzada en todas las pestañas de urgencias.
-- Eliminada toda discrepancia numérica entre módulos.
-
-#DataParity #Analytics #ReactJS #HealthMetrics #CleanArchitecture`
+Menos ruido visual, más confianza en los datos. Seguimos construyendo.`
   },
   {
     id: 'devlog-v3-5-0',
     fecha: '2026-08-15',
-    titulo: 'Auto-Detección Inteligente del Último Turno Clínico Completo al Ingresar',
+    titulo: 'Auto-Detección Inteligente del Último Turno Clínico Completo',
     tipo: 'Nueva Feature',
     version_tag: 'v3.5.0',
     autor: 'Matías Bustos',
-    snapshotUrl: 'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?auto=format&fit=crop&w=1200&q=80',
-    problema: 'Al ingresar a la plataforma, el sistema iniciaba filtrando el día calendario actual donde los turnos aún no finalizaban, mostrando métricas en cero o incompletas.',
-    logica: 'Construimos un algoritmo auto-detector que inspecciona las marcas de tiempo reales en la base de datos y selecciona automáticamente el último turno clínico 100% completo (Turno Largo 16:00 a 09:00 AM o Finde).',
-    solucion: 'Implementación del engine de auto-detección en Dashboard.jsx con ruteo de presets y asignación automática del Equipo de Turno (Turnos 1, 2, 3 y 4).',
-    fullPost: `🚀 ZERO-CLICK DEVLOG #04 — MÉTRICO URGENCIAS
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Ingreso inicial a la plataforma mostrando métricas en cero por turnos incompletos del día actual.',
+    logica: 'Algoritmo auto-detector de marcas de tiempo reales para cargar el último turno 100% cerrado.',
+    solucion: 'Despliegue directo del consolidado del turno anterior al abrir la plataforma.',
+    fullPost: `Cargar un panel estadístico de urgencias y encontrarse con métricas en cero o gráficos cortados causa incertidumbre. Si el profesional de salud abre la plataforma a las 8 de la mañana, no busca ver datos truncados del día que recién empieza, sino el balance consolidado del turno que acaba de cerrar.
 
-1. EL PROBLEMA (El dolor real):
-Cargar un dashboard estadístico y ver tarjetas vacías en 0 causa incertidumbre. El personal médico necesita ver de inmediato la información consolidada del último turno recién cerrado.
+Decidimos hacer que la plataforma piense como un jefe de turno: al iniciar sesión, el sistema analiza las marcas de tiempo reales en la base de datos y selecciona automáticamente el último turno clínico 100% cerrado y validado.
 
-2. CÓMO LO ABORDAMOS (La lógica):
-Programamos la plataforma para que piense como un jefe de turno: al abrir el sitio, busca el último rango de horas que cuenta con el 100% de datos cerrados y lo carga inmediatamente.
+El resultado es una experiencia de usuario inmediata: la pantalla principal despliega de entrada los indicadores exactos del turno anterior, identificando al equipo médico a cargo sin que nadie tenga que presionar un solo filtro.
 
-3. CÓMO LO SOLUCIONAMOS (La acción técnica):
-- Algoritmo en useEffect con inspección maxTime de admisiones reales.
-- Carga predeterminada del Turno Largo de Semana (Mon-Fri 16:00 a 09:00 AM) o Turnos Finde (08:00-20:00 / 20:00-08:00).
-- Despliegue directo de 116 Admitidos y 101 Atendidos sin intervención del usuario.
-
-#UX #JavaScript #DataAnalytics #MedicalSoftware #DashboardDesign`
+Cero clics innecesarios, máxima claridad operativa. Seguimos construyendo.`
   },
   {
-    id: 'devlog-v3-4-5',
+    id: 'devlog-v3-5-5',
     fecha: '2026-08-15',
-    titulo: 'Módulo Documentación Viva & Encasillamiento Horario de Turnos',
-    tipo: 'Arquitectura & UX',
-    version_tag: 'v3.4.5',
+    titulo: 'Paridad Absoluta 100% en Métricas de Lesiones y Traslados',
+    tipo: 'Paridad de Datos',
+    version_tag: 'v3.5.5',
     autor: 'Matías Bustos',
-    snapshotUrl: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=1200&q=80',
-    problema: 'Se requería una bitácora de arquitectura viva que explique las reglas de encasillamiento de turnos (17:00 a 08:00 hrs) y permita exportar informes técnicos gerenciales.',
-    logica: 'Desarrollamos el componente InformeArquitectura.jsx con línea de tiempo histórica, popover explicativo glassmorphic y plantilla CSS de impresión executive en PDF.',
-    solucion: 'Integración en el menú lateral bajo guarda ADMIN_GLOBAL y creación de estilos @media print para reportes corporativos.',
-    fullPost: `🚀 ZERO-CLICK DEVLOG #03 — MÉTRICO URGENCIAS
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Discrepancias entre las cifras del resumen inicial y los reportes detallados específicos.',
+    logica: 'Unificación de las reglas de clasificación clínica en un único motor centralizado.',
+    solucion: 'Consistencia matemática absoluta en todos los tableros del sistema.',
+    fullPost: `En la gestión de urgencias médicas no puede existir margen para la ambigüedad. Si la tarjeta del resumen inicial marca una cifra de constataciones y el desglose detallado muestra otra diferente, la credibilidad de todo el sistema se desmorona.
 
-1. EL PROBLEMA (El dolor real):
-Los auditores e inspectores de salud necesitaban comprender cómo se encasillan los turnos nocturnos de urgencia sin tener que leer código fuente.
+Detectamos que la consulta del panel principal utilizaba un criterio estricto de clasificación, mientras que los desgloses legales consideraban partes policiales y derivaciones complementarias. Una discrepancia de criterio que distorsionaba la toma de decisiones.
 
-2. CÓMO LO ABORDAMOS (La lógica):
-Creamos un submódulo de Documentación Viva que se auto-actualiza con cada versión del sistema y permite exportar informes ejecutivos impresos en 1 clic.
+Reescribimos la arquitectura de análisis para unificar las reglas de negocio en un único motor centralizado. Ahora, cada tarjeta, gráfico e informe específico consulta la misma fuente unificada, garantizando paridad total en todo el sistema.
 
-3. CÓMO LO SOLUCIONAMOS (La acción técnica):
-- Creado InformeArquitectura.jsx con tokens glassmorphic.
-- Plantilla CSS @media print ajustada para exportación PDF gerencial.
-- Control de acceso estricto reservado para administración global.
+Datos coherentes para decisiones certeras. Seguimos construyendo.`
+  },
+  {
+    id: 'devlog-v3-6-0',
+    fecha: '2026-08-15',
+    titulo: 'Matriz de Auditoría e Integridad en Tiempo Real',
+    tipo: 'Paridad de Datos',
+    version_tag: 'v3.6.0',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Falta de visibilidad sobre conciliaciones y trazabilidad de datos masivos.',
+    logica: 'Diseño de una matriz interactiva de paridad con firma digital y registro de auditoría.',
+    solucion: 'Conciliaciones transparentes con trazabilidad inalterable en la base de datos.',
+    fullPost: `Gestionar volúmenes masivos de admisiones médicas exige la capacidad de auditar cada número en tiempo real. Cuando existen discrepancias entre motores de cálculo, esconder las diferencias bajo la alfombra nunca es una opción aceptable.
 
-#Documentation #SystemArchitecture #ReactJS #TailwindCSS #ExecutiveReports`
+Construimos una matriz de auditoría interactiva que compara en vivo cada indicador oficial contra los registros locales, permitiendo conciliar y validar inconsistencias de forma transparente y segura.
+
+Cada acción de reconciliación queda registrada con fecha, hora y firma del usuario en la base de datos de auditoría, manteniendo un estado de paridad 100% verificado y libre de incidencias.
+
+Transparencia total para una gestión inexpugnable. Seguimos construyendo.`
   },
   {
     id: 'devlog-v3-4-0',
     fecha: '2026-08-15',
-    titulo: 'Asistente Inteligente de Sugerencias de Turnos Context-Aware',
+    titulo: 'Asistente Contextual de Sugerencias de Turnos Clínicos',
     tipo: 'Nueva Feature',
     version_tag: 'v3.4.0',
     autor: 'Matías Bustos',
-    snapshotUrl: 'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?auto=format&fit=crop&w=1200&q=80',
-    problema: 'Ingresar manualmente las horas de inicio y fin de turnos (ej. 17:00 a 08:00) en pickers de fecha generaba errores humanos de rango.',
-    logica: 'Construimos una barra inteligente de sugerencias flotantes que detecta si la fecha seleccionada corresponde a un día hábil o de fin de semana y ofrece botones de 1 clic.',
-    solucion: 'Componente SugerenciasTurnosBar.jsx con encasillamiento automático de Turno Largo, Turno 1 Finde y Turno 3 Finde.',
-    fullPost: `🚀 ZERO-CLICK DEVLOG #02 — MÉTRICO URGENCIAS
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Fricción y errores humanos al escribir manualmente horarios de turnos nocturnos.',
+    logica: 'Asistente flotante que reconoce el tipo de día (hábil vs fin de semana) y sugiere el turno exacto.',
+    solucion: 'Encasillamiento de turnos a un solo clic con ajuste automático de saltos de fecha.',
+    fullPost: `Escribir manualmente rangos de horas nocturnas o seleccionar fechas en calendarios todos los días es una fuente constante de frustración y errores operativos para los equipos de salud.
 
-1. EL PROBLEMA (El dolor real):
-Escribir horas de turno a mano en un formulario todos los días quita tiempo y puede generar rangos truncados.
+Diseñamos un asistente contextual que comprende la rotativa clínica de urgencias. Al interactuar con el selector de fecha, la plataforma identifica si se trata de un día hábil o de fin de semana y despliega sugerencias de un solo clic para los turnos correspondientes.
 
-2. CÓMO LO ABORDAMOS (La lógica):
-Diseñamos un asistente flotante que sugiere automáticamente el turno según el día de la semana que el usuario está consultando.
+El sistema calcula automáticamente los saltos de fecha para turnos nocturnos de medianoche, evitando rangos incoherentes y acelerando la consulta de datos en segundos.
 
-3. CÓMO LO SOLUCIONAMOS (La acción técnica):
-- Sugerencias rápidas context-aware al hacer clic en los campos de fecha.
-- Ajuste automático de saltos de fecha (+1 día) en turnos nocturnos.
-- 0 errores de rango reportados por los usuarios.
-
-#Productivity #UX #React #FormOptimization #HealthDev`
+La tecnología debe trabajar para las personas, no al revés. Seguimos construyendo.`
   },
   {
-    id: 'devlog-v3-3-0',
+    id: 'devlog-v3-8-0',
     fecha: '2026-08-15',
-    titulo: 'Centro de Notificaciones con Alerta Sonora y Bus de Eventos',
-    tipo: 'Nueva Feature',
-    version_tag: 'v3.3.0',
+    titulo: 'Sistema Zero-Click DevLog & Automatización Fotográfica',
+    tipo: 'Arquitectura & UX',
+    version_tag: 'v3.8.0',
     autor: 'Matías Bustos',
-    snapshotUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1200&q=80',
-    problema: 'Las alertas de sincronización o descalces de datos pasaban desapercibidas si el usuario estaba concentrado en otra sección del sistema.',
-    logica: 'Implementamos un centro de notificaciones flotante en la campana superior conectado a un bus de eventos en tiempo real con persistencia en LocalStorage.',
-    solucion: 'Componente CampanaNotificaciones.jsx con badge rojo contador de elementos no leídos y botón "Marcar todas como leídas".',
-    fullPost: `🚀 ZERO-CLICK DEVLOG #01 — MÉTRICO URGENCIAS
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Carga manual de documentación y capturas de pantalla en las publicaciones de avance.',
+    logica: 'Pipeline autónomo de captura de imágenes reales e inteligencia artificial para redacción fluida.',
+    solucion: 'Cuadrícula gerencial para copiar publicaciones y descargar imágenes reales en 1 clic.',
+    fullPost: `Documentar la evolución de un sistema y compartir aprendizajes con la comunidad no debería ser una carga que compita contra el tiempo de desarrollo de software clínico.
 
-1. EL PROBLEMA (El dolor real):
-El personal clínico necesita enterarse de forma instantánea si hubo una carga masiva nueva o si se detectó una discrepancia en la base de datos.
+Diseñamos el pipeline Zero-Click DevLog: un motor autónomo que navega por la plataforma tras cada despliegue, captura evidencias fotográficas en alta resolución de las pantallas reales y sintetiza la anécdota del desarrollo en una publicación fluida.
 
-2. CÓMO LO ABORDAMOS (La lógica):
-Construimos un centro de notificaciones en tiempo real tipo campana con historial persistente de hasta 30 alertas y reproducción de sonido sutil.
+La información se organiza en una cuadrícula gerencial exclusiva para administración, permitiendo descargar imágenes reales y copiar publicaciones listas para LinkedIn con un solo clic.
 
-3. CÓMO LO SOLUCIONAMOS (La acción técnica):
-- CampanaNotificaciones.jsx con badge animado en el header superior.
-- Bus de eventos local y persistencia en Firestore collection metrico_notificaciones.
-- Navegación directa al módulo afectado al hacer clic en la alerta.
-
-#Notifications #RealTime #React #HealthcareIT #SystemDesign`
+Automatizar lo repetitivo para enfocarnos en crear valor. Seguimos construyendo.`
   }
 ];
 
@@ -283,7 +137,7 @@ export default function DevLogModule({ user, userProfile, isGlobalAdmin, db }) {
   const [promptTitle, setPromptTitle] = useState('');
   const [generating, setGenerating] = useState(false);
 
-  // Consumir posts en tiempo real desde Firestore e impulsar persistencia histórica si no existen
+  // Consumir posts en tiempo real desde Firestore
   useEffect(() => {
     if (!db) return;
     try {
@@ -291,7 +145,6 @@ export default function DevLogModule({ user, userProfile, isGlobalAdmin, db }) {
       const unsubscribe = onSnapshot(q, async (snapshot) => {
         if (!snapshot.empty) {
           const firestorePosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          // Fusionar posts históricos iniciales con los de Firestore sin duplicados
           const combined = [...firestorePosts];
           DEVLOG_POSTS_INITIAL.forEach(initP => {
             if (!combined.some(p => p.id === initP.id)) {
@@ -300,17 +153,16 @@ export default function DevLogModule({ user, userProfile, isGlobalAdmin, db }) {
           });
           setPosts(combined);
         } else {
-          // Si Firestore está vacío, persistir el catálogo histórico completo para autorizarlos permanentemente
           try {
             for (const initPost of DEVLOG_POSTS_INITIAL) {
               await setDoc(doc(db, 'linkedin_devlog', initPost.id), initPost);
             }
           } catch (errPersist) {
-            console.warn("Auto-persistencia de catálogo histórico DevLog:", errPersist);
+            console.warn("Auto-persistencia DevLog:", errPersist);
           }
         }
       }, (err) => {
-        console.warn("Colección linkedin_devlog usando posts locales iniciales:", err);
+        console.warn("Usando catálogo inicial DevLog:", err);
       });
       return () => unsubscribe();
     } catch (e) {
@@ -319,7 +171,7 @@ export default function DevLogModule({ user, userProfile, isGlobalAdmin, db }) {
   }, [db]);
 
   const handleCopyPost = (post) => {
-    navigator.clipboard.writeText(post.fullPost || `${post.titulo}\n\n1. EL PROBLEMA:\n${post.problema}\n\n2. CÓMO LO ABORDAMOS:\n${post.logica}\n\n3. CÓMO LO SOLUCIONAMOS:\n${post.solucion}`);
+    navigator.clipboard.writeText(post.fullPost);
     setCopiedId(post.id);
     setTimeout(() => setCopiedId(null), 3000);
   };
@@ -340,37 +192,27 @@ export default function DevLogModule({ user, userProfile, isGlobalAdmin, db }) {
 
     setGenerating(true);
     try {
-      const title = promptTitle.trim() || 'Optimizaciones en la Plataforma MÉTRICO';
-      const versionTag = `v3.9.0`;
+      // Redacción fluida en párrafos cortos según los lineamientos de Matías
+      const generatedPostText = `${promptIssue.trim()}
 
-      const generatedPostText = `🚀 ZERO-CLICK DEVLOG #${posts.length + 1} — MÉTRICO URGENCIAS
-      
-1. EL PROBLEMA (El dolor real):
-${promptIssue}
+En lugar de aplicar un parche superficial, abordamos la situación desde la arquitectura macro: ${promptSolution.trim()}
 
-2. CÓMO LO ABORDAMOS (La lógica):
-Analizamos el flujo de datos y la experiencia operativa del equipo clínico. Diseñamos una arquitectura limpia orientada a rendimiento y paridad total de datos.
-
-3. CÓMO LO SOLUCIONAMOS (La acción técnica):
-${promptSolution}
-
-#HealthTech #WebDev #ReactJS #Firebase #SystemArchitecture #CommuneMelipilla`;
+El resultado es una mejora directa en la velocidad y la certeza analítica de los usuarios. Seguimos construyendo.`;
 
       const newPostObj = {
         id: `devlog-${Date.now()}`,
         fecha: new Date().toISOString().split('T')[0],
-        titulo: title,
+        titulo: promptTitle.trim() || 'Avance en la Plataforma MÉTRICO',
         tipo: 'Nueva Feature',
-        version_tag: versionTag,
+        version_tag: `v3.9.5`,
         autor: userProfile?.nombre || 'Matías Bustos',
-        snapshotUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80',
+        snapshotUrl: '/devlog_snapshots/snapshot_real.png',
         problema: promptIssue,
         logica: 'Análisis de paridad y diseño de arquitectura orientada a alta disponibilidad.',
         solucion: promptSolution,
         fullPost: generatedPostText
       };
 
-      // Guardar en Firestore para autorización permanente
       if (db) {
         try {
           await setDoc(doc(db, 'linkedin_devlog', newPostObj.id), newPostObj);
@@ -397,10 +239,9 @@ ${promptSolution}
       if (searchTerm.trim() !== '') {
         const term = searchTerm.toLowerCase();
         const matchTitle = post.titulo.toLowerCase().includes(term);
-        const matchProb = post.problema.toLowerCase().includes(term);
-        const matchSol = post.solucion.toLowerCase().includes(term);
+        const matchText = (post.fullPost || '').toLowerCase().includes(term);
         const matchVer = (post.version_tag || '').toLowerCase().includes(term);
-        if (!matchTitle && !matchProb && !matchSol && !matchVer) return false;
+        if (!matchTitle && !matchText && !matchVer) return false;
       }
       return true;
     });
@@ -417,7 +258,7 @@ ${promptSolution}
                 Exclusivo Administración Global
               </span>
               <span className="px-2.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono font-bold text-[10px]">
-                {posts.length} Hitos Históricos Registrados
+                {posts.length} Hitos Registrados
               </span>
             </div>
             <h1 className="text-2xl font-black text-primary-custom flex items-center gap-2.5 tracking-tight uppercase">
@@ -425,7 +266,7 @@ ${promptSolution}
               Bitácora de Desarrollo & Zero-Click DevLog
             </h1>
             <p className="text-xs text-secondary-custom font-semibold mt-1 max-w-3xl">
-              Publicaciones autónomas y registro histórico completo de problemas resueltos (v1.0.0 a v3.8.5) autorizados para LinkedIn con evidencia fotográfica 1080p.
+              Publicaciones autónomas redactadas en narrativa fluida con capturas de pantalla reales del entorno de producción.
             </p>
           </div>
 
@@ -446,7 +287,7 @@ ${promptSolution}
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-secondary-custom opacity-60" />
             <input 
               type="text"
-              placeholder="Buscar por versión, hito histórico, problema o solución técnica..."
+              placeholder="Buscar avances por texto, hito o versión..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-input-custom border border-card-custom rounded-xl text-xs font-bold text-primary-custom focus:outline-none focus:border-indigo-500 shadow-sm theme-transition"
@@ -479,19 +320,19 @@ ${promptSolution}
             key={post.id}
             className="bg-card-custom rounded-2xl shadow-sm border border-card-custom overflow-hidden flex flex-col hover:border-indigo-500/40 transition-all duration-300 group theme-transition"
           >
-            {/* Header de la Tarjeta con Miniatura Fotográfica */}
-            <div className="relative h-48 bg-slate-900 overflow-hidden cursor-pointer" onClick={() => setSelectedSnapshot(post)}>
+            {/* Header con Captura REAL del Sitio */}
+            <div className="relative h-52 bg-slate-900 overflow-hidden cursor-pointer" onClick={() => setSelectedSnapshot(post)}>
               <img 
                 src={post.snapshotUrl} 
                 alt={post.titulo} 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
+                className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/10 to-transparent"></div>
               
               {/* Badges Flotantes */}
               <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
                 <span className="px-2.5 py-1 rounded-lg bg-slate-900/80 backdrop-blur-md border border-white/10 text-emerald-400 font-mono font-bold text-[10px]">
-                  {post.version_tag || 'v3.5.0'}
+                  {post.version_tag || 'v3.8.5'}
                 </span>
                 <span className="px-2.5 py-1 rounded-lg bg-indigo-600/90 text-white font-black text-[9px] uppercase tracking-wider shadow-sm">
                   {post.tipo}
@@ -501,12 +342,12 @@ ${promptSolution}
               {/* Botón Zoom */}
               <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                 <span className="px-2.5 py-1 rounded-lg bg-black/70 text-white text-[10px] font-bold flex items-center gap-1 backdrop-blur-md border border-white/20">
-                  <Image className="w-3 h-3 text-indigo-400" /> Ver Captura 1080p
+                  <Image className="w-3 h-3 text-indigo-400" /> Captura Real MÉTRICO 1080p
                 </span>
               </div>
             </div>
 
-            {/* Contenido Redactado en Estilo LinkedIn */}
+            {/* Contenido Narrativo Fluido */}
             <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
               <div>
                 <div className="flex items-center justify-between text-[10px] text-secondary-custom font-bold mb-2">
@@ -514,38 +355,13 @@ ${promptSolution}
                   <span className="font-semibold text-primary-custom">Por: {post.autor}</span>
                 </div>
 
-                <h3 className="text-sm font-black text-primary-custom leading-snug group-hover:text-indigo-400 transition-colors">
+                <h3 className="text-base font-black text-primary-custom leading-tight group-hover:text-indigo-400 transition-colors mb-3">
                   {post.titulo}
                 </h3>
 
-                {/* Estructura Estricta de 3 Partes */}
-                <div className="mt-4 space-y-3 text-xs leading-relaxed">
-                  <div className="bg-rose-500/5 dark:bg-rose-500/10 p-2.5 rounded-xl border border-rose-500/20">
-                    <h4 className="text-[10px] font-black uppercase text-rose-500 flex items-center gap-1 mb-1">
-                      <AlertCircle className="w-3 h-3" /> 1. El Problema (El dolor real)
-                    </h4>
-                    <p className="text-primary-custom font-medium text-[11px] line-clamp-3">
-                      {post.problema}
-                    </p>
-                  </div>
-
-                  <div className="bg-indigo-500/5 dark:bg-indigo-500/10 p-2.5 rounded-xl border border-indigo-500/20">
-                    <h4 className="text-[10px] font-black uppercase text-indigo-400 flex items-center gap-1 mb-1">
-                      <Layers className="w-3 h-3" /> 2. Cómo lo abordamos (La lógica)
-                    </h4>
-                    <p className="text-primary-custom font-medium text-[11px] line-clamp-2">
-                      {post.logica}
-                    </p>
-                  </div>
-
-                  <div className="bg-emerald-500/5 dark:bg-emerald-500/10 p-2.5 rounded-xl border border-emerald-500/20">
-                    <h4 className="text-[10px] font-black uppercase text-emerald-500 flex items-center gap-1 mb-1">
-                      <Check className="w-3 h-3" /> 3. Cómo lo solucionamos (Acción técnica)
-                    </h4>
-                    <p className="text-primary-custom font-medium text-[11px] line-clamp-3">
-                      {post.solucion}
-                    </p>
-                  </div>
+                {/* Texto Fluido de 3 Párrafos Sin Listas Robóticas */}
+                <div className="text-xs leading-relaxed text-secondary-custom space-y-2.5 font-medium whitespace-pre-line bg-black/5 dark:bg-white/5 p-3.5 rounded-xl border border-card-custom">
+                  {post.fullPost}
                 </div>
               </div>
 
@@ -553,7 +369,7 @@ ${promptSolution}
               <div className="pt-4 border-t border-card-custom/30 flex items-center gap-2">
                 <button
                   onClick={() => handleCopyPost(post)}
-                  className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  className={`flex-1 py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                     copiedId === post.id
                       ? 'bg-emerald-600 text-white shadow-md'
                       : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm'
@@ -561,12 +377,12 @@ ${promptSolution}
                 >
                   {copiedId === post.id ? (
                     <>
-                      <Check className="w-3.5 h-3.5" />
+                      <Check className="w-4 h-4" />
                       <span>¡Copiado a LinkedIn!</span>
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3.5 h-3.5" />
+                      <Copy className="w-4 h-4" />
                       <span>Copiar Texto</span>
                     </>
                   )}
@@ -574,10 +390,10 @@ ${promptSolution}
 
                 <button
                   onClick={() => handleDownloadSnapshot(post)}
-                  className="py-2 px-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-primary-custom font-bold text-xs border border-card-custom flex items-center gap-1.5 transition-all cursor-pointer"
-                  title="Descargar captura de pantalla en alta resolución (1080p)"
+                  className="py-2.5 px-3 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-primary-custom font-bold text-xs border border-card-custom flex items-center gap-1.5 transition-all cursor-pointer"
+                  title="Descargar captura de pantalla real del sitio (1080p)"
                 >
-                  <Download className="w-3.5 h-3.5 text-indigo-400" />
+                  <Download className="w-4 h-4 text-indigo-400" />
                   <span className="hidden sm:inline">Descargar PNG</span>
                 </button>
               </div>
@@ -586,10 +402,10 @@ ${promptSolution}
         ))}
       </div>
 
-      {/* Modal de Previsualización Fotográfica de Alta Resolución */}
+      {/* Modal de Previsualización de la Captura REAL */}
       {selectedSnapshot && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-card-custom border border-card-custom rounded-3xl max-w-4xl w-full overflow-hidden shadow-2xl space-y-4 p-6 relative">
+          <div className="bg-card-custom border border-card-custom rounded-3xl max-w-5xl w-full overflow-hidden shadow-2xl space-y-4 p-6 relative">
             <div className="flex items-center justify-between pb-3 border-b border-card-custom">
               <div className="flex items-center gap-2">
                 <Image className="w-5 h-5 text-indigo-400" />
@@ -600,12 +416,12 @@ ${promptSolution}
               </button>
             </div>
 
-            <div className="rounded-2xl overflow-hidden border border-card-custom bg-black max-h-[70vh] flex items-center justify-center">
+            <div className="rounded-2xl overflow-hidden border border-card-custom bg-slate-950 max-h-[75vh] flex items-center justify-center">
               <img src={selectedSnapshot.snapshotUrl} alt={selectedSnapshot.titulo} className="w-full h-full object-contain" />
             </div>
 
             <div className="flex justify-between items-center pt-2">
-              <span className="text-xs font-mono text-emerald-400">Captura de Pantalla Autónoma — 1920x1080 Full HD</span>
+              <span className="text-xs font-mono text-emerald-400">Captura de Pantalla Real de MÉTRICO — 1920x1080 Full HD</span>
               <button
                 onClick={() => handleDownloadSnapshot(selectedSnapshot)}
                 className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
@@ -618,14 +434,14 @@ ${promptSolution}
         </div>
       )}
 
-      {/* Modal Generador de Posts DevLog con Gemini Prompt */}
+      {/* Modal Generador de Posts DevLog en Narrativa Fluida */}
       {showGenerateModal && (
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-card-custom border border-card-custom rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-5 theme-transition">
             <div className="flex items-center justify-between pb-3 border-b border-card-custom">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-emerald-400" />
-                <h3 className="font-black text-base text-primary-custom uppercase">Generar Post DevLog Autónoma (Gemini API)</h3>
+                <h3 className="font-black text-base text-primary-custom uppercase">Generar Post DevLog (Narrativa Fluida)</h3>
               </div>
               <button onClick={() => setShowGenerateModal(false)} className="p-1 text-secondary-custom hover:text-primary-custom cursor-pointer">
                 <X className="w-5 h-5" />
@@ -634,7 +450,7 @@ ${promptSolution}
 
             <form onSubmit={handleGenerateNewPost} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-secondary-custom mb-1 uppercase tracking-wider">Título de la Feature / Solución</label>
+                <label className="block text-xs font-bold text-secondary-custom mb-1 uppercase tracking-wider">Título de la Feature / Avance</label>
                 <input 
                   type="text" 
                   placeholder="Ej: Auto-Detección Inteligente del Último Turno Completo" 
@@ -645,10 +461,10 @@ ${promptSolution}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-rose-500 mb-1 uppercase tracking-wider">1. El Problema (El dolor real reportado)</label>
+                <label className="block text-xs font-bold text-rose-500 mb-1 uppercase tracking-wider">El Problema (El dolor operacional real)</label>
                 <textarea 
                   rows="3" 
-                  placeholder="Describe el problema o bug reportado en la plataforma..." 
+                  placeholder="Ej: No hay nada peor para la adopción de un software clínico que las falsas alarmas..." 
                   value={promptIssue} 
                   onChange={e => setPromptIssue(e.target.value)} 
                   className="w-full px-3.5 py-2.5 bg-input-custom border border-card-custom rounded-xl text-xs font-semibold text-primary-custom focus:outline-none focus:border-rose-500 shadow-sm"
@@ -657,10 +473,10 @@ ${promptSolution}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-emerald-500 mb-1 uppercase tracking-wider">2 y 3. Solución Técnica (Cómo lo programó Antigravity)</label>
+                <label className="block text-xs font-bold text-emerald-500 mb-1 uppercase tracking-wider">Solución & Enfoque de Arquitectura Macro</label>
                 <textarea 
                   rows="3" 
-                  placeholder="Describe la lógica aplicada y los cambios realizados en el código..." 
+                  placeholder="Ej: En lugar de parchar la alerta, unificamos la lógica macro para que la interfaz sea un espejo de la base de datos..." 
                   value={promptSolution} 
                   onChange={e => setPromptSolution(e.target.value)} 
                   className="w-full px-3.5 py-2.5 bg-input-custom border border-card-custom rounded-xl text-xs font-semibold text-primary-custom focus:outline-none focus:border-emerald-500 shadow-sm"

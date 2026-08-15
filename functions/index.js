@@ -1445,6 +1445,7 @@ exports.verificarDatosMaster = functions.https.onCall(async (dataReq, context) =
       baseline: BASELINE
     };
   }
+});
 // FASE 2: Redacción Autónoma en el Deploy (Gemini 1.5 Flash API)
 exports.generarDevlogPostGemini = functions.https.onCall(async (dataReq, context) => {
   const data = dataReq.data || dataReq || {};
@@ -1454,28 +1455,21 @@ exports.generarDevlogPostGemini = functions.https.onCall(async (dataReq, context
     throw new functions.https.HttpsError('invalid-argument', 'Faltan parámetros de problema o solución.');
   }
 
-  const promptText = `Actúa como el redactor personal de Matías, creador de MÉTRICO. Matías aprende haciendo, sin jerga académica excesiva, con un tono pragmático y empírico. Convierte este registro de desarrollo en un post de LinkedIn estructurado así: 
-1. El Problema (el dolor real). 
-2. Cómo lo abordamos (la lógica). 
-3. Cómo lo solucionamos (la acción técnica). 
-Mantenlo corto y atractivo.
+  const promptText = `Actúa como Matías, creador de MÉTRICO. Escribe un único texto fluido de 3 o 4 párrafos cortos sobre este desarrollo. 
+Aplica una visión macro de arquitectura de sistemas, enfócate en el impacto operativo y la confianza de los datos de los usuarios clínicos. 
+NO uses listas numeradas ni subtítulos robóticos (como 1. El Problema). 
+NO mencionen nombres exactos de componentes de código ni números técnicos irrelevantes. 
+Usa un tono reflexivo y pragmático. 
+Termina SIEMPRE con la frase exacta: "Seguimos construyendo."
 
 Problema reportado: ${problema}
-Solución técnica programada: ${solucion}
-Título de la solución: ${titulo || 'Actualización de Sistema'}`;
+Solución aplicada: ${solucion}`;
 
-  const postText = `🚀 ZERO-CLICK DEVLOG — MÉTRICO URGENCIAS (${versionTag || 'v3.8.5'})
-  
-1. EL PROBLEMA (El dolor real):
-${problema}
+  const postText = `${problema}
 
-2. CÓMO LO ABORDAMOS (La lógica):
-Analizamos el flujo de datos y la experiencia operativa del equipo clínico. Diseñamos una arquitectura limpia orientada a rendimiento y paridad total de datos.
+En lugar de aplicar un parche superficial, reestructuramos la lógica macro para que la interfaz web sea un reflejo exacto de la base de datos: ${solucion}
 
-3. CÓMO LO SOLUCIONAMOS (La acción técnica):
-${solucion}
-
-#HealthTech #WebDev #ReactJS #Firebase #SystemArchitecture #CommuneMelipilla`;
+El resultado es una mejora directa en la velocidad de consulta y la confianza del equipo clínico. Seguimos construyendo.`;
 
   return {
     success: true,
