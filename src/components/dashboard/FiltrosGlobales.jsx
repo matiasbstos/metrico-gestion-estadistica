@@ -1,7 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Compass, RefreshCw, Info } from 'lucide-react';
+import { Calendar, Compass, RefreshCw, Info, ShieldAlert, ShieldCheck } from 'lucide-react';
 import CampanaNotificaciones from './CampanaNotificaciones';
 import SugerenciasTurnosBar from './SugerenciasTurnosBar';
+
+function IntegrityAlertBadge({ integrityIncidencesCount, onNavigateTab }) {
+  const hasAlert = integrityIncidencesCount > 0;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onNavigateTab && onNavigateTab('auditoria')}
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border shadow-sm cursor-pointer ${
+        hasAlert
+          ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/25 animate-pulse'
+          : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
+      }`}
+      title={hasAlert ? "Alerta de Integridad Activa. Haga clic para ingresar directamente a la Bitácora y conciliar los datos." : "Integridad 100% OK. Haga clic para ver la Bitácora de Auditoría."}
+    >
+      <span className="relative flex h-2 w-2">
+        {hasAlert && (
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+        )}
+        <span className={`relative inline-flex rounded-full h-2 w-2 ${hasAlert ? 'bg-rose-500' : 'bg-emerald-500'}`}></span>
+      </span>
+      {hasAlert ? (
+        <>
+          <ShieldAlert className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+          <span>Alerta Integridad ({integrityIncidencesCount})</span>
+        </>
+      ) : (
+        <>
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+          <span className="hidden sm:inline">Integridad 100% OK</span>
+        </>
+      )}
+    </button>
+  );
+}
 
 function EncasillamientoInfoBadge({ horarioPreset }) {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -308,6 +343,12 @@ export default function FiltrosGlobales({
                 )}
               </button>
             )}
+
+            {/* Badge permanente de Alerta de Integridad de Datos */}
+            <IntegrityAlertBadge 
+              integrityIncidencesCount={integrityIncidencesCount}
+              onNavigateTab={onNavigateTab}
+            />
 
             {/* Notification Bell Center */}
             <CampanaNotificaciones 

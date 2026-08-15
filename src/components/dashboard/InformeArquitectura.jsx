@@ -8,6 +8,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v3.6.5',
+    version_tag: 'v3.6.5',
+    fecha_despliegue: '15 de Agosto, 2026',
+    proposito_actualizacion: 'Incorporación del Badge Permanente de Alerta de Integridad en la Barra Superior del Explorador Global con Acceso Directo de 1 Clic a la Bitácora.',
+    medios_y_stack: [
+      'React 18.3 & Vite Build Engine',
+      'IntegrityAlertBadge Glassmorphic Beacon Component',
+      'Direct Navigation Router (onNavigateTab)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Permite visualizar de forma continua la presencia de alertas de integridad aun cuando el menú lateral se encuentra replegado. Al hacer clic sobre el badge, redirige de inmediato a la Bitácora de Integridad.',
+      firestore_collections: ['audit_logs', 'pacientes_urgencia'],
+      query_optimization: 'Evaluación reactiva en el componente FiltrosGlobales sin recargas de página.'
+    },
+    modulos_afectados: ['FiltrosGlobales', 'Dashboard', 'InformeArquitectura'],
+    detalles_tecnicos: [
+      'Badge flotante de vidrio pulido con luz pulsante de alerta sutil (o badge verde de Integridad 100% OK).',
+      'Navegación directa mediante onNavigateTab("auditoria").'
+    ]
+  },
+  {
     id: 'v3.6.0',
     version_tag: 'v3.6.0',
     fecha_despliegue: '15 de Agosto, 2026',
