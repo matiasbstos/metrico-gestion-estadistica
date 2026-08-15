@@ -95,11 +95,9 @@ export default function CampanaNotificaciones({ syncToast, integrityIncidencesCo
   };
 
   const handleItemClick = (notif) => {
-    // Marcar como leída
     setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n));
     setIsOpen(false);
 
-    // Navegar al módulo objetivo
     if (onNavigateTab && notif.targetTab) {
       onNavigateTab(notif.targetTab);
     }
@@ -132,18 +130,18 @@ export default function CampanaNotificaciones({ syncToast, integrityIncidencesCo
         )}
       </button>
 
-      {/* Menú Desplegable Flotante */}
+      {/* Menú Desplegable Flotante Opaco de Alto Constraste */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-card-custom border border-card-custom rounded-2xl shadow-2xl z-[9999] overflow-hidden animate-fade-in backdrop-blur-xl theme-transition">
-          {/* Top Bar Header */}
-          <div className="p-3.5 border-b border-card-custom/30 flex items-center justify-between bg-black/5 dark:bg-white/5">
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-slate-900 text-slate-100 dark:bg-slate-950 dark:text-slate-100 border border-slate-700/80 dark:border-slate-800 rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] z-[99999] overflow-hidden animate-fade-in theme-transition">
+          {/* Top Bar Header Opaca */}
+          <div className="p-3.5 border-b border-slate-800 flex items-center justify-between bg-slate-800/90 dark:bg-slate-900/90">
             <div className="flex items-center gap-2">
-              <Bell className="w-4 h-4 text-indigo-500" />
-              <h4 className="text-xs font-black uppercase text-primary-custom tracking-wide">
+              <Bell className="w-4 h-4 text-indigo-400" />
+              <h4 className="text-xs font-black uppercase tracking-wide text-white">
                 Centro de Notificaciones
               </h4>
               {unreadCount > 0 && (
-                <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-500 border border-indigo-500/20">
+                <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                   {unreadCount} nuevas
                 </span>
               )}
@@ -153,7 +151,7 @@ export default function CampanaNotificaciones({ syncToast, integrityIncidencesCo
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="flex items-center gap-1 text-[10px] font-bold text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 px-2 py-1 rounded-lg transition cursor-pointer"
+                className="flex items-center gap-1 text-[10px] font-bold text-indigo-400 hover:text-indigo-300 bg-indigo-500/15 hover:bg-indigo-500/25 px-2 py-1 rounded-lg transition cursor-pointer border border-indigo-500/20"
                 title="Marcar todas como leídas"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
@@ -162,11 +160,11 @@ export default function CampanaNotificaciones({ syncToast, integrityIncidencesCo
             )}
           </div>
 
-          {/* List of Notifications */}
-          <div className="max-h-80 overflow-y-auto divide-y divide-card-custom/20 custom-scrollbar">
+          {/* List of Notifications Opaca */}
+          <div className="max-h-80 overflow-y-auto divide-y divide-slate-800/80 custom-scrollbar bg-slate-900 dark:bg-slate-950">
             {notifications.length === 0 ? (
-              <div className="p-8 text-center text-secondary-custom font-semibold text-xs flex flex-col items-center gap-2">
-                <CheckCircle2 className="w-8 h-8 text-emerald-500 opacity-40" />
+              <div className="p-8 text-center text-slate-400 font-semibold text-xs flex flex-col items-center gap-2">
+                <CheckCircle2 className="w-8 h-8 text-emerald-400 opacity-60" />
                 <span>No tienes notificaciones pendientes.</span>
               </div>
             ) : (
@@ -174,42 +172,42 @@ export default function CampanaNotificaciones({ syncToast, integrityIncidencesCo
                 <div
                   key={n.id}
                   onClick={() => handleItemClick(n)}
-                  className={`p-3.5 transition-colors cursor-pointer flex items-start gap-3 relative hover:bg-black/5 dark:hover:bg-white/5 ${
-                    !n.isRead ? 'bg-indigo-500/5 dark:bg-indigo-500/10' : ''
+                  className={`p-3.5 transition-colors cursor-pointer flex items-start gap-3 relative hover:bg-slate-800/80 dark:hover:bg-slate-900/80 ${
+                    !n.isRead ? 'bg-slate-800/40 dark:bg-slate-900/40' : 'bg-slate-900 dark:bg-slate-950 opacity-80'
                   }`}
                 >
                   {/* Indicator Dot */}
                   {!n.isRead && (
-                    <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0 mt-1.5 animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-indigo-400 shrink-0 mt-1.5 animate-pulse" />
                   )}
 
                   {/* Icon */}
                   <div className="shrink-0 mt-0.5">
                     {n.type === 'error' ? (
-                      <AlertTriangle className="w-4 h-4 text-rose-500" />
+                      <AlertTriangle className="w-4 h-4 text-rose-400" />
                     ) : n.type === 'manual' ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     ) : (
-                      <Sparkles className="w-4 h-4 text-indigo-500" />
+                      <Sparkles className="w-4 h-4 text-indigo-400" />
                     )}
                   </div>
 
                   {/* Text Body */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1">
-                      <h5 className={`text-xs ${!n.isRead ? 'font-black text-primary-custom' : 'font-bold text-secondary-custom'} truncate`}>
+                      <h5 className={`text-xs ${!n.isRead ? 'font-black text-white' : 'font-bold text-slate-300'} truncate`}>
                         {n.title}
                       </h5>
-                      <span className="text-[9px] font-mono text-secondary-custom opacity-70 shrink-0">
+                      <span className="text-[9px] font-mono text-slate-400 shrink-0">
                         {n.time}
                       </span>
                     </div>
 
-                    <p className="text-[11px] text-secondary-custom font-medium leading-relaxed mt-0.5 line-clamp-2">
+                    <p className="text-[11px] text-slate-300 font-medium leading-relaxed mt-0.5 line-clamp-2">
                       {n.message}
                     </p>
 
-                    <div className="flex items-center gap-1 mt-1 text-[9px] font-bold text-indigo-500 dark:text-indigo-400">
+                    <div className="flex items-center gap-1 mt-1 text-[9px] font-bold text-indigo-400">
                       <span>Ir al detalle</span>
                       <ChevronRight className="w-3 h-3" />
                     </div>
@@ -219,15 +217,15 @@ export default function CampanaNotificaciones({ syncToast, integrityIncidencesCo
             )}
           </div>
 
-          {/* Footer Bar */}
+          {/* Footer Bar Opaca */}
           {notifications.length > 0 && (
-            <div className="p-2 border-t border-card-custom/30 bg-black/5 dark:bg-white/5 flex justify-between items-center px-4">
-              <span className="text-[9px] font-bold text-secondary-custom">
+            <div className="p-2.5 border-t border-slate-800 bg-slate-800/90 dark:bg-slate-900/90 flex justify-between items-center px-4">
+              <span className="text-[9px] font-bold text-slate-400">
                 {notifications.length} registros en historial
               </span>
               <button
                 onClick={clearAll}
-                className="flex items-center gap-1 text-[10px] font-bold text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 px-2 py-1 rounded-lg transition cursor-pointer"
+                className="flex items-center gap-1 text-[10px] font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 px-2 py-1 rounded-lg transition cursor-pointer"
               >
                 <Trash2 className="w-3 h-3" />
                 <span>Limpiar</span>
