@@ -53,6 +53,21 @@ export default function CampanaNotificaciones({ syncToast, integrityIncidencesCo
     });
   }, [syncToast]);
 
+  // Escuchar eventos globales de notificaciones de carga masiva
+  useEffect(() => {
+    const handleNotifEvent = (e) => {
+      if (e && e.detail) {
+        setNotifications(prev => {
+          const exists = prev.some(n => n.id === e.detail.id);
+          if (exists) return prev;
+          return [e.detail, ...prev];
+        });
+      }
+    };
+    window.addEventListener('metrico_notif_created', handleNotifEvent);
+    return () => window.removeEventListener('metrico_notif_created', handleNotifEvent);
+  }, []);
+
   // Alerta si hay descalces de integridad
   useEffect(() => {
     if (integrityIncidencesCount > 0) {

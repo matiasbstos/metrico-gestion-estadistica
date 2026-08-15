@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2, BookOpen, ArrowRight, Zap, Trash2, Search, Eye, RefreshCw } from 'lucide-react';
 import { collection, doc, writeBatch, serverTimestamp, onSnapshot, getDocs } from 'firebase/firestore';
 import { formatLocalDate } from '../../utils/helpers';
+import { playSuccessChime, playErrorChime } from '../../utils/audioNotifications';
 
 const runWithTimeout = (promise, ms) => {
   return Promise.race([
@@ -1065,8 +1066,28 @@ export default function GestionDatos({
       });
       setUploadSuccess(true);
 
+      // Reproducir sonido armónico de éxito
+      playSuccessChime();
+
+      // Registrar notificación en la Campana Superior
+      try {
+        const uploadNotif = {
+          id: `upload-${Date.now()}`,
+          title: 'Carga Masiva Exitosa',
+          message: `Se procesaron exitosamente ${successCount} atenciones del archivo ${pendingUpload.fileName || 'Lote Excel'} (Periodo: ${minDateFormatted} al ${maxDateFormatted}).`,
+          time: new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }),
+          isRead: false,
+          type: 'manual',
+          targetTab: 'auditoria'
+        };
+        const existing = JSON.parse(localStorage.getItem('metrico_notificaciones') || '[]');
+        localStorage.setItem('metrico_notificaciones', JSON.stringify([uploadNotif, ...existing].slice(0, 30)));
+        window.dispatchEvent(new CustomEvent('metrico_notif_created', { detail: uploadNotif }));
+      } catch (e) {}
+
     } catch (err) { 
       console.error("Error al guardar lote en Firebase:", err);
+      playErrorChime();
       if (err.message === "CANCELLED_BY_USER") {
         setUploadError("Operación cancelada por el usuario.");
       } else {
