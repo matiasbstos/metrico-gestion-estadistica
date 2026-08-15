@@ -970,7 +970,7 @@ export default function GestionDatos({
             opCounter = 0;
           }
           const pacDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia', item.id);
-          currentBatch.update(pacDocRef, cleanUndefinedValues(item.data));
+          currentBatch.set(pacDocRef, cleanUndefinedValues(item.data), { merge: true });
           opCounter++;
         }
       }
