@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Sparkles, Clock, Sun, Moon, ShieldCheck, ChevronRight } from 'lucide-react';
+import { Sparkles, Clock, Sun, Moon, Calendar } from 'lucide-react';
 
 export default function SugerenciasTurnosBar({
   filtroFechaInicio,
@@ -24,10 +24,21 @@ export default function SugerenciasTurnosBar({
     const dayOfWeek = dateObj.getDay(); // 0 = Domingo, 6 = Sábado
     const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
 
-    const formattedDayStr = dateObj.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' });
+    const commonFullDay = {
+      id: 'dia_completo',
+      title: 'Día Completo',
+      rangeLabel: '00:00 a 23:59 hrs',
+      ruleText: 'Día calendario completo (00:00 a 23:59)',
+      horaInicio: '00:00',
+      horaFin: '23:59',
+      preset: 'civil',
+      icon: Clock,
+      badgeColor: 'from-slate-500/20 to-zinc-500/10 text-slate-700 dark:text-slate-300 border-slate-500/30'
+    };
 
     if (isWeekend) {
       return [
+        commonFullDay,
         {
           id: 'finde_dia',
           title: 'Turno 1: Finde Día',
@@ -54,6 +65,7 @@ export default function SugerenciasTurnosBar({
     } else {
       // Día de semana (Lunes a Viernes)
       return [
+        commonFullDay,
         {
           id: 'largo_semana',
           title: 'Turno Largo Semana',
@@ -64,17 +76,6 @@ export default function SugerenciasTurnosBar({
           preset: 'largo',
           icon: Moon,
           badgeColor: 'from-indigo-500/20 to-sky-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'
-        },
-        {
-          id: 'refuerzo_diurno',
-          title: 'Refuerzo Diurno Semana',
-          rangeLabel: '09:00 a 16:00 hrs',
-          ruleText: 'Contabilización diurna 09:00 - 16:00',
-          horaInicio: '09:00',
-          horaFin: '16:00',
-          preset: 'custom',
-          icon: Sun,
-          badgeColor: 'from-emerald-500/20 to-teal-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
         }
       ];
     }
