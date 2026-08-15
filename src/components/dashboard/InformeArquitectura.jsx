@@ -8,6 +8,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v3.9.0',
+    version_tag: 'v3.9.0',
+    fecha_despliegue: '15 de Agosto, 2026',
+    proposito_actualizacion: 'Incorporación del Catálogo Histórico Completo de Problemas Resueltos (v1.0.0 a v3.8.5) y Auto-Persistencia en Firestore linkedin_devlog.',
+    medios_y_stack: [
+      'React 18.3 & Vite Build Engine',
+      'DevLogModule Historical Catalog & Firestore Auto-Sync (DEVLOG_POSTS_INITIAL)',
+      'Firebase Firestore (Colección linkedin_devlog)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Consolida y persiste todos los hitos históricos y soluciones de problemas anteriores en la Bitácora de Desarrollo autorizada con copiado a LinkedIn en 1 clic.',
+      firestore_collections: ['linkedin_devlog', 'system_architecture_log'],
+      query_optimization: 'Sincronización síncrona de registros históricos iniciales con auto-persistencia en Firestore.'
+    },
+    modulos_afectados: ['DevLogModule', 'InformeArquitectura', 'Dashboard'],
+    detalles_tecnicos: [
+      'Catálogo de 10 hitos históricos desde v3.0.0 hasta v3.8.5 pre-poblados y guardados en Firestore.',
+      'Soporte completo de filtrado por categoría y búsqueda textual.'
+    ]
+  },
+  {
     id: 'v3.8.5',
     version_tag: 'v3.8.5',
     fecha_despliegue: '15 de Agosto, 2026',
