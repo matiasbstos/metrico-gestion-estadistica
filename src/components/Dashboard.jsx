@@ -606,11 +606,10 @@ const DashboardContent = () => {
     const bq = kpisBigQuery;
     const st = statsKPIFinal;
     
+    // Comparaciones de paridad de admisiones, atenciones y altas
     if (bq.pacientes?.current && st.pacientes?.current && Math.abs(bq.pacientes.current - st.pacientes.current) > 2) count++;
     if (bq.atendidos?.current && st.atendidos?.current && Math.abs(bq.atendidos.current - st.atendidos.current) > 2) count++;
     if (bq.altasAdmin?.current && st.altasAdmin?.current && Math.abs(bq.altasAdmin.current - st.altasAdmin.current) > 2) count++;
-    if (bq.traslados?.current && st.traslados?.current && Math.abs(bq.traslados.current - st.traslados.current) > 2) count++;
-    if (bq.constataciones?.current && st.constataciones?.current && Math.abs(bq.constataciones.current - st.constataciones.current) > 2) count++;
 
     return count;
   }, [kpisBigQuery, statsKPIFinal]);

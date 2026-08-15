@@ -88,7 +88,7 @@ export const playErrorChime = () => {
   }
 };
 
-// Chime de Alerta sutil para Detección de Discrepancias / Incidencias de Integridad
+// Chime distintivo de Alerta de Incidentes / Discrepancias de Integridad (Doble pulso de frecuencia clínica)
 export const playIntegrityAlertChime = () => {
   try {
     const ctx = getAudioContext();
@@ -96,31 +96,49 @@ export const playIntegrityAlertChime = () => {
 
     const now = ctx.currentTime;
 
-    // Tono 1: A5 (880 Hz) - Alerta armónica sutil de alta frecuencia
-    const osc1 = ctx.createOscillator();
+    // Pulso 1 (t=0ms): F5 (698.46 Hz) + C6 (1046.5 Hz) - Tono de advertencia inicial
+    const osc1a = ctx.createOscillator();
+    const osc1b = ctx.createOscillator();
     const gain1 = ctx.createGain();
-    osc1.type = 'sine';
-    osc1.frequency.setValueAtTime(880, now);
-    gain1.gain.setValueAtTime(0.06, now);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
 
-    osc1.connect(gain1);
+    osc1a.type = 'sine';
+    osc1a.frequency.setValueAtTime(698.46, now);
+    osc1b.type = 'triangle';
+    osc1b.frequency.setValueAtTime(1046.5, now);
+
+    gain1.gain.setValueAtTime(0.08, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+    osc1a.connect(gain1);
+    osc1b.connect(gain1);
     gain1.connect(ctx.destination);
-    osc1.start(now);
-    osc1.stop(now + 0.25);
 
-    // Tono 2: F#5 (739.99 Hz) - Tono suave a los 100ms
-    const osc2 = ctx.createOscillator();
+    osc1a.start(now);
+    osc1b.start(now);
+    osc1a.stop(now + 0.16);
+    osc1b.stop(now + 0.16);
+
+    // Pulso 2 (t=140ms): A5 (880 Hz) + F6 (1396.91 Hz) - Notificación distintiva de incidente
+    const osc2a = ctx.createOscillator();
+    const osc2b = ctx.createOscillator();
     const gain2 = ctx.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(739.99, now + 0.1);
-    gain2.gain.setValueAtTime(0.07, now + 0.1);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
 
-    osc2.connect(gain2);
+    osc2a.type = 'sine';
+    osc2a.frequency.setValueAtTime(880, now + 0.14);
+    osc2b.type = 'sine';
+    osc2b.frequency.setValueAtTime(1396.91, now + 0.14);
+
+    gain2.gain.setValueAtTime(0.1, now + 0.14);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+
+    osc2a.connect(gain2);
+    osc2b.connect(gain2);
     gain2.connect(ctx.destination);
-    osc2.start(now + 0.1);
-    osc2.stop(now + 0.4);
+
+    osc2a.start(now + 0.14);
+    osc2b.start(now + 0.14);
+    osc2a.stop(now + 0.42);
+    osc2b.stop(now + 0.42);
   } catch (err) {
     console.warn("Audio Context sound blocked or not supported:", err);
   }

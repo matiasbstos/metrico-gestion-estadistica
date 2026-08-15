@@ -8,6 +8,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v3.7.5',
+    version_tag: 'v3.7.5',
+    fecha_despliegue: '15 de Agosto, 2026',
+    proposito_actualizacion: 'Alineación Total del Detector Global de Discrepancias (Barra Lateral + Cabecera + Bitácora) e Implementación del Tono Distintivo de Alerta de Incidentes.',
+    medios_y_stack: [
+      'React 18.3 & Vite Build Engine',
+      'Clinical Incident Double-Pulse Audio Synthesizer (F5/C6 -> A5/F6)',
+      'Unified Parity Evaluator (integrityIncidencesCount)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Elimina falsos positivos en el distintivo de Alerta Integridad de la barra lateral cuando la Bitácora reporta Paridad 100% OK (0 Incidencias). Incorpora un sonido distintivo de notificación de incidentes.',
+      firestore_collections: ['audit_logs', 'pacientes_urgencia'],
+      query_optimization: 'Evaluación síncrona en el hook de analytics y sincronización en vivo.'
+    },
+    modulos_afectados: ['Dashboard', 'audioNotifications', 'AuditLog', 'InformeArquitectura'],
+    detalles_tecnicos: [
+      'Alineada la fórmula integrityIncidencesCount en Dashboard.jsx con la Bitácora de Integridad.',
+      'Sintetizado el tono armónico de doble pulso clínico para notificaciones distintivas de incidentes.'
+    ]
+  },
+  {
     id: 'v3.7.0',
     version_tag: 'v3.7.0',
     fecha_despliegue: '15 de Agosto, 2026',
