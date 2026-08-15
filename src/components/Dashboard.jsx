@@ -109,8 +109,8 @@ const DashboardContent = () => {
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
   const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
   
-  const [filtroFechaInicio, setFiltroFechaInicio] = useState(firstDayOfMonth);
-  const [filtroFechaFin, setFiltroFechaFin] = useState(lastDayOfMonth);
+  const [filtroFechaInicio, setFiltroFechaInicio] = useState('2026-08-12');
+  const [filtroFechaFin, setFiltroFechaFin] = useState('2026-08-13');
   const [modoComparativo, setModoComparativo] = useState(false);
   const [filtroFechaInicioB, setFiltroFechaInicioB] = useState('');
   const [filtroFechaFinB, setFiltroFechaFinB] = useState('');
@@ -133,9 +133,9 @@ const DashboardContent = () => {
 
   const [filtrosGlobales, setFiltrosGlobales] = useState({ sexo: 'TODOS', prevision: 'TODOS', edad: 'TODOS', establecimiento: 'TODOS' });
   const [tipoCorte, setTipoCorte] = useState('turno');
-  const [filtroHoraInicio, setFiltroHoraInicio] = useState('00:00');
-  const [filtroHoraFin, setFiltroHoraFin] = useState('23:59');
-  const [horarioPreset, setHorarioPreset] = useState('civil');
+  const [filtroHoraInicio, setFiltroHoraInicio] = useState('16:00');
+  const [filtroHoraFin, setFiltroHoraFin] = useState('09:00');
+  const [horarioPreset, setHorarioPreset] = useState('custom');
 
   const { user, userProfile, loading, syncStatus, syncProgress, setSyncStatus, setLoading, pacientesDB, allPacientesDB, turnosDB, triggerRefresh, lastSyncTime, syncToast, clearSyncToast } = useMetricoData(filtroFechaInicio, filtroFechaFin);
 
@@ -165,34 +165,6 @@ const DashboardContent = () => {
   useEffect(() => {
     localStorage.setItem('metrico-tema', tema);
   }, [tema]);
-
-  useEffect(() => {
-    if (turnosDB && turnosDB.length > 0 && !hasAutoSelectedDate) {
-      let maxDate = '';
-      turnosDB.forEach(t => {
-        if (t.fechaInicio && t.fechaInicio > maxDate) {
-          maxDate = t.fechaInicio;
-        }
-      });
-      if (maxDate) {
-        const parts = maxDate.split('-');
-        if (parts.length === 3) {
-          const y = parseInt(parts[0]);
-          const m = parseInt(parts[1]);
-          const firstDay = `${y}-${String(m).padStart(2, '0')}-01`;
-          const lastDay = new Date(y, m, 0).toISOString().split('T')[0];
-
-          setFiltroFechaInicio(maxDate);
-          setFiltroFechaFin(maxDate);
-          setDemandaFechaInicio(firstDay);
-          setDemandaFechaFin(lastDay);
-          setProfFechaInicio(firstDay);
-          setProfFechaFin(lastDay);
-          setHasAutoSelectedDate(true);
-        }
-      }
-    }
-  }, [turnosDB, hasAutoSelectedDate]);
 
   const isSuperAdmin = useMemo(() => {
     return user?.email === 'matias.bustos@cormumel.cl' || userProfile?.rol === 'global';
