@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { Sparkles, Clock, Sun, Moon, Calendar } from 'lucide-react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { Sparkles, Clock, Sun, Moon, AlertCircle, CheckCircle2, ChevronRight, X } from 'lucide-react';
 
 export default function SugerenciasTurnosBar({
   filtroFechaInicio,
@@ -10,19 +10,53 @@ export default function SugerenciasTurnosBar({
   setFiltroHoraFin,
   setHorarioPreset
 }) {
-  const suggestions = useMemo(() => {
-    if (!filtroFechaInicio) return [];
+  const [userDismissed, setUserDismissed] = useState(false);
+
+  // Re-mostrar sugerencias cuando el usuario cambie la fecha u hora
+  useEffect(() => {
+    setUserDismissed(false);
+  }, [filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin]);
+
+  const contextInfo = useMemo(() => {
+    if (!filtroFechaInicio) return null;
 
     const dateParts = filtroFechaInicio.split('-');
-    if (dateParts.length !== 3) return [];
-    
+    if (dateParts.length !== 3) return null;
+
     const year = parseInt(dateParts[0]);
     const month = parseInt(dateParts[1]) - 1;
     const day = parseInt(dateParts[2]);
-    const dateObj = new Date(year, month, day);
+    const startDateObj = new Date(year, month, day);
 
-    const dayOfWeek = dateObj.getDay(); // 0 = Domingo, 6 = Sábado
+    const dayOfWeek = startDateObj.getDay(); // 0 = Domingo, 6 = Sábado
     const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+
+    // Calcular duración del rango horario ingresado
+    const startHourStr = filtroHoraInicio || '00:00';
+    const endHourStr = filtroHoraFin || '23:59';
+    
+    const [hStart, mStart] = startHourStr.split(':').map(Number);
+    const [hEnd, mEnd] = endHourStr.split(':').map(Number);
+
+    const startDateTime = new Date(year, month, day, hStart || 0, mStart || 0);
+    let endDateTime = new Date(year, month, day, hEnd || 23, mEnd || 59);
+
+    // Si la hora de fin es menor a la de inicio en el mismo día, cruza medianoche (+1d)
+    if (endDateTime <= startDateTime && filtroFechaInicio === (filtroFechaFin || filtroFechaInicio)) {
+      endDateTime.setDate(endDateTime.getDate() + 1);
+    } else if (filtroFechaFin && filtroFechaFin > filtroFechaInicio) {
+      const endParts = filtroFechaFin.split('-');
+      if (endParts.length === 3) {
+        endDateTime = new Date(parseInt(endParts[0]), parseInt(endParts[1]) - 1, parseInt(endParts[2]), hEnd || 23, mEnd || 59);
+      }
+    }
+
+    const diffMs = endDateTime.getTime() - startDateTime.getTime();
+    const durationHours = Math.max(0, diffMs / (1000 * 60 * 60));
+
+    // Determinar sugerencias según el contexto ingresado
+    const isShortWindow = durationHours < 6 && durationHours > 0;
+    const isLongWindow = durationHours > 24;
 
     const commonFullDay = {
       id: 'dia_completo',
@@ -36,8 +70,13 @@ export default function SugerenciasTurnosBar({
       badgeColor: 'from-slate-500/20 to-zinc-500/10 text-slate-700 dark:text-slate-300 border-slate-500/30'
     };
 
-    if (isWeekend) {
-      return [
+    let list = [];
+
+    if (isLongWindow) {
+      // Si el rango es mayor a 24 horas, solo sugerir Día Completo o nada
+      list = [commonFullDay];
+    } else if (isWeekend) {
+      list = [
         commonFullDay,
         {
           id: 'finde_dia',
@@ -64,7 +103,7 @@ export default function SugerenciasTurnosBar({
       ];
     } else {
       // Día de semana (Lunes a Viernes)
-      return [
+      list = [
         commonFullDay,
         {
           id: 'largo_semana',
@@ -79,9 +118,17 @@ export default function SugerenciasTurnosBar({
         }
       ];
     }
-  }, [filtroFechaInicio]);
 
-  if (suggestions.length === 0) return null;
+    return {
+      isWeekend,
+      durationHours: durationHours.toFixed(1),
+      isShortWindow,
+      isLongWindow,
+      suggestions: list
+    };
+  }, [filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin]);
+
+  if (!contextInfo || contextInfo.suggestions.length === 0 || userDismissed) return null;
 
   const applySuggestion = (sug) => {
     setFiltroHoraInicio(sug.horaInicio);
@@ -90,13 +137,22 @@ export default function SugerenciasTurnosBar({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5 animate-fade-in py-0.5">
-      <div className="flex items-center gap-1 text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-1 rounded-lg shrink-0">
-        <Sparkles className="w-3 h-3 animate-pulse" />
-        <span className="hidden sm:inline">Sugerencias del Día:</span>
+    <div className="flex flex-wrap items-center gap-1.5 animate-fade-in py-1 px-2 rounded-xl bg-card-custom/50 border border-card-custom/40 shadow-sm theme-transition">
+      <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-400 shrink-0">
+        <Sparkles className="w-3.5 h-3.5 animate-pulse text-indigo-500" />
+        <span>Sugerencia según horario digitado:</span>
       </div>
 
-      {suggestions.map((sug) => {
+      {/* Advertencia si el rango digitado es muy corto (< 6h) */}
+      {contextInfo.isShortWindow && (
+        <div className="flex items-center gap-1 text-[9px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20">
+          <AlertCircle className="w-3 h-3" />
+          <span>Rango corto ({contextInfo.durationHours}h). ¿Ajustar a turno oficial?</span>
+        </div>
+      )}
+
+      {/* Chips de Sugerencia */}
+      {contextInfo.suggestions.map((sug) => {
         const IconComponent = sug.icon;
         const isActive = (filtroHoraInicio === sug.horaInicio && filtroHoraFin === sug.horaFin);
 
@@ -121,6 +177,15 @@ export default function SugerenciasTurnosBar({
           </button>
         );
       })}
+
+      {/* Botón Ocultar Sugerencias */}
+      <button
+        onClick={() => setUserDismissed(true)}
+        className="p-1 rounded-lg text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5 transition-all ml-auto"
+        title="Ocultar sugerencias de turno"
+      >
+        <X className="w-3 h-3" />
+      </button>
     </div>
   );
 }
