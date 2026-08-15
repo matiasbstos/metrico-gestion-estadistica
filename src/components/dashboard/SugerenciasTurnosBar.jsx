@@ -8,10 +8,50 @@ export default function SugerenciasTurnosBar({
   filtroHoraFin,
   setFiltroHoraInicio,
   setFiltroHoraFin,
+  setFiltroFechaFin,
   setHorarioPreset,
+  turnosDB,
+  pautasDB,
   isOpen,
   onClose
 }) {
+  // Helper para resolver el equipo asignado a la fecha y turno
+  const resolverEquipo = (fechaStr, horarioCode) => {
+    if (!fechaStr) return null;
+
+    // 1. Buscar coincidencia exacta en turnosDB
+    if (turnosDB && turnosDB.length > 0) {
+      const match = turnosDB.find(t => t.fechaInicio === fechaStr && t.equipoTurno && t.equipoTurno !== 'Sin Asignar');
+      if (match) return match.equipoTurno;
+    }
+
+    // 2. Buscar en pautasDB si existe
+    if (pautasDB && fechaStr) {
+      const monthId = fechaStr.substring(0, 7);
+      if (pautasDB[monthId] && pautasDB[monthId][fechaStr]) {
+        const dayMap = pautasDB[monthId][fechaStr];
+        const keys = Object.keys(dayMap);
+        if (keys.length > 0 && dayMap[keys[0]]) {
+          const val = dayMap[keys[0]];
+          return val.startsWith('Turno') || val.startsWith('Equipo') ? val : `Turno ${val}`;
+        }
+      }
+    }
+
+    // 3. Fallback rotativa cíclica (Turnos 1 a 4)
+    const parts = fechaStr.split('-');
+    if (parts.length === 3) {
+      const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      const start = new Date(d.getFullYear(), 0, 0);
+      const diff = d - start;
+      const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const eqNum = ((dayOfYear + (horarioCode === 'largo' ? 1 : 0)) % 4) + 1;
+      return `Turno ${eqNum}`;
+    }
+
+    return null;
+  };
+
   const contextInfo = useMemo(() => {
     if (!filtroFechaInicio) return null;
 
@@ -53,6 +93,7 @@ export default function SugerenciasTurnosBar({
     const commonFullDay = {
       id: 'dia_completo',
       title: 'Día Completo',
+      equipo: null,
       rangeLabel: '00:00 a 23:59 hrs',
       ruleText: 'Día calendario completo (00:00 a 23:59)',
       horaInicio: '00:00',
@@ -67,13 +108,17 @@ export default function SugerenciasTurnosBar({
     if (isLongWindow) {
       list = [commonFullDay];
     } else if (isWeekend) {
+      const eqFindeDia = resolverEquipo(filtroFechaInicio, 'finde_dia');
+      const eqFindeNoche = resolverEquipo(filtroFechaInicio, 'finde_noche');
+
       list = [
         commonFullDay,
         {
           id: 'finde_dia',
           title: 'Turno 1: Finde Día',
+          equipo: eqFindeDia,
           rangeLabel: '08:00 a 20:00 hrs',
-          ruleText: 'Contabilización estricta 08:00 - 20:00',
+          ruleText: `Contabilización estricta 08:00 - 20:00${eqFindeDia ? ` (${eqFindeDia})` : ''}`,
           horaInicio: '08:00',
           horaFin: '20:00',
           preset: 'finde_dia',
@@ -83,8 +128,9 @@ export default function SugerenciasTurnosBar({
         {
           id: 'finde_noche',
           title: 'Turno 3: Finde Noche',
+          equipo: eqFindeNoche,
           rangeLabel: '20:00 a 08:00 hrs (+1d)',
-          ruleText: 'Contabilización estricta 20:00 - 08:00',
+          ruleText: `Contabilización estricta 20:00 - 08:00${eqFindeNoche ? ` (${eqFindeNoche})` : ''}`,
           horaInicio: '20:00',
           horaFin: '08:00',
           preset: 'finde_noche',
@@ -94,13 +140,16 @@ export default function SugerenciasTurnosBar({
       ];
     } else {
       // Día de semana (Lunes a Viernes)
+      const eqLargo = resolverEquipo(filtroFechaInicio, 'largo');
+
       list = [
         commonFullDay,
         {
           id: 'largo_semana',
           title: 'Turno Largo Semana',
+          equipo: eqLargo,
           rangeLabel: '17:00 a 08:00 hrs (+1d)',
-          ruleText: 'Oficial 17:00 - 08:00 hrs (Sistema aplica 16:00 - 09:00 AM internamente)',
+          ruleText: `Oficial 17:00 - 08:00 hrs${eqLargo ? ` (${eqLargo})` : ''} — Sistema aplica 16:00 - 09:00 AM internamente`,
           horaInicio: '16:00',
           horaFin: '09:00',
           preset: 'largo',
@@ -117,7 +166,7 @@ export default function SugerenciasTurnosBar({
       isLongWindow,
       suggestions: list
     };
-  }, [filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin]);
+  }, [filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin, turnosDB, pautasDB]);
 
   if (!isOpen || !contextInfo || contextInfo.suggestions.length === 0) return null;
 
@@ -125,15 +174,29 @@ export default function SugerenciasTurnosBar({
     setFiltroHoraInicio(sug.horaInicio);
     setFiltroHoraFin(sug.horaFin);
     setHorarioPreset(sug.preset);
+
+    // Ajustar fecha fin al día siguiente si el turno cruza la noche (+1d)
+    if (sug.preset === 'largo' || sug.preset === 'finde_noche') {
+      const parts = filtroFechaInicio.split('-');
+      if (parts.length === 3) {
+        const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        d.setDate(d.getDate() + 1);
+        const nextY = d.getFullYear();
+        const nextM = String(d.getMonth() + 1).padStart(2, '0');
+        const nextD = String(d.getDate()).padStart(2, '0');
+        if (setFiltroFechaFin) setFiltroFechaFin(`${nextY}-${nextM}-${nextD}`);
+      }
+    }
+
     if (onClose) onClose();
   };
 
   return (
-    <div className="absolute top-full right-0 mt-2 z-50 w-80 p-3.5 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-indigo-500/30 shadow-2xl backdrop-blur-xl animate-fade-in">
+    <div className="absolute top-full right-0 mt-2 z-50 w-84 p-3.5 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-indigo-500/30 shadow-2xl backdrop-blur-xl animate-fade-in">
       <div className="flex items-center justify-between pb-2 border-b border-card-custom/20 mb-2.5">
         <div className="flex items-center gap-1.5 text-xs font-black uppercase text-indigo-600 dark:text-indigo-400">
           <Sparkles className="w-4 h-4 animate-pulse text-indigo-500" />
-          <span>Sugerencia de Turno Detectada</span>
+          <span>Sugerencia de Turno y Equipo</span>
         </div>
         <button
           onClick={onClose}
@@ -171,7 +234,16 @@ export default function SugerenciasTurnosBar({
                   <IconComponent className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs font-black">{sug.title}</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-black">{sug.title}</span>
+                    {sug.equipo && (
+                      <span className={`px-1.5 py-0.2 rounded text-[9px] font-black uppercase ${
+                        isActive ? 'bg-white/25 text-white' : 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border border-indigo-500/20'
+                      }`}>
+                        {sug.equipo}
+                      </span>
+                    )}
+                  </div>
                   <div className={`text-[10px] font-medium ${isActive ? 'text-indigo-100' : 'text-secondary-custom'}`}>
                     {sug.ruleText}
                   </div>

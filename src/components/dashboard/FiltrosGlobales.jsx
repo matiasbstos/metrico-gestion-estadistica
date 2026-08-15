@@ -94,7 +94,9 @@ export default function FiltrosGlobales({
   integrityIncidencesCount,
   onNavigateTab,
   maxDateLabel,
-  isScrolled
+  isScrolled,
+  turnosDB,
+  pautasDB
 }) {
   const [activePreset, setActivePreset] = useState('hoy');
   const [showSuggestionsPopover, setShowSuggestionsPopover] = useState(false);
@@ -231,7 +233,10 @@ export default function FiltrosGlobales({
             filtroHoraFin={filtroHoraFin}
             setFiltroHoraInicio={setFiltroHoraInicio}
             setFiltroHoraFin={setFiltroHoraFin}
+            setFiltroFechaFin={setFiltroFechaFin}
             setHorarioPreset={setHorarioPreset}
+            turnosDB={turnosDB}
+            pautasDB={pautasDB}
             isOpen={showSuggestionsPopover}
             onClose={() => setShowSuggestionsPopover(false)}
           />

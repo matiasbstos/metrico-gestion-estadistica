@@ -8,6 +8,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v3.5.0',
+    version_tag: 'v3.5.0',
+    fecha_despliegue: '15 de Agosto, 2026',
+    proposito_actualizacion: 'Auto-Detección Inteligente del ÚLTIMO TURNO CLÍNICO COMPLETO al ingresar a la plataforma e Identificación Automática del Equipo de Turno en las sugerencias.',
+    medios_y_stack: [
+      'React 18.3 & Vite Build Engine',
+      'Engine de Auto-Selección del Último Turno Completo',
+      'Rotativa Cíclica de Equipos (Equipos 1, 2, 3 y 4)',
+      'Firebase Firestore (Colección system_architecture_log & turnos_diarios)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Al ingresar o refrescar el sitio, el sistema detecta la última marca de tiempo de admisiones reales en la BD y selecciona automáticamente el último turno clínico 100% completo (Turno Largo 16:00 a 09:00 AM o Finde), evitando tarjetas en cero. Identifica el Equipo de Turno en las sugerencias.',
+      firestore_collections: ['system_architecture_log', 'pacientes', 'turnos_diarios', 'pautas_turnos'],
+      query_optimization: 'Cálculo dinámico de fecha max + encasillamiento automático de fecha_fin = fecha_inicio + 1d en turnos nocturnos.'
+    },
+    modulos_afectados: ['Dashboard', 'FiltrosGlobales', 'SugerenciasTurnosBar', 'usePautasTurnos'],
+    detalles_tecnicos: [
+      'Resolución automática de fecha inicial y final para mostrar siempre datos 100% completos en la primera carga.',
+      'Inyección del badge de Equipo de Turno (ej. Turno Largo Semana — Turno 2) en el pop-up de sugerencias.',
+      'Corrección del bug de rango corto (ej. 13/08 a 13/08 04:00 PM a 09:00 PM) forzando el salto de fecha a +1d en Turno Largo.'
+    ]
+  },
+  {
     id: 'v3.4.5',
     version_tag: 'v3.4.5',
     fecha_despliegue: '15 de Agosto, 2026',
