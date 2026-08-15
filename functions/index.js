@@ -898,15 +898,29 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
       </html>
     `;
 
-    console.log(`[SMTP Nodemailer] Despachando Informe de Cierre Mensual a:`, emailsList);
+    console.log(`[SMTP Nodemailer] Despachando Informe de Cierre Mensual real a:`, emailsList);
 
-    return {
-      success: true,
-      tipoEnvio: 'INFORME_CIERRE_MENSUAL',
-      despachadoAt: nowStr,
-      destinatarios: emailsList,
-      htmlPayload: monthlyHtmlContent
-    };
+    try {
+      const info = await smtpTransporter.sendMail({
+        from: '"SAR Elsa Romo - MÉTRICO" <datosgestionsaraera@gmail.com>',
+        to: emailsList.join(', '),
+        subject: `📊 MÉTRICO - Informe Consolidado de Cierre Mensual Asistencial`,
+        html: monthlyHtmlContent,
+        text: defaultMonthlyText
+      });
+      console.log(`[SMTP Nodemailer SUCCESS] Correo de Cierre Mensual entregado via SMTP. MessageId: ${info.messageId}`);
+      return {
+        success: true,
+        messageId: info.messageId,
+        tipoEnvio: 'INFORME_CIERRE_MENSUAL',
+        despachadoAt: nowStr,
+        destinatarios: emailsList,
+        mensaje: `✔ Informe Consolidado de Cierre Mensual enviado exitosamente a ${emailsList.join(', ')}.`
+      };
+    } catch (smtpErr) {
+      console.error(`[SMTP ERROR] Error enviando correo mensual via SMTP:`, smtpErr);
+      throw new functions.https.HttpsError('internal', 'Error despachando correo via SMTP: ' + smtpErr.message);
+    }
   }
 
   const fs = require('fs');
