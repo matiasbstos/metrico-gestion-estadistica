@@ -8,6 +8,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v3.4.0',
+      version: 'v3.4.0',
+      fecha: '14 de Agosto, 2026',
+      badge: 'NUEVA VERSIÓN',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Asistente Inteligente de Contexto Temporal y Sugerencias de Turnos + Encasillamiento Horario Oficial',
+      categoria: 'Filtros Inteligentes & Encasillamiento',
+      icon: Cpu,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Incorporación del Asistente Inteligente de Sugerencias de Turnos en la barra global de filtros. Detecta automáticamente si la fecha es día hábil o fin de semana y sugiere las franjas horarias exactas de contabilización (Turno Largo 16:00 a 09:00 AM, Finde Día 08:00 a 20:00 y Finde Noche 20:00 a 08:00 AM), eliminando la sugerencia de día completo.',
+      instructivo: {
+        paraQueSirve: 'Sugiére de forma dinámica las franjas de turnos clínicos correspondientes a la fecha elegida y actualiza todas las métricas, reportes y análisis específicos con 1 solo clic.',
+        quePuedesVer: 'Al ingresar o cambiar una fecha en la cabecera, aparece una barra con botones de sugerencia inteligentes (pills con iconos ☀️ y 🌙). Al presionar cualquiera de las sugerencias, se configuran las horas de inicio y fin exactas de ese turno.',
+        ejemploUso: 'Ejemplo: Seleccionas el 11/08/2026 (martes). El asistente te sugiere "Turno Largo Semana (16:00 a 09:00 hrs)". Al presionar el botón, se fija la ventana de 16:00 a 09:00 AM del día siguiente y todas las métricas del sitio se adaptan de inmediato a ese turno.'
+      },
+      changes: [
+        'Detector Dinámico de Día Hábil vs Fin de Semana/Festivo: Generación de sugerencias según el tipo de calendario.',
+        'Turno Largo de Semana: Encasillamiento automático de 16:00 hrs a 09:00 AM (+1 día) para capturar la franja operativa completa.',
+        'Turnos de Fin de Semana: Finde Día (08:00 a 20:00 hrs) y Finde Noche (20:00 a 08:00 AM +1 día) con contabilización estricta.',
+        'Depuración de Sugerencias: Eliminación del filtro de día completo (00:00 a 23:59) de las sugerencias para enfocarse estrictamente en la operación clínica.',
+        'Actualización Simultánea de Módulos: Adaptación instantánea de tarjetas KPI, gráficos y subreportes específicos al aplicar una sugerencia.'
+      ]
+    },
+    {
       id: 'v3.3.0',
       version: 'v3.3.0',
       fecha: '14 de Agosto, 2026',

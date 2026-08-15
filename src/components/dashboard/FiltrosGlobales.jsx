@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Compass, RefreshCw } from 'lucide-react';
 import CampanaNotificaciones from './CampanaNotificaciones';
+import SugerenciasTurnosBar from './SugerenciasTurnosBar';
 
 function ChileanDatePicker({ value, onChange, className = '' }) {
   return (
@@ -243,6 +244,19 @@ export default function FiltrosGlobales({
               </button>
             )}
           </div>
+        </div>
+
+        {/* BARRA DE SUGERENCIAS INTELIGENTES DE TURNOS SEGÚN FECHA SELECCIONADA */}
+        <div className="flex justify-end mt-1.5 w-full">
+          <SugerenciasTurnosBar 
+            filtroFechaInicio={filtroFechaInicio}
+            filtroFechaFin={filtroFechaFin}
+            filtroHoraInicio={filtroHoraInicio}
+            filtroHoraFin={filtroHoraFin}
+            setFiltroHoraInicio={setFiltroHoraInicio}
+            setFiltroHoraFin={setFiltroHoraFin}
+            setHorarioPreset={setHorarioPreset}
+          />
         </div>
 
         {modoComparativo && (
