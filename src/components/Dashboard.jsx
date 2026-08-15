@@ -1571,6 +1571,9 @@ const DashboardContent = () => {
                 onSync={triggerRefresh}
                 syncStatus={syncStatus}
                 lastSyncTime={lastSyncTime}
+                syncToast={syncToast}
+                integrityIncidencesCount={integrityIncidencesCount}
+                onNavigateTab={setActiveTab}
               />
             </div>
 

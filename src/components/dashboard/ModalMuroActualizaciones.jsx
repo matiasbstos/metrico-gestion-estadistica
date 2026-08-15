@@ -8,6 +8,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v3.3.0',
+      version: 'v3.3.0',
+      fecha: '14 de Agosto, 2026',
+      badge: 'NUEVA VERSIÓN',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Audio-Notificaciones Sutiles (Web Audio API) + Centro de Notificaciones con Campana Flotante y Botón Marcar Leídas',
+      categoria: 'Experiencia de Usuario & Notificaciones',
+      icon: Cpu,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Incorporación de tonos de audio armónicos y sutiles sintetizados con Web Audio API para alertas de éxito y advertencia/descalce, botón de Campana de Notificaciones en la barra superior con contador no leído, menú desplegable con botón "Marcar leídas" y redirección directa al hacer clic.',
+      instructivo: {
+        paraQueSirve: 'Informa de manera auditiva y visual cuando se completa una sincronización o se detecta una alerta de datos, permitiendo desplegar el historial completo desde la barra superior y navegar directamente al módulo objetivo al hacer clic.',
+        quePuedesVer: 'Verás el icono de Campana en la barra superior junto al botón Sincronizar. Al recibir una notificación, escucharás un chime armónico sutil y la campana mostrará un badge rojo con la cantidad no leída. Al presionar el botón "Marcar leídas" o hacer clic en un elemento, la notificación queda como vista y te lleva directamente al módulo correspondiente.',
+        ejemploUso: 'Ejemplo: Al ejecutarse la auto-sincronización de 5m o una carga masiva, suena un tono suave. Haces clic en la Campana en la cabecera, ves la lista de alertas, presionas "Marcar leídas" o haces clic en una alerta de descalce para ir directo a Auditoría -> Bitácora de Integridad.'
+      },
+      changes: [
+        'Sintetizador Nivel Audio Nativo (Web Audio API): Tonos armónicos sutiles (chime ascendente para éxito y tono doble para incidencias/errores) sin dependencias mp3.',
+        'Centro de Notificaciones con Campana Flotante: Icono de Campana en la barra superior con contador de alertas no leídas.',
+        'Botón Marcar como Leídas: Opción para marcar todo el historial como visto con un solo clic.',
+        'Navegación Interactiva al Hacer Clic: Al hacer clic en cualquier notificación del desplegable, se marca como leída y redirige al módulo correspondiente.',
+        'Persistencia Local de Notificaciones: Guardado de historial reciente en almacenamiento local.'
+      ]
+    },
+    {
       id: 'v3.2.0',
       version: 'v3.2.0',
       fecha: '14 de Agosto, 2026',

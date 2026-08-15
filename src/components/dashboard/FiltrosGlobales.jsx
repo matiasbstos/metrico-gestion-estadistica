@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Compass, RefreshCw } from 'lucide-react';
+import CampanaNotificaciones from './CampanaNotificaciones';
 
 function ChileanDatePicker({ value, onChange, className = '' }) {
   return (
@@ -29,6 +30,8 @@ export default function FiltrosGlobales({
   filtroFechaFinB,
   setFiltroFechaFinB,
   applyDatePreset,
+  tipoCorte,
+  setTipoCorte,
   filtroHoraInicio,
   setFiltroHoraInicio,
   filtroHoraFin,
@@ -40,7 +43,10 @@ export default function FiltrosGlobales({
   isScrolled,
   onSync,
   syncStatus,
-  lastSyncTime
+  lastSyncTime,
+  syncToast,
+  integrityIncidencesCount,
+  onNavigateTab
 }) {
   const [activePreset, setActivePreset] = useState('hoy');
 
@@ -218,6 +224,14 @@ export default function FiltrosGlobales({
                 )}
               </button>
             )}
+
+            {/* Notification Bell Center */}
+            <CampanaNotificaciones 
+              syncToast={syncToast}
+              integrityIncidencesCount={integrityIncidencesCount}
+              lastSyncTime={lastSyncTime}
+              onNavigateTab={onNavigateTab}
+            />
 
             {/* Clear filters button */}
             {onClearFilters && (

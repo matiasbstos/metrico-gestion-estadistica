@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle2, Clock, Sparkles, X, ShieldCheck } from 'lucide-react';
+import { playSuccessChime, playErrorChime } from '../../utils/audioNotifications';
 
 export default function PopUpSincronizacion({ toast, onClose }) {
   const [visible, setVisible] = useState(false);
@@ -7,6 +8,13 @@ export default function PopUpSincronizacion({ toast, onClose }) {
   useEffect(() => {
     if (toast) {
       setVisible(true);
+
+      if (toast.isError || toast.type === 'error' || toast.type === 'incidence') {
+        playErrorChime();
+      } else {
+        playSuccessChime();
+      }
+
       const timer = setTimeout(() => {
         setVisible(false);
         if (onClose) setTimeout(onClose, 300);
