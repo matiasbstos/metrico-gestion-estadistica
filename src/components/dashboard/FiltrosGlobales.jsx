@@ -194,139 +194,228 @@ export default function FiltrosGlobales({
         }}
       />
 
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 transition-all duration-300 w-full">
         
-        {/* LADO IZQUIERDO: SELECCIÓN DE FECHA Y HORARIOS */}
-        <div className="flex flex-wrap items-center gap-2">
-          
-          {/* Rango de Fechas */}
-          <div className="flex items-center gap-2 bg-card-custom border border-card-custom rounded-2xl px-3 py-2 shadow-sm theme-transition">
-            <Calendar className="w-4 h-4 text-indigo-500 dark:text-indigo-400 shrink-0" />
-            <ChileanDatePicker 
-              value={filtroFechaInicio} 
-              onChange={e => setFiltroFechaInicio(e.target.value)} 
-            />
-            <span className="text-secondary-custom font-bold text-xs">-</span>
-            <ChileanDatePicker 
-              value={filtroFechaFin} 
-              onChange={e => setFiltroFechaFin(e.target.value)} 
-            />
+        {/* LADO IZQUIERDO: TÍTULO Y SUBTÍTULO (EXPLORADOR GLOBAL DE URGENCIAS) */}
+        <div className={`transition-all duration-300 overflow-hidden flex items-center gap-3 ${isScrolled ? 'h-0 opacity-0 pointer-events-none scale-95' : 'h-auto opacity-100 scale-100'}`}>
+          <Compass className="w-7 h-7 accent-text-custom shrink-0" />
+          <div>
+            <h1 className="text-2xl font-black text-primary-custom tracking-tight leading-none">Explorador Global de Urgencias</h1>
+            <p className="text-xs text-secondary-custom flex flex-wrap items-center gap-2 font-medium mt-1">
+              <span>Análisis operativo y clínico en tiempo real.</span>
+              {maxDateLabel && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shadow-xs animate-pulse">
+                  Datos cargados hasta: {maxDateLabel}
+                </span>
+              )}
+            </p>
           </div>
-
-          {/* Rango de Horas */}
-          <div className="relative flex items-center gap-1.5 bg-card-custom border border-card-custom rounded-2xl px-3 py-2 shadow-sm theme-transition">
-            <Clock className="w-4 h-4 text-amber-500 shrink-0" />
-            <input 
-              type="time" 
-              value={filtroHoraInicio} 
-              onFocus={() => setShowSuggestionsPopover(true)}
-              onClick={() => setShowSuggestionsPopover(true)}
-              onChange={e => {
-                setShowSuggestionsPopover(true);
-                setFiltroHoraInicio(e.target.value);
-                setHorarioPreset('custom');
-              }} 
-              className="text-xs font-bold accent-text-custom outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" 
-            />
-            <span className="text-secondary-custom font-bold text-xs">-</span>
-            <input 
-              type="time" 
-              value={filtroHoraFin} 
-              onFocus={() => setShowSuggestionsPopover(true)}
-              onClick={() => setShowSuggestionsPopover(true)}
-              onChange={e => {
-                setShowSuggestionsPopover(true);
-                setFiltroHoraFin(e.target.value);
-                setHorarioPreset('custom');
-              }} 
-              className="text-xs font-bold accent-text-custom outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" 
-            />
-          </div>
-
-          <EncasillamientoInfoBadge horarioPreset={horarioPreset} />
         </div>
 
-        {/* LADO DERECHO: ACCIONES RÁPIDAS, BOTÓN CARGA RÁPIDA, NOTIFICACIONES */}
-        <div className="flex flex-wrap items-center gap-2 justify-between lg:justify-end">
-          
-          {/* BOTÓN RÁPIDO DE CARGA MASIVA CSV/EXCEL (ACCESIBLE GLOBALMENTE) */}
-          <button
-            type="button"
-            onClick={() => setIsQuickUploadOpen(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all border shadow-md bg-gradient-to-r from-emerald-600/20 to-teal-600/20 text-emerald-600 dark:text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30 active:scale-95 cursor-pointer"
-            title="Carga masiva rápida de datos Excel/CSV directamente desde cualquier vista con redirección automática a Gestión de Datos"
-          >
-            <UploadCloud className="w-4 h-4 text-emerald-400 animate-pulse shrink-0" />
-            <span className="hidden sm:inline">Carga Rápida CSV/Excel</span>
-            <span className="sm:hidden">Carga Rápida</span>
-          </button>
+        {/* INDICADOR DE MARCA AL HACER SCROLL */}
+        {isScrolled && (
+          <div className="hidden lg:flex items-center gap-2 transition-all duration-300 animate-fade-in">
+            <Compass className="w-5 h-5 accent-text-custom" />
+            <span className="font-black text-xs tracking-widest text-primary-custom uppercase">MÉTRICO</span>
+          </div>
+        )}
 
-          {/* Presets de Fecha */}
-          <div className="flex items-center bg-card-custom border border-card-custom rounded-xl p-1 shadow-sm theme-transition">
-            <button onClick={() => handlePreset('dia')} className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${activePreset === 'hoy' || activePreset === 'dia' ? 'accent-bg-custom text-white font-bold shadow-sm' : 'font-medium text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>Hoy</button>
-            <button onClick={() => handlePreset('semana')} className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${activePreset === 'semana' ? 'accent-bg-custom text-white font-bold shadow-sm' : 'font-medium text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>Semana</button>
-            <button onClick={() => handlePreset('mes')} className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${activePreset === 'mes' ? 'accent-bg-custom text-white font-bold shadow-sm' : 'font-medium text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>Mes</button>
+        {/* LADO DERECHO: CONTROLES EN 2 FILAS SEGÚN DISEÑO ORIGINAL */}
+        <div className="flex flex-col items-end gap-2 w-full lg:w-auto">
+          
+          {/* FILA SUPERIOR DE FECHAS Y HORARIOS */}
+          <div className="flex flex-wrap items-center justify-end gap-2 w-full lg:w-auto relative">
+            <EncasillamientoInfoBadge horarioPreset={horarioPreset} />
+
+            {/* Selector Principal de Fechas y Horas */}
+            <div className="flex items-center bg-card-custom border border-card-custom rounded-xl p-1.5 shadow-sm gap-2 theme-transition">
+              <Calendar className="w-4 h-4 text-secondary-custom mx-1 shrink-0" />
+              <ChileanDatePicker 
+                value={filtroFechaInicio}
+                onClick={() => setShowSuggestionsPopover(true)}
+                onChange={e => {
+                  setShowSuggestionsPopover(true);
+                  const newStart = e.target.value;
+                  setFiltroFechaInicio(newStart);
+                  if (!filtroFechaFin || filtroFechaFin < newStart || activePreset === 'hoy' || activePreset === 'dia') {
+                    setFiltroFechaFin(newStart);
+                  }
+                }}
+              />
+              <input 
+                type="time" 
+                value={filtroHoraInicio} 
+                onFocus={() => setShowSuggestionsPopover(true)}
+                onClick={() => setShowSuggestionsPopover(true)}
+                onChange={e => {
+                  setShowSuggestionsPopover(true);
+                  setFiltroHoraInicio(e.target.value);
+                  setHorarioPreset('custom');
+                }} 
+                className="text-xs font-bold accent-text-custom outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" 
+              />
+              <span className="text-secondary-custom font-bold text-xs">-</span>
+              <ChileanDatePicker 
+                value={filtroFechaFin} 
+                onClick={() => setShowSuggestionsPopover(true)}
+                onChange={e => {
+                  setShowSuggestionsPopover(true);
+                  const newEnd = e.target.value;
+                  setFiltroFechaFin(newEnd);
+                  if (!filtroFechaInicio || filtroFechaInicio > newEnd) {
+                    setFiltroFechaInicio(newEnd);
+                  }
+                }}
+              />
+              <input 
+                type="time" 
+                value={filtroHoraFin} 
+                onFocus={() => setShowSuggestionsPopover(true)}
+                onClick={() => setShowSuggestionsPopover(true)}
+                onChange={e => {
+                  setShowSuggestionsPopover(true);
+                  setFiltroHoraFin(e.target.value);
+                  setHorarioPreset('custom');
+                }} 
+                className="text-xs font-bold accent-text-custom outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" 
+              />
+            </div>
+
+            {/* SUGERENCIAS INTELIGENTES DE TURNOS */}
+            <SugerenciasTurnosBar 
+              filtroFechaInicio={filtroFechaInicio}
+              filtroFechaFin={filtroFechaFin}
+              filtroHoraInicio={filtroHoraInicio}
+              filtroHoraFin={filtroHoraFin}
+              setFiltroHoraInicio={setFiltroHoraInicio}
+              setFiltroHoraFin={setFiltroHoraFin}
+              setFiltroFechaFin={setFiltroFechaFin}
+              setHorarioPreset={setHorarioPreset}
+              turnosDB={turnosDB}
+              pautasDB={pautasDB}
+              isOpen={showSuggestionsPopover}
+              onClose={() => setShowSuggestionsPopover(false)}
+            />
           </div>
 
-          {/* Presets de Horario */}
-          <div className="flex items-center gap-1.5 bg-card-custom border border-card-custom rounded-xl px-2.5 py-1.5 shadow-sm theme-transition">
-            <span className="text-[10px] font-bold text-secondary-custom opacity-80 uppercase tracking-wider">Horario:</span>
-            <select 
-              value={horarioPreset} 
-              onChange={e => handleHorarioPreset(e.target.value)} 
-              className="text-xs font-bold accent-text-custom bg-transparent outline-none cursor-pointer border-none p-0 focus:ring-0 [&>option]:bg-slate-800 [&>option]:text-slate-100"
+          {/* FILA INFERIOR DE ACCIONES (PRESETS, COMP, SINCRONIZAR, CARGA RÁPIDA, INTEGRIDAD, NOTIF, BORRAR) */}
+          <div className="flex flex-wrap items-center justify-end gap-2 w-full lg:w-auto">
+            {/* Presets de Fecha */}
+            <div className="flex items-center bg-card-custom border border-card-custom rounded-xl p-1 shadow-sm theme-transition">
+              <button onClick={() => handlePreset('dia')} className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${activePreset === 'hoy' || activePreset === 'dia' ? 'accent-bg-custom text-white font-bold shadow-sm' : 'font-medium text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>Hoy</button>
+              <button onClick={() => handlePreset('semana')} className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${activePreset === 'semana' ? 'accent-bg-custom text-white font-bold shadow-sm' : 'font-medium text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>Semana</button>
+              <button onClick={() => handlePreset('mes')} className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${activePreset === 'mes' ? 'accent-bg-custom text-white font-bold shadow-sm' : 'font-medium text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>Mes</button>
+              <div className="border-l border-card-custom/50 h-4 mx-1"></div>
+              <select 
+                value={activePreset && activePreset.startsWith('invierno') ? activePreset : ''} 
+                onChange={e => {
+                  if (e.target.value) {
+                    handlePreset(e.target.value);
+                  }
+                }}
+                className="text-xs font-bold text-secondary-custom bg-transparent outline-none cursor-pointer border-none p-0 focus:ring-0 [&>option]:bg-slate-800 [&>option]:text-slate-100 max-w-[100px] pr-6"
+              >
+                <option value="">Campaña...</option>
+                <option value="invierno_2026">Invierno '26</option>
+                <option value="invierno_2025">Invierno '25</option>
+              </select>
+            </div>
+
+            {/* Presets de Horario */}
+            <div className="flex items-center gap-1.5 bg-card-custom border border-card-custom rounded-xl px-2.5 py-1.5 shadow-sm theme-transition">
+              <span className="text-[10px] font-bold text-secondary-custom opacity-80 uppercase tracking-wider">Horario:</span>
+              <select 
+                value={horarioPreset} 
+                onChange={e => handleHorarioPreset(e.target.value)} 
+                className="text-xs font-bold accent-text-custom bg-transparent outline-none cursor-pointer border-none p-0 focus:ring-0 [&>option]:bg-slate-800 [&>option]:text-slate-100"
+              >
+                <option value="civil">Completo</option>
+                <option value="largo">Largo Semana</option>
+                <option value="finde_dia">Finde Día</option>
+                <option value="finde_noche">Finde Noche</option>
+                <option value="custom">Pers.</option>
+              </select>
+            </div>
+
+            {/* Modo Comparativo */}
+            <div className="flex items-center gap-1.5 bg-card-custom border border-card-custom rounded-xl px-2.5 py-1.5 shadow-sm theme-transition">
+              <span className={`text-[10px] font-bold uppercase tracking-wider ${modoComparativo ? 'accent-text-custom' : 'text-secondary-custom opacity-85'}`}>Comp.</span>
+              <button onClick={() => setModoComparativo(!modoComparativo)} className={`w-8 h-4 rounded-full relative transition-colors ${modoComparativo ? 'accent-bg-custom' : 'bg-black/10 dark:bg-white/10'}`}>
+                <div className={`absolute top-[2px] w-3 h-3 rounded-full bg-white transition-transform ${modoComparativo ? 'left-[18px]' : 'left-[2px]'}`}></div>
+              </button>
+            </div>
+
+            {/* BOTÓN RÁPIDO DE CARGA MASIVA CSV/EXCEL */}
+            <button
+              type="button"
+              onClick={() => setIsQuickUploadOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border shadow-sm bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20 active:scale-95 cursor-pointer"
+              title="Carga masiva rápida de datos Excel/CSV directamente desde cualquier vista con redirección automática a Gestión de Datos"
             >
-              <option value="civil">Completo</option>
-              <option value="largo">Largo Semana</option>
-              <option value="finde_dia">Finde Día</option>
-              <option value="finde_noche">Finde Noche</option>
-              <option value="custom">Pers.</option>
-            </select>
+              <UploadCloud className="w-3.5 h-3.5 text-emerald-400 animate-pulse shrink-0" />
+              <span className="hidden sm:inline">Carga Rápida</span>
+            </button>
+
+            {/* Botón Sincronizar */}
+            {onSync && (
+              <button 
+                onClick={onSync} 
+                disabled={syncStatus === 'connecting' || syncStatus === 'syncing'}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border shadow-sm ${
+                  syncStatus === 'connecting' || syncStatus === 'syncing'
+                    ? 'bg-amber-500/10 border-amber-500/25 text-amber-500 cursor-not-allowed'
+                    : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 cursor-pointer'
+                }`}
+                title="Sincronizar base de datos con la nube y reevaluar todos los módulos en vivo"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${syncStatus === 'connecting' || syncStatus === 'syncing' ? 'animate-spin' : ''}`} />
+                <span className="hidden md:inline">Sincronizar</span>
+                {lastSyncTime && (
+                  <span className="hidden xl:inline text-[8px] font-mono px-1.5 py-0.5 rounded bg-indigo-500/15 text-indigo-500 dark:text-indigo-300 normal-case ml-0.5">
+                    {lastSyncTime}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {/* Badge permanente de Alerta de Integridad de Datos */}
+            <IntegrityAlertBadge 
+              integrityIncidencesCount={integrityIncidencesCount}
+              onNavigateTab={onNavigateTab}
+            />
+
+            {/* Campana de Notificaciones */}
+            <CampanaNotificaciones 
+              syncToast={syncToast}
+              integrityIncidencesCount={integrityIncidencesCount}
+              lastSyncTime={lastSyncTime}
+              onNavigateTab={onNavigateTab}
+            />
+
+            {/* Botón Borrar Filtros */}
+            {onClearFilters && (
+              <button 
+                onClick={onClearFilters} 
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-rose-500/10 text-rose-600 hover:bg-rose-500/25 border border-rose-500/20 shadow-sm transition-all cursor-pointer"
+              >
+                Borrar
+              </button>
+            )}
           </div>
-          
-          {/* Botón Sincronizar */}
-          {onSync && (
-            <button 
-              onClick={onSync} 
-              disabled={syncStatus === 'connecting' || syncStatus === 'syncing'}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border shadow-sm ${
-                syncStatus === 'connecting' || syncStatus === 'syncing'
-                  ? 'bg-amber-500/10 border-amber-500/25 text-amber-500 cursor-not-allowed'
-                  : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 cursor-pointer'
-              }`}
-              title="Sincronizar base de datos con la nube y reevaluar todos los módulos en vivo"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${syncStatus === 'connecting' || syncStatus === 'syncing' ? 'animate-spin' : ''}`} />
-              <span className="hidden md:inline">Sincronizar</span>
-            </button>
-          )}
-
-          {/* Badge permanente de Alerta de Integridad de Datos */}
-          <IntegrityAlertBadge 
-            integrityIncidencesCount={integrityIncidencesCount}
-            onNavigateTab={onNavigateTab}
-          />
-
-          {/* Campana de Notificaciones */}
-          <CampanaNotificaciones 
-            syncToast={syncToast}
-            integrityIncidencesCount={integrityIncidencesCount}
-            lastSyncTime={lastSyncTime}
-            onNavigateTab={onNavigateTab}
-          />
-
-          {/* Botón Borrar Filtros */}
-          {onClearFilters && (
-            <button 
-              onClick={onClearFilters} 
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-rose-500/10 text-rose-600 hover:bg-rose-500/25 border border-rose-500/20 shadow-sm transition-all cursor-pointer"
-            >
-              Borrar
-            </button>
-          )}
 
         </div>
       </div>
+
+      {modoComparativo && (
+        <div className="flex justify-end mt-1 animate-fade-in w-full">
+          <div className="flex items-center bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-1.5 shadow-sm w-full lg:w-auto justify-between gap-2 theme-transition">
+            <Calendar className="w-4 h-4 text-indigo-500 dark:text-indigo-400 mx-2" />
+            <ChileanDatePicker value={filtroFechaInicioB} onChange={e => setFiltroFechaInicioB(e.target.value)} />
+            <span className="text-indigo-500 dark:text-indigo-400 mx-2">-</span>
+            <ChileanDatePicker value={filtroFechaFinB} onChange={e => setFiltroFechaFinB(e.target.value)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

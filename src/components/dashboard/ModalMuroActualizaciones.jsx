@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.8.2',
+      version: 'v4.8.2',
+      fecha: '16 de Agosto, 2026',
+      badge: 'DISEÑO Y NAVEGACIÓN',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Restauración del Explorador Global de Urgencias e Integración Limpia del Botón de Carga Rápida',
+      categoria: 'Interfaz & Experiencia de Usuario',
+      icon: Compass,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Restauración completa del diseño original de la barra superior con el título "Explorador Global de Urgencias", subtítulo descriptivo, badge pulsante de datos cargados y organización en 2 filas de controles, integrando el botón "Carga Rápida" de forma totalmente limpia y sin distorsiones.',
+      instructivo: {
+        paraQueSirve: 'Restablece la jerarquía visual nativa del panel de control manteniendo la visibilidad del título principal y del badge de actualización de datos, con acceso directo a la carga masiva.',
+        quePuedesVer: 'En la parte superior izquierda verás el título "Explorador Global de Urgencias", el subtítulo "Análisis operativo y clínico en tiempo real" y la etiqueta verde "Datos cargados hasta: ...". En la botonera derecha se ubica el botón "Carga Rápida".',
+        ejemploUso: 'Ejemplo: Navegas por cualquier vista y conservas el contexto completo del explorador global con acceso a todos los accesos directos y a la carga rápida en un clic.'
+      },
+      changes: [
+        'Restauración de Cabecera: Título Explorador Global de Urgencias, subtítulo e icono Compass.',
+        'Badge de Actualización: Mantenimiento del aviso de datos cargados hasta fecha máxima.',
+        'Distribución de 2 Filas: Selector de Fechas/Horas en fila superior y Acciones (Presets, Carga Rápida, Sincronizar, Integridad, Notif) en fila inferior.'
+      ]
+    },
+    {
       id: 'v4.8.1',
       version: 'v4.8.1',
       fecha: '16 de Agosto, 2026',

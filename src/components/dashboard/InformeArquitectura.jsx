@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.8.2',
+    version_tag: 'v4.8.2',
+    fecha_despliegue: '16 de Agosto, 2026',
+    proposito_actualizacion: 'Restauración Estructural del Diseño de la Barra Superior (Explorador Global de Urgencias) con Título, Subtítulo, Badge de Datos Cargados y Ubicación Integrada de Carga Rápida.',
+    medios_y_stack: [
+      'React 18.3 & Lucide-react (Compass, UploadCloud)',
+      'FiltrosGlobales.jsx (Restauración de distribución en 2 filas y título desplegable)',
+      'Dashboard.jsx'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Restablecimiento de la cabecera visual completa con título "Explorador Global de Urgencias", subtítulo de análisis en tiempo real, badge pulsante de "Datos cargados hasta" y botón de "Carga Rápida" integrado en la botonera de acciones sin distorsionar el diseño.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Sin cambios en la capa de datos.'
+    },
+    modulos_afectados: ['FiltrosGlobales', 'Dashboard', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Restauración de la columna izquierda con título Explorador Global de Urgencias e icono Compass.',
+      'Restauración de la distribución de controles en 2 filas (Fechas/Horas superiores y Acciones inferiores).',
+      'Integración del botón Carga Rápida en la barra de acciones de forma fluida.'
+    ]
+  },
+  {
     id: 'v4.8.1',
     version_tag: 'v4.8.1',
     fecha_despliegue: '16 de Agosto, 2026',
