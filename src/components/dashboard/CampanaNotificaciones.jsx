@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, CheckCheck, Trash2, CheckCircle2, AlertTriangle, RefreshCw, ShieldAlert, Sparkles, X, ChevronRight } from 'lucide-react';
-import { playSuccessChime, playErrorChime } from '../../utils/audioNotifications';
+import { playSuccessChime, playErrorChime, playClearChime } from '../../utils/audioNotifications';
 
 export default function CampanaNotificaciones({ syncToast, integrityIncidencesCount, lastSyncTime, onNavigateTab }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -107,6 +107,7 @@ export default function CampanaNotificaciones({ syncToast, integrityIncidencesCo
 
   const markAllAsRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    playSuccessChime();
   };
 
   const handleItemClick = (notif) => {
@@ -121,6 +122,7 @@ export default function CampanaNotificaciones({ syncToast, integrityIncidencesCo
   const clearAll = () => {
     setNotifications([]);
     setIsOpen(false);
+    playClearChime();
   };
 
   return (

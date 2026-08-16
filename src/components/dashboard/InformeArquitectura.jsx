@@ -8,6 +8,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.1.1',
+    version_tag: 'v4.1.1',
+    fecha_despliegue: '16 de Agosto, 2026',
+    proposito_actualizacion: 'Notificación Sonora Nativa (Web Audio API) al Limpiar y Marcar Leídas Notificaciones en el Centro de Notificaciones.',
+    medios_y_stack: [
+      'React 18.3 & Web Audio API (Sintetizador Nativo sin assets externos)',
+      'audioNotifications.js (Función playClearChime)',
+      'CampanaNotificaciones.jsx'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Feedback auditivo inmediato con sonido de barrido cristalino armónico (D5 -> A5 -> D6) al vaciar el historial o marcar notificaciones como leídas.',
+      firestore_collections: ['metrico_notificaciones'],
+      query_optimization: 'Sintetizador de frecuencia en tiempo real sin latencia de red ni descargas de archivos mp3.'
+    },
+    modulos_afectados: ['audioNotifications', 'CampanaNotificaciones', 'InformeArquitectura'],
+    detalles_tecnicos: [
+      'Implementación de playClearChime con rampas exponenciales de ganancia para evitar chasquidos de audio.',
+      'Sincronización con el botón de purga "Limpiar" y la acción "Marcar leídas" del Centro de Notificaciones.'
+    ]
+  },
+  {
     id: 'v4.1.0',
     version_tag: 'v4.1.0',
     fecha_despliegue: '15 de Agosto, 2026',
