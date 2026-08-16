@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Compass, RefreshCw, Info, ShieldAlert, ShieldCheck, UploadCloud } from 'lucide-react';
+import { Calendar, Compass, RefreshCw, Info, ShieldAlert, ShieldCheck, UploadCloud, Clock } from 'lucide-react';
 import CampanaNotificaciones from './CampanaNotificaciones';
 import SugerenciasTurnosBar from './SugerenciasTurnosBar';
 import ModalCargaRapidaDatos from './ModalCargaRapidaDatos';

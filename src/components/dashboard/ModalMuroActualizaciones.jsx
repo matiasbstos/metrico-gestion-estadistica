@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.8.1',
+      version: 'v4.8.1',
+      fecha: '16 de Agosto, 2026',
+      badge: 'CORRECCIÓN & SEGURIDAD',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Corrección de Renderizado de Reloj y Permisos de Conectividad CSP para Cloud Functions y CDN',
+      categoria: 'Estabilidad & Seguridad',
+      icon: Clock,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Resolución del error de renderizado del componente de horas en la barra superior (ReferenceError: Clock is not defined) e inclusión explícita en las políticas Content-Security-Policy (CSP) de los dominios de Cloud Functions y librerías CDN para garantizar el funcionamiento fluido.',
+      instructivo: {
+        paraQueSirve: 'Garantiza la estabilidad continua de la plataforma evitando bloqueos visuales en el navegador y permitiendo el consumo seguro de Cloud Functions.',
+        quePuedesVer: 'El panel vuelve a cargar con fluidez total sin pantalla de error crítico y con todos los selectores de horas operativos.',
+        ejemploUso: 'Ejemplo: Seleccionas cualquier rango horario en la barra superior o abres la Carga Rápida CSV/Excel y el sistema opera instantáneamente.'
+      },
+      changes: [
+        'Importación de Icono Clock: Inclusión explícita de Clock desde lucide-react en FiltrosGlobales.jsx.',
+        'Actualización CSP script-src: Permiso concedido a cdnjs.cloudflare.com para la librería XLSX.',
+        'Actualización CSP connect-src: Permiso concedido a *.cloudfunctions.net para la API de funciones Cloud.'
+      ]
+    },
+    {
       id: 'v4.8.0',
       version: 'v4.8.0',
       fecha: '16 de Agosto, 2026',

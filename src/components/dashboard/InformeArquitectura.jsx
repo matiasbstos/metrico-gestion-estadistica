@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.8.1',
+    version_tag: 'v4.8.1',
+    fecha_despliegue: '16 de Agosto, 2026',
+    proposito_actualizacion: 'Resolución de Error Crítico de Renderizado (ReferenceError: Clock is not defined) en FiltrosGlobales.jsx y actualización de cabeceras Content-Security-Policy en firebase.json para cdnjs.cloudflare.com y cloudfunctions.net.',
+    medios_y_stack: [
+      'React 18.3 & Lucide-react (Importación explícita del icono Clock)',
+      'firebase.json (Permisibilidad CSP script-src cdnjs.cloudflare.com y connect-src cloudfunctions.net)',
+      'FiltrosGlobales.jsx & Dashboard.jsx'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Eliminación del bloqueo visual del panel causado por la falta de importación del icono Clock y aseguramiento de la conectividad fluida a Cloud Functions y CDN de librerías Excel.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Sin cambios en la capa de datos.'
+    },
+    modulos_afectados: ['FiltrosGlobales', 'Dashboard', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Importación explícita de Clock desde lucide-react en FiltrosGlobales.jsx.',
+      'Inclusión de cdnjs.cloudflare.com en script-src de firebase.json.',
+      'Inclusión de https://*.cloudfunctions.net en connect-src de firebase.json.'
+    ]
+  },
+  {
     id: 'v4.8.0',
     version_tag: 'v4.8.0',
     fecha_despliegue: '16 de Agosto, 2026',
