@@ -8,6 +8,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.3.0',
+      version: 'v4.3.0',
+      fecha: '16 de Agosto, 2026',
+      badge: 'CONSOLIDADO MAESTRO',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Consolidado Continuo de Arquitectura & Especificación Maestra de Matemática, Horarios, Sistema de Diseño y Reportes',
+      categoria: 'Arquitectura & Especificación Técnica',
+      icon: BookOpen,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Transformación del Informe de Arquitectura en un documento vivo consolidado permanente que agrupa la totalidad de fórmulas matemáticas, algoritmos SSOT, matriz de constatación de lesiones C3 Legal (Z51.8), reglas de encasillamiento de turno (+1h/-1h), manual de identidad visual Glassmorphic y el catálogo oficial de los 6 reportes en PDF.',
+      instructivo: {
+        paraQueSirve: 'Centraliza en una sola vista maestra toda la especificación cuantitativa, operacional y estética de MÉTRICO, sirviendo como manual técnico oficial para auditorías, entregas formales y control de cambios.',
+        quePuedesVer: 'Al ingresar al módulo "Documentación Viva & Arquitectura", verás un selector de 6 pestañas para consultar libremente el Historial de Versiones, el Catálogo de Fórmulas y Algoritmos, la Matriz de Horarios de Turno (Turno Largo 16:00-09:00 hrs), el Manual de Identidad Visual con códigos HEX de triaje y el Catálogo de Reportes.',
+        ejemploUso: 'Ejemplo: Accedes al módulo de Arquitectura y seleccionas la pestaña "1. Fórmulas, Algoritmos & Análisis". Podrás revisar y exportar en PDF las ecuaciones exactas de Altas Admin, Promedio de Estadía, Rendimiento Horario y los criterios de detección clínica de Constatación de Lesiones.'
+      },
+      changes: [
+        'Estructura Multi-Pestaña de Especificación Maestra: Organización en 6 módulos de navegación (Historial, Fórmulas, Horarios, Sistema de Diseño, Reportes y Protocolo).',
+        'Catálogo Matemático & Procedimientos de Análisis: Estipulación de ecuaciones de Altas Admin %, Estadía Promedio, Velocidad de Atención, Fonasa % y matriz C3 Legal Z51.8.',
+        'Encasillamiento Horario Asistencial (+1h/-1h): Registro normativo del Turno Largo de Semana (16:00 a 09:00 AM, 15h efectivas) y turnos de fin de semana.',
+        'Manual de Identidad Visual Glassmorphic: Especificación de la paleta "Cristal Pastel", tokens HSL y códigos HEX oficiales por categoría de Triaje C1 a C5.',
+        'Catálogo Oficial de 6 Reportes Gerenciales: Definición formal de los entregables en PDF Carta e integración con el protocolo de retroalimentación acumulativa continuada.'
+      ]
+    },
+    {
       id: 'v4.2.0',
       version: 'v4.2.0',
       fecha: '16 de Agosto, 2026',
