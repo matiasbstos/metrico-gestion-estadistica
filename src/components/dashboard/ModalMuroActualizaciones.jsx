@@ -8,6 +8,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.4.0',
+      version: 'v4.4.0',
+      fecha: '16 de Agosto, 2026',
+      badge: 'NUEVO DASHBOARD',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Dashboard de Arquetipos Clínicos CIE-10 & Generación de Reporte Poblacional PDF',
+      categoria: 'Epidemiología & Arquetipos',
+      icon: Users,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Transformación del módulo Perfil del Paciente en un Dashboard de Arquetipos Poblacionales y Morbilidad CIE-10: Pirámide demográfica (17 tramos quinquenales), Gráfico de anillo previsional, Top 5 dinámico de diagnósticos CIE-10 con badges resaltados y botón "Generar Reporte de Perfil" conectado al motor de exportación PDF.',
+      instructivo: {
+        paraQueSirve: 'Permite analizar la composición epidemiológica y sociodemográfica de la cohorte de pacientes según su arquetipo etario funcional (Infantil, Adulto Joven, Adulto, Adulto Mayor) y exportar reportes ejecutivos en PDF.',
+        quePuedesVer: 'Al ingresar al módulo "Perfil del Paciente", verás el selector de arquetipos, la pirámide poblacional cruzando género vs tramos quinquenales, el gráfico de anillo previsional, los badges de diagnósticos CIE-10 [Código] Descripción - % y el botón "Generar Reporte de Perfil" en la cabecera.',
+        ejemploUso: 'Ejemplo: Seleccionas el arquetipo "Infantil (0 - 14 años)" y el sistema recalcula de inmediato el Top 5 CIE-10 mostrando [J00] Rinofaringitis aguda - 34.2%. Presionas "Generar Reporte de Perfil" y obtienes un PDF listo para enviar a las jefaturas sanitarias.'
+      },
+      changes: [
+        'Radiografía Demográfica Macro: Pirámide poblacional interactiva (17 tramos quinquenales) y gráfico Donut de previsión médica.',
+        'Mapa de Morbilidad CIE-10: Clasificación estricta por codigo_diagnostico_cie10 con Top 5 dinámico y Badges resaltados [Código] Descripción - %.',
+        'Eliminación Total de Ruido: Removida por completo la tabla inferior de listado individual fila por fila.',
+        'Componente Exportable <PerfilPoblacionalReporte />: Estilos Print-Friendly conectados al botón "Generar Reporte de Perfil" para exportación directa a PDF.'
+      ]
+    },
+    {
       id: 'v4.3.0',
       version: 'v4.3.0',
       fecha: '16 de Agosto, 2026',

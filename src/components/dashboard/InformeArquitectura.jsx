@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.4.0',
+    version_tag: 'v4.4.0',
+    fecha_despliegue: '16 de Agosto, 2026',
+    proposito_actualizacion: 'Transformación del Módulo Perfil del Paciente en un Dashboard de Arquetipos Clínicos basado en CIE-10 y Conexión al Motor de Generación de Reportes PDF.',
+    medios_y_stack: [
+      'React 18.3 & Recharts (Pirámide Poblacional 17 Tramos Quinquenales & Donut Previsional)',
+      'PerfilPaciente.jsx (Refactorización a Vista Macro Poblacional sin tabla individual)',
+      'PerfilPoblacionalReporte.jsx (Componente Exportable Print-Friendly)',
+      'Vista Master metrio_analytics.v_pacientes_urgencia_master'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Eliminación total del listado fila por fila de pacientes. Agrupación epidemiológica estricta por codigo_diagnostico_cie10 con Top 5 dinámico por tramo etario funcional (Infantil, Adulto Joven, Adulto, Adulto Mayor) y botón Generar Reporte de Perfil.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Filtro reactivo en memoria sobre la muestra consolidada v_pacientes_urgencia_master.'
+    },
+    modulos_afectados: ['PerfilPaciente', 'PerfilPoblacionalReporte', 'Dashboard', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Pirámide demográfica interactiva cruzando los 17 tramos etarios quinquenales entre Hombres y Mujeres.',
+      'Gráfico de Anillo Previsional con desglose porcentual de tramos Fonasa (A-D), Isapre y Particular.',
+      'Mapa de Morbilidad CIE-10 con badges destacados: [Código] Descripción - % (N pac.).',
+      'Inyección del componente exportable <PerfilPoblacionalReporte /> accionado desde el botón Generar Reporte de Perfil.'
+    ]
+  },
+  {
     id: 'v4.3.0',
     version_tag: 'v4.3.0',
     fecha_despliegue: '16 de Agosto, 2026',
