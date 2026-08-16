@@ -1767,7 +1767,7 @@ const DashboardContent = () => {
 
         {activeTab === 'perfil_paciente' && (
           <PerfilPaciente 
-            pacientesFiltrados={pacientesFiltrados}
+            pacientesFiltrados={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesFiltrados}
             demografiaStats={demografiaStats}
             rankingCentros={rankingCentros}
           />

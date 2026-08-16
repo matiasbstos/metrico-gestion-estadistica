@@ -5,6 +5,7 @@ export default function PerfilPoblacionalReporte({
   selectedTramoLabel,
   selectedSexoLabel,
   selectedPrevisionLabel,
+  selectedRangoTemporalLabel,
   totalPacientes,
   avgEdad,
   avgEspera,
@@ -25,13 +26,13 @@ export default function PerfilPoblacionalReporte({
         </div>
         <div className="text-right text-xs text-slate-600">
           <p><strong>Fecha de Emisión:</strong> {new Date().toLocaleDateString('es-CL')} {new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}</p>
-          <p><strong>Origen de Datos:</strong> v_pacientes_urgencia_master</p>
+          <p><strong>Origen de Datos:</strong> v_pacientes_urgencia_master (Universo SSOT)</p>
           <p><strong>Clasificación:</strong> Informe Epidemiológico Gerencial</p>
         </div>
       </div>
 
       {/* Resumen de Filtros de Arquetipo Seleccionado */}
-      <div className="p-4 bg-slate-100 rounded-xl border border-slate-300 grid grid-cols-3 gap-4 text-xs font-medium">
+      <div className="p-4 bg-slate-100 rounded-xl border border-slate-300 grid grid-cols-4 gap-4 text-xs font-medium">
         <div>
           <span className="text-slate-500 font-bold block uppercase text-[10px]">Tramo Etario Funcional</span>
           <span className="text-slate-900 font-black text-sm">{selectedTramoLabel}</span>
@@ -43,6 +44,10 @@ export default function PerfilPoblacionalReporte({
         <div>
           <span className="text-slate-500 font-bold block uppercase text-[10px]">Previsión Médica</span>
           <span className="text-slate-900 font-black text-sm">{selectedPrevisionLabel}</span>
+        </div>
+        <div>
+          <span className="text-slate-500 font-bold block uppercase text-[10px]">Rango Temporal</span>
+          <span className="text-indigo-900 font-black text-sm">{selectedRangoTemporalLabel}</span>
         </div>
       </div>
 
@@ -69,10 +74,10 @@ export default function PerfilPoblacionalReporte({
         </div>
       </div>
 
-      {/* Mapa de Morbilidad Top 5 CIE-10 */}
+      {/* Mapa de Morbilidad Top 5 CIE-10 (Blacklist Clínico Aplicado) */}
       <div className="space-y-3">
         <h3 className="text-sm font-black uppercase text-slate-900 border-b border-slate-300 pb-1 flex items-center gap-2">
-          <Stethoscope className="w-4 h-4 text-indigo-600" /> Top 5 Morbilidad Diagnóstica CIE-10 en el Arquetipo
+          <Stethoscope className="w-4 h-4 text-indigo-600" /> Top 5 Morbilidad Diagnóstica Orgánica CIE-10 (Patologías Puras)
         </h3>
         
         <div className="space-y-2">
@@ -103,7 +108,7 @@ export default function PerfilPoblacionalReporte({
           <Shield className="w-4 h-4 text-emerald-600" /> Distribución de Previsión Médica
         </h3>
 
-        <div className="grid grid-cols-3 gap-3 text-xs">
+        <div className="grid grid-cols-4 gap-3 text-xs">
           {previsionData.map((item, idx) => (
             <div key={idx} className="p-2.5 bg-slate-50 border border-slate-300 rounded-lg flex justify-between items-center">
               <span className="font-bold text-slate-700">{item.name}</span>
@@ -115,8 +120,8 @@ export default function PerfilPoblacionalReporte({
 
       {/* Pie de Página de Certificación */}
       <div className="pt-6 border-t border-slate-400 flex justify-between items-center text-[10px] text-slate-500 font-semibold">
-        <span>MÉTRICO — Plataforma Estadistica de Salud Pública y Urgencias</span>
-        <span>Documento Generado Automáticamente — Documento Oficial de Gestión</span>
+        <span>MÉTRICO — Plataforma Estadística de Salud Pública y Urgencias</span>
+        <span>Documento Generado Automáticamente — Universo Histórico SSOT</span>
       </div>
     </div>
   );

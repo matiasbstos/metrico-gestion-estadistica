@@ -10,6 +10,31 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.6.0',
+    version_tag: 'v4.6.0',
+    fecha_despliegue: '16 de Agosto, 2026',
+    proposito_actualizacion: 'Dashboard de Arquetipos Clínicos Nivel Directivo Pro: Desbloqueo del Universo Histórico Completo SSOT (64.000+ registros), Pirámide Poblacional Bidireccional Horizontal (layout="vertical"), Blacklist Clínico Z/R/Y para Patologías Puras, Selector de Rango Temporal y Heatmap Operativo Semanal.',
+    medios_y_stack: [
+      'React 18.3 & Recharts (BarChart layout="vertical" Pirámide Bidireccional Horizontal)',
+      'Universo Maestro SSOT allPacientesDB inyectado desde Dashboard.jsx (64.000+ registros)',
+      'Blacklist Clínico de Exclusión CIE-10 (Prefijos Z, R, Y y Diagnósticos Vagós)',
+      'Heatmap Operativo de Frecuencia (Matriz 7 Días × 4 Franjas Horarias)',
+      'PerfilPaciente.jsx & PerfilPoblacionalReporte.jsx'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Procesamiento en tiempo constante O(1) de la muestra completa de 64.000+ atenciones. Pirámide bidireccional con Hombres en valores negativos renderizados positivos a la izquierda y Mujeres a la derecha. Top 5 de patologías orgánicas puras.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Mapeo reactivo en memoria sobre la totalidad del dataset histórico allPacientesDB.'
+    },
+    modulos_afectados: ['Dashboard', 'PerfilPaciente', 'PerfilPoblacionalReporte', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Paso directo del universo allPacientesDB a PerfilPaciente en Dashboard.jsx.',
+      'Configuración de Pirámide Bidireccional Horizontal real en Recharts con layout vertical y formateo absoluto en tooltips.',
+      'Blacklist con regex /^[ZRY]/i excluyendo códigos de servicios/controles y síntomas vagos.',
+      'Matriz de calor semanal 7x4 cruzando Días de la Semana y Turnos asistenciales.'
+    ]
+  },
+  {
     id: 'v4.5.0',
     version_tag: 'v4.5.0',
     fecha_despliegue: '16 de Agosto, 2026',

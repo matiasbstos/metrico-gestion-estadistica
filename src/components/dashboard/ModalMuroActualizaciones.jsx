@@ -8,6 +8,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.6.0',
+      version: 'v4.6.0',
+      fecha: '16 de Agosto, 2026',
+      badge: 'NIVEL DIRECTIVO PRO',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Dashboard de Arquetipos Clínicos Nivel Directivo Pro: Universo Completo (64k+ Reg.), Pirámide Bidireccional Horizontal, Blacklist Z/R/Y, Filtro Temporal y Heatmap Operativo',
+      categoria: 'Epidemiología & Gestión Directiva',
+      icon: Flame,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Upgrade integral del Dashboard de Arquetipos Clínicos a estándar directivo: inyección del universo máster completo (64.000+ registros históricos), Pirámide Poblacional bidireccional horizontal real (layout vertical en Recharts), Blacklist Clínico estricto en el Top 5 CIE-10 (exclusión de prefijos Z, R, Y para mostrar patologías orgánicas puras), Selector de Rango Temporal (Histórico, Año Actual, Mes, 7 Días) y Heatmap Operativo semanal por franja horaria.',
+      instructivo: {
+        paraQueSirve: 'Proporciona una vista epidemiológica máster de nivel directivo para el análisis del universo completo de atenciones del SAR, permitiendo evaluar la demanda por horarios y la prevalencia de enfermedades puras.',
+        quePuedesVer: 'Al ingresar a "Perfil del Paciente", verás la Muestra de Arquetipo reflejando el universo total de 64k+ registros, la pirámide poblacional proyectada horizontalmente (Hombres azul a la izquierda, Mujeres rosado a la derecha), el Top 5 de diagnósticos orgánicos sin códigos de control, el selector de Rango Temporal y la matriz de Mapa de Calor de Frecuencia Semanal.',
+        ejemploUso: 'Ejemplo: Seleccionas "Año Actual (2026)" y el arquetipo "Adulto Mayor (65+ años)". El sistema analiza síncronamente sobre el universo completo, actualiza la pirámide horizontal, exhibe el Top 5 de patologías puras (ej. K29.7 Gastritis, I10 Hipertensión) y despliega en el Heatmap que la mayor afluencia de este grupo se concentra en la franja Noche (18:00 - 24:00 hrs) los días Lunes y Martes.'
+      },
+      changes: [
+        'Desbloqueo Universo Completo SSOT: Inyección directa de allPacientesDB (64.000+ registros históricos).',
+        'Pirámide Poblacional Bidireccional Horizontal Real: Configuración BarChart layout="vertical" con Hombres a la izquierda (-val) y Mujeres a la derecha (+val).',
+        'Blacklist Clínico de Exclusión CIE-10: Exclusión estricta de códigos Z, R, Y y diagnósticos no especificados para exhibir patologías médicas puras.',
+        'Selector de Rango Temporal: 4to filtro superior (Histórico Completo, Año Actual, Mes Actual, Últimos 7 Días).',
+        'Heatmap Operativo de Frecuencia Semanal: Matriz visual de calor 7 × 4 cruzando Días de la Semana vs Turnos/Franjas Horarias.'
+      ]
+    },
+    {
       id: 'v4.5.0',
       version: 'v4.5.0',
       fecha: '16 de Agosto, 2026',
