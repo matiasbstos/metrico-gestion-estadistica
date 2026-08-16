@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Cortafuegos 1: Verificar Autenticación de Firebase Auth
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Cortafuegos 2: Verificar Dominio u Organización Autorizada en MÉTRICO
+    function isAuthorizedEmail() {
+      return isAuthenticated() && 
+             request.auth.token.email != null && 
+             (request.auth.token.email.endsWith('@cormumel.cl') || 
+              request.auth.token.email == 'matias.bustos@cormumel.cl' ||
+              request.auth.token.email == 'datosgestionsaraera@gmail.com');
+    }
+
+    // Regla global de cierre por defecto: Denegar cualquier consulta anónima o no autorizada
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Acceso controlado a Artefactos y Dataset Maestro
+    match /artifacts/{appId}/public/data/{collectionId}/{docId} {
+      allow read: if isAuthorizedEmail();
+      allow write: if isAuthorizedEmail();
+    }
+
+    // Acceso a Colección de Pacientes de Urgencia
+    match /pacientes_urgencia/{docId} {
+      allow read, write: if isAuthorizedEmail();
+    }
+
+    // Acceso a Colección de Turnos Asistenciales
+    match /turnos/{docId} {
+      allow read, write: if isAuthorizedEmail();
+    }
+
+    // Acceso a Registros de Auditoría
+    match /audit_logs/{docId} {
+      allow read, write: if isAuthorizedEmail();
+    }
+
+    // Acceso a la Bitácora de Desarrollo DevLog
+    match /devlog_posts/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthorizedEmail();
+    }
+
+    // Acceso a Colección de Usuarios y Perfiles
+    match /usuarios/{userDoc} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthorizedEmail();
+    }
+  }
+}

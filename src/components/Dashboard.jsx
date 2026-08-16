@@ -916,12 +916,28 @@ const DashboardContent = () => {
   }
 
   const handleLogout = (reason) => {
-    sessionStorage.removeItem('metrico_session_verified');
-    if (reason === 'inactividad') {
-      showNotif('La sesión se ha cerrado automáticamente por inactividad.', 'warning');
+    try {
+      sessionStorage.clear();
+      localStorage.clear();
+      if (window.indexedDB) {
+        window.indexedDB.deleteDatabase('MetricoOfflineDB');
+      }
+    } catch (e) {
+      console.warn('Error durante purga de almacenamiento local:', e);
     }
+
+    if (reason === 'inactividad') {
+      showNotif('La sesión se ha cerrado automáticamente por inactividad (15 min).', 'warning');
+    }
+
     import('firebase/auth').then(({ signOut }) => {
-      signOut(auth);
+      signOut(auth).then(() => {
+        window.location.replace('/');
+      }).catch(() => {
+        window.location.replace('/');
+      });
+    }).catch(() => {
+      window.location.replace('/');
     });
   };
 

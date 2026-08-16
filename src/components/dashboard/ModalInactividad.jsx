@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Clock, AlertTriangle, ShieldAlert, LogOut, RefreshCw } from 'lucide-react';
+import { playErrorChime } from '../../utils/audioNotifications';
 
 export default function ModalInactividad({ 
   user, 
   onLogout, 
-  inactivityTimeMs = 14 * 60 * 1000, // 14 minutos por defecto
+  inactivityTimeMs = 15 * 60 * 1000, // 15 minutos estrictos por defecto
   warningCountdownSec = 60            // 60 segundos de aviso
 }) {
   const [showWarningModal, setShowWarningModal] = useState(false);
@@ -27,10 +28,11 @@ export default function ModalInactividad({
 
     setShowWarningModal(false);
 
-    // Iniciar temporizador de 14 minutos
+    // Iniciar temporizador de 15 minutos
     inactivityTimerRef.current = setTimeout(() => {
       setShowWarningModal(true);
       setRemainingSeconds(warningCountdownSec);
+      try { playErrorChime(); } catch (e) {}
     }, inactivityTimeMs);
   }, [inactivityTimeMs, warningCountdownSec]);
 

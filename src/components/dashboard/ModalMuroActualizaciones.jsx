@@ -8,6 +8,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.2.0',
+      version: 'v4.2.0',
+      fecha: '16 de Agosto, 2026',
+      badge: 'CIBERSEGURIDAD EMPRESARIAL',
+      badgeColor: 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20',
+      title: 'Blindaje de Ciberseguridad Nivel Empresarial: Hard-Logout por Inactividad, Firebase App Check, Firestore Rules & Cabeceras HTTP CSP',
+      categoria: 'Ciberseguridad & Infraestructura',
+      icon: ShieldAlert,
+      iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+      summary: 'Implementación del plan de ciberseguridad avanzada para MÉTRICO: destrucción total de sesión por inactividad a los 15 min + 60s con vaciado de storages locales y reemplazo forzado de ventana, cortafuegos Firebase App Check con reCAPTCHA v3, reglas estrictas de Firestore, eliminación de Source Maps y cabeceras de seguridad CSP/X-Frame-Options DENY.',
+      instructivo: {
+        paraQueSirve: 'Protege la infraestructura clínica y la información de pacientes contra ataques cibernéticos, secuestro de sesión por inactividad, ingeniería inversa en el navegador y robo de datos.',
+        quePuedesVer: 'Tras 15 minutos sin interacción se desplegará una alerta sonora y visual de 60 segundos. Si no se presiona "Mantener Sesión Activa", la sesión se destruirá por completo enviando al usuario a la pantalla de Login sin opción de rehidratar con F5. En producción, la aplicación opera bajo cabeceras HTTP de máxima seguridad (CSP, X-Frame-Options DENY).',
+        ejemploUso: 'Ejemplo: Dejas el equipo desatendido por 15 minutos. El sistema activa el modal de aviso con cuenta regresiva. Al llegar a 0, se vacían de inmediato las credenciales en memoria/storage y se ejecuta un signOut total, impidiendo que cualquier persona acceda al presionar el botón Atrás o F5.'
+      },
+      changes: [
+        'Destrucción de Sesión Estricta (Hard-Logout): Borrado total de localStorage, sessionStorage e IndexedDB con signOut() y reemplazo forzado de ventana.',
+        'Cortafuegos Firebase App Check (reCAPTCHA v3): Validación de origen oficial compilado para todas las peticiones a Firestore y Cloud Functions.',
+        'Reglas de Seguridad de Firestore (firestore.rules): Cierre global desprotegido permitiendo únicamente acceso a usuarios con correo institucional autorizado.',
+        'Supresión Total de Source Maps (vite.config.js): Eliminación de archivos .map en producción para bloquear la ingeniería inversa del código fuente.',
+        'Cabeceras HTTP de Alta Seguridad (firebase.json): Configuración de CSP, X-Frame-Options DENY, X-Content-Type-Options nosniff y Referrer-Policy.'
+      ]
+    },
+    {
       id: 'v4.1.2',
       version: 'v4.1.2',
       fecha: '16 de Agosto, 2026',

@@ -8,6 +8,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.2.0',
+    version_tag: 'v4.2.0',
+    fecha_despliegue: '16 de Agosto, 2026',
+    proposito_actualizacion: 'Blindaje de Ciberseguridad Nivel Empresarial: Hard-Logout por inactividad a 15m con destrucción total de sesión, Firebase App Check (reCAPTCHA v3), Cortafuegos de Firestore Rules, Supresión de SourceMaps y Cabeceras HTTP CSP/X-Frame-Options DENY.',
+    medios_y_stack: [
+      'Firebase App Check & reCAPTCHA v3 Provider',
+      'ModalInactividad & Destrucción Total de Sesión (localStorage/sessionStorage/IndexedDB purge)',
+      'Reglas de Seguridad Firestore (firestore.rules)',
+      'Vite Sourcemap Suppression (build.sourcemap: false)',
+      'Firebase Hosting Security Headers (CSP, X-Frame-Options DENY, X-Content-Type-Options nosniff)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Incapacidad absoluta de rehidratar la sesión tras 15m inactivo + 60s de advertencia. Cierre global por defecto en Firestore restringido a correos autorizados de la red. Bloqueo total de ingeniería inversa y clickjacking.',
+      firestore_collections: ['artifacts', 'pacientes_urgencia', 'turnos', 'audit_logs', 'devlog_posts', 'usuarios'],
+      query_optimization: 'Validación en tiempo de ejecución de token App Check e inspección de dominios para Cloud Functions y llamadas a Firestore.'
+    },
+    modulos_afectados: ['ModalInactividad', 'Dashboard', 'firebase.js', 'firestore.rules', 'vite.config.js', 'firebase.json', 'InformeArquitectura'],
+    detalles_tecnicos: [
+      'Destrucción completa de storages locales y reemplazo forzado de ubicación (window.location.replace) al expirar los 60s.',
+      'Configuración de App Check con soporte de token de depuración para desarrollo en localhost.',
+      'Cabeceras HTTP de seguridad estricta para mitigar vulnerabilidades XSS, Clickjacking, MIME Sniffing y Referrer leakage.'
+    ]
+  },
+  {
     id: 'v4.1.2',
     version_tag: 'v4.1.2',
     fecha_despliegue: '16 de Agosto, 2026',
