@@ -345,12 +345,14 @@ export default function FiltrosGlobales({
               </button>
             </div>
 
-            {/* BOTÓN RÁPIDO DE CARGA MASIVA CSV/EXCEL */}
+            {/* BOTÓN RÁPIDO DE CARGA MASIVA CSV/EXCEL (REDIRECCIÓN DIRECTA A GESTIÓN DE DATOS) */}
             <button
               type="button"
-              onClick={() => setIsQuickUploadOpen(true)}
+              onClick={() => {
+                if (onNavigateTab) onNavigateTab('data');
+              }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border shadow-sm bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20 active:scale-95 cursor-pointer"
-              title="Carga masiva rápida de datos Excel/CSV directamente desde cualquier vista con redirección automática a Gestión de Datos"
+              title="Navegar directamente a la sección de Gestión de Datos para realizar la carga masiva y depuración de planillas Excel/CSV"
             >
               <UploadCloud className="w-3.5 h-3.5 text-emerald-400 animate-pulse shrink-0" />
               <span className="hidden sm:inline">Carga Rápida</span>

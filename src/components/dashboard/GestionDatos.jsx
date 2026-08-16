@@ -886,11 +886,18 @@ export default function GestionDatos({
         }
         const reader = new FileReader();
         reader.onload = (evt) => {
-          const wb = window.XLSX.read(evt.target.result, { type: 'binary' });
-          const rows = window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, dateNF: 'dd/mm/yyyy' });
-          processArray(rows);
+          try {
+            const data = new Uint8Array(evt.target.result);
+            const wb = window.XLSX.read(data, { type: 'array', cellDates: true });
+            const rows = window.XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, dateNF: 'dd/mm/yyyy' });
+            processArray(rows);
+          } catch (err) {
+            console.error("Error al leer archivo Excel:", err);
+            setIsReadingFile(false);
+            showNotif("Error al procesar el archivo Excel. Asegúrese de que no esté corrupto.", "error");
+          }
         };
-        reader.readAsBinaryString(file);
+        reader.readAsArrayBuffer(file);
       } else {
         const reader = new FileReader();
         reader.onload = (evt) => {

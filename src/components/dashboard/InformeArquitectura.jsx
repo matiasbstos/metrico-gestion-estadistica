@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.8.3',
+    version_tag: 'v4.8.3',
+    fecha_despliegue: '16 de Agosto, 2026',
+    proposito_actualizacion: 'Redirección Directa al Presionar Botón "Carga Rápida" a la Sección de Gestión de Datos (onNavigateTab("data")) y Optimización de Memoria en Lectura Excel con Uint8Array (Solución a RangeError: Array buffer allocation failed).',
+    medios_y_stack: [
+      'React 18.3 & FileReader API (readAsArrayBuffer + Uint8Array)',
+      'FiltrosGlobales.jsx (Redirección instantánea del botón Carga Rápida)',
+      'GestionDatos.jsx (Procesamiento optimizado en memoria para planillas masivas de 25.000+ filas)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'El botón Carga Rápida traslada al usuario directamente a la vista de Gestión de Datos para usar el gestor principal de carga masiva. Se elimina el procesamiento binario legado en favor de ArrayBuffer para evitar bloqueos del navegador.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Parseo de planillas masivas optimizado en buffer de memoria Uint8Array.'
+    },
+    modulos_afectados: ['FiltrosGlobales', 'GestionDatos', 'Dashboard', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Acción onClick del botón Carga Rápida configurada para ejecutar onNavigateTab("data") directamente.',
+      'Sustitución de readAsBinaryString por readAsArrayBuffer + Uint8Array en GestionDatos.jsx.'
+    ]
+  },
+  {
     id: 'v4.8.2',
     version_tag: 'v4.8.2',
     fecha_despliegue: '16 de Agosto, 2026',

@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.8.3',
+      version: 'v4.8.3',
+      fecha: '16 de Agosto, 2026',
+      badge: 'NAVEGACIÓN & MEMORIA',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Navegación Directa al Módulo Gestión de Datos y Lectura de Excel de Alta Capacidad',
+      categoria: 'Rendimiento & Usabilidad',
+      icon: UploadCloud,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'El botón "Carga Rápida" ahora redirige inmediatamente al módulo de Gestión de Datos al ser presionado, evitando bloqueos o congelamientos de ventanas modales. Además, se optimizó el motor de lectura de planillas Excel en memoria mediante Uint8Array, solucionando errores de desbordamiento de búfer.',
+      instructivo: {
+        paraQueSirve: 'Permite acceder en 1 clic al centro oficial de carga de datos sin riesgo de congelamiento del navegador.',
+        quePuedesVer: 'Al presionar "Carga Rápida" en la barra superior, la plataforma te traslada al instante a la pestaña "Gestión de Datos" donde dispones de la zona de arrastre y opciones de desduplicación.',
+        ejemploUso: 'Ejemplo: Presionas "Carga Rápida" y eres derivado directamente al panel de Gestión de Datos para subir y conciliar tu planilla masiva.'
+      },
+      changes: [
+        'Redirección Directa: El botón Carga Rápida ejecuta la navegación inmediata a la pestaña data.',
+        'Optimización Memoria Excel: Actualización a FileReader con readAsArrayBuffer y lectura Uint8Array.',
+        'Prevención de Desbordamiento: Eliminación total del error RangeError: Array buffer allocation failed.'
+      ]
+    },
+    {
       id: 'v4.8.2',
       version: 'v4.8.2',
       fecha: '16 de Agosto, 2026',
