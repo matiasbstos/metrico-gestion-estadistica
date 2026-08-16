@@ -11,7 +11,7 @@ service cloud.firestore {
     function isAuthorizedEmail() {
       return isAuthenticated() && 
              request.auth.token.email != null && 
-             (request.auth.token.email.endsWith('@cormumel.cl') || 
+             (request.auth.token.email.matches('.*@cormumel[.]cl$') || 
               request.auth.token.email == 'matias.bustos@cormumel.cl' ||
               request.auth.token.email == 'datosgestionsaraera@gmail.com');
     }
