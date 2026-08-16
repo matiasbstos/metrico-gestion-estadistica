@@ -8,6 +8,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.7.0',
+      version: 'v4.7.0',
+      fecha: '16 de Agosto, 2026',
+      badge: 'IA GENERATIVA GEMINI',
+      badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/20',
+      title: 'Síntesis Epidemiológica Generativa IA en Reporte PDF: Análisis de Causa Raíz e Inteligencia Sanitaria Automática',
+      categoria: 'Inteligencia Artificial & Reportes',
+      icon: Sparkles,
+      iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+      summary: 'Integración de la Síntesis Epidemiológica Generativa (impulsada por Gemini 1.5 Flash) en la exportación del PDF del Dashboard de Arquetipos Clínicos: captura un Data Snapshot en JSON del arquetipo activo, invoca el prompt de Director de Inteligencia Sanitaria redactando un análisis de causa raíz y cruce multivariable, e inyecta la narrativa en el documento imprimible final.',
+      instructivo: {
+        paraQueSirve: 'Adjunta automáticamente una narrativa de inteligencia sanitaria experta al final de cada reporte PDF exportado, explicando la causa raíz de la saturación horaria y la vulnerabilidad social de la cohorte.',
+        quePuedesVer: 'Al hacer clic en "Generar Reporte de Perfil", el botón mostrará un indicador de estado "Generando Análisis IA...". En menos de un segundo, la síntesis redactada en 2 partes (1. Estructura Demográfica, 2. Causa Raíz & Saturación) aparecerá al final del informe en el PDF descargado.',
+        ejemploUso: 'Ejemplo: Seleccionas "Infantil (0-14 años)". Al exportar el reporte, el motor analiza que el pico de demanda se da los fines de semana en la tarde por patologías bronquiales (J20/J00), redactando un informe que alerta sobre cuellos de botella en observación y sugiere coordinar traslados preventivos.'
+      },
+      changes: [
+        'Data Snapshot JSON Automático: Captura cuantitativa de cohorte, edad, tiempos, top 5 diagnósticos orgánicos, previsión y picos del heatmap.',
+        'Gemini 1.5 Flash API Integration: Consulta con el System Prompt de Director de Inteligencia Sanitaria en tono gerencial riguroso.',
+        'Generador Fallback Determinista: Motor local de alta fidelidad que garantiza que el informe siempre descargue la narrativa completa sin bloqueos por timeout.',
+        'Componente <AnalisisEpidemiologicoIA>: Renderizado inyectado al final de PerfilPoblacionalReporte.jsx con diseño visual gerencial para PDF.'
+      ]
+    },
+    {
       id: 'v4.6.0',
       version: 'v4.6.0',
       fecha: '16 de Agosto, 2026',

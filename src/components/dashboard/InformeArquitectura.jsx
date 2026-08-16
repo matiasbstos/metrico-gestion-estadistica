@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.7.0',
+    version_tag: 'v4.7.0',
+    fecha_despliegue: '16 de Agosto, 2026',
+    proposito_actualizacion: 'Síntesis Epidemiológica Generativa IA (Gemini 1.5 Flash) en Exportación PDF: Data Snapshot JSON automático, prompt de Director de Inteligencia Sanitaria (Resumen Demográfico y Análisis de Causa Raíz) y renderizado inyectado en <AnalisisEpidemiologicoIA>.',
+    medios_y_stack: [
+      'React 18.3 & Google Gemini API (gemini-1.5-flash) / Fallback Analítico Determinista',
+      'geminiEpidemiology.js (Motor de captura Data Snapshot y generación narrativa)',
+      'AnalisisEpidemiologicoIA.jsx (Componente de Informe Ejecutivo inyectado)',
+      'PerfilPoblacionalReporte.jsx & PerfilPaciente.jsx'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Captura síncrona en JSON de arquetipo, muestra, edad, tiempos, top 5 diagnósticos orgánicos, distribución Fonasa y picos del heatmap operativo. Redacción estructurada en 2 partes: 1. Resumen Demográfico y Vulnerabilidad, 2. Causa Raíz cruzando saturación horaria y diagnósticos.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Generación asíncrona de síntesis con timeout de 4.5s y fallback determinista instantáneo sin bloqueo de descarga.'
+    },
+    modulos_afectados: ['geminiEpidemiology', 'AnalisisEpidemiologicoIA', 'PerfilPaciente', 'PerfilPoblacionalReporte', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Captura de JSON Data Snapshot del estado activo al presionar Generar Reporte de Perfil.',
+      'Invocación a la API de Gemini 1.5 Flash con System Prompt de Director de Inteligencia Sanitaria.',
+      'Inyección del componente visual <AnalisisEpidemiologicoIA> al final del informe imprimible PDF.'
+    ]
+  },
+  {
     id: 'v4.6.0',
     version_tag: 'v4.6.0',
     fecha_despliegue: '16 de Agosto, 2026',

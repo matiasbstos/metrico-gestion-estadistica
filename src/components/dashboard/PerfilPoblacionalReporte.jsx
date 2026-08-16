@@ -1,5 +1,6 @@
 import React from 'react';
 import { Users, FileText, Activity, Shield, Award, Stethoscope, Heart, Calendar } from 'lucide-react';
+import AnalisisEpidemiologicoIA from './AnalisisEpidemiologicoIA';
 
 export default function PerfilPoblacionalReporte({
   selectedTramoLabel,
@@ -12,7 +13,9 @@ export default function PerfilPoblacionalReporte({
   avgEstadia,
   topCie10 = [],
   piramideData = [],
-  previsionData = []
+  previsionData = [],
+  narrativeText = '',
+  isLoadingIA = false
 }) {
   return (
     <div className="hidden print:block p-8 bg-white text-slate-900 font-sans space-y-6">
@@ -55,7 +58,7 @@ export default function PerfilPoblacionalReporte({
       <div className="grid grid-cols-4 gap-4 text-center">
         <div className="p-3 bg-slate-50 rounded-xl border border-slate-300">
           <span className="text-[10px] font-black text-slate-500 uppercase block">Cohorte Evaluada</span>
-          <span className="text-xl font-black text-slate-900">{totalPacientes} <span className="text-xs font-normal">pac.</span></span>
+          <span className="text-xl font-black text-slate-900">{totalPacientes.toLocaleString('es-CL')} <span className="text-xs font-normal">pac.</span></span>
         </div>
 
         <div className="p-3 bg-slate-50 rounded-xl border border-slate-300">
@@ -92,7 +95,7 @@ export default function PerfilPoblacionalReporte({
                 </div>
                 <div className="text-right">
                   <span className="text-indigo-900 font-black text-sm">{item.pct}%</span>
-                  <span className="text-slate-500 text-[10px] block">({item.count} pacientes)</span>
+                  <span className="text-slate-500 text-[10px] block">({item.count.toLocaleString('es-CL')} pacientes)</span>
                 </div>
               </div>
             ))
@@ -112,16 +115,19 @@ export default function PerfilPoblacionalReporte({
           {previsionData.map((item, idx) => (
             <div key={idx} className="p-2.5 bg-slate-50 border border-slate-300 rounded-lg flex justify-between items-center">
               <span className="font-bold text-slate-700">{item.name}</span>
-              <span className="font-black text-slate-900">{item.value} pac. ({item.pct}%)</span>
+              <span className="font-black text-slate-900">{item.value.toLocaleString('es-CL')} pac. ({item.pct}%)</span>
             </div>
           ))}
         </div>
       </div>
 
+      {/* BLOQUE INYECTADO DE SÍNTESIS EPIDEMIOLÓGICA GENERATIVA (IA GEMINI) */}
+      <AnalisisEpidemiologicoIA narrativeText={narrativeText} isLoading={isLoadingIA} />
+
       {/* Pie de Página de Certificación */}
       <div className="pt-6 border-t border-slate-400 flex justify-between items-center text-[10px] text-slate-500 font-semibold">
         <span>MÉTRICO — Plataforma Estadística de Salud Pública y Urgencias</span>
-        <span>Documento Generado Automáticamente — Universo Histórico SSOT</span>
+        <span>Documento Generado Automáticamente — Universo Histórico SSOT con Análisis Generativo IA</span>
       </div>
     </div>
   );

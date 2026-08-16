@@ -3,13 +3,14 @@ import {
   Users, Search, Clock, Activity, Award, Heart, Shield, Globe, 
   Building2, ChevronLeft, ChevronRight, HelpCircle, Printer, FileText,
   PieChart as PieChartIcon, BarChart2, Stethoscope, Filter, Sparkles, AlertCircle,
-  Maximize2, Minimize2, Tv, Presentation, X, Calendar, Grid, Flame
+  Maximize2, Minimize2, Tv, Presentation, X, Calendar, Grid, Flame, Loader2
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, 
   PieChart, Pie, Cell, CartesianGrid 
 } from 'recharts';
 import PerfilPoblacionalReporte from './PerfilPoblacionalReporte';
+import { generateEpidemiologicalSynthesis } from '../../utils/geminiEpidemiology';
 
 // 17 Tramos Etarios Quinquenales Oficiales
 const TRAMOS_QUINQUENALES = [
@@ -53,6 +54,10 @@ export default function PerfilPaciente({
 
   // Estado del Modo Presentación (Modo Directorio Kiosco)
   const [isPresentationMode, setIsPresentationMode] = useState(false);
+
+  // Estado de Síntesis Epidemiológica Generativa IA
+  const [iaNarrativeText, setIaNarrativeText] = useState('');
+  const [isGeneratingIA, setIsGeneratingIA] = useState(false);
 
   // Activar Modo Presentación con Fullscreen API
   const enterPresentationMode = () => {
@@ -327,11 +332,6 @@ export default function PerfilPaciente({
     return { matrix, maxVal };
   }, [matchingPatients]);
 
-  // Disparar Impresión / Generación PDF de Perfil
-  const handleGenerateReport = () => {
-    window.print();
-  };
-
   // Etiquetas formateadas para el reporte
   const selectedTramoLabel = {
     'TODOS': 'Todos los Tramos Etarios (0 - 80+ años)',
@@ -361,6 +361,60 @@ export default function PerfilPaciente({
     'ULTIMOS_7_DIAS': 'Últimos 7 Días'
   }[rangoTemporal];
 
+  // Disparar Generación de Síntesis IA + Impresión PDF de Perfil
+  const handleGenerateReport = async () => {
+    setIsGeneratingIA(true);
+
+    // Identificar día y franja horaria pico en la matriz del heatmap
+    let maxPeakDay = 'Lunes';
+    let maxPeakFranja = 'Noche';
+    let maxPeakVal = 0;
+
+    if (heatmapData && heatmapData.matrix) {
+      heatmapData.matrix.forEach(row => {
+        ['MADRUGADA', 'MANANA', 'TARDE', 'NOCHE'].forEach(f => {
+          if (row[f] > maxPeakVal) {
+            maxPeakVal = row[f];
+            maxPeakDay = row.dia;
+            maxPeakFranja = f === 'MANANA' ? 'Mañana (06:00-12:00 hrs)' : f === 'TARDE' ? 'Tarde (12:00-18:00 hrs)' : f === 'NOCHE' ? 'Noche (18:00-24:00 hrs)' : 'Madrugada (00:00-06:00 hrs)';
+          }
+        });
+      });
+    }
+
+    const picosHeatmap = `${maxPeakDay} en franja ${maxPeakFranja} con ${maxPeakVal.toLocaleString('es-CL')} atenciones acumuladas`;
+
+    const dataSnapshot = {
+      arquetipo_seleccionado: {
+        tramoEtario: selectedTramoLabel,
+        sexo: selectedSexoLabel,
+        prevision: selectedPrevisionLabel,
+        rangoTemporal: selectedRangoTemporalLabel
+      },
+      total_pacientes: profileStats.total,
+      edad_promedio: profileStats.avgEdad,
+      tiempos_promedio: {
+        espera: profileStats.avgEspera,
+        estadia: profileStats.avgEstadia
+      },
+      top_5_diagnosticos_cie10: profileStats.topCie10,
+      distribucion_prevision_fonasa: previsionData,
+      picos_heatmap: picosHeatmap
+    };
+
+    try {
+      const text = await generateEpidemiologicalSynthesis(dataSnapshot);
+      setIaNarrativeText(text);
+    } catch (err) {
+      console.warn("Fallo en generación de síntesis IA:", err);
+    } finally {
+      setIsGeneratingIA(false);
+      setTimeout(() => {
+        window.print();
+      }, 350);
+    }
+  };
+
   return (
     <div className={`theme-transition ${
       isPresentationMode 
@@ -384,7 +438,7 @@ export default function PerfilPaciente({
         </div>
       )}
 
-      {/* COMPONENTE EXPORTABLE OCULTO PARA IMPRESIÓN PDF */}
+      {/* COMPONENTE EXPORTABLE OCULTO PARA IMPRESIÓN PDF (CON SÍNTESIS EPIDEMIOLÓGICA IA INYECTADA) */}
       <PerfilPoblacionalReporte 
         selectedTramoLabel={selectedTramoLabel}
         selectedSexoLabel={selectedSexoLabel}
@@ -397,6 +451,8 @@ export default function PerfilPaciente({
         topCie10={profileStats.topCie10}
         piramideData={piramideBidireccionalData}
         previsionData={previsionData}
+        narrativeText={iaNarrativeText}
+        isLoadingIA={isGeneratingIA}
       />
 
       {/* CABECERA PRINCIPAL CON BOTÓN DE MODO PRESENTACIÓN Y PDF */}
@@ -415,7 +471,7 @@ export default function PerfilPaciente({
               </span>
             </div>
             <p className={`text-secondary-custom font-semibold mt-1 ${isPresentationMode ? 'text-sm md:text-base' : 'text-xs'}`}>
-              Radiografía demográfica bidireccional, morbilidad orgánica pura y mapa de calor operativo.
+              Radiografía demográfica bidireccional, morbilidad orgánica pura, mapa de calor y análisis generativo IA.
             </p>
           </div>
         </div>
@@ -442,10 +498,20 @@ export default function PerfilPaciente({
 
           <button
             onClick={handleGenerateReport}
-            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-black text-xs shadow-lg shadow-indigo-500/20 transition-all cursor-pointer shrink-0 active:scale-95"
+            disabled={isGeneratingIA}
+            className="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 disabled:opacity-50 text-white font-black text-xs shadow-lg shadow-indigo-500/20 transition-all cursor-pointer shrink-0 active:scale-95"
           >
-            <Printer className="w-4 h-4" />
-            <span>Generar Reporte de Perfil</span>
+            {isGeneratingIA ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-amber-300" />
+                <span>Generando Análisis IA...</span>
+              </>
+            ) : (
+              <>
+                <Printer className="w-4 h-4" />
+                <span>Generar Reporte de Perfil</span>
+              </>
+            )}
           </button>
         </div>
       </div>
