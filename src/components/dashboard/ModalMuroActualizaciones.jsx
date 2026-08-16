@@ -8,6 +8,72 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.1.2',
+      version: 'v4.1.2',
+      fecha: '16 de Agosto, 2026',
+      badge: 'NUEVA VERSIÓN',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Notificación Sonora Nativa (Web Audio API) al Finalizar la Sincronización de Base de Datos y Auto-Sync',
+      categoria: 'Sincronización & Audio Feedback',
+      icon: Cpu,
+      iconBg: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+      summary: 'Incorporación de un acorde armónico futurista de 3 fases sintetizado en tiempo real por la Web Audio API al culminar la sincronización de base de datos y recalcular los registros auditados.',
+      instructivo: {
+        paraQueSirve: 'Proporciona confirmación auditiva inmediata cuando el sistema termina de refrescar la base de datos en vivo, sin necesidad de mirar la pantalla ni descargar archivos de audio.',
+        quePuedesVer: 'Al presionar "Re-evaluar Datos" o durante la sincronización inicial, al llegar al 100% de registros procesados se emite una secuencia armónica brillante (C5/G5 -> E5/C6 -> G5/E6) indicando que el panel está listo.',
+        ejemploUso: 'Ejemplo: Inicias un refresco manual de la base de datos. Mientras revisas otros documentos, el sistema emite el acorde futurista al llegar a los 25,210 registros auditados, avisándote que la información está 100% al día.'
+      },
+      changes: [
+        'Sintetización Acorde Armónico 3 Fases (C5/G5 -> E5/C6 -> G5/E6): Chime futurista de alta definición para finalización de sincronización.',
+        'Chime Suave de Auto-Sync: Tono tenue de doble pulso (F5 -> C6) para sincronizaciones silenciosas periódicas de 5 minutos.',
+        'Sincronización con Modal y Toast de Carga: Activación sonora automática al finalizar el progreso de descarga y recálculo.'
+      ]
+    },
+    {
+      id: 'v4.1.1',
+      version: 'v4.1.1',
+      fecha: '16 de Agosto, 2026',
+      badge: 'MEJORA AUDIO',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Feedback Auditivo al Limpiar y Marcar Leídas Notificaciones en la Campana',
+      categoria: 'Centro de Notificaciones',
+      icon: Sparkles,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Integración del timbre de sonido de barrido cristalino en la Web Audio API al presionar "Limpiar" o "Marcar leídas" dentro del Centro de Notificaciones.',
+      instructivo: {
+        paraQueSirve: 'Confirma de forma sonora la vaciación o marcado de notificaciones en el historial.',
+        quePuedesVer: 'Dentro de la campana de notificaciones, al presionar el botón "Limpiar", se emite un barrido armónico ascendente que confirma la purga del historial.',
+        ejemploUso: 'Ejemplo: Abres la campana de notificaciones y presionas "Limpiar". El sistema reproduce un timbre cristalino confirmando que el historial ha quedado vacío.'
+      },
+      changes: [
+        'Sonido playClearChime: Barrido armónico cristalino D5 -> A5 -> D6 mediante Web Audio API.',
+        'Integración con Botón Limpiar: Ejecución sonora inmediata al vaciar el menú flotante de notificaciones.',
+        'Integración con Marcar Leídas: Reproducción de confirmación al presionar "Marcar leídas".'
+      ]
+    },
+    {
+      id: 'v4.1.0',
+      version: 'v4.1.0',
+      fecha: '15 de Agosto, 2026',
+      badge: 'INTEGRIDAD SSOT',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Paridad Matemática del 100% y Desduplicación SSOT entre Histórico Mensual y Explorador Global de Urgencias',
+      categoria: 'Integridad de Datos & Calendario',
+      icon: BarChart2,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Eliminación del descalce entre admisiones brutas (192) y admisiones únicas desduplicadas (116) mediante el motor deduplicarPacientes en el Histórico Mensual y la inyección del dataset maestro completo.',
+      instructivo: {
+        paraQueSirve: 'Garantiza coincidencia matemática exacta al 100% entre las cifras de turnos del calendario mensual y los indicadores del Explorador Global de Urgencias.',
+        quePuedesVer: 'En la cuadrícula del Histórico Mensual, las cifras por día y turno muestran exactamente las mismas admisiones únicas desduplicadas (ej. 116 pac. en Turno 1 del 12/08/2026) que en la vista principal.',
+        ejemploUso: 'Ejemplo: Seleccionas el 12 de Agosto en el Histórico Mensual y comparas las admisiones del Turno 1 (17:00 a 08:00 hrs) con el filtro global de Inicio: en ambos módulos figura de forma idéntica 116 pacientes admitidos y 15 altas.'
+      },
+      changes: [
+        'Integración de deduplicarPacientes SSOT en CalendarioHistorico.jsx: Eliminación de doble conteo de reingresos o duplicados en turno.',
+        'Pasaje de Universo Maestro allPacientesDB: El módulo Histórico Mensual procesa la totalidad del dataset clínico sin importar el filtro de 2 días de la cabecera.',
+        'Soporte Robusto de Formatos de Fecha Locale: Reconocimiento unívoco de formatos ISO (YYYY-MM-DD), Chileno (DD/MM/YYYY) y US locale (MM/DD/YYYY).'
+      ]
+    },
+    {
       id: 'v4.0.0',
       version: 'v4.0.0',
       fecha: '15 de Agosto, 2026',
