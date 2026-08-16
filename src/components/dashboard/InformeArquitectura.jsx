@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.5.0',
+    version_tag: 'v4.5.0',
+    fecha_despliegue: '16 de Agosto, 2026',
+    proposito_actualizacion: 'Modo Presentación (Modo Directorio Kiosco) para Arquetipos Clínicos CIE-10: Escalamiento Tipográfico text-6xl, Ocultamiento del 100% de Navbars, Fullscreen API y Doble Salida por Tecla ESC y Botón Flotante.',
+    medios_y_stack: [
+      'React 18.3 & Fullscreen API (requestFullscreen / exitFullscreen)',
+      'PerfilPaciente.jsx (Overlaid Kiosk Layer z-[100] fixed inset-0)',
+      'Escalamiento Tipográfico Dinámico (Métricas KPI text-5xl / text-6xl)',
+      'Recharts Full-Height Scaling (h-[480px]) & Keyboard Event Listener (ESC key)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Transformación instantánea del dashboard en modo proyector para salas de reuniones ejecutivas. Oculta el 100% del Sidebar y Topbar y escala indicadores para lectura a distancia.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Capa superpuesta en memoria sin consultas adicionales de red.'
+    },
+    modulos_afectados: ['PerfilPaciente', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Accionador Toggle "Modo Presentación" con icono Maximize2 en la cabecera del módulo.',
+      'Escalamiento de fuentes numéricas KPI a text-5xl/text-6xl e incremento de la altura de gráficos a 480px.',
+      'Doble mecanismo de salida: botón flotante de control Minimize2 y listener para la tecla ESC.'
+    ]
+  },
+  {
     id: 'v4.4.0',
     version_tag: 'v4.4.0',
     fecha_despliegue: '16 de Agosto, 2026',

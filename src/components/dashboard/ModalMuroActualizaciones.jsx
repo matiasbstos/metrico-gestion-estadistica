@@ -8,6 +8,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.5.0',
+      version: 'v4.5.0',
+      fecha: '16 de Agosto, 2026',
+      badge: 'MODO DIRECTORIO',
+      badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/20',
+      title: 'Modo Presentación Kiosco para Arquetipos Clínicos: Ocultamiento 100% de Navbars y Fuentes Escaladas a text-6xl',
+      categoria: 'Visualización & Kiosco Ejecutivo',
+      icon: Maximize2,
+      iconBg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+      summary: 'Incorporación del Modo Presentación (Modo Directorio) en el Dashboard de Arquetipos Clínicos CIE-10, diseñado específicamente para proyectores en salas de reuniones ejecutivas y presentaciones a corporaciones de salud: oculta el 100% de barras de navegación, escala métricas KPI a text-6xl y expande gráficos con salida por tecla ESC o botón flotante.',
+      instructivo: {
+        paraQueSirve: 'Optimiza la proyección en vivo de métricas epidemiológicas ante directorios o comités directivos de salud pública, garantizando legibilidad perfecta a distancia.',
+        quePuedesVer: 'Al presionar el botón "Modo Presentación" en la cabecera, la pantalla se expande a pantalla completa, desaparecen el Sidebar y Topbar, las cifras KPI escalan a un tamaño gigante (text-6xl) y aparece un botón flotante con el recordatorio "Presiona ESC para salir".',
+        ejemploUso: 'Ejemplo: Conectas tu notebook a un proyector en la sala de directorio, abres el módulo de Arquetipos y presionas "Modo Presentación". Toda la sala puede ver con máxima nitidez la pirámide poblacional y las métricas a varios metros de distancia.'
+      },
+      changes: [
+        'Botón Toggle "Modo Presentación": Accionador en la cabecera con icono Maximize2.',
+        'Comportamiento Kiosco Fullscreen: Capa fija z-50/z-100 que oculta el Sidebar y Topbar al 100% invocando requestFullscreen().',
+        'Escalamiento Tipográfico: Fuentes numéricas de tarjetas KPI escaladas de text-3xl a text-5xl/text-6xl.',
+        'Gráficos Expandidos: Altura de pirámide demográfica y anillo previsional incrementada a 480px.',
+        'Doble Salida de Seguridad: Botón flotante Minimize2 y listener para la tecla ESC.'
+      ]
+    },
+    {
       id: 'v4.4.0',
       version: 'v4.4.0',
       fecha: '16 de Agosto, 2026',
