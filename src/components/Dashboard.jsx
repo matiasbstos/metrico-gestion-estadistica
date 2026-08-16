@@ -1631,6 +1631,10 @@ const DashboardContent = () => {
                 onNavigateTab={setActiveTab}
                 turnosDB={turnosDB}
                 pautasDB={pautasTurnosHook?.pautasDB}
+                user={user}
+                db={db}
+                pacientesDB={pacientesDB}
+                showNotif={showNotif}
               />
             </div>
 
@@ -1793,6 +1797,11 @@ const DashboardContent = () => {
               syncStatus={syncStatus}
               turnosDB={turnosDB}
               pautasDB={pautasTurnosHook?.pautasDB}
+              user={user}
+              db={db}
+              pacientesDB={pacientesDB}
+              showNotif={showNotif}
+              onNavigateTab={setActiveTab}
             />
 
             {/* SELECCIÓN DE SUB-MÓDULO DE ANÁLISIS ESPECÍFICO */}

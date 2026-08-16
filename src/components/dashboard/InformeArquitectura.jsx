@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.8.0',
+    version_tag: 'v4.8.0',
+    fecha_despliegue: '16 de Agosto, 2026',
+    proposito_actualizacion: 'Acceso Directo y Botón Rápido de Carga Masiva CSV/Excel en la Barra Superior Global (FiltrosGlobales.jsx) con Modal de Procesamiento Directo (<ModalCargaRapidaDatos />) y Redirección Automática Post-Carga a Gestión de Datos (setActiveTab("data")).',
+    medios_y_stack: [
+      'React 18.3 & Lucide-react (UploadCloud, FileSpreadsheet)',
+      'ModalCargaRapidaDatos.jsx (Componente Modal de Carga Masiva Global)',
+      'FiltrosGlobales.jsx & Dashboard.jsx (Acceso directo permanente en la barra superior)',
+      'Deduplicación SSOT reactiva & Web Audio API (playSuccessChime)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Acceso global para subir archivos .xlsx/.xls/.csv sin necesidad de navegar previamente al módulo Gestión de Datos. Al finalizar la carga por lotes, reproduce el chime de éxito y ejecuta la redirección automática a la sección data.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Procesamiento de lotes concurrentes en Firestore (450 docs/batch) con feedback de progreso y ETA.'
+    },
+    modulos_afectados: ['ModalCargaRapidaDatos', 'FiltrosGlobales', 'Dashboard', 'GestionDatos', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Botón rápido "Carga Rápida CSV/Excel" montado en la barra superior FiltrosGlobales.jsx.',
+      'Apertura de ModalCargaRapidaDatos desde cualquier sub-módulo de MÉTRICO.',
+      'Redirección automática post-carga ejecutando setActiveTab("data") y playSuccessChime().'
+    ]
+  },
+  {
     id: 'v4.7.0',
     version_tag: 'v4.7.0',
     fecha_despliegue: '16 de Agosto, 2026',

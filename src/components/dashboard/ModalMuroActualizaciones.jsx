@@ -8,6 +8,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.8.0',
+      version: 'v4.8.0',
+      fecha: '16 de Agosto, 2026',
+      badge: 'ACCESO RÁPIDO GLOBAL',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Botón Rápido de Carga Masiva CSV/Excel Global y Redirección Automática a Gestión de Datos',
+      categoria: 'Gestión de Datos & Usabilidad',
+      icon: UploadCloud,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Incorporación del botón "Carga Rápida CSV/Excel" en la barra superior global de MÉTRICO, permitiendo subir lotes masivos de atenciones desde cualquier módulo sin necesidad de navegar previamente a Gestión de Datos. Al finalizar la carga, el sistema ejecuta una redirección automática a la sección Gestión de Datos con notificación sonora y toast confirmatorio.',
+      instructivo: {
+        paraQueSirve: 'Permite a los analistas y jefaturas subir datos Excel o CSV en un clic desde cualquier vista (Resumen, Radar, Rendimiento, Perfil, etc.), ahorrando tiempo de navegación y garantizando la desduplicación en vivo.',
+        quePuedesVer: 'En la barra superior de acciones verás el botón "Carga Rápida CSV/Excel". Al hacer clic, se abre una ventana flotante para seleccionar el archivo. Durante la subida, se muestra una barra de progreso con tiempo estimado (ETA) y, al finalizar, se escucha el chime de éxito y te redirecciona a la sección Gestión de Datos.',
+        ejemploUso: 'Ejemplo: Estás revisando el Radar Predictivo y necesitas cargar el informe diario de atenciones. Presionas "Carga Rápida CSV/Excel", seleccionas el archivo y, en segundos, el sistema procesa los registros y te traslada a la Gestión de Datos con el lote totalmente cargado y conciliado.'
+      },
+      changes: [
+        'Botón Rápido "Carga Rápida CSV/Excel": Acceso permanente en la barra superior FiltrosGlobales.jsx.',
+        'Modal Global <ModalCargaRapidaDatos>: Procesamiento masivo de archivos .xlsx, .xls y .csv desde cualquier vista.',
+        'Reglas SSOT & Deduplicación Reactiva: Filtrado en memoria de atenciones duplicadas antes de guardar en Firestore.',
+        'Redirección Automática Post-Carga: Traslado directo del usuario a la pestaña "Gestión de Datos" (setActiveTab("data")).',
+        'Notificación Sonora & Toast: Reproducción de playSuccessChime() y registro en la Campana Superior de Notificaciones.'
+      ]
+    },
+    {
       id: 'v4.7.0',
       version: 'v4.7.0',
       fecha: '16 de Agosto, 2026',
