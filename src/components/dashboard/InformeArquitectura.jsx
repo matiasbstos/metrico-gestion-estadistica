@@ -8,6 +8,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.1.2',
+    version_tag: 'v4.1.2',
+    fecha_despliegue: '16 de Agosto, 2026',
+    proposito_actualizacion: 'Sonido Distintivo Futurista de Finalización de Sincronización de Base de Datos (Web Audio API) y Chime Suave de Auto-Sync.',
+    medios_y_stack: [
+      'React 18.3 & Web Audio API (Sintetización Acorde Armónico 3 Fases C5/G5 -> E5/C6 -> G5/E6)',
+      'audioNotifications.js (playSyncCompleteChime y playAutoSyncChime)',
+      'PopUpSincronizacion.jsx'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Notificación sonora diferenciada al culminar la sincronización profunda de datos o la auto-sincronización periódica de 5 minutos.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Generación instantánea por síntesis de tono en frecuencia natural con curva exponencial de envolvente de volumen.'
+    },
+    modulos_afectados: ['audioNotifications', 'PopUpSincronizacion', 'Dashboard', 'InformeArquitectura'],
+    detalles_tecnicos: [
+      'Acorde ascendente futurista cristalino de 3 fases para sincronizaciones profundas y manuales.',
+      'Tono tenue de doble pulso F5 -> C6 para auto-sincronizaciones silenciosas en segundo plano.'
+    ]
+  },
+  {
     id: 'v4.1.1',
     version_tag: 'v4.1.1',
     fecha_despliegue: '16 de Agosto, 2026',
