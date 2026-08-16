@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.8.4',
+    version_tag: 'v4.8.4',
+    fecha_despliegue: '16 de Agosto, 2026',
+    proposito_actualizacion: 'Restauración Completa del Protocolo de Análisis Pre-Carga y Desduplicación SSOT con Procesamiento Asíncrono por Lotes (Non-Blocking Chunking) e Indicador de Progreso en Tiempo Real en GestionDatos.jsx.',
+    medios_y_stack: [
+      'React 18.3 & JavaScript Async/Await Micro-ticks (setTimeout 0ms)',
+      'GestionDatos.jsx (chunking de 2.500 filas por micro-tick con lectura asíncrona)',
+      'Modal de Análisis SSOT y Resumen Pre-Carga (pendingUpload)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'El análisis de duplicidad contra el mapa histórico pacientesDB y la agrupación por turnos opera en fragmentos asíncronos para evitar congelamientos del hilo principal del navegador. Se restaura el reporte previo a la carga con resumen de atenciones válidas, duplicados descartados e incidencias.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Iteración de planillas de 65.000+ registros dividida en bloques asíncronos de 2.500 filas con liberación del Event Loop.'
+    },
+    modulos_afectados: ['GestionDatos', 'Dashboard', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Procesamiento asíncrono en processArray con fragmentos de 2.500 filas.',
+      'Estado dinámico readingProgressText mostrando el avance por porcentaje y recuento de filas en tiempo real.',
+      'Eliminación completa del bloqueo Paused before potential out-of-memory crash en DevTools.'
+    ]
+  },
+  {
     id: 'v4.8.3',
     version_tag: 'v4.8.3',
     fecha_despliegue: '16 de Agosto, 2026',

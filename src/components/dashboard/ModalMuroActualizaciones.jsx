@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.8.4',
+      version: 'v4.8.4',
+      fecha: '16 de Agosto, 2026',
+      badge: 'ANÁLISIS & RENDIMIENTO',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Restauración del Protocolo de Desduplicación SSOT con Procesamiento Asíncrono por Lotes',
+      categoria: 'Gestión de Datos & Algoritmos',
+      icon: RefreshCw,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Restauración completa del protocolo de análisis de desduplicación de datos históricos contra la base de datos SSOT en GestionDatos.jsx. El motor de análisis ahora procesa planillas masivas en bloques asíncronos de 2.500 filas con feedback dinámico en tiempo real, garantizando 0% de congelamientos en el navegador.',
+      instructivo: {
+        paraQueSirve: 'Verifica la integridad de las atenciones ingresadas, detecta duplicados históricos por correlativo/RUT/admisión y muestra el informe previo antes de guardar los datos en Firestore.',
+        quePuedesVer: 'Al subir un archivo en Gestión de Datos, la ventana de procesamiento muestra el porcentaje de avance dinámico (ej: "Analizando desduplicación SSOT... 25.000 / 64.000 filas (39%)"). Al finalizar, se despliega la tarjeta resumen con el detalle completo de atenciones válidas, duplicados descartados e incidencias.',
+        ejemploUso: 'Ejemplo: Seleccionas una planilla masiva de 65.000 atenciones y el sistema analiza los registros sin congelar la pantalla, entregándote el informe de pre-carga para confirmar la subida.'
+      },
+      changes: [
+        'Análisis Asíncrono (Non-Blocking): Fragmentación del bucle de desduplicación en micro-ticks de 2.500 filas.',
+        'Feedback en Tiempo Real: Visualización del recuento de filas analizadas y porcentaje en el modal de procesamiento.',
+        'Integridad SSOT Restaurada: Verificación completa de correlativos, marcas de tiempo y campos de atención previa.'
+      ]
+    },
+    {
       id: 'v4.8.3',
       version: 'v4.8.3',
       fecha: '16 de Agosto, 2026',

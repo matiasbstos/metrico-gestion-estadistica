@@ -38,6 +38,7 @@ export default function GestionDatos({
 }) {
   const [pendingUpload, setPendingUpload] = useState(null);
   const [isReadingFile, setIsReadingFile] = useState(false);
+  const [readingProgressText, setReadingProgressText] = useState('Analizando registros, identificando turnos y limpiando duplicados históricos...');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -484,11 +485,14 @@ export default function GestionDatos({
     setIsReadingFile(true);
 
     setTimeout(() => {
-      const processArray = (rows) => {
+      const processArray = async (rows) => {
         if (rows.length < 2) {
           setIsReadingFile(false);
           return showNotif("El archivo parece vacío o muy corto.", "error");
         }
+
+        setReadingProgressText("Analizando cabeceras y columnas requeridas...");
+        await new Promise(r => setTimeout(r, 0));
 
         let headerRowIdx = -1; let headers = [];
         for (let i = 0; i < Math.min(rows.length, 10); i++) { 
@@ -630,7 +634,17 @@ export default function GestionDatos({
         let fileMaxTime = -Infinity;
         const fileTurnosKeys = new Set();
 
+        const totalRowsToProcess = rows.length - (headerRowIdx + 1);
+        const CHUNK_SIZE = 2500;
+
         for (let i = headerRowIdx + 1; i < rows.length; i++) {
+          if (i % CHUNK_SIZE === 0) {
+            const processedCount = i - (headerRowIdx + 1);
+            const pct = Math.min(99, Math.round((processedCount / Math.max(1, totalRowsToProcess)) * 100));
+            setReadingProgressText(`Analizando desduplicación SSOT... ${processedCount.toLocaleString('es-CL')} de ${totalRowsToProcess.toLocaleString('es-CL')} filas (${pct}%)`);
+            await new Promise(r => setTimeout(r, 0));
+          }
+
           const row = rows[i];
           if (!row || row.length < 5) continue;
 
@@ -2258,10 +2272,12 @@ export default function GestionDatos({
 
       {isReadingFile && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100]">
-          <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center max-w-sm border border-slate-100">
-            <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
-            <h3 className="text-lg font-bold text-slate-800 mb-1">Procesando Archivo</h3>
-            <p className="text-sm text-slate-500 text-center">Analizando registros, identificando turnos y limpiando duplicados históricos...</p>
+          <div className="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center max-w-sm border border-slate-100 animate-fade-in text-center">
+            <Loader2 className="w-12 h-12 text-emerald-500 animate-spin mb-4" />
+            <h3 className="text-lg font-black text-slate-800 mb-1">Procesando Archivo</h3>
+            <p className="text-xs font-semibold text-slate-500 text-center leading-relaxed">
+              {readingProgressText}
+            </p>
           </div>
         </div>
       )}
