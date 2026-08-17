@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.8.7',
+      version: 'v4.8.7',
+      fecha: '17 de Agosto, 2026',
+      badge: 'REPORTES & INTEGRIDAD',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Conciliación Unificada de Reportes: Gráficos de Constataciones Z51.8 y Traslados 100% Sin Discrepancias',
+      categoria: 'Motor de Reportes & Algoritmos',
+      icon: FileText,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Resolución completa de la visualización de la Pirámide Demográfica, Distribución por Sexo, Tabla Sociodemográfica y Origen Geográfico en el Informe Técnico de Constataciones Z51.8. Asimismo, se unificó el filtro de Traslados Hospitalarios entre narrativas automáticas y tarjetas KPI, asegurando 0% de discrepancias en la suite de reportes.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que al exportar o imprimir los subreportes (PDF/Imprimible), todas las tablas, gráficos de anillo, pirámides y comunas muestren los datos reales consolidados sin discrepancias numéricas entre secciones.',
+        quePuedesVer: 'Al generar el informe de Constatación de Lesiones (Z51.8), verás la Pirámide Poblacional y la Tabla Sociodemográfica totalmente pobladas, junto al mapa de Comunas. En el Sub-reporte de Traslados, el resumen narrativo coincide en 100% con la cifra de las tarjetas KPI.',
+        ejemploUso: 'Ejemplo: En el informe del 01/08 al 16/08, el Sub-reporte de Factores y Destino y el Sub-reporte de Traslados reportan exactamente 68 traslados hospitalarios (3.9%), con igual detalle narrativo.'
+      },
+      changes: [
+        'Detector Multivariable Z51.8: Inclusión de banderas, diagnósticos glosa y derivaciones policiales para alimentar Pirámide, Sexo y Comunas.',
+        'Unificación de Traslados Hospitalarios: Homogeneización de isTraslado entre el generador de texto narrativo y las tarjetas KPI.',
+        'Concordancia 100% Inter-Subreportes: Coincidencia matemática absoluta entre el Sub-reporte Factores/Destino y el Sub-reporte Traslados.'
+      ]
+    },
+    {
       id: 'v4.8.6',
       version: 'v4.8.6',
       fecha: '17 de Agosto, 2026',

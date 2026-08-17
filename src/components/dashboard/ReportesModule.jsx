@@ -184,8 +184,22 @@ export default function ReportesModule({
       const diag = (p.diagnosticoPrincipal || p.codigoDiagnostico || '').toLowerCase();
       const isFrac = diag.includes('fractura') || diag.includes('fx');
       
+      const isTrasladoHelper = (p) => {
+        if (!p) return false;
+        if (p.flag_traslado_hospitalario !== undefined && p.flag_traslado_hospitalario !== null) return Boolean(p.flag_traslado_hospitalario);
+        const destStr = String(p.destinoAlta || p.destino || p.lugarDerivacion || p.motivoAlta || p.tipoAlta || '').toUpperCase();
+        const obsStr = String(p.observacion || p.obs || '').toUpperCase();
+        const catStr = String(p.categoria || p.categoria_triage || '').toUpperCase();
+        const isTrans = destStr.includes('HOSP') || destStr.includes('URGENC') || destStr.includes('EMERGENC') || destStr.includes('UEH') || destStr.includes('SAMU') || destStr.includes('DERIVAC') ||
+                        obsStr.includes('HOSP') || obsStr.includes('URGENC') || obsStr.includes('EMERGENC') || obsStr.includes('UEH') || obsStr.includes('SAMU') ||
+                        catStr === 'C1';
+        const isRoutine = (destStr.includes('CONSULTORIO') || destStr.includes('CESFAM') || destStr.includes('DOMICILIO')) &&
+                          !(destStr.includes('HOSP') || destStr.includes('URGENC') || destStr.includes('EMERGENC') || destStr.includes('UEH'));
+        return isTrans && !isRoutine;
+      };
+
+      const isTraslado = isTrasladoHelper(p);
       const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
-      const isTraslado = dest.includes('hospital') || dest.includes('emergencia') || dest.includes('derivac');
       const isDomicilio = dest.includes('domicilio');
 
       if (isFrac) {
@@ -528,12 +542,22 @@ export default function ReportesModule({
     const comunasMap = {};
 
     pacs.forEach(p => {
-      const cat = String(p.categoria || '').toLowerCase();
-      const cod = String(p.codigoDiagnostico || p.diagnostico || '').toUpperCase();
-      const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
+      const cat = String(p.categoria || p.categoria_triage || '').toLowerCase();
+      const cod = String(p.codigoDiagnostico || p.codigo_diagnostico_cie10 || p.codigo || '').toUpperCase();
+      const diag = String(p.diagnosticoPrincipal || p.diagnostico || p.glosaDiagnostica || '').toUpperCase();
+      const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
+      const obs = String(p.observacion || p.obs || '').toUpperCase();
 
       const isC3 = cat === 'c3' || cat === 'c3_z518';
-      const isOfficial = cat === 'c3_z518' || cod.includes('Z51.8') || cod.includes('Z518') || diag.includes('CONSTATAC');
+      const keywordsPolice = ['CARABINERO', 'PDI', 'COMISARIA', 'COMISARÍA', 'POLICIA', 'POLICÍA', 'POLICIAL', 'DETENIDO', 'CUSTODIA', 'FISCALIA', 'FISCALÍA'];
+
+      const isOfficial = (
+        (p.flag_constatacion_z518 !== undefined && p.flag_constatacion_z518 !== null && Boolean(p.flag_constatacion_z518)) ||
+        cat === 'c3_z518' ||
+        cod.includes('Z51.8') || cod.includes('Z518') || cod.includes('Z04') || cod.includes('Z65') || cod.includes('Z02.7') ||
+        diag.includes('CONSTATAC') || diag.includes('CIRCUNSTANCIAS LEGALES') || diag.includes('LEGAL') || diag.includes('AGRESIO') || diag.includes('AGRESIÓ') ||
+        keywordsPolice.some(k => dest.includes(k) || obs.includes(k))
+      );
 
       if (isOfficial) {
         official241++;
@@ -543,11 +567,15 @@ export default function ReportesModule({
         const isM = s.includes('HOMBRE') || s.includes('MASCULINO') || s === 'M';
         if (isF) mujeres++; else if (isM) hombres++;
 
+        let ageNum = null;
+        if (p.edad !== null && p.edad !== undefined && !isNaN(p.edad)) ageNum = Number(p.edad);
+        else if (p.edad_anos !== null && p.edad_anos !== undefined && !isNaN(p.edad_anos)) ageNum = Number(p.edad_anos);
+
         let r = '30-59';
-        if (p.edad !== null && p.edad !== undefined && !isNaN(p.edad)) {
-          if (p.edad <= 14) r = '0-14';
-          else if (p.edad <= 29) r = '15-29';
-          else if (p.edad <= 59) r = '30-59';
+        if (ageNum !== null) {
+          if (ageNum <= 14) r = '0-14';
+          else if (ageNum <= 29) r = '15-29';
+          else if (ageNum <= 59) r = '30-59';
           else r = '60+';
         }
 
@@ -557,17 +585,18 @@ export default function ReportesModule({
           if (isM) matrixMap[r].hombres++;
         }
 
-        const com = String(p.comuna || 'MELIPILLA').toUpperCase().trim();
+        let com = String(p.comuna || p.comuna_residencia || p.comunaResidencia || '').toUpperCase().trim();
+        if (!com || com === 'UNDEFINED' || com === 'NULL') com = 'MELIPILLA';
         comunasMap[com] = (comunasMap[com] || 0) + 1;
       }
 
       if (isC3) c3Total++;
 
       if (cod.includes('Z51') || cod.includes('Z04') || isOfficial) {
-        if (cod.includes('Z51') || cod.includes('Z51.8') || cod.includes('Z518') || diag.includes('CONSTATAC')) subLesiones++;
+        if (cod.includes('Z51') || cod.includes('Z51.8') || cod.includes('Z518') || diag.includes('CONSTATAC') || p.flag_constatacion_z518) subLesiones++;
         if (diag.includes('CIRCUNSTANCIAS LEGALES') || diag.includes('LEGAL')) subLegales++;
-        if (diag.includes('AGRESIÓ') || diag.includes('AGRESION')) subAgresion++;
-        if (diag.includes('POLICIAL') || diag.includes('CARABINERO') || diag.includes('PDI') || cod.includes('Z04')) subPolicial++;
+        if (diag.includes('AGRESIÓ') || diag.includes('AGRESION') || diag.includes('VIOLENCIA')) subAgresion++;
+        if (diag.includes('POLICIAL') || diag.includes('CARABINERO') || diag.includes('PDI') || cod.includes('Z04') || keywordsPolice.some(k => dest.includes(k) || obs.includes(k))) subPolicial++;
       }
     });
 
@@ -675,10 +704,19 @@ totalTriados,
   const trasladosReportStats = useMemo(() => {
     const pacs = pacientesFiltrados || [];
     
-    // Identificar traslados
+    // Identificar traslados (Filtro Unificado)
     const isTraslado = (p) => {
-      const dest = (p.destinoAlta || p.destino || '').toLowerCase();
-      return dest.includes('hospital') || dest.includes('emergencia') || dest.includes('derivac');
+      if (!p) return false;
+      if (p.flag_traslado_hospitalario !== undefined && p.flag_traslado_hospitalario !== null) return Boolean(p.flag_traslado_hospitalario);
+      const dest = String(p.destinoAlta || p.destino || p.lugarDerivacion || p.motivoAlta || p.tipoAlta || '').toUpperCase();
+      const obs = String(p.observacion || p.obs || '').toUpperCase();
+      const cat = String(p.categoria || p.categoria_triage || '').toUpperCase();
+      const isTrans = dest.includes('HOSP') || dest.includes('URGENC') || dest.includes('EMERGENC') || dest.includes('UEH') || dest.includes('SAMU') || dest.includes('DERIVAC') ||
+                      obs.includes('HOSP') || obs.includes('URGENC') || obs.includes('EMERGENC') || obs.includes('UEH') || obs.includes('SAMU') ||
+                      cat === 'C1';
+      const isRoutine = (dest.includes('CONSULTORIO') || dest.includes('CESFAM') || dest.includes('DOMICILIO')) &&
+                        !(dest.includes('HOSP') || dest.includes('URGENC') || dest.includes('EMERGENC') || dest.includes('UEH'));
+      return isTrans && !isRoutine;
     };
     
     const listTraslados = pacs.filter(isTraslado);
@@ -807,7 +845,7 @@ totalTriados,
       return [];
     })() : [];
     
-    const summaryText = generateTrasladosSummary(pacs, prevYearPacs);
+    const summaryText = generateTrasladosSummary(pacs, prevYearPacs, pacs.length);
 
     // Top Destino
     const destCounts = {};

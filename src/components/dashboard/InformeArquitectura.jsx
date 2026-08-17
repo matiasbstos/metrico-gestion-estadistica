@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.8.7',
+    version_tag: 'v4.8.7',
+    fecha_despliegue: '17 de Agosto, 2026',
+    proposito_actualizacion: 'Conciliación Unificada de Algoritmos de Detección en la Suite de Reportes (PDF/Imprimible): Unificación de isTraslado y Extracción Completa de Constataciones Z51.8 (Pirámide, Sexo, Tabla Sociodemográfica y Origen Geográfico).',
+    medios_y_stack: [
+      'React 18.3 & summaryGenerator.js',
+      'ReportesModule.jsx (Unificación estricta de isTraslado y matriz ampliada isConstatacionOficial)',
+      'Sub-reportes Factores/Destinos (Fracturas), Traslados Hospitalarios y Constatación de Lesiones'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Eliminación total de discrepancias entre las narrativas automáticas y las tarjetas KPI. El cálculo de traslados a centros de mayor complejidad en el informe impreso es 100% idéntico al subreporte de factores y destino. La matriz de constataciones Z51.8 lee diagnósticos principales, CIE-10, banderas y derivaciones policiales para poblar gráficos y comunas.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Filtro unificado O(N) sin redundancia de clasificadores secundarios.'
+    },
+    modulos_afectados: ['ReportesModule', 'summaryGenerator', 'AnalisisConstataciones', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Unificación del helper isTraslado entre ReportesModule.jsx, summaryGenerator.js y useMetricoAnalytics.js.',
+      'Ampliación del parser isConstatacionOficial en ReportesModule.jsx para resolver Pirámide, Sexo y Comunas en cero.',
+      'Sincronización del parámetro globalTotalPacientes en generateTrasladosSummary para concordancia 100% en porcentajes.'
+    ]
+  },
+  {
     id: 'v4.8.6',
     version_tag: 'v4.8.6',
     fecha_despliegue: '17 de Agosto, 2026',

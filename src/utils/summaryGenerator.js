@@ -270,32 +270,23 @@ export const generateTrasladosSummary = (pacs, prevYearPacs = [], globalTotalPac
 
   const isTraslado = (p) => {
     if (!p) return false;
-    const dest = String(p.destinoAlta || p.destino || p.lugarDerivacion || p.motivoAlta || p.tipoAlta || '').toLowerCase();
-    const cat = String(p.categoria || p.triage || '').toLowerCase();
-    const obs = String(p.observacion || p.obs || '').toLowerCase();
-
-    const isConsultorioOAmb = dest.includes('consultorio') || dest.includes('cesfam') || dest.includes('domicilio');
-    const hasHospitalOUrgencia = dest.includes('hosp') || dest.includes('urgenc') || dest.includes('emergenc') || dest.includes('ueh');
-
-    if (isConsultorioOAmb && !hasHospitalOUrgencia) {
-      return false;
-    }
-
-    return (
-      hasHospitalOUrgencia ||
-      dest.includes('samu') ||
-      obs.includes('hosp') ||
-      obs.includes('urgenc') ||
-      obs.includes('traslado a') ||
-      cat === 'c1'
-    );
+    if (p.flag_traslado_hospitalario !== undefined && p.flag_traslado_hospitalario !== null) return Boolean(p.flag_traslado_hospitalario);
+    const dest = String(p.destinoAlta || p.destino || p.lugarDerivacion || p.motivoAlta || p.tipoAlta || '').toUpperCase();
+    const obs = String(p.observacion || p.obs || '').toUpperCase();
+    const cat = String(p.categoria || p.categoria_triage || '').toUpperCase();
+    const isTrans = dest.includes('HOSP') || dest.includes('URGENC') || dest.includes('EMERGENC') || dest.includes('UEH') || dest.includes('SAMU') || dest.includes('DERIVAC') ||
+                    obs.includes('HOSP') || obs.includes('URGENC') || obs.includes('EMERGENC') || obs.includes('UEH') || obs.includes('SAMU') ||
+                    cat === 'C1';
+    const isRoutine = (dest.includes('CONSULTORIO') || dest.includes('CESFAM') || dest.includes('DOMICILIO')) &&
+                      !(dest.includes('HOSP') || dest.includes('URGENC') || dest.includes('EMERGENC') || dest.includes('UEH'));
+    return isTrans && !isRoutine;
   };
 
-  const listTraslados = pacs.some(p => !isTraslado(p)) ? pacs.filter(isTraslado) : pacs;
+  const listTraslados = pacs.filter(isTraslado);
   const total = listTraslados.length;
   if (total === 0) return 'No se registraron traslados hospitalarios a urgencias externas en el período seleccionado.';
 
-  const universeTotal = globalTotalPacientes || (pacs.length > total ? pacs.length : total);
+  const universeTotal = globalTotalPacientes || pacs.length;
   const pct = formatPct(total, universeTotal);
 
   // Principal centro receptor
