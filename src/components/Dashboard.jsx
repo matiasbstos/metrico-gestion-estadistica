@@ -245,13 +245,13 @@ const DashboardContent = () => {
         setFiltroFechaFin(maxDateStr);
         setFiltroHoraInicio('20:00');
         setFiltroHoraFin('08:00');
-        setHorarioPreset('custom');
+        setHorarioPreset('finde_noche');
       } else {
         setFiltroFechaInicio(maxDateStr);
         setFiltroFechaFin(maxDateStr);
         setFiltroHoraInicio('08:00');
         setFiltroHoraFin('20:00');
-        setHorarioPreset('custom');
+        setHorarioPreset('finde_dia');
       }
     } else {
       // Día hábil de semana (ej. 13/08/2026)
@@ -267,7 +267,7 @@ const DashboardContent = () => {
       setFiltroFechaFin(maxDateStr);     // 2026-08-13
       setFiltroHoraInicio('16:00');
       setFiltroHoraFin('09:00');
-      setHorarioPreset('custom'); // Mantener badge de información oculto en la carga inicial
+      setHorarioPreset('largo');
     }
   }, [pacientesDB, allPacientesDB]);
 
@@ -385,8 +385,22 @@ const DashboardContent = () => {
       startB = new Date(firstDay.getTime() - 7 * 24 * 60 * 60 * 1000);
       endB = new Date(lastDay.getTime() - 7 * 24 * 60 * 60 * 1000);
     } else if (preset === 'dia' || preset === 'hoy') {
-      startA = endA = baseDate;
-      startB = endB = new Date(baseDate.getTime() - 24 * 60 * 60 * 1000);
+      const dayOfWeek = baseDate.getDay();
+      const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+      const maxDateStr = formatDate(baseDate);
+      if (!isWeekend) {
+        const prevDate = new Date(baseDate);
+        prevDate.setDate(prevDate.getDate() - 1);
+        setFiltroFechaInicio(formatDate(prevDate));
+        setFiltroFechaFin(maxDateStr);
+        setFiltroHoraInicio('16:00');
+        setFiltroHoraFin('09:00');
+        setHorarioPreset('largo');
+        return;
+      } else {
+        startA = endA = baseDate;
+        startB = endB = new Date(baseDate.getTime() - 24 * 60 * 60 * 1000);
+      }
     } else if (preset === 'invierno_2026') {
       startA = new Date(2026, 5, 1);
       endA = new Date(2026, 8, 0);
@@ -417,20 +431,19 @@ const DashboardContent = () => {
     }
 
     const baseDate = maxTime > 0 ? new Date(maxTime) : new Date();
-    const y = baseDate.getFullYear();
-    const m = baseDate.getMonth();
-    
-    const firstDay = `${y}-${String(m + 1).padStart(2, '0')}-01`;
-    const lastDay = new Date(y, m + 1, 0).toISOString().split('T')[0];
-    
-    setFiltroFechaInicio(firstDay);
-    setFiltroFechaFin(lastDay);
+    const maxDateStr = baseDate.toISOString().split('T')[0];
+    const prevDate = new Date(baseDate);
+    prevDate.setDate(prevDate.getDate() - 1);
+    const prevDateStr = prevDate.toISOString().split('T')[0];
+
+    setFiltroFechaInicio(prevDateStr);
+    setFiltroFechaFin(maxDateStr);
     setModoComparativo(false);
     setFiltroFechaInicioB('');
     setFiltroFechaFinB('');
-    setFiltroHoraInicio('00:00');
-    setFiltroHoraFin('23:59');
-    setHorarioPreset('civil');
+    setFiltroHoraInicio('16:00');
+    setFiltroHoraFin('09:00');
+    setHorarioPreset('largo');
     setFiltrosGlobales({ sexo: 'TODOS', prevision: 'TODOS', edad: 'TODOS', establecimiento: 'TODOS' });
   };
 

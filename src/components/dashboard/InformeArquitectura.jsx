@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.8.6',
+    version_tag: 'v4.8.6',
+    fecha_despliegue: '17 de Agosto, 2026',
+    proposito_actualizacion: 'Protocolo de Auto-Adherencia de Filtros de Fecha al Último Día Cargado en su Totalidad (maxTime de pacientesDB y turnosDB) con Carga Nativa de Turno Largo Semana en Dashboard.jsx.',
+    medios_y_stack: [
+      'React 18.3 & useMemo / useEffect Auto-Shift Detect',
+      'Dashboard.jsx (Adosamiento automático de filtroFechaInicio y filtroFechaFin al último día con registros)',
+      'applyDatePreset & handleClearFilters (Ajustados al contexto del último registro real)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Cada vez que el usuario inicia la página o limpia los filtros, el sistema vincula automáticamente el rango de fechas al último turno/día disponible en la base de datos (evitando que el panel cargue en cero por fechas futuras vacías).',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Cálculo reactivo $O(N)$ en memoria local sobre la fecha máxima de admisión.'
+    },
+    modulos_afectados: ['Dashboard', 'FiltrosGlobales', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Configuración nativa de horarioPreset a largo (16:00 a 09:00 AM) para el último día de semana hábil.',
+      'Sincronización de preset "Hoy/Día" y "Borrar" al último día grabado maxDateStr.',
+      'Representación inmediata de KPIs del periodo seleccionado sin datos en cero.'
+    ]
+  },
+  {
     id: 'v4.8.5',
     version_tag: 'v4.8.5',
     fecha_despliegue: '17 de Agosto, 2026',

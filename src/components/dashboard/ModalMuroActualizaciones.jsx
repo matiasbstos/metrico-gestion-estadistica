@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.8.6',
+      version: 'v4.8.6',
+      fecha: '17 de Agosto, 2026',
+      badge: 'PROTOCOLOS Y FILTROS',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Auto-Adherencia de Filtros de Fecha al Último Día Cargado en la Plataforma',
+      categoria: 'Experiencia de Usuario & Filtros',
+      icon: Calendar,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Garantía del protocolo de entrada a MÉTRICO: al iniciar la sesión o recargar la página, el selector de fechas y horarios se adosa automáticamente al último día con registros reales cargados en la base de datos, desplegando de inmediato los indicadores completos del periodo.',
+      instructivo: {
+        paraQueSirve: 'Evita que el panel de control inicie en cero por seleccionar la fecha del calendario civil cuando aún no hay planillas subidas para ese día.',
+        quePuedesVer: 'Al ingresar verás las métricas del "Periodo Seleccionado" (Admitidos, Atendidos, Tiempos, Altas, etc.) completamente pobladas con los datos del último día disponible.',
+        ejemploUso: 'Ejemplo: Si la última planilla cargada corresponde al 13/08/2026, los filtros superiores se configuran automáticamente en ese periodo para mostrar los datos reales de esa jornada.'
+      },
+      changes: [
+        'Adherencia Automática: Configuración de filtroFechaInicio y filtroFechaFin según la fecha máxima de admisión maxTime.',
+        'Sincronización de Preset "Hoy": Al hacer clic en "Hoy", se selecciona el último día registrado en el sistema.',
+        'Encasillamiento Nativo: Selección automática del Horario Turno Largo Semana (16:00 a 09:00 AM) para días hábiles.'
+      ]
+    },
+    {
       id: 'v4.8.5',
       version: 'v4.8.5',
       fecha: '17 de Agosto, 2026',
