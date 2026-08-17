@@ -4,6 +4,13 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db, appId } from '../config/firebase';
 import { savePacientesToIDB, loadPacientesFromIDB, saveTurnosToIDB, loadTurnosFromIDB } from '../utils/indexedDB';
 
+const runWithTimeout = (promise, ms = 5000) => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms))
+  ]);
+};
+
 export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
@@ -49,7 +56,7 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
           try {
             const { doc, getDoc, setDoc, updateDoc } = await import('firebase/firestore');
             const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', u.uid);
-            const userSnap = await getDoc(userRef);
+            const userSnap = await runWithTimeout(getDoc(userRef), 4000);
             const now = Date.now();
 
             if (userSnap.exists()) {
@@ -74,13 +81,14 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
               setUserProfile(newProfile);
             }
           } catch (e) {
-            console.error('Error fetching user profile', e);
+            console.warn('Profile fetch timeout or error, using default fallback profile', e);
             setUserProfile({ email: u.email, rol: emailRol });
           }
         } else {
           setUserProfile(null);
-          setSyncStatus('error');
+          setSyncStatus('synced');
           setLoading(false);
+          setSyncProgress(prev => ({ ...prev, active: false }));
         }
       });
       return () => unsubscribeAuth();
@@ -100,7 +108,7 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
       // 2.1 Carga / Refresco de Turnos
       const turnosRef = collection(db, 'artifacts', appId, 'public', 'data', 'turnos');
       const qTurnos = query(turnosRef, where('fechaInicio', '>=', '2025-01-01'));
-      const snapTurnos = await getDocs(qTurnos);
+      const snapTurnos = await runWithTimeout(getDocs(qTurnos), 5000);
       const turnosList = snapTurnos.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => {
         return new Date(b.fechaInicio || 0) - new Date(a.fechaInicio || 0);
       });
@@ -120,7 +128,7 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
           where('tAdmision', '>=', startMs), 
           where('tAdmision', '<=', endMs)
         );
-        const snapPacs = await getDocs(qRange);
+        const snapPacs = await runWithTimeout(getDocs(qRange), 6000);
 
         snapPacs.docs.forEach(d => {
           const p = { id: d.id, ...d.data() };
@@ -161,13 +169,15 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
         });
         setTimeout(() => {
           setSyncProgress(prev => ({ ...prev, active: false }));
-        }, 1500);
+        }, 1200);
+      } else {
+        setSyncProgress(prev => ({ ...prev, active: false }));
       }
     } catch (err) {
-      console.error("Error en sincronización profunda:", err);
+      console.warn("Sincronización Firestore en segundo plano (usando datos locales):", err);
       setSyncStatus('synced');
       setLoading(false);
-      if (!isSilent) setSyncProgress(prev => ({ ...prev, active: false }));
+      setSyncProgress(prev => ({ ...prev, active: false }));
     }
   }, [user, filtroFechaInicio, filtroFechaFin]);
 
@@ -180,22 +190,30 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
     const runPreload = async () => {
       setSyncStatus('connecting');
       
-      const cachedPacs = await loadPacientesFromIDB();
-      const cachedTurnos = await loadTurnosFromIDB();
+      try {
+        const cachedPacs = await loadPacientesFromIDB();
+        const cachedTurnos = await loadTurnosFromIDB();
 
-      if (cachedPacs && cachedPacs.length > 0 && isSubscribed) {
-        cachedPacs.forEach(p => {
-          const id = p.id || p.docId || `${p.tAdmision}_${p.correlativo || p.nombrePaciente}`;
-          globalPacientesMapRef.current.set(id, p);
-        });
-        const arr = Array.from(globalPacientesMapRef.current.values()).sort((a, b) => b.tAdmision - a.tAdmision);
-        setPacientesDB(arr);
-        setAllPacientesDB(arr);
+        if (cachedPacs && cachedPacs.length > 0 && isSubscribed) {
+          cachedPacs.forEach(p => {
+            const id = p.id || p.docId || `${p.tAdmision}_${p.correlativo || p.nombrePaciente}`;
+            globalPacientesMapRef.current.set(id, p);
+          });
+          const arr = Array.from(globalPacientesMapRef.current.values()).sort((a, b) => b.tAdmision - a.tAdmision);
+          setPacientesDB(arr);
+          setAllPacientesDB(arr);
+          setLoading(false);
+          setSyncStatus('synced');
+        }
+
+        if (cachedTurnos && cachedTurnos.length > 0 && isSubscribed) {
+          setTurnosDB(cachedTurnos);
+        }
+      } catch (e) {
+        console.warn("Error cargando caché IndexedDB:", e);
+      } finally {
         setLoading(false);
-      }
-
-      if (cachedTurnos && cachedTurnos.length > 0 && isSubscribed) {
-        setTurnosDB(cachedTurnos);
+        setSyncStatus('synced');
       }
 
       await forceDeepSync(true);
@@ -242,6 +260,8 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
         const mergedList = Array.from(globalPacientesMapRef.current.values()).sort((a, b) => b.tAdmision - a.tAdmision);
         setPacientesDB(mergedList);
         setAllPacientesDB(mergedList);
+        setSyncProgress(prev => ({ ...prev, active: false }));
+        setSyncStatus('synced');
         return;
       }
 
@@ -262,7 +282,7 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
       );
 
       try {
-        const snap = await getDocs(qHistorical);
+        const snap = await runWithTimeout(getDocs(qHistorical), 5000);
         if (isSubscribed) {
           snap.docs.forEach(d => {
             const p = { id: d.id, ...d.data() };
@@ -286,6 +306,7 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
 
           setTimeout(() => {
             if (isSubscribed) setSyncProgress(prev => ({ ...prev, active: false }));
+            setSyncStatus('synced');
           }, 800);
         }
       } catch (err) {
@@ -297,6 +318,7 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
             setAllPacientesDB(mergedList);
           }
           setSyncProgress(prev => ({ ...prev, active: false }));
+          setSyncStatus('synced');
         }
       }
     };

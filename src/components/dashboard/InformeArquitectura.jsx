@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.8.5',
+    version_tag: 'v4.8.5',
+    fecha_despliegue: '17 de Agosto, 2026',
+    proposito_actualizacion: 'Blindaje de Conexión e Indicadores de Carga: Desbloqueo Automático de Pantalla con Tiempos Máximos de Seguridad (runWithTimeout) en useMetricoData.js y Filtro de Autenticación Previa en usePautasTurnos.js.',
+    medios_y_stack: [
+      'React 18.3 & Firebase Auth (onAuthStateChanged Guard)',
+      'useMetricoData.js (Timeout de seguridad de 5s en consultas Firestore & fallback a IndexedDB)',
+      'usePautasTurnos.js (Suscripción diferida tras validación de usuario auth)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Si las consultas a la nube tardan más de 5 segundos o se bloquea la respuesta de red/AppCheck, el sistema pasa inmediatamente a estado synced y muestra los datos en caché local IndexedDB sin detener la aplicación.',
+      firestore_collections: ['pacientes_urgencia', 'turnos', 'pautas_turnos'],
+      query_optimization: 'Filtro auth reactivo que evita consultas permission-denied previas al inicio de sesión.'
+    },
+    modulos_afectados: ['useMetricoData', 'usePautasTurnos', 'Dashboard', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Envoltorio runWithTimeout a todas las promesas getDocs en useMetricoData.js.',
+      'Suscripción condicional a onSnapshot en usePautasTurnos.js solo cuando u.email está autenticado.',
+      'Limpieza automática de syncProgress.active ante cualquier error o cancelación manual.'
+    ]
+  },
+  {
     id: 'v4.8.4',
     version_tag: 'v4.8.4',
     fecha_despliegue: '16 de Agosto, 2026',

@@ -2028,6 +2028,7 @@ const DashboardContent = () => {
                 onClick={() => {
                   setSyncStatus('synced');
                   setLoading(false);
+                  if (syncProgress) syncProgress.active = false;
                 }}
                 className="mt-2 text-xs font-bold text-rose-500 hover:text-rose-600 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-xl px-4 py-2 transition-all duration-200 shadow-sm flex items-center gap-1.5"
               >

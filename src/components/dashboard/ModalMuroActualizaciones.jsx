@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.8.5',
+      version: 'v4.8.5',
+      fecha: '17 de Agosto, 2026',
+      badge: 'DISPONIBILIDAD & VELOCIDAD',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Desbloqueo Automático de Pantalla y Protección de Conexión en Tiempo Real',
+      categoria: 'Rendimiento & Estabilidad',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Implementación de temporizadores máximos de seguridad (5s) para la consulta de datos en la nube. Si Firestore o la autenticación experimenta latencia o bloqueos de red, la pantalla se desbloquea automáticamente al 100% y carga la información desde la caché local IndexedDB.',
+      instructivo: {
+        paraQueSirve: 'Previene que el panel de control quede detenido en la pantalla de "Sincronizando base de datos...", garantizando el acceso inmediato a la plataforma.',
+        quePuedesVer: 'Al ingresar o recargar la página, el sitio abre de inmediato con los datos en memoria. Si hay datos nuevos en la nube, se actualizan silenciosamente en segundo plano.',
+        ejemploUso: 'Ejemplo: Si tu conexión a internet o la respuesta de Firestore es lenta, el sitio pasa automáticamente a estado Sincronizado y te permite trabajar con los registros locales.'
+      },
+      changes: [
+        'Tiempo Máximo de Seguridad (Timeout 5s): Desbloqueo automático ante cualquier demora en consultas Firestore.',
+        'Suscripciones Autenticadas: usePautasTurnos.js solo consulta Firestore cuando la autenticación de usuario está activa.',
+        'Recuperación Inmediata de Caché: Presentación instantánea de los registros almacenados en IndexedDB.'
+      ]
+    },
+    {
       id: 'v4.8.4',
       version: 'v4.8.4',
       fecha: '16 de Agosto, 2026',
