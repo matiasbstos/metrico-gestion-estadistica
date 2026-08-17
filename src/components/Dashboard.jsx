@@ -1001,7 +1001,7 @@ const DashboardContent = () => {
       )}
 
       {/* COLUMNA IZQUIERDA: SIDEBAR FLUIDO */}
-      <aside className={`
+      <aside className={`no-print
         h-full bg-sidebar-custom border-r border-card-custom text-primary-custom flex flex-col justify-between flex-shrink-0 z-50 shadow-xl theme-transition
         fixed md:static inset-y-0 left-0 transform transition-all duration-300 ease-in-out
         ${sidebarCollapsed ? 'translate-x-[-100%] md:translate-x-0 md:w-16 lg:w-20' : 'translate-x-0 w-64 md:w-64'}

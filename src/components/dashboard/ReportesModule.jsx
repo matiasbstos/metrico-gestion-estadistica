@@ -1338,12 +1338,12 @@ totalTriados,
                       {topDiagnosticos.map((diag, idx) => {
                         const pctWidth = Math.min(100, Math.round((diag.count / maxDiagCount) * 100));
                         return (
-                          <div key={idx} className="flex items-center gap-3 text-xs">
-                            <span className="w-48 font-bold text-slate-700 truncate" title={diag.name}>{diag.name}</span>
-                            <div className="flex-1 bg-slate-100 h-4 rounded-full overflow-hidden border border-slate-200 flex items-center">
+                          <div key={idx} className="flex items-center gap-3 text-xs pr-2">
+                            <span className="w-44 font-bold text-slate-700 truncate shrink-0" title={diag.name}>{diag.name}</span>
+                            <div className="flex-1 bg-slate-100 h-3.5 rounded-full overflow-hidden border border-slate-200 flex items-center">
                               <div className="bg-rose-500 h-full rounded-full transition-all" style={{ width: `${pctWidth}%` }}></div>
                             </div>
-                            <span className="w-12 font-black text-right text-rose-600">{diag.count} pac</span>
+                            <span className="w-16 text-right font-black text-rose-600 shrink-0 pr-1">{diag.count} pac</span>
                           </div>
                         );
                       })}

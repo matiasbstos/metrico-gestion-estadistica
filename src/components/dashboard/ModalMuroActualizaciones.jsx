@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.8.8',
+      version: 'v4.8.8',
+      fecha: '17 de Agosto, 2026',
+      badge: 'IMPRESIÓN & PLOTTER',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Optimización de Márgenes de Impresión y Ajuste de Borde para Plotter y Formato Carta',
+      categoria: 'Impresión & Diseño Formatos',
+      icon: Printer,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Perfeccionamiento de la vista de impresión en CSS (@media print). Se agregaron márgenes de seguridad internos y reglas de contención para evitar que las tablas, cifras o encabezados rocen o se corten en los bordes del papel al imprimir en plotters o impresoras de gran formato.',
+      instructivo: {
+        paraQueSirve: 'Asegura una presentación ejecutiva impecable sin recortes de texto ni desbordamientos laterales al imprimir los reportes en cualquier tipo de impresora o plotter.',
+        quePuedesVer: 'Al abrir el diálogo de impresión (Ctrl+P), la barra lateral web se oculta por completo y las hojas impresas mantienen un margen blanco limpio alrededor de todo el contenido, incluso seleccionando "Márgenes: Ninguno".',
+        ejemploUso: 'Ejemplo: En el resumen de diagnósticos principales y tablas de médicos, los recuentos como "280 pac" se mantienen alineados con espacio suficiente de resguardo.'
+      },
+      changes: [
+        'Resguardo de Márgenes Internos: Implementación de padding de seguridad (6mm/8mm) en el contenedor imprimible.',
+        'Aislamiento de Barra Lateral: Ocultamiento total de la navegación web aside en las hojas de impresión.',
+        'Control de Tablas y Bordes: Configuración de table-layout: fixed y word-break para prevenir desbordamientos laterales.'
+      ]
+    },
+    {
       id: 'v4.8.7',
       version: 'v4.8.7',
       fecha: '17 de Agosto, 2026',

@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.8.8',
+    version_tag: 'v4.8.8',
+    fecha_despliegue: '17 de Agosto, 2026',
+    proposito_actualizacion: 'Blindaje de Márgenes de Impresión & Formato Plotter/Carta: Aislamiento Completo de Controles de Interfaz (.no-print en aside/headers) y Relleno de Seguridad (padding 6mm/8mm) en #reporte-printable.',
+    medios_y_stack: [
+      'CSS3 @media print & TailWind CSS box-sizing border-box',
+      'src/index.css (Márgenes de seguridad @page 10mm 12mm & padding de seguridad interno)',
+      'Dashboard.jsx & ReportesModule.jsx (Ocultamiento total de barra lateral y adaptabilidad de tablas)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Incluso al imprimir en impresoras plotter o seleccionar "Márgenes: Ninguno" en el diálogo del navegador, los reportes mantienen un margen seguro interno que evita el contacto o corte de cifras en los bordes del papel.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Sin impacto en Firestore (reglas CSS puras de renderizado de impresión).'
+    },
+    modulos_afectados: ['index.css', 'Dashboard', 'ReportesModule', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Asignación de clase no-print a la barra lateral aside en Dashboard.jsx para evitar filtrado de encabezados web.',
+      'Configuración de table-layout: fixed !important y padding interno en #reporte-printable table.',
+      'Resguardo de 6mm 8mm de padding en el contenedor imprimible para salidas plotter de gran formato.'
+    ]
+  },
+  {
     id: 'v4.8.7',
     version_tag: 'v4.8.7',
     fecha_despliegue: '17 de Agosto, 2026',

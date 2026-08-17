@@ -19,7 +19,7 @@
 
   @page {
     size: letter portrait;
-    margin: 8mm 12mm 10mm 12mm;
+    margin: 10mm 12mm 10mm 12mm;
   }
 
   /* Reset complete layout stack to allow multi-page flow */
@@ -50,39 +50,63 @@
   input, 
   select, 
   .sidebar-custom, 
-  .filtros-globales-container {
+  .filtros-globales-container,
+  [class*="PopUpSincronizacion"],
+  [class*="BarraProgresoCarga"] {
     display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
   }
 
-  /* Force the printed element to take full page width and natural height without top gaps */
+  /* Force the printed element to take full page width and natural height with safe internal margins */
   #reporte-printable, #ficha-bienvenida-printable {
     position: static !important;
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    box-sizing: border-box !important;
+    padding: 6mm 8mm !important;
+    margin: 0 auto !important;
     box-shadow: none !important;
     border: none !important;
     background: #ffffff !important;
     color: #000000 !important;
   }
 
-  #reporte-printable > div {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
+  #reporte-printable * {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
   }
 
-  #reporte-printable > div > div:first-child {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
+  /* Ensure tables use fixed layout and never overflow past paper margins */
+  #reporte-printable table {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    table-layout: fixed !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+  }
+
+  #reporte-printable th, #reporte-printable td {
+    box-sizing: border-box !important;
+    padding: 6px 10px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 
   .print-page-break {
     page-break-before: always !important;
     break-before: page !important;
-    margin-top: 0.5rem !important;
-    padding-top: 0.5rem !important;
+    margin-top: 1rem !important;
+    padding-top: 1rem !important;
   }
 
   .print-avoid-break {
