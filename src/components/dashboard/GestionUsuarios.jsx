@@ -10,21 +10,7 @@ import {
 } from 'lucide-react';
 import { auth, firebaseConfig, appId } from '../../config/firebase';
 
-const MODULE_LIST = [
-  { id: 'resumen', name: 'Inicio / Resumen General', description: 'Acceso al dashboard principal y tarjetas de KPIs globales.', icon: BarChart2, color: 'text-indigo-500' },
-  { id: 'comparativo', name: 'Rendimiento Turno', description: 'Comparativa tripartita de turnos y curvas de demanda.', icon: GitCompare, color: 'text-emerald-500' },
-  { id: 'calendario', name: 'Histórico Mensual', description: 'Cuadrícula mensual de turnos y mapa de calor de atenciones.', icon: Calendar, color: 'text-blue-500' },
-  { id: 'profesionales', name: 'Rendimiento Clínico', description: 'Auditoría de médicos, promedio de atenciones y prescripción.', icon: Award, color: 'text-amber-500' },
-  { id: 'perfil_paciente', name: 'Perfil del Paciente', description: 'Análisis sociodemográfico y procedencia por comuna.', icon: Users, color: 'text-purple-500' },
-  { id: 'altas', name: 'Altas Administrativas', description: 'Filtro y auditoría de cancelaciones no médicas en triaje.', icon: UserCheck, color: 'text-rose-500' },
-  { id: 'fracturas', name: 'Estadísticas de Fractura', description: 'Epidemiología ósea de lesiones CIE-10 (S02 a S92).', icon: Activity, color: 'text-rose-500' },
-  { id: 'enfermeria', name: 'Rendimiento Enfermería', description: 'Evaluación de categorización de triaje y enfermeros.', icon: Activity, color: 'text-indigo-500' },
-  { id: 'constataciones', name: 'Constatación de Lesiones', description: 'Análisis de atenciones clínico-legales Z51.8 y Z04.', icon: ShieldAlert, color: 'text-amber-500' },
-  { id: 'traslados', name: 'Traslados Hospitalarios', description: 'Derivaciones a centros de alta complejidad y Top 10.', icon: ArrowLeftRight, color: 'text-indigo-500' },
-  { id: 'reportes', name: 'Reporte Ejecutivo', description: 'Generación de informes ejecutivos e impresiones PDF.', icon: FileSpreadsheet, color: 'text-emerald-500' },
-  { id: 'data', name: 'Gestión de Datos', description: 'Carga masiva de Excel, sanitización y re-cálculo.', icon: Database, color: 'text-teal-500' },
-  { id: 'auditoria', name: 'Registro de Auditoría', description: 'Historial de modificaciones y acciones del sistema.', icon: Shield, color: 'text-indigo-500' }
-];
+import { SYSTEM_MODULES as MODULE_LIST, getNormalizedUserPermissions } from '../../config/modules';
 
 export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
   const [users, setUsers] = useState([]);
@@ -816,11 +802,25 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
                       <IconComponent className={`w-5 h-5 ${mod.color}`} />
                     </div>
                     <div>
-                      <span className="text-xs font-black text-slate-900 dark:text-white block">{mod.name}</span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs font-black text-slate-900 dark:text-white block">{mod.name}</span>
+                        {mod.isNew && (
+                          <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-600 text-white animate-pulse shadow-xs">
+                            ✨ NUEVO MÓDULO
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold leading-normal mt-0.5">{mod.description}</p>
-                      <span className={`inline-block text-[9px] font-black uppercase tracking-wider mt-2 px-2 py-0.5 rounded-md ${isChecked ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-500'}`}>
-                        {isChecked ? 'Habilitado' : 'Restringido'}
-                      </span>
+                      <div className="flex items-center gap-1.5 mt-2">
+                        <span className={`inline-block text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${isChecked ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-500'}`}>
+                          {isChecked ? 'Habilitado' : 'Restringido'}
+                        </span>
+                        {mod.category && (
+                          <span className="inline-block text-[9px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+                            {mod.category}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -1011,7 +1011,7 @@ export default function GestionUsuarios({ db, userProfile, isGlobalAdmin }) {
                         <button
                           onClick={() => setEditingUserPerms({
                             ...u,
-                            permisos: u.permisos || MODULE_LIST.reduce((acc, m) => ({ ...acc, [m.id]: true }), {})
+                            permisos: getNormalizedUserPermissions(u.permisos, u.rol === 'global' || userEmail === 'matias.bustos@cormumel.cl')
                           })}
                           className="p-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-500 rounded-lg transition cursor-pointer"
                           title="Asignar Permisos y Accesos"

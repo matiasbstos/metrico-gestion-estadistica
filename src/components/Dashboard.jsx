@@ -60,6 +60,7 @@ import { useMetricoDemanda } from '../hooks/useMetricoDemanda';
 import { useMetricoProfesionales } from '../hooks/useMetricoProfesionales';
 import { usePautasTurnos } from '../hooks/usePautasTurnos';
 import { COLORS, DOC_COLORS, AGE_RANGES, METRIC_LABELS } from '../config/constants';
+import { getNormalizedUserPermissions } from '../config/modules';
 
 // Colores Institucionales
 
@@ -179,6 +180,15 @@ const DashboardContent = () => {
   const isGlobalAdmin = useMemo(() => {
     return isSuperAdmin || isCenterAdmin;
   }, [isSuperAdmin, isCenterAdmin]);
+
+  const userPermissions = useMemo(() => {
+    return getNormalizedUserPermissions(userProfile?.permisos, isGlobalAdmin);
+  }, [userProfile, isGlobalAdmin]);
+
+  const hasModuleAccess = useCallback((tabKey) => {
+    if (isGlobalAdmin) return true;
+    return userPermissions[tabKey] !== false;
+  }, [isGlobalAdmin, userPermissions]);
 
   const maxDateLabel = useMemo(() => {
     let maxTime = 0;
@@ -1657,7 +1667,27 @@ const DashboardContent = () => {
 
           <div className={`transition-all duration-300 ${loading || loadingKpis ? 'opacity-65 pointer-events-none filter blur-[0.5px]' : 'opacity-100'} flex-1 flex flex-col space-y-6`}>
 
-        {activeTab === 'resumen' && (
+        {activeTab !== 'resumen' && !hasModuleAccess(activeTab) && (
+          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center bg-card-custom rounded-3xl border border-rose-500/30 my-8 space-y-4 animate-fade-in">
+            <div className="w-16 h-16 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center mx-auto border border-rose-500/20">
+              <Lock className="w-8 h-8" />
+            </div>
+            <h2 className="text-xl font-black text-rose-500 uppercase tracking-wide">Acceso Restringido</h2>
+            <p className="text-xs font-semibold text-secondary-custom max-w-md mx-auto leading-relaxed">
+              Tu cuenta de usuario no posee credenciales o permisos asignados para acceder a este módulo. Solicita la activación de credenciales a un Administrador de la plataforma.
+            </p>
+            <div className="pt-2">
+              <button
+                onClick={() => setActiveTab('resumen')}
+                className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-lg shadow-indigo-900/20 transition cursor-pointer"
+              >
+                Volver a Inicio / Resumen
+              </button>
+            </div>
+          </div>
+        )}
+
+        {hasModuleAccess(activeTab) && activeTab === 'resumen' && (
           <>
             {/* SECTOR DE FILTROS Y CONTROL DE CONTEXTO (STICKY/FLOTANTE CON BLUR EFECTO VIDRIO) */}
             <div className={`sticky top-[61px] md:top-0 z-40 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-md shadow-md border-b border-card-custom/20 -mx-4 md:-mx-8 px-4 md:px-8 transition-all duration-300 ${isScrolled ? 'py-2' : 'pb-4 pt-3'}`}>

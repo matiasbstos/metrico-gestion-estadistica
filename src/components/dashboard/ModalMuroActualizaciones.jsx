@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.9.1',
+      version: 'v4.9.1',
+      fecha: '18 de Agosto, 2026',
+      badge: 'MATRIZ DE PERMISOS DINÁMICA',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Auto-Sincronización Dinámica de Nuevos Módulos en la Matriz de Permisos de Usuarios',
+      categoria: 'Gestión de Usuarios & Seguridad',
+      icon: Users,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se ha optimizado la Matriz de Permisos y Credenciales de Usuarios. Cada vez que se incorpore o despliegue una nueva funcionalidad o módulo en la plataforma (ej. Radar IA, Pautas, etc.), este aparecerá automáticamente en la matriz de permisos de todos los usuarios registrados con el distintivo ✨ NUEVO MÓDULO, permitiendo a los Administradores activar o desactivar su acceso granular de forma inmediata.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que al agregar nuevas secciones a MÉTRICO, los Administradores puedan gestionar de inmediato las credenciales de cada usuario sin realizar migraciones ni configuraciones complejas.',
+        quePuedesVer: 'En la pestaña "Gestión de Usuarios", al editar los permisos de una cuenta, verás los 19 módulos del sistema clasificados por categoría, junto al distintivo resplandeciente ✨ NUEVO MÓDULO en las novedades.',
+        ejemploUso: 'Ejemplo: Si agregamos un nuevo sub-reporte en un despliegue futuro, los administradores podrán desmarcar esa casilla para ciertos perfiles y habilitarla para los gestores directos.'
+      },
+      changes: [
+        'Registro Maestro Centralizado (modules.js): Catálogo de 19 módulos dinámicos con nombres, descripciones e iconos.',
+        'Auto-Fusión Transparente de Permisos: Incorporación automática de nuevos apartados en perfiles existentes sin afectar sus configuraciones previas.',
+        'Distintivo ✨ NUEVO MÓDULO: Resaltado visual instantáneo de apartados recién desplegados en el asistente de usuarios.'
+      ]
+    },
+    {
       id: 'v4.9.0',
       version: 'v4.9.0',
       fecha: '18 de Agosto, 2026',

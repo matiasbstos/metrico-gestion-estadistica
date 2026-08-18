@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.9.1',
+    version_tag: 'v4.9.1',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Registro Centralizado y Auto-Sincronización Dinámica de Módulos en la Matriz de Permisos de Usuarios (modules.js): Inclusión Automática de Nuevas Funcionalidades Desplegadas, Distintivos ✨ NUEVO MÓDULO y Control de Acceso Granular.',
+    medios_y_stack: [
+      'React 18.3 & config/modules.js (Registro Maestro de 19 Módulos)',
+      'getNormalizedUserPermissions (Fusión transparente de credenciales en Firestore)',
+      'GestionUsuarios.jsx & Dashboard.jsx (Verificación y Restricción de Rutas)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Cada vez que se agrega un nuevo módulo o funcionalidad al registro maestro modules.js, este se incorpora automáticamente a la Matriz de Permisos y Credenciales de todos los usuarios registrados (con su estado por defecto true), permitiendo a los Administradores marcar o desmarcar el acceso de cada usuario sin necesidad de migraciones de base de datos.',
+      firestore_collections: ['artifacts/metrico-gestion-estadistica/public/data/users'],
+      query_optimization: 'Fusión de permisos en memoria de complejidad O(N) sin peticiones adicionales a red.'
+    },
+    modulos_afectados: ['modules', 'GestionUsuarios', 'Dashboard', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Creación del registro maestro src/config/modules.js con los 19 módulos del sistema y utilidades de normalización.',
+      'Sincronización dinámica en GestionUsuarios.jsx con distintivos visuales ✨ NUEVO MÓDULO y categorización.',
+      'Protección y ocultamiento automático de accesos restringidos en la navegación lateral de Dashboard.jsx.'
+    ]
+  },
+  {
     id: 'v4.9.0',
     version_tag: 'v4.9.0',
     fecha_despliegue: '18 de Agosto, 2026',
