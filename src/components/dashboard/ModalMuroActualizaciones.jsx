@@ -8,6 +8,27 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.9.2',
+      version: 'v4.9.2',
+      fecha: '18 de Agosto, 2026',
+      badge: 'ESTABILIDAD & CORRECCIÓN',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Resolución de Error de Renderizado en el Panel Principal (useCallback)',
+      categoria: 'Estabilidad de Plataforma',
+      icon: CheckCircle2,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se corrigió un error puntual en tiempo de ejecución originado por la importación de hooks de React en el Dashboard principal, restableciendo de inmediato la carga normal y fluida de todas las vistas estadísticas.',
+      instructivo: {
+        paraQueSirve: 'Restaura el acceso continuo al panel principal eliminando el modal de bloqueo de error visual.',
+        quePuedesVer: 'La plataforma carga de forma inmediata y transparente al ingresar.',
+        ejemploUso: 'Ejemplo: Acceso directo y sin interrupciones a todas las métricas del sistema.'
+      },
+      changes: [
+        'Corrección de Import de React: Inclusión de useCallback en src/components/Dashboard.jsx.',
+        'Eliminación de Bloqueo Visual: Carga 100% limpia en producción.'
+      ]
+    },
+    {
       id: 'v4.9.1',
       version: 'v4.9.1',
       fecha: '18 de Agosto, 2026',

@@ -10,6 +10,26 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.9.2',
+    version_tag: 'v4.9.2',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Resolución de Error en Tiempo de Ejecución (ReferenceError: useCallback is not defined): Corrección de Import de React en Dashboard.jsx.',
+    medios_y_stack: [
+      'React 18.3 (Dashboard.jsx)',
+      'Vite v8.0.14'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Garantiza la estabilidad del ciclo de vida de React al importar explícitamente el hook useCallback para la función hasModuleAccess en el renderizado del panel principal.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Sin impacto en base de datos.'
+    },
+    modulos_afectados: ['Dashboard', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Incorporación de useCallback en los named imports de React en src/components/Dashboard.jsx.',
+      'Eliminación del bloqueo visual de ErrorBoundary en producción.'
+    ]
+  },
+  {
     id: 'v4.9.1',
     version_tag: 'v4.9.1',
     fecha_despliegue: '18 de Agosto, 2026',

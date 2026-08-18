@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, Component } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback, Component } from 'react';
 import PanelKPIs from './dashboard/PanelKPIs';
 import FiltrosGlobales from './dashboard/FiltrosGlobales';
 import GraficoDinamico from './dashboard/GraficoDinamico';
