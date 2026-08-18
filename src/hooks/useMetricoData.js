@@ -48,8 +48,31 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
   useEffect(() => {
     if (auth) {
       const unsubscribeAuth = onAuthStateChanged(auth, async (u) => {
-        setUser(u);
         if (u) {
+          // Verificación de expiración estricta de sesión (15 min de inactividad)
+          const lastActStr = localStorage.getItem('metrico_last_activity');
+          if (lastActStr) {
+            const elapsed = Date.now() - parseInt(lastActStr, 10);
+            if (elapsed >= 15 * 60 * 1000) {
+              // Sesión caducada por inactividad
+              try {
+                sessionStorage.clear();
+                localStorage.clear();
+              } catch (e) {}
+              localStorage.setItem('metrico_logout_reason', 'inactividad');
+              import('firebase/auth').then(({ signOut }) => {
+                signOut(auth).catch(() => {});
+              });
+              setUser(null);
+              setUserProfile(null);
+              setLoading(false);
+              return;
+            }
+          } else {
+            localStorage.setItem('metrico_last_activity', Date.now().toString());
+          }
+
+          setUser(u);
           const emailRol = u.email === 'matias.bustos@cormumel.cl' ? 'global' : 'local';
           setUserProfile({ email: u.email, rol: emailRol });
 

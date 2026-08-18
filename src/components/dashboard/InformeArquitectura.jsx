@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.8.9',
+    version_tag: 'v4.8.9',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Caducidad Estricta e Incondicional de Sesión por Inactividad (>15 min): Monitoreo Persistente Global (localStorage), Auto-Logout en Firebase Auth y Bloqueo de Reingreso Directo de 1-Clic tras Inactividad Prolongada.',
+    medios_y_stack: [
+      'Firebase Auth (signOut en expiración de sesión)',
+      'React 18.3 & Web Storage API (localStorage + sessionStorage)',
+      'ModalInactividad.jsx, ModalVerificacionSesion.jsx, useMetricoData.js, Login.jsx'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Si han transcurrido 15 minutos o más desde el último evento o movimiento registrado (metrico_last_activity), la sesión caduca estrictamente. Al abrir la pestaña o el sitio 24 horas después (o tras >15 min), el sistema desautentica de Firebase Auth y exige ingresar credenciales en Login.jsx sin permitir confirmación directa.',
+      firestore_collections: ['artifacts/metrico-gestion-estadistica/public/data/users'],
+      query_optimization: 'Validación en memoria/local storage instantánea sin consultas redundantes a red.'
+    },
+    modulos_afectados: ['useMetricoData', 'ModalInactividad', 'ModalVerificacionSesion', 'Login', 'Dashboard', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Monitoreo persistente de inactividad global con throttle de 3s sobre metrico_last_activity en localStorage.',
+      'Verificación inmediata de expiración en onAuthStateChanged (useMetricoData.js) e intercepción de focus / visibilitychange en el navegador.',
+      'Auto-logout forzado con desautenticación en Firebase Auth y aviso explicativo en pantalla de Login tras expiración.'
+    ]
+  },
+  {
     id: 'v4.8.8',
     version_tag: 'v4.8.8',
     fecha_despliegue: '17 de Agosto, 2026',

@@ -940,6 +940,9 @@ const DashboardContent = () => {
     }
 
     if (reason === 'inactividad') {
+      try {
+        localStorage.setItem('metrico_logout_reason', 'inactividad');
+      } catch (e) {}
       showNotif('La sesión se ha cerrado automáticamente por inactividad (15 min).', 'warning');
     }
 

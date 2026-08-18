@@ -11,6 +11,16 @@ export default function Login() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
+  React.useEffect(() => {
+    try {
+      const logoutReason = localStorage.getItem('metrico_logout_reason');
+      if (logoutReason === 'inactividad') {
+        setError('🔒 Tu sesión ha caducado por inactividad (>15 minutos). Por favor ingresa tus credenciales nuevamente.');
+        localStorage.removeItem('metrico_logout_reason');
+      }
+    } catch (e) {}
+  }, []);
+
   const handleAuth = async (e) => {
     e.preventDefault();
     if (!email || !password) {
@@ -26,6 +36,10 @@ export default function Login() {
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
+      try {
+        localStorage.setItem('metrico_last_activity', Date.now().toString());
+        sessionStorage.setItem('metrico_session_verified', 'true');
+      } catch (e) {}
     } catch (err) {
       console.error(err);
       if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {

@@ -11,88 +11,101 @@ export default function ModalInactividad({
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [remainingSeconds, setRemainingSeconds] = useState(warningCountdownSec);
 
-  const inactivityTimerRef = useRef(null);
-  const countdownIntervalRef = useRef(null);
   const lastActivityRef = useRef(Date.now());
+  const soundPlayedRef = useRef(false);
 
-  // Función para reiniciar el temporizador de inactividad
-  const resetInactivityTimer = useCallback(() => {
-    lastActivityRef.current = Date.now();
-
-    if (inactivityTimerRef.current) {
-      clearTimeout(inactivityTimerRef.current);
+  // Actualizar timestamp en localStorage (con throttle)
+  const updateActivityTimestamp = useCallback(() => {
+    const now = Date.now();
+    if (now - lastActivityRef.current > 3000) {
+      lastActivityRef.current = now;
+      try {
+        localStorage.setItem('metrico_last_activity', now.toString());
+      } catch (e) {}
     }
-    if (countdownIntervalRef.current) {
-      clearInterval(countdownIntervalRef.current);
-    }
+  }, []);
 
+  // Reiniciar actividad manualmente desde el modal ("Mantener Sesión Activa")
+  const handleKeepSessionActive = () => {
+    const now = Date.now();
+    lastActivityRef.current = now;
+    soundPlayedRef.current = false;
+    try {
+      localStorage.setItem('metrico_last_activity', now.toString());
+    } catch (e) {}
     setShowWarningModal(false);
+  };
 
-    // Iniciar temporizador de 15 minutos
-    inactivityTimerRef.current = setTimeout(() => {
+  // Verificar la expiración de sesión
+  const checkInactivityStatus = useCallback(() => {
+    if (!user) return;
+
+    let lastAct = parseInt(localStorage.getItem('metrico_last_activity') || '0', 10);
+    if (!lastAct || isNaN(lastAct)) {
+      lastAct = Date.now();
+      localStorage.setItem('metrico_last_activity', lastAct.toString());
+    }
+
+    const elapsed = Date.now() - lastAct;
+    const warningThresholdMs = inactivityTimeMs - (warningCountdownSec * 1000);
+
+    if (elapsed >= inactivityTimeMs) {
+      setShowWarningModal(false);
+      if (onLogout) onLogout('inactividad');
+    } else if (elapsed >= warningThresholdMs) {
+      const secLeft = Math.max(1, Math.ceil((inactivityTimeMs - elapsed) / 1000));
+      setRemainingSeconds(secLeft);
       setShowWarningModal(true);
-      setRemainingSeconds(warningCountdownSec);
-      try { playErrorChime(); } catch (e) {}
-    }, inactivityTimeMs);
-  }, [inactivityTimeMs, warningCountdownSec]);
+      if (!soundPlayedRef.current) {
+        soundPlayedRef.current = true;
+        try { playErrorChime(); } catch (e) {}
+      }
+    } else {
+      setShowWarningModal(false);
+      soundPlayedRef.current = false;
+    }
+  }, [user, inactivityTimeMs, warningCountdownSec, onLogout]);
 
-  // Manejador de eventos de usuario (solo actua si el modal no esta visible)
+  // Manejador de eventos de usuario e intervalo de monitoreo
   useEffect(() => {
     if (!user) return;
 
+    // Al montar, verificar si la sesión ya expiró
+    checkInactivityStatus();
+
     const handleUserActivity = () => {
-      // Si la advertencia aún no ha saltado, reiniciar temporizador
+      updateActivityTimestamp();
       if (!showWarningModal) {
-        const now = Date.now();
-        // Throttle de 2 segundos para evitar reiniciar excesivamente en mousemove
-        if (now - lastActivityRef.current > 2000) {
-          resetInactivityTimer();
-        }
+        checkInactivityStatus();
       }
     };
 
     const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
-    events.forEach(evt => window.addEventListener(evt, handleUserActivity));
+    events.forEach(evt => window.addEventListener(evt, handleUserActivity, { passive: true }));
 
-    // Inicializar el temporizador al montar
-    resetInactivityTimer();
+    // Observadores de foco y cambio de visibilidad (al regresar a la pestaña / despertar PC)
+    const handleFocusOrVisibility = () => {
+      checkInactivityStatus();
+    };
+
+    window.addEventListener('focus', handleFocusOrVisibility);
+    document.addEventListener('visibilitychange', handleFocusOrVisibility);
+
+    // Chequeo en intervalo (cada 1 segundo)
+    const intervalId = setInterval(() => {
+      checkInactivityStatus();
+    }, 1000);
 
     return () => {
       events.forEach(evt => window.removeEventListener(evt, handleUserActivity));
-      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+      window.removeEventListener('focus', handleFocusOrVisibility);
+      document.removeEventListener('visibilitychange', handleFocusOrVisibility);
+      clearInterval(intervalId);
     };
-  }, [user, showWarningModal, resetInactivityTimer]);
-
-  // Manejador de la cuenta regresiva una vez desplegado el modal
-  useEffect(() => {
-    if (showWarningModal) {
-      countdownIntervalRef.current = setInterval(() => {
-        setRemainingSeconds((prev) => {
-          if (prev <= 1) {
-            clearInterval(countdownIntervalRef.current);
-            setShowWarningModal(false);
-            if (onLogout) onLogout('inactividad');
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => {
-      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
-    };
-  }, [showWarningModal, onLogout]);
-
-  // Confirmar extensión de sesión
-  const handleKeepSessionActive = () => {
-    resetInactivityTimer();
-  };
+  }, [user, showWarningModal, updateActivityTimestamp, checkInactivityStatus]);
 
   // Cerrar sesión manualmente desde el modal
   const handleImmediateLogout = () => {
-    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     setShowWarningModal(false);
     if (onLogout) onLogout('manual');
   };

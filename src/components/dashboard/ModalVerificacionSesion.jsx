@@ -9,6 +9,18 @@ export default function ModalVerificacionSesion({ user, userProfile, onConfirm, 
       setIsOpen(false);
       return;
     }
+
+    // Comprobar si la sesión venció por inactividad acumulada (>= 15 min)
+    const lastAct = localStorage.getItem('metrico_last_activity');
+    if (lastAct) {
+      const elapsed = Date.now() - parseInt(lastAct, 10);
+      if (elapsed >= 15 * 60 * 1000) {
+        setIsOpen(false);
+        if (onLogout) onLogout('inactividad');
+        return;
+      }
+    }
+
     // Verificar si la sesión ya fue validada en esta ventana del navegador
     const isVerified = sessionStorage.getItem('metrico_session_verified');
     if (!isVerified || isVerified !== 'true') {
@@ -16,9 +28,10 @@ export default function ModalVerificacionSesion({ user, userProfile, onConfirm, 
     } else {
       setIsOpen(false);
     }
-  }, [user]);
+  }, [user, onLogout]);
 
   const handleConfirmSession = () => {
+    localStorage.setItem('metrico_last_activity', Date.now().toString());
     sessionStorage.setItem('metrico_session_verified', 'true');
     setIsOpen(false);
     if (onConfirm) onConfirm();

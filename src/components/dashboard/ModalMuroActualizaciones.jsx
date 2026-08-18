@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.8.9',
+      version: 'v4.8.9',
+      fecha: '18 de Agosto, 2026',
+      badge: 'SEGURIDAD DE SESIÓN',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Caducidad Estricta de Sesión por Inactividad (>15 min) y Protección de Datos Asistenciales',
+      categoria: 'Seguridad & Autenticación',
+      icon: Clock,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se ha reforzado la seguridad institucional de MÉTRICO. Si transcurren 15 minutos o más de inactividad (sin movimiento en la plataforma o al reingresar horas/días después), la sesión caducará de forma estricta e incondicional, requiriendo ingresar credenciales (correo y contraseña) nuevamente.',
+      instructivo: {
+        paraQueSirve: 'Protege la confidencialidad de los datos asistenciales del establecimiento al impedir que un navegador reabierto horas o días después pueda acceder mediante una confirmación simple sin contraseña.',
+        quePuedesVer: 'Si dejas la plataforma inactiva durante 14 minutos, verás una advertencia con un conteo regresivo de 60 segundos. Si transcurren más de 15 minutos o reabres el sitio al día siguiente, el sistema te redirigirá directamente a la pantalla de Inicio de Sesión.',
+        ejemploUso: 'Ejemplo: Al abrir la plataforma 24 horas después de tu último uso, el sistema te solicitará ingresar tu correo corporativo y contraseña para garantizar la seguridad asistencial.'
+      },
+      changes: [
+        'Caducidad Incondicional por Inactividad: Desconexión automática de Firebase Auth tras 15 minutos sin interacción.',
+        'Bloqueo de Reingreso Directo: Eliminación de la confirmación directa de 1-clic para sesiones caducadas tras periodos prolongados.',
+        'Monitoreo Persistente Global: Seguimiento en tiempo real de la última actividad compartida entre pestañas (localStorage).'
+      ]
+    },
+    {
       id: 'v4.8.8',
       version: 'v4.8.8',
       fecha: '17 de Agosto, 2026',
