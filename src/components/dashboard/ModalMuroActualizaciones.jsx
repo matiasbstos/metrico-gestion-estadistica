@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.9.3',
+      version: 'v4.9.3',
+      fecha: '18 de Agosto, 2026',
+      badge: 'ÚLTIMO TURNO COMPLETO',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Regla Rigurosa de Selección del Último Turno Clínico 100% Completo',
+      categoria: 'Filtros & Navegación Global',
+      icon: Clock,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'El sistema ahora evalúa estrictamente si el turno más reciente en la base de datos se encuentra 100% terminado antes de seleccionarlo por defecto. Si la última carga de datos corresponde a un turno en curso (por ejemplo, Domingo 16/08 23:57 donde el turno noche aún no ha concluido a las 08:00 AM del Lunes), MÉTRICO selecciona automáticamente el último turno cerrado en su totalidad (Turno Finde Día: Domingo 16/08 de 08:00 a 20:00 hrs), garantizando que las métricas reflejen un ciclo asistencial completo.',
+      instructivo: {
+        paraQueSirve: 'Evita visualizar turnos a medio terminar o con registros incompletos al ingresar a la plataforma.',
+        quePuedesVer: 'En "PERIODO SELECCIONADO", verás inmediatamente el último turno clínico 100% cerrado y consolidado con todas sus atenciones.',
+        ejemploUso: 'Ejemplo: Si cargas datos hasta el Domingo a las 23:57, el panel seleccionará automáticamente el Turno Día (08:00 a 20:00 hrs) del Domingo 16/08.'
+      },
+      changes: [
+        'Algoritmo determineLastCompletedShift: Evaluación matemática de los horarios de corte de turno (08:00, 09:00 y 20:00).',
+        'Validación de Turno en Curso: Descarte automático de turnos parciales o no finalizados para la vista inicial por defecto.',
+        'Visualización Fidedigna: Consolidación inmediata de los KPIs de período seleccionado.'
+      ]
+    },
+    {
       id: 'v4.9.2',
       version: 'v4.9.2',
       fecha: '18 de Agosto, 2026',

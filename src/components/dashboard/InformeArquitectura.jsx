@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.9.3',
+    version_tag: 'v4.9.3',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Regla Matemática Rigurosa de Selección del Último Turno Clínico 100% Completo: Detección Temporal de Cierre Asistencial según la Última Carga de Datos.',
+    medios_y_stack: [
+      'React 18.3 (Dashboard.jsx - determineLastCompletedShift)',
+      'useMetricoAnalytics.js & FiltrosGlobales.jsx'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'El sistema evalúa el timestamp del último registro cargado (Tmax). Un turno solo se considera "COMPLETO" si Tmax supera o iguala su hora oficial de término (Finde Día: 20:00 del mismo día; Finde Noche: 08:00 del día siguiente; Turno Largo: 09:00 del día siguiente). Si la última carga se ubica dentro de un turno en curso, el sistema selecciona automáticamente el turno precedente que cuente con su carga asistencial 100% cerrada.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Cálculo de turno cerrado determinista en O(1).'
+    },
+    modulos_afectados: ['Dashboard', 'FiltrosGlobales', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Implementación del algoritmo determineLastCompletedShift con validación de horas de corte (08:00, 09:00, 20:00).',
+      'Corrección del caso Domingo 23:57: Selección precisa del turno Finde Día (16/08 08:00 a 20:00) al estar el turno noche en curso e incompleto.',
+      'Soporte universal para turnos hábiles (16:00 a 09:00 AM) y fines de semana.'
+    ]
+  },
+  {
     id: 'v4.9.2',
     version_tag: 'v4.9.2',
     fecha_despliegue: '18 de Agosto, 2026',

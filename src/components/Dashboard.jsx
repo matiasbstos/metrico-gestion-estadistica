@@ -240,80 +240,91 @@ const DashboardContent = () => {
 
     const maxDate = new Date(maxTime);
     const y = maxDate.getFullYear();
-    const m = String(maxDate.getMonth() + 1).padStart(2, '0');
-    const d = String(maxDate.getDate()).padStart(2, '0');
-    const maxDateStr = `${y}-${m}-${d}`;
-
-    const dayOfWeek = maxDate.getDay(); // 0 = Dom, 6 = Sáb
-    const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-
-    const getNextDateStr = (dateStr) => {
-      const parts = dateStr.split('-');
-      if (parts.length !== 3) return dateStr;
-      const dt = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-      dt.setDate(dt.getDate() + 1);
-      const y = dt.getFullYear();
-      const m = String(dt.getMonth() + 1).padStart(2, '0');
-      const day = String(dt.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    };
-
-    const getPrevDateStr = (dateStr) => {
-      const parts = dateStr.split('-');
-      if (parts.length !== 3) return dateStr;
-      const dt = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-      dt.setDate(dt.getDate() - 1);
-      const y = dt.getFullYear();
-      const m = String(dt.getMonth() + 1).padStart(2, '0');
-      const day = String(dt.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    };
-
-    initialCompletedShiftSetRef.current = true;
+    const m = maxDate.getMonth();
+    const d = maxDate.getDate();
+    const dayOfWeek = maxDate.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
     const hours = maxDate.getHours();
+    const minutes = maxDate.getMinutes();
+    const timeDecimal = hours + minutes / 60;
 
-    if (isWeekend) {
-      if (hours >= 20) {
-        // Turno Noche Finde activo/reciente (ej. Domingo 16/08 20:00 a Lunes 17/08 08:00 AM)
-        setFiltroFechaInicio(maxDateStr);
-        setFiltroFechaFin(getNextDateStr(maxDateStr));
-        setFiltroHoraInicio('20:00');
-        setFiltroHoraFin('08:00');
-        setHorarioPreset('finde_noche');
-      } else if (hours < 8) {
-        // Madrugada de Turno Noche Finde (ej. Domingo 16/08 05:00 AM pertenece al Sábado 15/08 20:00)
-        const prevDateStr = getPrevDateStr(maxDateStr);
-        setFiltroFechaInicio(prevDateStr);
-        setFiltroFechaFin(maxDateStr);
-        setFiltroHoraInicio('20:00');
-        setFiltroHoraFin('08:00');
-        setHorarioPreset('finde_noche');
+    const formatDateStr = (dateObj) => {
+      const yr = dateObj.getFullYear();
+      const mo = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const da = String(dateObj.getDate()).padStart(2, '0');
+      return `${yr}-${mo}-${da}`;
+    };
+
+    const getShiftObject = (startDateObj, endDateObj, hIni, hFin, preset) => ({
+      fechaInicio: formatDateStr(startDateObj),
+      fechaFin: formatDateStr(endDateObj),
+      horaInicio: hIni,
+      horaFin: hFin,
+      preset: preset
+    });
+
+    let detectedShift;
+
+    // Si maxDate es Domingo (0)
+    if (dayOfWeek === 0) {
+      if (timeDecimal >= 20.0) {
+        // Pasó las 20:00 del Domingo: El turno Finde Día del Domingo (08:00 a 20:00) está 100% COMPLETO.
+        detectedShift = getShiftObject(maxDate, maxDate, '08:00', '20:00', 'finde_dia');
+      } else if (timeDecimal >= 8.0) {
+        // Entre 08:00 y 20:00 del Domingo: El turno Finde Día está en curso. El último turno completo fue Finde Noche del Sábado (Sábado 20:00 a Domingo 08:00).
+        const prevDate = new Date(y, m, d - 1);
+        detectedShift = getShiftObject(prevDate, maxDate, '20:00', '08:00', 'finde_noche');
       } else {
-        // Turno Día Finde (08:00 AM a 20:00 PM del mismo día)
-        setFiltroFechaInicio(maxDateStr);
-        setFiltroFechaFin(maxDateStr);
-        setFiltroHoraInicio('08:00');
-        setFiltroHoraFin('20:00');
-        setHorarioPreset('finde_dia');
+        // Antes de las 08:00 del Domingo (madrugada): El turno Finde Noche del Sábado sigue en curso. El último turno completo fue Finde Día del Sábado (Sábado 08:00 a 20:00).
+        const prevDate = new Date(y, m, d - 1);
+        detectedShift = getShiftObject(prevDate, prevDate, '08:00', '20:00', 'finde_dia');
+      }
+    } else if (dayOfWeek === 6) {
+      // Si maxDate es Sábado (6)
+      if (timeDecimal >= 20.0) {
+        // Pasó las 20:00 del Sábado: El turno Finde Día del Sábado (08:00 a 20:00) está 100% COMPLETO.
+        detectedShift = getShiftObject(maxDate, maxDate, '08:00', '20:00', 'finde_dia');
+      } else if (timeDecimal >= 9.0) {
+        // Entre 09:00 y 20:00 del Sábado: El turno Finde Día está en curso. El último turno completo fue el Turno Largo del Viernes (Viernes 16:00 a Sábado 09:00 AM).
+        const prevDate = new Date(y, m, d - 1);
+        detectedShift = getShiftObject(prevDate, maxDate, '16:00', '09:00', 'largo');
+      } else {
+        // Antes de las 09:00 del Sábado (madrugada): El turno Largo del Viernes sigue en curso. El último turno completo fue el Turno Largo del Jueves (Jueves 16:00 a Viernes 09:00 AM).
+        const thursdayDate = new Date(y, m, d - 2);
+        const fridayDate = new Date(y, m, d - 1);
+        detectedShift = getShiftObject(thursdayDate, fridayDate, '16:00', '09:00', 'largo');
+      }
+    } else if (dayOfWeek === 1) {
+      // Si maxDate es Lunes (1)
+      if (timeDecimal >= 8.0) {
+        // Pasó las 08:00 del Lunes: El turno Finde Noche del Domingo (Domingo 20:00 a Lunes 08:00 AM) está 100% COMPLETO.
+        const prevDate = new Date(y, m, d - 1);
+        detectedShift = getShiftObject(prevDate, maxDate, '20:00', '08:00', 'finde_noche');
+      } else {
+        // Antes de las 08:00 del Lunes (madrugada): El turno Finde Noche del Domingo sigue en curso. El último turno completo fue Finde Día del Domingo (Domingo 08:00 a 20:00).
+        const prevDate = new Date(y, m, d - 1);
+        detectedShift = getShiftObject(prevDate, prevDate, '08:00', '20:00', 'finde_dia');
       }
     } else {
-      // Día hábil de semana (ej. Jueves 13/08)
-      if (hours >= 16) {
-        // Turno Largo activo del día (16:00 a 09:00 AM del día siguiente)
-        setFiltroFechaInicio(maxDateStr);
-        setFiltroFechaFin(getNextDateStr(maxDateStr));
-        setFiltroHoraInicio('16:00');
-        setFiltroHoraFin('09:00');
-        setHorarioPreset('largo');
+      // Si maxDate es Martes a Viernes (2, 3, 4, 5)
+      if (timeDecimal >= 9.0) {
+        // Pasó las 09:00 AM: El turno Largo de la noche anterior (Día D-1 16:00 a Día D 09:00 AM) está 100% COMPLETO.
+        const prevDate = new Date(y, m, d - 1);
+        detectedShift = getShiftObject(prevDate, maxDate, '16:00', '09:00', 'largo');
       } else {
-        // Mañana o madrugada del día (el último turno completo de noche fue del día anterior al actual)
-        const prevDateStr = getPrevDateStr(maxDateStr);
-        setFiltroFechaInicio(prevDateStr);
-        setFiltroFechaFin(maxDateStr);
-        setFiltroHoraInicio('16:00');
-        setFiltroHoraFin('09:00');
-        setHorarioPreset('largo');
+        // Antes de las 09:00 AM (madrugada): El turno Largo de la noche anterior sigue en curso. El último completo fue el del día D-2 al día D-1.
+        const prev2Date = new Date(y, m, d - 2);
+        const prevDate = new Date(y, m, d - 1);
+        detectedShift = getShiftObject(prev2Date, prevDate, '16:00', '09:00', 'largo');
       }
+    }
+
+    if (detectedShift) {
+      initialCompletedShiftSetRef.current = true;
+      setFiltroFechaInicio(detectedShift.fechaInicio);
+      setFiltroFechaFin(detectedShift.fechaFin);
+      setFiltroHoraInicio(detectedShift.horaInicio);
+      setFiltroHoraFin(detectedShift.horaFin);
+      setHorarioPreset(detectedShift.preset);
     }
   }, [pacientesDB, allPacientesDB]);
 
