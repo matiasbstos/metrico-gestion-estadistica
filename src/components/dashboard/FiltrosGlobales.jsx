@@ -162,18 +162,40 @@ export default function FiltrosGlobales({
 
   const handleHorarioPreset = (presetKey) => {
     setHorarioPreset(presetKey);
+
+    const getNextDateStr = (dateStr) => {
+      if (!dateStr) return dateStr;
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      d.setDate(d.getDate() + 1);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
     if (presetKey === 'civil') {
       setFiltroHoraInicio('00:00');
       setFiltroHoraFin('23:59');
     } else if (presetKey === 'largo') {
       setFiltroHoraInicio('16:00');
       setFiltroHoraFin('09:00');
+      if (filtroFechaInicio && (!filtroFechaFin || filtroFechaFin <= filtroFechaInicio)) {
+        setFiltroFechaFin(getNextDateStr(filtroFechaInicio));
+      }
     } else if (presetKey === 'finde_dia') {
       setFiltroHoraInicio('08:00');
       setFiltroHoraFin('20:00');
+      if (filtroFechaInicio) {
+        setFiltroFechaFin(filtroFechaInicio);
+      }
     } else if (presetKey === 'finde_noche') {
       setFiltroHoraInicio('20:00');
       setFiltroHoraFin('08:00');
+      if (filtroFechaInicio && (!filtroFechaFin || filtroFechaFin <= filtroFechaInicio)) {
+        setFiltroFechaFin(getNextDateStr(filtroFechaInicio));
+      }
     }
   };
 

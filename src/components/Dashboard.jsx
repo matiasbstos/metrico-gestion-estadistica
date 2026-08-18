@@ -237,16 +237,49 @@ const DashboardContent = () => {
     const dayOfWeek = maxDate.getDay(); // 0 = Dom, 6 = Sáb
     const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
 
+    const getNextDateStr = (dateStr) => {
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      const dt = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      dt.setDate(dt.getDate() + 1);
+      const y = dt.getFullYear();
+      const m = String(dt.getMonth() + 1).padStart(2, '0');
+      const day = String(dt.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
+    const getPrevDateStr = (dateStr) => {
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      const dt = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      dt.setDate(dt.getDate() - 1);
+      const y = dt.getFullYear();
+      const m = String(dt.getMonth() + 1).padStart(2, '0');
+      const day = String(dt.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
     initialCompletedShiftSetRef.current = true;
+    const hours = maxDate.getHours();
 
     if (isWeekend) {
-      if (maxDate.getHours() >= 20 || maxDate.getHours() < 8) {
+      if (hours >= 20) {
+        // Turno Noche Finde activo/reciente (ej. Domingo 16/08 20:00 a Lunes 17/08 08:00 AM)
         setFiltroFechaInicio(maxDateStr);
+        setFiltroFechaFin(getNextDateStr(maxDateStr));
+        setFiltroHoraInicio('20:00');
+        setFiltroHoraFin('08:00');
+        setHorarioPreset('finde_noche');
+      } else if (hours < 8) {
+        // Madrugada de Turno Noche Finde (ej. Domingo 16/08 05:00 AM pertenece al Sábado 15/08 20:00)
+        const prevDateStr = getPrevDateStr(maxDateStr);
+        setFiltroFechaInicio(prevDateStr);
         setFiltroFechaFin(maxDateStr);
         setFiltroHoraInicio('20:00');
         setFiltroHoraFin('08:00');
         setHorarioPreset('finde_noche');
       } else {
+        // Turno Día Finde (08:00 AM a 20:00 PM del mismo día)
         setFiltroFechaInicio(maxDateStr);
         setFiltroFechaFin(maxDateStr);
         setFiltroHoraInicio('08:00');
@@ -254,20 +287,23 @@ const DashboardContent = () => {
         setHorarioPreset('finde_dia');
       }
     } else {
-      // Día hábil de semana (ej. 13/08/2026)
-      // El último turno completo es Turno Largo Semana del 12/08 al 13/08 (16:00 a 09:00 AM)
-      const prevDate = new Date(maxDate);
-      prevDate.setDate(prevDate.getDate() - 1);
-      const prevY = prevDate.getFullYear();
-      const prevM = String(prevDate.getMonth() + 1).padStart(2, '0');
-      const prevD = String(prevDate.getDate()).padStart(2, '0');
-      const prevDateStr = `${prevY}-${prevM}-${prevD}`;
-
-      setFiltroFechaInicio(prevDateStr); // 2026-08-12
-      setFiltroFechaFin(maxDateStr);     // 2026-08-13
-      setFiltroHoraInicio('16:00');
-      setFiltroHoraFin('09:00');
-      setHorarioPreset('largo');
+      // Día hábil de semana (ej. Jueves 13/08)
+      if (hours >= 16) {
+        // Turno Largo activo del día (16:00 a 09:00 AM del día siguiente)
+        setFiltroFechaInicio(maxDateStr);
+        setFiltroFechaFin(getNextDateStr(maxDateStr));
+        setFiltroHoraInicio('16:00');
+        setFiltroHoraFin('09:00');
+        setHorarioPreset('largo');
+      } else {
+        // Mañana o madrugada del día (el último turno completo de noche fue del día anterior al actual)
+        const prevDateStr = getPrevDateStr(maxDateStr);
+        setFiltroFechaInicio(prevDateStr);
+        setFiltroFechaFin(maxDateStr);
+        setFiltroHoraInicio('16:00');
+        setFiltroHoraFin('09:00');
+        setHorarioPreset('largo');
+      }
     }
   }, [pacientesDB, allPacientesDB]);
 

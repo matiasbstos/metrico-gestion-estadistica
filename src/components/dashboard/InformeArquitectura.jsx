@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.9.0',
+    version_tag: 'v4.9.0',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Corrección de Selección del Último Turno Clínico Completo al Ingresar: Ajuste Automático +1d de Medianoche para Turnos Finde Noche (20:00 - 08:00 AM) y Turnos Largos (16:00 - 09:00 AM).',
+    medios_y_stack: [
+      'React 18.3 (Dashboard.jsx & FiltrosGlobales.jsx)',
+      'useMetricoAnalytics.js (getWindowRange con cruce de medianoche)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Al ingresar a la plataforma, el sistema calcula el último turno clínico activo o completo basándose en el registro más reciente en la base de datos (maxDate). En turnos nocturnos (finde_noche y largo), la fecha fin se incrementa automáticamente a +1 día, asegurando que el rango 20:00 a 08:00 o 16:00 a 09:00 no quede en cero por fechas idénticas invertidas.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Filtro por rango en memoria instantáneo sin sobrecarga de Firestore.'
+    },
+    modulos_afectados: ['Dashboard', 'FiltrosGlobales', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Implementación del cálculo getNextDateStr (+1d) y getPrevDateStr (-1d) en la auto-detección inteligente del turno al ingresar.',
+      'Sincronización de handleHorarioPreset en FiltrosGlobales.jsx para extender la fecha fin al día siguiente en selecciones de Turno Noche.',
+      'Eliminación total del error donde "PERIODO SELECCIONADO" mostraba 0 pacientes por rango invertido de fechas idénticas.'
+    ]
+  },
+  {
     id: 'v4.8.9',
     version_tag: 'v4.8.9',
     fecha_despliegue: '18 de Agosto, 2026',

@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.9.0',
+      version: 'v4.9.0',
+      fecha: '18 de Agosto, 2026',
+      badge: 'AUTO-SELECCIÓN DE TURNO',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Auto-Detección del Último Turno Clínico Completo al Ingresar 100% Precisa',
+      categoria: 'Filtros & Navegación Global',
+      icon: Clock,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se ha corregido el cálculo automático del último turno clínico completo al abrir la plataforma. Cuando la última información cargada corresponde a un Turno Noche de fin de semana o semana (20:00 a 08:00 AM / 16:00 a 09:00 AM), el sistema incrementa automáticamente la fecha fin al día siguiente (+1 día), desplegando los datos reales del período sin mostrar ceros por fechas invertidas.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que al ingresar a la plataforma, las tarjetas KPI de "PERIODO SELECCIONADO" muestren inmediatamente la actividad real del último turno cargado (por ejemplo el 16/08), sin que queden contadores en cero.',
+        quePuedesVer: 'Al cargar la página con datos hasta el 16/08 23:57, la barra superior mostrará el rango completo de turno (ej. 16/08 20:00 a 17/08 08:00 AM) y el panel calculará todos los pacientes admitidos en el turno de forma transparente.',
+        ejemploUso: 'Ejemplo: En Turnos Noche de Fin de Semana, la fecha fin se extiende automáticamente al día siguiente para abarcar las 12 horas completas del turno.'
+      },
+      changes: [
+        'Ajuste Automático de Medianoche (+1d): Inclusión automática del día siguiente en fecha fin para Turnos Noche y Turnos Largos.',
+        'Eliminación de Períodos Vacíos (0 pac): Resolución del descalce de horario donde fechas de inicio y fin idénticas anulaban la ventana de 20:00 a 08:00.',
+        'Sincronización en Filtros Globales: Los selectores de presets de horario aplican la lógica de cruce de noche en toda la plataforma.'
+      ]
+    },
+    {
       id: 'v4.8.9',
       version: 'v4.8.9',
       fecha: '18 de Agosto, 2026',
