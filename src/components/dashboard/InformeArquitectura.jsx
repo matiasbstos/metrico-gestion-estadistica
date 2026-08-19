@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.1.5',
+    version_tag: 'v5.1.5',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Integración del Fondo Animado Clínico Asimétrico en Pantalla de Acceso (Login) y Transición Continua.',
+    medios_y_stack: [
+      'React 18.3 & Lucide React (Login.jsx, FondoClinicoAnimado.jsx)',
+      'Glassmorphism Backdrop Blur (bg-white/95 dark:bg-slate-900/90)',
+      'Aceleración por GPU'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Se incorporó el componente FondoClinicoAnimado en la pantalla de Inicio de Sesión (Login.jsx), garantizando una experiencia visual inmersiva continua desde el acceso inicial con ondas ECG, constelación asimétrica tri-nodo (Nube-Base de Datos-Gateway) y tarjeta de autenticación con acabado glassmorphic.',
+      firestore_collections: ['auth_logs'],
+      query_optimization: 'Cero latencia de renderizado con capas z-index relativas.'
+    },
+    modulos_afectados: ['Login.jsx', 'FondoClinicoAnimado.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Inclusión de FondoClinicoAnimado en Login.jsx con fondo bg-slate-950.',
+      'Ajuste de profundidad z-index y sombreados neon en la tarjeta de login.',
+      'Continuidad estética del 100% entre Login, Carga y Dashboard.'
+    ]
+  },
+  {
     id: 'v5.1.4',
     version_tag: 'v5.1.4',
     fecha_despliegue: '18 de Agosto, 2026',

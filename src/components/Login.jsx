@@ -3,6 +3,7 @@ import { auth } from '../config/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { Activity, Lock, Mail, AlertTriangle, CheckCircle, ArrowRight } from 'lucide-react';
 import { playLoginChime } from '../utils/audioNotifications';
+import FondoClinicoAnimado from './common/FondoClinicoAnimado';
 
 export default function Login() {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -77,8 +78,11 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 font-sans text-slate-800">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 font-sans text-slate-800 relative overflow-hidden">
+      {/* Fondo Clínico Animado con Ondas ECG, Nube, Base de Datos y Telemetría */}
+      <FondoClinicoAnimado variant="dark" />
+
+      <div className="max-w-md w-full bg-white/95 dark:bg-slate-900/90 rounded-3xl shadow-[0_0_50px_rgba(79,70,229,0.2)] overflow-hidden border border-slate-100 dark:border-slate-800 relative z-10 backdrop-blur-2xl">
         
         <div className="bg-slate-50 p-8 flex flex-col items-center border-b border-slate-100">
           <div className="w-16 h-16 bg-sky-100 text-sky-600 rounded-2xl flex items-center justify-center mb-4 shadow-sm">

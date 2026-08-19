@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.1.5',
+      version: 'v5.1.5',
+      fecha: '18 de Agosto, 2026',
+      badge: 'ACCESO & EXPERIENCIA INMERSIVA',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Fondo Animado Clínico Asimétrico en Inicio de Sesión',
+      categoria: 'Autenticación & Diseño',
+      icon: Activity,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se integró el fondo animado interactivo (con la constelación asimétrica de Nube, Base de Datos, Gateway y ondas ECG) directamente en la pantalla de Inicio de Sesión (Login), brindando continuidad visual desde el primer segundo de interacción.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la experiencia visual sea inmersiva y moderna desde el acceso inicial con credenciales hasta el panel operativo.',
+        quePuedesVer: 'La constelación animada de datos clínicos fluyendo en el fondo de la pantalla de Login con acabado glassmorphic.',
+        ejemploUso: 'Abre la plataforma o cierra sesión para apreciar la animación completa en la pantalla de bienvenida.'
+      },
+      changes: [
+        'Fondo Animado en Login: Integración directa de FondoClinicoAnimado en la pantalla de acceso.',
+        'Tarjeta Glassmorphic: Sombreado perimetral y bordes suaves en la tarjeta de autenticación.',
+        'Continuidad Total: Transición fluida entre Login, Pantalla de Carga y Dashboard.'
+      ]
+    },
+    {
       id: 'v5.1.4',
       version: 'v5.1.4',
       fecha: '18 de Agosto, 2026',
