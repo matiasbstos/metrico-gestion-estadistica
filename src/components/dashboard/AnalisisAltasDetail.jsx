@@ -5,6 +5,7 @@ import {
   ResponsiveContainer, BarChart, Bar, Cell, Legend, ComposedChart, Line
 } from 'recharts';
 import { generateAltasSummary } from '../../utils/summaryGenerator';
+import { isAltaAdmin, resolverEquipoTurno } from '../../utils/helpers';
 
 export default function AnalisisAltasDetail({ 
   turnosDB, 
@@ -16,7 +17,8 @@ export default function AnalisisAltasDetail({
   modoComparativo,
   filtroFechaInicioB,
   filtroFechaFinB,
-  pacientesFiltrados
+  pacientesFiltrados,
+  pautasDB
 }) {
   const prevYearStart = useMemo(() => {
     if (!filtroFechaInicio) return null;
@@ -39,7 +41,7 @@ export default function AnalisisAltasDetail({
     if (!prevYearStart || !prevYearEnd || !pacientesDB) return 0;
     const startMs = new Date(prevYearStart + 'T00:00:00').getTime();
     const endMs = new Date(prevYearEnd + 'T23:59:59').getTime();
-    return pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs && p.estado === 'Cancelada').length;
+    return pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs && isAltaAdmin(p)).length;
   }, [kpisBigQuery, pacientesDB, prevYearStart, prevYearEnd]);
   
   // 1. Filtrar turnos según el rango seleccionado (Periodo A)
@@ -54,43 +56,84 @@ export default function AnalisisAltasDetail({
     return turnosDB.filter(t => t.fechaInicio >= filtroFechaInicioB && t.fechaInicio <= filtroFechaFinB);
   }, [turnosDB, modoComparativo, filtroFechaInicioB, filtroFechaFinB]);
 
-  // 3. Agrupación y Estadísticas por Día (Periodo A)
+  // 3. Pacientes del Periodo B (si aplica modo comparativo)
+  const pacientesB = useMemo(() => {
+    if (!modoComparativo || !filtroFechaInicioB || !filtroFechaFinB || !pacientesDB) return [];
+    const startMs = new Date(filtroFechaInicioB + 'T00:00:00').getTime();
+    const endMs = new Date(filtroFechaFinB + 'T23:59:59').getTime();
+    return pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
+  }, [modoComparativo, filtroFechaInicioB, filtroFechaFinB, pacientesDB]);
+
+  // 4. Agrupación y Estadísticas por Día (Periodo A) - Basado en pacientes reales con isAltaAdmin
   const dailyDataA = useMemo(() => {
     const grouped = {};
+    (pacientesFiltrados || []).forEach(p => {
+      if (!p.tAdmision) return;
+      const d = new Date(p.tAdmision);
+      if (isNaN(d.getTime())) return;
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      
+      if (!grouped[dateStr]) {
+        grouped[dateStr] = { date: dateStr, altasAdmin: 0, totalPacientes: 0 };
+      }
+      grouped[dateStr].totalPacientes++;
+      if (isAltaAdmin(p)) {
+        grouped[dateStr].altasAdmin++;
+      }
+    });
+
     turnosFiltradosA.forEach(t => {
       const date = t.fechaInicio;
-      if (!grouped[date]) {
+      if (date && !grouped[date]) {
         grouped[date] = { date, altasAdmin: 0, totalPacientes: 0 };
       }
-      grouped[date].altasAdmin += Number(t.altasAdmin || 0);
-      grouped[date].totalPacientes += Number(t.totalPacientes || 0);
     });
-    return Object.values(grouped).sort((a, b) => a.date.localeCompare(b.date));
-  }, [turnosFiltradosA]);
 
-  // 4. Agrupación y Estadísticas por Día (Periodo B)
+    return Object.values(grouped).sort((a, b) => a.date.localeCompare(b.date));
+  }, [pacientesFiltrados, turnosFiltradosA]);
+
+  // 5. Agrupación y Estadísticas por Día (Periodo B)
   const dailyDataB = useMemo(() => {
+    if (!modoComparativo) return [];
     const grouped = {};
+    pacientesB.forEach(p => {
+      if (!p.tAdmision) return;
+      const d = new Date(p.tAdmision);
+      if (isNaN(d.getTime())) return;
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      
+      if (!grouped[dateStr]) {
+        grouped[dateStr] = { date: dateStr, altasAdmin: 0, totalPacientes: 0 };
+      }
+      grouped[dateStr].totalPacientes++;
+      if (isAltaAdmin(p)) {
+        grouped[dateStr].altasAdmin++;
+      }
+    });
+
     turnosFiltradosB.forEach(t => {
       const date = t.fechaInicio;
-      if (!grouped[date]) {
+      if (date && !grouped[date]) {
         grouped[date] = { date, altasAdmin: 0, totalPacientes: 0 };
       }
-      grouped[date].altasAdmin += Number(t.altasAdmin || 0);
-      grouped[date].totalPacientes += Number(t.totalPacientes || 0);
     });
-    return Object.values(grouped).sort((a, b) => a.date.localeCompare(b.date));
-  }, [turnosFiltradosB]);
 
-  // 5. Totales y KPIs principales de Periodo A y Periodo B
+    return Object.values(grouped).sort((a, b) => a.date.localeCompare(b.date));
+  }, [modoComparativo, pacientesB, turnosFiltradosB]);
+
+  // 6. Totales y KPIs principales de Periodo A y Periodo B
   const statsA = useMemo(() => {
-    let totalAltas = 0;
-    let totalPacientes = 0;
+    const totalAltas = (pacientesFiltrados || []).filter(isAltaAdmin).length;
+    const totalPacientes = (pacientesFiltrados || []).length;
     let maxAltasDay = { date: '-', count: 0 };
     
     dailyDataA.forEach(d => {
-      totalAltas += d.altasAdmin;
-      totalPacientes += d.totalPacientes;
       if (d.altasAdmin > maxAltasDay.count) {
         maxAltasDay = { date: d.date, count: d.altasAdmin };
       }
@@ -100,10 +143,13 @@ export default function AnalisisAltasDetail({
     const dias = dailyDataA.length || 1;
     const promedioDiario = totalAltas / dias;
 
-    const teamsCount = { 'Turno 1': 0, 'Turno 2': 0, 'Turno 3': 0, 'Turno 4': 0, 'Sin Asignar': 0 };
-    turnosFiltradosA.forEach(t => {
-      const eq = t.equipoTurno || 'Sin Asignar';
-      if (teamsCount[eq] !== undefined) teamsCount[eq] += Number(t.altasAdmin || 0);
+    const teamsCount = { 'Turno 1': 0, 'Turno 2': 0, 'Turno 3': 0, 'Sin Asignar': 0 };
+    (pacientesFiltrados || []).forEach(p => {
+      if (isAltaAdmin(p)) {
+        const eq = resolverEquipoTurno(p, pautasDB) || 'Sin Asignar';
+        if (teamsCount[eq] !== undefined) teamsCount[eq]++;
+        else teamsCount['Sin Asignar']++;
+      }
     });
 
     let topTeam = { name: '-', count: 0 };
@@ -112,25 +158,19 @@ export default function AnalisisAltasDetail({
     });
 
     return { totalAltas, totalPacientes, pct, promedioDiario, maxAltasDay, topTeam };
-  }, [turnosFiltradosA, dailyDataA]);
+  }, [pacientesFiltrados, dailyDataA, pautasDB]);
 
   const statsB = useMemo(() => {
     if (!modoComparativo) return { totalAltas: 0, totalPacientes: 0, pct: 0 };
-    let totalAltas = 0;
-    let totalPacientes = 0;
-    
-    dailyDataB.forEach(d => {
-      totalAltas += d.altasAdmin;
-      totalPacientes += d.totalPacientes;
-    });
-
+    const totalAltas = pacientesB.filter(isAltaAdmin).length;
+    const totalPacientes = pacientesB.length;
     const pct = totalPacientes > 0 ? (totalAltas / totalPacientes) * 100 : 0;
     return { totalAltas, totalPacientes, pct };
-  }, [modoComparativo, dailyDataB]);
+  }, [modoComparativo, pacientesB]);
 
-  // 6. Crecimiento dinámico vs Periodo Anterior Equivalente (Semana anterior)
+  // 7. Crecimiento dinámico vs Periodo Anterior Equivalente
   const growthWeek = useMemo(() => {
-    if (!turnosDB || !filtroFechaInicio || !filtroFechaFin) return 0;
+    if (!pacientesDB || !filtroFechaInicio || !filtroFechaFin) return 0;
     const startA = new Date(filtroFechaInicio + 'T00:00:00');
     const endA = new Date(filtroFechaFin + 'T23:59:59');
     const durationDays = Math.ceil((endA - startA) / (1000 * 60 * 60 * 24)) || 1;
@@ -140,41 +180,38 @@ export default function AnalisisAltasDetail({
     const endBDate = new Date(startA);
     endBDate.setDate(endBDate.getDate() - 1);
     
-    const startBStr = startBDate.toISOString().split('T')[0];
-    const endBStr = endBDate.toISOString().split('T')[0];
+    const startBMs = startBDate.getTime();
+    const endBMs = new Date(endBDate.toISOString().split('T')[0] + 'T23:59:59').getTime();
     
-    const turnosA = turnosDB.filter(t => t.fechaInicio >= filtroFechaInicio && t.fechaInicio <= filtroFechaFin);
-    const turnosB = turnosDB.filter(t => t.fechaInicio >= startBStr && t.fechaInicio <= endBStr);
-    
-    const altasA = turnosA.reduce((acc, t) => acc + Number(t.altasAdmin || 0), 0);
-    const altasB = turnosB.reduce((acc, t) => acc + Number(t.altasAdmin || 0), 0);
+    const altasA = (pacientesFiltrados || []).filter(isAltaAdmin).length;
+    const altasB = pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startBMs && p.tAdmision <= endBMs && isAltaAdmin(p)).length;
     
     if (altasB === 0) return altasA > 0 ? 100 : 0;
     return ((altasA - altasB) / altasB) * 100;
-  }, [turnosDB, filtroFechaInicio, filtroFechaFin]);
+  }, [pacientesDB, pacientesFiltrados, filtroFechaInicio, filtroFechaFin]);
 
-  // 7. Comparativa de crecimiento A vs B
+  // 8. Comparativa de crecimiento A vs B
   const compareGrowth = useMemo(() => {
     if (!modoComparativo) return 0;
     if (statsB.totalAltas === 0) return statsA.totalAltas > 0 ? 100 : 0;
     return ((statsA.totalAltas - statsB.totalAltas) / statsB.totalAltas) * 100;
   }, [modoComparativo, statsA.totalAltas, statsB.totalAltas]);
 
-  // 8. Comparativa por Turno/Equipo (Cantidad Absoluta y Porcentaje)
+  // 9. Comparativa por Turno/Equipo (Cantidad Absoluta y Porcentaje)
   const teamData = useMemo(() => {
     const teams = {
       'Turno 1': { name: 'Turno 1', altasAdmin: 0, totalPacientes: 0, fill: '#10b981' },
       'Turno 2': { name: 'Turno 2', altasAdmin: 0, totalPacientes: 0, fill: '#facc15' },
       'Turno 3': { name: 'Turno 3', altasAdmin: 0, totalPacientes: 0, fill: '#3b82f6' },
-      'Turno 4': { name: 'Turno 4', altasAdmin: 0, totalPacientes: 0, fill: '#f97316' },
       'Sin Asignar': { name: 'Sin Asignar', altasAdmin: 0, totalPacientes: 0, fill: '#94a3b8' }
     };
 
-    turnosFiltradosA.forEach(t => {
-      const eq = t.equipoTurno || 'Sin Asignar';
-      if (teams[eq]) {
-        teams[eq].altasAdmin += Number(t.altasAdmin || 0);
-        teams[eq].totalPacientes += Number(t.totalPacientes || 0);
+    (pacientesFiltrados || []).forEach(p => {
+      const eq = resolverEquipoTurno(p, pautasDB) || 'Sin Asignar';
+      const target = teams[eq] || teams['Sin Asignar'];
+      target.totalPacientes++;
+      if (isAltaAdmin(p)) {
+        target.altasAdmin++;
       }
     });
 
@@ -182,18 +219,32 @@ export default function AnalisisAltasDetail({
       ...t,
       porcentaje: t.totalPacientes > 0 ? Number(((t.altasAdmin / t.totalPacientes) * 100).toFixed(1)) : 0
     }));
-  }, [turnosFiltradosA]);
+  }, [pacientesFiltrados, pautasDB]);
 
-  // 9. Listado de Turnos ordenados de mayor a menor altas administrativas
+  // 10. Listado de Turnos ordenados de mayor a menor altas administrativas
   const sortedShifts = useMemo(() => {
-    return [...turnosFiltradosA]
-      .sort((a, b) => Number(b.altasAdmin || 0) - Number(a.altasAdmin || 0));
-  }, [turnosFiltradosA]);
+    return turnosFiltradosA.map(t => {
+      const pacsInTurno = (pacientesFiltrados || []).filter(p => {
+        if (!p.tAdmision) return false;
+        const d = new Date(p.tAdmision);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+        return dateStr === t.fechaInicio && (p.horario === t.horario || !t.horario);
+      });
+      const altasCount = pacsInTurno.filter(isAltaAdmin).length;
+      return {
+        ...t,
+        totalPacientes: pacsInTurno.length > 0 ? pacsInTurno.length : Number(t.totalPacientes || 0),
+        altasAdmin: pacsInTurno.length > 0 ? altasCount : Number(t.altasAdmin || 0)
+      };
+    }).sort((a, b) => Number(b.altasAdmin || 0) - Number(a.altasAdmin || 0));
+  }, [turnosFiltradosA, pacientesFiltrados]);
 
-  // 10. Datos de comparación diaria para Recharts (Periodo A vs B)
+  // 11. Datos de comparación diaria para Recharts (Periodo A vs B)
   const compareDailyData = useMemo(() => {
     if (!modoComparativo) return [];
-    // Mapear por índice de día relativo del rango
     const maxLen = Math.max(dailyDataA.length, dailyDataB.length);
     const list = [];
     for(let i=0; i<maxLen; i++) {
@@ -210,7 +261,6 @@ export default function AnalisisAltasDetail({
     'Turno 1': 'text-emerald-500',
     'Turno 2': 'text-yellow-600 dark:text-yellow-400',
     'Turno 3': 'text-blue-500',
-    'Turno 4': 'text-orange-500',
     'Sin Asignar': 'text-slate-400'
   };
 
@@ -219,8 +269,8 @@ export default function AnalisisAltasDetail({
   const summaryText = useMemo(() => generateAltasSummary(pacientesFiltrados, statsA), [pacientesFiltrados, statsA]);
   
   // Total Anual YTD Estadísticas
-  const totalAnualAltas = statsKPI?.anual?.altasAdmin?.current || 0;
-  const totalAnualPacientes = statsKPI?.anual?.pacientes?.current || 0;
+  const totalAnualAltas = statsKPI?.anual?.altasAdmin?.current !== undefined ? statsKPI.anual.altasAdmin.current : ((pacientesDB || []).filter(isAltaAdmin).length);
+  const totalAnualPacientes = statsKPI?.anual?.pacientes?.current || (pacientesDB || []).length;
   const pctAnualAltas = totalAnualPacientes > 0 ? (totalAnualAltas / totalAnualPacientes) * 100 : 0;
   const isAlertAnual = pctAnualAltas > 5;
 

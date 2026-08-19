@@ -2160,6 +2160,7 @@ const DashboardContent = () => {
                 filtroFechaInicioB={filtroFechaInicioB}
                 filtroFechaFinB={filtroFechaFinB}
                 pacientesFiltrados={pacientesFiltrados}
+                pautasDB={pautasDB}
               />
             )}
 

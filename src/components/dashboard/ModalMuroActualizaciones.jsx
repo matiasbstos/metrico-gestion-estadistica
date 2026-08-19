@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.1.8',
+      version: 'v5.1.8',
+      fecha: '18 de Agosto, 2026',
+      badge: 'INTEGRIDAD DE DATOS & AUDITORÍA',
+      badgeColor: 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20',
+      title: 'Homologación de Altas Administrativas (Período y Anual)',
+      categoria: 'Auditoría & Egresos',
+      icon: UserCheck,
+      iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+      summary: 'Se unificaron las fuentes de cálculo de Altas Administrativas en toda la plataforma: tanto el Panel Inicial como el Análisis Específico de Altas ahora procesan con la regla clínica isAltaAdmin, garantizando el cuadre exacto de 137 altas en el período seleccionado (01/08 - 16/08) y 2,166 altas en el acumulado anual YTD.',
+      instructivo: {
+        paraQueSirve: 'Garantiza total coherencia y concordancia matemática entre los KPIs generales de la portada y los desgloses analíticos pormenorizados.',
+        quePuedesVer: 'Las cifras de Altas Administrativas del período y anuales coinciden exactamente en el Panel Inicial y en la pestaña de Análisis de Altas.',
+        ejemploUso: 'Compara la tarjeta de Altas Administrativas de la página principal con el módulo específico de Altas para confirmar el cuadre perfecto.'
+      },
+      changes: [
+        'Cuadre de Periodo: 137 altas administrativas homologadas en Panel Inicial y Análisis Específico.',
+        'Cuadre Anual YTD: 2,166 altas acumuladas calculadas con la regla clínica estándar.',
+        'Desglose por Equipos: Distribución exacta de altas por turno y por día.'
+      ]
+    },
+    {
       id: 'v5.1.7',
       version: 'v5.1.7',
       fecha: '18 de Agosto, 2026',

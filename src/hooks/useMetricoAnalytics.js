@@ -514,14 +514,13 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       turnosDB_sample: turnosDB.slice(0, 5)
     });
 
-    const ytdPacientes = ytdTurnos.reduce((acc, t) => acc + (t.totalPacientes || 0), 0);
-    const ytdAltas = ytdTurnos.reduce((acc, t) => acc + (t.altasAdmin || 0), 0);
+    const yearLoadedPacs = pacientesDB.filter(p => p.tAdmision && isPatientInWindow(p.tAdmision, yearStartStr, fEndStr, '00:00', '23:59'));
+    const ytdPacientes = yearLoadedPacs.length > 0 ? yearLoadedPacs.length : ytdTurnos.reduce((acc, t) => acc + (t.totalPacientes || 0), 0);
+    const ytdAltas = yearLoadedPacs.length > 0 ? yearLoadedPacs.filter(isAltaAdmin).length : ytdTurnos.reduce((acc, t) => acc + (t.altasAdmin || 0), 0);
     const ytdAtendidos = ytdPacientes - ytdAltas;
     const ytdTraslados = ytdTurnos.reduce((acc, t) => acc + (t.trasladosCount || 0), 0);
     const ytdConstataciones = ytdTurnos.reduce((acc, t) => acc + (t.constatacionesCount || 0), 0);
 
-    // Calcular estadía promedio YTD a partir de los pacientes cargados en el cliente de este año
-    const yearLoadedPacs = pacientesDB.filter(p => p.tAdmision && isPatientInWindow(p.tAdmision, yearStartStr, fEndStr, '00:00', '23:59'));
     const ytdEstadia = calcEstadia(yearLoadedPacs);
 
     // Crear conjunto de fechas que son fin de semana o festivos

@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.1.8',
+    version_tag: 'v5.1.8',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Homologación de Altas Administrativas (Período y Anual YTD) en Panel Inicial y Análisis Específico.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisAltasDetail.jsx, useMetricoAnalytics.js, Dashboard.jsx)',
+      'Regla Clínica isAltaAdmin y resolverEquipoTurno',
+      'Desduplicación y Cuadre de Datos Exacto'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Se unificó el cálculo de Altas Administrativas en el módulo de Análisis Específico (AnalisisAltasDetail.jsx) para basarse dinámicamente en pacientesFiltrados e isAltaAdmin (137 altas en 01/08 - 16/08), eliminando el desfase contra registros estáticos en turnosDB (123). 2) Se unificó el cálculo de Altas Administrativas Anuales YTD (2,166) en useMetricoAnalytics.js y AnalisisAltasDetail.jsx evaluando directamente los pacientes del año con isAltaAdmin, asegurando cuadre 100% perfecto entre el panel general y el análisis específico.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Procesamiento en memoria O(N) con memoización estricta.'
+    },
+    modulos_afectados: ['AnalisisAltasDetail.jsx', 'useMetricoAnalytics.js', 'Dashboard.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Cálculo de dailyDataA, teamData y statsA basado en pacientesFiltrados con isAltaAdmin.',
+      'Cálculo de ytdAltas anual en useMetricoAnalytics.js mediante yearLoadedPacs e isAltaAdmin.',
+      'Inyección de pautasDB a AnalisisAltasDetail para resolución de equipos Turno 1, 2 y 3.'
+    ]
+  },
+  {
     id: 'v5.1.7',
     version_tag: 'v5.1.7',
     fecha_despliegue: '18 de Agosto, 2026',
