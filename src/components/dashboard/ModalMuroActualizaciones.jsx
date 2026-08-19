@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.1.1',
+      version: 'v5.1.1',
+      fecha: '18 de Agosto, 2026',
+      badge: 'IDENTIDAD VISUAL & ACCESO',
+      badgeColor: 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20',
+      title: 'Iconografía Vectorial en Mensaje de Sesión Caducada',
+      categoria: 'Autenticación & UX',
+      icon: Lock,
+      iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+      summary: 'Se homologó la tarjeta de aviso de sesión caducada por inactividad en el módulo de Login, sustituyendo emojis nativos por el icono vectorial Lock en un micro-contenedor estético y tipografía estructurada acorde a la identidad visual de MÉTRICO.',
+      instructivo: {
+        paraQueSirve: 'Brinda una experiencia de usuario limpia y profesional al retornar a la pantalla de inicio de sesión cuando expira la sesión por inactividad (>15 min).',
+        quePuedesVer: 'Una tarjeta de advertencia elegante con icono vectorial de candado, bordes suaves y mensaje jerarquizado.',
+        ejemploUso: 'Al cerrar sesión o tras 15 minutos sin interacción, la pantalla de Login muestra la tarjeta homogénea de seguridad.'
+      },
+      changes: [
+        'Icono Vectorial Lock: Reemplazo de emojis por el estilo gráfico oficial del sitio.',
+        'Tarjeta de Alerta Estilizada: Contenedor con bordes y contraste armónico.',
+        'Coherencia Visual: Integración total con los tokens de diseño de la plataforma.'
+      ]
+    },
+    {
       id: 'v5.1.0',
       version: 'v5.1.0',
       fecha: '18 de Agosto, 2026',

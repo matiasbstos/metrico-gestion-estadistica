@@ -11,12 +11,13 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   React.useEffect(() => {
     try {
       const logoutReason = localStorage.getItem('metrico_logout_reason');
       if (logoutReason === 'inactividad') {
-        setError('🔒 Tu sesión ha caducado por inactividad (>15 minutos). Por favor ingresa tus credenciales nuevamente.');
+        setSessionExpired(true);
         localStorage.removeItem('metrico_logout_reason');
       }
     } catch (e) {}
@@ -31,6 +32,7 @@ export default function Login() {
     setLoading(true);
     setError('');
     setMessage('');
+    setSessionExpired(false);
     try {
       if (isRegistering) {
         await createUserWithEmailAndPassword(auth, email, password);
@@ -91,9 +93,24 @@ export default function Login() {
             {isRegistering ? 'Crear una cuenta nueva' : 'Iniciar Sesión'}
           </h2>
 
+          {/* Notificación de Sesión Caducada con Estilo Ilustrado Vectorial del Sitio */}
+          {sessionExpired && (
+            <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl flex items-start gap-3 mb-5 shadow-sm animate-fade-in">
+              <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 mt-0.5 border border-rose-200">
+                <Lock className="w-4 h-4" />
+              </div>
+              <div className="space-y-0.5 text-left">
+                <h4 className="text-xs font-black uppercase tracking-wider text-rose-700">Sesión Caducada por Inactividad</h4>
+                <p className="text-xs font-medium text-rose-600/90 leading-relaxed">
+                  Tu sesión ha caducado por inactividad (&gt;15 minutos). Por favor ingresa tus credenciales nuevamente.
+                </p>
+              </div>
+            </div>
+          )}
+
           {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-lg flex items-center gap-2 mb-4 text-sm border border-red-100">
-              <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <div className="bg-rose-50 text-rose-600 p-3.5 rounded-xl flex items-center gap-2.5 mb-4 text-xs font-bold border border-rose-100">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0 text-rose-500" />
               <p>{error}</p>
             </div>
           )}

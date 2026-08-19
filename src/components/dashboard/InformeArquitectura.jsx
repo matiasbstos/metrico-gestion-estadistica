@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.1.1',
+    version_tag: 'v5.1.1',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Homologación de Identidad Visual en Mensaje de Sesión Caducada (Icono Vectorial Lock y Tarjeta de Advertencia).',
+    medios_y_stack: [
+      'React 18.3 & Lucide React (Login.jsx)',
+      'Tailwind CSS UI / Modern Design Tokens',
+      'Vector Graphics & Identity System'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Se reemplazó el uso de emojis crónicos (🔒 y ⚠️) en la alerta de inactividad por un componente de notificación dedicado con el icono vectorial Lock de Lucide en un contenedor de micro-badge redondeado con fondo rose-100/200, título estructurado en mayúsculas y tipografía corporativa.',
+      firestore_collections: ['auth_logs'],
+      query_optimization: 'Sin overhead de renderizado.'
+    },
+    modulos_afectados: ['Login.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Sustitución de emoji por componente Lock SVG con diseño estético MÉTRICO.',
+      'Estructuración visual en tarjeta de alerta con badge iconográfico.',
+      'Mejora de accesibilidad y alineación estética en la pantalla de autenticación.'
+    ]
+  },
+  {
     id: 'v5.1.0',
     version_tag: 'v5.1.0',
     fecha_despliegue: '18 de Agosto, 2026',
