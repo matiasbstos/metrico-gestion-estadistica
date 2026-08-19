@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.1.0',
+      version: 'v5.1.0',
+      fecha: '18 de Agosto, 2026',
+      badge: 'FESTIVOS 24H Y SALIDA MATINAL',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Régimen Festivo (24h) y Asignación Matinal al Turno de Salida',
+      categoria: 'Pauta & Horarios Asistenciales',
+      icon: Clock,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: '1) Si marcas un día de semana como Festivo en la pauta, el sistema activa automáticamente el régimen de 24 horas y asigna a los dos equipos (Día 08-20h y Noche 20-08h). 2) En días hábiles normales, los pacientes de madrugada y mañana (ej: 07:00 a 10:00 AM) se computan al Turno Largo del día anterior que va entregando la guardia a las 08:00 AM, mientras que a partir de las 16:00/17:00 hrs se asocian al nuevo turno de la tarde.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la clasificación de pacientes respete fielmente el funcionamiento clínico del SAR tanto en días festivos de 24 horas como en la entrega matinal de guardia.',
+        quePuedesVer: 'Mapeo exacto por tramo horario en Comparativa de Equipos, Demanda y Rendimiento Turnos.',
+        ejemploUso: 'Marca un día como "Festivo" en Pautas de Turnos y verás cómo sus atenciones se dividen de inmediato en los dos turnos de 12 horas.'
+      },
+      changes: [
+        'Detección Automática de Festivos 24h: Mapeo de día (08-20h) y noche (20-08h) en feriados.',
+        'Asignación Matinal al Turno de Salida: Pacientes de la mañana quedan asociados al turno que operó la noche anterior.',
+        'Compatibilidad Total: Sincronización continua entre Pautas, Demanda y KPIs.'
+      ]
+    },
+    {
       id: 'v5.0.9',
       version: 'v5.0.9',
       fecha: '18 de Agosto, 2026',

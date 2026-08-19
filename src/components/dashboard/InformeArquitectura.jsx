@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.1.0',
+    version_tag: 'v5.1.0',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Soporte Nativo a Régimen Festivo (24h) y Asignación Operacional Matinal al Turno de Salida en Pautas.',
+    medios_y_stack: [
+      'React 18.3 & Helpers (helpers.js, AnalisisEquiposTurno.jsx)',
+      'Lógica Dual de Calendario (Semana 17:00 a 08:00 vs Festivo 24h 08:00 a 20:00 y 20:00 a 08:00)',
+      'Sincronización Pautas Firestore (pautasDB)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Días Festivos/Feriados: Si un día de semana es marcado como festivo en la pauta, el sistema activa automáticamente el régimen de 24 horas y asigna a los pacientes diurnos (08:00 a 20:00) y nocturnos (20:00 a 08:00) a los equipos programados para cada franja. 2) Días Hábiles: Las atenciones de madrugada y mañana (00:00 a 15:59) se asignan de forma natural al turno largo que va saliendo y entregando la guardia (día anterior), mientras que a partir de las 16:00/17:00 hrs se asocian al nuevo turno titular.',
+      firestore_collections: ['pautas_turnos', 'turnos', 'pacientes_urgencia'],
+      query_optimization: 'Evaluación O(1) por admisión considerando metadatos de pauta.'
+    },
+    modulos_afectados: ['Dashboard', 'AnalisisEquiposTurno', 'CalendarioHistorico', 'helpers.js', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Actualización de obtenerTurnoDetallado para aceptar pautasDB y evaluar el flag festivo.',
+      'Sincronización del corte matinal de día hábil con el turno de salida.',
+      'Compatibilidad total con la subdivisión de turnos: Largo Semana, Fin de Semana Día, Fin de Semana Noche, Festivo Día y Festivo Noche.'
+    ]
+  },
+  {
     id: 'v5.0.9',
     version_tag: 'v5.0.9',
     fecha_despliegue: '18 de Agosto, 2026',

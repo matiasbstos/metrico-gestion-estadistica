@@ -13,7 +13,7 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
     // 1. Mapear directamente la totalidad de pacientes admitidos
     (pacientesFiltrados || []).forEach(p => {
       if (!p.tAdmision) return;
-      const det = obtenerTurnoDetallado(p.tAdmision);
+      const det = obtenerTurnoDetallado(p.tAdmision, pautasDB);
       if (!det || !det.fechaTurno) return;
       
       const [d, m, y] = det.fechaTurno.split('/');

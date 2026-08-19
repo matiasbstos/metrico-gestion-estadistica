@@ -19,45 +19,63 @@ export const truncateStr = (str, n) => {
  * - Fin de Semana (Día): 08:00 a 20:00 hrs.
  * - Fin de Semana (Noche): 20:00 a 08:00 hrs del día siguiente.
  */
-export const obtenerTurnoDetallado = (timestamp) => {
+export const obtenerTurnoDetallado = (timestamp, pautasDB = null) => {
   if (!timestamp) return { turnoNum: '-', equipo: '-', tipo: '-', horario: '-', fechaTurno: '-', textoCompleto: '-' };
 
   const d = new Date(timestamp);
   if (isNaN(d.getTime())) return { turnoNum: '-', equipo: '-', tipo: '-', horario: '-', fechaTurno: '-', textoCompleto: '-' };
 
   const hours = d.getHours();
-  const mins = d.getMinutes();
-  const totalMins = hours * 60 + mins;
   const dayOfWeek = d.getDay(); // 0 = Domingo, 6 = Sábado
-  const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+  const isWeekendNatural = (dayOfWeek === 0 || dayOfWeek === 6);
+
+  // Formato de fecha para validar si el día fue marcado como "Festivo" en pautasDB
+  const yRaw = d.getFullYear();
+  const mRaw = String(d.getMonth() + 1).padStart(2, '0');
+  const dRaw = String(d.getDate()).padStart(2, '0');
+  const dateStrRaw = `${yRaw}-${mRaw}-${dRaw}`;
+  const monthIdRaw = `${yRaw}-${mRaw}`;
+
+  let isFestivo = false;
+  if (pautasDB && pautasDB[monthIdRaw] && pautasDB[monthIdRaw][dateStrRaw]) {
+    if (pautasDB[monthIdRaw][dateStrRaw].festivo) {
+      isFestivo = true;
+    }
+  }
+
+  const is24hOperatingDay = isWeekendNatural || isFestivo;
 
   let logicalDate = new Date(timestamp);
   let turnoNum = 1;
   let tipo = 'Turno de Semana';
   let horario = '17:00 a 08:00 hrs';
 
-  if (isWeekend) {
+  if (is24hOperatingDay) {
+    // Régimen de 24 Horas (Fin de Semana o Día Festivo declarado en pauta)
     if (hours >= 8 && hours < 20) {
       turnoNum = 1;
-      tipo = 'Fin de Semana Día';
+      tipo = isFestivo ? 'Festivo Diurno' : 'Fin de Semana Día';
       horario = '08:00 a 20:00 hrs';
     } else {
       turnoNum = 3;
-      tipo = 'Fin de Semana Noche';
+      tipo = isFestivo ? 'Festivo Nocturno' : 'Fin de Semana Noche';
       horario = '20:00 a 08:00 hrs';
       if (hours < 8) logicalDate.setDate(logicalDate.getDate() - 1);
     }
   } else {
-    // Día de semana (Lunes a Viernes)
-    if (totalMins >= 960 || totalMins < 540) {
+    // Régimen Hábil de Semana (Lunes a Viernes no festivo)
+    if (hours >= 16) {
+      // Turno Largo que arranca en la tarde del día actual (17:00 a 08:00)
       turnoNum = 2;
       tipo = 'Turno Largo Semana';
       horario = '17:00 a 08:00 hrs';
-      if (totalMins < 540) logicalDate.setDate(logicalDate.getDate() - 1);
     } else {
-      turnoNum = 1;
-      tipo = 'Refuerzo Diurno Semana';
-      horario = '09:00 a 16:00 hrs';
+      // Atenciones de madrugada y mañana (00:00 a 15:59):
+      // Pertenecen al Turno Largo del día anterior que va entregando la guardia
+      turnoNum = 2;
+      tipo = 'Turno Largo Semana (Cierre)';
+      horario = '17:00 a 08:00 hrs';
+      logicalDate.setDate(logicalDate.getDate() - 1);
     }
   }
 
