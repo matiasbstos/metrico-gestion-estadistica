@@ -1,14 +1,13 @@
 import React, { useMemo } from 'react';
 import { Users, UserX, Clock, Activity, BarChart2, ArrowUpRight, CheckCircle2 } from 'lucide-react';
-import { obtenerTurnoDetallado, resolverEquipoTurno } from '../../utils/helpers';
+import { obtenerTurnoDetallado, resolverEquipoTurno, isAltaAdmin } from '../../utils/helpers';
 
 export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrados, setActiveTab, pautasDB }) {
   const dataEquipos = useMemo(() => {
     const equipos = {
       'Turno 1': { name: 'Turno 1', totalPacientes: 0, atendidos: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#10b981' }, // Verde
       'Turno 2': { name: 'Turno 2', totalPacientes: 0, atendidos: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#facc15' }, // Amarillo
-      'Turno 3': { name: 'Turno 3', totalPacientes: 0, atendidos: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#3b82f6' }, // Azul
-      'Turno 4': { name: 'Turno 4', totalPacientes: 0, atendidos: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#f97316' }  // Naranja
+      'Turno 3': { name: 'Turno 3', totalPacientes: 0, atendidos: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#3b82f6' }  // Azul
     };
 
     // 1. Mapear directamente la totalidad de pacientes admitidos
@@ -21,10 +20,14 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
       const fechaInicio = `${y}-${m}-${d}`;
       
       const eq = resolverEquipoTurno(fechaInicio, det.horario, pautasDB, p.equipo || p.equipoTurno);
+      if (eq && !equipos[eq] && (eq.includes('4') || eq === 'Turno 4')) {
+        equipos['Turno 4'] = { name: 'Turno 4', totalPacientes: 0, atendidos: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#f97316' };
+      }
+
       const targetEq = equipos[eq] || equipos['Turno 1'];
 
       targetEq.totalPacientes++;
-      if (p.estado === 'Cancelada' || p.tipoAlta === 'Alta Administrativa') {
+      if (isAltaAdmin(p)) {
         targetEq.altasAdmin++;
       } else {
         targetEq.atendidos++;
@@ -66,25 +69,30 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
     });
   }, [turnosFiltrados, pacientesFiltrados, pautasDB]);
 
+  // Lista de equipos visibles (oculta Turno 4 si no tiene pacientes)
+  const displayedEquipos = useMemo(() => {
+    return dataEquipos.filter(e => e.totalPacientes > 0 || ['Turno 1', 'Turno 2', 'Turno 3'].includes(e.name));
+  }, [dataEquipos]);
+
   // Totales de participación
   const totalPacientesPeriodo = useMemo(() => {
-    return dataEquipos.reduce((acc, e) => acc + e.totalPacientes, 0);
-  }, [dataEquipos]);
+    return displayedEquipos.reduce((acc, e) => acc + e.totalPacientes, 0);
+  }, [displayedEquipos]);
 
   const totalAtendidosPeriodo = useMemo(() => {
-    return dataEquipos.reduce((acc, e) => acc + e.atendidos, 0);
-  }, [dataEquipos]);
+    return displayedEquipos.reduce((acc, e) => acc + e.atendidos, 0);
+  }, [displayedEquipos]);
 
   const totalAltasPeriodo = useMemo(() => {
-    return dataEquipos.reduce((acc, e) => acc + e.altasAdmin, 0);
-  }, [dataEquipos]);
+    return displayedEquipos.reduce((acc, e) => acc + e.altasAdmin, 0);
+  }, [displayedEquipos]);
 
   // Turno/Equipo con mayor volumen
   const equipoMaxPacientes = useMemo(() => {
-    const valid = dataEquipos.filter(e => e.totalPacientes > 0);
+    const valid = displayedEquipos.filter(e => e.totalPacientes > 0);
     if (valid.length === 0) return null;
     return [...valid].sort((a, b) => b.totalPacientes - a.totalPacientes)[0];
-  }, [dataEquipos]);
+  }, [displayedEquipos]);
 
   // Turno individual récord
   const shiftRecord = useMemo(() => {
@@ -174,8 +182,8 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
           <div>
             <span className="text-[9px] font-black text-secondary-custom tracking-wider uppercase opacity-85">T. Espera (Triaje) Global</span>
             <div className="text-2xl font-black text-emerald-500 mt-1">
-              {dataEquipos.filter(e => e.countEspera > 0).length > 0
-                ? `${Math.round(dataEquipos.reduce((acc, e) => acc + e.sumEspera, 0) / Math.max(1, dataEquipos.reduce((acc, e) => acc + e.countEspera, 0)))} min`
+              {displayedEquipos.filter(e => e.countEspera > 0).length > 0
+                ? `${Math.round(displayedEquipos.reduce((acc, e) => acc + e.sumEspera, 0) / Math.max(1, displayedEquipos.reduce((acc, e) => acc + e.countEspera, 0)))} min`
                 : '0 min'}
             </div>
           </div>
@@ -185,9 +193,9 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
         </div>
       </div>
 
-      {/* Grid Comparativo Numérico de los 4 Equipos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {dataEquipos.map((e, idx) => {
+      {/* Grid Comparativo Numérico de los Equipos de la Pauta */}
+      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-${displayedEquipos.length} gap-4`}>
+        {displayedEquipos.map((e, idx) => {
           const participacion = totalPacientesPeriodo > 0 ? ((e.totalPacientes / totalPacientesPeriodo) * 100).toFixed(1) : '0.0';
           return (
             <div key={idx} className="bg-card-custom p-5 rounded-2xl border border-card-custom shadow-sm flex flex-col justify-between theme-transition relative overflow-hidden">
@@ -197,7 +205,7 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-xs font-black text-primary-custom uppercase tracking-wider">{e.name}</span>
                   <span className="text-[10px] font-bold text-secondary-custom opacity-70">
-                    {e.totalHoras > 0 ? `${e.totalHoras} hrs cob.` : 'Rotativa Activa'}
+                    {e.totalHoras > 0 ? `${e.totalHoras} hrs cob.` : 'Pauta Activa'}
                   </span>
                 </div>
 

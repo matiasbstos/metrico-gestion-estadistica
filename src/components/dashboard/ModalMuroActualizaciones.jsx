@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.0.9',
+      version: 'v5.0.9',
+      fecha: '18 de Agosto, 2026',
+      badge: 'AJUSTE DE PAUTA Y FIX',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Alineación a los 3 Equipos Reales de Pauta y Corrección en Histórico Mensual',
+      categoria: 'Turnos & Auditoría',
+      icon: Users,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: '1) Se unificó el cálculo de Altas Administrativas (isAltaAdmin) para que coincida exactamente con las cifras del panel global. 2) Se restringió la asignación exclusivamente a los 3 equipos activos de la pauta (Turno 1, 2 y 3), descartando el Turno 4 que no existe en el servicio. 3) Se subsanó el error al abrir el Histórico Mensual.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la vista de Comparativa de Equipos muestre únicamente los 3 turnos reales y que el Histórico Mensual cargue de forma instantánea sin errores.',
+        quePuedesVer: '3 tarjetas de equipo (Turno 1, Turno 2, Turno 3) con sus altas administrativas y el calendario histórico totalmente funcional.',
+        ejemploUso: 'Haz clic en "Histórico Mensual" para revisar el calendario interactivo o en Inicio para ver los 3 equipos cuadrando al 100%.'
+      },
+      changes: [
+        'isAltaAdmin Unificado: El número de altas administrativas coincide con la totalidad clínica.',
+        'Pauta de 3 Turnos: Se elimina el Turno 4 inexistente y se reasignan las jornadas diurnas.',
+        'Fix Histórico Mensual: Corregido el paso de props en CalendarioHistorico.jsx.'
+      ]
+    },
+    {
       id: 'v5.0.8',
       version: 'v5.0.8',
       fecha: '18 de Agosto, 2026',

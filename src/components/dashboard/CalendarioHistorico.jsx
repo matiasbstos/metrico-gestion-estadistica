@@ -19,7 +19,7 @@ const TRIAGE_COLORS = {
   'C5': '#3b82f6'
 };
 
-export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [] }) {
+export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [], centroActivo, pautasDB = {} }) {
   const [currentMonth, setCurrentMonth] = useState(() => {
     if (turnosDB && turnosDB.length > 0) {
       const validTurno = turnosDB.find(t => t.fechaInicio);

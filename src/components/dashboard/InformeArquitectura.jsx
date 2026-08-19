@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.0.9',
+    version_tag: 'v5.0.9',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Corrección de Altas Administrativas (isAltaAdmin Universal), Restricción a los 3 Equipos Reales de Pauta y Fix Scope en Histórico Mensual.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisEquiposTurno.jsx, CalendarioHistorico.jsx, helpers.js)',
+      'Regla Universal isAltaAdmin',
+      'Filtro Dinámico de Equipos Activos'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Se unifica la regla clínica de Altas Administrativas (isAltaAdmin) con paridad 100% entre KPIs generales y Comparativa de Equipos. 2) Se restringe la visualización exclusivamente a los 3 equipos activos configurados en la pauta (Turno 1, Turno 2 y Turno 3), eliminando asignaciones anómalas a un inexistente Turno 4. 3) Se corrige el paso de props en CalendarioHistorico.jsx solucionando el error ReferenceError: pautasDB is not defined.',
+      firestore_collections: ['pautas_turnos', 'turnos', 'pacientes_urgencia'],
+      query_optimization: 'Cómputo en memoria O(N) sincronizado con el pipeline analítico.'
+    },
+    modulos_afectados: ['Dashboard', 'AnalisisEquiposTurno', 'CalendarioHistorico', 'helpers.js', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Exportación de isAltaAdmin en helpers.js para cómputo idéntico en todas las capas del sistema.',
+      'Ajuste del ciclo de rotativa a 3 equipos (Turno 1, Turno 2, Turno 3).',
+      'Inclusión de pautasDB = {} en la cabecera de CalendarioHistorico.jsx.',
+      'Ajuste automático de la cuadrícula visual de equipos según los turnos presentes en la pauta.'
+    ]
+  },
+  {
     id: 'v5.0.8',
     version_tag: 'v5.0.8',
     fecha_despliegue: '18 de Agosto, 2026',

@@ -61,9 +61,9 @@ export const obtenerTurnoDetallado = (timestamp) => {
     }
   }
 
-  // Rotativa asignada de Equipo (Equipo 1, Equipo 2, Equipo 3, Equipo 4)
+  // Rotativa asignada de Equipo (Turno 1, Turno 2, Turno 3)
   const dayOfYear = Math.floor((logicalDate - new Date(logicalDate.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
-  const equipoNum = ((dayOfYear + turnoNum) % 4) + 1;
+  const equipoNum = ((dayOfYear + turnoNum) % 3) + 1;
   const equipo = `Turno ${equipoNum}`;
 
   const y = logicalDate.getFullYear();
@@ -83,11 +83,22 @@ export const obtenerTurnoDetallado = (timestamp) => {
   };
 };
 
+export const isAltaAdmin = (p) => {
+  if (!p) return false;
+  if (p.flag_alta_administrativa !== undefined && p.flag_alta_administrativa !== null) {
+    return Boolean(p.flag_alta_administrativa);
+  }
+  if (p.estado === 'Cancelada' || p.destinoAlta === 'ALTA ADMINISTRATIVA' || p.destinoAlta === 'RETIRO SIN ATENCIÓN' || p.destinoAlta === 'RETIRO') return true;
+  const med = String(p.medico || p.profesional || p.medico_tratante || '').trim().toUpperCase();
+  const invalidMeds = ['NO REGISTRADO', 'NO REGISTRADA', 'SIN ESPECIFICAR', 'SIN REGISTRO', 'NO ASIGNADO', 'S/R', 'NO ESPECIFICADO', 'SIN MEDICO', 'SIN MÉDICO', 'S/M', '-', 'N/A', 'UNDEFINED', 'NULL', ''];
+  return p.estado !== 'Finalizada' && invalidMeds.includes(med);
+};
+
 /**
  * Resuelve el Equipo/Turno asignado de forma universal:
  * 1. Prioridad 1: Pauta manual configurada en pautasDB para ese mes y fecha.
  * 2. Prioridad 2: Equipo explícito válido registrado en la base de datos de turnos.
- * 3. Prioridad 3: Algoritmo de rotativa oficial de 4 turnos continuos.
+ * 3. Prioridad 3: Algoritmo de rotativa oficial de 3 turnos continuos.
  */
 export const resolverEquipoTurno = (fechaStr, horarioStr, pautasDB, equipoExplicit) => {
   // 1. Prioridad 1: Si existe pauta manual configurada en pautasDB para ese mes y fecha
@@ -102,9 +113,10 @@ export const resolverEquipoTurno = (fechaStr, horarioStr, pautasDB, equipoExplic
       } else if (h.includes('20:00') || h.includes('noche')) {
         eqPauta = dayData['20:00 - 08:00'] || dayData['20:00 a 08:00 hrs'] || dayData.noche;
       } else if (h.includes('08:00') || h.includes('dia') || h.includes('día')) {
-        eqPauta = dayData['08:00 - 20:00'] || dayData['08:00 a 20:00 hrs'] || dayData.dia;
+        // En fin de semana busca 08:00 - 20:00, si es día de semana donde sólo existe 17:00 - 08:00, toma 17:00 - 08:00
+        eqPauta = dayData['08:00 - 20:00'] || dayData['08:00 a 20:00 hrs'] || dayData.dia || dayData['17:00 - 08:00'] || dayData.noche;
       } else {
-        eqPauta = dayData['17:00 - 08:00'] || dayData['20:00 - 08:00'] || dayData['08:00 - 20:00'] || Object.values(dayData).find(v => typeof v === 'string' && (v.includes('Turno') || v.includes('Equipo')));
+        eqPauta = dayData['17:00 - 08:00'] || dayData['08:00 - 20:00'] || dayData['20:00 - 08:00'] || Object.values(dayData).find(v => typeof v === 'string' && (v.includes('Turno') || v.includes('Equipo')));
       }
 
       if (eqPauta) {
@@ -128,7 +140,7 @@ export const resolverEquipoTurno = (fechaStr, horarioStr, pautasDB, equipoExplic
     return clean;
   }
 
-  // 3. Prioridad 3: Algoritmo Determinista Rotativo Oficial de Respaldo
+  // 3. Prioridad 3: Algoritmo Determinista Rotativo Oficial de Respaldo (Ciclo de 3 Turnos)
   if (fechaStr) {
     const parts = fechaStr.split('-').map(Number);
     if (parts.length === 3) {
@@ -144,7 +156,7 @@ export const resolverEquipoTurno = (fechaStr, horarioStr, pautasDB, equipoExplic
       else if (h.includes('17:00') || h.includes('largo')) shiftOffset = 0;
       else if (h.includes('08:00') || h.includes('dia')) shiftOffset = 0;
 
-      const teamIndex = (((diffDays + shiftOffset) % 4) + 4) % 4 + 1;
+      const teamIndex = (((diffDays + shiftOffset) % 3) + 3) % 3 + 1;
       return `Turno ${teamIndex}`;
     }
   }
