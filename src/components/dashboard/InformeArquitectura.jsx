@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.9.7',
+    version_tag: 'v4.9.7',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Diseño Luminoso de Alto Contraste y Botones de Cierre Dedicados para el Buscador Global (Command Palette): Resalte Visual Premium y Salida Ergonómica.',
+    medios_y_stack: [
+      'React 18.3 & Lucide React (BarraBusquedaGlobal.jsx)',
+      'Tailwind CSS (High-Contrast Glassmorphism)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Se rediseña la paleta visual del Command Palette con fondos blancos y nítidos en modo claro, acentos púrpuras e índigo saturados, píldoras de métricas destacadas y tipografía de máxima legibilidad. Se incorporan botones de cierre físicos ("Cerrar" en cabecera y pie) además del atajo ESC, garantizando una interacción fluida en entornos táctiles y de escritorio.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Transiciones CSS aceleradas por GPU y renderizado optimizado.'
+    },
+    modulos_afectados: ['Dashboard', 'BarraBusquedaGlobal', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Reemplazo de tonos opacos y grisáceos por fondos de alto contraste con tarjetas blancas/luz y sombras suaves.',
+      'Incorporación de botón superior e inferior de cierre con soporte de tecla Escape y clic en backdrop.',
+      'Píldoras de KPIs en vivo con mayor saturación y contraste visual.'
+    ]
+  },
+  {
     id: 'v4.9.6',
     version_tag: 'v4.9.6',
     fecha_despliegue: '18 de Agosto, 2026',

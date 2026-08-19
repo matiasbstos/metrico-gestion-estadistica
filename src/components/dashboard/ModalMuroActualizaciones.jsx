@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.9.7',
+      version: 'v4.9.7',
+      fecha: '18 de Agosto, 2026',
+      badge: 'ALTO CONTRASTE',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Diseño Luminoso de Alto Contraste y Botones de Cierre para el Buscador Global',
+      categoria: 'Búsqueda & Experiencia de Usuario',
+      icon: Sparkles,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se ha rediseñado la interfaz del Buscador Global (Command Palette) para ofrecer un aspecto visual luminoso, nítido y de máximo contraste. Los elementos ahora destacan con fondos claros, acentos vibrantes y píldoras de métricas más legibles. Además, se han incorporado botones físicos de "Cerrar" en la parte superior e inferior para facilitar la salida con un solo clic.',
+      instructivo: {
+        paraQueSirve: 'Permite una lectura más clara y cómoda de las métricas y reportes buscados, con botones de salida rápidos y visibles.',
+        quePuedesVer: 'Al presionar Ctrl + K o abrir el buscador, apreciarás tarjetas blancas y luminosas, métricas saturadas y el botón de cierre en la esquina superior derecha.',
+        ejemploUso: 'Ejemplo: Abre el buscador, revisa las métricas de un parámetro y haz clic en "Cerrar" o presiona ESC.'
+      },
+      changes: [
+        'Paleta Visual Luminosa: Tarjetas blancas de alto contraste con resaltes nítidos y sombras suaves.',
+        'Botones de Cierre Físicos: Botón "Cerrar" en la cabecera superior y en el pie del buscador.',
+        'Mayor Contraste de Texto y Métricas: Colores saturados para una lectura inmediata de indicadores en vivo.'
+      ]
+    },
+    {
       id: 'v4.9.6',
       version: 'v4.9.6',
       fecha: '18 de Agosto, 2026',

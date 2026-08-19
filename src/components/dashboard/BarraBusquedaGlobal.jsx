@@ -64,10 +64,10 @@ export default function BarraBusquedaGlobal({
       {
         id: 'altas',
         title: 'Altas Administrativas',
-        category: 'Métricas Críticas & Específicos',
+        category: 'Métricas Críticas',
         keywords: ['alta', 'altas', 'administrativa', 'cancelada', 'cancelaciones', 'desercion', 'deserción', 'fuga'],
         icon: UserCheck,
-        color: 'text-rose-500 bg-rose-500/10 border-rose-500/20',
+        color: 'text-rose-600 bg-rose-100 dark:bg-rose-950/50 border-rose-300 dark:border-rose-800',
         liveKPI: `${totalAltas.toLocaleString()} pac (${altasPct}% del total)`,
         description: 'Pacientes que cancelaron atención tras categorización sin informe médico.',
         action: () => {
@@ -79,10 +79,10 @@ export default function BarraBusquedaGlobal({
       {
         id: 'traslados',
         title: 'Traslados Hospitalarios',
-        category: 'Derivaciones de Red',
+        category: 'Derivaciones',
         keywords: ['traslado', 'traslados', 'derivacion', 'derivación', 'hospital', 'san jose', 'ambulancia', 'derivados'],
         icon: ArrowLeftRight,
-        color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20',
+        color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: `${totalTraslados.toLocaleString()} traslados registrados`,
         description: 'Derivaciones de urgencia a centros hospitalarios de mayor complejidad.',
         action: () => {
@@ -97,7 +97,7 @@ export default function BarraBusquedaGlobal({
         category: 'Volumen Asistencial',
         keywords: ['admitidos', 'admision', 'admisión', 'ingresos', 'volumen', 'total pacientes', 'pacientes'],
         icon: Users,
-        color: 'text-blue-500 bg-blue-500/10 border-blue-500/20',
+        color: 'text-blue-600 bg-blue-100 dark:bg-blue-950/50 border-blue-300 dark:border-blue-800',
         liveKPI: `${totalPacientes.toLocaleString()} admitidos (${pacHora} pac/h)`,
         description: 'Total de admisiones ingresadas en el período seleccionado.',
         action: () => {
@@ -111,7 +111,7 @@ export default function BarraBusquedaGlobal({
         category: 'Volumen Asistencial',
         keywords: ['atendidos', 'atencion', 'atención', 'consultas', 'efectivas', 'clinicas'],
         icon: Activity,
-        color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
+        color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800',
         liveKPI: `${totalAtendidos.toLocaleString()} atendidos`,
         description: 'Atenciones médicas efectivas (excluye altas administrativas).',
         action: () => {
@@ -125,7 +125,7 @@ export default function BarraBusquedaGlobal({
         category: 'Flujo Asistencial',
         keywords: ['tiempo', 'tiempos', 'espera', 'estadia', 'estadía', 'box', 'anamnesis', 'triaje espera', 'demora', 'minutos'],
         icon: Clock,
-        color: 'text-purple-500 bg-purple-500/10 border-purple-500/20',
+        color: 'text-purple-600 bg-purple-100 dark:bg-purple-950/50 border-purple-300 dark:border-purple-800',
         liveKPI: `Estadía: ${formatTime(estadiaMin)} | Médico: ${formatTime(esperaMed)} | Box: ${formatTime(tiempoBox)}`,
         description: 'Evolución de tiempos de espera en triaje, llamado a box y permanencia total.',
         action: () => {
@@ -139,7 +139,7 @@ export default function BarraBusquedaGlobal({
         category: 'Flujo Clínico',
         keywords: ['c1', 'c2', 'c3', 'c4', 'c5', 'triaje', 'triage', 'categorizacion', 'categorización', 'gravedad', 'urgencia'],
         icon: Sparkles,
-        color: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
+        color: 'text-amber-600 bg-amber-100 dark:bg-amber-950/50 border-amber-300 dark:border-amber-800',
         liveKPI: 'Monitoreo de severidad y distribución horaria',
         description: 'Radar predictivo y distribución de pacientes por índice de gravedad C1-C5.',
         action: () => {
@@ -153,7 +153,7 @@ export default function BarraBusquedaGlobal({
         category: 'Análisis Específicos',
         keywords: ['fractura', 'fracturas', 'hueso', 'cie-10', 's02', 's92', 'trauma', 'traumatismo', 'lesion osea'],
         icon: Activity,
-        color: 'text-rose-500 bg-rose-500/10 border-rose-500/20',
+        color: 'text-rose-600 bg-rose-100 dark:bg-rose-950/50 border-rose-300 dark:border-rose-800',
         liveKPI: 'Epidemiología ósea de lesiones traumáticas',
         description: 'Detección automática de códigos CIE-10 S02 a S92.',
         action: () => {
@@ -168,7 +168,7 @@ export default function BarraBusquedaGlobal({
         category: 'Análisis Específicos',
         keywords: ['constatacion', 'constatación', 'lesion', 'lesiones', 'z51.8', 'z518', 'z04', 'carabineros', 'clinico legal', 'alcoholemia'],
         icon: ShieldAlert,
-        color: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
+        color: 'text-amber-600 bg-amber-100 dark:bg-amber-950/50 border-amber-300 dark:border-amber-800',
         liveKPI: `${totalConstataciones.toLocaleString()} constataciones registradas`,
         description: 'Atenciones clínico-legales requeridas por policías y tribunales.',
         action: () => {
@@ -183,7 +183,7 @@ export default function BarraBusquedaGlobal({
         category: 'Comportamiento Operativo',
         keywords: ['demanda', 'curva', 'horas peak', 'horario', 'afluencia', 'admisiones por hora', 'horas'],
         icon: BarChart2,
-        color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20',
+        color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: 'Patrón horario de admisiones y afluencia',
         description: 'Análisis de horas pico y distribución por tramos horarios.',
         action: () => {
@@ -198,7 +198,7 @@ export default function BarraBusquedaGlobal({
         category: 'Cuerpo Médico',
         keywords: ['medico', 'médico', 'medicos', 'médicos', 'doctor', 'doctores', 'profesional', 'profesionales', 'rendimiento clinico', 'receta', 'recetas', 'productividad'],
         icon: Award,
-        color: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
+        color: 'text-amber-600 bg-amber-100 dark:bg-amber-950/50 border-amber-300 dark:border-amber-800',
         liveKPI: 'Auditoría de atenciones médicas y ranking',
         description: 'Evaluación de médicos, pacientes por hora y prescripción.',
         action: () => {
@@ -212,7 +212,7 @@ export default function BarraBusquedaGlobal({
         category: 'Equipo Clínico',
         keywords: ['enfermeria', 'enfermería', 'enfermeros', 'enfermeras', 'triage enfermeria', 'categorizadores'],
         icon: Activity,
-        color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20',
+        color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: 'Velocidad de categorización y triaje',
         description: 'Tiempos de triaje y productividad por enfermero(a).',
         action: () => {
@@ -227,7 +227,7 @@ export default function BarraBusquedaGlobal({
         category: 'Gestión & Informes',
         keywords: ['reporte', 'reportes', 'informe', 'ejecutivo', 'pdf', 'imprimir', 'descargar', 'balance'],
         icon: FileSpreadsheet,
-        color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20',
+        color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800',
         liveKPI: 'Generador de informes directivos y balance de turno',
         description: 'Resumen consolidado listo para exportación formal e impresión.',
         action: () => {
@@ -241,7 +241,7 @@ export default function BarraBusquedaGlobal({
         category: 'Gestión Operativa',
         keywords: ['pauta', 'pautas', 'programacion', 'programación', 'cuadrante', 'rol de turno', 'equipos', 'personal'],
         icon: Calendar,
-        color: 'text-sky-500 bg-sky-500/10 border-sky-500/20',
+        color: 'text-sky-600 bg-sky-100 dark:bg-sky-950/50 border-sky-300 dark:border-sky-800',
         liveKPI: 'Cuadrante mensual y asignación de equipos',
         description: 'Planificación de turnos de médicos y enfermería.',
         action: () => {
@@ -255,7 +255,7 @@ export default function BarraBusquedaGlobal({
         category: 'Administración de Datos',
         keywords: ['data', 'datos', 'carga', 'excel', 'subir', 'importar', 'recalcular', 'purga', 'limpieza'],
         icon: Database,
-        color: 'text-teal-500 bg-teal-500/10 border-teal-500/20',
+        color: 'text-teal-600 bg-teal-100 dark:bg-teal-950/50 border-teal-300 dark:border-teal-800',
         liveKPI: `${(pacientesFiltrados.length + turnosFiltrados.length).toLocaleString()} registros activos`,
         description: 'Carga de archivos Excel, purgado y recálculo masivo.',
         action: () => {
@@ -269,7 +269,7 @@ export default function BarraBusquedaGlobal({
         category: 'Seguridad & Acceso',
         keywords: ['usuario', 'usuarios', 'cuentas', 'permisos', 'credenciales', 'matriz', 'bloquear', 'claves'],
         icon: Users,
-        color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20',
+        color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: 'Control granular de módulos y credenciales',
         description: 'Administración de cuentas, perfiles y permisos por módulo.',
         action: () => {
@@ -283,7 +283,7 @@ export default function BarraBusquedaGlobal({
         category: 'Seguridad & Control',
         keywords: ['auditoria', 'auditoría', 'bitacora', 'bitácora', 'logs', 'seguridad', 'trazabilidad', 'acciones'],
         icon: Shield,
-        color: 'text-indigo-500 bg-indigo-500/10 border-indigo-500/20',
+        color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: 'Historial inmutable de operaciones del sistema',
         description: 'Registro de acciones administrativas, altas y modificaciones.',
         action: () => {
@@ -297,7 +297,7 @@ export default function BarraBusquedaGlobal({
         category: 'Sistema & Desarrollo',
         keywords: ['arquitectura', 'version', 'versión', 'historial', 'timeline', 'tecnico', 'técnico', 'documentacion'],
         icon: BookOpen,
-        color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
+        color: 'text-indigo-500 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: 'Consolidado maestro y versiones del sistema',
         description: 'Documentación técnica de evolución y catálogo de fórmulas.',
         action: () => {
@@ -311,7 +311,7 @@ export default function BarraBusquedaGlobal({
         category: 'Sistema & Desarrollo',
         keywords: ['devlog', 'desarrollo', 'debug', 'consola', 'eventos', 'terminal'],
         icon: Terminal,
-        color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+        color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800',
         liveKPI: 'Consola técnica en tiempo real',
         description: 'Registro de eventos internos y telemetría de depuración.',
         action: () => {
@@ -336,47 +336,78 @@ export default function BarraBusquedaGlobal({
     });
   }, [query, searchIndex]);
 
-  // Elemento Command Palette renderizado vía Portal en document.body para evitar que el aside lo comprima
+  // Elemento Command Palette renderizado vía Portal en document.body
   const modalPortal = isModalOpen && typeof document !== 'undefined' ? createPortal(
     <div 
-      className="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-md flex items-start justify-center pt-16 md:pt-24 p-4 animate-fade-in"
+      className="fixed inset-0 z-[99999] bg-slate-950/65 backdrop-blur-md flex items-start justify-center pt-12 md:pt-20 p-4 animate-fade-in"
       onClick={() => setIsModalOpen(false)}
     >
       <div 
-        className="bg-card-custom border border-card-custom rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden theme-transition flex flex-col max-h-[80vh]"
+        className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl shadow-[0_25px_70px_-15px_rgba(0,0,0,0.35)] max-w-2xl w-full overflow-hidden flex flex-col max-h-[85vh] transition-all"
         onClick={e => e.stopPropagation()}
       >
-        {/* Cabecera de búsqueda del Modal */}
-        <div className="p-4 border-b border-card-custom/30 flex items-center gap-3 bg-black/5 dark:bg-white/5 shrink-0">
-          <Search className="w-5 h-5 text-indigo-500 shrink-0" />
-          <input
-            ref={modalInputRef}
-            type="text"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Buscar parámetro, métrica o reporte (ej: altas, traslados, tiempos, C3, demanda, médicos)..."
-            className="w-full bg-transparent text-sm font-bold text-primary-custom focus:outline-none placeholder:text-secondary-custom/60"
-          />
-          {query && (
-            <button 
-              onClick={() => setQuery('')}
-              className="p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded-md text-secondary-custom cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-          <span className="text-[10px] font-black text-secondary-custom bg-black/10 dark:bg-white/10 px-2 py-1 rounded-lg shrink-0">
-            ESC
-          </span>
+        {/* Cabecera Superior con Título y Botón de Cierre */}
+        <div className="px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-indigo-50/80 via-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-500/20">
+              <Search className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                Buscador Global de Métricas & Parámetros
+              </h3>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                Navega instantáneamente a cualquier módulo o reporte
+              </p>
+            </div>
+          </div>
+
+          {/* Botón de Cierre Destacado */}
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(false)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-500 hover:text-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 dark:hover:bg-rose-600 transition-all font-bold text-xs cursor-pointer shadow-xs active:scale-95 group"
+            title="Cerrar buscador (ESC)"
+          >
+            <X className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" />
+            <span>Cerrar</span>
+          </button>
         </div>
 
-        {/* Lista de Resultados con Scrollbar */}
-        <div className="overflow-y-auto custom-scrollbar p-3 space-y-2 flex-1">
+        {/* Campo de Búsqueda Lindo y Luminoso */}
+        <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
+          <div className="relative flex items-center">
+            <Search className="w-5 h-5 text-indigo-600 dark:text-indigo-400 absolute left-3.5 pointer-events-none" />
+            <input
+              ref={modalInputRef}
+              type="text"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Buscar parámetro, métrica o reporte (ej: altas, traslados, tiempos, C3, médicos)..."
+              className="w-full pl-11 pr-24 py-3 bg-slate-50 dark:bg-slate-800/80 border border-indigo-500/30 focus:border-indigo-600 focus:bg-white dark:focus:bg-slate-800 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none ring-2 ring-indigo-500/10 focus:ring-4 focus:ring-indigo-500/20 transition-all shadow-inner"
+            />
+            {query && (
+              <button 
+                onClick={() => setQuery('')}
+                className="absolute right-12 p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer transition-colors"
+                title="Limpiar texto"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            <span className="absolute right-3 text-[10px] font-black text-slate-400 dark:text-slate-500 bg-slate-200/80 dark:bg-slate-700/80 px-2 py-0.5 rounded-md">
+              ESC
+            </span>
+          </div>
+        </div>
+
+        {/* Lista de Resultados con Gran Contraste y Estilo Luminoso */}
+        <div className="overflow-y-auto custom-scrollbar p-4 space-y-2.5 flex-1 bg-slate-50/50 dark:bg-slate-900/50">
           {filteredResults.length === 0 ? (
-            <div className="p-10 text-center text-secondary-custom">
-              <Hash className="w-10 h-10 mx-auto mb-3 opacity-30 text-indigo-500" />
-              <p className="text-sm font-bold text-primary-custom">No se encontraron resultados para "{query}"</p>
-              <p className="text-xs text-secondary-custom mt-1">Prueba con: altas, traslados, tiempos, C3, médicos, demanda, usuarios, auditoría...</p>
+            <div className="py-12 px-6 text-center text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800/60 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
+              <Hash className="w-10 h-10 mx-auto mb-3 text-indigo-500 opacity-60" />
+              <p className="text-sm font-black text-slate-900 dark:text-white">No se encontraron resultados para "{query}"</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Prueba con: altas, traslados, tiempos, C3, médicos, demanda, usuarios, auditoría...</p>
             </div>
           ) : (
             filteredResults.map(item => {
@@ -385,43 +416,56 @@ export default function BarraBusquedaGlobal({
                 <div
                   key={item.id}
                   onClick={item.action}
-                  className="p-3 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-indigo-500/10 dark:hover:bg-indigo-500/15 border border-card-custom/40 hover:border-indigo-500/40 cursor-pointer transition-all duration-200 group flex items-center justify-between gap-3"
+                  className="p-3.5 rounded-2xl bg-white dark:bg-slate-800/90 hover:bg-indigo-50/90 dark:hover:bg-indigo-950/60 border border-slate-200/90 dark:border-slate-700/80 hover:border-indigo-500/50 dark:hover:border-indigo-400/60 cursor-pointer transition-all duration-200 group flex items-center justify-between gap-3 shadow-xs hover:shadow-md hover:scale-[1.008]"
                 >
                   <div className="flex items-start gap-3 min-w-0">
-                    <div className={`p-2.5 rounded-xl shrink-0 border ${item.color} group-hover:scale-105 transition-transform`}>
+                    <div className={`p-2.5 rounded-xl shrink-0 border ${item.color} group-hover:scale-110 shadow-xs transition-transform`}>
                       <IconComponent className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-black text-primary-custom group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
+                        <span className="text-xs font-black text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
                           {item.title}
                         </span>
-                        <span className="text-[9px] font-bold text-secondary-custom bg-black/5 dark:bg-white/10 px-2 py-0.5 rounded-md">
+                        <span className="text-[9px] font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-600">
                           {item.category}
                         </span>
                       </div>
-                      <p className="text-[11px] text-secondary-custom line-clamp-1 mt-0.5 font-medium">
+                      <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-1 mt-0.5 font-medium">
                         {item.description}
                       </p>
                       {item.liveKPI && (
-                        <div className="mt-1.5 flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 dark:bg-indigo-500/20 px-2.5 py-0.5 rounded-lg w-fit">
-                          <Sparkles className="w-3 h-3 shrink-0" />
+                        <div className="mt-1.5 flex items-center gap-1.5 text-[10px] font-extrabold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-200/80 dark:border-indigo-800/80 px-2.5 py-0.5 rounded-lg w-fit shadow-2xs">
+                          <Sparkles className="w-3 h-3 text-indigo-600 dark:text-indigo-400 shrink-0" />
                           <span>{item.liveKPI}</span>
                         </div>
                       )}
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-secondary-custom group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-all shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:translate-x-1 transition-all shrink-0" />
                 </div>
               );
             })
           )}
         </div>
 
-        {/* Pie de búsqueda */}
-        <div className="p-3 border-t border-card-custom/30 bg-black/5 dark:bg-white/5 text-[11px] text-secondary-custom font-semibold flex items-center justify-between shrink-0">
-          <span>Haz clic en cualquier opción para ingresar al módulo</span>
-          <span className="font-bold text-indigo-500">MÉTRICO Omnibar</span>
+        {/* Pie de búsqueda con Botón de Cierre y Atajos */}
+        <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="px-3 py-1 rounded-lg bg-slate-100 hover:bg-rose-500 hover:text-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors font-bold text-[11px] cursor-pointer"
+            >
+              Cerrar Búsqueda
+            </button>
+            <span className="text-[10px] text-slate-400 hidden sm:inline">
+              Haz clic en cualquier opción para ingresar
+            </span>
+          </div>
+          <span className="font-black text-indigo-600 dark:text-indigo-400 text-[10px] tracking-wide uppercase">
+            MÉTRICO Omnibar
+          </span>
         </div>
       </div>
     </div>,
@@ -437,7 +481,7 @@ export default function BarraBusquedaGlobal({
             type="button"
             onClick={() => setIsModalOpen(true)}
             title="Buscar en MÉTRICO (Ctrl+K)"
-            className="w-10 h-10 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-500 border border-indigo-500/20 flex items-center justify-center transition-all duration-200 cursor-pointer group shadow-sm active:scale-95"
+            className="w-10 h-10 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 flex items-center justify-center transition-all duration-200 cursor-pointer group shadow-xs active:scale-95"
           >
             <Search className="w-4 h-4 group-hover:scale-110 transition-transform" />
           </button>
@@ -454,15 +498,15 @@ export default function BarraBusquedaGlobal({
         <button 
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl border border-card-custom/60 bg-black/5 dark:bg-white/5 hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all duration-200 text-left cursor-pointer group shadow-sm"
+          className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 hover:border-indigo-500/60 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition-all duration-200 text-left cursor-pointer group shadow-xs"
         >
           <div className="flex items-center gap-2 min-w-0">
-            <Search className="w-3.5 h-3.5 text-indigo-500 shrink-0 group-hover:scale-110 transition-transform" />
-            <span className="text-xs font-bold text-secondary-custom/70 group-hover:text-primary-custom truncate">
+            <Search className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0 group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 truncate">
               Buscar parámetro...
             </span>
           </div>
-          <kbd className="hidden sm:inline-flex items-center gap-0.5 text-[9px] font-black text-secondary-custom/70 bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded border border-card-custom/40 shrink-0">
+          <kbd className="hidden sm:inline-flex items-center gap-0.5 text-[9px] font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/80 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-600 shrink-0">
             Ctrl K
           </kbd>
         </button>
