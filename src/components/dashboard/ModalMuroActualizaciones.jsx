@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.0.2',
+      version: 'v5.0.2',
+      fecha: '18 de Agosto, 2026',
+      badge: 'DESPLAZAMIENTO NATIVO',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Sincronización Focal del Desplazamiento en el Contenedor Principal',
+      categoria: 'Navegación & Interfaz',
+      icon: ExternalLink,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se ha corregido el mecanismo de scroll para operar directamente sobre el contenedor con barra de desplazamiento interna del panel. Al hacer clic en "Análisis Taxonómico y de Tendencias" o en cualquier sección, el panel realiza un viaje suave exacto hacia la posición del gráfico o tabla y lo destaca con un halo iluminado.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la pantalla se mueva inmediatamente a la posición exacta del gráfico o tabla seleccionada.',
+        quePuedesVer: 'Al hacer clic en el resultado del buscador, verás el desplazamiento continuo hacia el gráfico dinámico.',
+        ejemploUso: 'Busca "taxo" o "demanda", selecciona el resultado y observa el desplazamiento focal directo.'
+      },
+      changes: [
+        'Scroll Relativo al Viewport Principal: Manejo del overflow del contenedor principal.',
+        'Compensación de Barra de Filtros: Espaciado automático de 85px para visibilidad óptima.',
+        'Reintento de Renderizado: Sincronización precisa si se cambia desde otra pestaña.'
+      ]
+    },
+    {
       id: 'v5.0.1',
       version: 'v5.0.1',
       fecha: '18 de Agosto, 2026',

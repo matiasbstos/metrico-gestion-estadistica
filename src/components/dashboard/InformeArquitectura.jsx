@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.0.2',
+    version_tag: 'v5.0.2',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Sincronización de Desplazamiento Focal Nativo en Contenedor <main> y Rescate de Posicionamiento tras Montaje de Componentes.',
+    medios_y_stack: [
+      'React 18.3 (BarraBusquedaGlobal.jsx & Dashboard.jsx)',
+      'DOM getBoundingClientRect & Offset Scroller API'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Se corrige el receptor del evento de scroll direccionándolo explícitamente hacia el elemento <main> (que posee overflow-y: auto) mediante cálculo de posición relativa (elementRect.top - mainRect.top + mainEl.scrollTop - offset). Se incorpora un bucle de reintento de 6 ciclos para garantizar que los componentes recién montados en DOM reciban el scroll y resalte visual sin importar la latencia de renderizado.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Cálculo de posición relativa O(1) con scrollIntoView de respaldo.'
+    },
+    modulos_afectados: ['Dashboard', 'BarraBusquedaGlobal', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Identificación del contenedor <main> como viewport activo de scroll en el Layout.',
+      'Cálculo compensado de 85px para evitar ocultamiento bajo los filtros flotantes (sticky header).',
+      'Efecto visual de halo temporal ring-4 ring-indigo-500 al alcanzar la posición de destino.'
+    ]
+  },
+  {
     id: 'v5.0.1',
     version_tag: 'v5.0.1',
     fecha_despliegue: '18 de Agosto, 2026',

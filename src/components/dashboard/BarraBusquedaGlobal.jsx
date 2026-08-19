@@ -59,7 +59,7 @@ export default function BarraBusquedaGlobal({
     }
   }, [isModalOpen]);
 
-  // Función de Redirección Inteligente, Cambio de Módulo y Desplazamiento Focal
+  // Función de Redirección Inteligente, Cambio de Módulo y Desplazamiento Focal en Contenedor <main>
   const navigateAndScroll = (targetTab, subTab = null, targetElementId = null) => {
     setIsModalOpen(false);
     setActiveTab(targetTab);
@@ -72,23 +72,46 @@ export default function BarraBusquedaGlobal({
       setSidebarCollapsed(true);
     }
 
-    // Esperar al ciclo de renderizado de React para ejecutar el desplazamiento y resalte
-    setTimeout(() => {
+    const performScroll = (attempt = 1) => {
+      const mainEl = document.querySelector('main');
       if (targetElementId) {
         const el = document.getElementById(targetElementId);
         if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          
-          // Efecto de resalte luminoso temporal
+          // Desplazamiento exacto considerando la cabecera flotante
+          if (mainEl) {
+            const stickyHeaderOffset = 85;
+            const elementRect = el.getBoundingClientRect();
+            const mainRect = mainEl.getBoundingClientRect();
+            const relativeTop = elementRect.top - mainRect.top + mainEl.scrollTop - stickyHeaderOffset;
+            mainEl.scrollTo({ top: Math.max(0, relativeTop), behavior: 'smooth' });
+          } else {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+
+          // Resalte luminoso animado de la sección seleccionada
           el.classList.add('ring-4', 'ring-indigo-500', 'ring-offset-4', 'dark:ring-offset-slate-900', 'transition-all', 'duration-500');
           setTimeout(() => {
             el.classList.remove('ring-4', 'ring-indigo-500', 'ring-offset-4', 'dark:ring-offset-slate-900');
-          }, 2500);
+          }, 3000);
+          return;
+        }
+
+        // Si React aún está montando el nuevo componente tras cambiar de tab, reintentar
+        if (attempt < 6) {
+          setTimeout(() => performScroll(attempt + 1), 80);
           return;
         }
       }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 120);
+
+      // Si no requiere anclaje específico o ya está al inicio
+      if (mainEl) {
+        mainEl.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+
+    setTimeout(() => performScroll(1), 60);
   };
 
   // Catálogo Exhaustivo Indexado de Búsqueda y Métricas en Tiempo Real
