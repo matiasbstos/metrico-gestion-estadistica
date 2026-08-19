@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.0.6',
+    version_tag: 'v5.0.6',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Homologación Estética y Diseño Vectorial de Iconos en Selectores de Granularidad (Clock & Calendar Lucide SVG).',
+    medios_y_stack: [
+      'React 18.3 (GraficoDinamico.jsx)',
+      'Lucide React (Clock & Calendar SVG)',
+      'TailwindCSS Design System'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Se homologan los elementos visuales del selector de granularidad en la pestaña Tiempos de Atención, sustituyendo emojis nativos por iconos vectoriales SVG de alta definición (Clock y Calendar de Lucide) perfectamente integrados con la paleta de colores, estados activos, sombras y microinteracciones del sistema.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Sin overhead de procesamiento; optimización puramente visual.'
+    },
+    modulos_afectados: ['Dashboard', 'GraficoDinamico', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Integración de componentes Lucide Clock y Calendar con dimensiones w-3.5 h-3.5.',
+      'Sincronización de colores en estados activo/inactivo (texto blanco con fondo índigo vs índigo sobre fondo card).',
+      'Unificación en la barra de filtros rápidos tanto para la tarjeta principal como para la vista modal expandida.'
+    ]
+  },
+  {
     id: 'v5.0.5',
     version_tag: 'v5.0.5',
     fecha_despliegue: '18 de Agosto, 2026',

@@ -4,7 +4,9 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
   Line, LineChart, ResponsiveContainer, CartesianGrid, ComposedChart, Area, AreaChart, LabelList 
 } from 'recharts';
-import { BarChart2, Activity, Users, Shield, Globe, Building2, AlertTriangle, Maximize2, Minimize2, X } from 'lucide-react';
+import { 
+  BarChart2, Activity, Users, Shield, Globe, Building2, AlertTriangle, Maximize2, Minimize2, X, Clock, Calendar 
+} from 'lucide-react';
 import { COLORS } from '../../config/constants';
 import InfoTooltip from '../InfoTooltip';
 import { obtenerTurnoDetallado } from '../../utils/helpers';
@@ -265,26 +267,56 @@ export default function GraficoDinamico({
 
     if (activeTab === 'tiempos') {
       return (
-        <div className="flex flex-wrap gap-2 items-center bg-black/5 dark:bg-white/5 p-2 rounded-xl border border-card-custom mb-3">
-          <span className="text-xs font-bold text-secondary-custom mr-2">Filtros Rápidos:</span>
-          {[
-            { id: 'tiempoCatAna', label: 'Espera Médico', color: 'bg-pink-500/10 text-pink-500 border border-pink-500/20' },
-            { id: 'tiempoAdmCat', label: 'Espera Triaje', color: 'bg-purple-500/10 text-purple-500 border border-purple-500/20' },
-            { id: 'tiempoAnaAlt', label: 'Tiempo Box', color: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20' },
-            { id: 'tiempoAdmAlt', label: 'Estadía Total', color: 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20' }
-          ].map(f => (
-            <button 
-              key={f.id} 
-              onClick={() => toggleFilter(setTimeFilters, f.id)} 
-              className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all cursor-pointer ${
-                timeFilters.includes(f.id) 
-                  ? `${f.color} ring-2 ring-white dark:ring-slate-800 shadow-sm` 
-                  : 'bg-card-custom text-secondary-custom border border-card-custom hover:bg-black/5 dark:hover:bg-white/5'
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-black/5 dark:bg-white/5 p-2.5 rounded-2xl border border-card-custom mb-3 theme-transition">
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-xs font-bold text-secondary-custom mr-1">Filtros Rápidos:</span>
+            {[
+              { id: 'tiempoCatAna', label: 'Espera Médico', color: 'bg-pink-500/10 text-pink-500 border border-pink-500/20' },
+              { id: 'tiempoAdmCat', label: 'Espera Triaje', color: 'bg-purple-500/10 text-purple-500 border border-purple-500/20' },
+              { id: 'tiempoAnaAlt', label: 'Tiempo Box', color: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20' },
+              { id: 'tiempoAdmAlt', label: 'Estadía Total', color: 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20' }
+            ].map(f => (
+              <button 
+                key={f.id} 
+                onClick={() => toggleFilter(setTimeFilters, f.id)} 
+                className={`px-3 py-1 rounded-full text-[10px] font-bold transition-all cursor-pointer ${
+                  timeFilters.includes(f.id) 
+                    ? `${f.color} ring-2 ring-white dark:ring-slate-800 shadow-sm` 
+                    : 'bg-card-custom text-secondary-custom border border-card-custom hover:bg-black/5 dark:hover:bg-white/5'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Selector de Granularidad: Por Hora vs Por Fecha */}
+          <div className="flex items-center gap-1 bg-card-custom p-1 rounded-xl border border-card-custom shadow-sm">
+            <button
+              onClick={() => setTiemposGranularity('hora')}
+              className={`flex items-center gap-1.5 px-3 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
+                tiemposGranularity === 'hora'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'
               }`}
+              title="Ver la curva horaria promedio de tiempos de espera de 00:00 a 23:00"
             >
-              {f.label}
+              <Clock className={`w-3.5 h-3.5 ${tiemposGranularity === 'hora' ? 'text-white' : 'text-indigo-500'}`} />
+              <span>Por Hora del Día</span>
             </button>
-          ))}
+            <button
+              onClick={() => setTiemposGranularity('dia')}
+              className={`flex items-center gap-1.5 px-3 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
+                tiemposGranularity === 'dia'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'
+              }`}
+              title="Ver la evolución temporal de tiempos por cada fecha o turno"
+            >
+              <Calendar className={`w-3.5 h-3.5 ${tiemposGranularity === 'dia' ? 'text-white' : 'text-indigo-500'}`} />
+              <span>Por Fecha / Turno</span>
+            </button>
+          </div>
         </div>
       );
     }
@@ -461,35 +493,7 @@ export default function GraficoDinamico({
                 {/* VISTA 2: TIEMPOS */}
                 {activeTab === 'tiempos' && (
                   <div className="flex flex-col gap-4 h-full">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      {renderQuickFilters()}
-                      
-                      {/* Selector de Granularidad: Por Hora del Día vs Por Fecha/Turno */}
-                      <div className="flex items-center gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-card-custom mb-3">
-                        <button
-                          onClick={() => setTiemposGranularity('hora')}
-                          className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
-                            tiemposGranularity === 'hora'
-                              ? 'bg-indigo-600 text-white shadow-sm'
-                              : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'
-                          }`}
-                          title="Ver la curva horaria promedio de tiempos de espera de 00:00 a 23:00"
-                        >
-                          ⏱️ Por Hora del Día
-                        </button>
-                        <button
-                          onClick={() => setTiemposGranularity('dia')}
-                          className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
-                            tiemposGranularity === 'dia'
-                              ? 'bg-indigo-600 text-white shadow-sm'
-                              : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'
-                          }`}
-                          title="Ver la evolución temporal de tiempos por cada fecha o turno"
-                        >
-                          📅 Por Fecha / Turno
-                        </button>
-                      </div>
-                    </div>
+                    {renderQuickFilters()}
 
                     <div className="flex-1 bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom flex flex-col">
                       <div className="flex justify-between items-center mb-2">

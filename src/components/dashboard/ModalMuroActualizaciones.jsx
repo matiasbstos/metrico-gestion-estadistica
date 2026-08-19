@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.0.6',
+      version: 'v5.0.6',
+      fecha: '18 de Agosto, 2026',
+      badge: 'ESTÉTICA VECTORIAL',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Homologación Estética con Iconos Vectoriales en Selector de Granularidad',
+      categoria: 'Identidad Visual & UI',
+      icon: Clock,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se reemplazaron los emojis temporales por iconos vectoriales SVG de alta definición (Clock y Calendar de Lucide) en el selector de la pestaña Tiempos de Atención, alineando su apariencia, sombras y microinteracciones con el manual de identidad visual de MÉTRICO.',
+      instructivo: {
+        paraQueSirve: 'Brinda una experiencia visual homogénea, limpia y profesional acorde al estándar de diseño del sitio.',
+        quePuedesVer: 'Botones estilizados con iconos vectoriales de reloj y calendario en la cabecera de filtros de tiempos.',
+        ejemploUso: 'Revisa la pestaña "Tiempos de Atención" para ver los nuevos selectores con diseño uniforme.'
+      },
+      changes: [
+        'Iconos Vectoriales Lucide: Integración de Clock y Calendar SVG.',
+        'Paleta Armonizada: Fondos y contrastes sincronizados con el tema visual.',
+        'Interacciones Fluidas: Efectos hover y sombras suaves para máxima legibilidad.'
+      ]
+    },
+    {
       id: 'v5.0.5',
       version: 'v5.0.5',
       fecha: '18 de Agosto, 2026',
