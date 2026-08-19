@@ -130,22 +130,23 @@ const isShiftInWindowRange = (t, windowRange) => {
   if (!t || !windowRange) return true;
   const startDay = t.fechaInicio;
   const endDay = t.fechaFin || t.fechaInicio;
-  const horarioStr = String(t.horario || '');
+  const horarioStr = String(t.horario || '').toLowerCase();
   let startH = '00:00', endH = '23:59';
+  let spansMidnight = false;
 
-  if (horarioStr.includes('17:00')) {
-    startH = '16:00'; endH = '09:00';
-  } else if (horarioStr.includes('20:00')) {
-    startH = '20:00'; endH = '08:00';
-  } else if (horarioStr.includes('08:00')) {
-    startH = '08:00'; endH = '20:00';
+  if (horarioStr.includes('16:00') || horarioStr.includes('17:00') || horarioStr.includes('largo')) {
+    startH = '16:00'; endH = '09:00'; spansMidnight = true;
+  } else if (horarioStr.includes('20:00') || horarioStr.includes('noche')) {
+    startH = '20:00'; endH = '08:00'; spansMidnight = true;
+  } else if (horarioStr.includes('08:00') || horarioStr.includes('dia') || horarioStr.includes('día')) {
+    startH = '08:00'; endH = '20:00'; spansMidnight = false;
   }
 
   const tStart = parseLocalDatetime(startDay, startH);
   let tEnd = parseLocalDatetime(endDay, endH);
   if (isNaN(tStart) || isNaN(tEnd)) return true;
 
-  if ((horarioStr.includes('17:00') || horarioStr.includes('20:00')) && startDay === endDay) {
+  if (spansMidnight && startDay === endDay) {
     tEnd += 24 * 3600 * 1000;
   }
 
@@ -206,44 +207,47 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
   const turnosFiltrados = useMemo(() => {
     if (!turnosPorFecha || turnosPorFecha.length === 0) return [];
 
-    const pacsByLote = new Map();
-    const pacsByShiftKey = new Map();
-
-    pacientesFiltrados.forEach(p => {
-      if (p.loteId) {
-        if (!pacsByLote.has(p.loteId)) pacsByLote.set(p.loteId, []);
-        pacsByLote.get(p.loteId).push(p);
-      }
-      if (p.tAdmision) {
-        const pDateObj = new Date(p.tAdmision);
-        const hours = pDateObj.getHours();
-        let pDateStr = formatLocalDate(p.tAdmision);
-        if (hours < 8) {
-          pDateStr = formatLocalDate(p.tAdmision - 86400000);
-        }
-        const isNightP = hours < 8 || hours >= 17;
-        const shiftKey = `${pDateStr}_${isNightP ? 'noche' : 'dia'}`;
-        if (!pacsByShiftKey.has(shiftKey)) pacsByShiftKey.set(shiftKey, []);
-        pacsByShiftKey.get(shiftKey).push(p);
-      }
-    });
-
     return turnosPorFecha.map(t => {
-      const tHorario = String(t.horario || '').toLowerCase();
-      const isNightT = tHorario.includes('noche') || tHorario.includes('17:00') || tHorario.includes('20:00');
-      const shiftKey = `${t.fechaInicio}_${isNightT ? 'noche' : 'dia'}`;
+      const startDay = t.fechaInicio;
+      const endDay = t.fechaFin || t.fechaInicio;
+      const horarioStr = String(t.horario || '').toLowerCase();
+      let startH = '00:00', endH = '23:59';
+      let spansMidnight = false;
+
+      if (horarioStr.includes('16:00') || horarioStr.includes('17:00') || horarioStr.includes('largo')) {
+        startH = '16:00'; endH = '09:00'; spansMidnight = true;
+      } else if (horarioStr.includes('20:00') || horarioStr.includes('noche')) {
+        startH = '20:00'; endH = '08:00'; spansMidnight = true;
+      } else if (horarioStr.includes('08:00') || horarioStr.includes('dia') || horarioStr.includes('día')) {
+        startH = '08:00'; endH = '20:00'; spansMidnight = false;
+      }
+
+      const tStart = parseLocalDatetime(startDay, startH);
+      let tEnd = parseLocalDatetime(endDay, endH);
+      if (spansMidnight && startDay === endDay) {
+        tEnd += 24 * 3600 * 1000;
+      }
 
       let pacs = [];
-      if (t.loteId && pacsByLote.has(t.loteId)) {
-        pacs = pacsByLote.get(t.loteId);
-      } else if (pacsByShiftKey.has(shiftKey)) {
-        pacs = pacsByShiftKey.get(shiftKey);
+      if (t.loteId) {
+        pacs = pacientesFiltrados.filter(p => p.loteId === t.loteId);
+      }
+      if (pacs.length === 0 && !isNaN(tStart) && !isNaN(tEnd)) {
+        pacs = pacientesFiltrados.filter(p => p.tAdmision && p.tAdmision >= tStart && p.tAdmision < tEnd);
+      }
+      if (pacs.length === 0 && t.fechaInicio) {
+        pacs = pacientesFiltrados.filter(p => formatLocalDate(p.tAdmision) === t.fechaInicio);
       }
 
       const pacsCount = pacs.length;
       const altasCount = pacs.filter(p => p.estado === 'Cancelada').length;
 
       const counts = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0, sincat: 0 };
+      let sumAdmCat = 0, countAdmCat = 0;
+      let sumCatAna = 0, countCatAna = 0;
+      let sumAnaAlt = 0, countAnaAlt = 0;
+      let sumAdmAlt = 0, countAdmAlt = 0;
+
       if (pacsCount > 0) {
         pacs.forEach(p => {
           const cat = p.categoria;
@@ -252,19 +256,45 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
           } else if (counts[cat] !== undefined) {
             counts[cat]++;
           }
+
+          if (p.tAdmision && p.tCat1 && p.tCat1 >= p.tAdmision) {
+            sumAdmCat += (p.tCat1 - p.tAdmision) / 60000;
+            countAdmCat++;
+          }
+          if (p.tCatUlt && p.tAnamnesis && p.tAnamnesis >= p.tCatUlt) {
+            sumCatAna += (p.tAnamnesis - p.tCatUlt) / 60000;
+            countCatAna++;
+          }
+          if (p.tAnamnesis && p.tAlta && p.tAlta >= p.tAnamnesis) {
+            sumAnaAlt += (p.tAlta - p.tAnamnesis) / 60000;
+            countAnaAlt++;
+          }
+          if (p.tAdmision && p.tAlta && p.tAlta >= p.tAdmision) {
+            sumAdmAlt += (p.tAlta - p.tAdmision) / 60000;
+            countAdmAlt++;
+          }
         });
       }
+
+      const tiempoAdmCat = countAdmCat > 0 ? Number((sumAdmCat / countAdmCat).toFixed(2)) : (Number(t.tiempoAdmCat) || 0);
+      const tiempoCatAna = countCatAna > 0 ? Number((sumCatAna / countCatAna).toFixed(2)) : (Number(t.tiempoCatAna) || 0);
+      const tiempoAnaAlt = countAnaAlt > 0 ? Number((sumAnaAlt / countAnaAlt).toFixed(2)) : (Number(t.tiempoAnaAlt) || 0);
+      const tiempoAdmAlt = countAdmAlt > 0 ? Number((sumAdmAlt / countAdmAlt).toFixed(2)) : (Number(t.tiempoAdmAlt) || 0);
 
       return {
         ...t,
         totalPacientes: pacsCount > 0 ? pacsCount : Number(t.totalPacientes || 0),
         altasAdmin: pacsCount > 0 ? altasCount : Number(t.altasAdmin || 0),
-        c1: counts.c1,
-        c2: counts.c2,
-        c3: counts.c3,
-        c3_z518: counts.c3_z518,
-        c4: counts.c4,
-        c5: counts.c5,
+        c1: counts.c1 || Number(t.c1 || 0),
+        c2: counts.c2 || Number(t.c2 || 0),
+        c3: counts.c3 || Number(t.c3 || 0),
+        c3_z518: counts.c3_z518 || Number(t.c3_z518 || 0),
+        c4: counts.c4 || Number(t.c4 || 0),
+        c5: counts.c5 || Number(t.c5 || 0),
+        tiempoAdmCat,
+        tiempoCatAna,
+        tiempoAnaAlt,
+        tiempoAdmAlt,
         pacientesList: pacs
       };
     });

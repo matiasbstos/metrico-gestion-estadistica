@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.9.4',
+      version: 'v4.9.4',
+      fecha: '18 de Agosto, 2026',
+      badge: 'TIEMPOS DE ATENCIÓN',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Consolidación y Visualización Continua de Tiempos de Atención en el Gráfico Dinámico',
+      categoria: 'Gráficos & Análisis Taxonómico',
+      icon: Activity,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se ha corregido el cálculo de las series temporales de tiempos de espera en el Gráfico Dinámico de Inicio (pestaña "Tiempos de Atención"). Al seleccionar cualquier periodo o rango de fechas (por ejemplo, del 1 al 16 de agosto o cualquier mes completo), el sistema empareja los pacientes a los turnos correspondientes o agrupa por fecha de atención, desplegando con total fluidez las curvas de Espera Médico, Espera Triaje, Tiempo Box y Estadía Total.',
+      instructivo: {
+        paraQueSirve: 'Permite visualizar la evolución cronológica y tendencias de los tiempos de espera a lo largo de cualquier periodo seleccionado sin caídas a cero.',
+        quePuedesVer: 'En el gráfico principal de Inicio, selecciona la pestaña "Tiempos de Atención" para ver las curvas continuas de minutos de espera.',
+        ejemploUso: 'Ejemplo: Selecciona el mes de agosto completo para comparar la tendencia de espera médica versus tiempo de box día a día.'
+      },
+      changes: [
+        'Emparejamiento Universal de Pacientes a Turnos: Soporte completo para turnos largos (16:00 a 09:00 hrs) y turnos de fin de semana.',
+        'Cálculo Vectorizado de Tiempos: Inclusión automática de tiempoAdmCat, tiempoCatAna, tiempoAnaAlt y tiempoAdmAlt en cada punto de la serie.',
+        'Agrupación Resiliente por Fechas: Fallback continuo que garantiza que cualquier rango de fechas visualice sus tiempos.'
+      ]
+    },
+    {
       id: 'v4.9.3',
       version: 'v4.9.3',
       fecha: '18 de Agosto, 2026',

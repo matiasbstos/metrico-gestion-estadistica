@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.9.4',
+    version_tag: 'v4.9.4',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Consolidación Universal de Tiempos de Atención en el Gráfico Dinámico y Análisis Taxonómico de Tendencias: Emparejamiento Temporal de Turnos y Tiempos de Espera (Espera Médico, Triaje, Box y Estadía).',
+    medios_y_stack: [
+      'React 18.3 & Recharts (GraficoDinamico.jsx & Dashboard.jsx)',
+      'useMetricoAnalytics.js (turnosFiltrados con métricas de tiempo)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'El cálculo de series temporales de tiempos de espera (tiempoAdmCat, tiempoCatAna, tiempoAnaAlt, tiempoAdmAlt) se realiza asociando los pacientes filtrados al intervalo horario exacto de cada turno o agrupando por fecha de admisión, garantizando que en filtros de rango mensual (como 1 al 16 de agosto o cualquier periodo histórico) las 4 curvas de tiempos de atención se visualicen completas sin caídas a cero.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Procesamiento de series temporales vectorizado en O(N) sin peticiones adicionales a red.'
+    },
+    modulos_afectados: ['Dashboard', 'GraficoDinamico', 'useMetricoAnalytics', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Actualización de isShiftInWindowRange en useMetricoAnalytics.js para soportar turnos largos (16:00 a 09:00 AM) y nocturnos con cruce de medianoche.',
+      'Cálculo automático de tiempoAdmCat, tiempoCatAna, tiempoAnaAlt y tiempoAdmAlt para cada turno en turnosFiltrados.',
+      'Mapeo resiliente en Dashboard.jsx de chartData con fallback por día para rangos amplios sin turnos explícitos.'
+    ]
+  },
+  {
     id: 'v4.9.3',
     version_tag: 'v4.9.3',
     fecha_despliegue: '18 de Agosto, 2026',

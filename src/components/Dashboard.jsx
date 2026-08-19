@@ -859,88 +859,129 @@ const DashboardContent = () => {
       'tiempoAdmCat', 'tiempoCatAna', 'tiempoAnaAlt', 'tiempoAdmAlt'
     ];
 
-    return turnosFiltrados.slice().reverse().map(t => {
-      const row = { name: t.fechaInicio === t.fechaFin ? t.fechaInicio : `${t.fechaInicio} - ${t.fechaFin}` };
-      const pacs = t.pacientesList || [];
+    if (turnosFiltrados && turnosFiltrados.length > 0) {
+      return turnosFiltrados.slice().reverse().map(t => {
+        const row = { name: t.fechaInicio === t.fechaFin ? t.fechaInicio : `${t.fechaInicio} - ${t.fechaFin}` };
+        const pacs = t.pacientesList || [];
 
-      let sumAdmCat = 0, countAdmCat = 0;
-      let sumCatAna = 0, countCatAna = 0;
-      let sumAnaAlt = 0, countAnaAlt = 0;
-      let sumAdmAlt = 0, countAdmAlt = 0;
+        let sumAdmCat = 0, countAdmCat = 0;
+        let sumCatAna = 0, countCatAna = 0;
+        let sumAnaAlt = 0, countAnaAlt = 0;
+        let sumAdmAlt = 0, countAdmAlt = 0;
 
-      let sexo_f = 0, sexo_m = 0;
-      let edad_0_14 = 0, edad_15_29 = 0, edad_30_59 = 0, edad_60_plus = 0;
-      let prev_fonasa = 0, prev_isapre = 0;
-      let com_melipilla = 0, com_otras = 0;
-      let nac_chilena = 0, nac_extranjera = 0;
-      let est_florencia = 0, est_boris = 0, est_elgueta = 0, est_otros = 0;
+        let sexo_f = 0, sexo_m = 0;
+        let edad_0_14 = 0, edad_15_29 = 0, edad_30_59 = 0, edad_60_plus = 0;
+        let prev_fonasa = 0, prev_isapre = 0;
+        let com_melipilla = 0, com_otras = 0;
+        let nac_chilena = 0, nac_extranjera = 0;
+        let est_florencia = 0, est_boris = 0, est_elgueta = 0, est_otros = 0;
 
-      pacs.forEach(p => {
-        if (p.tAdmision && p.tCat1) { sumAdmCat += (p.tCat1 - p.tAdmision) / 60000; countAdmCat++; }
-        if (p.tCatUlt && p.tAnamnesis) { sumCatAna += (p.tAnamnesis - p.tCatUlt) / 60000; countCatAna++; }
-        if (p.tAnamnesis && p.tAlta) { sumAnaAlt += (p.tAlta - p.tAnamnesis) / 60000; countAnaAlt++; }
-        if (p.tAdmision && p.tAlta) { sumAdmAlt += (p.tAlta - p.tAdmision) / 60000; countAdmAlt++; }
+        pacs.forEach(p => {
+          if (p.tAdmision && p.tCat1 && p.tCat1 >= p.tAdmision) { sumAdmCat += (p.tCat1 - p.tAdmision) / 60000; countAdmCat++; }
+          if (p.tCatUlt && p.tAnamnesis && p.tAnamnesis >= p.tCatUlt) { sumCatAna += (p.tAnamnesis - p.tCatUlt) / 60000; countCatAna++; }
+          if (p.tAnamnesis && p.tAlta && p.tAlta >= p.tAnamnesis) { sumAnaAlt += (p.tAlta - p.tAnamnesis) / 60000; countAnaAlt++; }
+          if (p.tAdmision && p.tAlta && p.tAlta >= p.tAdmision) { sumAdmAlt += (p.tAlta - p.tAdmision) / 60000; countAdmAlt++; }
 
-        const s = String(p.sexo || '').toUpperCase();
-        if (s.includes('F')) sexo_f++;
-        if (s.includes('M')) sexo_m++;
+          const s = String(p.sexo || '').toUpperCase();
+          if (s.includes('F')) sexo_f++;
+          if (s.includes('M')) sexo_m++;
 
-        if (p.edad !== null && p.edad !== undefined && !isNaN(p.edad)) {
-          if (p.edad <= 14) edad_0_14++;
-          else if (p.edad <= 29) edad_15_29++;
-          else if (p.edad <= 59) edad_30_59++;
-          else edad_60_plus++;
+          if (p.edad !== null && p.edad !== undefined && !isNaN(p.edad)) {
+            if (p.edad <= 14) edad_0_14++;
+            else if (p.edad <= 29) edad_15_29++;
+            else if (p.edad <= 59) edad_30_59++;
+            else edad_60_plus++;
+          }
+
+          const prev = String(p.prevision || '').toUpperCase();
+          if (prev.includes('FONASA')) prev_fonasa++;
+          if (prev.includes('ISAPRE')) prev_isapre++;
+
+          const com = String(p.comuna || '').toUpperCase();
+          if (com === 'MELIPILLA') com_melipilla++;
+          else if (com) com_otras++;
+
+          const nac = String(p.nacionalidad || '').toUpperCase();
+          if (nac.includes('CHILEN')) nac_chilena++;
+          else if (nac) nac_extranjera++;
+
+          const est = String(p.establecimiento || '').toUpperCase();
+          if (est.includes('FLORENCIA')) est_florencia++;
+          else if (est.includes('BORIS')) est_boris++;
+          else if (est.includes('ELGUETA')) est_elgueta++;
+          else if (est) est_otros++;
+        });
+
+        row.tiempoAdmCat = countAdmCat > 0 ? Number((sumAdmCat / countAdmCat).toFixed(2)) : (Number(t.tiempoAdmCat) || 0);
+        row.tiempoCatAna = countCatAna > 0 ? Number((sumCatAna / countCatAna).toFixed(2)) : (Number(t.tiempoCatAna) || 0);
+        row.tiempoAnaAlt = countAnaAlt > 0 ? Number((sumAnaAlt / countAnaAlt).toFixed(2)) : (Number(t.tiempoAnaAlt) || 0);
+        row.tiempoAdmAlt = countAdmAlt > 0 ? Number((sumAdmAlt / countAdmAlt).toFixed(2)) : (Number(t.tiempoAdmAlt) || 0);
+
+        row.sexo_f = sexo_f;
+        row.sexo_m = sexo_m;
+        row.edad_0_14 = edad_0_14;
+        row.edad_15_29 = edad_15_29;
+        row.edad_30_59 = edad_30_59;
+        row.edad_60_plus = edad_60_plus;
+        row.prev_fonasa = prev_fonasa;
+        row.prev_isapre = prev_isapre;
+        row.com_melipilla = com_melipilla;
+        row.com_otras = com_otras;
+        row.nac_chilena = nac_chilena;
+        row.nac_extranjera = nac_extranjera;
+        row.est_florencia = est_florencia;
+        row.est_boris = est_boris;
+        row.est_elgueta = est_elgueta;
+        row.est_otros = est_otros;
+
+        allMetrics.forEach(m => {
+          if (METRIC_LABELS[m]) {
+            row[m] = Number(t[m] || 0);
+          }
+        });
+
+        return row;
+      });
+    }
+
+    // Fallback: Si no hay turnos en turnosFiltrados, agrupar por fecha de admisión de los pacientes
+    if (pacientesFiltrados && pacientesFiltrados.length > 0) {
+      const pacsByDate = new Map();
+      pacientesFiltrados.forEach(p => {
+        const dStr = formatLocalDate(p.tAdmision);
+        if (dStr) {
+          if (!pacsByDate.has(dStr)) pacsByDate.set(dStr, []);
+          pacsByDate.get(dStr).push(p);
         }
-
-        const prev = String(p.prevision || '').toUpperCase();
-        if (prev.includes('FONASA')) prev_fonasa++;
-        if (prev.includes('ISAPRE')) prev_isapre++;
-
-        const com = String(p.comuna || '').toUpperCase();
-        if (com === 'MELIPILLA') com_melipilla++;
-        else if (com) com_otras++;
-
-        const nac = String(p.nacionalidad || '').toUpperCase();
-        if (nac.includes('CHILEN')) nac_chilena++;
-        else if (nac) nac_extranjera++;
-
-        const est = String(p.establecimiento || '').toUpperCase();
-        if (est.includes('FLORENCIA')) est_florencia++;
-        else if (est.includes('BORIS')) est_boris++;
-        else if (est.includes('ELGUETA')) est_elgueta++;
-        else if (est) est_otros++;
       });
 
-      row.tiempoAdmCat = countAdmCat > 0 ? Number((sumAdmCat / countAdmCat).toFixed(2)) : 0;
-      row.tiempoCatAna = countCatAna > 0 ? Number((sumCatAna / countCatAna).toFixed(2)) : 0;
-      row.tiempoAnaAlt = countAnaAlt > 0 ? Number((sumAnaAlt / countAnaAlt).toFixed(2)) : 0;
-      row.tiempoAdmAlt = countAdmAlt > 0 ? Number((sumAdmAlt / countAdmAlt).toFixed(2)) : 0;
+      const dates = Array.from(pacsByDate.keys()).sort();
+      return dates.map(dStr => {
+        const pacs = pacsByDate.get(dStr) || [];
+        const row = { name: dStr };
 
-      row.sexo_f = sexo_f;
-      row.sexo_m = sexo_m;
-      row.edad_0_14 = edad_0_14;
-      row.edad_15_29 = edad_15_29;
-      row.edad_30_59 = edad_30_59;
-      row.edad_60_plus = edad_60_plus;
-      row.prev_fonasa = prev_fonasa;
-      row.prev_isapre = prev_isapre;
-      row.com_melipilla = com_melipilla;
-      row.com_otras = com_otras;
-      row.nac_chilena = nac_chilena;
-      row.nac_extranjera = nac_extranjera;
-      row.est_florencia = est_florencia;
-      row.est_boris = est_boris;
-      row.est_elgueta = est_elgueta;
-      row.est_otros = est_otros;
+        let sumAdmCat = 0, countAdmCat = 0;
+        let sumCatAna = 0, countCatAna = 0;
+        let sumAnaAlt = 0, countAnaAlt = 0;
+        let sumAdmAlt = 0, countAdmAlt = 0;
 
-      allMetrics.forEach(m => {
-        if (METRIC_LABELS[m]) {
-          row[m] = Number(t[m] || 0);
-        }
+        pacs.forEach(p => {
+          if (p.tAdmision && p.tCat1 && p.tCat1 >= p.tAdmision) { sumAdmCat += (p.tCat1 - p.tAdmision) / 60000; countAdmCat++; }
+          if (p.tCatUlt && p.tAnamnesis && p.tAnamnesis >= p.tCatUlt) { sumCatAna += (p.tAnamnesis - p.tCatUlt) / 60000; countCatAna++; }
+          if (p.tAnamnesis && p.tAlta && p.tAlta >= p.tAnamnesis) { sumAnaAlt += (p.tAlta - p.tAnamnesis) / 60000; countAnaAlt++; }
+          if (p.tAdmision && p.tAlta && p.tAlta >= p.tAdmision) { sumAdmAlt += (p.tAlta - p.tAdmision) / 60000; countAdmAlt++; }
+        });
+
+        row.tiempoAdmCat = countAdmCat > 0 ? Number((sumAdmCat / countAdmCat).toFixed(2)) : 0;
+        row.tiempoCatAna = countCatAna > 0 ? Number((sumCatAna / countCatAna).toFixed(2)) : 0;
+        row.tiempoAnaAlt = countAnaAlt > 0 ? Number((sumAnaAlt / countAnaAlt).toFixed(2)) : 0;
+        row.tiempoAdmAlt = countAdmAlt > 0 ? Number((sumAdmAlt / countAdmAlt).toFixed(2)) : 0;
+
+        return row;
       });
+    }
 
-      return row;
-    });
+    return [];
   }, [turnosFiltrados, pacientesFiltrados, modoComparativo]);
 
   const pieData = useMemo(() => {
