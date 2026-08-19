@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.1.6',
+      version: 'v5.1.6',
+      fecha: '18 de Agosto, 2026',
+      badge: 'AUDITORÍA & TIEMPOS DE ESPERA',
+      badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/20',
+      title: 'Ajuste de Leyenda de Metas en Tiempos de Espera por Triaje',
+      categoria: 'Métricas & Triaje',
+      icon: Clock,
+      iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+      summary: 'Se retiró la leyenda inferior de metas fijas (verde/amarillo/rojo) en la tabla de Tiempos de Espera y Estadía por Triaje, manteniendo la precisión analítica de los minutos reales por tramo asistencial a la espera de la parametrización normativa MINSAL.',
+      instructivo: {
+        paraQueSirve: 'Permite una lectura más limpia y libre de asunciones normativas rígidas en el flujo asistencial de urgencia.',
+        quePuedesVer: 'La tabla de tiempos de espera con el promedio en minutos de cada etapa de atención de forma directa y clara.',
+        ejemploUso: 'Revisa la tabla de Tiempos de Espera y Estadía por Triaje en el panel inicial para observar los tiempos por categoría C1-C5.'
+      },
+      changes: [
+        'Remoción de Leyenda Fija: Eliminación del cuadro inferior de metas verde/amarillo/rojo.',
+        'Lectura Limpia: Enfoque 100% en las cifras reales de minutos de espera y estadía.',
+        'Preparación Normativa: Base lista para parametrizar metas según criterios MINSAL.'
+      ]
+    },
+    {
       id: 'v5.1.5',
       version: 'v5.1.5',
       fecha: '18 de Agosto, 2026',

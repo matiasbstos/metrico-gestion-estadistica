@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.1.6',
+    version_tag: 'v5.1.6',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Remoción de la Leyenda Inferior de Metas de Espera en Triaje para Auditoría Normativa MINSAL.',
+    medios_y_stack: [
+      'React 18.3 (TablaTiemposEspera.jsx)',
+      'Estandarización de Métricas Clínicas',
+      'Optimización de Espacio Visual'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Se eliminó la leyenda inferior fija (Verde Meta Cumplida, Amarillo Nivel Límite, Rojo Meta Excedida) en la tabla de Tiempos de Espera y Estadía por Triaje, manteniendo la visualización analítica de los minutos reales por tramo asistencial y abriendo paso a la futura parametrización personalizada de metas según la normativa oficial MINSAL.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Simplificación del árbol DOM y reducción de elementos estáticos redundantes.'
+    },
+    modulos_afectados: ['TablaTiemposEspera.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Remoción del contenedor de glosario inferior de 3 columnas en TablaTiemposEspera.jsx.',
+      'Limpieza visual del pie de tabla preservando la fila de totales y promedios globales.',
+      'Actualización del catálogo de componentes en el Informe de Arquitectura.'
+    ]
+  },
+  {
     id: 'v5.1.5',
     version_tag: 'v5.1.5',
     fecha_despliegue: '18 de Agosto, 2026',

@@ -148,31 +148,6 @@ export default function TablaTiemposEspera({ metricsByCategory, promediosGlobale
           </tbody>
         </table>
       </div>
-
-      {/* Glosario / Leyenda de Tiempos de Espera */}
-      <div className="mt-6 pt-4 border-t border-card-custom grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="flex gap-2.5 items-start bg-emerald-500/5 p-3 rounded-xl border border-emerald-500/20 text-xs font-semibold text-secondary-custom">
-          <span className="w-3.5 h-3.5 rounded bg-emerald-500 flex-shrink-0 mt-0.5 animate-pulse"></span>
-          <div>
-            <p className="font-black text-emerald-600 dark:text-emerald-400">Verde: Meta Cumplida</p>
-            <p className="text-[10px] text-secondary-custom opacity-80 mt-0.5">El promedio de espera/estadía se encuentra por debajo o igual al 80% del límite meta establecido.</p>
-          </div>
-        </div>
-        <div className="flex gap-2.5 items-start bg-amber-500/5 p-3 rounded-xl border border-amber-500/20 text-xs font-semibold text-secondary-custom">
-          <span className="w-3.5 h-3.5 rounded bg-amber-500 flex-shrink-0 mt-0.5"></span>
-          <div>
-            <p className="font-black text-amber-600 dark:text-amber-400">Amarillo: Nivel Límite</p>
-            <p className="text-[10px] text-secondary-custom opacity-80 mt-0.5">El promedio está en zona de advertencia, superando el 80% pero manteniéndose bajo el 100% de la meta.</p>
-          </div>
-        </div>
-        <div className="flex gap-2.5 items-start bg-red-500/5 p-3 rounded-xl border border-red-500/20 text-xs font-semibold text-secondary-custom">
-          <span className="w-3.5 h-3.5 rounded bg-red-500 flex-shrink-0 mt-0.5 animate-pulse"></span>
-          <div>
-            <p className="font-black text-red-500">Rojo: Meta Excedida</p>
-            <p className="text-[10px] text-secondary-custom opacity-80 mt-0.5">El promedio supera el 100% de la meta de tiempo institucional (se indica el % de desviación).</p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
