@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.9.6',
+    version_tag: 'v4.9.6',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Desacoplamiento Estructural de la Barra de Búsqueda Global vía React Portal: Resolución de Contenedor Transform y Presentación Centrada Inmune al Colapso del Sidebar.',
+    medios_y_stack: [
+      'React 18.3 (ReactDOM.createPortal en BarraBusquedaGlobal.jsx)',
+      'Dashboard.jsx'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'El Command Palette modal se desacopla del DOM interno del <aside> (evitando el contexto de contención de CSS transform: translate-x y overflow-y: auto) y se monta directamente en document.body con z-index [99999]. Tanto en modo expandido como contraído, el sidebar muestra únicamente su disparador minimalista, y el buscador se despliega con ancho completo (max-w-2xl) centrado en pantalla.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Montaje de Portal condicional sin costo de renderizado en reposo.'
+    },
+    modulos_afectados: ['Dashboard', 'BarraBusquedaGlobal', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Implementación de createPortal(..., document.body) en BarraBusquedaGlobal.jsx.',
+      'Eliminación de dropdowns embebidos dentro del aside para evitar desbordes y compresión en pantallas estrechas.',
+      'Apertura centrada y fluida tanto al presionar Ctrl+K como al hacer clic en el botón de búsqueda.'
+    ]
+  },
+  {
     id: 'v4.9.5',
     version_tag: 'v4.9.5',
     fecha_despliegue: '18 de Agosto, 2026',

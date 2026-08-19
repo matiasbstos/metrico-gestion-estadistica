@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.9.6',
+      version: 'v4.9.6',
+      fecha: '18 de Agosto, 2026',
+      badge: 'EXPERIENCIA VISUAL',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Despliegue Centrado y Fluido del Buscador Global (Command Palette)',
+      categoria: 'Búsqueda & Interfaz',
+      icon: Search,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se ha corregido el comportamiento visual del buscador global al abrirse desde la barra lateral. Ahora, tanto si la barra lateral está expandida como contraída, el buscador se despliega en una ventana flotante perfectamente centrada sobre la pantalla con ancho completo (Command Palette con fondo desenfocado), sin comprimirse ni solaparse con los iconos del menú.',
+      instructivo: {
+        paraQueSirve: 'Garantiza una visualización limpia, espaciosa y sin desbordes al buscar cualquier parámetro clínico o módulo.',
+        quePuedesVer: 'Presiona Ctrl + K o haz clic en el buscador para ver el panel de búsqueda centrado y espacioso.',
+        ejemploUso: 'Ejemplo: Desde cualquier módulo, presiona Ctrl + K para abrir la ventana de búsqueda sin alterar la barra lateral.'
+      },
+      changes: [
+        'Desacoplamiento Estructural vía React Portal: El buscador se proyecta directamente sobre la pantalla principal.',
+        'Apertura Centrada: Ventana espaciosa de búsqueda que no se comprime al contraer el menú.',
+        'Barra Lateral Limpia: En modo contraído se muestra un botón minimalista y en modo expandido una caja de activación directa.'
+      ]
+    },
+    {
       id: 'v4.9.5',
       version: 'v4.9.5',
       fecha: '18 de Agosto, 2026',
