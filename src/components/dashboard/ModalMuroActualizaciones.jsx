@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.1.7',
+      version: 'v5.1.7',
+      fecha: '18 de Agosto, 2026',
+      badge: 'ANALÍTICA DE DEMANDA & FLUJOS',
+      badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/20',
+      title: 'Promedio Diario Real y Cuadre de Bloques en Curva de Demanda',
+      categoria: 'Demanda & Flujos',
+      icon: Zap,
+      iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+      summary: '1) Se corrigió el cálculo del promedio de admisiones considerando los días reales del filtro seleccionado (pac./día y pac./hr). 2) Se resolvió la agrupación horaria permitiendo que el Bloque Más Congestionado refleje con exactitud la distribución real entre Mañana (08:00-13:59), Tarde (14:00-19:59) y Noche (20:00-07:59).',
+      instructivo: {
+        paraQueSirve: 'Proporciona una comprensión fidedigna de la demanda asistencial diaria y horaria sin distorsiones por rangos acumulativos.',
+        quePuedesVer: 'El promedio diario de pacientes que ingresan al SAR y el porcentaje exacto de demanda concentrado en cada franja horaria.',
+        ejemploUso: 'Filtra del 1 al 17 de agosto en la Curva de Demanda para ver el promedio diario real y el bloque más congestionado con su porcentaje.'
+      },
+      changes: [
+        'Promedio Diario Real: Cálculo normalizado por el número de días del período seleccionado.',
+        'Bloque Horario Preciso: Extracción estricta de horas para clasificar Mañana, Tarde y Noche.',
+        'Claridad en Tarjetas: Indicador de días evaluados y desglose hora/día.'
+      ]
+    },
+    {
       id: 'v5.1.6',
       version: 'v5.1.6',
       fecha: '18 de Agosto, 2026',

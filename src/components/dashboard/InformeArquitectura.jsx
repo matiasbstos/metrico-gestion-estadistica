@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.1.7',
+    version_tag: 'v5.1.7',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Corrección de Estadísticas en Curva de Demanda: Promedio Diario Real y Bloques Horarios Precisos.',
+    medios_y_stack: [
+      'React 18.3 (CurvaDemanda.jsx, useMetricoDemanda.js)',
+      'Algoritmos de Agregación Temporal',
+      'Normalización de Rango Multidía'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Se normalizó el cálculo del Promedio de Admisiones en la Curva de Demanda Continua considerando el número real de días transcurridos en el filtro de fechas (díasSeleccionados), calculando el promedio diario (pac./día) y el promedio real por hora de servicio (pac./hr). 2) Se corrigió la extracción numérica del campo hora en los buckets de 24 horas en useMetricoDemanda.js, resolviendo la acumulación errónea del 100% de pacientes en el bloque de noche y permitiendo la clasificación exacta de flujos en Mañana (08:00-13:59), Tarde (14:00-19:59) y Noche (20:00-07:59).',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Cálculo O(24) en memoización con conteo de días nativo.'
+    },
+    modulos_afectados: ['CurvaDemanda.jsx', 'useMetricoDemanda.js', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Incorporación de hora: i en el generador de buckets de useMetricoDemanda.js.',
+      'Cálculo de días seleccionados con diff de fechas para promedio diario y horario exacto.',
+      'Alineación de porcentajes de flujo de demanda por franjas horarias.'
+    ]
+  },
+  {
     id: 'v5.1.6',
     version_tag: 'v5.1.6',
     fecha_despliegue: '18 de Agosto, 2026',

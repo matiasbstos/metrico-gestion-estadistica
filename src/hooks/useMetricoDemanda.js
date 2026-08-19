@@ -26,7 +26,7 @@ export const useMetricoDemanda = (pacientesDB, turnosDB, demandaFechaInicio, dem
   const peakHoursData = useMemo(() => {
     const hours = Array(24).fill(0).map((_, i) => {
       const hStr = i.toString().padStart(2, '0');
-      const base = { horaFiltro: hStr, horaTooltip: `${hStr}:00 - ${hStr}:59`, horaCorta: `${hStr}:00`, atenciones: 0 };
+      const base = { hora: i, horaFiltro: hStr, horaTooltip: `${hStr}:00 - ${hStr}:59`, horaCorta: `${hStr}:00`, atenciones: 0 };
       if (modoComparativo) base.periodoB = 0; // Usará global B si lo pide la vista
       docsToCompare.forEach(d => { base[d] = 0; });
       return base;

@@ -17,8 +17,18 @@ export default function CurvaDemanda({
   docsToCompare
 }) {
   const stats = useMemo(() => {
+    let diasSeleccionados = 1;
+    if (demandaFechaInicio && demandaFechaFin) {
+      const d1 = new Date(demandaFechaInicio + 'T00:00:00');
+      const d2 = new Date(demandaFechaFin + 'T00:00:00');
+      const diff = Math.abs(d2.getTime() - d1.getTime());
+      const days = Math.round(diff / (1000 * 60 * 60 * 24)) + 1;
+      diasSeleccionados = Math.max(1, isNaN(days) ? 1 : days);
+    }
+
     const totalPacientes = peakHoursData.reduce((acc, d) => acc + (d.atenciones || 0), 0);
-    const promedioPorHora = (totalPacientes / 24).toFixed(1);
+    const promedioDiario = (totalPacientes / diasSeleccionados).toFixed(1);
+    const promedioPorHora = (totalPacientes / (diasSeleccionados * 24)).toFixed(1);
     
     let maxHourObj = null;
     let maxVal = -1;
@@ -31,16 +41,17 @@ export default function CurvaDemanda({
     
     const horaPico = maxHourObj ? maxHourObj.horaTooltip : '-';
     const maxPacientes = maxVal > 0 ? maxVal : 0;
+    const maxPacientesPromedio = diasSeleccionados > 1 ? (maxPacientes / diasSeleccionados).toFixed(1) : maxPacientes;
     
     let mananaSum = 0;
     let tardeSum = 0;
     let nocheSum = 0;
     
     peakHoursData.forEach(d => {
-      const h = d.hora;
+      const h = d.hora !== undefined ? Number(d.hora) : parseInt(d.horaFiltro || 0, 10);
       if (h >= 8 && h < 14) mananaSum += (d.atenciones || 0);
       else if (h >= 14 && h < 20) tardeSum += (d.atenciones || 0);
-      else nocheSum += (d.atenciones || 0);
+      else nocheSum += (d.atenciones || 0); // 20:00 a 07:59
     });
     
     let blockMaxName = 'Noche';
@@ -58,18 +69,22 @@ export default function CurvaDemanda({
       blockMaxHours = '14:00 - 19:59';
     }
     
-    const blockMaxPct = totalPacientes > 0 ? ((blockMaxVal / totalPacientes) * 100).toFixed(0) : 0;
+    const blockMaxPct = totalPacientes > 0 ? ((blockMaxVal / totalPacientes) * 100).toFixed(1) : 0;
     
     return {
+      diasSeleccionados,
       totalPacientes,
+      promedioDiario,
       promedioPorHora,
       horaPico,
       maxPacientes,
+      maxPacientesPromedio,
       blockMaxName,
       blockMaxHours,
-      blockMaxPct
+      blockMaxPct,
+      blockMaxVal
     };
-  }, [peakHoursData]);
+  }, [peakHoursData, demandaFechaInicio, demandaFechaFin]);
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800/60 p-6 mt-6 w-full flex flex-col min-h-[480px] theme-transition">
@@ -79,7 +94,7 @@ export default function CurvaDemanda({
             <Zap className="w-5 h-5 text-amber-500 animate-pulse"/>
             <h2 className="text-base font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
               Curva de Demanda Continua (00:00 - 23:59)
-              <InfoTooltip title="Curva de Demanda" text="Analiza los 'Peak Hours' o franjas de máxima congestión a lo largo del día seleccionado." />
+              <InfoTooltip title="Curva de Demanda" text="Analiza los 'Peak Hours' o franjas de máxima congestión a lo largo del día o período seleccionado." />
             </h2>
          </div>
          
@@ -99,28 +114,30 @@ export default function CurvaDemanda({
         <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 rounded-2xl p-4 shadow-sm theme-transition">
           <span className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Volumen Total Acumulado</span>
           <p className="text-2xl font-black text-slate-800 dark:text-slate-100 mt-1">{stats.totalPacientes} <span className="text-xs font-bold text-slate-500">pac.</span></p>
-          <span className="text-[9px] font-bold text-slate-400 block mt-1">Registrados en la curva</span>
+          <span className="text-[9px] font-bold text-slate-400 block mt-1">{stats.diasSeleccionados} {stats.diasSeleccionados === 1 ? 'día seleccionado' : 'días evaluados'}</span>
         </div>
         
         {/* Tarjeta 2: Hora Peak */}
         <div className="bg-rose-500/5 border border-rose-500/10 rounded-2xl p-4 shadow-sm theme-transition">
           <span className="text-[9px] font-black text-rose-500 dark:text-rose-400 uppercase tracking-wider block">Peak Máximo de Demanda</span>
           <p className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{stats.horaPico}</p>
-          <span className="text-[9px] font-bold text-rose-400 dark:text-rose-500/60 block mt-1">{stats.maxPacientes} admisiones en esa hora</span>
+          <span className="text-[9px] font-bold text-rose-400 dark:text-rose-500/60 block mt-1">
+            {stats.diasSeleccionados > 1 ? `${stats.maxPacientes} pac. total (~${stats.maxPacientesPromedio} pac/día)` : `${stats.maxPacientes} admisiones`}
+          </span>
         </div>
 
         {/* Tarjeta 3: Bloque Mayor Flujo */}
         <div className="bg-indigo-500/5 border border-indigo-500/10 rounded-2xl p-4 shadow-sm theme-transition">
           <span className="text-[9px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-wider block">Bloque Más Congestionado</span>
           <p className="text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-1">{stats.blockMaxName} <span className="text-xs font-bold text-indigo-500">{stats.blockMaxPct}%</span></p>
-          <span className="text-[9px] font-bold text-indigo-400 dark:text-indigo-500/60 block mt-1">{stats.blockMaxHours}</span>
+          <span className="text-[9px] font-bold text-indigo-400 dark:text-indigo-500/60 block mt-1">{stats.blockMaxHours} • {stats.blockMaxVal} pac.</span>
         </div>
 
-        {/* Tarjeta 4: Promedio Admisiones/Hora */}
+        {/* Tarjeta 4: Promedio Diario & Horario */}
         <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-4 shadow-sm theme-transition">
-          <span className="text-[9px] font-black text-amber-500 dark:text-amber-400 uppercase tracking-wider block">Promedio de Admisiones</span>
-          <p className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{stats.promedioPorHora} <span className="text-xs font-bold text-amber-500">pac./hr</span></p>
-          <span className="text-[9px] font-bold text-amber-400 dark:text-amber-500/60 block mt-1">Admisiones por hora de servicio</span>
+          <span className="text-[9px] font-black text-amber-500 dark:text-amber-400 uppercase tracking-wider block">Promedio Diario de Admisión</span>
+          <p className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{stats.promedioDiario} <span className="text-xs font-bold text-amber-500">pac./día</span></p>
+          <span className="text-[9px] font-bold text-amber-400 dark:text-amber-500/60 block mt-1">~{stats.promedioPorHora} pac./hr de servicio ({stats.diasSeleccionados} d)</span>
         </div>
       </div>
 
