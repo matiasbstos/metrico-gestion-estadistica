@@ -20,21 +20,23 @@ try {
     auth = getAuth(app);
     db = getFirestore(app);
 
-    // Cortafuegos de Infraestructura Firebase App Check (reCAPTCHA v3)
+    // Inicialización condicional de Firebase App Check solo si se suministra una clave de producción válida
     if (typeof window !== 'undefined') {
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      if (isLocalhost) {
-        self.FIREBASE_APPCHECK_EXECUTE_IN_DEV_WITH_BUILD_TOKEN = true;
-      }
+      const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+      if (recaptchaSiteKey && !recaptchaSiteKey.includes('ENTERPRISE_RECAPTCHA_V3_KEY') && recaptchaSiteKey.length > 20) {
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (isLocalhost) {
+          self.FIREBASE_APPCHECK_EXECUTE_IN_DEV_WITH_BUILD_TOKEN = true;
+        }
 
-      const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6Lf_METRICO_ENTERPRISE_RECAPTCHA_V3_KEY';
-      try {
-        appCheck = initializeAppCheck(app, {
-          provider: new ReCaptchaV3Provider(recaptchaSiteKey),
-          isTokenAutoRefreshEnabled: true
-        });
-      } catch (appCheckErr) {
-        console.warn("App Check initialization info:", appCheckErr.message);
+        try {
+          appCheck = initializeAppCheck(app, {
+            provider: new ReCaptchaV3Provider(recaptchaSiteKey),
+            isTokenAutoRefreshEnabled: true
+          });
+        } catch (appCheckErr) {
+          console.warn("App Check initialization info:", appCheckErr.message);
+        }
       }
     }
   }

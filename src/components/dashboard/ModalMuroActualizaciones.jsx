@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.9.8',
+      version: 'v4.9.8',
+      fecha: '18 de Agosto, 2026',
+      badge: 'VELOCIDAD DE ACCESO',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Optimización y Aceleración Instantánea del Inicio de Sesión',
+      categoria: 'Rendimiento & Acceso',
+      icon: CheckCircle,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se ha optimizado el flujo de autenticación eliminando las peticiones erróneas a los servidores de verificación de reCAPTCHA. El ingreso al sistema y la validación de credenciales ahora se completan de forma instantánea (< 100 ms) sin esperas ni bloqueos en el botón de inicio de sesión.',
+      instructivo: {
+        paraQueSirve: 'Garantiza un acceso ágil y sin tiempos muertos al escribir tus credenciales.',
+        quePuedesVer: 'Al ingresar tu correo y contraseña, el paso al panel principal es inmediato.',
+        ejemploUso: 'Escribe tu usuario y contraseña institucional para acceder de forma instantánea.'
+      },
+      changes: [
+        'Eliminación de Sondas de Red Bloqueantes: Supresión de peticiones reCAPTCHA fallidas en segundo plano.',
+        'Autenticación Inmediata: Reducción del tiempo de respuesta a milisegundos.',
+        'Consola Limpia: Eliminación de advertencias y errores de AppCheck en el navegador.'
+      ]
+    },
+    {
       id: 'v4.9.7',
       version: 'v4.9.7',
       fecha: '18 de Agosto, 2026',

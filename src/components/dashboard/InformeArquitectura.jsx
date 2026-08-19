@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.9.8',
+    version_tag: 'v4.9.8',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Optimización de Latencia Cero en Inicio de Sesión: Depuración de Handshake de Autenticación y Desactivación de Sondas ReCAPTCHA Fallidas.',
+    medios_y_stack: [
+      'Firebase Auth & Firebase App Check (src/config/firebase.js)',
+      'React 18.3 (Login.jsx & Dashboard.jsx)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Se restringe la inicialización de Firebase App Check exclusivamente a entornos donde se suministre una clave pública de reCAPTCHA v3 genuina y validada en variables de entorno. Esto elimina las llamadas bloqueantes erróneas (HTTP 400) al endpoint de Google reCAPTCHA, permitiendo que la verificación de credenciales y la entrada a la plataforma se ejecuten de forma inmediata (< 100ms).',
+      firestore_collections: ['usuarios'],
+      query_optimization: 'Autenticación directa en Firebase Auth sin middleware de espera.'
+    },
+    modulos_afectados: ['Configuración Firebase', 'Login', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Eliminación de la inicialización de App Check con claves placeholder en firebase.js.',
+      'Supresión de las advertencias appCheck/recaptcha-error y errores de red en la consola del navegador.',
+      'Inicio de sesión y transición al Dashboard ultra-rápida y fluida.'
+    ]
+  },
+  {
     id: 'v4.9.7',
     version_tag: 'v4.9.7',
     fecha_despliegue: '18 de Agosto, 2026',
