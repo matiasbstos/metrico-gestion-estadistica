@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.0.5',
+    version_tag: 'v5.0.5',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Curva Horaria Asistencial de Tiempos de Espera y Estadía (00:00 a 23:00) con Selector Dinámico Horario vs Diario.',
+    medios_y_stack: [
+      'React 18.3 & Recharts (GraficoDinamico.jsx)',
+      'Algoritmo de Segmentación Horaria (hourlyTimesData)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Se incorpora la agregación y modelado de tiempos asistenciales por hora del día (Espera Médico, Espera Triaje, Tiempo Box y Estadía Total). Permite a los equipos directivos analizar a qué horas exactas del día y noche se producen los picos de congestión o demoras asistenciales, manteniendo un selector para alternar fluidamente entre la curva horaria (00:00 a 23:00) y la evolución histórica por fecha/turno.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Procesamiento en memoria O(N) por franja horaria.'
+    },
+    modulos_afectados: ['Dashboard', 'GraficoDinamico', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Implementación del hook memorizado hourlyTimesData con desglose de 24 tramos horarios.',
+      'Selector de granularidad "⏱️ Por Hora del Día" vs "📅 Por Fecha / Turno" integrado en la tarjeta y en el modal expandido.',
+      'Aclaración conceptual en interfaz de tiempos asistenciales en minutos (médico, triaje, box y estadía).'
+    ]
+  },
+  {
     id: 'v5.0.4',
     version_tag: 'v5.0.4',
     fecha_despliegue: '18 de Agosto, 2026',

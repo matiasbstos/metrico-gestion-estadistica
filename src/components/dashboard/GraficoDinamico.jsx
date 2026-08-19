@@ -56,6 +56,63 @@ export default function GraficoDinamico({
   // Filtros internos - Por defecto activos (todos los triajes y volumen)
   const [opFilters, setOpFilters] = React.useState(['totalPacientes', 'c1', 'c2', 'c3', 'c4', 'c5', 'altasAdmin']);
   const [timeFilters, setTimeFilters] = React.useState(['tiempoCatAna', 'tiempoAdmCat', 'tiempoAnaAlt', 'tiempoAdmAlt']);
+  const [tiemposGranularity, setTiemposGranularity] = React.useState('hora');
+
+  // Curva de Tiempos Promedio Agrupados por Hora del Día (00:00 - 23:00)
+  const hourlyTimesData = useMemo(() => {
+    if (!pacientesFiltrados || pacientesFiltrados.length === 0) return [];
+
+    const hours = Array.from({ length: 24 }, (_, i) => {
+      const hStr = String(i).padStart(2, '0') + ':00';
+      return {
+        name: hStr,
+        hour: i,
+        sumAdmCat: 0, countAdmCat: 0,
+        sumCatAna: 0, countCatAna: 0,
+        sumAnaAlt: 0, countAnaAlt: 0,
+        sumAdmAlt: 0, countAdmAlt: 0,
+        totalPacientes: 0
+      };
+    });
+
+    pacientesFiltrados.forEach(p => {
+      if (!p.tAdmision) return;
+      const d = new Date(p.tAdmision);
+      const h = d.getHours();
+      if (h >= 0 && h < 24) {
+        hours[h].totalPacientes++;
+
+        if (p.tCat1 && p.tCat1 >= p.tAdmision) {
+          hours[h].sumAdmCat += (p.tCat1 - p.tAdmision) / 60000;
+          hours[h].countAdmCat++;
+        }
+        if (p.tCatUlt && p.tAnamnesis && p.tAnamnesis >= p.tCatUlt) {
+          hours[h].sumCatAna += (p.tAnamnesis - p.tCatUlt) / 60000;
+          hours[h].countCatAna++;
+        }
+        if (p.tAnamnesis && p.tAlta && p.tAlta >= p.tAnamnesis) {
+          hours[h].sumAnaAlt += (p.tAlta - p.tAnamnesis) / 60000;
+          hours[h].countAnaAlt++;
+        }
+        if (p.tAlta && p.tAlta >= p.tAdmision) {
+          hours[h].sumAdmAlt += (p.tAlta - p.tAdmision) / 60000;
+          hours[h].countAdmAlt++;
+        }
+      }
+    });
+
+    const activeHours = hours.filter(h => h.totalPacientes > 0);
+    const datasetToMap = activeHours.length > 0 && activeHours.length <= 14 ? activeHours : hours;
+
+    return datasetToMap.map(h => ({
+      name: h.name,
+      tiempoAdmCat: h.countAdmCat > 0 ? Number((h.sumAdmCat / h.countAdmCat).toFixed(1)) : 0,
+      tiempoCatAna: h.countCatAna > 0 ? Number((h.sumCatAna / h.countCatAna).toFixed(1)) : 0,
+      tiempoAnaAlt: h.countAnaAlt > 0 ? Number((h.sumAnaAlt / h.countAnaAlt).toFixed(1)) : 0,
+      tiempoAdmAlt: h.countAdmAlt > 0 ? Number((h.sumAdmAlt / h.countAdmAlt).toFixed(1)) : 0,
+      totalPacientes: h.totalPacientes
+    }));
+  }, [pacientesFiltrados]);
 
   const isAltasAlert = useMemo(() => {
     if (!turnosFiltrados || turnosFiltrados.length === 0) return false;
@@ -404,11 +461,50 @@ export default function GraficoDinamico({
                 {/* VISTA 2: TIEMPOS */}
                 {activeTab === 'tiempos' && (
                   <div className="flex flex-col gap-4 h-full">
-                    {renderQuickFilters()}
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      {renderQuickFilters()}
+                      
+                      {/* Selector de Granularidad: Por Hora del Día vs Por Fecha/Turno */}
+                      <div className="flex items-center gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-card-custom mb-3">
+                        <button
+                          onClick={() => setTiemposGranularity('hora')}
+                          className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
+                            tiemposGranularity === 'hora'
+                              ? 'bg-indigo-600 text-white shadow-sm'
+                              : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'
+                          }`}
+                          title="Ver la curva horaria promedio de tiempos de espera de 00:00 a 23:00"
+                        >
+                          ⏱️ Por Hora del Día
+                        </button>
+                        <button
+                          onClick={() => setTiemposGranularity('dia')}
+                          className={`px-3 py-1 text-[11px] font-bold rounded-lg transition-all cursor-pointer ${
+                            tiemposGranularity === 'dia'
+                              ? 'bg-indigo-600 text-white shadow-sm'
+                              : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'
+                          }`}
+                          title="Ver la evolución temporal de tiempos por cada fecha o turno"
+                        >
+                          📅 Por Fecha / Turno
+                        </button>
+                      </div>
+                    </div>
 
                     <div className="flex-1 bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom flex flex-col">
                       <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-xs font-bold text-primary-custom uppercase tracking-wider">Evolución de Tiempos de Espera (Minutos)</h3>
+                        <div>
+                          <h3 className="text-xs font-bold text-primary-custom uppercase tracking-wider">
+                            {tiemposGranularity === 'hora' 
+                              ? 'Curva Horaria de Tiempos de Espera y Estadía (Minutos por Hora)' 
+                              : 'Evolución de Tiempos de Espera (Minutos por Turno/Fecha)'}
+                          </h3>
+                          <p className="text-[10px] text-secondary-custom font-medium">
+                            {tiemposGranularity === 'hora'
+                              ? 'Comportamiento promedio de la demanda y tiempos asistenciales a lo largo de las 24 horas'
+                              : 'Evolución histórica de tiempos de espera para cada turno o fecha filtrada'}
+                          </p>
+                        </div>
                         <button
                           onClick={() => setIsExpanded(true)}
                           className="flex items-center gap-1.5 px-3 py-1 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-primary-custom text-[11px] font-bold rounded-lg transition-all cursor-pointer shadow-sm"
@@ -418,7 +514,7 @@ export default function GraficoDinamico({
                       </div>
                       <div className="flex-1 min-h-[300px] w-full">
                         <ResponsiveContainer width="100%" height={300}>
-                          <LineChart data={chartData} margin={{ top: 5, right: 20, left: -20, bottom: 0 }}>
+                          <LineChart data={tiemposGranularity === 'hora' ? hourlyTimesData : chartData} margin={{ top: 5, right: 20, left: -20, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
                             <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} tickMargin={10} tick={{ fill: 'var(--text-secondary)' }} />
                             <YAxis fontSize={10} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)' }} />
@@ -426,8 +522,8 @@ export default function GraficoDinamico({
                             <Legend wrapperStyle={{fontSize: '11px'}} />
                             {timeFilters.includes('tiempoCatAna') && <Line type="monotone" dataKey="tiempoCatAna" name="Espera Médico" stroke="#ec4899" strokeWidth={3} dot={{r:3}} />}
                             {timeFilters.includes('tiempoAdmCat') && <Line type="monotone" dataKey="tiempoAdmCat" name="Espera Triaje" stroke="#8b5cf6" strokeWidth={3} dot={{r:3}} />}
-                            {timeFilters.includes('tiempoAnaAlt') && <Line type="monotone" dataKey="tiempoAnaAlt" name="Tiempo Box" stroke="#14b8a6" strokeWidth={2} strokeDasharray="5 5" />}
-                            {timeFilters.includes('tiempoAdmAlt') && <Line type="monotone" dataKey="tiempoAdmAlt" name="Estadía Total" stroke="#6366f1" strokeWidth={2} strokeDasharray="5 5" />}
+                            {timeFilters.includes('tiempoAnaAlt') && <Line type="monotone" dataKey="tiempoAnaAlt" name="Tiempo Box" stroke="#14b8a6" strokeWidth={2} strokeDasharray="5 5" dot={{r:2}} />}
+                            {timeFilters.includes('tiempoAdmAlt') && <Line type="monotone" dataKey="tiempoAdmAlt" name="Estadía Total" stroke="#6366f1" strokeWidth={2} strokeDasharray="5 5" dot={{r:2}} />}
                           </LineChart>
                         </ResponsiveContainer>
                       </div>
@@ -620,7 +716,7 @@ export default function GraficoDinamico({
               {/* TAB 2: TIEMPOS DE ATENCIÓN (EXPANDIDO) */}
               {activeTab === 'tiempos' && (
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 25, right: 30, left: 0, bottom: 20 }}>
+                  <LineChart data={tiemposGranularity === 'hora' ? hourlyTimesData : chartData} margin={{ top: 25, right: 30, left: 0, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.25)" />
                     <XAxis dataKey="name" fontSize={11} axisLine={false} tickLine={false} tickMargin={10} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
                     <YAxis fontSize={11} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} domain={['auto', 'auto']} />

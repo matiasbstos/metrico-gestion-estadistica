@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.0.5',
+      version: 'v5.0.5',
+      fecha: '18 de Agosto, 2026',
+      badge: 'ANÁLISIS POR HORA',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Curva Horaria Asistencial de Tiempos de Espera y Estadía (00:00 a 23:00)',
+      categoria: 'Tiempos Asistenciales',
+      icon: BarChart2,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'La pestaña "Tiempos de Atención" ahora incluye un selector interactivo que te permite visualizar la curva horaria de tiempos promedio (en minutos) de 00:00 a 23:00 para Espera Médico, Espera Triaje, Tiempo Box y Estadía Total, permitiendo detectar con exactitud a qué horas del día se producen los picos de saturación.',
+      instructivo: {
+        paraQueSirve: 'Permite analizar los tiempos asistenciales distribuidos a lo largo de las 24 horas del día o por la evolución diaria tradicional.',
+        quePuedesVer: 'La curva de minutos por hora (00:00 a 23:00) y un selector para alternar entre "Por Hora del Día" y "Por Fecha / Turno".',
+        ejemploUso: 'Haz clic en la pestaña "Tiempos de Atención" y presiona "⏱️ Por Hora del Día" para ver el comportamiento horario.'
+      },
+      changes: [
+        'Curva Horaria 00:00 a 23:00: Agregación de tiempos asistenciales promedio por tramo horario.',
+        'Selector de Granularidad: Botones interactivos "⏱️ Por Hora del Día" y "📅 Por Fecha / Turno".',
+        'Desglose Completo: Espera Médico, Espera Triaje, Tiempo Box y Estadía Total en minutos.'
+      ]
+    },
+    {
       id: 'v5.0.4',
       version: 'v5.0.4',
       fecha: '18 de Agosto, 2026',
