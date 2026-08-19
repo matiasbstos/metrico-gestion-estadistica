@@ -309,4 +309,44 @@
   animation: spinSlow 8s linear infinite;
 }
 
+@keyframes flowPackets {
+  from {
+    stroke-dashoffset: 80;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-flow-packets {
+  animation: flowPackets 1.4s linear infinite;
+}
+
+@keyframes floatSoft {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float-soft {
+  animation: floatSoft 4s ease-in-out infinite;
+}
+
+@keyframes floatSoftDelayed {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+}
+
+.animate-float-soft-delayed {
+  animation: floatSoftDelayed 4.5s ease-in-out infinite;
+}
+
+
 

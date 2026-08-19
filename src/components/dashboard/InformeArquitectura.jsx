@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.1.3',
+    version_tag: 'v5.1.3',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Arquitectura Animada de Red Nube <-> Base de Datos y Mayor Protagonismo Visual en Pantalla de Inicio.',
+    medios_y_stack: [
+      'React 18.3 & Lucide React (FondoClinicoAnimado.jsx, Dashboard.jsx)',
+      'Vector Graphics (SVG Network Pipelines & Cybernetic Nodes)',
+      'CSS Keyframes (animate-flow-packets, animate-float-soft)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Se potenció el protagonismo del fondo incorporando una composición interactiva de arquitectura de datos: un nodo Nube (Cloud Core Firebase) a la izquierda y un nodo Base de Datos (Servidor SAR Elsa Romo) a la derecha, interconectados por cables de flujo de paquetes luminosos animados bidireccionalmente, junto con ondas de electrocardiograma (ECG) vibrantes y badges de telemetría médica.',
+      firestore_collections: ['system_metadata'],
+      query_optimization: 'Renderizado 100% acelerado por GPU sin bloqueo de hilo principal.'
+    },
+    modulos_afectados: ['Dashboard', 'FondoClinicoAnimado.jsx', 'index.css', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Incorporación de nodos de Nube y Base de Datos con micro-animaciones orbitales.',
+      'Cables de datos vectoriales con gradientes luminosos y animación animate-flow-packets.',
+      'Intensificación del trazado ECG a 3px de grosor con doble filtro de resplandor neón.'
+    ]
+  },
+  {
     id: 'v5.1.2',
     version_tag: 'v5.1.2',
     fecha_despliegue: '18 de Agosto, 2026',

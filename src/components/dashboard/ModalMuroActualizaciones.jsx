@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.1.3',
+      version: 'v5.1.3',
+      fecha: '18 de Agosto, 2026',
+      badge: 'RED & SINCRONIZACIÓN NUBE',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Arquitectura Animada Nube-Base de Datos en Pantalla de Carga',
+      categoria: 'Diseño & Telemetría',
+      icon: Cloud,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se dio máximo protagonismo visual al fondo integrando los nodos interactivos de Nube (Cloud Core) y Base de Datos (Servidor Local SAR) interconectados por cables de flujo de paquetes luminosos en tiempo real, junto con un trazado ECG de alta intensidad.',
+      instructivo: {
+        paraQueSirve: 'Brinda una visualización inmersiva de la arquitectura de sincronización de datos clínicos entre el servidor local y la nube de MÉTRICO.',
+        quePuedesVer: 'El icono de la nube a la izquierda y el de la base de datos a la derecha con haces de luz en movimiento continuo y ondas cardiacas luminosas.',
+        ejemploUso: 'Observa la pantalla de carga tras iniciar sesión para apreciar la animación completa de conexión de datos.'
+      },
+      changes: [
+        'Nodo Nube & Base de Datos: Representación gráfica de la arquitectura cliente-servidor.',
+        'Cables de Flujo de Datos: Líneas de transmisión con paquetes animados en tiempo real.',
+        'Ondas ECG de Alto Brillo: Mayor contraste y realce estético en toda la pantalla.'
+      ]
+    },
+    {
       id: 'v5.1.2',
       version: 'v5.1.2',
       fecha: '18 de Agosto, 2026',
