@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.0.0',
+      version: 'v5.0.0',
+      fecha: '18 de Agosto, 2026',
+      badge: 'BÚSQUEDA INTELIGENTE',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Motor de Búsqueda Exhaustivo con Normalización de Acentos y Frases Compuestas',
+      categoria: 'Búsqueda & Navegación Global',
+      icon: Search,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se ha potenciado el motor del Buscador Global (Command Palette) con un algoritmo de normalización diacrítica que elimina diferencias por tildes o mayúsculas. Ahora puedes buscar términos como "taxonómico", "taxonomico", "tendencias", "curva de demanda", "sociodemográfico", "médicos", "mapa" o frases compuestas, encontrando al instante el módulo y sus métricas en vivo.',
+      instructivo: {
+        paraQueSirve: 'Encuentra cualquier reporte, gráfico o análisis escribiendo palabras clave con o sin tildes, en singular o plural.',
+        quePuedesVer: 'Escribe "taxonómico", "tendencias", "sociodemográfico", "fracturas", "pautas" o cualquier término clínico para ver el acceso directo y su resumen numérico.',
+        ejemploUso: 'Ejemplo: Escribe "taxonómico" o "analisis taxonomico" para acceder directamente al gráfico dinámico de tendencias y series temporales.'
+      },
+      changes: [
+        'Normalización Diacrítica Total: Búsquedas insensibles a tildes (á, é, í, ó, ú, ñ).',
+        'Indexación Integral de Secciones: Inclusión de Análisis Taxonómico, Demografía, Mapa, Curvas de Demanda, etc.',
+        'Emparejamiento Multitoken: Soporte para frases con múltiples palabras en cualquier orden.'
+      ]
+    },
+    {
       id: 'v4.9.9',
       version: 'v4.9.9',
       fecha: '18 de Agosto, 2026',

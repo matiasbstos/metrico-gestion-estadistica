@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.0.0',
+    version_tag: 'v5.0.0',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Motor de Búsqueda Global Exhaustivo con Normalización Diacrítica (Acentos/Tildes) y Emparejamiento Multitoken: Indexación Total de Módulos, Gráficos y Conceptos Asistenciales.',
+    medios_y_stack: [
+      'React 18.3 (BarraBusquedaGlobal.jsx)',
+      'Algoritmo de Normalización NFD y Regex Diacrítica'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'El motor de búsqueda procesa consultas eliminando tildes y diacríticos (ej: "taxonómico", "taxonomico", "atención", "médicos") y descompone las frases en tokens independientes. Se indexan la totalidad de secciones del sistema: Análisis Taxonómico, Demografía, Mapa Georreferencial, Rendimiento Turnos, Calendario Histórico, Radar IA, Altas, Traslados, Fracturas, Constataciones, Demanda, Médicos, Enfermería, Reportes, Pautas, Datos, Usuarios, Auditoría, Arquitectura y DevLog.',
+      firestore_collections: ['pacientes_urgencia', 'turnos', 'usuarios'],
+      query_optimization: 'Búsqueda multitoken en memoria O(N) con normalización en tiempo constante.'
+    },
+    modulos_afectados: ['Dashboard', 'BarraBusquedaGlobal', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Función normalizeStr con normalización Unicode NFD y supresión de caracteres de combinación (U+0300 a U+036F).',
+      'Indexación de términos clínicos y operacionales (taxonómico, curvas, series temporales, sociodemográfico, etc.).',
+      'Soporte para búsquedas compuestas y palabras clave en cualquier orden.'
+    ]
+  },
+  {
     id: 'v4.9.9',
     version_tag: 'v4.9.9',
     fecha_despliegue: '18 de Agosto, 2026',

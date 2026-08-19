@@ -3,9 +3,21 @@ import { createPortal } from 'react-dom';
 import { 
   Search, X, Command, Activity, Users, FileSpreadsheet, BarChart2, Shield, Calendar, 
   Database, UserCheck, ShieldAlert, ArrowLeftRight, Clock, Award, BookOpen, Terminal,
-  ExternalLink, Sparkles, ChevronRight, Hash, Eye
+  ExternalLink, Sparkles, ChevronRight, Hash, Eye, MapPin, Stethoscope, Cpu, TrendingUp,
+  FileText, UserPlus, Sliders, CheckCircle, PieChart as PieIcon, Layers, HeartPulse
 } from 'lucide-react';
 import { formatTime } from '../../utils/helpers';
+
+/**
+ * Normaliza cadenas de texto para eliminar acentos, diacríticos y espacios extra.
+ */
+const normalizeStr = (str) => {
+  return String(str || '')
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+};
 
 export default function BarraBusquedaGlobal({
   sidebarCollapsed,
@@ -46,7 +58,7 @@ export default function BarraBusquedaGlobal({
     }
   }, [isModalOpen]);
 
-  // Índices de búsqueda y cálculo de métricas en tiempo real
+  // Catálogo Exhaustivo Indexado de Búsqueda y Métricas en Tiempo Real
   const searchIndex = useMemo(() => {
     const totalPacientes = statsKPI?.admitidos?.current || pacientesFiltrados.length || 0;
     const totalAtendidos = statsKPI?.atendidos?.current || 0;
@@ -62,10 +74,33 @@ export default function BarraBusquedaGlobal({
 
     return [
       {
+        id: 'taxonomico',
+        title: 'Análisis Taxonómico y de Tendencias',
+        category: 'Gráficos & Series Temporales',
+        keywords: [
+          'taxonomico', 'taxonómico', 'taxonomia', 'taxonomía', 'tendencias', 'tendencia', 
+          'grafico dinamico', 'grafico', 'gráfico', 'curvas', 'series temporales', 'evolucion',
+          'flujo operacional', 'tiempos de atencion', 'espera medico', 'espera triaje', 'tiempo box', 
+          'estadia total', 'distribucion'
+        ],
+        icon: TrendingUp,
+        color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
+        liveKPI: `Espera Médico: ${formatTime(esperaMed)} | Triaje: ${formatTime(esperaTriaje)}`,
+        description: 'Gráfico dinámico de evolución temporal, triaje, tiempos de atención y demografía.',
+        action: () => {
+          setActiveTab('resumen');
+          setIsModalOpen(false);
+        }
+      },
+      {
         id: 'altas',
-        title: 'Altas Administrativas',
-        category: 'Métricas Críticas',
-        keywords: ['alta', 'altas', 'administrativa', 'cancelada', 'cancelaciones', 'desercion', 'deserción', 'fuga'],
+        title: 'Altas Administrativas & Deserciones',
+        category: 'Métricas Críticas & Específicos',
+        keywords: [
+          'alta', 'altas', 'administrativa', 'administrativas', 'cancelada', 'canceladas', 
+          'cancelacion', 'cancelaciones', 'desercion', 'deserción', 'fuga', 'fugas', 'abandono', 
+          'abandono de atencion', 'sin atencion', 'cancelado'
+        ],
         icon: UserCheck,
         color: 'text-rose-600 bg-rose-100 dark:bg-rose-950/50 border-rose-300 dark:border-rose-800',
         liveKPI: `${totalAltas.toLocaleString()} pac (${altasPct}% del total)`,
@@ -78,9 +113,13 @@ export default function BarraBusquedaGlobal({
       },
       {
         id: 'traslados',
-        title: 'Traslados Hospitalarios',
-        category: 'Derivaciones',
-        keywords: ['traslado', 'traslados', 'derivacion', 'derivación', 'hospital', 'san jose', 'ambulancia', 'derivados'],
+        title: 'Traslados Hospitalarios & Derivaciones',
+        category: 'Derivaciones de Red',
+        keywords: [
+          'traslado', 'traslados', 'derivacion', 'derivación', 'derivaciones', 'hospital', 
+          'san jose', 'hospital melipilla', 'ambulancia', 'ambulancias', 'derivados', 
+          'interconsulta', 'urgencia hospitalaria', 'complejidad'
+        ],
         icon: ArrowLeftRight,
         color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: `${totalTraslados.toLocaleString()} traslados registrados`,
@@ -95,7 +134,10 @@ export default function BarraBusquedaGlobal({
         id: 'admitidos',
         title: 'Pacientes Admitidos (Volumen Global)',
         category: 'Volumen Asistencial',
-        keywords: ['admitidos', 'admision', 'admisión', 'ingresos', 'volumen', 'total pacientes', 'pacientes'],
+        keywords: [
+          'admitidos', 'admitido', 'admision', 'admisión', 'admisiones', 'ingresos', 
+          'ingreso', 'volumen', 'total pacientes', 'pacientes', 'afluencia global', 'pac/h'
+        ],
         icon: Users,
         color: 'text-blue-600 bg-blue-100 dark:bg-blue-950/50 border-blue-300 dark:border-blue-800',
         liveKPI: `${totalPacientes.toLocaleString()} admitidos (${pacHora} pac/h)`,
@@ -109,7 +151,10 @@ export default function BarraBusquedaGlobal({
         id: 'atendidos',
         title: 'Pacientes Atendidos Clínicamente',
         category: 'Volumen Asistencial',
-        keywords: ['atendidos', 'atencion', 'atención', 'consultas', 'efectivas', 'clinicas'],
+        keywords: [
+          'atendidos', 'atendido', 'atencion', 'atención', 'atenciones', 'consultas', 
+          'efectivas', 'clinicas', 'clínicas', 'altas medicas', 'pacientes vistos'
+        ],
         icon: Activity,
         color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800',
         liveKPI: `${totalAtendidos.toLocaleString()} atendidos`,
@@ -121,9 +166,13 @@ export default function BarraBusquedaGlobal({
       },
       {
         id: 'tiempos',
-        title: 'Tiempos de Atención & Espera',
+        title: 'Tiempos de Atención & Espera Asistencial',
         category: 'Flujo Asistencial',
-        keywords: ['tiempo', 'tiempos', 'espera', 'estadia', 'estadía', 'box', 'anamnesis', 'triaje espera', 'demora', 'minutos'],
+        keywords: [
+          'tiempo', 'tiempos', 'espera', 'estadia', 'estadía', 'box', 'anamnesis', 
+          'triaje espera', 'demora', 'minutos', 'retraso', 'tiempo de atencion', 'tiempo medico',
+          'espera medico', 'espera triaje', 'tiempo box', 'permanencia'
+        ],
         icon: Clock,
         color: 'text-purple-600 bg-purple-100 dark:bg-purple-950/50 border-purple-300 dark:border-purple-800',
         liveKPI: `Estadía: ${formatTime(estadiaMin)} | Médico: ${formatTime(esperaMed)} | Box: ${formatTime(tiempoBox)}`,
@@ -135,9 +184,12 @@ export default function BarraBusquedaGlobal({
       },
       {
         id: 'triaje',
-        title: 'Categorización de Triaje (C1 a C5)',
+        title: 'Categorización de Triaje (C1, C2, C3, C4, C5)',
         category: 'Flujo Clínico',
-        keywords: ['c1', 'c2', 'c3', 'c4', 'c5', 'triaje', 'triage', 'categorizacion', 'categorización', 'gravedad', 'urgencia'],
+        keywords: [
+          'c1', 'c2', 'c3', 'c4', 'c5', 'c3 lesiones', 'c3_z518', 'triaje', 'triage', 
+          'categorizacion', 'categorización', 'gravedad', 'urgencia', 'severidad', 'indice triaje'
+        ],
         icon: Sparkles,
         color: 'text-amber-600 bg-amber-100 dark:bg-amber-950/50 border-amber-300 dark:border-amber-800',
         liveKPI: 'Monitoreo de severidad y distribución horaria',
@@ -149,9 +201,13 @@ export default function BarraBusquedaGlobal({
       },
       {
         id: 'fracturas',
-        title: 'Estadísticas de Fractura (CIE-10)',
+        title: 'Estadísticas de Fractura (CIE-10 S02-S92)',
         category: 'Análisis Específicos',
-        keywords: ['fractura', 'fracturas', 'hueso', 'cie-10', 's02', 's92', 'trauma', 'traumatismo', 'lesion osea'],
+        keywords: [
+          'fractura', 'fracturas', 'hueso', 'huesos', 'cie-10', 'cie10', 's02', 's92', 
+          'trauma', 'traumatismo', 'traumatologia', 'traumatología', 'lesion osea', 'ortopedia', 
+          'inmovilizacion', 'yeso'
+        ],
         icon: Activity,
         color: 'text-rose-600 bg-rose-100 dark:bg-rose-950/50 border-rose-300 dark:border-rose-800',
         liveKPI: 'Epidemiología ósea de lesiones traumáticas',
@@ -166,7 +222,11 @@ export default function BarraBusquedaGlobal({
         id: 'constataciones',
         title: 'Constatación de Lesiones (Z51.8 / Z04)',
         category: 'Análisis Específicos',
-        keywords: ['constatacion', 'constatación', 'lesion', 'lesiones', 'z51.8', 'z518', 'z04', 'carabineros', 'clinico legal', 'alcoholemia'],
+        keywords: [
+          'constatacion', 'constatación', 'constataciones', 'lesion', 'lesiones', 'z51.8', 
+          'z518', 'z04', 'carabineros', 'clinico legal', 'clínico legal', 'alcoholemia', 
+          'alcoholemias', 'policia', 'tribunales', 'agresion'
+        ],
         icon: ShieldAlert,
         color: 'text-amber-600 bg-amber-100 dark:bg-amber-950/50 border-amber-300 dark:border-amber-800',
         liveKPI: `${totalConstataciones.toLocaleString()} constataciones registradas`,
@@ -181,7 +241,10 @@ export default function BarraBusquedaGlobal({
         id: 'demanda',
         title: 'Curva y Análisis de Demanda Horaria',
         category: 'Comportamiento Operativo',
-        keywords: ['demanda', 'curva', 'horas peak', 'horario', 'afluencia', 'admisiones por hora', 'horas'],
+        keywords: [
+          'demanda', 'curva', 'curva de demanda', 'horas peak', 'horas pico', 'horario', 
+          'horarios', 'afluencia', 'admisiones por hora', 'horas', 'concurrencia', 'patron horario'
+        ],
         icon: BarChart2,
         color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: 'Patrón horario de admisiones y afluencia',
@@ -193,11 +256,87 @@ export default function BarraBusquedaGlobal({
         }
       },
       {
+        id: 'sociodemografico',
+        title: 'Análisis Sociodemográfico & Poblacional',
+        category: 'Población & Epidemiología',
+        keywords: [
+          'sociodemografico', 'sociodemográfico', 'demografia', 'demografía', 'sexo', 'genero', 
+          'género', 'edad', 'edades', 'tramos etarios', 'prevision', 'previsión', 'fonasa', 
+          'isapre', 'comuna', 'melipilla', 'nacionalidad', 'extranjeros', 'chilenos', 'establecimiento',
+          'florencia', 'boris soler', 'elgueta'
+        ],
+        icon: Users,
+        color: 'text-purple-600 bg-purple-100 dark:bg-purple-950/50 border-purple-300 dark:border-purple-800',
+        liveKPI: 'Distribución por edad, género, previsión y centros',
+        description: 'Perfil de la población atendida en la red asistencial de Melipilla.',
+        action: () => {
+          setActiveTab('resumen');
+          setIsModalOpen(false);
+        }
+      },
+      {
+        id: 'mapa',
+        title: 'Mapa Georreferencial de Melipilla',
+        category: 'Distribución Territorial',
+        keywords: [
+          'mapa', 'georreferenciacion', 'georreferenciación', 'geolocalizacion', 'geolocalización', 
+          'provincia', 'sector', 'sectores', 'rural', 'urbano', 'territorio', 'ubicacion', 'geografia'
+        ],
+        icon: MapPin,
+        color: 'text-teal-600 bg-teal-100 dark:bg-teal-950/50 border-teal-300 dark:border-teal-800',
+        liveKPI: 'Mapa de densidad y afluencia por zonas',
+        description: 'Geolocalización y procedencia de usuarios por cuadrantes territoriales.',
+        action: () => {
+          setActiveTab('resumen');
+          setIsModalOpen(false);
+        }
+      },
+      {
+        id: 'comparativo',
+        title: 'Rendimiento de Turnos & Equipos (Comparativo)',
+        category: 'Comparativo Operacional',
+        keywords: [
+          'comparativo', 'rendimiento turno', 'equipo', 'equipos', 'equipo 1', 'equipo 2', 'equipo 3', 
+          'turno 1', 'turno 2', 'turno 3', 'jornada', 'diurno', 'nocturno', 'turno largo', 
+          'fin de semana', 'finde dia', 'finde noche', 'medicos por turno'
+        ],
+        icon: Award,
+        color: 'text-sky-600 bg-sky-100 dark:bg-sky-950/50 border-sky-300 dark:border-sky-800',
+        liveKPI: 'Comparativa de carga y velocidad entre equipos',
+        description: 'Evaluación del desempeño asistencial entre equipos rotativos.',
+        action: () => {
+          setActiveTab('comparativo');
+          setIsModalOpen(false);
+        }
+      },
+      {
+        id: 'calendario',
+        title: 'Histórico Mensual & Auditoría Diaria',
+        category: 'Histórico & Auditoría',
+        keywords: [
+          'calendario', 'historico', 'histórico', 'mensual', 'meses', 'auditoria diaria', 
+          'registro historico', 'dias', 'historia asistencial', 'año', 'mes'
+        ],
+        icon: Calendar,
+        color: 'text-blue-600 bg-blue-100 dark:bg-blue-950/50 border-blue-300 dark:border-blue-800',
+        liveKPI: 'Calendario consolidado día a día',
+        description: 'Inspección histórica de métricas por día y mes calendario.',
+        action: () => {
+          setActiveTab('calendario');
+          setIsModalOpen(false);
+        }
+      },
+      {
         id: 'profesionales',
         title: 'Rendimiento Clínico & Productividad Médica',
         category: 'Cuerpo Médico',
-        keywords: ['medico', 'médico', 'medicos', 'médicos', 'doctor', 'doctores', 'profesional', 'profesionales', 'rendimiento clinico', 'receta', 'recetas', 'productividad'],
-        icon: Award,
+        keywords: [
+          'medico', 'médico', 'medicos', 'médicos', 'doctor', 'doctores', 'profesional', 
+          'profesionales', 'rendimiento clinico', 'rendimiento clínico', 'receta', 'recetas', 
+          'productividad medica', 'prescripcion', 'prescripción', 'consultas', 'ranking medicos', 
+          'velocidad medica', 'atenciones por hora'
+        ],
+        icon: Stethoscope,
         color: 'text-amber-600 bg-amber-100 dark:bg-amber-950/50 border-amber-300 dark:border-amber-800',
         liveKPI: 'Auditoría de atenciones médicas y ranking',
         description: 'Evaluación de médicos, pacientes por hora y prescripción.',
@@ -210,8 +349,12 @@ export default function BarraBusquedaGlobal({
         id: 'enfermeria',
         title: 'Rendimiento Enfermería & Triaje',
         category: 'Equipo Clínico',
-        keywords: ['enfermeria', 'enfermería', 'enfermeros', 'enfermeras', 'triage enfermeria', 'categorizadores'],
-        icon: Activity,
+        keywords: [
+          'enfermeria', 'enfermería', 'enfermeros', 'enfermeras', 'triage enfermeria', 
+          'categorizadores', 'velocidad triaje', 'tiempo de categorizacion', 'boxes triaje',
+          'enfermero', 'enfermera'
+        ],
+        icon: HeartPulse,
         color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: 'Velocidad de categorización y triaje',
         description: 'Tiempos de triaje y productividad por enfermero(a).',
@@ -225,7 +368,10 @@ export default function BarraBusquedaGlobal({
         id: 'reportes',
         title: 'Reporte Ejecutivo & Exportación PDF',
         category: 'Gestión & Informes',
-        keywords: ['reporte', 'reportes', 'informe', 'ejecutivo', 'pdf', 'imprimir', 'descargar', 'balance'],
+        keywords: [
+          'reporte', 'reportes', 'informe', 'informes', 'ejecutivo', 'pdf', 'imprimir', 
+          'balance de turno', 'resumen directivo', 'exportar', 'descargar', 'balance'
+        ],
         icon: FileSpreadsheet,
         color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800',
         liveKPI: 'Generador de informes directivos y balance de turno',
@@ -239,7 +385,10 @@ export default function BarraBusquedaGlobal({
         id: 'pauta',
         title: 'Pauta & Programación de Turnos',
         category: 'Gestión Operativa',
-        keywords: ['pauta', 'pautas', 'programacion', 'programación', 'cuadrante', 'rol de turno', 'equipos', 'personal'],
+        keywords: [
+          'pauta', 'pautas', 'rol', 'programacion', 'programación', 'cuadrante', 
+          'rol de turno', 'equipos de turno', 'asignacion de personal', 'turnera', 'planificacion'
+        ],
         icon: Calendar,
         color: 'text-sky-600 bg-sky-100 dark:bg-sky-950/50 border-sky-300 dark:border-sky-800',
         liveKPI: 'Cuadrante mensual y asignación de equipos',
@@ -253,7 +402,10 @@ export default function BarraBusquedaGlobal({
         id: 'data',
         title: 'Gestión de Datos & Carga Masiva',
         category: 'Administración de Datos',
-        keywords: ['data', 'datos', 'carga', 'excel', 'subir', 'importar', 'recalcular', 'purga', 'limpieza'],
+        keywords: [
+          'data', 'datos', 'carga', 'excel', 'importar', 'subir archivo', 'recalcular', 
+          'purga', 'limpieza', 'lote', 'base de datos', 'archivos', 'subida excel'
+        ],
         icon: Database,
         color: 'text-teal-600 bg-teal-100 dark:bg-teal-950/50 border-teal-300 dark:border-teal-800',
         liveKPI: `${(pacientesFiltrados.length + turnosFiltrados.length).toLocaleString()} registros activos`,
@@ -267,7 +419,10 @@ export default function BarraBusquedaGlobal({
         id: 'usuarios',
         title: 'Gestión de Usuarios & Matriz de Permisos',
         category: 'Seguridad & Acceso',
-        keywords: ['usuario', 'usuarios', 'cuentas', 'permisos', 'credenciales', 'matriz', 'bloquear', 'claves'],
+        keywords: [
+          'usuario', 'usuarios', 'cuentas', 'cuenta', 'permisos', 'permiso', 'credenciales', 
+          'credencial', 'matriz de permisos', 'roles', 'bloquear', 'claves', 'seguridad', 'acceso'
+        ],
         icon: Users,
         color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: 'Control granular de módulos y credenciales',
@@ -281,7 +436,10 @@ export default function BarraBusquedaGlobal({
         id: 'auditoria',
         title: 'Registro de Auditoría & Trazabilidad',
         category: 'Seguridad & Control',
-        keywords: ['auditoria', 'auditoría', 'bitacora', 'bitácora', 'logs', 'seguridad', 'trazabilidad', 'acciones'],
+        keywords: [
+          'auditoria', 'auditoría', 'bitacora', 'bitácora', 'logs', 'log', 'seguridad', 
+          'trazabilidad', 'cambios en datos', 'historial de modificaciones', 'incidencias'
+        ],
         icon: Shield,
         color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: 'Historial inmutable de operaciones del sistema',
@@ -295,7 +453,11 @@ export default function BarraBusquedaGlobal({
         id: 'arquitectura',
         title: 'Informe de Arquitectura & Timeline',
         category: 'Sistema & Desarrollo',
-        keywords: ['arquitectura', 'version', 'versión', 'historial', 'timeline', 'tecnico', 'técnico', 'documentacion'],
+        keywords: [
+          'arquitectura', 'versiones', 'version', 'versión', 'changelog', 'timeline', 
+          'formulas', 'fórmulas', 'manual', 'documentacion tecnica', 'documentación técnica', 
+          'historial de cambios'
+        ],
         icon: BookOpen,
         color: 'text-indigo-500 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: 'Consolidado maestro y versiones del sistema',
@@ -309,7 +471,10 @@ export default function BarraBusquedaGlobal({
         id: 'devlog',
         title: 'DevLog & Bitácora de Desarrollo',
         category: 'Sistema & Desarrollo',
-        keywords: ['devlog', 'desarrollo', 'debug', 'consola', 'eventos', 'terminal'],
+        keywords: [
+          'devlog', 'desarrollo', 'debug', 'consola', 'eventos', 'terminal', 'telemetria', 
+          'telemetría', 'desarrollador', 'logs tecnicos'
+        ],
         icon: Terminal,
         color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800',
         liveKPI: 'Consola técnica en tiempo real',
@@ -322,17 +487,37 @@ export default function BarraBusquedaGlobal({
     ];
   }, [statsKPI, pacientesFiltrados, turnosFiltrados, promediosGlobales, setActiveTab, setSubTabEspecifico]);
 
-  // Filtrado de resultados según la búsqueda
+  // Motor de Búsqueda Inteligente Multitoken con Normalización Diacrítica
   const filteredResults = useMemo(() => {
-    const cleanQuery = query.trim().toLowerCase();
-    if (!cleanQuery) return searchIndex;
+    const raw = query.trim();
+    if (!raw) return searchIndex;
+
+    const normalizedQuery = normalizeStr(raw);
+    const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
 
     return searchIndex.filter(item => {
-      const matchTitle = item.title.toLowerCase().includes(cleanQuery);
-      const matchDesc = item.description.toLowerCase().includes(cleanQuery);
-      const matchCat = item.category.toLowerCase().includes(cleanQuery);
-      const matchKey = item.keywords.some(k => k.includes(cleanQuery) || cleanQuery.includes(k));
-      return matchTitle || matchDesc || matchCat || matchKey;
+      const normTitle = normalizeStr(item.title);
+      const normDesc = normalizeStr(item.description);
+      const normCat = normalizeStr(item.category);
+      const normKeywords = (item.keywords || []).map(normalizeStr);
+
+      // 1. Coincidencia directa completa
+      if (
+        normTitle.includes(normalizedQuery) || 
+        normDesc.includes(normalizedQuery) || 
+        normCat.includes(normalizedQuery) || 
+        normKeywords.some(k => k.includes(normalizedQuery) || normalizedQuery.includes(k))
+      ) {
+        return true;
+      }
+
+      // 2. Coincidencia por tokens (ej: "analisis taxonomico")
+      return queryTokens.every(tok => 
+        normTitle.includes(tok) || 
+        normDesc.includes(tok) || 
+        normCat.includes(tok) || 
+        normKeywords.some(k => k.includes(tok))
+      );
     });
   }, [query, searchIndex]);
 
@@ -383,7 +568,7 @@ export default function BarraBusquedaGlobal({
               type="text"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Buscar parámetro, métrica o reporte (ej: altas, traslados, tiempos, C3, médicos)..."
+              placeholder="Buscar parámetro, métrica o reporte (ej: taxonómico, altas, traslados, tiempos, C3, médicos)..."
               className="w-full pl-11 pr-24 py-3 bg-slate-50 dark:bg-slate-800/80 border border-indigo-500/30 focus:border-indigo-600 focus:bg-white dark:focus:bg-slate-800 rounded-2xl text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none ring-2 ring-indigo-500/10 focus:ring-4 focus:ring-indigo-500/20 transition-all shadow-inner"
             />
             {query && (
@@ -407,7 +592,7 @@ export default function BarraBusquedaGlobal({
             <div className="py-12 px-6 text-center text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800/60 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
               <Hash className="w-10 h-10 mx-auto mb-3 text-indigo-500 opacity-60" />
               <p className="text-sm font-black text-slate-900 dark:text-white">No se encontraron resultados para "{query}"</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Prueba con: altas, traslados, tiempos, C3, médicos, demanda, usuarios, auditoría...</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Prueba con: taxonómico, altas, traslados, tiempos, C3, médicos, demanda, usuarios, auditoría...</p>
             </div>
           ) : (
             filteredResults.map(item => {
