@@ -61,10 +61,10 @@ export const obtenerTurnoDetallado = (timestamp) => {
     }
   }
 
-  // Rotativa asignada de Equipo (Equipo 1, Equipo 2, Equipo 3)
+  // Rotativa asignada de Equipo (Equipo 1, Equipo 2, Equipo 3, Equipo 4)
   const dayOfYear = Math.floor((logicalDate - new Date(logicalDate.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
-  const equipoNum = ((dayOfYear + turnoNum) % 3) + 1;
-  const equipo = `Equipo ${equipoNum}`;
+  const equipoNum = ((dayOfYear + turnoNum) % 4) + 1;
+  const equipo = `Turno ${equipoNum}`;
 
   const y = logicalDate.getFullYear();
   const m = String(logicalDate.getMonth() + 1).padStart(2, '0');
@@ -81,6 +81,75 @@ export const obtenerTurnoDetallado = (timestamp) => {
     fechaTurno,
     textoCompleto
   };
+};
+
+/**
+ * Resuelve el Equipo/Turno asignado de forma universal:
+ * 1. Prioridad 1: Pauta manual configurada en pautasDB para ese mes y fecha.
+ * 2. Prioridad 2: Equipo explícito válido registrado en la base de datos de turnos.
+ * 3. Prioridad 3: Algoritmo de rotativa oficial de 4 turnos continuos.
+ */
+export const resolverEquipoTurno = (fechaStr, horarioStr, pautasDB, equipoExplicit) => {
+  // 1. Si viene equipo explícito válido
+  if (equipoExplicit && equipoExplicit !== 'Sin Asignar' && equipoExplicit !== 'Turno Masivo Carga Rápida' && equipoExplicit !== '-') {
+    const clean = String(equipoExplicit).trim();
+    if (clean.toLowerCase().includes('1')) return 'Turno 1';
+    if (clean.toLowerCase().includes('2')) return 'Turno 2';
+    if (clean.toLowerCase().includes('3')) return 'Turno 3';
+    if (clean.toLowerCase().includes('4')) return 'Turno 4';
+    return clean;
+  }
+
+  // 2. Si existe en pautasDB para ese mes y fecha
+  if (pautasDB && fechaStr) {
+    const monthId = fechaStr.substring(0, 7);
+    if (pautasDB[monthId] && pautasDB[monthId][fechaStr]) {
+      const dayData = pautasDB[monthId][fechaStr];
+      const h = String(horarioStr || '').toLowerCase();
+      let eqPauta = null;
+      if (h.includes('17:00') || h.includes('largo')) {
+        eqPauta = dayData['17:00 - 08:00'] || dayData.noche || dayData.largo;
+      } else if (h.includes('20:00') || h.includes('noche')) {
+        eqPauta = dayData['20:00 - 08:00'] || dayData.noche;
+      } else if (h.includes('08:00') || h.includes('dia') || h.includes('día')) {
+        eqPauta = dayData['08:00 - 20:00'] || dayData.dia;
+      } else {
+        eqPauta = Object.values(dayData).find(v => typeof v === 'string' && (v.includes('Turno') || v.includes('Equipo')));
+      }
+
+      if (eqPauta) {
+        const cleanP = String(eqPauta).trim();
+        if (cleanP.includes('1')) return 'Turno 1';
+        if (cleanP.includes('2')) return 'Turno 2';
+        if (cleanP.includes('3')) return 'Turno 3';
+        if (cleanP.includes('4')) return 'Turno 4';
+        return cleanP;
+      }
+    }
+  }
+
+  // 3. Algoritmo Determinista Rotativo Oficial (Ciclo de 4 Turnos)
+  if (fechaStr) {
+    const parts = fechaStr.split('-').map(Number);
+    if (parts.length === 3) {
+      const [y, m, d] = parts;
+      const targetDate = new Date(y, m - 1, d);
+      // Fecha base fija de anclaje de rotación (2026-01-01 -> Turno 1)
+      const baseAnchor = new Date(2026, 0, 1);
+      const diffDays = Math.floor((targetDate - baseAnchor) / (1000 * 60 * 60 * 24));
+      
+      const h = String(horarioStr || '').toLowerCase();
+      let shiftOffset = 0;
+      if (h.includes('20:00') || h.includes('noche')) shiftOffset = 1;
+      else if (h.includes('17:00') || h.includes('largo')) shiftOffset = 0;
+      else if (h.includes('08:00') || h.includes('dia')) shiftOffset = 0;
+
+      const teamIndex = (((diffDays + shiftOffset) % 4) + 4) % 4 + 1;
+      return `Turno ${teamIndex}`;
+    }
+  }
+
+  return 'Turno 1';
 };
 
 export const formatLocalDate = (timestamp) => {

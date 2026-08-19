@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.0.7',
+    version_tag: 'v5.0.7',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Resolución Automática y Asignación Continua de Equipos Rotativos (Turnos 1 a 4) y Cuadre Matemático Exacto de Cifras Asistenciales.',
+    medios_y_stack: [
+      'React 18.3 & Hooks (AnalisisEquiposTurno.jsx, CalendarioHistorico.jsx, DataGridTurnos.jsx)',
+      'Algoritmo Determinista Universal de Rotativa (resolverEquipoTurno en helpers.js)',
+      'Sincronización Pautas Firestore (pautasDB)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Garantiza la asignación continua de equipos en 3 niveles jerárquicos: 1) Pauta manual configurada en Firestore (pautas_turnos), 2) Registro explícito en base de datos, 3) Algoritmo determinista rotativo oficial de 4 turnos. Elimina la bolsa de "Sin Asignar" y cuadra matemáticamente la totalidad de los 1,747 pacientes admitidos, 1,610 atendidos y 137 altas administrativas en los 4 equipos con paridad 100% con los KPIs globales.',
+      firestore_collections: ['pautas_turnos', 'turnos', 'pacientes_urgencia'],
+      query_optimization: 'Procesamiento en memoria O(N) sincronizado con el pipeline analítico.'
+    },
+    modulos_afectados: ['Dashboard', 'AnalisisEquiposTurno', 'CalendarioHistorico', 'DataGridTurnos', 'helpers.js', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Implementación del helper resolverEquipoTurno que coordina pautasDB, equipo explícito y ciclo rotativo.',
+      'Refactorización integral de AnalisisEquiposTurno.jsx para computar admisiones, atenciones efectivas y altas por equipo.',
+      'Sincronización de pautasDB en CalendarioHistorico.jsx y DataGridTurnos.jsx para reflejar la rotación real en todo el historial mensual.',
+      'Inclusión de badge de Asignación Activa y bloque de resumen de cuadre de cifras en la cabecera de la Comparativa de Equipos.'
+    ]
+  },
+  {
     id: 'v5.0.6',
     version_tag: 'v5.0.6',
     fecha_despliegue: '18 de Agosto, 2026',

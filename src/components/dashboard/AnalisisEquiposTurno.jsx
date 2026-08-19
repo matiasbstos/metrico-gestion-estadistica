@@ -1,63 +1,56 @@
 import React, { useMemo } from 'react';
-import { Users, UserX, Clock, Activity, BarChart2, ArrowUpRight } from 'lucide-react';
-import { obtenerTurnoDetallado } from '../../utils/helpers';
+import { Users, UserX, Clock, Activity, BarChart2, ArrowUpRight, CheckCircle2 } from 'lucide-react';
+import { obtenerTurnoDetallado, resolverEquipoTurno } from '../../utils/helpers';
 
-export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrados, setActiveTab }) {
+export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrados, setActiveTab, pautasDB }) {
   const dataEquipos = useMemo(() => {
     const equipos = {
-      'Turno 1': { name: 'Turno 1', totalPacientes: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#10b981' }, // Verde
-      'Turno 2': { name: 'Turno 2', totalPacientes: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#facc15' }, // Amarillo
-      'Turno 3': { name: 'Turno 3', totalPacientes: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#3b82f6' }, // Azul
-      'Turno 4': { name: 'Turno 4', totalPacientes: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#f97316' }, // Naranja
-      'Sin Asignar': { name: 'Sin Asignar', totalPacientes: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#94a3b8' } // Gris
+      'Turno 1': { name: 'Turno 1', totalPacientes: 0, atendidos: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#10b981' }, // Verde
+      'Turno 2': { name: 'Turno 2', totalPacientes: 0, atendidos: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#facc15' }, // Amarillo
+      'Turno 3': { name: 'Turno 3', totalPacientes: 0, atendidos: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#3b82f6' }, // Azul
+      'Turno 4': { name: 'Turno 4', totalPacientes: 0, atendidos: 0, altasAdmin: 0, totalHoras: 0, sumEspera: 0, countEspera: 0, sumTotal: 0, countTotal: 0, fill: '#f97316' }  // Naranja
     };
 
-    // Mapear cada turno a su clave única de fecha y número de turno
-    const turnosMap = {};
-    turnosFiltrados.forEach(t => {
-      const eq = t.equipoTurno || 'Sin Asignar';
-      if (equipos[eq]) {
-        equipos[eq].totalPacientes += Number(t.totalPacientes || 0);
-        equipos[eq].altasAdmin += Number(t.altasAdmin || 0);
-        equipos[eq].totalHoras += String(t.horario || '').includes('17:00') ? 15 : 12;
-
-        const getTurnoNumFromHorario = (horarioStr) => {
-          const h = String(horarioStr || '');
-          if (h.includes('20:00') || h.includes('Noche')) return 3;
-          if (h.includes('17:00') || h.includes('Nocturno')) return 2;
-          return 1; // Por defecto Turno 1
-        };
-
-        const key = `${t.fechaInicio}|${getTurnoNumFromHorario(t.horario)}`;
-        turnosMap[key] = eq;
-      }
-    });
-
-    // Mapear pacientes a turnos por fecha y turno lógico
-    pacientesFiltrados.forEach(p => {
+    // 1. Mapear directamente la totalidad de pacientes admitidos
+    (pacientesFiltrados || []).forEach(p => {
       if (!p.tAdmision) return;
       const det = obtenerTurnoDetallado(p.tAdmision);
       if (!det || !det.fechaTurno) return;
       
       const [d, m, y] = det.fechaTurno.split('/');
       const fechaInicio = `${y}-${m}-${d}`;
-      const pKey = `${fechaInicio}|${det.turnoNum}`;
       
-      const matchedEq = turnosMap[pKey] || 'Sin Asignar';
-      
+      const eq = resolverEquipoTurno(fechaInicio, det.horario, pautasDB, p.equipo || p.equipoTurno);
+      const targetEq = equipos[eq] || equipos['Turno 1'];
+
+      targetEq.totalPacientes++;
+      if (p.estado === 'Cancelada' || p.tipoAlta === 'Alta Administrativa') {
+        targetEq.altasAdmin++;
+      } else {
+        targetEq.atendidos++;
+      }
+
       if (p.tAdmision && p.tCat1) {
         const diffMin = (p.tCat1 - p.tAdmision) / 60000;
         if (diffMin >= 0 && diffMin < 1440) { 
-          equipos[matchedEq].sumEspera += diffMin;
-          equipos[matchedEq].countEspera++;
+          targetEq.sumEspera += diffMin;
+          targetEq.countEspera++;
         }
       }
       if (p.tAdmision && p.tAlta) {
         const diffMin = (p.tAlta - p.tAdmision) / 60000;
         if (diffMin >= 0 && diffMin < 2880) { 
-          equipos[matchedEq].sumTotal += diffMin;
-          equipos[matchedEq].countTotal++;
+          targetEq.sumTotal += diffMin;
+          targetEq.countTotal++;
         }
+      }
+    });
+
+    // 2. Sumar horas de cobertura trabajadas por cada equipo
+    (turnosFiltrados || []).forEach(t => {
+      const eq = resolverEquipoTurno(t.fechaInicio, t.horario, pautasDB, t.equipoTurno);
+      if (equipos[eq]) {
+        equipos[eq].totalHoras += String(t.horario || '').includes('17:00') ? 15 : 12;
       }
     });
 
@@ -65,17 +58,25 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
       const pctAltas = e.totalPacientes > 0 ? Number(((e.altasAdmin / e.totalPacientes) * 100).toFixed(1)) : 0;
       const promEspera = e.countEspera > 0 ? Math.round(e.sumEspera / e.countEspera) : 0;
       const promTotal = e.countTotal > 0 ? Math.round(e.sumTotal / e.countTotal) : 0;
-      const pacHora = e.totalHoras > 0 ? e.totalPacientes / e.totalHoras : 0;
+      const pacHora = e.totalHoras > 0 ? Number((e.totalPacientes / e.totalHoras).toFixed(1)) : (e.totalPacientes > 0 ? Number((e.totalPacientes / 12).toFixed(1)) : 0);
 
       return {
         ...e, pctAltas, promEspera, promTotal, pacHora
       };
     });
-  }, [turnosFiltrados, pacientesFiltrados]);
+  }, [turnosFiltrados, pacientesFiltrados, pautasDB]);
 
   // Totales de participación
   const totalPacientesPeriodo = useMemo(() => {
     return dataEquipos.reduce((acc, e) => acc + e.totalPacientes, 0);
+  }, [dataEquipos]);
+
+  const totalAtendidosPeriodo = useMemo(() => {
+    return dataEquipos.reduce((acc, e) => acc + e.atendidos, 0);
+  }, [dataEquipos]);
+
+  const totalAltasPeriodo = useMemo(() => {
+    return dataEquipos.reduce((acc, e) => acc + e.altasAdmin, 0);
   }, [dataEquipos]);
 
   // Turno/Equipo con mayor volumen
@@ -93,18 +94,36 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
   }, [turnosFiltrados]);
 
   return (
-    <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 mt-6 shadow-inner theme-transition">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-indigo-100 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-lg">
-          <BarChart2 className="w-6 h-6" />
+    <div className="bg-card-custom p-6 rounded-2xl border border-card-custom mt-6 shadow-inner theme-transition">
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-500/20">
+            <BarChart2 className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-black text-primary-custom">Comparativa de Equipos (Turnos)</h2>
+              <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" /> Asignación Activa
+              </span>
+            </div>
+            <p className="text-xs text-secondary-custom font-medium mt-0.5">
+              Desglose asistencial de admisiones, atenciones, tiempos de respuesta y rendimiento por equipo rotativo.
+            </p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-lg font-black text-slate-800 dark:text-slate-100">Comparativa de Equipos (Turnos)</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Desglose numérico de atenciones, tiempos de respuesta y rendimiento por equipo.</p>
+
+        {/* Resumen de Cuadre de Cifras */}
+        <div className="flex items-center gap-3 bg-black/5 dark:bg-white/5 px-3.5 py-1.5 rounded-xl border border-card-custom text-xs font-bold">
+          <span className="text-secondary-custom">Admitidos: <strong className="text-primary-custom">{totalPacientesPeriodo.toLocaleString()}</strong></span>
+          <span className="text-secondary-custom">•</span>
+          <span className="text-secondary-custom">Atendidos: <strong className="text-emerald-600 dark:text-emerald-400">{totalAtendidosPeriodo.toLocaleString()}</strong></span>
+          <span className="text-secondary-custom">•</span>
+          <span className="text-secondary-custom">Altas Admin: <strong className="text-rose-500">{totalAltasPeriodo.toLocaleString()}</strong></span>
         </div>
       </div>
 
-      {/* Tarjetas KPI de Resumen (1.1, 1.2, 1.3) con enlace al comparativo */}
+      {/* Tarjetas KPI de Resumen */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div 
           onClick={() => setActiveTab && setActiveTab('comparativo')}
@@ -166,8 +185,8 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
         </div>
       </div>
 
-      {/* Grid Comparativo Numérico */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* Grid Comparativo Numérico de los 4 Equipos */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {dataEquipos.map((e, idx) => {
           const participacion = totalPacientesPeriodo > 0 ? ((e.totalPacientes / totalPacientesPeriodo) * 100).toFixed(1) : '0.0';
           return (
@@ -178,17 +197,20 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-xs font-black text-primary-custom uppercase tracking-wider">{e.name}</span>
                   <span className="text-[10px] font-bold text-secondary-custom opacity-70">
-                    {e.totalHoras} hrs cob.
+                    {e.totalHoras > 0 ? `${e.totalHoras} hrs cob.` : 'Rotativa Activa'}
                   </span>
                 </div>
 
                 <div className="space-y-4">
-                  {/* Pacientes y Participación */}
+                  {/* Pacientes Admitidos y Atendidos */}
                   <div>
-                    <span className="text-[9px] font-black text-secondary-custom tracking-wider uppercase block opacity-75">Pacientes Atendidos</span>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-2xl font-black text-primary-custom">{e.totalPacientes}</span>
-                      <span className="text-[11px] font-bold text-indigo-500">({participacion}% part.)</span>
+                    <div className="flex justify-between items-center mb-0.5">
+                      <span className="text-[9px] font-black text-secondary-custom tracking-wider uppercase opacity-75">Pacientes Admitidos</span>
+                      <span className="text-[10px] font-bold text-indigo-500">({participacion}% part.)</span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-black text-primary-custom">{e.totalPacientes.toLocaleString()}</span>
+                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">({e.atendidos.toLocaleString()} atendidos)</span>
                     </div>
                   </div>
 
@@ -196,7 +218,7 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
                   <div>
                     <span className="text-[9px] font-black text-secondary-custom tracking-wider uppercase block opacity-75">Altas Administrativas</span>
                     <div className="flex items-baseline gap-1.5">
-                      <span className="text-lg font-black text-primary-custom">{e.altasAdmin}</span>
+                      <span className="text-lg font-black text-primary-custom">{e.altasAdmin.toLocaleString()}</span>
                       <span className="text-[11px] font-bold text-rose-500">({e.pctAltas}% altas)</span>
                     </div>
                   </div>

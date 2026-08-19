@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Activity, FileSpreadsheet, X, Users, AlertTriangle } from 'lucide-react';
-import { deduplicarPacientes } from '../../utils/helpers';
+import { deduplicarPacientes, resolverEquipoTurno } from '../../utils/helpers';
 
 const TEAM_COLORS = {
   'Turno 1': '#10b981', // Verde
@@ -322,8 +322,10 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [] })
 
           const processedTurnos = dayTurnos.map(t => {
             const strict = getStrictStats(t);
+            const resolvedEquipo = resolverEquipoTurno(t.fechaInicio, t.horario, pautasDB, t.equipoTurno);
             return {
               ...t,
+              equipoTurno: resolvedEquipo,
               totalPacientes: strict.total,
               altasAdmin: strict.altas,
               c1: strict.c1,
@@ -562,7 +564,8 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [] })
                 <p className="text-center text-secondary-custom py-8 font-bold">No hay registros de turnos para este día.</p>
               ) : (
                 (turnosByDay[selectedDay] || []).map((t, idx) => {
-                  const bgCol = TEAM_COLORS[t.equipoTurno] || TEAM_COLORS['Sin Asignar'];
+                  const resolvedEquipo = resolverEquipoTurno(t.fechaInicio, t.horario, pautasDB, t.equipoTurno);
+                  const bgCol = TEAM_COLORS[resolvedEquipo] || TEAM_COLORS['Sin Asignar'];
                   const pct = t.totalPacientes > 0 ? (t.altasAdmin / t.totalPacientes) * 100 : 0;
                   
                   // Calcular dinámicamente los contadores en horario oficial estricto (Rayen PDF)

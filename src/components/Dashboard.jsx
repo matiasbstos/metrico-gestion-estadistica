@@ -1934,6 +1934,7 @@ const DashboardContent = () => {
                 turnosFiltrados={turnosFiltrados} 
                 pacientesFiltrados={pacientesFiltrados} 
                 setActiveTab={setActiveTab}
+                pautasDB={pautasTurnosHook?.pautasDB}
               />
             </div>
 
@@ -1996,6 +1997,7 @@ const DashboardContent = () => {
                 totalPaginasTurnos={totalPaginasTurnos}
                 setEditModal={setEditModal} setDeleteConfirm={setDeleteConfirm}
                 userProfile={userProfile}
+                pautasDB={pautasTurnosHook?.pautasDB}
               />
             </div>
           </>

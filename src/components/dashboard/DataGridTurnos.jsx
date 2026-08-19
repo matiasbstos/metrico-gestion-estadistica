@@ -1,6 +1,7 @@
 import React from 'react';
 import { Layers, Edit2, Trash2 } from 'lucide-react';
 import { COLORS } from '../../config/constants';
+import { resolverEquipoTurno } from '../../utils/helpers';
 
 export default function DataGridTurnos({
   turnosPaginados,
@@ -9,7 +10,8 @@ export default function DataGridTurnos({
   totalPaginasTurnos,
   setEditModal,
   setDeleteConfirm,
-  userProfile
+  userProfile,
+  pautasDB
 }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mt-6">
@@ -37,6 +39,7 @@ export default function DataGridTurnos({
           </thead>
           <tbody>
             {turnosPaginados.map(t => {
+              const eq = resolverEquipoTurno(t.fechaInicio, t.horario, pautasDB, t.equipoTurno);
               return (
                 <tr key={t.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition">
                   <td className="p-3">
@@ -45,9 +48,7 @@ export default function DataGridTurnos({
                   </td>
                   <td className="p-3">
                     <span className={`px-2 py-1 rounded font-bold ${t.tipo === 'Masiva' ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600'}`}>{t.tipo}</span>
-                    {t.equipoTurno && t.equipoTurno !== 'Sin Asignar' && (
-                      <span className="block mt-1 text-[10px] font-bold text-indigo-500">{t.equipoTurno}</span>
-                    )}
+                    <span className="block mt-1 text-[10px] font-bold text-indigo-500">{eq}</span>
                   </td>
                   <td className="p-3">
                     <div className="text-slate-600">{t.fechaInicio}</div>

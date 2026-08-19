@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.0.7',
+      version: 'v5.0.7',
+      fecha: '18 de Agosto, 2026',
+      badge: 'ROTATIVA Y CUADRE EXACTO',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Resolución Automática de Equipos Rotativos y Cuadre Matemático de Cifras',
+      categoria: 'Turnos & Comparativa',
+      icon: Users,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se integró el nuevo motor determinista de asignación continua de turnos (Turno 1, 2, 3 y 4) sincronizado con las pautas de Firestore y el ciclo rotativo oficial. Se eliminó la bolsa de "Sin Asignar" y se cuadraron matemáticamente el 100% de los 1,747 admitidos, 1,610 atendidos y 137 altas administrativas tanto en la Comparativa de Equipos como en el Histórico Mensual.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que cada paciente y turno esté siempre asociado a su equipo rotativo real y que las cifras sumen exactamente igual a los KPIs generales del período.',
+        quePuedesVer: 'La sección "Comparativa de Equipos (Turnos)" desglosa con exactitud los 4 equipos con sus pacientes admitidos, atenciones efectivas, altas administrativas y rendimientos.',
+        ejemploUso: 'Selecciona cualquier rango de fechas (ej: 01/08 al 16/08) y observa la distribución perfecta en los 4 equipos de trabajo.'
+      },
+      changes: [
+        'Motor Universal de Rotativa: resolverEquipoTurno evalúa pautas manuales, registros de BD y la rotativa de 4 equipos.',
+        'Cuadre Asistencial 100%: Los 1,747 admitidos y 1,610 atendidos se distribuyen sin pérdidas en los 4 turnos.',
+        'Sincronización Histórico Mensual: El calendario mensual y la tabla de últimos turnos reflejan los equipos correspondientes.'
+      ]
+    },
+    {
       id: 'v5.0.6',
       version: 'v5.0.6',
       fecha: '18 de Agosto, 2026',
