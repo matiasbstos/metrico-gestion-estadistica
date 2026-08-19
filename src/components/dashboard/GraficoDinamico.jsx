@@ -53,8 +53,8 @@ export default function GraficoDinamico({
     });
   }, [selectedTriageDetail, pacientesFiltrados]);
 
-  // Filtros internos - Por defecto activos
-  const [opFilters, setOpFilters] = React.useState(['totalPacientes', 'c3', 'altasAdmin']);
+  // Filtros internos - Por defecto activos (todos los triajes y volumen)
+  const [opFilters, setOpFilters] = React.useState(['totalPacientes', 'c1', 'c2', 'c3', 'c4', 'c5', 'altasAdmin']);
   const [timeFilters, setTimeFilters] = React.useState(['tiempoCatAna', 'tiempoAdmCat', 'tiempoAnaAlt', 'tiempoAdmAlt']);
 
   const isAltasAlert = useMemo(() => {
@@ -328,13 +328,13 @@ export default function GraficoDinamico({
                               <YAxis fontSize={10} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)' }} />
                               <Tooltip content={<CustomTooltip />} />
                               <Legend wrapperStyle={{fontSize: '11px'}} />
-                              {opFilters.includes('totalPacientes') && <Area type="monotone" dataKey="totalPacientes" name="Volumen Total" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorVolumen)" />}
-                              {opFilters.includes('c1') && <Bar dataKey="c1" name="C1" stackId="triage" fill={COLORS.c1} />}
-                              {opFilters.includes('c2') && <Bar dataKey="c2" name="C2" stackId="triage" fill={COLORS.c2} />}
-                              {opFilters.includes('c3') && <Bar dataKey="c3" name="C3" stackId="triage" fill={COLORS.c3} />}
-                              {opFilters.includes('c4') && <Bar dataKey="c4" name="C4" stackId="triage" fill={COLORS.c4} />}
-                              {opFilters.includes('c5') && <Bar dataKey="c5" name="C5" stackId="triage" fill={COLORS.c5} radius={[4,4,0,0]} />}
-                              {opFilters.includes('altasAdmin') && <Line type="monotone" dataKey="altasAdmin" name="Altas Admin" stroke="#ef4444" strokeWidth={2.5} dot={{r: 4}} />}
+                              {opFilters.includes('totalPacientes') && <Area type="monotone" dataKey="totalPacientes" name="Volumen Total" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorVolumen)" dot={{ r: 4, fill: '#3b82f6' }} />}
+                              {opFilters.includes('c1') && <Bar dataKey="c1" name="C1" stackId="triage" fill={COLORS.c1} maxBarSize={55} />}
+                              {opFilters.includes('c2') && <Bar dataKey="c2" name="C2" stackId="triage" fill={COLORS.c2} maxBarSize={55} />}
+                              {opFilters.includes('c3') && <Bar dataKey="c3" name="C3" stackId="triage" fill={COLORS.c3} maxBarSize={55} />}
+                              {opFilters.includes('c4') && <Bar dataKey="c4" name="C4" stackId="triage" fill={COLORS.c4} maxBarSize={55} />}
+                              {opFilters.includes('c5') && <Bar dataKey="c5" name="C5" stackId="triage" fill={COLORS.c5} maxBarSize={55} radius={[4,4,0,0]} />}
+                              {opFilters.includes('altasAdmin') && <Line type="monotone" dataKey="altasAdmin" name="Altas Admin" stroke="#ef4444" strokeWidth={2.5} dot={{r: 5, fill: '#ef4444'}} />}
                             </ComposedChart>
                           </ResponsiveContainer>
                         </div>
@@ -521,7 +521,7 @@ export default function GraficoDinamico({
                                <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} tickMargin={10} tick={{ fill: 'var(--text-secondary)' }} />
                                <YAxis fontSize={10} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)' }} />
                                <Tooltip content={<CustomTooltip />} />
-                               <Area type="monotone" dataKey="totalPacientes" name="Total Pacientes" stroke="#10b981" fill="#10b981" fillOpacity={0.15} />
+                               <Area type="monotone" dataKey="totalPacientes" name="Total Pacientes" stroke="#10b981" fill="#10b981" fillOpacity={0.15} dot={{ r: 4, fill: '#10b981' }} />
                              </AreaChart>
                            </ResponsiveContainer>
                          ) : (

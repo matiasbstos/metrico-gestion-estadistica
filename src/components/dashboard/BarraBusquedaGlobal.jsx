@@ -77,28 +77,38 @@ export default function BarraBusquedaGlobal({
       if (targetElementId) {
         const el = document.getElementById(targetElementId);
         if (el) {
-          // Desplazamiento exacto considerando la cabecera flotante
+          // 1. Desplazamiento exacto con compensación de barra de filtros superior
           if (mainEl) {
-            const stickyHeaderOffset = 85;
+            const stickyHeader = document.querySelector('.sticky');
+            const stickyOffset = stickyHeader ? (stickyHeader.offsetHeight + 25) : 170;
             const elementRect = el.getBoundingClientRect();
             const mainRect = mainEl.getBoundingClientRect();
-            const relativeTop = elementRect.top - mainRect.top + mainEl.scrollTop - stickyHeaderOffset;
+            const relativeTop = elementRect.top - mainRect.top + mainEl.scrollTop - stickyOffset;
             mainEl.scrollTo({ top: Math.max(0, relativeTop), behavior: 'smooth' });
-          } else {
-            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
+          
+          // Respaldo de centrado nativo
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-          // Resalte luminoso animado de la sección seleccionada
-          el.classList.add('ring-4', 'ring-indigo-500', 'ring-offset-4', 'dark:ring-offset-slate-900', 'transition-all', 'duration-500');
+          // 2. Resalte luminoso inconfundible con outline brillante y pulso
+          el.style.transition = 'all 0.4s ease';
+          el.style.outline = '4px solid #6366f1';
+          el.style.outlineOffset = '6px';
+          el.style.boxShadow = '0 0 35px 8px rgba(99, 102, 241, 0.45)';
+          el.classList.add('animate-pulse');
+
           setTimeout(() => {
-            el.classList.remove('ring-4', 'ring-indigo-500', 'ring-offset-4', 'dark:ring-offset-slate-900');
-          }, 3000);
+            el.style.outline = '';
+            el.style.outlineOffset = '';
+            el.style.boxShadow = '';
+            el.classList.remove('animate-pulse');
+          }, 3500);
           return;
         }
 
         // Si React aún está montando el nuevo componente tras cambiar de tab, reintentar
-        if (attempt < 6) {
-          setTimeout(() => performScroll(attempt + 1), 80);
+        if (attempt < 8) {
+          setTimeout(() => performScroll(attempt + 1), 70);
           return;
         }
       }
@@ -111,7 +121,7 @@ export default function BarraBusquedaGlobal({
       }
     };
 
-    setTimeout(() => performScroll(1), 60);
+    setTimeout(() => performScroll(1), 50);
   };
 
   // Catálogo Exhaustivo Indexado de Búsqueda y Métricas en Tiempo Real

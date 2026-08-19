@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.0.4',
+    version_tag: 'v5.0.4',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Agregación Universal de Triaje C1-C5 y Demografía para Períodos Unitarios en Gráfico Dinámico, junto a Desplazamiento Centrado y Resalte Luminoso Pulsante en Buscador Global.',
+    medios_y_stack: [
+      'React 18.3 & Recharts (Dashboard.jsx, GraficoDinamico.jsx, BarraBusquedaGlobal.jsx)',
+      'Algoritmo de Fusión Turnos-Pacientes y Outline Glow Styler'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Se resuelve la ausencia de barras/áreas en el Gráfico Dinámico para selecciones de 1 solo turno o fechas unitarias mediante agregación cruzada obligatoria de pacientesFiltrados (recuento directo de C1 a C5, Altas y Demografía si los turnos carecen de campos desglosados). Se activan por defecto todos los triajes en los filtros rápidos y se añaden dots y maxBarSize en Recharts para que puntos individuales siempre sean visibles. Se perfecciona navigateAndScroll con compensación dinámica de sticky header, scrollIntoView block: center y resalte luminoso con outline 4px y halo pulsante.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Recálculo O(N) directo en memoria con soporte de visualización continua.'
+    },
+    modulos_afectados: ['Dashboard', 'GraficoDinamico', 'BarraBusquedaGlobal', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Extracción y fallback de C1-C5, Altas y demografía en chartData y pieData a partir de pacientesFiltrados.',
+      'Inclusión de todos los triajes en opFilters por defecto en GraficoDinamico.jsx.',
+      'Soporte de dots de datos y maxBarSize en ComposedChart y AreaChart para rangos de 1 día/turno.',
+      'Desplazamiento centrado con compensación dinámica de encabezados flotantes y halo luminoso índigo con animación de pulso.'
+    ]
+  },
+  {
     id: 'v5.0.3',
     version_tag: 'v5.0.3',
     fecha_despliegue: '18 de Agosto, 2026',

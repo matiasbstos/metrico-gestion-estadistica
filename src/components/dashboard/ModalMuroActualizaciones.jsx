@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.0.4',
+      version: 'v5.0.4',
+      fecha: '18 de Agosto, 2026',
+      badge: 'VISUALIZACIÓN TOTAL',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Visualización Continua de Triajes C1-C5 en Períodos Cortos y Resalte Centrado en Buscador',
+      categoria: 'Gráficos & Búsqueda Focal',
+      icon: Activity,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se ha optimizado la agregación de datos del Gráfico Dinámico para que, al filtrar por un solo día o turno específico (ej: Finde Día), las barras apiladas de triaje C1 a C5 y la distribución global se muestren siempre completas y visibles con soporte de puntos y barras sólidas. Además, el Buscador Global ahora centra la sección exactamente en tu pantalla y la resalta con un halo luminoso índigo y animación de pulso.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que siempre veas las barras de categorización y que el buscador te sitúe de forma inconfundible frente a la tarjeta solicitada.',
+        quePuedesVer: 'Las barras y porcentajes de triaje se muestran claramente incluso con 1 solo turno filtrado, y al buscar una sección, esta se ilumina con un halo violeta.',
+        ejemploUso: 'Filtra por un turno de fin de semana o busca "taxo" para ver la visualización completa y el resalte centrado.'
+      },
+      changes: [
+        'Agregación Cruzada de Pacientes: Extracción automática de C1-C5, Altas y Demografía si los turnos no tienen desglose.',
+        'Soporte de Períodos Unitarios: Barras sólidas y dots en curvas para rangos de 1 día/turno.',
+        'Resalte Luminoso Centrado: Outline brillante de 4px, halo de 35px y pulso animado al redirigir desde el buscador.'
+      ]
+    },
+    {
       id: 'v5.0.3',
       version: 'v5.0.3',
       fecha: '18 de Agosto, 2026',

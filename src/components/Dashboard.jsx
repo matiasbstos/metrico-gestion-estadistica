@@ -918,6 +918,19 @@ const DashboardContent = () => {
         row.tiempoAnaAlt = countAnaAlt > 0 ? Number((sumAnaAlt / countAnaAlt).toFixed(2)) : (Number(t.tiempoAnaAlt) || 0);
         row.tiempoAdmAlt = countAdmAlt > 0 ? Number((sumAdmAlt / countAdmAlt).toFixed(2)) : (Number(t.tiempoAdmAlt) || 0);
 
+        let c1_count = 0, c2_count = 0, c3_count = 0, c3_z518_count = 0, c4_count = 0, c5_count = 0, altas_count = 0;
+        pacs.forEach(p => {
+          const cat = String(p.cat1Clean || p.categoria || p.cat1 || '').toLowerCase().trim();
+          if (cat === 'c1') c1_count++;
+          else if (cat === 'c2') c2_count++;
+          else if (cat === 'c3_z518' || cat.includes('lesiones') || (p.esZ518 && cat.includes('c3'))) c3_z518_count++;
+          else if (cat.includes('c3')) c3_count++;
+          else if (cat === 'c4') c4_count++;
+          else if (cat === 'c5') c5_count++;
+
+          if (p.estado === 'Cancelada' || p.tipoAlta === 'Alta Administrativa') altas_count++;
+        });
+
         row.sexo_f = sexo_f;
         row.sexo_m = sexo_m;
         row.edad_0_14 = edad_0_14;
@@ -940,6 +953,16 @@ const DashboardContent = () => {
             row[m] = Number(t[m] || 0);
           }
         });
+
+        // Asegurar conteos de triaje si el objeto turno viene sin campos explícitos
+        if (!row.c1) row.c1 = c1_count;
+        if (!row.c2) row.c2 = c2_count;
+        if (!row.c3) row.c3 = c3_count;
+        if (!row.c3_z518) row.c3_z518 = c3_z518_count;
+        if (!row.c4) row.c4 = c4_count;
+        if (!row.c5) row.c5 = c5_count;
+        if (!row.altasAdmin) row.altasAdmin = altas_count;
+        if (!row.totalPacientes) row.totalPacientes = pacs.length > 0 ? pacs.length : (row.c1 + row.c2 + row.c3 + row.c3_z518 + row.c4 + row.c5 + row.altasAdmin);
 
         return row;
       });
@@ -966,17 +989,90 @@ const DashboardContent = () => {
         let sumAnaAlt = 0, countAnaAlt = 0;
         let sumAdmAlt = 0, countAdmAlt = 0;
 
+        let c1_count = 0, c2_count = 0, c3_count = 0, c3_z518_count = 0, c4_count = 0, c5_count = 0, altas_count = 0;
+        let sexo_f = 0, sexo_m = 0;
+        let edad_0_14 = 0, edad_15_29 = 0, edad_30_59 = 0, edad_60_plus = 0;
+        let prev_fonasa = 0, prev_isapre = 0;
+        let com_melipilla = 0, com_otras = 0;
+        let nac_chilena = 0, nac_extranjera = 0;
+        let est_florencia = 0, est_boris = 0, est_elgueta = 0, est_otros = 0;
+
         pacs.forEach(p => {
           if (p.tAdmision && p.tCat1 && p.tCat1 >= p.tAdmision) { sumAdmCat += (p.tCat1 - p.tAdmision) / 60000; countAdmCat++; }
           if (p.tCatUlt && p.tAnamnesis && p.tAnamnesis >= p.tCatUlt) { sumCatAna += (p.tAnamnesis - p.tCatUlt) / 60000; countCatAna++; }
           if (p.tAnamnesis && p.tAlta && p.tAlta >= p.tAnamnesis) { sumAnaAlt += (p.tAlta - p.tAnamnesis) / 60000; countAnaAlt++; }
           if (p.tAdmision && p.tAlta && p.tAlta >= p.tAdmision) { sumAdmAlt += (p.tAlta - p.tAdmision) / 60000; countAdmAlt++; }
+
+          const cat = String(p.cat1Clean || p.categoria || p.cat1 || '').toLowerCase().trim();
+          if (cat === 'c1') c1_count++;
+          else if (cat === 'c2') c2_count++;
+          else if (cat === 'c3_z518' || cat.includes('lesiones') || (p.esZ518 && cat.includes('c3'))) c3_z518_count++;
+          else if (cat.includes('c3')) c3_count++;
+          else if (cat === 'c4') c4_count++;
+          else if (cat === 'c5') c5_count++;
+
+          if (p.estado === 'Cancelada' || p.tipoAlta === 'Alta Administrativa') altas_count++;
+
+          const s = String(p.sexo || '').toUpperCase();
+          if (s.includes('F')) sexo_f++;
+          if (s.includes('M')) sexo_m++;
+
+          if (p.edad !== null && p.edad !== undefined && !isNaN(p.edad)) {
+            if (p.edad <= 14) edad_0_14++;
+            else if (p.edad <= 29) edad_15_29++;
+            else if (p.edad <= 59) edad_30_59++;
+            else edad_60_plus++;
+          }
+
+          const prev = String(p.prevision || '').toUpperCase();
+          if (prev.includes('FONASA')) prev_fonasa++;
+          if (prev.includes('ISAPRE')) prev_isapre++;
+
+          const com = String(p.comuna || '').toUpperCase();
+          if (com === 'MELIPILLA') com_melipilla++;
+          else if (com) com_otras++;
+
+          const nac = String(p.nacionalidad || '').toUpperCase();
+          if (nac.includes('CHILEN')) nac_chilena++;
+          else if (nac) nac_extranjera++;
+
+          const est = String(p.establecimiento || '').toUpperCase();
+          if (est.includes('FLORENCIA')) est_florencia++;
+          else if (est.includes('BORIS')) est_boris++;
+          else if (est.includes('ELGUETA')) est_elgueta++;
+          else if (est) est_otros++;
         });
 
         row.tiempoAdmCat = countAdmCat > 0 ? Number((sumAdmCat / countAdmCat).toFixed(2)) : 0;
         row.tiempoCatAna = countCatAna > 0 ? Number((sumCatAna / countCatAna).toFixed(2)) : 0;
         row.tiempoAnaAlt = countAnaAlt > 0 ? Number((sumAnaAlt / countAnaAlt).toFixed(2)) : 0;
         row.tiempoAdmAlt = countAdmAlt > 0 ? Number((sumAdmAlt / countAdmAlt).toFixed(2)) : 0;
+
+        row.c1 = c1_count;
+        row.c2 = c2_count;
+        row.c3 = c3_count;
+        row.c3_z518 = c3_z518_count;
+        row.c4 = c4_count;
+        row.c5 = c5_count;
+        row.altasAdmin = altas_count;
+        row.totalPacientes = pacs.length;
+
+        row.sexo_f = sexo_f;
+        row.sexo_m = sexo_m;
+        row.edad_0_14 = edad_0_14;
+        row.edad_15_29 = edad_15_29;
+        row.edad_30_59 = edad_30_59;
+        row.edad_60_plus = edad_60_plus;
+        row.prev_fonasa = prev_fonasa;
+        row.prev_isapre = prev_isapre;
+        row.com_melipilla = com_melipilla;
+        row.com_otras = com_otras;
+        row.nac_chilena = nac_chilena;
+        row.nac_extranjera = nac_extranjera;
+        row.est_florencia = est_florencia;
+        row.est_boris = est_boris;
+        row.est_elgueta = est_elgueta;
+        row.est_otros = est_otros;
 
         return row;
       });
@@ -987,11 +1083,32 @@ const DashboardContent = () => {
 
   const pieData = useMemo(() => {
     if (modoComparativo) return [];
+    
+    // 1. Intentar desde turnosFiltrados si tienen categorización
+    const fromTurnos = ['c1', 'c2', 'c3', 'c3_z518', 'c4', 'c5'].map(c => ({
+      name: c === 'c3_z518' ? 'C3 (Lesiones)' : c.toUpperCase(),
+      value: (turnosFiltrados || []).reduce((acc, t) => acc + Number(t[c] || 0), 0)
+    })).filter(d => d.value > 0);
+
+    if (fromTurnos.length > 0) return fromTurnos;
+
+    // 2. Respaldo directo desde pacientesFiltrados
+    const counts = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
+    (pacientesFiltrados || []).forEach(p => {
+      const cat = String(p.cat1Clean || p.categoria || p.cat1 || '').toLowerCase().trim();
+      if (cat === 'c1') counts.c1++;
+      else if (cat === 'c2') counts.c2++;
+      else if (cat === 'c3_z518' || cat.includes('lesiones') || (p.esZ518 && cat.includes('c3'))) counts.c3_z518++;
+      else if (cat.includes('c3')) counts.c3++;
+      else if (cat === 'c4') counts.c4++;
+      else if (cat === 'c5') counts.c5++;
+    });
+
     return ['c1', 'c2', 'c3', 'c3_z518', 'c4', 'c5'].map(c => ({
       name: c === 'c3_z518' ? 'C3 (Lesiones)' : c.toUpperCase(),
-      value: turnosFiltrados.reduce((acc, t) => acc + Number(t[c] || 0), 0)
+      value: counts[c] || 0
     })).filter(d => d.value > 0);
-  }, [turnosFiltrados, modoComparativo]);
+  }, [turnosFiltrados, pacientesFiltrados, modoComparativo]);
 
   const isDataInitializing = loading;
 
