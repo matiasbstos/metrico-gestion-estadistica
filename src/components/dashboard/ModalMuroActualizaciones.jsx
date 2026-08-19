@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.1.4',
+      version: 'v5.1.4',
+      fecha: '18 de Agosto, 2026',
+      badge: 'DISEÑO ASIMÉTRICO DINÁMICO',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Constelación Asimétrica y Orgánica de Telemetría Clínica',
+      categoria: 'Diseño & Cinemática',
+      icon: Cpu,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se rediseñó la animación de fondo en un esquema tri-nodal asimétrico: Nube (Cloud Core) en la parte superior izquierda, Base de Datos en el sector medio-derecho y Gateway Clínico en el sector inferior izquierdo, interconectados por curvas fluidas Bezier y doble onda ECG desfasada.',
+      instructivo: {
+        paraQueSirve: 'Brinda una estética cinemática, orgánica y asimétrica que llena el espacio del monitor de forma armónica sin rigidez geométrica.',
+        quePuedesVer: 'Tres nodos activos de telemetría interconectados por haces de datos que envuelven la pantalla con un ritmo visual balanceado.',
+        ejemploUso: 'Inicia sesión o recarga la plataforma para apreciar la nueva distribución asimétrica en tiempo real.'
+      },
+      changes: [
+        'Esquema Tri-Nodal Asimétrico: Nube, Servidor Local y Gateway Clínico distribuidos orgánicamente.',
+        'Curvas Bezier Fluidas: Eliminación de líneas rígidas en favor de un flujo vectorial envolvente.',
+        'Doble Nivel ECG: Dos ondas cardiacas desfasadas que aportan profundidad de campo.'
+      ]
+    },
+    {
       id: 'v5.1.3',
       version: 'v5.1.3',
       fecha: '18 de Agosto, 2026',

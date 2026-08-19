@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.1.4',
+    version_tag: 'v5.1.4',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Rediseño Asimétrico y Orgánico de la Red de Telemetría (Tri-Nodo Dinámico Nube-Servidor-Gateway).',
+    medios_y_stack: [
+      'React 18.3 (FondoClinicoAnimado.jsx, Dashboard.jsx)',
+      'Vector Graphics (Fluid Bezier Curves & Multi-Level ECG Waveforms)',
+      'Asymmetric Cluster Layout'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Se transformó la disposición espacial del fondo en una composición tri-nodal asimétrica: 1) Nodo Nube en cuadrante superior izquierdo (~13% X, ~12% Y), 2) Nodo Base de Datos en cuadrante medio-derecho (~82% X, ~34% Y), 3) Nodo Gateway Clínico en cuadrante inferior izquierdo (~18% X, ~82% Y). Se reemplazaron líneas diagonales rígidas por curvas fluidas Bezier interconectadas con paquetes de datos en flujo constante y doble trazado ECG asimétrico desfasado.',
+      firestore_collections: ['system_metadata'],
+      query_optimization: 'Coordenadas relativas porcentuales con adaptación fluida a cualquier resolución.'
+    },
+    modulos_afectados: ['Dashboard', 'FondoClinicoAnimado.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Implementación de distribución espacial asimétrica en triángulo áureo.',
+      'Curvas Bezier orgánicas viewBox 100x100 con animación animate-flow-packets.',
+      'Doble nivel de telemetría cardiaca con desfase rítmico (onda superior 38% y onda principal 60%).'
+    ]
+  },
+  {
     id: 'v5.1.3',
     version_tag: 'v5.1.3',
     fecha_despliegue: '18 de Agosto, 2026',
