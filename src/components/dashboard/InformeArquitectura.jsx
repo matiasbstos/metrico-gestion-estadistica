@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.0.8',
+    version_tag: 'v5.0.8',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Prioridad Absoluta a la Pauta Mensual de Turnos Guardada y Compatibilidad Total de Claves Horarias (Pautas vs Comparativa).',
+    medios_y_stack: [
+      'React 18.3 (usePautasTurnos.js, helpers.js, PautaTurnos.jsx)',
+      'Firestore Real-time Listener (pautas_turnos)',
+      'Mapeo Multi-Formato Horario'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Se ajusta la jerarquía de resolución estableciendo como Prioridad 1 incondicional la Pauta de Turnos configurada en el módulo mensual (pautasDB). Se homolagan todas las variaciones de nombres de turnos y claves horarias (17:00 - 08:00, 08:00 - 20:00, 20:00 - 08:00) para que cualquier cambio o programación en la matriz mensual se refleje inmediatamente en la Comparativa de Equipos y el Calendario Histórico.',
+      firestore_collections: ['pautas_turnos', 'turnos', 'pacientes_urgencia'],
+      query_optimization: 'Sincronización en tiempo real vía onSnapshot sin latencia.'
+    },
+    modulos_afectados: ['Dashboard', 'usePautasTurnos', 'helpers.js', 'AnalisisEquiposTurno', 'CalendarioHistorico', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Priorización de pautasDB como primera fuente de verdad en resolverEquipoTurno.',
+      'Soporte completo para claves de días hábiles y fines de semana en getEquipoParaTurno.',
+      'Enlace reactivo directo entre el guardado de pauta y la actualización instantánea de métricas por equipo.'
+    ]
+  },
+  {
     id: 'v5.0.7',
     version_tag: 'v5.0.7',
     fecha_despliegue: '18 de Agosto, 2026',

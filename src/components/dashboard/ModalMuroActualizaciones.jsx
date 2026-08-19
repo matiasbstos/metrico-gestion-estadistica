@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.0.8',
+      version: 'v5.0.8',
+      fecha: '18 de Agosto, 2026',
+      badge: 'SINCRONIZACIÓN PAUTA',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Prioridad Absoluta a la Pauta Mensual de Turnos Programada',
+      categoria: 'Pauta de Turnos & Equipos',
+      icon: Calendar,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se estableció la Pauta Mensual de Turnos configurada en el sistema como la primera fuente de verdad (Prioridad 1). Todos los turnos programados en el calendario mensual (ej. Agosto 2026) se sincronizan de inmediato con la Comparativa de Equipos, el Calendario Histórico y los reportes asistenciales.',
+      instructivo: {
+        paraQueSirve: 'Permite que cualquier horario o equipo rotativo asignado en el calendario de Pautas mande directamente sobre los cálculos analíticos.',
+        quePuedesVer: 'La distribución de pacientes por Turno 1, 2, 3 y 4 en la Comparativa de Equipos reflejando con exactitud la pauta programada en pantalla.',
+        ejemploUso: 'Guarda o modifica cualquier día en el módulo "Pauta de Turnos" y verás la actualización instantánea en la Comparativa de Equipos.'
+      },
+      changes: [
+        'Prioridad #1 a pautasDB: La pauta guardada en Firestore rige de forma soberana.',
+        'Mapeo Horario Universal: Soporte para 17:00-08:00, 08:00-20:00 y 20:00-08:00.',
+        'Actualización Reactiva: Los cambios se propagan a todo el sistema sin recargar.'
+      ]
+    },
+    {
       id: 'v5.0.7',
       version: 'v5.0.7',
       fecha: '18 de Agosto, 2026',

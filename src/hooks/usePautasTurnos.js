@@ -76,16 +76,17 @@ export const usePautasTurnos = () => {
     const dayData = pautasDB[monthId][fecha];
     if (!dayData) return null;
 
-    if (horario.includes('17:00') || horario.includes('Largo')) {
-      return dayData.noche || null;
+    const h = String(horario).toLowerCase();
+    if (h.includes('17:00') || h.includes('largo') || h.includes('semana')) {
+      return dayData['17:00 - 08:00'] || dayData['17:00 a 08:00 hrs'] || dayData.noche || dayData.largo || null;
     }
-    if (horario.includes('20:00')) {
-      return dayData.noche || null;
+    if (h.includes('20:00') || h.includes('noche')) {
+      return dayData['20:00 - 08:00'] || dayData['20:00 a 08:00 hrs'] || dayData.noche || null;
     }
-    if (horario.includes('08:00')) {
-      return dayData.dia || null;
+    if (h.includes('08:00') || h.includes('dia') || h.includes('día')) {
+      return dayData['08:00 - 20:00'] || dayData['08:00 a 20:00 hrs'] || dayData.dia || null;
     }
-    return dayData.dia || null;
+    return dayData['17:00 - 08:00'] || dayData['08:00 - 20:00'] || dayData['20:00 - 08:00'] || null;
   };
 
   return { pautasDB, loadingPautas, savePautaMes, getEquipoParaTurno };
