@@ -281,3 +281,32 @@
   animation: floatAmbulance 3s ease-in-out infinite;
 }
 
+@keyframes ecgScan {
+  0% {
+    stroke-dasharray: 250 1200;
+    stroke-dashoffset: 1450;
+  }
+  100% {
+    stroke-dasharray: 250 1200;
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-ecg-scan {
+  animation: ecgScan 4s linear infinite;
+}
+
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spinSlow 8s linear infinite;
+}
+
+

@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.1.2',
+      version: 'v5.1.2',
+      fecha: '18 de Agosto, 2026',
+      badge: 'ANIMACIÓN CLÍNICA & COLOR',
+      badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/20',
+      title: 'Fondo Animado ECG y Unificación Cromática en Sincronización',
+      categoria: 'Diseño & Experiencia de Usuario',
+      icon: Activity,
+      iconBg: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+      summary: '1) Se incorporó una animación de fondo con ondas de electrocardiograma (ECG) y pulsos de luz bio-ambiental sincronizados con la telemetría clínica del sistema. 2) Se unificó totalmente la paleta de colores entre la carga inicial y los modales de sincronización, eliminando gradientes discordantes y estandarizando sobre la paleta oficial (Indigo 600 - Sky 400).',
+      instructivo: {
+        paraQueSirve: 'Otorga una experiencia visual de nivel superior, clínica, moderna y con perfecta coherencia de color en toda la plataforma.',
+        quePuedesVer: 'Ondas dinámicas de pulso cardiaco en el fondo tras el login y una interfaz de sincronización armónica sin saltos de color.',
+        ejemploUso: 'Al ingresar al sistema o pulsar "Sincronizar", verás las animaciones y barras de progreso con la paleta armónica corporativa.'
+      },
+      changes: [
+        'Fondo Animado ECG: Trazado vectorial de electrocardiograma con brillo dinámico.',
+        'Unificación Cromática: Gradiente oficial Indigo/Sky en todas las barras de avance.',
+        'Eliminación de Saltos Visuales: Cohesión total en modales, spinners y alertas.'
+      ]
+    },
+    {
       id: 'v5.1.1',
       version: 'v5.1.1',
       fecha: '18 de Agosto, 2026',

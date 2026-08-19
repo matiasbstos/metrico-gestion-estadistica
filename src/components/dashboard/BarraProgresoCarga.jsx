@@ -11,7 +11,7 @@ export default function BarraProgresoCarga({ syncProgress, isOverlayOpen = false
       <div className="bg-slate-900/95 backdrop-blur-xl border border-indigo-500/30 text-white rounded-2xl p-4 shadow-2xl relative overflow-hidden">
         {/* Glow de fondo animado */}
         <div 
-          className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-emerald-500/10 transition-all duration-300"
+          className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-sky-500/10 to-indigo-500/10 transition-all duration-300 pointer-events-none"
           style={{ opacity: pct / 100 }}
         />
 
@@ -20,7 +20,7 @@ export default function BarraProgresoCarga({ syncProgress, isOverlayOpen = false
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
                 {isHistorical ? (
-                  <CloudDownload className="w-5 h-5 animate-bounce text-purple-400" />
+                  <CloudDownload className="w-5 h-5 animate-bounce text-sky-400" />
                 ) : (
                   <Database className="w-5 h-5 animate-pulse text-indigo-400" />
                 )}
@@ -36,7 +36,7 @@ export default function BarraProgresoCarga({ syncProgress, isOverlayOpen = false
             </div>
             
             <div className="text-right">
-              <span className="text-sm font-black text-emerald-400 font-mono">
+              <span className="text-sm font-black text-sky-400 font-mono">
                 {Math.min(100, Math.max(0, Math.round(pct)))}%
               </span>
             </div>
@@ -45,7 +45,7 @@ export default function BarraProgresoCarga({ syncProgress, isOverlayOpen = false
           {/* Barra de Progreso Principal */}
           <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50 p-0.5">
             <div 
-              className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400 rounded-full transition-all duration-300 shadow-lg shadow-indigo-500/50 relative overflow-hidden"
+              className="h-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-sky-400 rounded-full transition-all duration-300 shadow-lg shadow-indigo-500/50 relative overflow-hidden"
               style={{ width: `${Math.min(100, Math.max(2, pct))}%` }}
             >
               <div className="absolute inset-0 bg-white/20 animate-shimmer" />

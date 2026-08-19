@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.1.2',
+    version_tag: 'v5.1.2',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Fondo Animado Clínico (Ondas ECG y Pulsos Biomédicos) y Unificación Integral de la Paleta Cromática en Sincronización.',
+    medios_y_stack: [
+      'React 18.3 (FondoClinicoAnimado.jsx, Dashboard.jsx, BarraProgresoCarga.jsx)',
+      'Vector Graphics (SVG ECG Waveform & Glow Filters)',
+      'CSS Keyframes (animate-ecg-scan, animate-spin-slow)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Se creó e integró el componente FondoClinicoAnimado con un trazado vectorial de electrocardiograma (ECG) animado en tiempo real, cuadrícula médica y orbes de luz bio-ambiental en la paleta corporativa. 2) Se unificó totalmente la paleta de colores de la pantalla inicial de carga y del modal de sincronización, eliminando saltos a colores morados/magenta y estandarizando sobre el gradiente oficial MÉTRICO (Indigo 600 - Sky 400), fondo glassmorphic y botones armónicos con el tema activo.',
+      firestore_collections: ['system_metadata'],
+      query_optimization: 'Aceleración por GPU al 100% mediante transformaciones SVG y CSS.'
+    },
+    modulos_afectados: ['Dashboard', 'FondoClinicoAnimado.jsx', 'BarraProgresoCarga.jsx', 'index.css', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Implementación del componente FondoClinicoAnimado.jsx con trazado vectorial dinámico.',
+      'Unificación cromática en LoadingProgress y Global Sync Overlay con gradiente from-indigo-600 to-sky-400.',
+      'Eliminación de gradientes purpúreos o contrastes disonantes en modales de carga y sincronización.'
+    ]
+  },
+  {
     id: 'v5.1.1',
     version_tag: 'v5.1.1',
     fecha_despliegue: '18 de Agosto, 2026',

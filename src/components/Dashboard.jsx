@@ -36,6 +36,7 @@ import Radar from './dashboard/Radar';
 import PopUpSincronizacion from './dashboard/PopUpSincronizacion';
 import InformeArquitectura from './dashboard/InformeArquitectura';
 import DevLogModule from './dashboard/DevLogModule';
+import FondoClinicoAnimado from './common/FondoClinicoAnimado';
 import { formatLocalDate } from '../utils/helpers';
 import { playIntegrityAlertChime, playLogoutChime } from '../utils/audioNotifications';
 import Login from './Login';
@@ -2271,17 +2272,17 @@ const DashboardContent = () => {
 
       {/* GLOBAL LOADING / SYNC OVERLAY */}
       {(syncStatus === 'connecting' || syncStatus === 'syncing' || (syncProgress && syncProgress.active)) && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[9999] flex items-center justify-center p-6 animate-fade-in">
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-[9999] flex items-center justify-center p-6 animate-fade-in">
           <div className="bg-card-custom border border-card-custom rounded-3xl shadow-2xl p-8 max-w-md w-full text-center space-y-6 theme-transition relative overflow-hidden">
-            {/* Glow animado */}
+            {/* Glow animado unificado */}
             <div 
-              className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-emerald-500/10 pointer-events-none transition-all duration-300"
+              className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-sky-500/10 to-indigo-500/10 pointer-events-none transition-all duration-300"
               style={{ opacity: (syncProgress?.pct || 0) / 100 }}
             />
 
             <div className="relative flex items-center justify-center">
               <div className="w-20 h-20 border-4 border-indigo-500/20 border-t-indigo-600 rounded-full animate-spin"></div>
-              <div className="w-10 h-10 bg-indigo-500/10 rounded-full animate-pulse absolute flex items-center justify-center text-xs font-black text-indigo-500 font-mono">
+              <div className="w-10 h-10 bg-indigo-500/10 rounded-full animate-pulse absolute flex items-center justify-center text-xs font-black text-indigo-600 dark:text-indigo-400 font-mono">
                 {syncProgress?.pct ? `${Math.round(syncProgress.pct)}%` : ''}
               </div>
             </div>
@@ -2297,7 +2298,7 @@ const DashboardContent = () => {
             {syncProgress?.pct > 0 && (
               <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-3 overflow-hidden border border-card-custom p-0.5 relative z-10">
                 <div 
-                  className="bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400 h-full rounded-full transition-all duration-300 shadow-md"
+                  className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-sky-400 h-full rounded-full transition-all duration-300 shadow-md shadow-indigo-500/30"
                   style={{ width: `${Math.min(100, Math.max(3, syncProgress.pct))}%` }}
                 />
               </div>
@@ -2315,7 +2316,7 @@ const DashboardContent = () => {
                   setLoading(false);
                   if (syncProgress) syncProgress.active = false;
                 }}
-                className="mt-2 text-xs font-bold text-rose-500 hover:text-rose-600 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 rounded-xl px-4 py-2 transition-all duration-200 shadow-sm flex items-center gap-1.5"
+                className="mt-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-rose-500 dark:hover:text-rose-400 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 hover:border-rose-500/30 rounded-xl px-4 py-2 transition-all duration-200 shadow-sm flex items-center gap-1.5"
               >
                 <X className="w-4 h-4" />
                 Cancelar Sincronización y Ver Datos Cargados
@@ -2362,13 +2363,12 @@ function LoadingProgress({ syncStatus, totalRecords = 0 }) {
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 relative overflow-hidden font-sans">
-      {/* Ambient background glow */}
-      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] -translate-x-1/3 -translate-y-1/3"></div>
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-sky-500/10 rounded-full blur-[100px] translate-x-1/3 translate-y-1/3"></div>
+      {/* Fondo Clínico Animado con Ondas ECG y Pulsos de Luz */}
+      <FondoClinicoAnimado variant="dark" />
       
-      <div className="bg-slate-900/70 backdrop-blur-2xl border border-slate-800 p-8 rounded-[2.5rem] shadow-[0_0_60px_rgba(14,165,233,0.15)] max-w-md w-full text-center relative overflow-hidden">
+      <div className="bg-slate-900/80 backdrop-blur-2xl border border-slate-800/90 p-8 rounded-[2.5rem] shadow-[0_0_60px_rgba(79,70,229,0.18)] max-w-md w-full text-center relative z-10 overflow-hidden">
         {/* Glow pulsing ring icon */}
-        <div className="w-16 h-16 bg-sky-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6 relative border border-sky-500/20 shadow-[0_0_25px_rgba(56,189,248,0.2)] animate-pulse">
+        <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6 relative border border-indigo-500/20 shadow-[0_0_25px_rgba(99,102,241,0.25)] animate-pulse">
           <Activity className="w-8 h-8 text-sky-400" />
         </div>
         
@@ -2379,12 +2379,12 @@ function LoadingProgress({ syncStatus, totalRecords = 0 }) {
         <div className="relative pt-1 bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80">
           <div className="flex mb-2 items-center justify-between">
             <div>
-              <span className="text-[10px] font-black inline-block py-1 px-2.5 uppercase rounded-lg bg-sky-500/20 text-sky-400 tracking-wider">
+              <span className="text-[10px] font-black inline-block py-1 px-2.5 uppercase rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 tracking-wider">
                 {syncStatus === 'connecting' ? 'Conectando' : syncStatus === 'synced' ? 'Sincronizado' : 'Cargando Datos'}
               </span>
             </div>
             <div className="text-right">
-              <span className="text-base font-black text-sky-400">
+              <span className="text-base font-black text-sky-400 font-mono">
                 {roundedProgress}%
               </span>
             </div>
@@ -2395,7 +2395,7 @@ function LoadingProgress({ syncStatus, totalRecords = 0 }) {
             {/* Inner fill */}
             <div 
               style={{ width: `${roundedProgress}%` }} 
-              className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 rounded-full transition-all duration-150 ease-out"
+              className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-indigo-600 via-indigo-500 to-sky-400 rounded-full transition-all duration-150 ease-out shadow-md shadow-indigo-500/40"
             ></div>
           </div>
 
