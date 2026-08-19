@@ -241,11 +241,17 @@ export default function GraficoDinamico({
         <div className="flex items-center">
           <BarChart2 className="w-5 h-5 accent-text-custom mr-2" />
           <div>
-            <h2 className="text-base font-bold text-primary-custom flex items-center">
-              Análisis Automático y Tendencias
-              <InfoTooltip title="Análisis Automático" text="Gráficos dinámicos basados en tus filtros. Los datos acumulados se apilan para ver la proporción y evolución de la demanda sin solapes." />
-            </h2>
-            <p className="text-xs text-secondary-custom font-medium">Exploración visual instantánea de los datos filtrados.</p>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-bold text-primary-custom flex items-center">
+                Análisis Taxonómico y de Tendencias
+              </h2>
+              <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                Gráfico Dinámico
+              </span>
+            </div>
+            <p className="text-xs text-secondary-custom font-medium mt-0.5">
+              Exploración visual instantánea de series temporales, categorización C1-C5, tiempos de espera y volumen.
+            </p>
           </div>
         </div>
       </div>

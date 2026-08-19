@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.0.3',
+    version_tag: 'v5.0.3',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Homologación Visual y Rótulo Explícito de "Análisis Taxonómico y de Tendencias" en el Gráfico Dinámico Principal.',
+    medios_y_stack: [
+      'React 18.3 (GraficoDinamico.jsx)',
+      'Lucide React (BarChart2 Badge)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Se unifica el título del componente de Gráficos Dinámicos en la vista Inicio como "Análisis Taxonómico y de Tendencias" con badge identificador y descripción clínica explicativa de series temporales, categorización C1-C5 y tiempos de espera, garantizando correspondencia 1:1 con los términos del Buscador Global.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Pintado directo sin mutación de estado.'
+    },
+    modulos_afectados: ['Dashboard', 'GraficoDinamico', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Actualización del título visible en el componente GraficoDinamico.jsx.',
+      'Añadido badge "Gráfico Dinámico" para facilitar el reconocimiento visual inmediato.',
+      'Sincronización con el ancla de desplazamiento del Buscador Global #seccion-grafico-taxonomico.'
+    ]
+  },
+  {
     id: 'v5.0.2',
     version_tag: 'v5.0.2',
     fecha_despliegue: '18 de Agosto, 2026',

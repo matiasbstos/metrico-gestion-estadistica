@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.0.3',
+      version: 'v5.0.3',
+      fecha: '18 de Agosto, 2026',
+      badge: 'HOMOLOGACIÓN VISUAL',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Rótulo Unificado "Análisis Taxonómico y de Tendencias" en el Gráfico Dinámico',
+      categoria: 'Diseño & Claridad Asistencial',
+      icon: BarChart2,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'El gráfico dinámico de la pestaña Inicio ha sido rotulado oficialmente como "Análisis Taxonómico y de Tendencias" con un distintivo badge de Gráfico Dinámico, asegurando una correspondencia directa entre los resultados del buscador y la tarjeta visual en pantalla.',
+      instructivo: {
+        paraQueSirve: 'Permite identificar de inmediato la sección al navegar o hacer clic desde la barra de búsqueda.',
+        quePuedesVer: 'El encabezado de la tarjeta muestra claramente "Análisis Taxonómico y de Tendencias" junto al badge "Gráfico Dinámico".',
+        ejemploUso: 'Revisa la sección principal de gráficos en la pestaña Inicio.'
+      },
+      changes: [
+        'Unificación de Título: "Análisis Taxonómico y de Tendencias" en la cabecera del componente.',
+        'Badge de Tipo de Visualización: Distintivo "Gráfico Dinámico" en púrpura sutil.',
+        'Subtítulo Explicativo: Detalle de series temporales, categorización C1-C5 y tiempos de espera.'
+      ]
+    },
+    {
       id: 'v5.0.2',
       version: 'v5.0.2',
       fecha: '18 de Agosto, 2026',
