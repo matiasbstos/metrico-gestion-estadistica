@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.1.9',
+    version_tag: 'v5.1.9',
+    fecha_despliegue: '19 de Agosto, 2026',
+    proposito_actualizacion: 'Rediseño Dual de Grupos Etarios (Clínico vs Quinquenal) y Sincronización del Resumen en Análisis de Fracturas.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisFracturas.jsx, summaryGenerator.js)',
+      'Agrupación Clínica Institucional (Pediatría, Jóvenes, Adultos, Adultos Mayores)',
+      'Desglose Quinquenal Epidemiológico de 17 Tramos'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Se rediseñó el módulo de grupos etarios en AnalisisFracturas.jsx permitiendo alternar con un toggle segmentado entre la Vista Clínica (4 Tramos Institucionales: Pediatría 0-14, Jóvenes 15-29, Adultos 30-59 y Adultos Mayores 60+) y la Vista Quinquenal (17 Tramos de 5 años), eliminando la confusión visual y duplicación previa. 2) Se sincronizó generateFracturasSummary con los stats reales de la vista, garantizando que el tramo con mayor incidencia, cantidad de casos y porcentajes citados en el resumen narrativo coincidan al 100% con los datos mostrados en pantalla.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Memoización dinámica de dataGraficoEdad según el modo activo.'
+    },
+    modulos_afectados: ['AnalisisFracturas.jsx', 'summaryGenerator.js', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Implementación de modoVistaEdad (clinico vs quinquenal) con tarjetas interactivas de grupos clínicos.',
+      'Sincronización de generateFracturasSummary(pacs, stats) para coherencia epidemiológica total.',
+      'Organización de opciones de filtrado en optgroup dentro del selector de edad.'
+    ]
+  },
+  {
     id: 'v5.1.8',
     version_tag: 'v5.1.8',
     fecha_despliegue: '18 de Agosto, 2026',

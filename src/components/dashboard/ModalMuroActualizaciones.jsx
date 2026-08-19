@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.1.9',
+      version: 'v5.1.9',
+      fecha: '19 de Agosto, 2026',
+      badge: 'EPIDEMIOLOGÍA & FRACTURAS',
+      badgeColor: 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20',
+      title: 'Rediseño Dual de Grupos Etarios en Estadísticas de Fracturas',
+      categoria: 'Epidemiología & Lesiones',
+      icon: Activity,
+      iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+      summary: 'Se rediseñó por completo el análisis de edad en el módulo de fracturas: ahora puedes alternar limpiamente entre la Vista Clínica (4 Tramos Institucionales: Pediatría 0-14, Jóvenes 15-29, Adultos 30-59 y Adultos Mayores 60+) y el Desglose Quinquenal (17 Tramos de 5 años), eliminando la confusión visual previa y sincronizando el texto narrativo al 100% con los datos en pantalla.',
+      instructivo: {
+        paraQueSirve: 'Facilita la lectura epidemiológica rápida de lesiones óseas según el ciclo vital clínico o tramos quinquenales detallados.',
+        quePuedesVer: 'Tarjetas interactivas de grupos clínicos con casos, porcentaje y distribución por sexo, más un toggle para alternar al desglose quinquenal de 17 tramos.',
+        ejemploUso: 'Haz clic en "🧒 Grupos Clínicos (4 Tramos)" para ver la visión general o en "📊 Desglose Quinquenal" para ver el detalle de 5 en 5 años.'
+      },
+      changes: [
+        'Toggle Segmentado: Alterna entre Grupos Clínicos (4 tramos) y Desglose Quinquenal (17 tramos).',
+        'Tarjetas Clínicas: Pediatría, Jóvenes, Adultos y Adultos Mayores con desglose F/M y porcentaje.',
+        'Sincronización Total: El resumen narrativo cita exactamente el tramo etario y casos de la pantalla.'
+      ]
+    },
+    {
       id: 'v5.1.8',
       version: 'v5.1.8',
       fecha: '18 de Agosto, 2026',

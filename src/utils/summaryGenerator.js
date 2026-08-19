@@ -67,101 +67,63 @@ export const generateAltasSummary = (pacs, statsOverride = null) => {
   return `Durante el período consultado, se registraron un total de ${totalAltas} altas administrativas de un universo de ${total} admisiones, lo que representa una tasa de representatividad del ${pct}%. ${medText} La estadía promedio de estos pacientes fue de ${avgEstadia} minutos, demostrando un flujo de resolución administrativa rápido y eficiente.`;
 };
 
-export const generateFracturasSummary = (pacs) => {
+export const generateFracturasSummary = (pacs, stats = null) => {
   if (!pacs || pacs.length === 0) return 'Sin registros suficientes para generar análisis de estadísticas de fracturas.';
   
-  const total = pacs.length;
-  // Identificar exclusivamente fracturas óseas
-  const listFracturas = pacs.filter(p => {
+  const total = stats ? stats.totalEvaluados : pacs.length;
+  const totalFracturas = stats ? stats.total : pacs.filter(p => {
     const cod = String(p.codigoDiagnostico || '').trim().toUpperCase();
     const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').trim().toUpperCase();
     return diag.includes('FRACTURA') || cod.includes('FRACTURA');
-  });
-  const totalFracturas = listFracturas.length;
+  }).length;
+
+  if (totalFracturas === 0) return 'No se registraron casos de fracturas óseas en el período consultado.';
+
   const pct = formatPct(totalFracturas, total);
 
   // Diagnósticos más recurrentes
-  const diagCounts = {};
-  listFracturas.forEach(p => {
-    const diag = p.diagnosticoPrincipal || 'Sin Especificar';
-    diagCounts[diag] = (diagCounts[diag] || 0) + 1;
-  });
-  const sortedDiags = Object.entries(diagCounts).sort((a,b) => b[1] - a[1]).slice(0, 2);
-  const topDiagsText = sortedDiags.length > 0
-    ? sortedDiags.map(([name, count]) => `"${name}" (${count} casos)`).join(' y ')
-    : 'diagnósticos no especificados';
-
-  // Destino más frecuente de fracturas (categorizado)
-  const destCounts = {};
-  let sumAdmCat = 0, cAdmCat = 0;
-  let sumCatAna = 0, cCatAna = 0;
-  let sumAnaTras = 0, cAnaTras = 0;
-  let sumEstTras = 0, cEstTras = 0;
-
-  listFracturas.forEach(p => {
-    const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
-    let cat = 'Otro Centro';
-    const isTraslado = dest.includes('hospital') || dest.includes('emergencia') || dest.includes('derivac');
-    if (isTraslado) cat = 'Hospital / UEH (Atención Secundaria)';
-    else if (dest.includes('domicilio') || dest.includes('alta') || dest.includes('ambulatorio')) cat = 'Domicilio (Alta Ambulatoria)';
-    else if (!dest || dest === 'sin especificar') cat = 'Sin Registro';
-
-    destCounts[cat] = (destCounts[cat] || 0) + 1;
-
-    let tCat = null;
-    if (typeof p.tCat1 === 'number' && typeof p.tCatUlt === 'number') tCat = (p.tCat1 + p.tCatUlt) / 2;
-    else if (typeof p.tCat1 === 'number') tCat = p.tCat1;
-    else if (typeof p.tCatUlt === 'number') tCat = p.tCatUlt;
-
-    if (typeof p.tAdmision === 'number' && typeof tCat === 'number' && tCat >= p.tAdmision) {
-      sumAdmCat += (tCat - p.tAdmision) / 3600000;
-      cAdmCat++;
+  let topDiagsText = 'diagnósticos no especificados';
+  if (stats && stats.top5Diagnosticos && stats.top5Diagnosticos.length > 0) {
+    const top2 = stats.top5Diagnosticos.slice(0, 2);
+    topDiagsText = top2.map(d => `"${d.diagnostico}" (${d.total} casos)`).join(' y ');
+  } else {
+    const diagCounts = {};
+    pacs.forEach(p => {
+      const diag = p.diagnosticoPrincipal || 'Sin Especificar';
+      diagCounts[diag] = (diagCounts[diag] || 0) + 1;
+    });
+    const sortedDiags = Object.entries(diagCounts).sort((a,b) => b[1] - a[1]).slice(0, 2);
+    if (sortedDiags.length > 0) {
+      topDiagsText = sortedDiags.map(([name, count]) => `"${name}" (${count} casos)`).join(' y ');
     }
-    if (typeof tCat === 'number' && typeof p.tAnamnesis === 'number' && p.tAnamnesis >= tCat) {
-      sumCatAna += (p.tAnamnesis - tCat) / 3600000;
-      cCatAna++;
+  }
+
+  // Destino
+  let topDestText = 'Sin especificar';
+  if (stats) {
+    if (stats.hospitalCount >= stats.domicilioCount && stats.hospitalCount > 0) {
+      topDestText = `Hospital / UEH (${stats.hospitalCount} casos, ${stats.percHospital}%)`;
+    } else if (stats.domicilioCount > 0) {
+      topDestText = `Domicilio (${stats.domicilioCount} casos, ${stats.percDomicilio}%)`;
+    } else if (stats.otroDestinoCount > 0) {
+      topDestText = `Otros Destinos (${stats.otroDestinoCount} casos, ${stats.percOtroDestino}%)`;
     }
-    if (isTraslado) {
-      if (typeof p.tAnamnesis === 'number' && typeof p.tAlta === 'number' && p.tAlta >= p.tAnamnesis) {
-        sumAnaTras += (p.tAlta - p.tAnamnesis) / 3600000;
-        cAnaTras++;
-      }
-      if (typeof p.tAdmision === 'number' && typeof p.tAlta === 'number' && p.tAlta >= p.tAdmision) {
-        sumEstTras += (p.tAlta - p.tAdmision) / 3600000;
-        cEstTras++;
-      }
-    }
-  });
+  }
 
-  const sortedDests = Object.entries(destCounts).sort((a,b) => b[1] - a[1])[0];
-  const topDestText = sortedDests ? `${sortedDests[0]} (${formatPct(sortedDests[1], totalFracturas)}% de los casos)` : 'Sin especificar';
+  const avgEstTrasText = stats && stats.avgEstadiaTraslado !== null ? `${stats.avgEstadiaTraslado.toFixed(1)} hrs` : 'N/A';
+  const avgAdmCatText = stats && stats.avgAdmCatGlobal !== null ? `${stats.avgAdmCatGlobal.toFixed(1)} hrs` : '-';
+  const avgCatAnaText = stats && stats.avgCatAnaGlobal !== null ? `${stats.avgCatAnaGlobal.toFixed(1)} hrs` : '-';
+  const avgAnaTrasText = stats && stats.avgAnaAltHospital !== null ? `${stats.avgAnaAltHospital.toFixed(1)} hrs` : (stats && stats.avgAnaAltGlobal !== null ? `${stats.avgAnaAltGlobal.toFixed(1)} hrs` : '-');
 
-  const avgEstTrasText = cEstTras > 0 ? `${(sumEstTras / cEstTras).toFixed(1)} hrs` : 'N/A';
-  const avgAdmCatText = cAdmCat > 0 ? `${(sumAdmCat / cAdmCat).toFixed(1)} hrs` : '-';
-  const avgCatAnaText = cCatAna > 0 ? `${(sumCatAna / cCatAna).toFixed(1)} hrs` : '-';
-  const avgAnaTrasText = cAnaTras > 0 ? `${(sumAnaTras / cAnaTras).toFixed(1)} hrs` : '-';
+  // Grupo etario con mayor porcentaje de fracturas (Sincronizado con stats)
+  let topAgeGroupText = '';
+  if (stats && stats.rangoMasFrecuente && stats.rangoMasFrecuente.total > 0) {
+    const pctAge = formatPct(stats.rangoMasFrecuente.total, totalFracturas);
+    const grupoClinico = stats.grupoClinicoMasAfectado ? ` y en el grupo clínico ${stats.grupoClinicoMasAfectado.name}` : '';
+    topAgeGroupText = ` El grupo etario con mayor concentración de fracturas corresponde al tramo de ${stats.rangoMasFrecuente.rango} años (${stats.rangoMasFrecuente.total} casos, ${pctAge}% del total)${grupoClinico}.`;
+  }
 
-  // Grupo etario con mayor porcentaje de fracturas
-  const ageGroupCounts = {};
-  listFracturas.forEach(p => {
-    let edadNum = null;
-    if (typeof p.edadNum === 'number') edadNum = p.edadNum;
-    else if (p.edad) {
-      const parsed = parseInt(String(p.edad).replace(/\D/g, ''));
-      if (!isNaN(parsed)) edadNum = parsed;
-    }
-    if (edadNum !== null) {
-      let r5 = edadNum >= 80 ? '80+' : `${Math.floor(edadNum / 5) * 5}-${Math.floor(edadNum / 5) * 5 + 4}`;
-      ageGroupCounts[r5] = (ageGroupCounts[r5] || 0) + 1;
-    }
-  });
-
-  const sortedAgeGroups = Object.entries(ageGroupCounts).sort((a,b) => b[1] - a[1]);
-  const topAgeGroupText = sortedAgeGroups.length > 0
-    ? ` El grupo etario con mayor concentración de fracturas corresponde al tramo de ${sortedAgeGroups[0][0]} años (${sortedAgeGroups[0][1]} casos, ${formatPct(sortedAgeGroups[0][1], totalFracturas)}% del total).`
-    : '';
-
-  return `Se identificó un total de ${totalFracturas} casos de fracturas óseas, que equivalen al ${pct}% de las admisiones totales del periodo.${topAgeGroupText} Las lesiones de mayor incidencia corresponden a: ${topDiagsText}. La estadía promedio hasta el traslado al hospital fue de ${avgEstTrasText} (desglosado en: ${avgAdmCatText} de ingreso a categorización, ${avgCatAnaText} de categorización a anamnesis y ${avgAnaTrasText} de anamnesis a traslado). El principal destino de resolución fue ${topDestText}.`;
+  return `Se identificó un total de ${totalFracturas} casos de fracturas óseas, que equivalen al ${pct}% de las admisiones evaluadas en el período.${topAgeGroupText} Las lesiones de mayor incidencia corresponden a: ${topDiagsText}. La estadía promedio hasta el traslado al hospital fue de ${avgEstTrasText} (desglosado en: ${avgAdmCatText} de ingreso a categorización, ${avgCatAnaText} de categorización a atención médica y ${avgAnaTrasText} de atención médica a traslado). El principal destino de resolución fue ${topDestText}.`;
 };
 
 export const generateEnfermeriaSummary = (pacs) => {

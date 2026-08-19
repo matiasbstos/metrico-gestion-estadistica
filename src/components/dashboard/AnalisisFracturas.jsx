@@ -151,6 +151,9 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
     let p30_59 = 0;
     let p60_plus = 0;
 
+    const clinicosMujeres = { '0-14': 0, '15-29': 0, '30-59': 0, '60+': 0 };
+    const clinicosHombres = { '0-14': 0, '15-29': 0, '30-59': 0, '60+': 0 };
+
     const porDiagnostico = {};
     const porRangoEtario = Object.fromEntries(AGE_RANGES.map(r => [r, { F: 0, M: 0, total: 0 }]));
 
@@ -242,10 +245,23 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
 
       if (p.edad !== null && p.edad !== undefined && p.edad !== '' && !isNaN(Number(p.edad))) {
         const edadNum = Number(p.edad);
-        if (edadNum >= 0 && edadNum <= 14) p0_14++;
-        else if (edadNum >= 15 && edadNum <= 29) p15_29++;
-        else if (edadNum >= 30 && edadNum <= 59) p30_59++;
-        else if (edadNum >= 60) p60_plus++;
+        if (edadNum >= 0 && edadNum <= 14) {
+          p0_14++;
+          if (isF) clinicosMujeres['0-14']++;
+          if (isM) clinicosHombres['0-14']++;
+        } else if (edadNum >= 15 && edadNum <= 29) {
+          p15_29++;
+          if (isF) clinicosMujeres['15-29']++;
+          if (isM) clinicosHombres['15-29']++;
+        } else if (edadNum >= 30 && edadNum <= 59) {
+          p30_59++;
+          if (isF) clinicosMujeres['30-59']++;
+          if (isM) clinicosHombres['30-59']++;
+        } else if (edadNum >= 60) {
+          p60_plus++;
+          if (isF) clinicosMujeres['60+']++;
+          if (isM) clinicosHombres['60+']++;
+        }
 
         let range = '';
         if (edadNum >= 80) range = '80+';
@@ -409,6 +425,8 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
       p15_29,
       p30_59,
       p60_plus,
+      clinicosMujeres,
+      clinicosHombres,
       listaDiagnosticos,
       porRangoEtario,
       diagMasFrecuente,
@@ -422,15 +440,23 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
     return ((stats.total - fracturasPrevYear) / fracturasPrevYear) * 100;
   }, [stats.total, fracturasPrevYear]);
 
-  // Datos para gráfico de barras por Edad y Sexo
+  // Datos para gráfico de barras por Edad y Sexo (adaptable a modo clínico o quinquenal)
   const dataGraficoEdad = useMemo(() => {
+    if (modoVistaEdad === 'clinico') {
+      return [
+        { rango: 'Pediatría (0-14)', Mujeres: stats.clinicosMujeres?.['0-14'] || 0, Hombres: stats.clinicosHombres?.['0-14'] || 0, Total: stats.p0_14 || 0 },
+        { rango: 'Jóvenes (15-29)', Mujeres: stats.clinicosMujeres?.['15-29'] || 0, Hombres: stats.clinicosHombres?.['15-29'] || 0, Total: stats.p15_29 || 0 },
+        { rango: 'Adultos (30-59)', Mujeres: stats.clinicosMujeres?.['30-59'] || 0, Hombres: stats.clinicosHombres?.['30-59'] || 0, Total: stats.p30_59 || 0 },
+        { rango: 'A. Mayor (60+)', Mujeres: stats.clinicosMujeres?.['60+'] || 0, Hombres: stats.clinicosHombres?.['60+'] || 0, Total: stats.p60_plus || 0 }
+      ];
+    }
     return AGE_RANGES.map(range => ({
       rango: range,
       Mujeres: stats.porRangoEtario[range]?.F || 0,
       Hombres: stats.porRangoEtario[range]?.M || 0,
       Total: stats.porRangoEtario[range]?.total || 0
     }));
-  }, [stats.porRangoEtario]);
+  }, [stats, modoVistaEdad]);
 
   // Datos para gráfico de Torta (Destino de Alta)
   const dataGraficoDestino = useMemo(() => {
@@ -494,7 +520,7 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
     document.body.removeChild(link);
   };
 
-  const summaryText = useMemo(() => generateFracturasSummary(pacientesFiltrados), [pacientesFiltrados]);
+  const summaryText = useMemo(() => generateFracturasSummary(pacientesFiltrados, stats), [pacientesFiltrados, stats]);
 
   return (
     <div className="bg-card-custom rounded-2xl border border-card-custom p-6 mt-6 shadow-sm theme-transition">
@@ -1064,13 +1090,17 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
             className="bg-card-custom text-primary-custom text-xs font-bold rounded-xl px-3 py-2 border border-card-custom focus:outline-none focus:border-rose-500 transition-all cursor-pointer"
           >
             <option value="TODOS">Todos los Tramos Etarios</option>
-            <option value="0-14">0 a 14 años (Pediatría)</option>
-            <option value="15-29">15 a 29 años (Jóvenes)</option>
-            <option value="30-59">30 a 59 años (Adultos)</option>
-            <option value="60+">60+ años (Geriatría)</option>
-            {AGE_RANGES.map((r, i) => (
-              <option key={i} value={r}>Solo tramo {r} años</option>
-            ))}
+            <optgroup label="Grupos Clínicos Oficiales">
+              <option value="0-14">🧒 Pediatría (0 a 14 años)</option>
+              <option value="15-29">🧑 Jóvenes (15 a 29 años)</option>
+              <option value="30-59">👨 Adultos (30 a 59 años)</option>
+              <option value="60+">👴 Adultos Mayores (60+ años)</option>
+            </optgroup>
+            <optgroup label="Desglose Quinquenal (5 en 5 años)">
+              {AGE_RANGES.map((r, i) => (
+                <option key={i} value={r}>Tramo {r} años</option>
+              ))}
+            </optgroup>
           </select>
 
           {/* Sexo */}
@@ -1087,53 +1117,139 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
         </div>
       </div>
 
-      {/* SECCIÓN INTERACTIVA DE GRUPOS ETARIOS (COMPRIMIDA EN GRID RESPONSIVO) */}
+      {/* SECCIÓN INTERACTIVA DE GRUPOS ETARIOS CON SELECTOR DUAL (CLÍNICO vs QUINQUENAL) */}
       <div className="bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom mb-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2.5 gap-1">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2 border-b border-card-custom/40 pb-3">
           <div className="flex items-center gap-2">
             <h3 className="text-xs font-bold text-primary-custom uppercase tracking-wider flex items-center gap-2">
               <Users className="w-4 h-4 text-sky-500" />
-              Grupos Etarios (17 Tramos)
+              Distribución por Grupos Etarios
             </h3>
             {filtroEdad !== 'TODOS' && (
               <button 
                 onClick={() => setFiltroEdad('TODOS')}
-                className="text-[10px] font-bold text-rose-500 hover:underline bg-rose-500/10 px-2 py-0.5 rounded-md"
+                className="text-[10px] font-bold text-rose-500 hover:underline bg-rose-500/10 px-2 py-0.5 rounded-md cursor-pointer"
               >
                 Limpiar filtro ({filtroEdad})
               </button>
             )}
           </div>
-          <span className="text-[10px] text-secondary-custom font-semibold">Haz clic en un tramo para filtrar la vista</span>
+
+          {/* TOGGLE SEGMENTADO DE VISTA */}
+          <div className="flex items-center gap-1 bg-card-custom p-1 rounded-xl border border-card-custom text-xs font-bold">
+            <button
+              onClick={() => setModoVistaEdad('clinico')}
+              className={`px-3 py-1 rounded-lg transition-all text-[11px] cursor-pointer ${
+                modoVistaEdad === 'clinico'
+                  ? 'bg-rose-500 text-white shadow-sm'
+                  : 'text-secondary-custom hover:text-primary-custom'
+              }`}
+            >
+              🧒 Grupos Clínicos (4 Tramos)
+            </button>
+            <button
+              onClick={() => setModoVistaEdad('quinquenal')}
+              className={`px-3 py-1 rounded-lg transition-all text-[11px] cursor-pointer ${
+                modoVistaEdad === 'quinquenal'
+                  ? 'bg-rose-500 text-white shadow-sm'
+                  : 'text-secondary-custom hover:text-primary-custom'
+              }`}
+            >
+              📊 Desglose Quinquenal (17 Tramos)
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-9 gap-1.5">
-          {AGE_RANGES.map(range => {
-            const count = stats.porRangoEtario[range]?.total || 0;
-            const percentage = perc(count, stats.total);
-            const isSelected = filtroEdad === range;
+        {/* MODO 1: VISTA CLÍNICA INSTITUCIONAL (4 GRUPOS PRINCIPALES) */}
+        {modoVistaEdad === 'clinico' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {[
+              { id: '0-14', label: 'Pediatría', range: '0 a 14 años', count: stats.p0_14, mujeres: stats.clinicosMujeres?.['0-14'] || 0, hombres: stats.clinicosHombres?.['0-14'] || 0, icon: '🧒', color: 'from-pink-500/10' },
+              { id: '15-29', label: 'Jóvenes', range: '15 a 29 años', count: stats.p15_29, mujeres: stats.clinicosMujeres?.['15-29'] || 0, hombres: stats.clinicosHombres?.['15-29'] || 0, icon: '🧑', color: 'from-blue-500/10' },
+              { id: '30-59', label: 'Adultos', range: '30 a 59 años', count: stats.p30_59, mujeres: stats.clinicosMujeres?.['30-59'] || 0, hombres: stats.clinicosHombres?.['30-59'] || 0, icon: '👨', color: 'from-amber-500/10' },
+              { id: '60+', label: 'Adultos Mayores', range: '60+ años', count: stats.p60_plus, mujeres: stats.clinicosMujeres?.['60+'] || 0, hombres: stats.clinicosHombres?.['60+'] || 0, icon: '👴', color: 'from-purple-500/10' },
+            ].map(grp => {
+              const isSelected = filtroEdad === grp.id;
+              const pctVal = perc(grp.count, stats.total);
 
-            return (
-              <button
-                key={range}
-                onClick={() => setFiltroEdad(isSelected ? 'TODOS' : range)}
-                title={`${range} años: ${count} pacientes (${percentage}%)`}
-                className={`flex flex-col items-center justify-center p-2 rounded-xl text-center transition-all cursor-pointer border ${
-                  isSelected 
-                    ? 'bg-rose-500 text-white border-rose-600 font-bold shadow-sm ring-2 ring-rose-500/30' 
-                    : 'bg-card-custom hover:bg-black/5 dark:hover:bg-white/10 border-card-custom text-secondary-custom'
-                }`}
-              >
-                <span className={`text-[10px] font-bold ${isSelected ? 'text-white/90' : 'text-secondary-custom'}`}>
-                  {range}
-                </span>
-                <span className={`text-xs font-black ${isSelected ? 'text-white' : 'text-primary-custom'}`}>
-                  {percentage}%
-                </span>
-              </button>
-            );
-          })}
-        </div>
+              return (
+                <button
+                  key={grp.id}
+                  onClick={() => setFiltroEdad(isSelected ? 'TODOS' : grp.id)}
+                  className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between relative overflow-hidden group ${
+                    isSelected
+                      ? 'bg-rose-500/15 border-rose-500 ring-2 ring-rose-500/30 shadow-md'
+                      : 'bg-card-custom hover:bg-black/5 dark:hover:bg-white/10 border-card-custom'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-base">{grp.icon}</span>
+                      <div>
+                        <span className="text-xs font-black text-primary-custom block leading-tight">{grp.label}</span>
+                        <span className="text-[10px] text-secondary-custom font-semibold">{grp.range}</span>
+                      </div>
+                    </div>
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                      isSelected ? 'bg-rose-500 text-white' : 'bg-black/5 dark:bg-white/10 text-secondary-custom'
+                    }`}>
+                      {pctVal}%
+                    </span>
+                  </div>
+
+                  <div className="flex items-baseline justify-between mt-2 pt-2 border-t border-card-custom/40">
+                    <div>
+                      <span className="text-2xl font-black text-primary-custom">{grp.count}</span>
+                      <span className="text-[10px] text-secondary-custom font-medium ml-1">pacientes</span>
+                    </div>
+                    <div className="text-right text-[10px]">
+                      <span className="text-pink-500 font-bold">{grp.mujeres}F</span>
+                      <span className="text-secondary-custom mx-1">/</span>
+                      <span className="text-blue-500 font-bold">{grp.hombres}M</span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* MODO 2: DESGLOSE QUINQUENAL (17 TRAMOS DE 5 AÑOS) */}
+        {modoVistaEdad === 'quinquenal' && (
+          <div>
+            <p className="text-[10px] text-secondary-custom font-semibold mb-2">Haz clic en un tramo para filtrar la vista por rango de 5 años:</p>
+            <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-9 gap-1.5">
+              {AGE_RANGES.map(range => {
+                const count = stats.porRangoEtario[range]?.total || 0;
+                const percentage = perc(count, stats.total);
+                const isSelected = filtroEdad === range;
+
+                return (
+                  <button
+                    key={range}
+                    onClick={() => setFiltroEdad(isSelected ? 'TODOS' : range)}
+                    title={`${range} años: ${count} pacientes (${percentage}%)`}
+                    className={`flex flex-col items-center justify-center p-2 rounded-xl text-center transition-all cursor-pointer border ${
+                      isSelected 
+                        ? 'bg-rose-500 text-white border-rose-600 font-bold shadow-sm ring-2 ring-rose-500/30' 
+                        : 'bg-card-custom hover:bg-black/5 dark:hover:bg-white/10 border-card-custom text-secondary-custom'
+                    }`}
+                  >
+                    <span className={`text-[10px] font-bold ${isSelected ? 'text-white/90' : 'text-secondary-custom'}`}>
+                      {range}
+                    </span>
+                    <span className={`text-xs font-black ${isSelected ? 'text-white' : 'text-primary-custom'}`}>
+                      {percentage}%
+                    </span>
+                    <span className={`text-[9px] ${isSelected ? 'text-white/80' : 'text-secondary-custom/70'}`}>
+                      ({count})
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* VISUALIZACIONES GRÁFICAS */}
