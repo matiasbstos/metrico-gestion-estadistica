@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { auth } from '../config/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { Activity, Lock, Mail, AlertTriangle, CheckCircle, ArrowRight } from 'lucide-react';
+import { playLoginChime } from '../utils/audioNotifications';
 
 export default function Login() {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -36,6 +37,7 @@ export default function Login() {
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
+      playLoginChime();
       try {
         localStorage.setItem('metrico_last_activity', Date.now().toString());
         sessionStorage.setItem('metrico_session_verified', 'true');

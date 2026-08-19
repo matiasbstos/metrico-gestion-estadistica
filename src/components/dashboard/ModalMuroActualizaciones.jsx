@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Megaphone, Sparkles, X, Calendar, CheckCircle2, ShieldAlert, MapPin, Cpu, BarChart2, Filter, Layers, Clock, HelpCircle, BookOpen, Lightbulb, Eye, Mail } from 'lucide-react';
+import { Megaphone, Sparkles, X, Calendar, CheckCircle2, ShieldAlert, MapPin, Cpu, BarChart2, Filter, Layers, Clock, HelpCircle, BookOpen, Lightbulb, Eye, Mail, Volume2 } from 'lucide-react';
 
 export default function ModalMuroActualizaciones({ isOpen, onClose }) {
   const [selectedCat, setSelectedCat] = useState('TODOS');
@@ -7,6 +7,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const updatesList = [
+    {
+      id: 'v4.9.9',
+      version: 'v4.9.9',
+      fecha: '18 de Agosto, 2026',
+      badge: 'AUDIO FEEDBACK',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Retroalimentación Auditiva para Inicio y Cierre de Sesión',
+      categoria: 'Audio & Experiencia de Usuario',
+      icon: Volume2,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se han incorporado chimes armónicos suaves generados en tiempo real para el inicio y cierre de sesión. Al autenticarte exitosamente, el sistema reproduce un acorde ascendente de bienvenida (Do Mayor), y al cerrar sesión o expirar el tiempo de inactividad, se emite un tono suave de desconexión segura.',
+      instructivo: {
+        paraQueSirve: 'Brinda confirmación acústica inmediata y elegante de tus operaciones de acceso y desconexión.',
+        quePuedesVer: 'Escucha el tono armónico al ingresar tus credenciales y al accionar el botón de cerrar sesión.',
+        ejemploUso: 'Inicia sesión o haz clic en Cerrar Sesión para escuchar la respuesta sonora.'
+      },
+      changes: [
+        'Sonido de Bienvenida (Login): Acorde armónico ascendente C5-E5-G5-C6.',
+        'Sonido de Desconexión Segura (Logout): Tono descendente suave D5-A4-E4.',
+        'Síntesis Nativa Web Audio API: 100% libre de archivos pesados y con cero latencia de reproducción.'
+      ]
+    },
     {
       id: 'v4.9.8',
       version: 'v4.9.8',

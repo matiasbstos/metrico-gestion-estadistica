@@ -37,7 +37,7 @@ import PopUpSincronizacion from './dashboard/PopUpSincronizacion';
 import InformeArquitectura from './dashboard/InformeArquitectura';
 import DevLogModule from './dashboard/DevLogModule';
 import { formatLocalDate } from '../utils/helpers';
-import { playIntegrityAlertChime } from '../utils/audioNotifications';
+import { playIntegrityAlertChime, playLogoutChime } from '../utils/audioNotifications';
 import Login from './Login';
 import { 
   Clock, Users, UserCheck, AlertTriangle, Activity, ArrowRight, 
@@ -1028,6 +1028,7 @@ const DashboardContent = () => {
   }
 
   const handleLogout = (reason) => {
+    playLogoutChime();
     try {
       sessionStorage.clear();
       localStorage.clear();

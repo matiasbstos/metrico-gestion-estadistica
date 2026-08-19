@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.9.9',
+    version_tag: 'v4.9.9',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Retroalimentación Auditiva Asistencial mediante Web Audio API: Chimes Armónicos Nativos para Inicio y Cierre Seguro de Sesión.',
+    medios_y_stack: [
+      'Web Audio API Synthesizer (audioNotifications.js & audioFeedback.js)',
+      'React 18.3 (Login.jsx & Dashboard.jsx)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Se incorpora un sintetizador armónico nativo que genera acordes sinusoidales suaves en tiempo de ejecución sin dependencias de red ni latencia. Al iniciar sesión exitosamente, se ejecuta un chime armónico ascendente en escala de Do Mayor (C5-E5-G5-C6). Al cerrar la sesión o producirse un logout por inactividad, se emite un tono descendente suave de desconexión segura (D5-A4-E4).',
+      firestore_collections: ['usuarios'],
+      query_optimization: 'Generación acústica directa en GPU/AudioBuffer sin peticiones HTTP.'
+    },
+    modulos_afectados: ['Login', 'Dashboard', 'audioNotifications', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Implementación de playLoginChime() y playLogoutChime() con envolventes de ganancia exponencial.',
+      'Activación en Login.jsx al validar credenciales y en Dashboard.jsx al accionar handleLogout.',
+      'Compatibilidad universal en navegadores modernos y dispositivos móviles con gestión de AudioContext suspendido.'
+    ]
+  },
+  {
     id: 'v4.9.8',
     version_tag: 'v4.9.8',
     fecha_despliegue: '18 de Agosto, 2026',
