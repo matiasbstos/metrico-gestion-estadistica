@@ -31,6 +31,7 @@ import ModalVerificacionSesion from './dashboard/ModalVerificacionSesion';
 import ModalMuroActualizaciones from './dashboard/ModalMuroActualizaciones';
 import ModalConfiguracionCorreo from './dashboard/ModalConfiguracionCorreo';
 import BarraProgresoCarga from './dashboard/BarraProgresoCarga';
+import BarraBusquedaGlobal from './dashboard/BarraBusquedaGlobal';
 import Radar from './dashboard/Radar';
 import PopUpSincronizacion from './dashboard/PopUpSincronizacion';
 import InformeArquitectura from './dashboard/InformeArquitectura';
@@ -1265,7 +1266,18 @@ const DashboardContent = () => {
             )}
           </div>
 
-          <nav className={`mt-2 flex flex-col gap-1 ${sidebarCollapsed ? 'px-2 items-center' : 'px-3'}`}>
+          {/* BARRA DE BÚSQUEDA GLOBAL E INSPECCIÓN PARAMÉTRICA */}
+          <BarraBusquedaGlobal
+            sidebarCollapsed={sidebarCollapsed}
+            setActiveTab={setActiveTab}
+            setSubTabEspecifico={setSubTabEspecifico}
+            statsKPI={statsKPIFinal}
+            pacientesFiltrados={pacientesFiltrados}
+            turnosFiltrados={turnosFiltrados}
+            promediosGlobales={promediosGlobales}
+          />
+
+          <nav className={`mt-1 flex flex-col gap-1 ${sidebarCollapsed ? 'px-2 items-center' : 'px-3'}`}>
             <button 
               onClick={() => { setActiveTab('resumen'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
               title="Inicio"

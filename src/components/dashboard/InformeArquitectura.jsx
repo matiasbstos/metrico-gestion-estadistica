@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v4.9.5',
+    version_tag: 'v4.9.5',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Barra de Búsqueda Global e Inspección Paramétrica en Barra Lateral: Navegación Inteligente (Omnibar / Command Palette) con Estadísticas en Tiempo Real y Soporte de Modo Contraído.',
+    medios_y_stack: [
+      'React 18.3 (BarraBusquedaGlobal.jsx & Dashboard.jsx)',
+      'Lucide React (Search, Command, Sparkles)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'El usuario puede ingresar cualquier concepto clínico, operativo o administrativo (ej: altas, traslados, admitidos, atendidos, tiempos, C3, fracturas, etc.) y visualizar métricas contextuales en vivo (volumen, porcentaje y promedios del periodo activo) junto a accesos directos al módulo o reporte correspondiente. Al contraerse la barra lateral, el buscador se compacta en un botón de acceso rápido con apertura de modal flotante sin alterar la interfaz.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Indexación en memoria O(1) y atajo de teclado global Ctrl+K / Cmd+K.'
+    },
+    modulos_afectados: ['Dashboard', 'BarraBusquedaGlobal', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Creación del componente BarraBusquedaGlobal.jsx integrado en la barra lateral izquierda.',
+      'Doble comportamiento interactivo: Barra expandida con dropdown e indicador Ctrl+K, y botón compacto con Command Palette modal en estado contraído.',
+      'Indexación exhaustiva de 18 categorías de conceptos asistenciales con métricas en tiempo real (statsKPI y promediosGlobales).'
+    ]
+  },
+  {
     id: 'v4.9.4',
     version_tag: 'v4.9.4',
     fecha_despliegue: '18 de Agosto, 2026',

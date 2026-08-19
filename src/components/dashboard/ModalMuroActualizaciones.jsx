@@ -8,6 +8,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v4.9.5',
+      version: 'v4.9.5',
+      fecha: '18 de Agosto, 2026',
+      badge: 'BÚSQUEDA GLOBAL',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Barra de Búsqueda Global e Inspección Paramétrica en Barra Lateral',
+      categoria: 'Navegación & Búsqueda Universal',
+      icon: Search,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se ha implementado una nueva Barra de Búsqueda Global y Command Palette en la barra lateral izquierda. Permite escribir cualquier concepto o métrica (ej: "alta administrativa", "traslados", "admitidos", "tiempos", "C3", "fracturas", "médicos", etc.), desplegando estadísticas en vivo del parámetro y permitiendo ingresar directamente al módulo, reporte o sub-sección deseada. Además, al contraer la barra lateral, el buscador se compacta elegantemente en un botón flotante con atajo universal (Ctrl+K).',
+      instructivo: {
+        paraQueSirve: 'Permite encontrar rápidamente cualquier indicador, parámetro asistencial o reporte sin tener que buscar manualmente entre los módulos.',
+        quePuedesVer: 'Escribe términos como "alta", "traslados", "tiempos", "demanda" o "médicos" para ver el valor numérico en vivo y el acceso directo al módulo.',
+        ejemploUso: 'Ejemplo: Presiona Ctrl + K desde cualquier pantalla, escribe "alta administrativa" y haz clic para abrir su análisis detallado.'
+      },
+      changes: [
+        'Ubicación en Barra Lateral Izquierda: Integrada limpiamente en la navegación principal.',
+        'Soporte de Barra Lateral Contraída: Botón compacto con Command Palette flotante que no interfiere con el diseño.',
+        'Métricas en Tiempo Real: Visualización de volúmenes, porcentajes y promedios calculados al instante para el término buscado.',
+        'Atajo Universal: Activación rápida con Ctrl + K / Cmd + K y cierre con ESC.'
+      ]
+    },
+    {
       id: 'v4.9.4',
       version: 'v4.9.4',
       fecha: '18 de Agosto, 2026',
