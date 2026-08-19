@@ -1270,6 +1270,7 @@ const DashboardContent = () => {
           {/* BARRA DE BÚSQUEDA GLOBAL E INSPECCIÓN PARAMÉTRICA */}
           <BarraBusquedaGlobal
             sidebarCollapsed={sidebarCollapsed}
+            setSidebarCollapsed={setSidebarCollapsed}
             setActiveTab={setActiveTab}
             setSubTabEspecifico={setSubTabEspecifico}
             statsKPI={statsKPIFinal}
@@ -1787,81 +1788,99 @@ const DashboardContent = () => {
 
             {/* DATOS DE RENDIMIENTO Y KPIs */}
             {statsKPIFinal && (
-              <PanelKPIs 
-                statsKPI={statsKPIFinal} 
-                isLoading={loading || loadingKpis}
-                onAltasClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); }} 
-                onTrasladosClick={() => { setActiveTab('traslados'); setSubTabEspecifico('traslados'); }} 
-                onConstatacionesClick={() => { setActiveTab('constataciones'); setSubTabEspecifico('constataciones'); }} 
-              />
+              <div id="seccion-kpis-principales" className="transition-all duration-300">
+                <PanelKPIs 
+                  statsKPI={statsKPIFinal} 
+                  isLoading={loading || loadingKpis}
+                  onAltasClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); }} 
+                  onTrasladosClick={() => { setActiveTab('traslados'); setSubTabEspecifico('traslados'); }} 
+                  onConstatacionesClick={() => { setActiveTab('constataciones'); setSubTabEspecifico('constataciones'); }} 
+                />
+              </div>
             )}
 
+            <div id="seccion-grafico-taxonomico" className="transition-all duration-300 rounded-3xl">
+              <GraficoDinamico 
+                chartData={chartData} compareChartData={compareChartData} pieData={pieData}
+                tipoGrafico={tipoGrafico} setTipoGrafico={setTipoGrafico}
+                metricasGrafico={metricasGrafico} setMetricasGrafico={setMetricasGrafico}
+                filtroVariables={filtroVariables} setFiltroVariables={setFiltroVariables}
+                modoComparativo={modoComparativo} dynamicMetricKeys={dynamicMetricKeys}
+                turnosFiltrados={turnosFiltrados} demografiaStats={demografiaStats}
+                pacientesFiltrados={pacientesFiltrados}
+                isLoading={loading || loadingKpis}
+              />
+            </div>
 
+            <div id="seccion-equipos-turno" className="transition-all duration-300 rounded-3xl">
+              <AnalisisEquiposTurno 
+                turnosFiltrados={turnosFiltrados} 
+                pacientesFiltrados={pacientesFiltrados} 
+                setActiveTab={setActiveTab}
+              />
+            </div>
 
-        <GraficoDinamico 
-          chartData={chartData} compareChartData={compareChartData} pieData={pieData}
-          tipoGrafico={tipoGrafico} setTipoGrafico={setTipoGrafico}
-          metricasGrafico={metricasGrafico} setMetricasGrafico={setMetricasGrafico}
-          filtroVariables={filtroVariables} setFiltroVariables={setFiltroVariables}
-          modoComparativo={modoComparativo} dynamicMetricKeys={dynamicMetricKeys}
-          turnosFiltrados={turnosFiltrados} demografiaStats={demografiaStats}
-          pacientesFiltrados={pacientesFiltrados}
-          isLoading={loading || loadingKpis}
-        />
+            {topDiagnosticos && topDiagnosticos.length > 0 && (
+              <div id="seccion-top-diagnosticos" className="transition-all duration-300 rounded-3xl">
+                <TopDiagnosticos topDiagnosticos={topDiagnosticos} />
+              </div>
+            )}
 
-        <AnalisisEquiposTurno 
-          turnosFiltrados={turnosFiltrados} 
-          pacientesFiltrados={pacientesFiltrados} 
-          setActiveTab={setActiveTab}
-        />
+            {demografiaStats && rankingCentros && (
+              <div id="seccion-analisis-sociodemografico" className="transition-all duration-300 rounded-3xl">
+                <AnalisisSociodemografico 
+                  demografiaStats={demografiaStats} 
+                  rankingCentros={rankingCentros} 
+                />
+              </div>
+            )}
 
-        {topDiagnosticos && topDiagnosticos.length > 0 && (
-          <TopDiagnosticos topDiagnosticos={topDiagnosticos} />
-        )}
+            <div id="seccion-tabla-tiempos-espera" className="transition-all duration-300 rounded-3xl">
+              <TablaTiemposEspera 
+                metricsByCategory={metricsByCategory} 
+                promediosGlobales={promediosGlobales} 
+              />
+            </div>
 
-        {demografiaStats && rankingCentros && (
-          <AnalisisSociodemografico 
-            demografiaStats={demografiaStats} 
-            rankingCentros={rankingCentros} 
-          />
-        )}
+            <div id="seccion-curva-demanda" className="transition-all duration-300 rounded-3xl">
+              <CurvaDemanda 
+                peakHoursData={peakHoursData}
+                demandaFechaInicio={demandaFechaInicio} setDemandaFechaInicio={setDemandaFechaInicio}
+                demandaFechaFin={demandaFechaFin} setDemandaFechaFin={setDemandaFechaFin}
+                demandaViewMode={demandaViewMode} setDemandaViewMode={setDemandaViewMode}
+                modoComparativo={modoComparativo} docsToCompare={docsToCompare}
+              />
+            </div>
 
-        <TablaTiemposEspera 
-          metricsByCategory={metricsByCategory} 
-          promediosGlobales={promediosGlobales} 
-        />
+            <div id="seccion-analisis-profesionales" className="transition-all duration-300 rounded-3xl">
+              <AnalisisProfesionales 
+                profFechaInicio={profFechaInicio} setProfFechaInicio={setProfFechaInicio}
+                profFechaFin={profFechaFin} setProfFechaFin={setProfFechaFin}
+                searchDoctor={searchDoctor} setSearchDoctor={setSearchDoctor}
+                docsToCompare={docsToCompare} toggleDocToCompare={toggleDocToCompare}
+                clearDocComparison={clearDocComparison}
+                filteredMetricsByDoctor={filteredMetricsByDoctor}
+                dailyDoctorData={dailyDoctorData}
+              />
+            </div>
 
-        <CurvaDemanda 
-          peakHoursData={peakHoursData}
-          demandaFechaInicio={demandaFechaInicio} setDemandaFechaInicio={setDemandaFechaInicio}
-          demandaFechaFin={demandaFechaFin} setDemandaFechaFin={setDemandaFechaFin}
-          demandaViewMode={demandaViewMode} setDemandaViewMode={setDemandaViewMode}
-          modoComparativo={modoComparativo} docsToCompare={docsToCompare}
-        />
+            <div id="seccion-ranking-profesionales" className="transition-all duration-300 rounded-3xl">
+              <RankingProfesionales
+                profFechaInicio={profFechaInicio} setProfFechaInicio={setProfFechaInicio}
+                profFechaFin={profFechaFin} setProfFechaFin={setProfFechaFin}
+                filteredMetricsByDoctor={filteredMetricsByDoctor}
+              />
+            </div>
 
-        <AnalisisProfesionales 
-          profFechaInicio={profFechaInicio} setProfFechaInicio={setProfFechaInicio}
-          profFechaFin={profFechaFin} setProfFechaFin={setProfFechaFin}
-          searchDoctor={searchDoctor} setSearchDoctor={setSearchDoctor}
-          docsToCompare={docsToCompare} toggleDocToCompare={toggleDocToCompare}
-          clearDocComparison={clearDocComparison}
-          filteredMetricsByDoctor={filteredMetricsByDoctor}
-          dailyDoctorData={dailyDoctorData}
-        />
-
-        <RankingProfesionales
-          profFechaInicio={profFechaInicio} setProfFechaInicio={setProfFechaInicio}
-          profFechaFin={profFechaFin} setProfFechaFin={setProfFechaFin}
-          filteredMetricsByDoctor={filteredMetricsByDoctor}
-        />
-
-        <DataGridTurnos 
-          turnosPaginados={turnosPaginados} turnosDB={turnosDB}
-          paginaTurnos={paginaTurnos} setPaginaTurnos={setPaginaTurnos}
-          totalPaginasTurnos={totalPaginasTurnos}
-          setEditModal={setEditModal} setDeleteConfirm={setDeleteConfirm}
-          userProfile={userProfile}
-        />
+            <div id="seccion-datagrid-turnos" className="transition-all duration-300 rounded-3xl">
+              <DataGridTurnos 
+                turnosPaginados={turnosPaginados} turnosDB={turnosDB}
+                paginaTurnos={paginaTurnos} setPaginaTurnos={setPaginaTurnos}
+                totalPaginasTurnos={totalPaginasTurnos}
+                setEditModal={setEditModal} setDeleteConfirm={setDeleteConfirm}
+                userProfile={userProfile}
+              />
+            </div>
           </>
         )}
 

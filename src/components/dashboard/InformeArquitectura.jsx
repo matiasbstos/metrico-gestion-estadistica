@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.0.1',
+    version_tag: 'v5.0.1',
+    fecha_despliegue: '18 de Agosto, 2026',
+    proposito_actualizacion: 'Redirección Focal Directa y Desplazamiento Inteligente con Resalte Visual en el Buscador Global: Navegación Precisa a Gráficos, Tablas y Módulos.',
+    medios_y_stack: [
+      'React 18.3 (BarraBusquedaGlobal.jsx & Dashboard.jsx)',
+      'DOM Scroll API & CSS Focus Highlight Animation'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Al hacer clic en cualquier resultado del Buscador Global (ej: "Análisis Taxonómico y de Tendencias", "Sociodemográfico", "Tiempos de Espera", "Altas", etc.), el sistema cierra el modal, activa la pestaña correspondiente y ejecuta un desplazamiento suave (scrollIntoView) directo al componente objetivo, añadiendo un anillo luminoso de enfoque temporal (ring-4 ring-indigo-500) para situar visualmente al usuario.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Desplazamiento asíncrono respetando el ciclo de pintado de React.'
+    },
+    modulos_afectados: ['Dashboard', 'BarraBusquedaGlobal', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Incorporación de identificadores de anclaje semánticos (#seccion-grafico-taxonomico, #seccion-kpis-principales, #seccion-analisis-sociodemografico, #seccion-tabla-tiempos-espera, etc.).',
+      'Función navigateAndScroll(targetTab, subTab, targetElementId) que coordina cambio de tab, scroll y resalte visual.',
+      'Soporte completo tanto si el usuario ya se encuentra en la misma pestaña como si navega desde otro módulo.'
+    ]
+  },
+  {
     id: 'v5.0.0',
     version_tag: 'v5.0.0',
     fecha_despliegue: '18 de Agosto, 2026',

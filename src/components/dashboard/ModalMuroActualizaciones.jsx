@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.0.1',
+      version: 'v5.0.1',
+      fecha: '18 de Agosto, 2026',
+      badge: 'REDIRECCIÓN FOCAL',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Redirección Focal Directa y Desplazamiento Inteligente con Resalte Visual',
+      categoria: 'Búsqueda & Navegación',
+      icon: CheckCircle2,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Al hacer clic en cualquier resultado de la barra de búsqueda (ej: "Análisis Taxonómico y de Tendencias", "Sociodemográfico", "Altas", "Tiempos"), el sistema ahora te redirige de inmediato a la sección exacta con desplazamiento suave y un resalte luminoso temporal para indicarte con total claridad el elemento solicitado.',
+      instructivo: {
+        paraQueSirve: 'Te sitúa automáticamente frente al gráfico, tabla o módulo que buscaste, sin importar en qué vista te encuentres.',
+        quePuedesVer: 'Al hacer clic en un resultado, la página se desplaza fluidamente hacia el gráfico o tabla seleccionada y se ilumina brevemente.',
+        ejemploUso: 'Busca "taxo" o "demanda", haz clic en el resultado y verás cómo el navegador viaja directamente al gráfico dinámico.'
+      },
+      changes: [
+        'Desplazamiento Suave (scrollIntoView): Conduce directo al gráfico o tabla objetivo.',
+        'Resalte Luminoso de Enfoque: Anillo temporal índigo alrededor de la sección seleccionada.',
+        'Soporte Omnidireccional: Funciona desde cualquier módulo o pestaña del sistema.'
+      ]
+    },
+    {
       id: 'v5.0.0',
       version: 'v5.0.0',
       fecha: '18 de Agosto, 2026',

@@ -21,6 +21,7 @@ const normalizeStr = (str) => {
 
 export default function BarraBusquedaGlobal({
   sidebarCollapsed,
+  setSidebarCollapsed,
   setActiveTab,
   setSubTabEspecifico,
   statsKPI,
@@ -58,6 +59,38 @@ export default function BarraBusquedaGlobal({
     }
   }, [isModalOpen]);
 
+  // Función de Redirección Inteligente, Cambio de Módulo y Desplazamiento Focal
+  const navigateAndScroll = (targetTab, subTab = null, targetElementId = null) => {
+    setIsModalOpen(false);
+    setActiveTab(targetTab);
+    
+    if (subTab && setSubTabEspecifico) {
+      setSubTabEspecifico(subTab);
+    }
+
+    if (window.innerWidth < 768 && setSidebarCollapsed) {
+      setSidebarCollapsed(true);
+    }
+
+    // Esperar al ciclo de renderizado de React para ejecutar el desplazamiento y resalte
+    setTimeout(() => {
+      if (targetElementId) {
+        const el = document.getElementById(targetElementId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          
+          // Efecto de resalte luminoso temporal
+          el.classList.add('ring-4', 'ring-indigo-500', 'ring-offset-4', 'dark:ring-offset-slate-900', 'transition-all', 'duration-500');
+          setTimeout(() => {
+            el.classList.remove('ring-4', 'ring-indigo-500', 'ring-offset-4', 'dark:ring-offset-slate-900');
+          }, 2500);
+          return;
+        }
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 120);
+  };
+
   // Catálogo Exhaustivo Indexado de Búsqueda y Métricas en Tiempo Real
   const searchIndex = useMemo(() => {
     const totalPacientes = statsKPI?.admitidos?.current || pacientesFiltrados.length || 0;
@@ -78,7 +111,7 @@ export default function BarraBusquedaGlobal({
         title: 'Análisis Taxonómico y de Tendencias',
         category: 'Gráficos & Series Temporales',
         keywords: [
-          'taxonomico', 'taxonómico', 'taxonomia', 'taxonomía', 'tendencias', 'tendencia', 
+          'taxo', 'taxonomico', 'taxonómico', 'taxonomia', 'taxonomía', 'tendencias', 'tendencia', 
           'grafico dinamico', 'grafico', 'gráfico', 'curvas', 'series temporales', 'evolucion',
           'flujo operacional', 'tiempos de atencion', 'espera medico', 'espera triaje', 'tiempo box', 
           'estadia total', 'distribucion'
@@ -87,10 +120,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: `Espera Médico: ${formatTime(esperaMed)} | Triaje: ${formatTime(esperaTriaje)}`,
         description: 'Gráfico dinámico de evolución temporal, triaje, tiempos de atención y demografía.',
-        action: () => {
-          setActiveTab('resumen');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('resumen', null, 'seccion-grafico-taxonomico')
       },
       {
         id: 'altas',
@@ -105,11 +135,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-rose-600 bg-rose-100 dark:bg-rose-950/50 border-rose-300 dark:border-rose-800',
         liveKPI: `${totalAltas.toLocaleString()} pac (${altasPct}% del total)`,
         description: 'Pacientes que cancelaron atención tras categorización sin informe médico.',
-        action: () => {
-          setActiveTab('altas');
-          if (setSubTabEspecifico) setSubTabEspecifico('altas');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('altas', 'altas')
       },
       {
         id: 'traslados',
@@ -124,11 +150,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: `${totalTraslados.toLocaleString()} traslados registrados`,
         description: 'Derivaciones de urgencia a centros hospitalarios de mayor complejidad.',
-        action: () => {
-          setActiveTab('traslados');
-          if (setSubTabEspecifico) setSubTabEspecifico('traslados');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('traslados', 'traslados')
       },
       {
         id: 'admitidos',
@@ -142,10 +164,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-blue-600 bg-blue-100 dark:bg-blue-950/50 border-blue-300 dark:border-blue-800',
         liveKPI: `${totalPacientes.toLocaleString()} admitidos (${pacHora} pac/h)`,
         description: 'Total de admisiones ingresadas en el período seleccionado.',
-        action: () => {
-          setActiveTab('resumen');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('resumen', null, 'seccion-kpis-principales')
       },
       {
         id: 'atendidos',
@@ -159,10 +178,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800',
         liveKPI: `${totalAtendidos.toLocaleString()} atendidos`,
         description: 'Atenciones médicas efectivas (excluye altas administrativas).',
-        action: () => {
-          setActiveTab('resumen');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('resumen', null, 'seccion-kpis-principales')
       },
       {
         id: 'tiempos',
@@ -177,10 +193,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-purple-600 bg-purple-100 dark:bg-purple-950/50 border-purple-300 dark:border-purple-800',
         liveKPI: `Estadía: ${formatTime(estadiaMin)} | Médico: ${formatTime(esperaMed)} | Box: ${formatTime(tiempoBox)}`,
         description: 'Evolución de tiempos de espera en triaje, llamado a box y permanencia total.',
-        action: () => {
-          setActiveTab('resumen');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('resumen', null, 'seccion-tabla-tiempos-espera')
       },
       {
         id: 'triaje',
@@ -194,10 +207,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-amber-600 bg-amber-100 dark:bg-amber-950/50 border-amber-300 dark:border-amber-800',
         liveKPI: 'Monitoreo de severidad y distribución horaria',
         description: 'Radar predictivo y distribución de pacientes por índice de gravedad C1-C5.',
-        action: () => {
-          setActiveTab('radar');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('radar')
       },
       {
         id: 'fracturas',
@@ -212,11 +222,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-rose-600 bg-rose-100 dark:bg-rose-950/50 border-rose-300 dark:border-rose-800',
         liveKPI: 'Epidemiología ósea de lesiones traumáticas',
         description: 'Detección automática de códigos CIE-10 S02 a S92.',
-        action: () => {
-          setActiveTab('fracturas');
-          if (setSubTabEspecifico) setSubTabEspecifico('fracturas');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('fracturas', 'fracturas')
       },
       {
         id: 'constataciones',
@@ -231,11 +237,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-amber-600 bg-amber-100 dark:bg-amber-950/50 border-amber-300 dark:border-amber-800',
         liveKPI: `${totalConstataciones.toLocaleString()} constataciones registradas`,
         description: 'Atenciones clínico-legales requeridas por policías y tribunales.',
-        action: () => {
-          setActiveTab('constataciones');
-          if (setSubTabEspecifico) setSubTabEspecifico('constataciones');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('constataciones', 'constataciones')
       },
       {
         id: 'demanda',
@@ -249,11 +251,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: 'Patrón horario de admisiones y afluencia',
         description: 'Análisis de horas pico y distribución por tramos horarios.',
-        action: () => {
-          setActiveTab('demanda');
-          if (setSubTabEspecifico) setSubTabEspecifico('demanda');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('demanda', 'demanda')
       },
       {
         id: 'sociodemografico',
@@ -269,10 +267,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-purple-600 bg-purple-100 dark:bg-purple-950/50 border-purple-300 dark:border-purple-800',
         liveKPI: 'Distribución por edad, género, previsión y centros',
         description: 'Perfil de la población atendida en la red asistencial de Melipilla.',
-        action: () => {
-          setActiveTab('resumen');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('resumen', null, 'seccion-analisis-sociodemografico')
       },
       {
         id: 'mapa',
@@ -286,10 +281,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-teal-600 bg-teal-100 dark:bg-teal-950/50 border-teal-300 dark:border-teal-800',
         liveKPI: 'Mapa de densidad y afluencia por zonas',
         description: 'Geolocalización y procedencia de usuarios por cuadrantes territoriales.',
-        action: () => {
-          setActiveTab('resumen');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('resumen', null, 'seccion-analisis-sociodemografico')
       },
       {
         id: 'comparativo',
@@ -304,10 +296,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-sky-600 bg-sky-100 dark:bg-sky-950/50 border-sky-300 dark:border-sky-800',
         liveKPI: 'Comparativa de carga y velocidad entre equipos',
         description: 'Evaluación del desempeño asistencial entre equipos rotativos.',
-        action: () => {
-          setActiveTab('comparativo');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('comparativo')
       },
       {
         id: 'calendario',
@@ -321,10 +310,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-blue-600 bg-blue-100 dark:bg-blue-950/50 border-blue-300 dark:border-blue-800',
         liveKPI: 'Calendario consolidado día a día',
         description: 'Inspección histórica de métricas por día y mes calendario.',
-        action: () => {
-          setActiveTab('calendario');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('calendario')
       },
       {
         id: 'profesionales',
@@ -340,10 +326,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-amber-600 bg-amber-100 dark:bg-amber-950/50 border-amber-300 dark:border-amber-800',
         liveKPI: 'Auditoría de atenciones médicas y ranking',
         description: 'Evaluación de médicos, pacientes por hora y prescripción.',
-        action: () => {
-          setActiveTab('profesionales');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('profesionales')
       },
       {
         id: 'enfermeria',
@@ -358,11 +341,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: 'Velocidad de categorización y triaje',
         description: 'Tiempos de triaje y productividad por enfermero(a).',
-        action: () => {
-          setActiveTab('enfermeria');
-          if (setSubTabEspecifico) setSubTabEspecifico('enfermeria');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('enfermeria', 'enfermeria')
       },
       {
         id: 'reportes',
@@ -376,10 +355,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800',
         liveKPI: 'Generador de informes directivos y balance de turno',
         description: 'Resumen consolidado listo para exportación formal e impresión.',
-        action: () => {
-          setActiveTab('reportes');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('reportes')
       },
       {
         id: 'pauta',
@@ -393,10 +369,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-sky-600 bg-sky-100 dark:bg-sky-950/50 border-sky-300 dark:border-sky-800',
         liveKPI: 'Cuadrante mensual y asignación de equipos',
         description: 'Planificación de turnos de médicos y enfermería.',
-        action: () => {
-          setActiveTab('pauta');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('pauta')
       },
       {
         id: 'data',
@@ -410,10 +383,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-teal-600 bg-teal-100 dark:bg-teal-950/50 border-teal-300 dark:border-teal-800',
         liveKPI: `${(pacientesFiltrados.length + turnosFiltrados.length).toLocaleString()} registros activos`,
         description: 'Carga de archivos Excel, purgado y recálculo masivo.',
-        action: () => {
-          setActiveTab('data');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('data')
       },
       {
         id: 'usuarios',
@@ -427,10 +397,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: 'Control granular de módulos y credenciales',
         description: 'Administración de cuentas, perfiles y permisos por módulo.',
-        action: () => {
-          setActiveTab('usuarios');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('usuarios')
       },
       {
         id: 'auditoria',
@@ -444,10 +411,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-indigo-600 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: 'Historial inmutable de operaciones del sistema',
         description: 'Registro de acciones administrativas, altas y modificaciones.',
-        action: () => {
-          setActiveTab('auditoria');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('auditoria')
       },
       {
         id: 'arquitectura',
@@ -462,10 +426,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-indigo-500 bg-indigo-100 dark:bg-indigo-950/50 border-indigo-300 dark:border-indigo-800',
         liveKPI: 'Consolidado maestro y versiones del sistema',
         description: 'Documentación técnica de evolución y catálogo de fórmulas.',
-        action: () => {
-          setActiveTab('arquitectura');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('arquitectura')
       },
       {
         id: 'devlog',
@@ -479,10 +440,7 @@ export default function BarraBusquedaGlobal({
         color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800',
         liveKPI: 'Consola técnica en tiempo real',
         description: 'Registro de eventos internos y telemetría de depuración.',
-        action: () => {
-          setActiveTab('devlog');
-          setIsModalOpen(false);
-        }
+        action: () => navigateAndScroll('devlog')
       }
     ];
   }, [statsKPI, pacientesFiltrados, turnosFiltrados, promediosGlobales, setActiveTab, setSubTabEspecifico]);
