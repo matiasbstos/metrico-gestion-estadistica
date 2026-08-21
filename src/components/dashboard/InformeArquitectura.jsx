@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.2.2',
+    version_tag: 'v5.2.2',
+    fecha_despliegue: '21 de Agosto, 2026',
+    proposito_actualizacion: 'Resolución de Error Crítico en Análisis Específicos (ReferenceError: pautasDB) y Cuadre de Filtros.',
+    medios_y_stack: [
+      'React 18.3 (Dashboard.jsx, AnalisisAltasDetail.jsx, CalendarioHistorico.jsx)',
+      'usePautasTurnos Hook & Prop Injection Segura',
+      'Auto-Detección Inteligente del Último Turno Completo'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Se corrigió el error crítico (ReferenceError: pautasDB is not defined) en Dashboard.jsx donde AnalisisAltasDetail y CalendarioHistorico recibían una variable inexistente en lugar de pautasTurnosHook?.pautasDB, restaurando el funcionamiento inmediato de todos los submódulos de Análisis Específicos. 2) Se verificó la auto-detección del último turno clínico completo al ingresar a la plataforma, asegurando que todos los filtros de fecha, hora y presets se inicialicen de forma homogénea y reactiva en todos los apartados.',
+      firestore_collections: ['pacientes_urgencia', 'turnos', 'pautas_turnos'],
+      query_optimization: 'Paso seguro de props sin crashing en la jerarquía de React.'
+    },
+    modulos_afectados: ['Dashboard.jsx', 'AnalisisAltasDetail.jsx', 'CalendarioHistorico.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Corrección de prop pautasDB={pautasTurnosHook?.pautasDB} en AnalisisAltasDetail y CalendarioHistorico.',
+      'Mantenimiento de la reactividad del filtro global sobre los 6 submódulos específicos.',
+      'Preservación de la regla de auto-selección del último turno completo cerrado.'
+    ]
+  },
+  {
     id: 'v5.2.1',
     version_tag: 'v5.2.1',
     fecha_despliegue: '21 de Agosto, 2026',

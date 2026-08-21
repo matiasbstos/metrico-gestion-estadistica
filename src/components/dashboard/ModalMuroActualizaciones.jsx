@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.2.2',
+      version: 'v5.2.2',
+      fecha: '21 de Agosto, 2026',
+      badge: 'CORRECCIÓN CRÍTICA & ESTABILIDAD',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Corrección de Análisis Específicos & Auto-Selección de Turno',
+      categoria: 'Módulos & Filtrado',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se corrigió la referencia de pautas de turno que provocaba el bloqueo por ErrorBoundary al abrir Análisis Específicos o Calendario, permitiendo que todos los submódulos (Demanda, Altas, Fracturas, Enfermería, Constataciones y Traslados) se rellenen y sincronicen fluidamente con el último turno clínico completo cargado en los datos.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que todos los análisis específicos se abran y calculen de inmediato sin bloqueos ni errores.',
+        quePuedesVer: 'Navegación instantánea entre Demanda, Altas, Fracturas, Enfermería, Constataciones y Traslados con los datos del período seleccionado.',
+        ejemploUso: 'Haz clic en cualquier opción de "Análisis Específicos" en la barra lateral o en las pestañas superiores para ver el desglose en tiempo real.'
+      },
+      changes: [
+        'Corrección de ReferenceError: Inyección segura del hook de pautas en todos los componentes.',
+        'Sincronización de Filtros: Auto-detección del último turno clínico completo y propagación a todas las vistas.',
+        'Estabilidad Total: Desbloqueo de todos los submódulos asistenciales y epidemiológicos.'
+      ]
+    },
+    {
       id: 'v5.2.1',
       version: 'v5.2.1',
       fecha: '21 de Agosto, 2026',

@@ -2048,7 +2048,7 @@ const DashboardContent = () => {
         )}
 
         {activeTab === 'calendario' && (
-          <CalendarioHistorico pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB} turnosDB={turnosDB} />
+          <CalendarioHistorico pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB} turnosDB={turnosDB} pautasDB={pautasTurnosHook?.pautasDB} />
         )}
 
         {activeTab === 'profesionales' && (
@@ -2160,7 +2160,7 @@ const DashboardContent = () => {
                 filtroFechaInicioB={filtroFechaInicioB}
                 filtroFechaFinB={filtroFechaFinB}
                 pacientesFiltrados={pacientesFiltrados}
-                pautasDB={pautasDB}
+                pautasDB={pautasTurnosHook?.pautasDB}
               />
             )}
 
