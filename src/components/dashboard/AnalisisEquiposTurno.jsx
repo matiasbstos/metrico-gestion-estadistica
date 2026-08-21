@@ -12,11 +12,13 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
 
     // 1. Mapear directamente la totalidad de pacientes admitidos
     (pacientesFiltrados || []).forEach(p => {
-      if (!p.tAdmision) return;
+      if (!p || !p.tAdmision) return;
       const det = obtenerTurnoDetallado(p.tAdmision, pautasDB);
-      if (!det || !det.fechaTurno) return;
+      if (!det || !det.fechaTurno || typeof det.fechaTurno !== 'string') return;
       
-      const [d, m, y] = det.fechaTurno.split('/');
+      const parts = det.fechaTurno.split('/');
+      if (parts.length < 3) return;
+      const [d, m, y] = parts;
       const fechaInicio = `${y}-${m}-${d}`;
       
       const eq = resolverEquipoTurno(fechaInicio, det.horario, pautasDB, p.equipo || p.equipoTurno);
@@ -51,6 +53,7 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
 
     // 2. Sumar horas de cobertura trabajadas por cada equipo
     (turnosFiltrados || []).forEach(t => {
+      if (!t) return;
       const eq = resolverEquipoTurno(t.fechaInicio, t.horario, pautasDB, t.equipoTurno);
       if (equipos[eq]) {
         equipos[eq].totalHoras += String(t.horario || '').includes('17:00') ? 15 : 12;
@@ -64,7 +67,11 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
       const pacHora = e.totalHoras > 0 ? Number((e.totalPacientes / e.totalHoras).toFixed(1)) : (e.totalPacientes > 0 ? Number((e.totalPacientes / 12).toFixed(1)) : 0);
 
       return {
-        ...e, pctAltas, promEspera, promTotal, pacHora
+        ...e,
+        pctAltas,
+        promEspera,
+        promTotal,
+        pacHora
       };
     });
   }, [turnosFiltrados, pacientesFiltrados, pautasDB]);
@@ -167,7 +174,7 @@ export default function AnalisisEquiposTurno({ turnosFiltrados, pacientesFiltrad
             </div>
           </div>
           <p className="text-[10px] text-secondary-custom font-semibold mt-2">
-            El {shiftRecord ? shiftRecord.fechaInicio.split('-').reverse().join('/') : '-'} {shiftRecord ? `(${String(shiftRecord.horario).includes('Noche') ? 'Noche' : 'Día'})` : ''}.
+            El {shiftRecord && shiftRecord.fechaInicio && typeof shiftRecord.fechaInicio === 'string' ? shiftRecord.fechaInicio.split('-').reverse().join('/') : '-'} {shiftRecord ? `(${String(shiftRecord.horario || '').includes('Noche') ? 'Noche' : 'Día'})` : ''}.
           </p>
         </div>
 

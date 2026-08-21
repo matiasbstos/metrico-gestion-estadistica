@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.2.3',
+    version_tag: 'v5.2.3',
+    fecha_despliegue: '21 de Agosto, 2026',
+    proposito_actualizacion: 'Blindaje de Funciones de Fechas & Resolución de TypeError (e.split is not a function).',
+    medios_y_stack: [
+      'React 18.3 (useMetricoAnalytics.js, AnalisisEquiposTurno.jsx, helpers.js)',
+      'Type-Safe String Parsing & Date Validation',
+      'Defensive Analytics Computation'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Se blindaron todas las operaciones de desglose de fechas (.split) en useMetricoAnalytics.js, AnalisisEquiposTurno.jsx y helpers.js (resolverEquipoTurno), asegurando que cualquier valor nulo, no definido o numérico sea validado antes del split, resolviendo definitivamente el TypeError: e.split is not a function. 2) Se garantiza el cálculo fluido de métricas anuales YTD, récords por turno y comparativas de equipos bajo cualquier combinación de filtros.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Manejo defensivo de tipos de datos en la capa analítica.'
+    },
+    modulos_afectados: ['useMetricoAnalytics.js', 'AnalisisEquiposTurno.jsx', 'helpers.js', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Validaciones typeof === "string" y fallback seguro String(val || "") antes de split.',
+      'Protección en bucles forEach y reducción de récords de turnos.',
+      'Prevención de excepciones no controladas en el ciclo de vida de React.'
+    ]
+  },
+  {
     id: 'v5.2.2',
     version_tag: 'v5.2.2',
     fecha_despliegue: '21 de Agosto, 2026',

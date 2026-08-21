@@ -516,9 +516,9 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
 
     // Crear conjunto de fechas que son fin de semana o festivos
     const weekendDates = new Set();
-    turnosDB.forEach(t => {
-      if (t.horario && t.horario.includes('Fin de semana') && t.fechaInicio) {
-        const parts = t.fechaInicio.split('-');
+    (turnosDB || []).forEach(t => {
+      if (t && t.horario && typeof t.horario === 'string' && t.horario.includes('Fin de semana') && t.fechaInicio) {
+        const parts = String(t.fechaInicio).split('-');
         if (parts.length === 3) {
           weekendDates.add(`${parts[2]}/${parts[1]}/${parts[0]}`);
         }
@@ -526,10 +526,12 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     });
 
     const isWeekendOrFestivo = (dateStr) => {
+      if (!dateStr || typeof dateStr !== 'string') return false;
       if (weekendDates.has(dateStr)) return true;
       const parts = dateStr.split('/');
       if (parts.length === 3) {
         const d = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+        if (isNaN(d.getTime())) return false;
         const day = d.getDay();
         return day === 0 || day === 6;
       }
@@ -539,9 +541,9 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     // Calcular récords diarios del año (YTD) a partir de turnosDB
     const pacsByDate = {};
     const altasByDate = {};
-    ytdTurnos.forEach(t => {
-      if (t.fechaInicio) {
-        const parts = t.fechaInicio.split('-');
+    (ytdTurnos || []).forEach(t => {
+      if (t && t.fechaInicio) {
+        const parts = String(t.fechaInicio).split('-');
         if (parts.length === 3) {
           const dateStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
           pacsByDate[dateStr] = (pacsByDate[dateStr] || 0) + (t.totalPacientes || 0);

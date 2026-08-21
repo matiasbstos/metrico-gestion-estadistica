@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.2.3',
+      version: 'v5.2.3',
+      fecha: '21 de Agosto, 2026',
+      badge: 'ESTABILIDAD & TIPADO',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Blindaje de Funciones de Fechas & Protección Analítica',
+      categoria: 'Estabilidad & Calidad',
+      icon: CheckCircle,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se reforzó el procesamiento analítico y cálculo de récords anuales, blindando todas las funciones de descomposición de fechas (.split) contra valores nulos o no textuales, evitando el fallo TypeError e.split y garantizando una experiencia 100% libre de bloqueos.',
+      instructivo: {
+        paraQueSirve: 'Garantiza la estabilidad total de la analítica de turnos y métricas anuales ante cualquier combinación de fechas o datos cargados.',
+        quePuedesVer: 'Métricas instantáneas de récords de turnos, comparativas de equipos y KPIs anuales sin interrupciones.',
+        ejemploUso: 'Filtra libremente por cualquier rango o abre la vista de turnos; los cálculos se realizarán de manera instantánea y robusta.'
+      },
+      changes: [
+        'Blindaje de Fechas: Conversión segura String(...) antes de operaciones split.',
+        'Prevención de TypeError: Verificación exhaustiva en bucles de cálculo YTD y récords.',
+        'Protección en Comparativa de Equipos y Calendario Histórico.'
+      ]
+    },
+    {
       id: 'v5.2.2',
       version: 'v5.2.2',
       fecha: '21 de Agosto, 2026',

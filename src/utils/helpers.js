@@ -159,7 +159,7 @@ export const resolverEquipoTurno = (fechaStr, horarioStr, pautasDB, equipoExplic
   }
 
   // 3. Prioridad 3: Algoritmo Determinista Rotativo Oficial de Respaldo (Ciclo de 3 Turnos)
-  if (fechaStr) {
+  if (fechaStr && typeof fechaStr === 'string') {
     const parts = fechaStr.split('-').map(Number);
     if (parts.length === 3) {
       const [y, m, d] = parts;
