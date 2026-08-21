@@ -551,9 +551,9 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
             <Users className="w-4 h-4 text-sky-500" />
             Categorizaciones Realizadas por Profesional (Top 10 Enfermeros)
           </h3>
-          <div className="h-64">
+          <div className="h-64 min-h-[16rem]">
             {chartCategoriasEnfermero.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <BarChart data={chartCategoriasEnfermero} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
                   <XAxis dataKey="nombre" tick={{ fill: 'var(--text-secondary)', fontSize: 9 }} axisLine={false} tickLine={false} />
@@ -614,9 +614,9 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
           <Clock className="w-4 h-4 text-sky-500" />
           Tiempos Promedio de Categorización y Re-evaluación por Enfermero (Top 10 Funcionarios)
         </h3>
-        <div className="h-72">
+        <div className="h-72 min-h-[18rem]">
           {chartTiemposEnfermero.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <BarChart data={chartTiemposEnfermero} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
                 <XAxis dataKey="nombre" tick={{ fill: 'var(--text-secondary)', fontSize: 9 }} axisLine={false} tickLine={false} />

@@ -82,7 +82,7 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
           const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', u.uid);
           const now = Date.now();
 
-          runWithTimeout(getDoc(userRef), 3000).then((userSnap) => {
+          runWithTimeout(getDoc(userRef), 8000).then((userSnap) => {
             if (userSnap && userSnap.exists()) {
               const data = userSnap.data();
               let cleanRol = (data.rol || 'local').replace(/['"]/g, '').trim().toLowerCase();
@@ -103,8 +103,8 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
               setDoc(userRef, newProfile).catch(() => {});
               setUserProfile(newProfile);
             }
-          }).catch((err) => {
-            console.warn('Background profile fetch skipped/fallback:', err);
+          }).catch(() => {
+            // Manejo silencioso: el perfil base ya está activo
           });
         }
       } else {

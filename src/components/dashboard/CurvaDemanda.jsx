@@ -142,9 +142,9 @@ export default function CurvaDemanda({
       </div>
 
       {/* Gráfico */}
-      <div className="h-[300px] w-full mt-2">
+      <div className="h-[300px] w-full mt-2 min-h-[300px]">
         {peakHoursData.some(d => d.atenciones > 0 || (modoComparativo && d.periodoB > 0)) ? (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
             <ComposedChart data={peakHoursData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorDemanda" x1="0" y1="0" x2="0" y2="1">

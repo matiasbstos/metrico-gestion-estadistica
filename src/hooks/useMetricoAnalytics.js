@@ -505,15 +505,6 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
 
     const ytdTurnos = turnosDB.filter(t => t.fechaInicio && t.fechaInicio >= yearStartStr && t.fechaInicio <= fEndStr);
 
-    console.log("DEBUG_YTD:", {
-      turnosDB_len: turnosDB.length,
-      yearStartStr,
-      fEndStr,
-      ytdTurnos_len: ytdTurnos.length,
-      ytdPacientes_sum: ytdTurnos.reduce((acc, t) => acc + (t.totalPacientes || 0), 0),
-      turnosDB_sample: turnosDB.slice(0, 5)
-    });
-
     const yearLoadedPacs = pacientesDB.filter(p => p.tAdmision && isPatientInWindow(p.tAdmision, yearStartStr, fEndStr, '00:00', '23:59'));
     const ytdPacientes = yearLoadedPacs.length > 0 ? yearLoadedPacs.length : ytdTurnos.reduce((acc, t) => acc + (t.totalPacientes || 0), 0);
     const ytdAltas = yearLoadedPacs.length > 0 ? yearLoadedPacs.filter(isAltaAdmin).length : ytdTurnos.reduce((acc, t) => acc + (t.altasAdmin || 0), 0);

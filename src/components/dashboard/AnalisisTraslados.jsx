@@ -982,9 +982,9 @@ export default function AnalisisTraslados({
           </div>
         </div>
 
-        <div className="h-64 w-full">
+        <div className="h-64 w-full min-h-[16rem]">
           {localModoComparativo && compareDailyData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <ComposedChart data={compareDailyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-card-custom)" />
                 <XAxis dataKey="dayIndex" tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 'bold' }} stroke="var(--border-card-custom)" />
@@ -1006,7 +1006,7 @@ export default function AnalisisTraslados({
               </ComposedChart>
             </ResponsiveContainer>
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <AreaChart data={dailyDataA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorTraslados" x1="0" y1="0" x2="0" y2="1">
@@ -1046,8 +1046,8 @@ export default function AnalisisTraslados({
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="lg:col-span-2 h-64 w-full min-h-[16rem]">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <BarChart data={edadData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-card-custom)" />
                 <XAxis dataKey="range" tick={{ fill: 'var(--text-secondary)', fontSize: 10, fontWeight: 'bold' }} stroke="var(--border-card-custom)" />

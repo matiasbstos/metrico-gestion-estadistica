@@ -93,9 +93,12 @@ function EncasillamientoInfoBadge({ horarioPreset }) {
   );
 }
 
-function ChileanDatePicker({ value, onChange, className = '', onClick }) {
+function ChileanDatePicker({ id = 'filtro-fecha', name = 'fecha', value, onChange, className = '', onClick, ariaLabel = 'Seleccionar fecha' }) {
   return (
     <input 
+      id={id}
+      name={name}
+      aria-label={ariaLabel}
       type="date" 
       value={value || ''} 
       onChange={onChange} 
@@ -253,6 +256,9 @@ export default function FiltrosGlobales({
             <div className="flex items-center bg-card-custom border border-card-custom rounded-xl p-1.5 shadow-sm gap-2 theme-transition">
               <Calendar className="w-4 h-4 text-secondary-custom mx-1 shrink-0" />
               <ChileanDatePicker 
+                id="filtro-fecha-inicio"
+                name="filtroFechaInicio"
+                ariaLabel="Fecha de inicio del filtro"
                 value={filtroFechaInicio}
                 onClick={() => setShowSuggestionsPopover(true)}
                 onChange={e => {
@@ -265,6 +271,9 @@ export default function FiltrosGlobales({
                 }}
               />
               <input 
+                id="filtro-hora-inicio"
+                name="filtroHoraInicio"
+                aria-label="Hora de inicio del filtro"
                 type="time" 
                 value={filtroHoraInicio} 
                 onFocus={() => setShowSuggestionsPopover(true)}
@@ -278,6 +287,9 @@ export default function FiltrosGlobales({
               />
               <span className="text-secondary-custom font-bold text-xs">-</span>
               <ChileanDatePicker 
+                id="filtro-fecha-fin"
+                name="filtroFechaFin"
+                ariaLabel="Fecha de fin del filtro"
                 value={filtroFechaFin} 
                 onClick={() => setShowSuggestionsPopover(true)}
                 onChange={e => {
@@ -290,6 +302,9 @@ export default function FiltrosGlobales({
                 }}
               />
               <input 
+                id="filtro-hora-fin"
+                name="filtroHoraFin"
+                aria-label="Hora de fin del filtro"
                 type="time" 
                 value={filtroHoraFin} 
                 onFocus={() => setShowSuggestionsPopover(true)}
@@ -329,6 +344,9 @@ export default function FiltrosGlobales({
               <button onClick={() => handlePreset('mes')} className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${activePreset === 'mes' ? 'accent-bg-custom text-white font-bold shadow-sm' : 'font-medium text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>Mes</button>
               <div className="border-l border-card-custom/50 h-4 mx-1"></div>
               <select 
+                id="select-campana-preset"
+                name="selectCampana"
+                aria-label="Preset de campaña epidemiológica"
                 value={activePreset && activePreset.startsWith('invierno') ? activePreset : ''} 
                 onChange={e => {
                   if (e.target.value) {
@@ -347,6 +365,9 @@ export default function FiltrosGlobales({
             <div className="flex items-center gap-1.5 bg-card-custom border border-card-custom rounded-xl px-2.5 py-1.5 shadow-sm theme-transition">
               <span className="text-[10px] font-bold text-secondary-custom opacity-80 uppercase tracking-wider">Horario:</span>
               <select 
+                id="select-horario-preset"
+                name="selectHorarioPreset"
+                aria-label="Preset de horario operativo"
                 value={horarioPreset} 
                 onChange={e => handleHorarioPreset(e.target.value)} 
                 className="text-xs font-bold accent-text-custom bg-transparent outline-none cursor-pointer border-none p-0 focus:ring-0 [&>option]:bg-slate-800 [&>option]:text-slate-100"

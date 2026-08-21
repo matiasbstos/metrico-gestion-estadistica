@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.2.1',
+    version_tag: 'v5.2.1',
+    fecha_despliegue: '21 de Agosto, 2026',
+    proposito_actualizacion: 'Depuración Integral de Advertencias de Consola & Robustecimiento de Gráficos Recharts.',
+    medios_y_stack: [
+      'React 18.3 (GraficoDinamico.jsx, CurvaDemanda.jsx, AnalisisFracturas.jsx, AnalisisEnfermeria.jsx, AnalisisTraslados.jsx)',
+      'Recharts ResponsiveContainer (minWidth/minHeight Control)',
+      'Limpieza de Logs de Depuración & Estándares W3C en Formularios'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Se solucionó la advertencia de dimensiones de Recharts (width/height -1) agregando minWidth={0}, minHeight={0} y alturas mínimas explícitas en todos los contenedores de gráficos (GraficoDinamico, CurvaDemanda, Fracturas, Enfermería y Traslados). 2) Se eliminaron los registros de depuración repetitivos (DEBUG_YTD) en useMetricoAnalytics.js y se silenció el fallback en segundo plano de useMetricoData.js. 3) Se agregaron identificadores y etiquetas de accesibilidad (id, name, aria-label) a todos los controles de fecha, hora y presets en FiltrosGlobales.jsx, resolviendo todas las observaciones del panel del desarrollador.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Cero ruido en consola y renderizado de gráficos sin saltos dimensionales.'
+    },
+    modulos_afectados: ['GraficoDinamico.jsx', 'CurvaDemanda.jsx', 'FiltrosGlobales.jsx', 'useMetricoAnalytics.js', 'useMetricoData.js', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Asignación de minWidth={0} y minHeight={0} a todos los ResponsiveContainers de la plataforma.',
+      'Eliminación de console.log y console.warn en flujos analíticos y de autenticación.',
+      'Adición de id, name y aria-label en selectores de FiltrosGlobales.jsx.'
+    ]
+  },
+  {
     id: 'v5.2.0',
     version_tag: 'v5.2.0',
     fecha_despliegue: '21 de Agosto, 2026',

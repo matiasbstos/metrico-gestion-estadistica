@@ -354,8 +354,8 @@ export default function GraficoDinamico({
             <p className="text-xs font-black uppercase tracking-wider">Cargando y analizando datos...</p>
           </div>
         ) : modoComparativo ? (
-          <div className="h-80 w-full animate-fade-in">
-             <ResponsiveContainer width="100%" height={300}>
+          <div className="h-80 w-full animate-fade-in min-h-[300px]">
+             <ResponsiveContainer width="100%" height={300} minWidth={0} minHeight={0}>
               <BarChart data={compareChartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
                 <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)' }} />
@@ -404,7 +404,7 @@ export default function GraficoDinamico({
                         <p className="text-[10px] text-secondary-custom font-medium mb-3">Áreas apiladas para ver aportes individuales sin superposición molesta</p>
                         
                         <div className="flex-1 min-h-[280px] w-full">
-                          <ResponsiveContainer width="100%" height={280}>
+                          <ResponsiveContainer width="100%" height={280} minWidth={0} minHeight={0}>
                             <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                               <defs>
                                 <linearGradient id="colorVolumen" x1="0" y1="0" x2="0" y2="1">
@@ -517,7 +517,7 @@ export default function GraficoDinamico({
                         </button>
                       </div>
                       <div className="flex-1 min-h-[300px] w-full">
-                        <ResponsiveContainer width="100%" height={300}>
+                        <ResponsiveContainer width="100%" height={300} minWidth={0} minHeight={0}>
                           <LineChart data={tiemposGranularity === 'hora' ? hourlyTimesData : chartData} margin={{ top: 5, right: 20, left: -20, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
                             <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} tickMargin={10} tick={{ fill: 'var(--text-secondary)' }} />
@@ -541,7 +541,7 @@ export default function GraficoDinamico({
                     <div className="h-full bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom flex flex-col justify-between">
                        <h3 className="text-xs font-bold text-primary-custom mb-4 uppercase tracking-wider">Distribución por Sexo</h3>
                        <div className="w-full flex-1">
-                         <ResponsiveContainer width="100%" height={300}>
+                         <ResponsiveContainer width="100%" height={300} minWidth={0} minHeight={0}>
                             <PieChart>
                             <Pie data={demographicData.sexo} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2} dataKey="value" label={({percent}) => `${(percent * 100).toFixed(0)}%`}>
                               {demographicData.sexo.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
@@ -563,7 +563,7 @@ export default function GraficoDinamico({
                         </button>
                       </div>
                       <div className="w-full flex-1">
-                        <ResponsiveContainer width="100%" height={300}>
+                        <ResponsiveContainer width="100%" height={300} minWidth={0} minHeight={0}>
                           <BarChart data={demographicData.edades} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
                             <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} tickMargin={10} angle={-45} textAnchor="end" height={60} tick={{ fill: 'var(--text-secondary)' }} />
@@ -585,7 +585,7 @@ export default function GraficoDinamico({
                          {activeTab === 'prevision' ? 'Distribución de Previsión' : 'Distribución por Nacionalidad'}
                        </h3>
                        <div className="flex-1 min-h-[300px] w-full">
-                         <ResponsiveContainer width="100%" height={300}>
+                         <ResponsiveContainer width="100%" height={300} minWidth={0} minHeight={0}>
                             <PieChart>
                               <Pie 
                                 data={activeTab === 'prevision' ? demographicData.prevs : demographicData.origen} 
@@ -615,7 +615,7 @@ export default function GraficoDinamico({
                        </div>
                        <div className="flex-1 min-h-[300px] overflow-y-auto custom-scrollbar pr-2 w-full">
                          {activeTab === 'prevision' ? (
-                           <ResponsiveContainer width="100%" height={300}>
+                           <ResponsiveContainer width="100%" height={300} minWidth={0} minHeight={0}>
                              <AreaChart data={chartData} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
                                <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} tickMargin={10} tick={{ fill: 'var(--text-secondary)' }} />
@@ -625,7 +625,7 @@ export default function GraficoDinamico({
                              </AreaChart>
                            </ResponsiveContainer>
                          ) : (
-                           <ResponsiveContainer width="100%" height={300}>
+                           <ResponsiveContainer width="100%" height={300} minWidth={0} minHeight={0}>
                              <BarChart data={demographicData.centros} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(0,0,0,0.05)" />
                                <XAxis type="number" fontSize={10} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)' }} />
@@ -685,7 +685,7 @@ export default function GraficoDinamico({
               
               {/* TAB 1: OPERACIONAL (EXPANDIDO) */}
               {activeTab === 'operacional' && (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <ComposedChart data={chartData} margin={{ top: 25, right: 30, left: 0, bottom: 20 }}>
                     <defs>
                       <linearGradient id="colorVolumenExpanded" x1="0" y1="0" x2="0" y2="1">
@@ -719,7 +719,7 @@ export default function GraficoDinamico({
 
               {/* TAB 2: TIEMPOS DE ATENCIÓN (EXPANDIDO) */}
               {activeTab === 'tiempos' && (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <LineChart data={tiemposGranularity === 'hora' ? hourlyTimesData : chartData} margin={{ top: 25, right: 30, left: 0, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.25)" />
                     <XAxis dataKey="name" fontSize={11} axisLine={false} tickLine={false} tickMargin={10} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
@@ -740,7 +740,7 @@ export default function GraficoDinamico({
                   <div className="h-full bg-card-custom p-4 rounded-2xl border border-card-custom flex flex-col justify-between">
                     <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider mb-2">Distribución por Sexo</h4>
                     <div className="w-full flex-1">
-                      <ResponsiveContainer width="100%" height="100%">
+                      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                         <PieChart>
                           <Pie data={demographicData.sexo} cx="50%" cy="50%" innerRadius={60} outerRadius={95} paddingAngle={3} dataKey="value" label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}>
                             {demographicData.sexo.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
@@ -754,7 +754,7 @@ export default function GraficoDinamico({
                   <div className="lg:col-span-2 h-full bg-card-custom p-4 rounded-2xl border border-card-custom flex flex-col">
                     <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider mb-2">Distribución por Grupos Etarios</h4>
                     <div className="w-full flex-1">
-                      <ResponsiveContainer width="100%" height="100%">
+                      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                         <BarChart data={demographicData.edades} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.25)" />
                           <XAxis dataKey="name" fontSize={11} axisLine={false} tickLine={false} tickMargin={10} angle={-35} textAnchor="end" height={50} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
@@ -778,7 +778,7 @@ export default function GraficoDinamico({
                       {activeTab === 'prevision' ? 'Distribución de Previsión' : 'Distribución por Nacionalidad'}
                     </h4>
                     <div className="w-full flex-1">
-                      <ResponsiveContainer width="100%" height="100%">
+                      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                         <PieChart>
                           <Pie 
                             data={activeTab === 'prevision' ? demographicData.prevs : demographicData.origen} 
@@ -801,7 +801,7 @@ export default function GraficoDinamico({
                     </h4>
                     <div className="w-full flex-1">
                       {activeTab === 'prevision' ? (
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                           <AreaChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.25)" />
                             <XAxis dataKey="name" fontSize={11} axisLine={false} tickLine={false} tickMargin={10} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
@@ -811,7 +811,7 @@ export default function GraficoDinamico({
                           </AreaChart>
                         </ResponsiveContainer>
                       ) : (
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                           <BarChart data={demographicData.centros} layout="vertical" margin={{ top: 10, right: 40, left: 10, bottom: 10 }}>
                             <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(148, 163, 184, 0.15)" />
                             <XAxis type="number" fontSize={11} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />

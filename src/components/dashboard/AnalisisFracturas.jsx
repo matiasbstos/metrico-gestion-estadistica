@@ -1262,8 +1262,8 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
               <Users className="w-4 h-4 text-sky-500" />
               Incidencia de Fracturas por Rango Etario y Sexo
             </h3>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-64 min-h-[16rem]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <BarChart data={dataGraficoEdad} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
                   <XAxis dataKey="rango" tick={{ fill: 'var(--text-secondary)', fontSize: 10 }} axisLine={false} tickLine={false} />
@@ -1285,8 +1285,8 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
               <Hospital className="w-4 h-4 text-rose-500" />
               Destino de Alta (Hospital / Domicilio / Otros)
             </h3>
-            <div className="h-52 my-auto">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-52 my-auto min-h-[13rem]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <PieChart>
                   <Pie
                     data={dataGraficoDestino}

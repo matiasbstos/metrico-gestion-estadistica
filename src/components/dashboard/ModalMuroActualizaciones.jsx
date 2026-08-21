@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.2.1',
+      version: 'v5.2.1',
+      fecha: '21 de Agosto, 2026',
+      badge: 'ESTABILIDAD & DEPURACIÓN',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Depuración Integral de Consola & Robustecimiento de Gráficos',
+      categoria: 'Estabilidad & Calidad',
+      icon: CheckCircle,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se limpiaron todas las advertencias del apartado de desarrollo: se eliminaron los logs repetitivos de depuración, se estabilizaron las dimensiones de renderizado en los gráficos Recharts (evitando alertas de tamaño) y se completaron los estándares W3C en todos los controles y filtros de la plataforma.',
+      instructivo: {
+        paraQueSirve: 'Mantiene una consola limpia de desarrollo, libre de advertencias y optimiza la estabilidad del renderizado de gráficos.',
+        quePuedesVer: 'Gráficos fluidos que cargan sin advertencias de dimensiones y formularios con soporte de accesibilidad total.',
+        ejemploUso: 'Navega por cualquier gráfico o filtro; la consola del navegador permanecerá 100% limpia y sin alertas.'
+      },
+      changes: [
+        'Gráficos Recharts: Eliminación de advertencias de dimensión width/height con minWidth={0} y minHeight={0}.',
+        'Consola Limpia: Eliminación de logs DEBUG_YTD y supresión de fallbacks ruidosos.',
+        'Accesibilidad W3C: Atributos id, name y aria-label añadidos a todos los selectores y pickers de filtros.'
+      ]
+    },
+    {
       id: 'v5.2.0',
       version: 'v5.2.0',
       fecha: '21 de Agosto, 2026',
