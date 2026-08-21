@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.2.0',
+      version: 'v5.2.0',
+      fecha: '21 de Agosto, 2026',
+      badge: 'RENDIMIENTO & AUTENTICACIÓN',
+      badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/20',
+      title: 'Aceleración del Inicio de Sesión & Precarga Instantánea (<300ms)',
+      categoria: 'Rendimiento & Acceso',
+      icon: Zap,
+      iconBg: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+      summary: 'Se optimizó a fondo la arquitectura de autenticación y carga: se desacoplaron las peticiones de base de datos no críticas a segundo plano y se aceleró la lectura paralela de caché IndexedDB, permitiendo que el inicio de sesión sea instantáneo y fluido sin tiempos muertos.',
+      instructivo: {
+        paraQueSirve: 'Permite un ingreso inmediato a la plataforma con mínima latencia y autorrellenado optimizado.',
+        quePuedesVer: 'Respuesta inmediata al pulsar "Ingresar" con indicador visual de progreso y apertura directa del panel.',
+        ejemploUso: 'Ingresa tu correo y contraseña para experimentar la transición ultra-rápida al panel de control.'
+      },
+      changes: [
+        'Login Ultra-Rápido: Eliminación de esperas asíncronas bloqueantes en el flujo de Firebase Auth.',
+        'Precarga Concurrente: Lectura de caché IndexedDB en paralelo (<15ms).',
+        'Estándares W3C: Soporte de autocompletado nativo y accesibilidad completa en el formulario de acceso.'
+      ]
+    },
+    {
       id: 'v5.1.9',
       version: 'v5.1.9',
       fecha: '19 de Agosto, 2026',

@@ -126,13 +126,17 @@ export default function Login() {
             </div>
           )}
 
-          <form onSubmit={handleAuth} className="space-y-4">
+          <form id="form-login-metrico" onSubmit={handleAuth} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1">Correo Corporativo</label>
+              <label htmlFor="login-email" className="block text-xs font-bold text-slate-500 mb-1">Correo Corporativo</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
                 <input 
+                  id="login-email"
+                  name="email"
                   type="email" 
+                  autoComplete="username"
+                  required
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 pl-10 pr-3 text-sm outline-none focus:border-sky-500 transition-colors"
                   placeholder="tu@correo.cl"
                   value={email}
@@ -142,11 +146,15 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1">Contraseña</label>
+              <label htmlFor="login-password" className="block text-xs font-bold text-slate-500 mb-1">Contraseña</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
                 <input 
+                  id="login-password"
+                  name="password"
                   type="password" 
+                  autoComplete="current-password"
+                  required
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 pl-10 pr-3 text-sm outline-none focus:border-sky-500 transition-colors"
                   placeholder="••••••••"
                   value={password}
@@ -158,12 +166,19 @@ export default function Login() {
             <button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-lg transition shadow-md flex justify-center items-center gap-2 disabled:opacity-70"
+              className="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-lg transition shadow-md flex justify-center items-center gap-2 disabled:opacity-70 cursor-pointer"
             >
               {loading ? (
-                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-              ) : isRegistering ? 'Registrarse' : 'Ingresar'}
-              {!loading && <ArrowRight className="w-4 h-4" />}
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  <span className="text-xs font-bold">{isRegistering ? 'Creando cuenta...' : 'Iniciando sesión...'}</span>
+                </>
+              ) : (
+                <>
+                  <span>{isRegistering ? 'Registrarse' : 'Ingresar'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </form>
 

@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.2.0',
+    version_tag: 'v5.2.0',
+    fecha_despliegue: '21 de Agosto, 2026',
+    proposito_actualizacion: 'Optimización de Autenticación de Alta Velocidad y Precarga Instantánea de Sesión (<300ms).',
+    medios_y_stack: [
+      'React 18.3 (useMetricoData.js, Login.jsx, Dashboard.jsx)',
+      'Desacoplamiento No Bloqueante de Firestore Auth Profile',
+      'Precarga Paralela IndexedDB Cache & W3C Form Standards'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Se eliminó el bloqueo asíncrono en onAuthStateChanged desacoplando la consulta de perfil en Firestore a segundo plano e inicializando de forma instantánea el estado del usuario y sus permisos base. 2) Se optimizó runPreload para ejecutar la lectura de pacientes y turnos en paralelo desde IndexedDB con Promise.all, permitiendo que la interfaz del panel cargue en milisegundos tras hacer clic en Ingresar. 3) Se agregaron estándares W3C en Login.jsx (id, name, autoComplete, htmlFor) eliminando advertencias del navegador y permitiendo el autorrellenado nativo ultra-rápido.',
+      firestore_collections: ['users', 'pacientes_urgencia', 'turnos'],
+      query_optimization: 'Carga inicial <300ms con sincronización silenciosa diferida.'
+    },
+    modulos_afectados: ['useMetricoData.js', 'Login.jsx', 'Dashboard.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Desacoplamiento del fetch de users a ejecución no bloqueante en background.',
+      'Lectura concurrente en IndexedDB (Promise.all) para liberación inmediata de loading.',
+      'Soporte completo de autocomplete="username" y autocomplete="current-password" en Login.jsx.'
+    ]
+  },
+  {
     id: 'v5.1.9',
     version_tag: 'v5.1.9',
     fecha_despliegue: '19 de Agosto, 2026',

@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db, appId } from '../config/firebase';
 import { savePacientesToIDB, loadPacientesFromIDB, saveTurnosToIDB, loadTurnosFromIDB } from '../utils/indexedDB';
 
-const runWithTimeout = (promise, ms = 5000) => {
+const runWithTimeout = (promise, ms = 3500) => {
   return Promise.race([
     promise,
     new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), ms))
@@ -44,45 +44,46 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
     return now.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   };
 
-  // 1. Manejo de autenticación
+  // 1. Manejo de autenticación Ultra-Rápido (no bloqueante)
   useEffect(() => {
-    if (auth) {
-      const unsubscribeAuth = onAuthStateChanged(auth, async (u) => {
-        if (u) {
-          // Verificación de expiración estricta de sesión (15 min de inactividad)
-          const lastActStr = localStorage.getItem('metrico_last_activity');
-          if (lastActStr) {
-            const elapsed = Date.now() - parseInt(lastActStr, 10);
-            if (elapsed >= 15 * 60 * 1000) {
-              // Sesión caducada por inactividad
-              try {
-                sessionStorage.clear();
-                localStorage.clear();
-              } catch (e) {}
-              localStorage.setItem('metrico_logout_reason', 'inactividad');
-              import('firebase/auth').then(({ signOut }) => {
-                signOut(auth).catch(() => {});
-              });
-              setUser(null);
-              setUserProfile(null);
-              setLoading(false);
-              return;
-            }
-          } else {
-            localStorage.setItem('metrico_last_activity', Date.now().toString());
+    if (!auth) return;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (u) => {
+      if (u) {
+        // Verificación de expiración estricta de sesión (15 min de inactividad)
+        const lastActStr = localStorage.getItem('metrico_last_activity');
+        if (lastActStr) {
+          const elapsed = Date.now() - parseInt(lastActStr, 10);
+          if (elapsed >= 15 * 60 * 1000) {
+            try {
+              sessionStorage.clear();
+              localStorage.clear();
+            } catch (e) {}
+            localStorage.setItem('metrico_logout_reason', 'inactividad');
+            import('firebase/auth').then(({ signOut }) => {
+              signOut(auth).catch(() => {});
+            });
+            setUser(null);
+            setUserProfile(null);
+            setLoading(false);
+            return;
           }
+        } else {
+          localStorage.setItem('metrico_last_activity', Date.now().toString());
+        }
 
-          setUser(u);
-          const emailRol = u.email === 'matias.bustos@cormumel.cl' ? 'global' : 'local';
-          setUserProfile({ email: u.email, rol: emailRol });
+        // Establecer usuario y perfil base de inmediato (0ms de latencia visual)
+        const emailRol = u.email === 'matias.bustos@cormumel.cl' ? 'global' : 'local';
+        setUser(u);
+        setUserProfile({ email: u.email, rol: emailRol });
 
-          try {
-            const { doc, getDoc, setDoc, updateDoc } = await import('firebase/firestore');
-            const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', u.uid);
-            const userSnap = await runWithTimeout(getDoc(userRef), 4000);
-            const now = Date.now();
+        // Cargar/actualizar perfil en segundo plano sin congelar la interfaz
+        if (db) {
+          const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', u.uid);
+          const now = Date.now();
 
-            if (userSnap.exists()) {
+          runWithTimeout(getDoc(userRef), 3000).then((userSnap) => {
+            if (userSnap && userSnap.exists()) {
               const data = userSnap.data();
               let cleanRol = (data.rol || 'local').replace(/['"]/g, '').trim().toLowerCase();
               if (u.email === 'matias.bustos@cormumel.cl') cleanRol = 'global';
@@ -90,32 +91,32 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
               setUserProfile(updatedProfile);
               updateDoc(userRef, { ultimoInicioSesion: now, ultimaConsulta: now }).catch(() => {});
             } else {
-              const defaultRol = u.email === 'matias.bustos@cormumel.cl' ? 'global' : 'local';
               const newProfile = { 
                 email: u.email, 
                 nombre: u.displayName || u.email.split('@')[0],
-                rol: defaultRol, 
+                rol: emailRol, 
                 estado: 'activo',
                 createdAt: now, 
                 ultimoInicioSesion: now, 
                 ultimaConsulta: now 
               };
-              await setDoc(userRef, newProfile);
+              setDoc(userRef, newProfile).catch(() => {});
               setUserProfile(newProfile);
             }
-          } catch (e) {
-            console.warn('Profile fetch timeout or error, using default fallback profile', e);
-            setUserProfile({ email: u.email, rol: emailRol });
-          }
-        } else {
-          setUserProfile(null);
-          setSyncStatus('synced');
-          setLoading(false);
-          setSyncProgress(prev => ({ ...prev, active: false }));
+          }).catch((err) => {
+            console.warn('Background profile fetch skipped/fallback:', err);
+          });
         }
-      });
-      return () => unsubscribeAuth();
-    }
+      } else {
+        setUser(null);
+        setUserProfile(null);
+        setSyncStatus('synced');
+        setLoading(false);
+        setSyncProgress(prev => ({ ...prev, active: false }));
+      }
+    });
+
+    return () => unsubscribeAuth();
   }, []);
 
   // 2. Función de Sincronización Profunda en Vivo (Deep Live Sync)
@@ -214,32 +215,40 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
       setSyncStatus('connecting');
       
       try {
-        const cachedPacs = await loadPacientesFromIDB();
-        const cachedTurnos = await loadTurnosFromIDB();
+        const [cachedPacs, cachedTurnos] = await Promise.all([
+          loadPacientesFromIDB().catch(() => []),
+          loadTurnosFromIDB().catch(() => [])
+        ]);
 
-        if (cachedPacs && cachedPacs.length > 0 && isSubscribed) {
-          cachedPacs.forEach(p => {
-            const id = p.id || p.docId || `${p.tAdmision}_${p.correlativo || p.nombrePaciente}`;
-            globalPacientesMapRef.current.set(id, p);
-          });
-          const arr = Array.from(globalPacientesMapRef.current.values()).sort((a, b) => b.tAdmision - a.tAdmision);
-          setPacientesDB(arr);
-          setAllPacientesDB(arr);
+        if (isSubscribed) {
+          if (cachedPacs && cachedPacs.length > 0) {
+            cachedPacs.forEach(p => {
+              const id = p.id || p.docId || `${p.tAdmision}_${p.correlativo || p.nombrePaciente}`;
+              globalPacientesMapRef.current.set(id, p);
+            });
+            const arr = Array.from(globalPacientesMapRef.current.values()).sort((a, b) => b.tAdmision - a.tAdmision);
+            setPacientesDB(arr);
+            setAllPacientesDB(arr);
+          }
+
+          if (cachedTurnos && cachedTurnos.length > 0) {
+            setTurnosDB(cachedTurnos);
+          }
+
           setLoading(false);
           setSyncStatus('synced');
-        }
-
-        if (cachedTurnos && cachedTurnos.length > 0 && isSubscribed) {
-          setTurnosDB(cachedTurnos);
         }
       } catch (e) {
         console.warn("Error cargando caché IndexedDB:", e);
       } finally {
-        setLoading(false);
-        setSyncStatus('synced');
+        if (isSubscribed) {
+          setLoading(false);
+          setSyncStatus('synced');
+        }
       }
 
-      await forceDeepSync(true);
+      // Sincronización en segundo plano sin congelar la pantalla
+      forceDeepSync(true);
     };
 
     runPreload();
