@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.3.1',
+      version: 'v5.3.1',
+      fecha: '21 de Agosto, 2026',
+      badge: 'ENFERMERÍA & CONSTATACIONES',
+      badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/20',
+      title: 'Rendimiento de Enfermería: Diferenciación C3 & Constatación de Lesiones',
+      categoria: 'Rendimiento Clínico',
+      icon: Activity,
+      iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+      summary: 'Se homologó la clasificación multicriterio de Constatación de Lesiones (códigos Z51.8, Z04, Z65, Z02.7, Y84.8 y destinos a Carabineros, PDI, Comisaría o Fiscalía) en el panel de Rendimiento de Enfermería. Los casos médico-legales ahora se contabilizan con exactitud y se separan del Top 10 de diagnósticos clínicos C3.',
+      instructivo: {
+        paraQueSirve: 'Permite a las jefaturas de enfermería distinguir con precisión qué porcentaje de las atenciones C3 corresponden a procedimientos legales/policiales versus patologías médicas de urgencia.',
+        quePuedesVer: 'En la sección "Diferenciación de Categoría C3", el recuento real de Constatación de Lesiones y el Top 10 de Diagnósticos Clínicos C3 100% depurado.',
+        ejemploUso: 'Ingresa a "Análisis Específicos > Rendimiento Enfermería". En el apartado inferior verás la tarjeta de Constatación de Lesiones (Z51.8 / Policial) con sus cifras reales en lugar de ceros.'
+      },
+      changes: [
+        'Criterios Completos: Inclusión de Z51.8, Z04, Z65, Z02.7, Y84.8 y destinos policiales.',
+        'Depuración Top 10: Exclusión de trámites legales para reflejar patologías de urgencia puras.',
+        'Normalización de Destinos: Clasificación automática de pacientes con custodia a Carabineros/PDI.'
+      ]
+    },
+    {
       id: 'v5.3.0',
       version: 'v5.3.0',
       fecha: '21 de Agosto, 2026',

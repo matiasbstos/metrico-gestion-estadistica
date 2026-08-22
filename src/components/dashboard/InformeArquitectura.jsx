@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.3.1',
+    version_tag: 'v5.3.1',
+    fecha_despliegue: '21 de Agosto, 2026',
+    proposito_actualizacion: 'Homologación de Constatación de Lesiones & Destinos Policiales en Rendimiento de Enfermería (Diferenciación C3).',
+    medios_y_stack: [
+      'React 18.3 (AnalisisEnfermeria.jsx, ReportesModule.jsx)',
+      'Multi-Criteria Medical-Legal Detection (Z51.8, Z04, Z65, Z02.7, Y84.8)',
+      'Police Custody Destination Normalization (Carabineros, PDI, Comisaría)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Se amplió la detección de Constataciones de Lesiones en el módulo de Rendimiento de Enfermería (Diferenciación C3) integrando todos los códigos CIE-10 médico-legales (Z51.8, Z04, Z65, Z02.7, Y84.8) y cruce por destino de alta / observación con custodia de Carabineros, PDI, comisarías o fiscalía, eliminando la aparición errónea de ceros. 2) Se purificó el Top 10 de Diagnósticos Clínicos C3, excluyendo atenciones policiales para reflejar con 100% de pureza la patología de urgencia real.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Normalización de diagnósticos y destinos policiales en memoria.'
+    },
+    modulos_afectados: ['AnalisisEnfermeria.jsx', 'ReportesModule.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Función isConstatacionOficial integrada en AnalisisEnfermeria.jsx y ReportesModule.jsx.',
+      'Normalización de destinos Carabineros / Custodia Policial.',
+      'Diferenciación estricta de C3 Clínico vs C3 Lesiones/Legal.'
+    ]
+  },
+  {
     id: 'v5.3.0',
     version_tag: 'v5.3.0',
     fecha_despliegue: '21 de Agosto, 2026',

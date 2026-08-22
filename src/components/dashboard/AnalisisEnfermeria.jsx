@@ -32,6 +32,34 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
     return `${parseInt(p[0]) - 1}-${p[1]}-${p[2]}`;
   }, [filtroFechaFin]);
 
+  // Helper oficial para Constataciones & Atenciones Médico-Legales / Policiales (CIE-10 Z51.8, Z04, Z65, Z02.7 y Destino Carabineros/PDI/Comisaría)
+  const isConstatacionOficial = (p) => {
+    if (!p) return false;
+    if (p.flag_constatacion_z518 !== undefined && p.flag_constatacion_z518 !== null) {
+      if (Boolean(p.flag_constatacion_z518)) return true;
+    }
+    const cat = String(p.categoria || p.categoria_triage || p.catPrimera || p.catUltima || '').toLowerCase();
+    if (cat === 'c3_z518') return true;
+    if (p.esZ518 === true) return true;
+
+    const cod = String(p.codigoDiagnostico || p.codigo_diagnostico_cie10 || p.codigo || '').toUpperCase();
+    const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
+    const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
+    const obs = String(p.observacion || p.obs || '').toUpperCase();
+
+    if (cod.includes('Z51.8') || cod.includes('Z518') || cod.includes('Z04') || cod.includes('Z65') || cod.includes('Z02.7')) return true;
+    if (diag.includes('CONSTATAC') || diag.includes('CIRCUNSTANCIAS LEGALES') || diag.includes('LEGAL') || diag.includes('ALCOHOLEMIA') || diag.includes('CERTIFICADO MÉDICO') || diag.includes('CERTIFICADO MEDICO')) return true;
+
+    // Destino u Observación a Unidades Policiales / Judiciales (Carabineros, PDI, Comisaría, Custodia)
+    const keywordsPolice = ['CARABINERO', 'PDI', 'COMISARIA', 'COMISARÍA', 'POLICIA', 'POLICÍA', 'POLICIAL', 'DETENIDO', 'CUSTODIA', 'FISCALIA', 'FISCALÍA', 'TRIBUNAL', 'GENDARMERIA', 'GENDARMERÍA'];
+    if (keywordsPolice.some(k => dest.includes(k) || obs.includes(k))) return true;
+
+    // Procedimientos médicos cuando vienen con contexto legal/policial
+    if (cod.includes('Y84.8') && (keywordsPolice.some(k => dest.includes(k) || obs.includes(k)) || diag.includes('LEGAL') || diag.includes('CERTIFICAD') || diag.includes('CONSTATAC'))) return true;
+
+    return false;
+  };
+
   // Normalizar paciente para lectura segura de campos de triaje y enfermería
   const pacientesProcesados = useMemo(() => {
     const list = pacientesFiltrados || pacientesDB || [];
@@ -41,9 +69,7 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
       const enf1 = p.enfermeroCat1 ? String(p.enfermeroCat1).trim() : 'No Registrado';
       const enfUlt = p.enfermeroCatUlt ? String(p.enfermeroCatUlt).trim() : 'No Registrado';
       
-      const cod = (p.codigoDiagnostico || '').toUpperCase();
-      const diag = (p.diagnosticoPrincipal || '').toUpperCase();
-      const isLesion = cod.includes('Z51.8') || cod.includes('Z518') || diag.includes('CONSTATAC');
+      const isLesion = isConstatacionOficial(p);
 
       if (isLesion) {
         cat1 = 'c3_z518';
@@ -62,8 +88,12 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
 
       const destRaw = String(p.destinoAlta || p.destino || '').trim();
       const destNorm = destRaw.toLowerCase();
+      const obsNorm = String(p.observacion || p.obs || '').toLowerCase();
       let catDestino = 'Otro / Domicilio';
-      if (destNorm.includes('hospital') || destNorm.includes('emergencia') || destNorm.includes('derivac')) {
+
+      if (destNorm.includes('carabiner') || destNorm.includes('comisaria') || destNorm.includes('comisaría') || destNorm.includes('pdi') || destNorm.includes('policia') || destNorm.includes('policía') || destNorm.includes('custodia') || destNorm.includes('detenido') || obsNorm.includes('carabiner') || obsNorm.includes('comisaria') || obsNorm.includes('pdi')) {
+        catDestino = 'Carabineros / Custodia Policial';
+      } else if (destNorm.includes('hospital') || destNorm.includes('emergencia') || destNorm.includes('derivac')) {
         catDestino = 'Hospital / UEH';
       } else if (destNorm.includes('domicilio')) {
         catDestino = 'Alta Domicilio';
@@ -80,7 +110,8 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
         minAdmToCat1,
         minCat1ToCatU,
         minEstadiaTotal,
-        catDestino
+        catDestino,
+        isConstatacionLesion: isLesion
       };
     });
   }, [pacientesFiltrados, pacientesDB]);
@@ -298,8 +329,8 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
 
   // Diferenciación de categoría C3 (Constatación de lesiones vs Otros diagnósticos)
   const c3Stats = useMemo(() => {
-    const c3LesionesPacs = pacientesFiltradosVista.filter(p => p.cat1Clean === 'c3_z518' || p.catUltClean === 'c3_z518');
-    const c3ClinicoPacs = pacientesFiltradosVista.filter(p => p.cat1Clean === 'c3' || p.catUltClean === 'c3');
+    const c3LesionesPacs = pacientesFiltradosVista.filter(p => p.cat1Clean === 'c3_z518' || p.catUltClean === 'c3_z518' || p.isConstatacionLesion);
+    const c3ClinicoPacs = pacientesFiltradosVista.filter(p => (p.cat1Clean === 'c3' || p.catUltClean === 'c3') && !p.isConstatacionLesion && p.cat1Clean !== 'c3_z518' && p.catUltClean !== 'c3_z518');
     const totalC3 = c3LesionesPacs.length + c3ClinicoPacs.length;
 
     const diagCounts = {};

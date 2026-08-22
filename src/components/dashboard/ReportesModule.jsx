@@ -429,31 +429,38 @@ export default function ReportesModule({
     });
 
     // Diferenciación C3 (Constatación de lesiones vs Otros diagnósticos)
+    const isConstatacionItem = (p) => {
+      if (!p) return false;
+      if (p.flag_constatacion_z518 !== undefined && p.flag_constatacion_z518 !== null) {
+        if (Boolean(p.flag_constatacion_z518)) return true;
+      }
+      const cat = String(p.catPrimera || p.categoria || '').toLowerCase();
+      if (cat === 'c3_z518') return true;
+      if (p.esZ518 === true) return true;
+
+      const cod = String(p.codigoDiagnostico || p.codigo || '').toUpperCase();
+      const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
+      const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
+      const obs = String(p.observacion || p.obs || '').toUpperCase();
+
+      if (cod.includes('Z51.8') || cod.includes('Z518') || cod.includes('Z04') || cod.includes('Z65') || cod.includes('Z02.7')) return true;
+      if (diag.includes('CONSTATAC') || diag.includes('CIRCUNSTANCIAS LEGALES') || diag.includes('LEGAL') || diag.includes('ALCOHOLEMIA') || diag.includes('CERTIFICAD')) return true;
+
+      const keywordsPolice = ['CARABINERO', 'PDI', 'COMISARIA', 'COMISARÍA', 'POLICIA', 'POLICÍA', 'POLICIAL', 'DETENIDO', 'CUSTODIA', 'FISCALIA', 'FISCALÍA', 'TRIBUNAL'];
+      if (keywordsPolice.some(k => dest.includes(k) || obs.includes(k))) return true;
+
+      if (cod.includes('Y84.8') && (keywordsPolice.some(k => dest.includes(k) || obs.includes(k)) || diag.includes('LEGAL') || diag.includes('CERTIFICAD') || diag.includes('CONSTATAC'))) return true;
+
+      return false;
+    };
+
     const c3LesionesPacs = pacs.filter(p => {
       const cat = String(p.catPrimera || p.categoria || '').toLowerCase();
-      const cod = (p.codigoDiagnostico || '').toUpperCase();
-      const diag = (p.diagnosticoPrincipal || '').toUpperCase();
-      const isLesion = cod.includes('Z51.8') || cod.includes('Z518') || 
-                       cod.includes('Z04') || 
-                       diag.includes('CONSTATAC') || 
-                       diag.includes('LESIÓN') || diag.includes('LESION') ||
-                       diag.includes('CIRCUNSTANCIAS LEGALES') ||
-                       diag.includes('POLICIAL') ||
-                       diag.includes('AGRESIÓN') || diag.includes('AGRESION');
-      return cat === 'c3_z518' || (cat === 'c3' && isLesion);
+      return cat === 'c3_z518' || (cat === 'c3' && isConstatacionItem(p));
     });
     const c3ClinicoPacs = pacs.filter(p => {
       const cat = String(p.catPrimera || p.categoria || '').toLowerCase();
-      const cod = (p.codigoDiagnostico || '').toUpperCase();
-      const diag = (p.diagnosticoPrincipal || '').toUpperCase();
-      const isLesion = cod.includes('Z51.8') || cod.includes('Z518') || 
-                       cod.includes('Z04') || 
-                       diag.includes('CONSTATAC') || 
-                       diag.includes('LESIÓN') || diag.includes('LESION') ||
-                       diag.includes('CIRCUNSTANCIAS LEGALES') ||
-                       diag.includes('POLICIAL') ||
-                       diag.includes('AGRESIÓN') || diag.includes('AGRESION');
-      return cat === 'c3' && !isLesion;
+      return cat === 'c3' && !isConstatacionItem(p);
     });
     const totalC3 = c3LesionesPacs.length + c3ClinicoPacs.length;
 
