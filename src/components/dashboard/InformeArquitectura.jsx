@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.3.0',
+    version_tag: 'v5.3.0',
+    fecha_despliegue: '21 de Agosto, 2026',
+    proposito_actualizacion: 'Potenciación del Radar Predictivo: Auto-Detección de Término de Semana, Horizonte Móvil 7 Días, Calibración Retrospectiva & Efectos de Retardo Climático (Heladas Post-Lluvia).',
+    medios_y_stack: [
+      'React 18.3 (Radar.jsx, Dashboard.jsx, AgenteRadarAdmin.jsx)',
+      'Open-Meteo Melipilla Live Weather & Air Quality API',
+      'Motor de Retardos Meteorológicos (Lag Effects: Lluvia -> Rebote -> Helada)',
+      'Algoritmo de Calibración Retrospectiva de Demanda (Feedback Loop)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Auto-detección del último cierre disponible en pacientesDB/turnosDB y generación dinámica del horizonte predictivo para los próximos 7 días calendario continuos. 2) Módulo de Calibración Retrospectiva que audita los días pasados comparando atenciones reales vs proyectadas, calculando la precisión global (%) y derivando un factor multiplicador de ajuste continuo para los días futuros. 3) Modelado de efectos meteorológicos retardados: caída en el día de lluvia (-15%), rebote asistencial post-lluvia en 24h-48h (+28%) y sobrecarga por heladas matinales (<3°C) post-humedad (+38% total). 4) Diferenciación por esquema operativo: Turno Largo de Semana (17:00-08:00) vs Fin de Semana Día (08:00-20:00) y Fin de Semana Noche (20:00-08:00).',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Cálculo de proyecciones reactivo en memoria con fallback defensivo.'
+    },
+    modulos_afectados: ['Radar.jsx', 'Dashboard.jsx', 'AgenteRadarAdmin.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Inyección de pacientesDB y turnosDB a Radar.jsx.',
+      'Cálculo de horizonte dinámico móvil a 7 días calendario.',
+      'Sección interactiva de Calibración Retrospectiva con tabla comparativa de días pasados.',
+      'Modelado de impacto térmico y precipitaciones retardadas en Open-Meteo Melipilla.'
+    ]
+  },
+  {
     id: 'v5.2.3',
     version_tag: 'v5.2.3',
     fecha_despliegue: '21 de Agosto, 2026',

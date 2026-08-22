@@ -2034,6 +2034,8 @@ const DashboardContent = () => {
             user={user}
             app={app}
             showNotif={showNotif}
+            pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB}
+            turnosDB={turnosDB}
           />
         )}
 

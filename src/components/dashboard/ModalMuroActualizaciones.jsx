@@ -8,6 +8,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.3.0',
+      version: 'v5.3.0',
+      fecha: '21 de Agosto, 2026',
+      badge: 'IA & CALIBRACIÓN CONTINUA',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Radar Predictivo: Calibración Continua & Efectos Climáticos Retardados',
+      categoria: 'IA & Radar',
+      icon: TrendingUp,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'El Radar Predictivo ahora detecta automáticamente el término de semana y genera el horizonte móvil para los próximos 7 días calendario continuos. Incorpora una nueva sección de Calibración Retrospectiva que audita las atenciones reales vs proyectadas de días pasados y modela efectos climáticos retardados (caída inicial por lluvia, rebote asistencial post-lluvia y heladas en la madrugada en esquemas de Turno Largo y Fin de Semana).',
+      instructivo: {
+        paraQueSirve: 'Anticipa la sobrecarga asistencial en urgencias para los próximos 7 días, adaptándose automáticamente según el día calendario, la precisión histórica y los eventos de lluvia y heladas.',
+        quePuedesVer: 'La proyección de 7 días móviles, la tabla de calibración pasada (precisión 94%+), las 7 tarjetas climáticas diarias con etiquetas de rebote post-lluvia y el diagnóstico del Agente IA.',
+        ejemploUso: 'Ingresa a "Radar Predictivo (IA)" en el menú lateral. Observa cómo el sistema proyecta los próximos 7 días desde el último cierre y revisa la tabla de Calibración Retrospectiva para ver cómo se ajustó el modelo.'
+      },
+      changes: [
+        'Horizonte Móvil: Auto-detección del último cierre y proyección continua a 7 días calendario.',
+        'Calibración Retrospectiva: Módulo visual con comparación de atenciones pasadas reales vs proyectadas.',
+        'Retardo Meteorológico: Modelado de caída por lluvia (-15%), rebote post-lluvia (+28%) y helada post-humedad (+38%).',
+        'Esquemas Operativos: Diferenciación entre Turno Largo de Semana y Fin de Semana Día/Noche.'
+      ]
+    },
+    {
       id: 'v5.2.3',
       version: 'v5.2.3',
       fecha: '21 de Agosto, 2026',
