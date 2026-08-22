@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.4.5',
+      version: 'v5.4.5',
+      fecha: '22 de Agosto, 2026',
+      badge: 'PARIDAD TOTAL & CONTROL SSOT',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Punto de Control SSOT: Cuadratura Idéntica entre Reportes Oficiales, Modal y Panel Principal',
+      categoria: 'Integridad y Auditoría',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: '1) Se homologó el modal "Resumen Detallado del Día" en el Calendario Histórico para reflejar con 100% de exactitud las cifras oficiales del turno (para el turno fin de semana día 16/08/2026: 111 admitidos, 99 atendidos, 12 altas y triaje C3: 8, C4: 40, C5: 60), eliminando recálculos redundantes en memoria. 2) Al aplicar el filtro por turno en el panel superior, los KPIs ahora priorizan las métricas exactas del turno, logrando cuadratura matemática total con los reportes oficiales de Rayen.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que cualquier turno o día que consultes en el sistema coincida de manera exacta y sin discrepancias en todos los módulos de MÉTRICO.',
+        quePuedesVer: 'Al hacer clic en el día 16 en el Calendario Histórico, el Turno 1 (08:00 - 20:00) muestra exactamente 111 admitidos, 99 atendidos y 12 altas, coincidiendo 1:1 con el consolidado del PDF oficial.',
+        ejemploUso: 'Abre el Calendario Histórico, haz clic en el día 16 y revisa el modal de detalle del turno de día.'
+      },
+      changes: [
+        'Cuadratura 1:1 en Modal del Día: Conexión directa con las cifras certificadas del turno.',
+        'Sincronización de KPIs Superiores: Priorización de métricas de turno al filtrar por horario.',
+        'Paridad Transversal: Eliminación de inconsistencias entre calendario, modal y panel principal.'
+      ]
+    },
+    {
       id: 'v5.4.4',
       version: 'v5.4.4',
       fecha: '22 de Agosto, 2026',

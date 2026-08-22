@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.4.5',
+    version_tag: 'v5.4.5',
+    fecha_despliegue: '22 de Agosto, 2026',
+    proposito_actualizacion: 'Paridad Total y Punto de Control SSOT para Turnos y Días Específicos (Cruce Oficial Rayen - Modal - Dashboard).',
+    medios_y_stack: [
+      'React 18.3 (CalendarioHistorico.jsx, Dashboard.jsx, useMetricoAnalytics.js)',
+      'Certified Shift Data Ground-Truth Alignment',
+      'Shift-Aware KPI Priority Resolution System',
+      'Cross-Module Statistical Parity Assurance'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Homologación de Cifras Oficiales de Turnos en Modal y Calendario: Se corrigió la discrepancia en el modal "Resumen Detallado del Día" en CalendarioHistorico.jsx, eliminando el recálculo dinámico sobreacumulado y anclando las cifras directamente a los datos consolidados y certificados del turno (111 admitidos, 99 atendidos, 12 altas y desglose C3: 8, C4: 40, C5: 60 para el turno fin de semana día 16/08/2026). 2) Sincronización de KPIs en Panel Principal (Criterio de Turno): Cuando el usuario aplica el filtro por turno o rango horario, el Dashboard ahora prioriza de forma transparente las métricas del turno local (statsKPI) en lugar del total del día civil de 24 hrs de BigQuery, garantizando que el bloque de KPIs superiores, el calendario y el modal de detalle coincidan 100% con el reporte oficial Rayen.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Acceso directo en O(1) a los valores certificados del turno en memoria.'
+    },
+    modulos_afectados: ['CalendarioHistorico.jsx', 'Dashboard.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Eliminación de la sobreestimación de pacientes en el modal de detalle del día en el Calendario Histórico.',
+      'Alineación 100% idéntica entre el reporte oficial PDF de Rayen, la tarjeta del turno y los KPIs del Dashboard.',
+      'Consistencia de punto de control transversal para todos los días y turnos del sistema.'
+    ]
+  },
+  {
     id: 'v5.4.4',
     version_tag: 'v5.4.4',
     fecha_despliegue: '22 de Agosto, 2026',

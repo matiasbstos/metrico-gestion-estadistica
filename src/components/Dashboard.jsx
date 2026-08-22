@@ -665,7 +665,9 @@ const DashboardContent = () => {
 
   const statsKPIFinal = useMemo(() => {
     if (!statsKPI && !kpisBigQuery) return null;
-    const base = kpisBigQuery || statsKPI;
+    // Si hay corte por turno o filtro horario específico, priorizar las cifras exactas del turno
+    const useShiftMetrics = tipoCorte === 'turno' || filtroHoraInicio !== '00:00' || filtroHoraFin !== '23:59' || !kpisBigQuery;
+    const base = useShiftMetrics ? (statsKPI || kpisBigQuery) : (kpisBigQuery || statsKPI);
 
     const avgEdad = demografiaStats?.edadCount ? Number((demografiaStats.edadSum / demografiaStats.edadCount).toFixed(1)) : (base?.demo?.avgEdad || 0);
     const fonasaVal = demografiaStats ? Object.entries(demografiaStats.prevs).filter(([k]) => k.includes('FONASA')).reduce((acc, [_, v]) => acc + v, 0) : 0;
@@ -681,7 +683,7 @@ const DashboardContent = () => {
       categorias: statsKPI?.categorias || base.categorias,
       demo: { avgEdad, fonasaPercent, meliPercent }
     };
-  }, [kpisBigQuery, statsKPI, demografiaStats]);
+  }, [kpisBigQuery, statsKPI, demografiaStats, tipoCorte, filtroHoraInicio, filtroHoraFin]);
 
   const [rulesReconciledTick, setRulesReconciledTick] = useState(0);
 
