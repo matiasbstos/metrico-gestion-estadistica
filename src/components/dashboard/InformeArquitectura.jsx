@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.3.2',
+    version_tag: 'v5.3.2',
+    fecha_despliegue: '21 de Agosto, 2026',
+    proposito_actualizacion: 'Ajuste de Horarios de Turno y Encasillamiento Asistencial de Fin de Semana (Día 08:00 a 20:00 y Noche 20:00 a 08:00).',
+    medios_y_stack: [
+      'React 18.3 (CalendarioHistorico.jsx, InformeArquitectura.jsx, helpers.js)',
+      'Algoritmo de Encasillamiento Asistencial Determinista',
+      'Consolidado Maestro de Horarios de Turno'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Se corrigió el encasillamiento de Fin de Semana Día (sábados, domingos y festivos) ajustando su ventana exactamente de 08:00 a 20:00 hrs (12 horas). 2) Se corrigió el encasillamiento de Fin de Semana Noche a su ventana exacta de 20:00 a 08:00 AM del día siguiente (12 horas), garantizando la máxima precisión en el cómputo de admisiones y la concordancia 100% fiel con la operativa real del SAR Elsa Romo Aravena.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Mapeo temporal exacto sin márgenes ficticios matutinos.'
+    },
+    modulos_afectados: ['CalendarioHistorico.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Actualizados rangos startMs/endMs en CalendarioHistorico.jsx para 08:00-20:00 y 20:00-08:00.',
+      'Actualizada la ficha técnica de Horarios de Turno en el Consolidado Maestro del Informe de Arquitectura.'
+    ]
+  },
+  {
     id: 'v5.3.1',
     version_tag: 'v5.3.1',
     fecha_despliegue: '21 de Agosto, 2026',
@@ -1612,7 +1633,7 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
 
                 <div className="p-3 bg-yellow-500/10 rounded-xl border border-yellow-500/20 text-xs font-medium text-yellow-800 dark:text-yellow-200">
                   <strong>Encasillamiento Asistencial:</strong><br />
-                  Se extiende desde las <strong>07:00 hasta las 20:00 hrs</strong> (13 horas de ventana) garantizando la captura completa de las admisiones matutinas.
+                  Se extiende estrictamente desde las <strong>08:00 hasta las 20:00 hrs</strong> (12 horas de ventana continua) garantizando la captura exacta de la jornada diurna.
                 </div>
               </div>
 
@@ -1627,7 +1648,7 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
 
                 <div className="p-3 bg-blue-500/10 rounded-xl border border-blue-500/20 text-xs font-medium text-blue-800 dark:text-blue-200">
                   <strong>Encasillamiento Asistencial:</strong><br />
-                  Se extiende desde las <strong>19:00 hasta las 08:00 AM</strong> (+1 día, 13 horas de ventana) para la noche completa de guardia.
+                  Se extiende estrictamente desde las <strong>20:00 hasta las 08:00 AM</strong> (+1 día, 12 horas de ventana continua) para la noche completa de guardia.
                 </div>
               </div>
 

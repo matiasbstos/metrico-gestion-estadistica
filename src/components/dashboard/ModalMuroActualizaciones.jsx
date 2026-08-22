@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.3.2',
+      version: 'v5.3.2',
+      fecha: '21 de Agosto, 2026',
+      badge: 'HORARIOS & ENCASILLAMIENTO',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Ajuste de Horarios: Fin de Semana Día (08:00-20:00) y Noche (20:00-08:00)',
+      categoria: 'Esquemas de Turno',
+      icon: Clock,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se actualizó la ventana de encasillamiento asistencial para los turnos de fin de semana (sábados, domingos y festivos), fijando con total exactitud las franjas de Fin de Semana Día (08:00 a 20:00 hrs) y Fin de Semana Noche (20:00 a 08:00 hrs del día siguiente), eliminando desfases en el cómputo de admisiones.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que los pacientes admitidos en fines de semana y festivos se asignen con 100% de rigor al equipo diurno o nocturno que realmente prestó la atención.',
+        quePuedesVer: 'En el Informe de Arquitectura (Consolidado de Horarios) y en el Calendario Histórico, las ventanas operativas reflejan con exactitud los bloques de 12 horas (08:00-20:00 y 20:00-08:00).',
+        ejemploUso: 'Un paciente ingresado un sábado a las 08:15 hrs computa al turno de día, y uno ingresado a las 20:05 hrs computa al turno de noche de ese mismo día.'
+      },
+      changes: [
+        'Fin de Semana Día: Encasillamiento exacto de 08:00 a 20:00 hrs (12 horas).',
+        'Fin de Semana Noche: Encasillamiento exacto de 20:00 a 08:00 AM (+1d, 12 horas).',
+        'Consolidado Maestro: Documentación técnica actualizada en el Informe de Arquitectura.'
+      ]
+    },
+    {
       id: 'v5.3.1',
       version: 'v5.3.1',
       fecha: '21 de Agosto, 2026',

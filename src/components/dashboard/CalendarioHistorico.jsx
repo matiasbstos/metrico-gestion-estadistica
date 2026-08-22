@@ -86,10 +86,10 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [], c
       const endHourStr = isFriday ? '08:00:00' : '09:00:00';
       endMs = new Date(`${nextDateStr}T${endHourStr}-04:00`).getTime();
     } else if (t.horario.includes('08:00 - 20:00')) {
-      startMs = new Date(`${baseDateStr}T07:00:00-04:00`).getTime();
+      startMs = new Date(`${baseDateStr}T08:00:00-04:00`).getTime();
       endMs = new Date(`${baseDateStr}T20:00:00-04:00`).getTime();
     } else if (t.horario.includes('20:00 - 08:00')) {
-      startMs = new Date(`${baseDateStr}T19:00:00-04:00`).getTime();
+      startMs = new Date(`${baseDateStr}T20:00:00-04:00`).getTime();
       endMs = new Date(`${nextDateStr}T08:00:00-04:00`).getTime();
     } else {
       return fallbackStats;
@@ -582,10 +582,10 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [], c
                       startMs = new Date(`${baseDateStr}T16:00:00-04:00`).getTime();
                       endMs = new Date(`${nextDateStr}T08:00:00-04:00`).getTime();
                     } else if (t.horario.includes('08:00 - 20:00')) {
-                      startMs = new Date(`${baseDateStr}T07:00:00-04:00`).getTime();
+                      startMs = new Date(`${baseDateStr}T08:00:00-04:00`).getTime();
                       endMs = new Date(`${baseDateStr}T20:00:00-04:00`).getTime();
                     } else if (t.horario.includes('20:00 - 08:00')) {
-                      startMs = new Date(`${baseDateStr}T19:00:00-04:00`).getTime();
+                      startMs = new Date(`${baseDateStr}T20:00:00-04:00`).getTime();
                       endMs = new Date(`${nextDateStr}T08:00:00-04:00`).getTime();
                     } else {
                       return { total: t.totalPacientes, altas: t.altasAdmin };
