@@ -34,6 +34,16 @@ export default function Login() {
     setError('');
     setMessage('');
     setSessionExpired(false);
+
+    const nowStr = Date.now().toString();
+    // Pre-inicializar marcas de tiempo para que onAuthStateChanged no evalue inactividad previa
+    try {
+      localStorage.removeItem('metrico_logout_reason');
+      localStorage.setItem('metrico_last_activity', nowStr);
+      sessionStorage.setItem('metrico_session_verified', 'true');
+      sessionStorage.setItem('metrico_auth_timestamp', nowStr);
+    } catch (e) {}
+
     try {
       if (isRegistering) {
         await createUserWithEmailAndPassword(auth, email, password);
@@ -44,9 +54,13 @@ export default function Login() {
       try {
         localStorage.setItem('metrico_last_activity', Date.now().toString());
         sessionStorage.setItem('metrico_session_verified', 'true');
+        sessionStorage.setItem('metrico_auth_timestamp', Date.now().toString());
       } catch (e) {}
     } catch (err) {
       console.error(err);
+      try {
+        sessionStorage.removeItem('metrico_auth_timestamp');
+      } catch (e) {}
       if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
         setError('Credenciales incorrectas. Verifica tu correo o contraseña.');
       } else if (err.code === 'auth/email-already-in-use') {

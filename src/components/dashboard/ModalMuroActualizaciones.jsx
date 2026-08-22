@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.3.7',
+      version: 'v5.3.7',
+      fecha: '22 de Agosto, 2026',
+      badge: 'AUTENTICACIÓN & FLUIDEZ',
+      badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/20',
+      title: 'Optimización de Reingreso tras Inactividad Prolongada (>15 min)',
+      categoria: 'Autenticación',
+      icon: Lock,
+      iconBg: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+      summary: 'Se solucionó el problema en el cual la pantalla de inicio de sesión se quedaba bloqueada al ingresar credenciales tras más de 15 minutos de inactividad. Ahora las marcas temporales se renuevan de inmediato, permitiendo un ingreso instantáneo al panel sin requerir refrescar con F5.',
+      instructivo: {
+        paraQueSirve: 'Permite reanudar el trabajo de inmediato tras haber estado ausente más de 15 minutos sin trabas ni recargas de página.',
+        quePuedesVer: 'Al escribir tus credenciales y presionar "Iniciar Sesión", entrarás directamente al panel de control sin demoras.',
+        ejemploUso: 'Si tu sesión se cerró por inactividad, ingresa tu clave normalmente y accederás de inmediato.'
+      },
+      changes: [
+        'Pre-Renovación de Marcas Temporales: Inicialización de actividad previa a la llamada de Firebase Auth.',
+        'Aislamiento de Login Fresco: Detección inteligente de inicio de sesión reciente para evitar cierres automáticos prematuros.',
+        'Eliminación de Recargas: Ingreso directo sin necesidad de presionar F5.'
+      ]
+    },
+    {
       id: 'v5.3.6',
       version: 'v5.3.6',
       fecha: '22 de Agosto, 2026',

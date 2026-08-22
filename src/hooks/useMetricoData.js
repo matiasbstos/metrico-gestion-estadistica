@@ -50,26 +50,37 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
 
     const unsubscribeAuth = onAuthStateChanged(auth, (u) => {
       if (u) {
-        // Verificación de expiración estricta de sesión (15 min de inactividad)
-        const lastActStr = localStorage.getItem('metrico_last_activity');
-        if (lastActStr) {
-          const elapsed = Date.now() - parseInt(lastActStr, 10);
-          if (elapsed >= 15 * 60 * 1000) {
-            try {
-              sessionStorage.clear();
-              localStorage.clear();
-            } catch (e) {}
-            localStorage.setItem('metrico_logout_reason', 'inactividad');
-            import('firebase/auth').then(({ signOut }) => {
-              signOut(auth).catch(() => {});
-            });
-            setUser(null);
-            setUserProfile(null);
-            setLoading(false);
-            return;
-          }
-        } else {
+        // Comprobar si es un login interactivo recién realizado en esta ventana
+        const authTimestampStr = sessionStorage.getItem('metrico_auth_timestamp');
+        const isFreshLogin = authTimestampStr && (Date.now() - parseInt(authTimestampStr, 10) < 60000);
+        const isVerified = sessionStorage.getItem('metrico_session_verified') === 'true';
+
+        if (isFreshLogin) {
+          // Login fresco: renovar actividad y limpiar banderas temporales
           localStorage.setItem('metrico_last_activity', Date.now().toString());
+          sessionStorage.setItem('metrico_session_verified', 'true');
+        } else {
+          // Verificación de expiración estricta de sesión (15 min de inactividad)
+          const lastActStr = localStorage.getItem('metrico_last_activity');
+          if (lastActStr) {
+            const elapsed = Date.now() - parseInt(lastActStr, 10);
+            if (elapsed >= 15 * 60 * 1000 && !isVerified) {
+              try {
+                sessionStorage.clear();
+                localStorage.clear();
+              } catch (e) {}
+              localStorage.setItem('metrico_logout_reason', 'inactividad');
+              import('firebase/auth').then(({ signOut }) => {
+                signOut(auth).catch(() => {});
+              });
+              setUser(null);
+              setUserProfile(null);
+              setLoading(false);
+              return;
+            }
+          } else {
+            localStorage.setItem('metrico_last_activity', Date.now().toString());
+          }
         }
 
         // Establecer usuario y perfil base de inmediato (0ms de latencia visual)

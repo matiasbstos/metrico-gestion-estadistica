@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.3.7',
+    version_tag: 'v5.3.7',
+    fecha_despliegue: '22 de Agosto, 2026',
+    proposito_actualizacion: 'Blindaje del Ciclo de Autenticación Post-Inactividad: Pre-Renovación de Timestamps y Prevención de Cierre Inmediato.',
+    medios_y_stack: [
+      'React 18.3 (Login.jsx, useMetricoData.js, ModalVerificacionSesion.jsx)',
+      'Firebase Authentication Lifecycle Management',
+      'SessionStorage & LocalStorage Coherence Layer'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Se pre-inicializan las marcas temporales ("metrico_last_activity", "metrico_auth_timestamp" y "metrico_session_verified") antes de ejecutar signInWithEmailAndPassword en Login.jsx, garantizando que el observador onAuthStateChanged no evalúe una marca de tiempo expirada anterior. 2) Se incorporó la detección de login interactivo reciente (<60s) en useMetricoData.js y ModalVerificacionSesion.jsx, eliminando el bloqueo que congelaba el botón de inicio de sesión tras más de 15 minutos de inactividad.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Transición inmediata a Dashboard sin requerir recargar la página con F5.'
+    },
+    modulos_afectados: ['Login.jsx', 'useMetricoData.js', 'ModalVerificacionSesion.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Pre-actualización de metrico_last_activity y metrico_auth_timestamp previa a signInWithEmailAndPassword.',
+      'Aislamiento de la verificación de 15 min frente a inicios de sesión interactivos activos.',
+      'Garantía de desbloqueo y renderizado instantáneo en 0ms.'
+    ]
+  },
+  {
     id: 'v5.3.6',
     version_tag: 'v5.3.6',
     fecha_despliegue: '22 de Agosto, 2026',
