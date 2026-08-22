@@ -1843,23 +1843,24 @@ const DashboardContent = () => {
             </div>
           )}
 
-          {/* Barra de progreso global sutil al cambiar de fechas */}
+          {/* Barra de progreso global que viaja continuamente de lado a lado */}
           <style>{`
             @keyframes metrico-progress {
-              0% { transform: translateX(-100%); }
-              100% { transform: translateX(100%); }
+              0% { transform: translateX(-120%); }
+              50% { transform: translateX(80%); }
+              100% { transform: translateX(260%); }
             }
             .animate-metrico-progress {
-              animation: metrico-progress 1.5s infinite linear;
+              animation: metrico-progress 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
             }
           `}</style>
-          <div className="absolute top-0 left-0 right-0 h-1 bg-black/5 dark:bg-white/5 overflow-hidden z-50">
-            {(loading || loadingKpis) && (
-              <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-sky-400 to-indigo-500 w-full animate-metrico-progress shadow-[0_0_8px_rgba(56,189,248,0.6)]"></div>
+          <div className="absolute top-0 left-0 right-0 h-1 bg-black/5 dark:bg-white/5 overflow-hidden z-50 pointer-events-none">
+            {(loading || loadingKpis || isFiltering || (syncProgress && syncProgress.active) || syncStatus === 'syncing') && (
+              <div className="absolute top-0 left-0 h-full bg-gradient-to-r from-transparent via-sky-400 to-indigo-500 w-[50%] animate-metrico-progress shadow-[0_0_12px_rgba(56,189,248,0.8)]"></div>
             )}
           </div>
 
-          <div className={`transition-all duration-300 ${loading || loadingKpis ? 'opacity-65 pointer-events-none filter blur-[0.5px]' : 'opacity-100'} flex-1 flex flex-col space-y-6`}>
+          <div className={`transition-all duration-300 ${loadingKpis ? 'opacity-85' : 'opacity-100'} flex-1 flex flex-col space-y-6`}>
 
         {activeTab !== 'resumen' && !hasModuleAccess(activeTab) && (
           <div className="flex-1 flex flex-col items-center justify-center p-12 text-center bg-card-custom rounded-3xl border border-rose-500/30 my-8 space-y-4 animate-fade-in">

@@ -8,7 +8,7 @@ export default function BarraProgresoCarga({
   loadingKpis = false,
   syncStatus = 'synced'
 }) {
-  const isSyncActive = syncProgress && syncProgress.active;
+  const isSyncActive = Boolean(syncProgress && syncProgress.active);
   const isSyncingStatus = syncStatus === 'syncing' || syncStatus === 'connecting';
   const showTopBar = isSyncActive || isSyncingStatus || isFiltering || loadingKpis;
 
@@ -16,29 +16,38 @@ export default function BarraProgresoCarga({
 
   const { pct = 0, message = 'Cargando datos...', loadedCount = 0, totalCount = 0, isHistorical = false } = syncProgress || {};
 
-  const isIndeterminate = (!pct || pct <= 0) && (isFiltering || loadingKpis || isSyncingStatus);
-
   return (
     <>
-      {/* 1. BARRA SUPERIOR FIJA EN EL BORDE DE LA PANTALLA (TOP SCREEN LOADING BAR - DESDE EL MINUTO UNO) */}
+      <style>{`
+        @keyframes metrico-top-beam {
+          0% {
+            transform: translateX(-120%);
+          }
+          50% {
+            transform: translateX(80%);
+          }
+          100% {
+            transform: translateX(260%);
+          }
+        }
+        .animate-metrico-top-beam {
+          animation: metrico-top-beam 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+      `}</style>
+
+      {/* 1. BARRA SUPERIOR FIJA QUE SE MUEVE CONTINUAMENTE DE LADO A LADO */}
       {showTopBar && (
-        <div className="fixed top-0 left-0 right-0 z-[999999] h-1.5 bg-slate-900/80 overflow-hidden pointer-events-none backdrop-blur-xs transition-opacity duration-300">
-          {isIndeterminate ? (
-            <div className="h-full w-full bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400 animate-pulse relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer" style={{ animationDuration: '1.2s' }} />
-            </div>
-          ) : (
+        <div className="fixed top-0 left-0 right-0 z-[999999] h-1.5 bg-slate-900/60 overflow-hidden pointer-events-none backdrop-blur-xs">
+          <div className="relative w-full h-full">
+            {/* Haz luminoso que viaja de izquierda a derecha de forma continua */}
             <div 
-              className="h-full bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400 shadow-md shadow-indigo-500/50 transition-all duration-300 relative overflow-hidden"
-              style={{ width: `${Math.min(100, Math.max(5, pct))}%` }}
-            >
-              <div className="absolute inset-0 bg-white/30 animate-shimmer" />
-            </div>
-          )}
+              className="absolute top-0 bottom-0 w-[50%] bg-gradient-to-r from-transparent via-sky-400 to-indigo-500 rounded-full animate-metrico-top-beam shadow-[0_0_14px_rgba(56,189,248,0.9)]"
+            />
+          </div>
         </div>
       )}
 
-      {/* 2. WIDGET FLOTANTE DE NOTIFICACIÓN DE AVANCE (SOLO SI SYNC ESTÁ ACTIVO Y NO HAY OVERLAY BLOQUEANTE) */}
+      {/* 2. WIDGET FLOTANTE DE NOTIFICACIÓN DE AVANCE EN LA ESQUINA INFERIOR */}
       {isSyncActive && !isOverlayOpen && (
         <div className="fixed bottom-6 right-6 z-[100000] max-w-md w-full animate-fade-in shadow-2xl">
           <div className="bg-slate-900/95 backdrop-blur-xl border border-indigo-500/30 text-white rounded-2xl p-4 shadow-2xl relative overflow-hidden">
@@ -76,13 +85,10 @@ export default function BarraProgresoCarga({
               </div>
 
               {/* Barra de Progreso Principal */}
-              <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50 p-0.5">
+              <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50 p-0.5 relative">
                 <div 
-                  className="h-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-sky-400 rounded-full transition-all duration-300 shadow-lg shadow-indigo-500/50 relative overflow-hidden"
-                  style={{ width: `${Math.min(100, Math.max(4, pct || 10))}%` }}
-                >
-                  <div className="absolute inset-0 bg-white/20 animate-shimmer" />
-                </div>
+                  className="h-full w-[40%] bg-gradient-to-r from-transparent via-sky-400 to-indigo-500 rounded-full animate-metrico-top-beam shadow-lg shadow-indigo-500/50"
+                />
               </div>
 
               {/* Cifras de Registros Descargados */}

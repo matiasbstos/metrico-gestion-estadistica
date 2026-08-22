@@ -21,15 +21,15 @@ export const HISTORIAL_ARQUITECTURA_BASE = [
       'Pre-calculated Time Window Ranges (Zero-Allocation Date Parsing)'
     ],
     estructura_datos: {
-      reglas_negocio: '1) Eliminación de Congelamiento en Tramos Largos: Se optimizó el pipeline de vinculación de turnos y pacientes en useMetricoAnalytics.js reemplazando las búsquedas anidadas O(N*M) por índices Map en O(1) construidos en una sola pasada. Esto redujo más de 8.7 millones de iteraciones a ~25,000 operaciones (~2ms de ejecución), permitiendo seleccionar tramos semestrales y anuales completos (ej. 1 de enero a la fecha) de forma fluida y sin bloqueos de interfaz. 2) Barra de Carga Superior Instantánea: Se conectó BarraProgresoCarga.jsx para activarse de inmediato ("desde el minuto uno") ante cualquier cambio de fecha, horario o preset, desplegando una barra superior con gradiente activo y shimmer animado. 3) Pre-cálculo de Ventanas Temporales: En useMetricoAnalytics.js, useMetricoDemanda.js y useMetricoProfesionales.js se precalculan los rangos numéricos una única vez antes de evaluar filtros, eliminando decenas de miles de llamadas redundantes a new Date() y parseLocalDatetime.',
+      reglas_negocio: '1) Eliminación de Congelamiento en Tramos Largos: Se optimizó el pipeline de vinculación de turnos y pacientes en useMetricoAnalytics.js reemplazando las búsquedas anidadas O(N*M) por índices Map en O(1) construidos en una sola pasada. Esto redujo más de 8.7 millones de iteraciones a ~25,000 operaciones (~2ms de ejecución), permitiendo seleccionar tramos semestrales y anuales completos (ej. 1 de enero a la fecha) de forma fluida y sin bloqueos de interfaz. 2) Barra de Carga Superior Continua de Lado a Lado (Restauración de Estilo Original): Se restauró la animación fluida en BarraProgresoCarga.jsx y Dashboard.jsx (metrico-top-beam), donde un haz luminoso viaja continuamente de lado a lado por la parte superior de la pantalla indicando que el sistema está procesando, ocultándose de forma limpia al terminar el cálculo. 3) Pre-cálculo de Ventanas Temporales: En useMetricoAnalytics.js, useMetricoDemanda.js y useMetricoProfesionales.js se precalculan los rangos numéricos una única vez antes de evaluar filtros, eliminando llamadas redundantes a new Date().',
       firestore_collections: ['pacientes_urgencia', 'turnos'],
-      query_optimization: 'Indexación O(1) en memoria y feedback visual reactivo en 0ms.'
+      query_optimization: 'Indexación O(1) en memoria y barra luminosa continua de lado a lado.'
     },
     modulos_afectados: ['useMetricoAnalytics.js', 'BarraProgresoCarga.jsx', 'Dashboard.jsx', 'useMetricoDemanda.js', 'useMetricoProfesionales.js', 'InformeArquitectura', 'ModalMuroActualizaciones'],
     detalles_tecnicos: [
       'Indexación con Map() por loteId y por fecha en turnosFiltrados (aceleración 300x de ~2000ms a ~2ms).',
       'Pre-evaluación de getWindowRange en statsKPI, demanda y profesionales.',
-      'Barra superior ultra delgada visible desde el primer instante con animación indeterminate shimmer.',
+      'Barra superior con haz luminoso en movimiento continuo de lado a lado (metrico-top-beam).',
       'No-bloqueo del hilo principal del navegador al seleccionar meses en selectores de fecha.'
     ]
   },
