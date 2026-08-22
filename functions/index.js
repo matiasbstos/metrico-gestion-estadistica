@@ -299,7 +299,7 @@ exports.obtenerProyeccionVolumen = functions.https.onCall(async (dataReq, contex
       CAST(ROUND(prediction_interval_upper_bound) AS INT64) as limite_superior
     FROM ML.FORECAST(
       MODEL \`metrico-dashboard-2026.metrico_analytics.prediccion_volumen_diario\`,
-      STRUCT(@horizon AS horizon, @confidenceLevel AS confidence_level)
+      STRUCT(${horizon} AS horizon, ${confidenceLevel} AS confidence_level)
     )
     ORDER BY forecast_timestamp ASC
   `;
@@ -307,8 +307,7 @@ exports.obtenerProyeccionVolumen = functions.https.onCall(async (dataReq, contex
   try {
     // PASO 1: Consultar BigQuery ML ARIMA_PLUS
     const options = {
-      query: sqlQuery,
-      params: { horizon, confidenceLevel }
+      query: sqlQuery
     };
 
     const [rows] = await bigquery.query(options);
