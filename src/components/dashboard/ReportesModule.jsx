@@ -334,6 +334,16 @@ export default function ReportesModule({
       pct: totalFracturas > 0 ? ((maxAgeCount / totalFracturas) * 100).toFixed(1) : '0.0'
     };
 
+    const top5AgeGroups = AGE_RANGES_LIST
+      .map(r => ({
+        rango: r,
+        total: ageGroupCounts[r] || 0,
+        pct: totalFracturas > 0 ? (((ageGroupCounts[r] || 0) / totalFracturas) * 100).toFixed(1) : '0.0'
+      }))
+      .filter(item => item.total > 0)
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5);
+
     return { 
       totalPacientes: pacs.length, 
       totalFracturas, 
@@ -343,6 +353,7 @@ export default function ReportesModule({
       sinRegistroCount, 
       topFracturas,
       topAgeGroup,
+      top5AgeGroups,
       fracturasTrasladadas,
       fracturasDomicilio,
       fracturasOtros,
@@ -1534,20 +1545,45 @@ totalTriados,
                     </div>
                   </div>
 
-                  {/* Tarjeta de Grupo Etario con Mayor Porcentaje de Fracturas */}
-                  <div className="bg-indigo-500/10 border border-indigo-500/20 p-3.5 rounded-2xl flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <Users className="w-5 h-5 text-indigo-600" />
-                      <div>
-                        <span className="text-[10px] font-black text-indigo-700 uppercase tracking-wider block">Grupo Etario con Mayor Porcentaje de Fracturas</span>
-                        <p className="text-sm font-black text-slate-800">
-                          {fracturasStats.topAgeGroup.rangoTexto} ({fracturasStats.topAgeGroup.total} {fracturasStats.topAgeGroup.isEmpate ? 'casos c/u' : 'casos de fractura'})
-                        </p>
+                  {/* Ranking Top 5 Tramos Etarios con Mayor Porcentaje de Fracturas */}
+                  <div className="bg-indigo-50/50 border border-indigo-200/80 p-4 rounded-2xl space-y-2.5 print-avoid-break">
+                    <div className="flex items-center justify-between border-b border-indigo-200/60 pb-2">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-indigo-600" />
+                        <h4 className="text-xs font-black text-indigo-900 uppercase tracking-wider">
+                          Top 5 Tramos Etarios con Mayor Incidencia de Fracturas
+                        </h4>
                       </div>
+                      <span className="text-[10px] font-bold text-indigo-600 bg-white px-2 py-0.5 rounded-md border border-indigo-200">
+                        Total Fracturas: {fracturasStats.totalFracturas} pac.
+                      </span>
                     </div>
-                    <span className="text-lg font-black text-indigo-600 bg-white px-3 py-1 rounded-xl border border-indigo-200 shadow-xs">
-                      {fracturasStats.topAgeGroup.pct}% {fracturasStats.topAgeGroup.isEmpate ? 'c/u' : 'del total'}
-                    </span>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 pt-1">
+                      {fracturasStats.top5AgeGroups && fracturasStats.top5AgeGroups.length > 0 ? (
+                        fracturasStats.top5AgeGroups.map((item, idx) => (
+                          <div key={idx} className="bg-white border border-indigo-100 p-2.5 rounded-xl shadow-2xs flex flex-col justify-between">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
+                                #{idx + 1}
+                              </span>
+                              <span className="text-xs font-black text-slate-800">
+                                {item.total} {item.total === 1 ? 'caso' : 'casos'}
+                              </span>
+                            </div>
+                            <span className="text-xs font-bold text-slate-700 block">
+                              Tramo {item.rango} años
+                            </span>
+                            <div className="mt-1.5 pt-1 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                              <span className="text-slate-500 font-medium">Participación:</span>
+                              <span className="font-black text-indigo-600">{item.pct}%</span>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-xs text-slate-500 italic col-span-5">Sin registros de fractura en el período.</p>
+                      )}
+                    </div>
                   </div>
                 </div>
 

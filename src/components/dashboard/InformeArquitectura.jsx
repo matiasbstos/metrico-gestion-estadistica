@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.3.4',
+    version_tag: 'v5.3.4',
+    fecha_despliegue: '21 de Agosto, 2026',
+    proposito_actualizacion: 'Ranking Top 5 de Tramos Etarios en Fracturas, Navegación Interactiva por Clic y Homologación de Iconografía SVG Oficial (Lucide).',
+    medios_y_stack: [
+      'React 18.3 (AnalisisFracturas.jsx, ReportesModule.jsx)',
+      'Algoritmo de Ranking Dinámico Top 5 Etario Quinquenal',
+      'Lucide React (Iconografía Médica Vectorial)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Se incorporó el panel de Ranking Top 5 de Tramos Etarios en el módulo de Estadísticas de Fractura con porcentaje de participación y desglose por sexo. 2) Se habilitó la interacción por clic en la tarjeta KPI 5 para redirigir con desplazamiento suave hacia el ranking etario. 3) En el sub-reporte imprimible de fracturas, se reemplazó el texto plano por un ranking estructurado de las 5 mayores incidencias. 4) Se sustituyeron todos los emoticones por íconos SVG vectoriales oficiales (Layers, BarChart3, Baby, UserCheck, Users, HeartPulse, Award) alineados con el Manual de Identidad Visual de MÉTRICO.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Cálculo reactivo memorizado de top5TramosEtarios y top5AgeGroups.'
+    },
+    modulos_afectados: ['AnalisisFracturas.jsx', 'ReportesModule.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Navegación interactiva con scrollIntoView suave hacia seccion-distribucion-edad.',
+      'Ranking visual con posición ordinal, casos, porcentaje de participación y ratio F/M.',
+      'Sustitución integral de emojis por iconografía Lucide React.'
+    ]
+  },
+  {
     id: 'v5.3.3',
     version_tag: 'v5.3.3',
     fecha_despliegue: '21 de Agosto, 2026',

@@ -1,5 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Activity, Clock, Stethoscope, Hospital, Users, Search, Download, Filter, AlertCircle, Award, Calendar, ChevronRight, ChevronDown, ChevronUp, ArrowRightLeft, Info, TrendingUp, TrendingDown } from 'lucide-react';
+import { 
+  Activity, Clock, Stethoscope, Hospital, Users, Search, Download, Filter, 
+  AlertCircle, Award, Calendar, ChevronRight, ChevronDown, ChevronUp, ArrowRightLeft, 
+  Info, TrendingUp, TrendingDown, Layers, BarChart3, Baby, UserCheck, HeartPulse, ArrowUpRight, Sparkles
+} from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
 import InfoTooltip from '../InfoTooltip';
 import { generateFracturasSummary } from '../../utils/summaryGenerator';
@@ -388,6 +392,19 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
       isEmpate: topClinicos.length > 1
     };
 
+    // Top 5 Tramos Quinquenales con Mayor Incidencia de Fracturas
+    const top5TramosEtarios = Object.entries(porRangoEtario)
+      .map(([rango, data]) => ({
+        rango,
+        total: data.total,
+        mujeres: data.F,
+        hombres: data.M,
+        pct: total > 0 ? ((data.total / total) * 100).toFixed(1) : '0.0'
+      }))
+      .filter(t => t.total > 0)
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5);
+
     const avgAdmCatGlobal = countAdmCatTotal > 0 ? (sumAdmCatTotal / countAdmCatTotal) : null;
     const avgCatAnaGlobal = countCatAnaTotal > 0 ? (sumCatAnaTotal / countCatAnaTotal) : null;
     const avgAnaAltGlobal = countAnaAltTotal > 0 ? (sumAnaAltTotal / countAnaAltTotal) : null;
@@ -445,6 +462,7 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
       avgEstadiaTraslado, countAdmAltHospital,
 
       top5Diagnosticos: listaDiagnosticos.slice(0, 5),
+      top5TramosEtarios,
 
       p0_14,
       p15_29,
@@ -679,11 +697,18 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
         </div>
 
         {/* KPI 5: GRUPO ETARIO CON MAYOR PORCENTAJE DE FRACTURAS */}
-        <div className="bg-gradient-to-br from-indigo-500/15 via-card-custom to-card-custom p-4 rounded-2xl border-2 border-indigo-500/30 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[140px]">
+        <div 
+          onClick={() => {
+            const el = document.getElementById('seccion-distribucion-edad');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }}
+          className="bg-gradient-to-br from-indigo-500/15 via-card-custom to-card-custom p-4 rounded-2xl border-2 border-indigo-500/30 hover:border-indigo-500/60 relative overflow-hidden group shadow-sm flex flex-col justify-between min-h-[140px] cursor-pointer transition-all hover:scale-[1.01]"
+          title="Haz clic para ver el ranking Top 5 de tramos etarios con mayor número de fracturas"
+        >
           <div>
             <div className="flex justify-between items-start mb-1">
               <span className="text-[11px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Mayor % Fracturas</span>
-              <Users className="w-4 h-4 text-indigo-500 opacity-90" />
+              <Users className="w-4 h-4 text-indigo-500 opacity-90 group-hover:scale-110 transition-transform" />
             </div>
             {stats.rangoMasFrecuente && stats.rangoMasFrecuente.total > 0 ? (
               <div className="mt-1">
@@ -703,8 +728,11 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
               <span className="text-xs text-secondary-custom font-bold">Sin datos</span>
             )}
           </div>
-          <div className="mt-2 pt-2 border-t border-card-custom/50 text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider truncate">
-            {stats.rangoMasFrecuente.isEmpate ? 'Tramos Predominantes (Empate)' : 'Grupo Etario Predominante'}
+          <div className="mt-2 pt-2 border-t border-card-custom/50 flex items-center justify-between text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+            <span className="truncate">{stats.rangoMasFrecuente.isEmpate ? 'Tramos Líderes' : 'Tramo Predominante'}</span>
+            <span className="flex items-center gap-0.5 text-[9px] text-indigo-500 hover:text-indigo-600 font-extrabold underline decoration-indigo-400/50">
+              Ver Top 5 <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </span>
           </div>
         </div>
 
@@ -1119,9 +1147,9 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
             <option value="TODOS">Todos los Tramos Etarios</option>
             <optgroup label="1. Vista Ciclos Vitales (4 Grupos Clínicos)">
               <option value="0-14">🧒 Pediatría (0 a 14 años)</option>
-              <option value="15-29">🧑 Jóvenes (15 a 29 años)</option>
-              <option value="30-59">👨 Adultos (30 a 59 años)</option>
-              <option value="60+">👴 Adultos Mayores (60+ años)</option>
+              <option value="15-29">Jóvenes (15 a 29 años)</option>
+              <option value="30-59">Adultos (30 a 59 años)</option>
+              <option value="60+">Adultos Mayores (60+ años)</option>
             </optgroup>
             <optgroup label="2. Vista Epidemiológica Quinquenal (17 Tramos de 5 en 5 años)">
               {AGE_RANGES.map((r, i) => (
@@ -1145,19 +1173,78 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
       </div>
 
       {/* SECCIÓN INTERACTIVA DE GRUPOS ETARIOS CON SELECTOR DUAL (CLÍNICO vs QUINQUENAL) */}
-      <div className="bg-black/5 dark:bg-white/5 p-5 rounded-2xl border border-card-custom mb-6">
+      <div id="seccion-distribucion-edad" className="bg-black/5 dark:bg-white/5 p-5 rounded-2xl border border-card-custom mb-6 scroll-mt-24 space-y-4">
         
         {/* BANNER GUÍA PEDAGÓGICO */}
-        <div className="p-3 mb-4 bg-sky-500/10 dark:bg-sky-950/40 rounded-xl border border-sky-500/20 text-xs font-medium text-sky-900 dark:text-sky-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <div className="p-3 bg-sky-500/10 dark:bg-sky-950/40 rounded-xl border border-sky-500/20 text-xs font-medium text-sky-900 dark:text-sky-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Info className="w-4 h-4 text-sky-500 shrink-0" />
             <span>
-              <strong>Modalidades de Agrupación Etaria:</strong> Usa <strong>4 Grupos Clínicos</strong> para gestión operativa y recursos de urgencia, o <strong>17 Tramos Quinquenales (5 en 5 años)</strong> para perfil epidemiológico fino.
+              <strong>Modalidades de Agrupación Etaria:</strong> Usa <strong>Grupos Clínicos</strong> para gestión operativa y recursos de urgencia, o <strong>Desglose Quinquenal (5 en 5 años)</strong> para perfil epidemiológico fino.
             </span>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2 border-b border-card-custom/40 pb-3">
+        {/* RANKING TOP 5 TRAMOS ETARIOS CON MAYOR INCIDENCIA DE FRACTURAS */}
+        <div className="bg-card-custom p-4 rounded-xl border border-indigo-500/30 shadow-xs space-y-3">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-card-custom/50 pb-2.5">
+            <div className="flex items-center gap-2">
+              <Award className="w-4 h-4 text-indigo-500" />
+              <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider">
+                Top 5 Tramos Etarios con Mayor Cantidad de Fracturas
+              </h4>
+            </div>
+            <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20">
+              Total Casos: {stats.total} fracturas
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+            {stats.top5TramosEtarios && stats.top5TramosEtarios.length > 0 ? (
+              stats.top5TramosEtarios.map((t, idx) => {
+                const isSelected = filtroEdad === t.rango;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => setFiltroEdad(isSelected ? 'TODOS' : t.rango)}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between group ${
+                      isSelected 
+                        ? 'bg-indigo-500/15 border-indigo-500 ring-2 ring-indigo-500/30 shadow-sm' 
+                        : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-card-custom'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 px-2 py-0.5 rounded-md">
+                        #{idx + 1}
+                      </span>
+                      <span className="text-[11px] font-black text-primary-custom">
+                        {t.total} {t.total === 1 ? 'caso' : 'casos'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-xs font-black text-primary-custom block">
+                        Tramo {t.rango} años
+                      </span>
+                      <span className="text-[10px] text-secondary-custom font-semibold">
+                        {t.mujeres}F / {t.hombres}M
+                      </span>
+                    </div>
+
+                    <div className="mt-2 pt-2 border-t border-card-custom/40 flex items-center justify-between text-[10px]">
+                      <span className="text-secondary-custom font-medium">Participación:</span>
+                      <span className="font-black text-indigo-600 dark:text-indigo-400">{t.pct}%</span>
+                    </div>
+                  </button>
+                );
+              })
+            ) : (
+              <p className="text-xs text-secondary-custom italic col-span-5">Sin registros de fractura en el período.</p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-2 gap-2 border-b border-card-custom/40 pb-3">
           <div className="flex items-center gap-2">
             <h3 className="text-xs font-bold text-primary-custom uppercase tracking-wider flex items-center gap-2">
               <Users className="w-4 h-4 text-sky-500" />
@@ -1183,7 +1270,8 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
                   : 'text-secondary-custom hover:text-primary-custom'
               }`}
             >
-              <span>🧒 Grupos Clínicos</span>
+              <Layers className="w-3.5 h-3.5" />
+              <span>Grupos Clínicos</span>
               <span className="text-[9px] opacity-80">(4 Tramos)</span>
             </button>
             <button
@@ -1194,7 +1282,8 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
                   : 'text-secondary-custom hover:text-primary-custom'
               }`}
             >
-              <span>📊 Desglose Quinquenal</span>
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span>Desglose Quinquenal</span>
               <span className="text-[9px] opacity-80">(17 Tramos • 5 años)</span>
             </button>
           </div>
@@ -1204,13 +1293,14 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
         {modoVistaEdad === 'clinico' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {[
-              { id: '0-14', label: 'Pediatría', range: '0 a 14 años', count: stats.p0_14, mujeres: stats.clinicosMujeres?.['0-14'] || 0, hombres: stats.clinicosHombres?.['0-14'] || 0, icon: '🧒', color: 'from-pink-500/10' },
-              { id: '15-29', label: 'Jóvenes', range: '15 a 29 años', count: stats.p15_29, mujeres: stats.clinicosMujeres?.['15-29'] || 0, hombres: stats.clinicosHombres?.['15-29'] || 0, icon: '🧑', color: 'from-blue-500/10' },
-              { id: '30-59', label: 'Adultos', range: '30 a 59 años', count: stats.p30_59, mujeres: stats.clinicosMujeres?.['30-59'] || 0, hombres: stats.clinicosHombres?.['30-59'] || 0, icon: '👨', color: 'from-amber-500/10' },
-              { id: '60+', label: 'Adultos Mayores', range: '60+ años', count: stats.p60_plus, mujeres: stats.clinicosMujeres?.['60+'] || 0, hombres: stats.clinicosHombres?.['60+'] || 0, icon: '👴', color: 'from-purple-500/10' },
+              { id: '0-14', label: 'Pediatría', range: '0 a 14 años', count: stats.p0_14, mujeres: stats.clinicosMujeres?.['0-14'] || 0, hombres: stats.clinicosHombres?.['0-14'] || 0, IconComponent: Baby, iconColor: 'text-pink-500', bgIcon: 'bg-pink-500/10' },
+              { id: '15-29', label: 'Jóvenes', range: '15 a 29 años', count: stats.p15_29, mujeres: stats.clinicosMujeres?.['15-29'] || 0, hombres: stats.clinicosHombres?.['15-29'] || 0, IconComponent: UserCheck, iconColor: 'text-blue-500', bgIcon: 'bg-blue-500/10' },
+              { id: '30-59', label: 'Adultos', range: '30 a 59 años', count: stats.p30_59, mujeres: stats.clinicosMujeres?.['30-59'] || 0, hombres: stats.clinicosHombres?.['30-59'] || 0, IconComponent: Users, iconColor: 'text-amber-500', bgIcon: 'bg-amber-500/10' },
+              { id: '60+', label: 'Adultos Mayores', range: '60+ años', count: stats.p60_plus, mujeres: stats.clinicosMujeres?.['60+'] || 0, hombres: stats.clinicosHombres?.['60+'] || 0, IconComponent: HeartPulse, iconColor: 'text-purple-500', bgIcon: 'bg-purple-500/10' },
             ].map(grp => {
               const isSelected = filtroEdad === grp.id;
               const pctVal = perc(grp.count, stats.total);
+              const { IconComponent } = grp;
 
               return (
                 <button
@@ -1223,8 +1313,10 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
                   }`}
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-base">{grp.icon}</span>
+                    <div className="flex items-center gap-2">
+                      <div className={`p-1.5 rounded-lg ${grp.bgIcon}`}>
+                        <IconComponent className={`w-4 h-4 ${grp.iconColor}`} />
+                      </div>
                       <div>
                         <span className="text-xs font-black text-primary-custom block leading-tight">{grp.label}</span>
                         <span className="text-[10px] text-secondary-custom font-semibold">{grp.range}</span>

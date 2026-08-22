@@ -8,6 +8,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.3.4',
+      version: 'v5.3.4',
+      fecha: '21 de Agosto, 2026',
+      badge: 'TRAUMATOLOGÍA & TOP 5 ETARIO',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Top 5 Tramos Etarios en Fracturas, Redirección por Clic e Iconografía Oficial',
+      categoria: 'Traumatología',
+      icon: Award,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se incorporó el Ranking Top 5 de Tramos Etarios con mayor incidencia de fracturas tanto en el módulo interactivo como en los Reportes Ejecutivos imprimibles. La tarjeta KPI "Mayor % Fracturas" ahora es interactiva y te lleva directo al detalle con un solo clic. Además, se reemplazaron todos los emoticones por íconos SVG vectoriales acordes a la identidad gráfica de MÉTRICO.',
+      instructivo: {
+        paraQueSirve: 'Permite visualizar de inmediato la lista ordenada de los 5 tramos etarios con mayor concentración de fracturas junto con su porcentaje de participación y desglose por género.',
+        quePuedesVer: '1) Al hacer clic en la tarjeta "Mayor % Fracturas", la pantalla se desliza suavemente hacia el nuevo panel "Top 5 Tramos Etarios". 2) En el Reporte de Fracturas, los tramos se presentan en un ranking ordenado (#1 al #5) con sus porcentajes. 3) Toda la sección etaria cuenta ahora con íconos vectoriales modernos de alta resolución.',
+        ejemploUso: 'Haz clic sobre la tarjeta "Mayor % Fracturas" para examinar de inmediato los tramos #1 a #5 y filtrar con un solo clic sobre cualquiera de ellos.'
+      },
+      changes: [
+        'Ranking Top 5 Etario: Visualización de las 5 mayores incidencias de fractura con casos y porcentaje.',
+        'Navegación Interactiva: Clic en tarjeta KPI para desplazarse suavemente al ranking etario.',
+        'Reportes Ejecutivos Optimizados: Estructuración en tabla/ranking Top 5 para impresión y PDF.',
+        'Identidad Visual Homologada: Sustitución de emojis informales por íconos SVG Lucide (Layers, BarChart3, Baby, UserCheck, Users, HeartPulse, Award).'
+      ]
+    },
+    {
       id: 'v5.3.3',
       version: 'v5.3.3',
       fecha: '21 de Agosto, 2026',
