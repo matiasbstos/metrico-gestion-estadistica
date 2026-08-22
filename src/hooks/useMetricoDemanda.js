@@ -20,7 +20,9 @@ export const useMetricoDemanda = (pacientesDB, turnosDB, demandaFechaInicio, dem
   }, [turnosDB, demandaFechaInicio, demandaFechaFin]);
 
   const pacientesDemanda = useMemo(() => {
-    return pacientesDB.filter(p => isPatientInWindow(p.tAdmision, demandaFechaInicio, demandaFechaFin, filtroHoraInicio, filtroHoraFin));
+    const range = getWindowRange(demandaFechaInicio, demandaFechaFin, filtroHoraInicio, filtroHoraFin);
+    if (!range) return [];
+    return pacientesDB.filter(p => isPatientInWindowRange(p.tAdmision, range));
   }, [pacientesDB, demandaFechaInicio, demandaFechaFin, filtroHoraInicio, filtroHoraFin]);
 
   const peakHoursData = useMemo(() => {
@@ -53,7 +55,8 @@ export const useMetricoDemanda = (pacientesDB, turnosDB, demandaFechaInicio, dem
     }
 
     if (modoComparativo) {
-      const pacsB = pacientesDB.filter(p => isPatientInWindow(p.tAdmision, filtroFechaInicioB, filtroFechaFinB, filtroHoraInicio, filtroHoraFin));
+      const rangeB = getWindowRange(filtroFechaInicioB, filtroFechaFinB, filtroHoraInicio, filtroHoraFin);
+      const pacsB = rangeB ? pacientesDB.filter(p => isPatientInWindowRange(p.tAdmision, rangeB)) : [];
       pacsB.forEach(p => {
         if (p.tAdmision) {
           const date = new Date(p.tAdmision);

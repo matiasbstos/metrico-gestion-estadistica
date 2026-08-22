@@ -206,6 +206,50 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
 
   const turnosFiltrados = useMemo(() => {
     if (!turnosPorFecha || turnosPorFecha.length === 0) return [];
+    if (!pacientesFiltrados || pacientesFiltrados.length === 0) {
+      return turnosPorFecha.map(t => ({
+        ...t,
+        totalPacientes: Number(t.totalPacientes || 0),
+        altasAdmin: Number(t.altasAdmin || 0),
+        c1: Number(t.c1 || 0),
+        c2: Number(t.c2 || 0),
+        c3: Number(t.c3 || 0),
+        c3_z518: Number(t.c3_z518 || 0),
+        c4: Number(t.c4 || 0),
+        c5: Number(t.c5 || 0),
+        tiempoAdmCat: Number(t.tiempoAdmCat || 0),
+        tiempoCatAna: Number(t.tiempoCatAna || 0),
+        tiempoAnaAlt: Number(t.tiempoAnaAlt || 0),
+        tiempoAdmAlt: Number(t.tiempoAdmAlt || 0),
+        pacientesList: []
+      }));
+    }
+
+    // 1. Indexación O(N) instantánea por Lote y por Fecha
+    const pacsByLoteId = new Map();
+    const pacsByDateStr = new Map();
+
+    pacientesFiltrados.forEach(p => {
+      if (p.loteId) {
+        let arr = pacsByLoteId.get(p.loteId);
+        if (!arr) {
+          arr = [];
+          pacsByLoteId.set(p.loteId, arr);
+        }
+        arr.push(p);
+      }
+      if (p.tAdmision) {
+        const dStr = formatLocalDate(p.tAdmision);
+        if (dStr) {
+          let arr = pacsByDateStr.get(dStr);
+          if (!arr) {
+            arr = [];
+            pacsByDateStr.set(dStr, arr);
+          }
+          arr.push(p);
+        }
+      }
+    });
 
     return turnosPorFecha.map(t => {
       const startDay = t.fechaInicio;
@@ -228,20 +272,22 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
         tEnd += 24 * 3600 * 1000;
       }
 
-      let pacs = [];
-      if (t.loteId) {
-        pacs = pacientesFiltrados.filter(p => p.loteId === t.loteId);
+      let pacs = null;
+      if (t.loteId && pacsByLoteId.has(t.loteId)) {
+        pacs = pacsByLoteId.get(t.loteId);
       }
-      if (pacs.length === 0 && !isNaN(tStart) && !isNaN(tEnd)) {
+      if (!pacs && t.fechaInicio && pacsByDateStr.has(t.fechaInicio) && !spansMidnight) {
+        pacs = pacsByDateStr.get(t.fechaInicio);
+      }
+      if (!pacs && !isNaN(tStart) && !isNaN(tEnd)) {
         pacs = pacientesFiltrados.filter(p => p.tAdmision && p.tAdmision >= tStart && p.tAdmision < tEnd);
       }
-      if (pacs.length === 0 && t.fechaInicio) {
-        pacs = pacientesFiltrados.filter(p => formatLocalDate(p.tAdmision) === t.fechaInicio);
+      if (!pacs) {
+        pacs = [];
       }
 
       const pacsCount = pacs.length;
-      const altasCount = pacs.filter(p => p.estado === 'Cancelada').length;
-
+      let altasCount = 0;
       const counts = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0, sincat: 0 };
       let sumAdmCat = 0, countAdmCat = 0;
       let sumCatAna = 0, countCatAna = 0;
@@ -250,6 +296,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
 
       if (pacsCount > 0) {
         pacs.forEach(p => {
+          if (p.estado === 'Cancelada' || isAltaAdmin(p)) altasCount++;
           const cat = p.categoria;
           if (isConstatacionLesion(p)) {
             counts.c3_z518++;
@@ -257,20 +304,26 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
             counts[cat]++;
           }
 
-          if (p.tAdmision && p.tCat1 && p.tCat1 >= p.tAdmision) {
-            sumAdmCat += (p.tCat1 - p.tAdmision) / 60000;
+          const tAdm = p.tAdmision;
+          const tC1 = p.tCat1;
+          const tCU = p.tCatUlt;
+          const tAn = p.tAnamnesis;
+          const tAl = p.tAlta;
+
+          if (tAdm && tC1 && tC1 >= tAdm) {
+            sumAdmCat += (tC1 - tAdm) / 60000;
             countAdmCat++;
           }
-          if (p.tCatUlt && p.tAnamnesis && p.tAnamnesis >= p.tCatUlt) {
-            sumCatAna += (p.tAnamnesis - p.tCatUlt) / 60000;
+          if (tCU && tAn && tAn >= tCU) {
+            sumCatAna += (tAn - tCU) / 60000;
             countCatAna++;
           }
-          if (p.tAnamnesis && p.tAlta && p.tAlta >= p.tAnamnesis) {
-            sumAnaAlt += (p.tAlta - p.tAnamnesis) / 60000;
+          if (tAn && tAl && tAl >= tAn) {
+            sumAnaAlt += (tAl - tAn) / 60000;
             countAnaAlt++;
           }
-          if (p.tAdmision && p.tAlta && p.tAlta >= p.tAdmision) {
-            sumAdmAlt += (p.tAlta - p.tAdmision) / 60000;
+          if (tAdm && tAl && tAl >= tAdm) {
+            sumAdmAlt += (tAl - tAdm) / 60000;
             countAdmAlt++;
           }
         });
@@ -373,10 +426,15 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
   const promediosGlobales = useMemo(() => {
     let sAdmCat=0, cAdmCat=0, sCatAna=0, cCatAna=0, sAnaAlt=0, cAnaAlt=0, sAdmAlt=0, cAdmAlt=0;
     pacientesFiltrados.forEach(p => {
-      if (p.tAdmision && p.tCat1 && p.tCat1 >= p.tAdmision) { sAdmCat += (p.tCat1 - p.tAdmision)/60000; cAdmCat++; }
-      if (p.tCatUlt && p.tAnamnesis && p.tAnamnesis >= p.tCatUlt) { sCatAna += (p.tAnamnesis - p.tCatUlt)/60000; cCatAna++; }
-      if (p.tAnamnesis && p.tAlta && p.tAlta >= p.tAnamnesis) { sAnaAlt += (p.tAlta - p.tAnamnesis)/60000; cAnaAlt++; }
-      if (p.tAdmision && p.tAlta && p.tAlta >= p.tAdmision) { sAdmAlt += (p.tAlta - p.tAdmision)/60000; cAdmAlt++; }
+      const tAdm = p.tAdmision;
+      const tC1 = p.tCat1;
+      const tCU = p.tCatUlt;
+      const tAn = p.tAnamnesis;
+      const tAl = p.tAlta;
+      if (tAdm && tC1 && tC1 >= tAdm) { sAdmCat += (tC1 - tAdm)/60000; cAdmCat++; }
+      if (tCU && tAn && tAn >= tCU) { sCatAna += (tAn - tCU)/60000; cCatAna++; }
+      if (tAn && tAl && tAl >= tAn) { sAnaAlt += (tAl - tAn)/60000; cAnaAlt++; }
+      if (tAdm && tAl && tAl >= tAdm) { sAdmAlt += (tAl - tAdm)/60000; cAdmAlt++; }
     });
     return {
       avgAdmCat: cAdmCat ? sAdmCat / cAdmCat : null, 
@@ -388,25 +446,46 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
   }, [pacientesFiltrados]);
 
   const metricsByCategory = useMemo(() => {
-    const res = {};
-    ['c1', 'c2', 'c3', 'c3_z518', 'c4', 'c5', 'sincat'].forEach(cat => {
-      const pacs = pacientesFiltrados.filter(p => p.categoria === cat);
-      let sAdmCat=0, cAdmCat=0, sCatAna=0, cCatAna=0, sAnaAlt=0, cAnaAlt=0, sAdmAlt=0, cAdmAlt=0;
-      pacs.forEach(p => {
-        if (p.tAdmision && p.tCat1 && p.tCat1 >= p.tAdmision) { sAdmCat += (p.tCat1 - p.tAdmision)/60000; cAdmCat++; }
-        if (p.tCatUlt && p.tAnamnesis && p.tAnamnesis >= p.tCatUlt) { sCatAna += (p.tAnamnesis - p.tCatUlt)/60000; cCatAna++; }
-        if (p.tAnamnesis && p.tAlta && p.tAlta >= p.tAnamnesis) { sAnaAlt += (p.tAlta - p.tAnamnesis)/60000; cAnaAlt++; }
-        if (p.tAdmision && p.tAlta && p.tAlta >= p.tAdmision) { sAdmAlt += (p.tAlta - p.tAdmision)/60000; cAdmAlt++; }
-      });
-      res[cat] = {
-        total: pacs.length, 
-        avgAdmCat: cAdmCat ? sAdmCat / cAdmCat : null,
-        avgCatAna: cCatAna ? sCatAna / cCatAna : null, 
-        avgAnaAlt: cAnaAlt ? sAnaAlt / cAnaAlt : null,
-        avgAdmAlt: cAdmAlt ? sAdmAlt / cAdmAlt : null 
+    const res = {
+      c1: { total: 0, sAdmCat: 0, cAdmCat: 0, sCatAna: 0, cCatAna: 0, sAnaAlt: 0, cAnaAlt: 0, sAdmAlt: 0, cAdmAlt: 0 },
+      c2: { total: 0, sAdmCat: 0, cAdmCat: 0, sCatAna: 0, cCatAna: 0, sAnaAlt: 0, cAnaAlt: 0, sAdmAlt: 0, cAdmAlt: 0 },
+      c3: { total: 0, sAdmCat: 0, cAdmCat: 0, sCatAna: 0, cCatAna: 0, sAnaAlt: 0, cAnaAlt: 0, sAdmAlt: 0, cAdmAlt: 0 },
+      c3_z518: { total: 0, sAdmCat: 0, cAdmCat: 0, sCatAna: 0, cCatAna: 0, sAnaAlt: 0, cAnaAlt: 0, sAdmAlt: 0, cAdmAlt: 0 },
+      c4: { total: 0, sAdmCat: 0, cAdmCat: 0, sCatAna: 0, cCatAna: 0, sAnaAlt: 0, cAnaAlt: 0, sAdmAlt: 0, cAdmAlt: 0 },
+      c5: { total: 0, sAdmCat: 0, cAdmCat: 0, sCatAna: 0, cCatAna: 0, sAnaAlt: 0, cAnaAlt: 0, sAdmAlt: 0, cAdmAlt: 0 },
+      sincat: { total: 0, sAdmCat: 0, cAdmCat: 0, sCatAna: 0, cCatAna: 0, sAnaAlt: 0, cAnaAlt: 0, sAdmAlt: 0, cAdmAlt: 0 }
+    };
+
+    pacientesFiltrados.forEach(p => {
+      let cat = p.categoria || 'sincat';
+      if (isConstatacionLesion(p)) cat = 'c3_z518';
+      const target = res[cat] || res.sincat;
+      target.total++;
+
+      const tAdm = p.tAdmision;
+      const tC1 = p.tCat1;
+      const tCU = p.tCatUlt;
+      const tAn = p.tAnamnesis;
+      const tAl = p.tAlta;
+
+      if (tAdm && tC1 && tC1 >= tAdm) { target.sAdmCat += (tC1 - tAdm) / 60000; target.cAdmCat++; }
+      if (tCU && tAn && tAn >= tCU) { target.sCatAna += (tAn - tCU) / 60000; target.cCatAna++; }
+      if (tAn && tAl && tAl >= tAn) { target.sAnaAlt += (tAl - tAn) / 60000; target.cAnaAlt++; }
+      if (tAdm && tAl && tAl >= tAdm) { target.sAdmAlt += (tAl - tAdm) / 60000; target.cAdmAlt++; }
+    });
+
+    const finalRes = {};
+    Object.keys(res).forEach(k => {
+      const d = res[k];
+      finalRes[k] = {
+        total: d.total,
+        avgAdmCat: d.cAdmCat ? d.sAdmCat / d.cAdmCat : null,
+        avgCatAna: d.cCatAna ? d.sCatAna / d.cCatAna : null,
+        avgAnaAlt: d.cAnaAlt ? d.sAnaAlt / d.cAnaAlt : null,
+        avgAdmAlt: d.cAdmAlt ? d.sAdmAlt / d.cAdmAlt : null
       };
     });
-    return res;
+    return finalRes;
   }, [pacientesFiltrados]);
 
   const statsKPI = useMemo(() => {
@@ -419,7 +498,9 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const pmInitStr = new Date(fInit.getFullYear(), fInit.getMonth() - 1, fInit.getDate()).toISOString().split('T')[0];
     const pmEndStr = new Date(fEnd.getFullYear(), fEnd.getMonth() - 1, fEnd.getDate()).toISOString().split('T')[0];
     const pyInitStr = new Date(fInit.getFullYear() - 1, fInit.getMonth(), fInit.getDate()).toISOString().split('T')[0];
-    const pyEndStr = new Date(fEnd.getFullYear() - 1, fEnd.getMonth(), fEnd.getDate()).toISOString().split('T')[0];    const getHoursInPeriod = (startDayStr, endDayStr, startHourStr, endHourStr) => {
+    const pyEndStr = new Date(fEnd.getFullYear() - 1, fEnd.getMonth(), fEnd.getDate()).toISOString().split('T')[0];
+
+    const getHoursInPeriod = (startDayStr, endDayStr, startHourStr, endHourStr) => {
       const tStart = parseLocalDatetime(startDayStr, startHourStr || '00:00');
       const tEnd = parseLocalDatetime(endDayStr, endHourStr || '23:59');
       const diffMs = tEnd - tStart;
@@ -433,31 +514,30 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
         return count ? sum / count : 0;
     };
 
-    let prevMonthPacientes, prevYearPacientes;
-    let prevMonthVol, prevYearVol;
-    let pmAltasAdmin, pyAltasAdmin;
-    let pmEstadia, pyEstadia;
-    let pmPacHora, pyPacHora;
-    const pmCats = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
-    const pyCats = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
+    // Pre-calcular rangos de ventana temporal una sola vez (eliminando millones de llamadas a getWindowRange en bucles)
+    const pmRange = getWindowRange(pmInitStr, pmEndStr, filtroHoraInicio, filtroHoraFin);
+    const pyRange = getWindowRange(pyInitStr, pyEndStr, filtroHoraInicio, filtroHoraFin);
 
-    prevMonthPacientes = pacientesDB.filter(p => isPatientInWindow(p.tAdmision, pmInitStr, pmEndStr, filtroHoraInicio, filtroHoraFin));
-    prevYearPacientes = pacientesDB.filter(p => isPatientInWindow(p.tAdmision, pyInitStr, pyEndStr, filtroHoraInicio, filtroHoraFin));
+    const prevMonthPacientes = pmRange ? pacientesDB.filter(p => isPatientInWindowRange(p.tAdmision, pmRange)) : [];
+    const prevYearPacientes = pyRange ? pacientesDB.filter(p => isPatientInWindowRange(p.tAdmision, pyRange)) : [];
 
-    prevMonthVol = prevMonthPacientes.length;
-    prevYearVol = prevYearPacientes.length;
+    const prevMonthVol = prevMonthPacientes.length;
+    const prevYearVol = prevYearPacientes.length;
 
-    pmAltasAdmin = prevMonthPacientes.filter(isAltaAdmin).length;
-    pyAltasAdmin = prevYearPacientes.filter(isAltaAdmin).length;
+    const pmAltasAdmin = prevMonthPacientes.filter(isAltaAdmin).length;
+    const pyAltasAdmin = prevYearPacientes.filter(isAltaAdmin).length;
 
-    pmEstadia = calcEstadia(prevMonthPacientes);
-    pyEstadia = calcEstadia(prevYearPacientes);
+    const pmEstadia = calcEstadia(prevMonthPacientes);
+    const pyEstadia = calcEstadia(prevYearPacientes);
 
     const pmHours = getHoursInPeriod(pmInitStr, pmEndStr, filtroHoraInicio, filtroHoraFin);
     const pyHours = getHoursInPeriod(pyInitStr, pyEndStr, filtroHoraInicio, filtroHoraFin);
 
-    pmPacHora = pmHours > 0 ? prevMonthVol / pmHours : 0;
-    pyPacHora = pyHours > 0 ? prevYearVol / pyHours : 0;
+    const pmPacHora = pmHours > 0 ? prevMonthVol / pmHours : 0;
+    const pyPacHora = pyHours > 0 ? prevYearVol / pyHours : 0;
+
+    const pmCats = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
+    const pyCats = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
 
     const countCategories = (pacList, targetObj) => {
       pacList.forEach(p => {
@@ -505,7 +585,8 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
 
     const ytdTurnos = turnosDB.filter(t => t.fechaInicio && t.fechaInicio >= yearStartStr && t.fechaInicio <= fEndStr);
 
-    const yearLoadedPacs = pacientesDB.filter(p => p.tAdmision && isPatientInWindow(p.tAdmision, yearStartStr, fEndStr, '00:00', '23:59'));
+    const yearRange = getWindowRange(yearStartStr, fEndStr, '00:00', '23:59');
+    const yearLoadedPacs = yearRange ? pacientesDB.filter(p => p.tAdmision && isPatientInWindowRange(p.tAdmision, yearRange)) : [];
     const ytdPacientes = yearLoadedPacs.length > 0 ? yearLoadedPacs.length : ytdTurnos.reduce((acc, t) => acc + (t.totalPacientes || 0), 0);
     const ytdAltas = yearLoadedPacs.length > 0 ? yearLoadedPacs.filter(isAltaAdmin).length : ytdTurnos.reduce((acc, t) => acc + (t.altasAdmin || 0), 0);
     const ytdAtendidos = ytdPacientes - ytdAltas;

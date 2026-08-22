@@ -144,6 +144,16 @@ const DashboardContent = () => {
 
   const { user, userProfile, loading, syncStatus, syncProgress, setSyncStatus, setLoading, pacientesDB, allPacientesDB, turnosDB, triggerRefresh, lastSyncTime, syncToast, clearSyncToast } = useMetricoData(filtroFechaInicio, filtroFechaFin);
 
+  const [isFiltering, setIsFiltering] = useState(false);
+
+  useEffect(() => {
+    setIsFiltering(true);
+    const t = setTimeout(() => {
+      setIsFiltering(false);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin, filtrosGlobales]);
+
   const [tema, setTema] = useState(() => localStorage.getItem('metrico-tema') || 'crextio');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -2287,8 +2297,8 @@ const DashboardContent = () => {
         </div>
       </main>
 
-      {/* GLOBAL LOADING / SYNC OVERLAY */}
-      {(syncStatus === 'connecting' || syncStatus === 'syncing' || (syncProgress && syncProgress.active)) && (
+      {/* GLOBAL LOADING / SYNC OVERLAY (Solo durante conexión inicial completa o sync manual forzado) */}
+      {(syncStatus === 'connecting' || (syncStatus === 'syncing' && !syncProgress?.isHistorical)) && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md z-[9999] flex items-center justify-center p-6 animate-fade-in">
           <div className="bg-card-custom border border-card-custom rounded-3xl shadow-2xl p-8 max-w-md w-full text-center space-y-6 theme-transition relative overflow-hidden">
             {/* Glow animado unificado */}
@@ -2343,8 +2353,14 @@ const DashboardContent = () => {
         </div>
       )}
 
-      {/* BARRA DE PROGRESO DE DESCARGA EN TIEMPO REAL (Oculta si el modal central está activo) */}
-      <BarraProgresoCarga syncProgress={syncProgress} isOverlayOpen={syncStatus === 'connecting' || syncStatus === 'syncing' || (syncProgress && syncProgress.active)} />
+      {/* BARRA DE PROGRESO DE DESCARGA EN TIEMPO REAL (ACTIVA DESDE EL MINUTO UNO) */}
+      <BarraProgresoCarga 
+        syncProgress={syncProgress} 
+        isOverlayOpen={syncStatus === 'connecting' || (syncStatus === 'syncing' && !syncProgress?.isHistorical)} 
+        isFiltering={isFiltering}
+        loadingKpis={loadingKpis}
+        syncStatus={syncStatus}
+      />
 
       {/* NOTIFICACIÓN POP-UP ALERTA DE SINCRONIZACIÓN (MANUAL Y 5M AUTOSYNC) */}
       <PopUpSincronizacion toast={syncToast} onClose={clearSyncToast} />

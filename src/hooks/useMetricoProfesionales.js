@@ -28,7 +28,9 @@ export const useMetricoProfesionales = (pacientesDB, turnosDB, profFechaInicio, 
   }, [turnosDB, profFechaInicio, profFechaFin]);
 
   const pacientesProf = useMemo(() => {
-    return pacientesDB.filter(p => isPatientInWindow(p.tAdmision, profFechaInicio, profFechaFin, filtroHoraInicio, filtroHoraFin));
+    const range = getWindowRange(profFechaInicio, profFechaFin, filtroHoraInicio, filtroHoraFin);
+    if (!range) return [];
+    return pacientesDB.filter(p => isPatientInWindowRange(p.tAdmision, range));
   }, [pacientesDB, profFechaInicio, profFechaFin, filtroHoraInicio, filtroHoraFin]);
 
   const metricsByDoctor = useMemo(() => {
