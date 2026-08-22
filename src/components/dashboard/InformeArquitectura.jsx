@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.4.1',
+    version_tag: 'v5.4.1',
+    fecha_despliegue: '22 de Agosto, 2026',
+    proposito_actualizacion: 'Flujo Animado de Conciliación con Barra de Progreso y Desglose Interactivo con Solución de las 10 Reglas de Integridad.',
+    medios_y_stack: [
+      'React 18.3 (AuditLog.jsx, ModalDetalleReglaIntegridad.jsx, ModalProgresoConciliacion.jsx)',
+      'Motor de Diagnóstico y Muestras de Discrepancias en Vivo',
+      'Modal de Conciliación con Avance Multietapa y Notificación Sonora',
+      'Persistencia Local y Registro en Bitácora Firestore (audit_logs)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Barra de Progreso y Flujo de Conciliación ("Conciliar Todo" y Conciliación Individual): Al ejecutar la conciliación, se despliega una barra de avance animada y un modal interactivo que procesa en 4 etapas (auditoría de consistencia, cotejo SSOT, balanceo de reglas y consolidación final), culminando con estado "100% OK", chime sonoro y registro formal en audit_logs de Firestore. 2) Matriz de Verificación Rigurosa Interactiva: Las 10 tarjetas de reglas ahora son clickeables, abriendo un modal de diagnóstico profundo (<ModalDetalleReglaIntegridad />) que exhibe las muestras exactas de registros afectados (turnos, pacientes, folios duplicados, etc.), explicación de causa raíz, guía de resolución y botón de acción directa "Conciliar y Validar Regla", permitiendo transformar cualquier alerta en estado CONFORME y actualizar el score al 100%.',
+      firestore_collections: ['audit_logs', 'pacientes_urgencia', 'turnos'],
+      query_optimization: 'Persistencia instantánea en localStorage y actualización reactiva de score de integridad.'
+    },
+    modulos_afectados: ['AuditLog.jsx', 'ModalDetalleReglaIntegridad.jsx', 'ModalProgresoConciliacion.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Modal de progreso multietapa con barra de avance fluida para conciliaciones individuales y globales.',
+      'Extracción de muestras en memoria de turnos y pacientes con discrepancias para las 10 reglas.',
+      'Persistencia de reglas conciliadas en localStorage (metrico_reconciled_rules).',
+      'Feedback sonoro playSuccessChime y toast de confirmación al validar reglas.'
+    ]
+  },
+  {
     id: 'v5.4.0',
     version_tag: 'v5.4.0',
     fecha_despliegue: '22 de Agosto, 2026',

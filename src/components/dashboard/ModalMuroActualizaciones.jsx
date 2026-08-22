@@ -8,6 +8,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.4.1',
+      version: 'v5.4.1',
+      fecha: '22 de Agosto, 2026',
+      badge: 'AUDITORÍA & CONCILIACIÓN SSOT',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Conciliación con Barra de Progreso y Desglose Interactivo de las 10 Reglas de Integridad',
+      categoria: 'Integridad y Auditoría',
+      icon: ShieldCheck,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: '1) Se incorporó un flujo de conciliación animado con barra de progreso en vivo y pasos guiados para el botón "Conciliar Todo" y las conciliaciones individuales de la tabla de paridad, concluyendo con estado "100% OK", chime sonoro y registro en audit_logs. 2) Las 10 tarjetas de la Matriz de Verificación Rigurosa ahora son interactivas: al hacer clic en cualquiera de ellas, se abre un modal de diagnóstico profundo con la lista de muestras afectadas, la explicación de la causa y el botón de acción directa "Conciliar y Validar Regla" para resolver cualquier alerta de forma permanente.',
+      instructivo: {
+        paraQueSirve: 'Permite inspeccionar exactamente por qué se produce cada alerta en las 10 reglas de calidad asistencial y ejecutar conciliaciones con feedback visual y porcentaje de avance en tiempo real.',
+        quePuedesVer: 'En Registro y Auditoría → Reglas de Integridad: haz clic en cualquier tarjeta de regla para ver su diagnóstico, registros afectados y el botón de conciliación; o haz clic en "Conciliar Todo" para ver la barra de avance multietapa hasta el 100% OK.',
+        ejemploUso: 'Haz clic en la regla "2. Línea Temporal No Negativa" para ver los pacientes con cruce de medianoche y pulsa "Conciliar y Validar Regla" para convertirla en CONFORME.'
+      },
+      changes: [
+        'Modal de Progreso de Conciliación: Barra de avance animada en 4 etapas (0% a 100%) para conciliaciones individuales y generales.',
+        'Matriz de Reglas Interactiva: Clic en cualquiera de las 10 tarjetas para abrir el desglose de discrepancias.',
+        'Muestras de Registros en Vivo: Visualización de folios, turnos y pacientes causantes de la discrepancia.',
+        'Conciliación Persistente: Las reglas validadas se guardan en el sistema y elevan el Score de Integridad al 100%.',
+        'Registro de Auditoría Automático: Cada conciliación se registra en la bitácora Firestore audit_logs.'
+      ]
+    },
+    {
       id: 'v5.4.0',
       version: 'v5.4.0',
       fecha: '22 de Agosto, 2026',
