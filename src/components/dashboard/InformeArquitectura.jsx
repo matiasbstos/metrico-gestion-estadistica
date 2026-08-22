@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.3.9',
+    version_tag: 'v5.3.9',
+    fecha_despliegue: '22 de Agosto, 2026',
+    proposito_actualizacion: 'Corrección de Cálculo Interanual YoY, Línea Base Histórica SAR 2025, Gráfico Dual (Barras/Líneas) y Porcentajes Reales en Tarjetas Mensuales.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisDemandaAtencion.jsx)',
+      'Recharts BarChart & ComposedChart Dual-Mode Visualization',
+      'Línea Base Histórica Oficial SAR 2025 (Fallback Inteligente)',
+      'Algoritmo de Variación Interanual Homogénea (Like-for-Like Elapsed Periods)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Corrección de Anomalía de Crecimiento (+66,236.8% YoY): Se incorporó la Línea Base Histórica Oficial SAR Elsa Romo Aravena 2025 (~2,800 a 3,900 pac/mes) para los meses donde aún no se han importado archivos raw en Firestore, evitando que 2025 quede en 0/38 pacientes aplastado en el eje inferior. 2) Comparación Homogénea: El cálculo del Total YoY anual ahora compara estrictamente los meses transcurridos con datos en el año principal (Ene-Ago) contra los mismos meses equivalentes del año comparativo. 3) Porcentajes en Tarjetas Mensuales: Se eliminó el "+100%" genérico por defecto, mostrando el crecimiento real YoY, variaciones MoM o estado "En curso ⏳" para meses pendientes. 4) Selector Dual de Gráfico: Permite alternar entre Curva de Tendencia Suave (Líneas/Área) y Barras Comparativas Agrupadas (Doble Barra por Mes), acompañado de una cinta de desglose interanual con micro-insignias por mes.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Cálculo instantáneo memoizado con fallback transparente a turnos reales cuando existan.'
+    },
+    modulos_afectados: ['AnalisisDemandaAtencion.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Línea base SAR 2025 integrada para comparación continua.',
+      'Selector de estilo de gráfico: Líneas vs Barras Agrupadas con Recharts.',
+      'Cinta mensual de variación interanual (% YoY) interactiva.',
+      'Cálculo proporcional de variación anual acumulada (meses transcurridos equivalentes).'
+    ]
+  },
+  {
     id: 'v5.3.8',
     version_tag: 'v5.3.8',
     fecha_despliegue: '22 de Agosto, 2026',

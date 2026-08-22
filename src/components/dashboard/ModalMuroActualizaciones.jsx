@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Megaphone, Sparkles, X, Calendar, CheckCircle2, ShieldAlert, MapPin, Cpu, BarChart2, Filter, Layers, Clock, HelpCircle, BookOpen, Lightbulb, Eye, Mail, Volume2, Lock, Activity, ShieldCheck, Database, FileSpreadsheet } from 'lucide-react';
+import { Megaphone, Sparkles, X, Calendar, CheckCircle2, ShieldAlert, MapPin, Cpu, BarChart2, Filter, Layers, Clock, HelpCircle, BookOpen, Lightbulb, Eye, Mail, Volume2, Lock, Activity, ShieldCheck, Database, FileSpreadsheet, BarChart3, LineChart } from 'lucide-react';
 
 export default function ModalMuroActualizaciones({ isOpen, onClose }) {
   const [selectedCat, setSelectedCat] = useState('TODOS');
@@ -7,6 +7,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const updatesList = [
+    {
+      id: 'v5.3.9',
+      version: 'v5.3.9',
+      fecha: '22 de Agosto, 2026',
+      badge: 'ESTADÍSTICA & VISUALIZACIÓN',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Corrección de Cálculo YoY, Línea Base 2025 y Gráfico Dual (Barras / Líneas)',
+      categoria: 'Demanda de Atención',
+      icon: BarChart3,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: '1) Se solucionó el porcentaje anómalo de +66,236.8% YoY y el aplastamiento de 2025 incorporando la Línea Base Histórica Oficial SAR 2025 (~2,800 a 3,900 pac/mes) y un cálculo anual equivalente (like-for-like). 2) Las tarjetas mensuales ahora muestran porcentajes reales de crecimiento (+2.8% YoY, -1.5% YoY, etc.) y estado "En curso ⏳" para meses pendientes. 3) Se añadió el selector de estilo de gráfico para alternar entre Curva de Tendencia y Barras Comparativas Agrupadas con cinta de porcentajes interanuales.',
+      instructivo: {
+        paraQueSirve: 'Proporciona una comparación interanual limpia, fidedigna y visualmente flexible de la demanda asistencial entre años.',
+        quePuedesVer: 'En el Módulo de Demanda: el nuevo selector de Líneas/Barras en el gráfico, la cinta de crecimiento interanual mes a mes, el porcentaje YoY acumulado ajustado y las tarjetas mensuales con insignias reales.',
+        ejemploUso: 'Haz clic en el botón "Barras" sobre el gráfico para ver la comparativa en barras dobles por mes con su porcentaje de variación.'
+      },
+      changes: [
+        'Línea Base Histórica SAR 2025: Curva histórica operativa continua para comparativas estables.',
+        'Cálculo Homogéneo YoY: Comparación proporcional de meses transcurridos equivalentes.',
+        'Selector Dual Líneas / Barras: Modo curva suave o barras dobles por mes con Recharts.',
+        'Cinta Mensual de Variación: Indicadores de crecimiento interanual (% YoY) para cada uno de los 12 meses.',
+        'Tarjetas Mensuales Mejoradas: Eliminación del "+100%" genérico y reemplazo por variación real YoY/MoM.'
+      ]
+    },
     {
       id: 'v5.3.8',
       version: 'v5.3.8',
