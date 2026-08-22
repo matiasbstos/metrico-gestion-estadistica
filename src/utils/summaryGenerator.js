@@ -118,9 +118,12 @@ export const generateFracturasSummary = (pacs, stats = null) => {
   // Grupo etario con mayor porcentaje de fracturas (Sincronizado con stats)
   let topAgeGroupText = '';
   if (stats && stats.rangoMasFrecuente && stats.rangoMasFrecuente.total > 0) {
-    const pctAge = formatPct(stats.rangoMasFrecuente.total, totalFracturas);
-    const grupoClinico = stats.grupoClinicoMasAfectado ? ` y en el grupo clínico ${stats.grupoClinicoMasAfectado.name}` : '';
-    topAgeGroupText = ` El grupo etario con mayor concentración de fracturas corresponde al tramo de ${stats.rangoMasFrecuente.rango} años (${stats.rangoMasFrecuente.total} casos, ${pctAge}% del total)${grupoClinico}.`;
+    const pctAge = stats.rangoMasFrecuente.pct || formatPct(stats.rangoMasFrecuente.total, totalFracturas);
+    const empateSuffix = stats.rangoMasFrecuente.isEmpate ? ' c/u' : '';
+    const grupoClinico = stats.grupoClinicoMasAfectado && stats.grupoClinicoMasAfectado.val > 0 
+      ? ` y en el grupo clínico ${stats.grupoClinicoMasAfectado.name}` 
+      : '';
+    topAgeGroupText = ` El grupo etario con mayor concentración de fracturas corresponde a ${stats.rangoMasFrecuente.rangoTexto} (${stats.rangoMasFrecuente.total} casos${empateSuffix}, ${pctAge}% del total)${grupoClinico}.`;
   }
 
   return `Se identificó un total de ${totalFracturas} casos de fracturas óseas, que equivalen al ${pct}% de las admisiones evaluadas en el período.${topAgeGroupText} Las lesiones de mayor incidencia corresponden a: ${topDiagsText}. La estadía promedio hasta el traslado al hospital fue de ${avgEstTrasText} (desglosado en: ${avgAdmCatText} de ingreso a categorización, ${avgCatAnaText} de categorización a atención médica y ${avgAnaTrasText} de atención médica a traslado). El principal destino de resolución fue ${topDestText}.`;

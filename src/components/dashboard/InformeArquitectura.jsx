@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.3.3',
+    version_tag: 'v5.3.3',
+    fecha_despliegue: '21 de Agosto, 2026',
+    proposito_actualizacion: 'Unificación de Tramos Predominantes en Fracturas (Soporte Multi-Empate) y Clarificación de Selectores de Edad (4 Grupos Clínicos vs 17 Tramos Quinquenales).',
+    medios_y_stack: [
+      'React 18.3 (AnalisisFracturas.jsx, ReportesModule.jsx, summaryGenerator.js)',
+      'Algoritmo de Detección de Empates Etarios Multi-Rango',
+      'Dual-Mode Age Selector & Explanatory Guide'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Se corrigió la discrepancia en el tramo etario con mayor porcentaje de fracturas (10-14 vs 65-69 años) incorporando detección integral de empates tanto en el panel analítico interactivo, en la narrativa automática y en el sub-reporte imprimible. 2) Se clarificó la experiencia de usuario distinguiendo formalmente la Vista de Ciclos Vitales (4 Grandes Grupos Clínicos: 0-14, 15-29, 30-59, 60+) de la Vista Epidemiológica Quinquenal (17 Tramos de 5 en 5 años) con banner pedagógico y selectores optimizados.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Pre-inicialización fija de tramos AGE_RANGES y ordenamiento determinista.'
+    },
+    modulos_afectados: ['AnalisisFracturas.jsx', 'ReportesModule.jsx', 'summaryGenerator.js', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Objeto rangoMasFrecuente y topAgeGroup con soporte para tramosTop múltiples e isEmpate.',
+      'Sincronización 100% fiel entre AnalisisFracturas y ReportesModule.',
+      'Banner pedagógico explicativo de las 2 modalidades de agrupación etaria.'
+    ]
+  },
+  {
     id: 'v5.3.2',
     version_tag: 'v5.3.2',
     fecha_despliegue: '21 de Agosto, 2026',

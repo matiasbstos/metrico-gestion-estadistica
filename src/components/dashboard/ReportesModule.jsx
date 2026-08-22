@@ -294,30 +294,45 @@ export default function ReportesModule({
     const avgAnaAltTrasladoFrac = countAnaAltTrasladoFrac > 0 ? (sumAnaAltTrasladoFrac / countAnaAltTrasladoFrac) : null;
     const avgEstadiaTrasladoFrac = countAdmAltTrasladoFrac > 0 ? (sumAdmAltTrasladoFrac / countAdmAltTrasladoFrac) : null;
 
-    // Grupo etario con mayor porcentaje de fracturas
-    const ageGroupCounts = {};
+    // Grupo etario con mayor porcentaje de fracturas (con soporte para empates múltiples y pre-inicialización fija de AGE_RANGES)
+    const AGE_RANGES_LIST = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80+'];
+    const ageGroupCounts = Object.fromEntries(AGE_RANGES_LIST.map(r => [r, 0]));
+
     pacs.forEach(p => {
       const diag = (p.diagnosticoPrincipal || p.codigoDiagnostico || '').toLowerCase();
       if (diag.includes('fractura') || diag.includes('fx')) {
         let edadNum = null;
         if (typeof p.edadNum === 'number') edadNum = p.edadNum;
-        else if (p.edad) {
+        else if (p.edad !== null && p.edad !== undefined && p.edad !== '') {
           const parsed = parseInt(String(p.edad).replace(/\D/g, ''));
           if (!isNaN(parsed)) edadNum = parsed;
         }
         if (edadNum !== null) {
           let r5 = edadNum >= 80 ? '80+' : `${Math.floor(edadNum / 5) * 5}-${Math.floor(edadNum / 5) * 5 + 4}`;
-          ageGroupCounts[r5] = (ageGroupCounts[r5] || 0) + 1;
+          if (ageGroupCounts[r5] !== undefined) ageGroupCounts[r5]++;
         }
       }
     });
 
-    const sortedAgeGroups = Object.entries(ageGroupCounts).sort((a,b) => b[1] - a[1]);
-    const topAgeGroup = sortedAgeGroups.length > 0 ? {
-      rango: sortedAgeGroups[0][0],
-      total: sortedAgeGroups[0][1],
-      pct: totalFracturas > 0 ? ((sortedAgeGroups[0][1] / totalFracturas) * 100).toFixed(1) : '0.0'
-    } : { rango: 'N/A', total: 0, pct: '0.0' };
+    let maxAgeCount = 0;
+    Object.values(ageGroupCounts).forEach(cnt => {
+      if (cnt > maxAgeCount) maxAgeCount = cnt;
+    });
+
+    const topTramos = [];
+    if (maxAgeCount > 0) {
+      AGE_RANGES_LIST.forEach(r => {
+        if (ageGroupCounts[r] === maxAgeCount) topTramos.push(r);
+      });
+    }
+
+    const topAgeGroup = {
+      rango: topTramos.length > 1 ? topTramos.join(' y ') : (topTramos[0] || 'N/A'),
+      rangoTexto: topTramos.length > 1 ? `Tramos ${topTramos.join(' y ')} años` : (topTramos[0] ? `Tramo ${topTramos[0]} años` : 'N/A'),
+      total: maxAgeCount,
+      isEmpate: topTramos.length > 1,
+      pct: totalFracturas > 0 ? ((maxAgeCount / totalFracturas) * 100).toFixed(1) : '0.0'
+    };
 
     return { 
       totalPacientes: pacs.length, 
@@ -1526,12 +1541,12 @@ totalTriados,
                       <div>
                         <span className="text-[10px] font-black text-indigo-700 uppercase tracking-wider block">Grupo Etario con Mayor Porcentaje de Fracturas</span>
                         <p className="text-sm font-black text-slate-800">
-                          Tramo de {fracturasStats.topAgeGroup.rango} años ({fracturasStats.topAgeGroup.total} casos de fractura)
+                          {fracturasStats.topAgeGroup.rangoTexto} ({fracturasStats.topAgeGroup.total} {fracturasStats.topAgeGroup.isEmpate ? 'casos c/u' : 'casos de fractura'})
                         </p>
                       </div>
                     </div>
                     <span className="text-lg font-black text-indigo-600 bg-white px-3 py-1 rounded-xl border border-indigo-200 shadow-xs">
-                      {fracturasStats.topAgeGroup.pct}% del total
+                      {fracturasStats.topAgeGroup.pct}% {fracturasStats.topAgeGroup.isEmpate ? 'c/u' : 'del total'}
                     </span>
                   </div>
                 </div>

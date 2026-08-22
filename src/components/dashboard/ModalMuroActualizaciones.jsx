@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.3.3',
+      version: 'v5.3.3',
+      fecha: '21 de Agosto, 2026',
+      badge: 'TRAUMATOLOGÍA & GRUPOS ETARIOS',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Estadísticas de Fractura: Unificación de Empates y Clarificación de Grupos Etarios',
+      categoria: 'Traumatología',
+      icon: Users,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se unificó el cálculo del grupo etario predominante en el módulo de Estadísticas de Fractura y en los Reportes Ejecutivos, agregando soporte completo para empates múltiples (ej. 10-14 y 65-69 años con 2 casos c/u). Además, se clarificaron los selectores de edad distinguiendo los 4 Grandes Grupos Clínicos de los 17 Tramos Quinquenales (5 en 5 años).',
+      instructivo: {
+        paraQueSirve: 'Permite comprender sin ambigüedades qué tramo etario concentra la mayor incidencia de fracturas y elegir entre la vista clínica institucional o la vista epidemiológica detallada.',
+        quePuedesVer: 'En "Estadísticas de Fractura", la tarjeta KPI y la narrativa muestran todos los tramos empatados en primer lugar. Además, dispones de un banner guía y botones claros para alternar entre "Grupos Clínicos" y "Desglose Quinquenal".',
+        ejemploUso: 'Si en un período de 14 fracturas hay 2 casos en 10-14 años y 2 casos en 65-69 años, el sistema indicará con total transparencia "Tramos 10-14 y 65-69 años (2 casos c/u • 14.3% c/u)".'
+      },
+      changes: [
+        'Soporte Multi-Empate: Detección armonizada de tramos etarios con igual número máximo de fracturas.',
+        'Sincronización Total: Idénticos resultados en panel analítico, narrativa y reportes PDF.',
+        'Clarificación de Selectores: Distinción intuitiva entre 4 Grupos Clínicos y 17 Tramos Quinquenales.'
+      ]
+    },
+    {
       id: 'v5.3.2',
       version: 'v5.3.2',
       fecha: '21 de Agosto, 2026',

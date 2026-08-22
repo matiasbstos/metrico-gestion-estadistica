@@ -346,22 +346,47 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
     // KPI 1: Diagnóstico más frecuente
     const diagMasFrecuente = listaDiagnosticos.length > 0 ? listaDiagnosticos[0] : null;
 
-    // KPI 2: Grupo Etario de 5 años más afectado
-    let rangoMasFrecuente = { rango: 'N/A', total: 0 };
-    Object.entries(porRangoEtario).forEach(([rango, data]) => {
-      if (data.total > rangoMasFrecuente.total) {
-        rangoMasFrecuente = { rango, total: data.total };
-      }
+    // KPI 2: Grupo Etario de 5 años más afectado (con soporte para empates múltiples)
+    let maxCount = 0;
+    Object.values(porRangoEtario).forEach(d => {
+      if (d.total > maxCount) maxCount = d.total;
     });
 
-    // KPI 3: Grupo clínico más afectado
-    const gruposClinicos = [
+    const tramosTop = [];
+    if (maxCount > 0) {
+      AGE_RANGES.forEach(r => {
+        if (porRangoEtario[r] && porRangoEtario[r].total === maxCount) {
+          tramosTop.push(r);
+        }
+      });
+    }
+
+    const rangoMasFrecuente = {
+      rango: tramosTop.length > 1 ? tramosTop.join(' y ') : (tramosTop[0] || 'N/A'),
+      rangoTexto: tramosTop.length > 1 ? `Tramos ${tramosTop.join(' y ')} años` : (tramosTop[0] ? `Tramo ${tramosTop[0]} años` : 'N/A'),
+      total: maxCount,
+      tramos: tramosTop,
+      isEmpate: tramosTop.length > 1,
+      pct: total > 0 ? ((maxCount / total) * 100).toFixed(1) : '0.0'
+    };
+
+    // KPI 3: Grupo clínico más afectado (con soporte para empates)
+    const gruposClinicosList = [
       { name: 'Pediatría (0-14)', val: p0_14 },
       { name: 'Jóvenes (15-29)', val: p15_29 },
       { name: 'Adultos (30-59)', val: p30_59 },
       { name: 'A. Mayor (60+)', val: p60_plus }
-    ].sort((a, b) => b.val - a.val);
-    const grupoClinicoMasAfectado = gruposClinicos[0];
+    ];
+    let maxClinicoVal = 0;
+    gruposClinicosList.forEach(g => {
+      if (g.val > maxClinicoVal) maxClinicoVal = g.val;
+    });
+    const topClinicos = gruposClinicosList.filter(g => g.val === maxClinicoVal && maxClinicoVal > 0);
+    const grupoClinicoMasAfectado = {
+      name: topClinicos.map(g => g.name).join(' y '),
+      val: maxClinicoVal,
+      isEmpate: topClinicos.length > 1
+    };
 
     const avgAdmCatGlobal = countAdmCatTotal > 0 ? (sumAdmCatTotal / countAdmCatTotal) : null;
     const avgCatAnaGlobal = countCatAnaTotal > 0 ? (sumCatAnaTotal / countCatAnaTotal) : null;
@@ -662,13 +687,15 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
             </div>
             {stats.rangoMasFrecuente && stats.rangoMasFrecuente.total > 0 ? (
               <div className="mt-1">
-                <span className="text-[11px] font-black text-indigo-600 dark:text-indigo-300 block">
-                  Tramo {stats.rangoMasFrecuente.rango} años
+                <span className="text-[11px] font-black text-indigo-600 dark:text-indigo-300 block leading-tight">
+                  {stats.rangoMasFrecuente.rangoTexto}
                 </span>
                 <div className="flex items-baseline gap-1.5 mt-0.5">
-                  <span className="text-2xl font-black text-primary-custom">{stats.rangoMasFrecuente.total} <span className="text-xs font-bold text-secondary-custom">casos</span></span>
+                  <span className="text-2xl font-black text-primary-custom">
+                    {stats.rangoMasFrecuente.total} <span className="text-xs font-bold text-secondary-custom">{stats.rangoMasFrecuente.isEmpate ? 'casos c/u' : 'casos'}</span>
+                  </span>
                   <span className="text-xs font-black text-indigo-600 bg-indigo-500/10 px-1.5 py-0.5 rounded-md">
-                    {perc(stats.rangoMasFrecuente.total, stats.total)}%
+                    {stats.rangoMasFrecuente.pct}% {stats.rangoMasFrecuente.isEmpate ? 'c/u' : ''}
                   </span>
                 </div>
               </div>
@@ -677,7 +704,7 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
             )}
           </div>
           <div className="mt-2 pt-2 border-t border-card-custom/50 text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-wider truncate">
-            Grupo Etario Predominante
+            {stats.rangoMasFrecuente.isEmpate ? 'Tramos Predominantes (Empate)' : 'Grupo Etario Predominante'}
           </div>
         </div>
 
@@ -1090,13 +1117,13 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
             className="bg-card-custom text-primary-custom text-xs font-bold rounded-xl px-3 py-2 border border-card-custom focus:outline-none focus:border-rose-500 transition-all cursor-pointer"
           >
             <option value="TODOS">Todos los Tramos Etarios</option>
-            <optgroup label="Grupos Clínicos Oficiales">
+            <optgroup label="1. Vista Ciclos Vitales (4 Grupos Clínicos)">
               <option value="0-14">🧒 Pediatría (0 a 14 años)</option>
               <option value="15-29">🧑 Jóvenes (15 a 29 años)</option>
               <option value="30-59">👨 Adultos (30 a 59 años)</option>
               <option value="60+">👴 Adultos Mayores (60+ años)</option>
             </optgroup>
-            <optgroup label="Desglose Quinquenal (5 en 5 años)">
+            <optgroup label="2. Vista Epidemiológica Quinquenal (17 Tramos de 5 en 5 años)">
               {AGE_RANGES.map((r, i) => (
                 <option key={i} value={r}>Tramo {r} años</option>
               ))}
@@ -1118,7 +1145,18 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
       </div>
 
       {/* SECCIÓN INTERACTIVA DE GRUPOS ETARIOS CON SELECTOR DUAL (CLÍNICO vs QUINQUENAL) */}
-      <div className="bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom mb-6">
+      <div className="bg-black/5 dark:bg-white/5 p-5 rounded-2xl border border-card-custom mb-6">
+        
+        {/* BANNER GUÍA PEDAGÓGICO */}
+        <div className="p-3 mb-4 bg-sky-500/10 dark:bg-sky-950/40 rounded-xl border border-sky-500/20 text-xs font-medium text-sky-900 dark:text-sky-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Info className="w-4 h-4 text-sky-500 shrink-0" />
+            <span>
+              <strong>Modalidades de Agrupación Etaria:</strong> Usa <strong>4 Grupos Clínicos</strong> para gestión operativa y recursos de urgencia, o <strong>17 Tramos Quinquenales (5 en 5 años)</strong> para perfil epidemiológico fino.
+            </span>
+          </div>
+        </div>
+
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2 border-b border-card-custom/40 pb-3">
           <div className="flex items-center gap-2">
             <h3 className="text-xs font-bold text-primary-custom uppercase tracking-wider flex items-center gap-2">
@@ -1139,23 +1177,25 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
           <div className="flex items-center gap-1 bg-card-custom p-1 rounded-xl border border-card-custom text-xs font-bold">
             <button
               onClick={() => setModoVistaEdad('clinico')}
-              className={`px-3 py-1 rounded-lg transition-all text-[11px] cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg transition-all text-[11px] cursor-pointer flex items-center gap-1.5 ${
                 modoVistaEdad === 'clinico'
                   ? 'bg-rose-500 text-white shadow-sm'
                   : 'text-secondary-custom hover:text-primary-custom'
               }`}
             >
-              🧒 Grupos Clínicos (4 Tramos)
+              <span>🧒 Grupos Clínicos</span>
+              <span className="text-[9px] opacity-80">(4 Tramos)</span>
             </button>
             <button
               onClick={() => setModoVistaEdad('quinquenal')}
-              className={`px-3 py-1 rounded-lg transition-all text-[11px] cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg transition-all text-[11px] cursor-pointer flex items-center gap-1.5 ${
                 modoVistaEdad === 'quinquenal'
                   ? 'bg-rose-500 text-white shadow-sm'
                   : 'text-secondary-custom hover:text-primary-custom'
               }`}
             >
-              📊 Desglose Quinquenal (17 Tramos)
+              <span>📊 Desglose Quinquenal</span>
+              <span className="text-[9px] opacity-80">(17 Tramos • 5 años)</span>
             </button>
           </div>
         </div>
