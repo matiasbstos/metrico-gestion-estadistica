@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.3.8',
+    version_tag: 'v5.3.8',
+    fecha_despliegue: '22 de Agosto, 2026',
+    proposito_actualizacion: 'Auditoría Diaria/Mensual en Demanda de Atención, Motor de 10 Reglas Rigurosas de Integridad y Aporte de Antecedentes con Cruce RAE.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisDemandaAtencion.jsx, AuditLog.jsx, BitacoraAntecedentes.jsx)',
+      'Motor de Integridad Rigurosa (10 Reglas Clínico-Estadísticas)',
+      'Cotejo & Cruce SSOT RAE vs BD Local con Carga Excel/CSV',
+      'LocalStorage Persistence & Certified Benchmarks Engine'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) En Análisis de Demanda de Atención: Se incorporó la auditoría interactiva por día específico (con datepicker YYYY-MM-DD) y por mes calendario completo, cálculo automático reactivo contra MÉTRICO DB, botón "Autocompletar con Datos MÉTRICO DB" y persistencia certificada en localStorage ("metrico_certified_benchmarks"). 2) En Registro y Auditoría: Se implementó el motor de 10 Reglas Rigurosas de Calidad e Integridad de Datos (ecuación de flujo, cronología de tiempos no negativa, consistencia C1-C5/Z51.8, desduplicación SSOT, completitud demográfica, trazabilidad profesional y encasillamiento oficial) con Score Porcentual Global (%). 3) Módulo de Aporte de Antecedentes & Cruce RAE (BitacoraAntecedentes.jsx) para registrar respaldos ante discrepancias (ej. 3,500 vs 3,503 pacientes), subir planillas de cotejo, calcular descalces y consolidar la cifra final SSOT.',
+      firestore_collections: ['pacientes_urgencia', 'turnos', 'audit_logs'],
+      query_optimization: 'Cálculo memoizado en tiempo real de estadísticas diarias y mensuales sin re-peticiones de red.'
+    },
+    modulos_afectados: ['AnalisisDemandaAtencion.jsx', 'AuditLog.jsx', 'BitacoraAntecedentes.jsx', 'Dashboard.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Toggle segmentado Mes Completo vs Día Específico en modal de Prueba de Control.',
+      'Botón reactivo de autocompletado desde MÉTRICO DB y certificación persistente de benchmarks.',
+      'Panel de 10 Reglas Rigurosas de Integridad y Score Porcentual en Auditoría.',
+      'Bitácora de Antecedentes con soporte para planillas Excel/CSV, justificación de descalces RAE y exportación.'
+    ]
+  },
+  {
     id: 'v5.3.7',
     version_tag: 'v5.3.7',
     fecha_despliegue: '22 de Agosto, 2026',

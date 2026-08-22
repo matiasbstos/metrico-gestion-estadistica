@@ -25,6 +25,11 @@ export default function AnalisisDemandaAtencion({
   const [auditRunning, setAuditRunning] = useState(false);
   
   // Estado del Formulario Interactivo de Prueba de Control
+  const [controlMode, setControlMode] = useState('mes'); // 'mes' | 'dia'
+  const [controlDate, setControlDate] = useState(() => {
+    if (filtroFechaInicio) return filtroFechaInicio;
+    return new Date().toISOString().substring(0, 10);
+  });
   const [controlYear, setControlYear] = useState(2026);
   const [controlMonth, setControlMonth] = useState('05');
   const [controlAdmitidos, setControlAdmitidos] = useState(4110);
@@ -33,9 +38,15 @@ export default function AnalisisDemandaAtencion({
   const [controlEgresoAdmin, setControlEgresoAdmin] = useState(341);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
 
-  // Benchmarks Oficiales Auditados (Persistidos por el usuario)
-  const [userBenchmarks, setUserBenchmarks] = useState({
-    '2026-05': { admitidos: 4110, atendidos: 3676, altas: 434, sinAtencion: 93, egresoAdmin: 341, turnosCount: 31, verificado: true }
+  // Benchmarks Oficiales Auditados (Persistidos en localStorage)
+  const [userBenchmarks, setUserBenchmarks] = useState(() => {
+    try {
+      const saved = localStorage.getItem('metrico_certified_benchmarks');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return {
+      '2026-05': { admitidos: 4110, atendidos: 3676, altas: 434, sinAtencion: 93, egresoAdmin: 341, turnosCount: 31, verificado: true }
+    };
   });
   
   // Estado de tarjetas desplegadas (Acordeón por mes)
@@ -242,6 +253,67 @@ export default function AnalisisDemandaAtencion({
     };
   }, [tarjetasMensuales, monthlyStatsCompare]);
 
+  // Cálculo de datos registrados en la base de datos de MÉTRICO para la selección actual (Día o Mes)
+  const currentDBSelectionStats = useMemo(() => {
+    let admitidos = 0;
+    let completados = 0;
+    let sinAtencion = 0;
+    let egresoAdmin = 0;
+    let altas = 0;
+
+    if (controlMode === 'dia') {
+      // 1. Conteo por registros individuales de pacientes
+      (pacientesDB || []).forEach(p => {
+        if (!p.tAdmision) return;
+        const dStr = new Date(p.tAdmision).toISOString().substring(0, 10);
+        if (dStr === controlDate) {
+          admitidos++;
+          if (p.estado === 'Cancelada') {
+            sinAtencion++;
+            altas++;
+          } else {
+            completados++;
+          }
+        }
+      });
+
+      // 2. Si pacientesDB está vacío para ese día, usar turnosDB
+      if (admitidos === 0) {
+        (turnosDB || []).forEach(t => {
+          if (t.fechaInicio === controlDate) {
+            const tot = Number(t.totalPacientes || 0);
+            const alt = Number(t.altasAdmin || 0);
+            admitidos += tot;
+            altas += alt;
+            sinAtencion += alt;
+            completados += Math.max(0, tot - alt);
+          }
+        });
+      }
+    } else {
+      // Cálculo para el mes controlYear-controlMonth
+      const curMonthStat = monthlyStatsCurrent[controlMonth] || { admitidos: 0, atendidos: 0, altas: 0 };
+      admitidos = curMonthStat.admitidos;
+      completados = curMonthStat.atendidos;
+      altas = curMonthStat.altas;
+      sinAtencion = Math.round(altas * 0.22);
+      egresoAdmin = altas - sinAtencion;
+      if (userBenchmarks[`${controlYear}-${controlMonth}`]) {
+        const ub = userBenchmarks[`${controlYear}-${controlMonth}`];
+        sinAtencion = ub.sinAtencion || sinAtencion;
+        egresoAdmin = ub.egresoAdmin || egresoAdmin;
+      }
+    }
+
+    return {
+      admitidos,
+      completados,
+      sinAtencion,
+      egresoAdmin,
+      altas
+    };
+  }, [controlMode, controlDate, controlYear, controlMonth, pacientesDB, turnosDB, monthlyStatsCurrent, userBenchmarks]);
+
   // Cálculos dinámicos de la auditoría en el modal
   const sumPartesForm = useMemo(() => {
     return Number(controlCompletados || 0) + Number(controlSinAtencion || 0) + Number(controlEgresoAdmin || 0);
@@ -255,23 +327,51 @@ export default function AnalisisDemandaAtencion({
     return Number(controlAdmitidos || 0) === sumPartesForm && Number(controlAdmitidos || 0) > 0;
   }, [controlAdmitidos, sumPartesForm]);
 
+  // Autocompletar formulario desde la base de datos de MÉTRICO
+  const handleAutofillFromDB = () => {
+    setControlAdmitidos(currentDBSelectionStats.admitidos);
+    setControlCompletados(currentDBSelectionStats.completados);
+    setControlSinAtencion(currentDBSelectionStats.sinAtencion);
+    setControlEgresoAdmin(currentDBSelectionStats.egresoAdmin);
+    setSaveSuccessMsg('¡Datos cargados automáticamente desde la Base de Datos de MÉTRICO!');
+    setTimeout(() => setSaveSuccessMsg(''), 3000);
+  };
+
   // Guardar y certificar control de usuario
   const handleSaveControlBenchmark = () => {
-    const key = `${controlYear}-${controlMonth}`;
-    setUserBenchmarks(prev => ({
-      ...prev,
-      [key]: {
-        admitidos: Number(controlAdmitidos),
-        atendidos: Number(controlCompletados),
-        altas: altasTotalesForm,
-        sinAtencion: Number(controlSinAtencion),
-        egresoAdmin: Number(controlEgresoAdmin),
-        turnosCount: 31,
-        verificado: true
-      }
-    }));
+    const key = controlMode === 'dia' ? controlDate : `${controlYear}-${controlMonth}`;
+    const admitidosVal = Number(controlAdmitidos) > 0 ? Number(controlAdmitidos) : currentDBSelectionStats.admitidos;
+    const completadosVal = Number(controlCompletados) > 0 ? Number(controlCompletados) : currentDBSelectionStats.completados;
+    const sinAtencionVal = Number(controlSinAtencion) >= 0 ? Number(controlSinAtencion) : currentDBSelectionStats.sinAtencion;
+    const egresoAdminVal = Number(controlEgresoAdmin) >= 0 ? Number(controlEgresoAdmin) : currentDBSelectionStats.egresoAdmin;
+    const altasVal = altasTotalesForm > 0 ? altasTotalesForm : (sinAtencionVal + egresoAdminVal);
 
-    setSaveSuccessMsg(`¡Mes de ${mesesNombres.find(m => m.key === controlMonth)?.full} ${controlYear} certificado y guardado en MÉTRICO!`);
+    const benchmarkObj = {
+      admitidos: admitidosVal,
+      atendidos: completadosVal,
+      altas: altasVal,
+      sinAtencion: sinAtencionVal,
+      egresoAdmin: egresoAdminVal,
+      tipo: controlMode,
+      fecha: key,
+      turnosCount: controlMode === 'dia' ? 1 : 31,
+      verificado: true,
+      actualizadoEl: Date.now()
+    };
+
+    setUserBenchmarks(prev => {
+      const next = { ...prev, [key]: benchmarkObj };
+      try {
+        localStorage.setItem('metrico_certified_benchmarks', JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+
+    const targetLabel = controlMode === 'dia' 
+      ? `Día ${controlDate}` 
+      : `Mes de ${mesesNombres.find(m => m.key === controlMonth)?.full} ${controlYear}`;
+
+    setSaveSuccessMsg(`¡${targetLabel} certificado y guardado con éxito en MÉTRICO!`);
     setTimeout(() => setSaveSuccessMsg(''), 4000);
   };
 
@@ -706,46 +806,104 @@ export default function AnalisisDemandaAtencion({
               </div>
 
               {/* SECCIÓN 1: FORMULARIO DE INGRESO DE VALORES OFICIALES */}
-              <div className="space-y-3 bg-card-custom p-5 rounded-2xl border border-card-custom shadow-xs">
-                <div className="flex items-center justify-between border-b border-card-custom/60 pb-3">
-                  <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider flex items-center gap-2">
-                    <Edit3 className="w-4 h-4 text-indigo-500" /> 1. Ingreso de Datos del Reporte Oficial a Auditar
-                  </h4>
+              <div className="space-y-4 bg-card-custom p-5 rounded-2xl border border-card-custom shadow-xs">
+                
+                {/* Selector de Modo de Auditoría (Día vs Mes) */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-card-custom/60 pb-3">
+                  <div>
+                    <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider flex items-center gap-2">
+                      <Edit3 className="w-4 h-4 text-indigo-500" /> 1. Ingreso de Datos del Reporte Oficial a Auditar
+                    </h4>
+                    <p className="text-[11px] text-secondary-custom font-medium mt-0.5">
+                      Selecciona si deseas auditar un mes calendario completo o un día específico con fecha exacta.
+                    </p>
+                  </div>
 
-                  {/* Selección de Año y Mes a Auditar */}
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={controlYear}
-                      onChange={e => setControlYear(parseInt(e.target.value))}
-                      className="bg-input-custom text-xs font-black text-primary-custom px-3 py-1.5 rounded-xl border border-card-custom outline-none cursor-pointer"
+                  {/* Toggle Segmentado Modo de Auditoría */}
+                  <div className="flex items-center gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-card-custom text-xs font-bold self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => setControlMode('mes')}
+                      className={`px-3 py-1 rounded-lg transition-all text-[11px] cursor-pointer ${
+                        controlMode === 'mes' ? 'bg-indigo-600 text-white shadow-sm font-black' : 'text-secondary-custom hover:text-primary-custom'
+                      }`}
                     >
-                      <option value={2026}>2026</option>
-                      <option value={2025}>2025</option>
-                    </select>
-
-                    <select
-                      value={controlMonth}
-                      onChange={e => {
-                        const mVal = e.target.value;
-                        setControlMonth(mVal);
-                        if (mVal === '05' && controlYear === 2026) {
-                          setControlAdmitidos(4110);
-                          setControlCompletados(3676);
-                          setControlSinAtencion(93);
-                          setControlEgresoAdmin(341);
-                        }
-                      }}
-                      className="bg-input-custom text-xs font-black text-primary-custom px-3 py-1.5 rounded-xl border border-card-custom outline-none cursor-pointer"
+                      Mes Completo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setControlMode('dia')}
+                      className={`px-3 py-1 rounded-lg transition-all text-[11px] cursor-pointer ${
+                        controlMode === 'dia' ? 'bg-emerald-600 text-white shadow-sm font-black' : 'text-secondary-custom hover:text-primary-custom'
+                      }`}
                     >
-                      {mesesNombres.map(m => (
-                        <option key={m.key} value={m.key}>{m.full}</option>
-                      ))}
-                    </select>
+                      Día Específico
+                    </button>
                   </div>
                 </div>
 
-                {/* Camppos de Entrada Numérica */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+                {/* Controles de Selección de Fecha y Botón de Autocompletado */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-card-custom">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {controlMode === 'mes' ? (
+                      <>
+                        <span className="text-[10px] font-bold text-secondary-custom uppercase">Período Mensual:</span>
+                        <select
+                          value={controlYear}
+                          onChange={e => setControlYear(parseInt(e.target.value))}
+                          className="bg-input-custom text-xs font-black text-primary-custom px-3 py-1.5 rounded-xl border border-card-custom outline-none cursor-pointer"
+                        >
+                          <option value={2026}>2026</option>
+                          <option value={2025}>2025</option>
+                        </select>
+
+                        <select
+                          value={controlMonth}
+                          onChange={e => {
+                            const mVal = e.target.value;
+                            setControlMonth(mVal);
+                            if (mVal === '05' && controlYear === 2026) {
+                              setControlAdmitidos(4110);
+                              setControlCompletados(3676);
+                              setControlSinAtencion(93);
+                              setControlEgresoAdmin(341);
+                            }
+                          }}
+                          className="bg-input-custom text-xs font-black text-primary-custom px-3 py-1.5 rounded-xl border border-card-custom outline-none cursor-pointer"
+                        >
+                          {mesesNombres.map(m => (
+                            <option key={m.key} value={m.key}>{m.full}</option>
+                          ))}
+                        </select>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-[10px] font-bold text-secondary-custom uppercase flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5 text-emerald-500" /> Fecha Exacta a Auditar:
+                        </span>
+                        <input
+                          type="date"
+                          value={controlDate}
+                          onChange={e => setControlDate(e.target.value)}
+                          className="bg-input-custom text-xs font-black text-primary-custom px-3 py-1.5 rounded-xl border border-card-custom outline-none cursor-pointer"
+                        />
+                      </>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleAutofillFromDB}
+                    className="px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30 rounded-xl text-[11px] font-black transition-all flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+                    title="Cargar las cifras que MÉTRICO tiene registradas en este período"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Autocompletar con Datos MÉTRICO DB</span>
+                  </button>
+                </div>
+
+                {/* Campos de Entrada Numérica */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-1">
                   <div className="space-y-1">
                     <label className="text-[10px] font-black uppercase text-indigo-600 dark:text-indigo-300 tracking-wider block">
                       Total Pacientes Admitidos
@@ -825,9 +983,14 @@ export default function AnalisisDemandaAtencion({
 
               {/* SECCIÓN 2: RESULTADOS DE COMPARACIÓN CONTRA BASE DE DATOS MÉTRICO */}
               <div className="space-y-3">
-                <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-indigo-500" /> 2. Matriz de Auditoría y Control de Calidad
-                </h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-indigo-500" /> 2. Matriz de Auditoría y Control de Calidad
+                  </h4>
+                  <span className="text-[11px] font-bold text-secondary-custom">
+                    Auditoría para: <strong className="text-primary-custom">{controlMode === 'dia' ? `Día ${controlDate}` : `Mes ${controlMonth}/${controlYear}`}</strong>
+                  </span>
+                </div>
                 
                 <div className="border border-card-custom rounded-2xl overflow-hidden shadow-xs">
                   <table className="w-full text-left text-xs border-collapse">
@@ -841,47 +1004,86 @@ export default function AnalisisDemandaAtencion({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-card-custom font-medium text-primary-custom">
-                      <tr>
-                        <td className="p-3 font-bold">Completados (Atención Médica)</td>
-                        <td className="p-3 text-center font-black text-indigo-600">{controlCompletados.toLocaleString('es-CL')} pac.</td>
-                        <td className="p-3 text-center font-black text-indigo-600">
-                          {(monthlyStatsCurrent[controlMonth]?.atendidos || controlCompletados).toLocaleString('es-CL')} pac.
-                        </td>
-                        <td className="p-3 text-center font-bold text-emerald-600">0</td>
-                        <td className="p-3 text-center"><span className="text-[10px] font-black bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full">CONCORDANTE ✅</span></td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 font-bold">Alta sin Atención Médica</td>
-                        <td className="p-3 text-center font-black text-amber-600">{controlSinAtencion.toLocaleString('es-CL')} pac.</td>
-                        <td className="p-3 text-center font-black text-amber-600">{controlSinAtencion.toLocaleString('es-CL')} pac.</td>
-                        <td className="p-3 text-center font-bold text-emerald-600">0</td>
-                        <td className="p-3 text-center"><span className="text-[10px] font-black bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full">CONCORDANTE ✅</span></td>
-                      </tr>
-                      <tr>
-                        <td className="p-3 font-bold">Egreso Administrativo</td>
-                        <td className="p-3 text-center font-black text-amber-600">{controlEgresoAdmin.toLocaleString('es-CL')} pac.</td>
-                        <td className="p-3 text-center font-black text-amber-600">{controlEgresoAdmin.toLocaleString('es-CL')} pac.</td>
-                        <td className="p-3 text-center font-bold text-emerald-600">0</td>
-                        <td className="p-3 text-center"><span className="text-[10px] font-black bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full">CONCORDANTE ✅</span></td>
-                      </tr>
-                      <tr className="bg-indigo-50/40 dark:bg-indigo-950/20 font-black">
-                        <td className="p-3 text-indigo-700 dark:text-indigo-300">Altas Admin Totales</td>
-                        <td className="p-3 text-center text-amber-600">{altasTotalesForm.toLocaleString('es-CL')} altas</td>
-                        <td className="p-3 text-center text-amber-600">
-                          {(monthlyStatsCurrent[controlMonth]?.altas || altasTotalesForm).toLocaleString('es-CL')} altas
-                        </td>
-                        <td className="p-3 text-center text-emerald-600">0</td>
-                        <td className="p-3 text-center"><span className="text-[10px] font-black bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full">EXACTO 100% ✅</span></td>
-                      </tr>
-                      <tr className="bg-emerald-50/50 dark:bg-emerald-950/30 font-black text-sm">
-                        <td className="p-3 text-emerald-800 dark:text-emerald-200">TOTAL PACIENTES ADMITIDOS</td>
-                        <td className="p-3 text-center text-emerald-700 dark:text-emerald-300">{controlAdmitidos.toLocaleString('es-CL')} pac.</td>
-                        <td className="p-3 text-center text-emerald-700 dark:text-emerald-300">
-                          {(monthlyStatsCurrent[controlMonth]?.admitidos || controlAdmitidos).toLocaleString('es-CL')} pac.
-                        </td>
-                        <td className="p-3 text-center text-emerald-600">0</td>
-                        <td className="p-3 text-center"><span className="text-[10px] font-black bg-emerald-600 text-white px-2.5 py-0.5 rounded-full shadow-xs">APROBADO ✅</span></td>
-                      </tr>
+                      {(() => {
+                        const dbAdmitidos = currentDBSelectionStats.admitidos;
+                        const dbAtendidos = currentDBSelectionStats.completados;
+                        const dbSinAtencion = currentDBSelectionStats.sinAtencion;
+                        const dbEgresoAdmin = currentDBSelectionStats.egresoAdmin;
+                        const dbAltas = currentDBSelectionStats.altas;
+
+                        const diffAdmitidos = controlAdmitidos - dbAdmitidos;
+                        const diffAtendidos = controlCompletados - dbAtendidos;
+                        const diffSinAtencion = controlSinAtencion - dbSinAtencion;
+                        const diffEgresoAdmin = controlEgresoAdmin - dbEgresoAdmin;
+                        const diffAltas = altasTotalesForm - dbAltas;
+
+                        const renderStatus = (diff) => {
+                          if (diff === 0) {
+                            return <span className="text-[10px] font-black bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full">CONCORDANTE ✅</span>;
+                          }
+                          return (
+                            <span className="text-[10px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full">
+                              DISCREPANCIA ({diff > 0 ? `+${diff}` : diff}) ⚠️
+                            </span>
+                          );
+                        };
+
+                        return (
+                          <>
+                            <tr>
+                              <td className="p-3 font-bold">Completados (Atención Médica)</td>
+                              <td className="p-3 text-center font-black text-indigo-600">{controlCompletados.toLocaleString('es-CL')} pac.</td>
+                              <td className="p-3 text-center font-black text-indigo-600">{dbAtendidos.toLocaleString('es-CL')} pac.</td>
+                              <td className={`p-3 text-center font-bold ${diffAtendidos === 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                {diffAtendidos > 0 ? `+${diffAtendidos}` : diffAtendidos}
+                              </td>
+                              <td className="p-3 text-center">{renderStatus(diffAtendidos)}</td>
+                            </tr>
+                            <tr>
+                              <td className="p-3 font-bold">Alta sin Atención Médica</td>
+                              <td className="p-3 text-center font-black text-amber-600">{controlSinAtencion.toLocaleString('es-CL')} pac.</td>
+                              <td className="p-3 text-center font-black text-amber-600">{dbSinAtencion.toLocaleString('es-CL')} pac.</td>
+                              <td className={`p-3 text-center font-bold ${diffSinAtencion === 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                {diffSinAtencion > 0 ? `+${diffSinAtencion}` : diffSinAtencion}
+                              </td>
+                              <td className="p-3 text-center">{renderStatus(diffSinAtencion)}</td>
+                            </tr>
+                            <tr>
+                              <td className="p-3 font-bold">Egreso Administrativo</td>
+                              <td className="p-3 text-center font-black text-amber-600">{controlEgresoAdmin.toLocaleString('es-CL')} pac.</td>
+                              <td className="p-3 text-center font-black text-amber-600">{dbEgresoAdmin.toLocaleString('es-CL')} pac.</td>
+                              <td className={`p-3 text-center font-bold ${diffEgresoAdmin === 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                {diffEgresoAdmin > 0 ? `+${diffEgresoAdmin}` : diffEgresoAdmin}
+                              </td>
+                              <td className="p-3 text-center">{renderStatus(diffEgresoAdmin)}</td>
+                            </tr>
+                            <tr className="bg-indigo-50/40 dark:bg-indigo-950/20 font-black">
+                              <td className="p-3 text-indigo-700 dark:text-indigo-300">Altas Admin Totales</td>
+                              <td className="p-3 text-center text-amber-600">{altasTotalesForm.toLocaleString('es-CL')} altas</td>
+                              <td className="p-3 text-center text-amber-600">{dbAltas.toLocaleString('es-CL')} altas</td>
+                              <td className={`p-3 text-center font-bold ${diffAltas === 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                {diffAltas > 0 ? `+${diffAltas}` : diffAltas}
+                              </td>
+                              <td className="p-3 text-center">{renderStatus(diffAltas)}</td>
+                            </tr>
+                            <tr className="bg-emerald-50/50 dark:bg-emerald-950/30 font-black text-sm">
+                              <td className="p-3 text-emerald-800 dark:text-emerald-200">TOTAL PACIENTES ADMITIDOS</td>
+                              <td className="p-3 text-center text-emerald-700 dark:text-emerald-300">{controlAdmitidos.toLocaleString('es-CL')} pac.</td>
+                              <td className="p-3 text-center text-emerald-700 dark:text-emerald-300">{dbAdmitidos.toLocaleString('es-CL')} pac.</td>
+                              <td className={`p-3 text-center font-bold ${diffAdmitidos === 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                {diffAdmitidos > 0 ? `+${diffAdmitidos}` : diffAdmitidos}
+                              </td>
+                              <td className="p-3 text-center">
+                                {diffAdmitidos === 0 ? (
+                                  <span className="text-[10px] font-black bg-emerald-600 text-white px-2.5 py-0.5 rounded-full shadow-xs">APROBADO ✅</span>
+                                ) : (
+                                  <span className="text-[10px] font-black bg-amber-500 text-white px-2.5 py-0.5 rounded-full shadow-xs">AJUSTE REQUERIDO ⚠️</span>
+                                )}
+                              </td>
+                            </tr>
+                          </>
+                        );
+                      })()}
                     </tbody>
                   </table>
                 </div>
@@ -892,19 +1094,26 @@ export default function AnalisisDemandaAtencion({
             {/* Footer del Modal con Acciones de Guardar y Certificar */}
             <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-card-custom flex flex-col sm:flex-row items-center justify-between gap-3">
               <span className="text-[11px] font-bold text-secondary-custom">
-                Puedes cambiar el mes y año para auditarlos individualmente.
+                {controlMode === 'dia' 
+                  ? `Guardando auditoría certificada para la fecha ${controlDate}.`
+                  : `Guardando auditoría certificada para el mes ${controlMonth}/${controlYear}.`
+                }
               </span>
               
               <div className="flex items-center gap-3">
                 <button
+                  type="button"
                   onClick={handleSaveControlBenchmark}
                   className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
-                  <span>Guardar y Certificar Mes en MÉTRICO</span>
+                  <span>
+                    {controlMode === 'dia' ? 'Guardar y Certificar Día en MÉTRICO' : 'Guardar y Certificar Mes en MÉTRICO'}
+                  </span>
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => setShowControlModal(false)}
                   className="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer"
                 >

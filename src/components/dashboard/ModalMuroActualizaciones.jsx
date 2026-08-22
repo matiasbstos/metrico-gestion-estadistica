@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Megaphone, Sparkles, X, Calendar, CheckCircle2, ShieldAlert, MapPin, Cpu, BarChart2, Filter, Layers, Clock, HelpCircle, BookOpen, Lightbulb, Eye, Mail, Volume2 } from 'lucide-react';
+import { Megaphone, Sparkles, X, Calendar, CheckCircle2, ShieldAlert, MapPin, Cpu, BarChart2, Filter, Layers, Clock, HelpCircle, BookOpen, Lightbulb, Eye, Mail, Volume2, Lock, Activity, ShieldCheck, Database, FileSpreadsheet } from 'lucide-react';
 
 export default function ModalMuroActualizaciones({ isOpen, onClose }) {
   const [selectedCat, setSelectedCat] = useState('TODOS');
@@ -7,6 +7,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const updatesList = [
+    {
+      id: 'v5.3.8',
+      version: 'v5.3.8',
+      fecha: '22 de Agosto, 2026',
+      badge: 'AUDITORÍA, INTEGRIDAD & RAE',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Auditoría Diaria/Mensual en Demanda, 10 Reglas de Integridad y Aporte de Antecedentes RAE',
+      categoria: 'Integridad y Auditoría',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: '1) Auditoría de Demanda con soporte tanto para un mes completo como para un día específico con fecha exacta y botón de autocompletado en vivo desde MÉTRICO DB. 2) Nuevo panel de 10 Reglas Rigurosas de Calidad e Integridad de Datos con Score Porcentual Global (%). 3) Módulo de Aporte de Antecedentes y Cruce RAE para corroborar y justificar discrepancias con planillas Excel/CSV.',
+      instructivo: {
+        paraQueSirve: 'Permite auditar días o meses individuales, verificar el cumplimiento estricto de las 10 reglas de calidad de datos y aportar respaldos/antecedentes oficiales ante cualquier diferencia detectada con RAE.',
+        quePuedesVer: 'En Demanda de Atención: el selector de Día o Mes con autocompletado y guardado seguro. En Registro y Auditoría: el Score de Integridad y la sub-pestaña "Aporte de Antecedentes & RAE" con cotejo automático.',
+        ejemploUso: 'Si en RAE tienes 3,503 pacientes y MÉTRICO registra 3,500, ingresa al Aporte de Antecedentes, adjunta tu archivo de respaldo o anota el motivo (ej. caída de enlace) para corroborar la cifra oficial.'
+      },
+      changes: [
+        'Auditoría por Día Específico: Selector de fecha YYYY-MM-DD y cálculo diario reactivo.',
+        'Autocompletar Inteligente: Carga automática de los datos registrados en la base de datos de MÉTRICO.',
+        'Guardado y Certificación Seguro: Persistencia de benchmarks diarios y mensuales en localStorage.',
+        'Motor de 10 Reglas Rigurosas: Inspección de flujos, tiempos cronológicos, triage C1-C5/Z51.8, demografía y turnos SAR.',
+        'Bitácora de Antecedentes RAE: Registro de ajustes, justificaciones, carga de planillas Excel/CSV y exportación consolidada.'
+      ]
+    },
     {
       id: 'v5.3.7',
       version: 'v5.3.7',

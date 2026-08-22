@@ -2233,7 +2233,21 @@ const DashboardContent = () => {
         )}
 
         {activeTab === 'auditoria' && (
-          <AuditLog db={db} appId={appId} centroActivo={centroActivo} kpisBigQuery={kpisBigQuery} statsKPIFinal={statsKPIFinal} lastSyncTime={lastSyncTime} userProfile={userProfile} />
+          <AuditLog 
+            db={db} 
+            appId={appId} 
+            centroActivo={centroActivo} 
+            kpisBigQuery={kpisBigQuery} 
+            statsKPIFinal={statsKPIFinal} 
+            lastSyncTime={lastSyncTime} 
+            userProfile={userProfile} 
+            pacientesDB={pacientesDB}
+            turnosDB={turnosDB}
+            filtroFechaInicio={filtroFechaInicio}
+            filtroFechaFin={filtroFechaFin}
+            user={user}
+            showNotif={showNotif}
+          />
         )}
 
         {activeTab === 'pauta' && (
