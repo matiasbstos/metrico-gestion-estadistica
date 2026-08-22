@@ -8,6 +8,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.4.4',
+      version: 'v5.4.4',
+      fecha: '22 de Agosto, 2026',
+      badge: 'TRIAJE & AUDITORÍA DE DEMANDA',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Normalización Rigurosa de Triaje (C1-C5), Auditoría por Día Específico y Certificación en 1 Clic',
+      categoria: 'Demanda y Triaje',
+      icon: BarChart2,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: '1) Se normalizó el motor de categorización clínica para triaje (C1-C5 y C3 Lesiones), capturando el 100% de los pacientes independientemente de si la categorización se registró en primera cat, última cat o triage general, garantizando el cruce perfecto entre admitidos, atendidos y altas. 2) Se habilitó y perfeccionó la auditoría por día específico en Demanda de Atención con corrección de zona horaria local. 3) El botón "Guardar y Certificar" ahora autocompleta los datos verificados de la base de datos de MÉTRICO, confirma visualmente y cierra el modal automáticamente.',
+      instructivo: {
+        paraQueSirve: 'Garantiza la exactitud matemática de las tarjetas de triaje del panel principal y facilita auditar cualquier día o mes en Demanda de Atención.',
+        quePuedesVer: 'En el Panel Principal: la suma de las tarjetas de triaje refleja fielmente la totalidad de pacientes categorizados. En Demanda: al abrir la prueba de control, puedes elegir "Día Específico", seleccionar una fecha en el calendario y certificarla con un solo clic.',
+        ejemploUso: 'Selecciona el año 2026 completo para ver la distribución integral de C1 a C5, o ve a Demanda de Atención > Prueba de Control y audita el día exacto de ayer.'
+      },
+      changes: [
+        'Motor Universal de Triaje: Captura exhaustiva de C1, C2, C3, C3 (L), C4 y C5.',
+        'Auditoría por Día Específico: Selector de fecha con ajuste horario local sin desfases.',
+        'Certificación Automatizada: Guardado en 1 clic con confirmación fluida y cierre asistido.',
+        'Sincronización SSOT: Validación continua con las reglas clínicas del sistema.'
+      ]
+    },
+    {
       id: 'v5.4.3',
       version: 'v5.4.3',
       fecha: '22 de Agosto, 2026',

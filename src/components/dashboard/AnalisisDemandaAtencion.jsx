@@ -336,13 +336,18 @@ export default function AnalisisDemandaAtencion({
     let altas = 0;
 
     if (controlMode === 'dia') {
-      // 1. Conteo por registros individuales de pacientes
+      // 1. Intentar cálculo exacto desde pacientes individuales en memoria
       (pacientesDB || []).forEach(p => {
         if (!p.tAdmision) return;
-        const dStr = new Date(p.tAdmision).toISOString().substring(0, 10);
-        if (dStr === controlDate) {
+        const d = new Date(p.tAdmision);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const dStr = `${y}-${m}-${day}`;
+        
+        if (dStr === controlDate || p.fecha === controlDate) {
           admitidos++;
-          if (p.estado === 'Cancelada') {
+          if (p.estado === 'Cancelada' || isAltaAdmin(p)) {
             sinAtencion++;
             altas++;
           } else {
@@ -446,7 +451,16 @@ export default function AnalisisDemandaAtencion({
       : `Mes de ${mesesNombres.find(m => m.key === controlMonth)?.full} ${controlYear}`;
 
     setSaveSuccessMsg(`¡${targetLabel} certificado y guardado con éxito en MÉTRICO!`);
-    setTimeout(() => setSaveSuccessMsg(''), 4000);
+    
+    // Disparar sincronización reactiva en el sistema
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('metrico-rules-reconciled'));
+    }
+
+    setTimeout(() => {
+      setSaveSuccessMsg('');
+      setShowControlModal(false);
+    }, 1200);
   };
 
   // Exportar a Excel

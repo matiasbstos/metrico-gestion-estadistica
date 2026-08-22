@@ -126,6 +126,32 @@ export const isFractura = (p) => {
          /FRACTURA|\bFX\b|TRAUMATISM/.test(diag);
 };
 
+export const normalizeCategoria = (p) => {
+  if (!p) return 'sincat';
+  if (isConstatacionLesion(p)) return 'c3_z518';
+  
+  const raw = String(
+    p.categoria || 
+    p.catUlt || 
+    p.catUltima || 
+    p.cat1 || 
+    p.catPrimera || 
+    p.categoria_triage || 
+    p.triage || 
+    p.categoriaFinal || 
+    ''
+  ).toLowerCase().trim();
+
+  if (raw === 'c1' || raw === '1' || raw.startsWith('c1') || raw.includes('c1') || raw.includes('cat 1') || raw.includes('categoría 1') || raw.includes('categoria 1') || raw.includes('reanimac') || raw.includes('vital') || raw.includes('grave')) return 'c1';
+  if (raw === 'c2' || raw === '2' || raw.startsWith('c2') || raw.includes('c2') || raw.includes('cat 2') || raw.includes('categoría 2') || raw.includes('categoria 2') || raw.includes('emergenc')) return 'c2';
+  if (raw === 'c3_z518' || raw.includes('z518') || raw.includes('z51.8') || raw.includes('lesion') || raw.includes('lesión') || raw.includes('constat')) return 'c3_z518';
+  if (raw === 'c3' || raw === '3' || raw.startsWith('c3') || raw.includes('c3') || raw.includes('cat 3') || raw.includes('categoría 3') || raw.includes('categoria 3')) return 'c3';
+  if (raw === 'c4' || raw === '4' || raw.startsWith('c4') || raw.includes('c4') || raw.includes('cat 4') || raw.includes('categoría 4') || raw.includes('categoria 4') || raw.includes('no urg') || raw.includes('leve')) return 'c4';
+  if (raw === 'c5' || raw === '5' || raw.startsWith('c5') || raw.includes('c5') || raw.includes('cat 5') || raw.includes('categoría 5') || raw.includes('categoria 5') || raw.includes('consulta') || raw.includes('general')) return 'c5';
+  
+  return 'sincat';
+};
+
 const isShiftInWindowRange = (t, windowRange) => {
   if (!t || !windowRange) return true;
   const startDay = t.fechaInicio;
@@ -297,10 +323,8 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       if (pacsCount > 0) {
         pacs.forEach(p => {
           if (p.estado === 'Cancelada' || isAltaAdmin(p)) altasCount++;
-          const cat = p.categoria;
-          if (isConstatacionLesion(p)) {
-            counts.c3_z518++;
-          } else if (counts[cat] !== undefined) {
+          const cat = normalizeCategoria(p);
+          if (counts[cat] !== undefined) {
             counts[cat]++;
           }
 
@@ -457,8 +481,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     };
 
     pacientesFiltrados.forEach(p => {
-      let cat = p.categoria || 'sincat';
-      if (isConstatacionLesion(p)) cat = 'c3_z518';
+      const cat = normalizeCategoria(p);
       const target = res[cat] || res.sincat;
       target.total++;
 
@@ -541,10 +564,9 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
 
     const countCategories = (pacList, targetObj) => {
       pacList.forEach(p => {
-        if (isConstatacionLesion(p)) {
-          targetObj.c3_z518++;
-        } else if (targetObj[p.categoria] !== undefined) {
-          targetObj[p.categoria]++;
+        const cat = normalizeCategoria(p);
+        if (targetObj[cat] !== undefined) {
+          targetObj[cat]++;
         }
       });
     };

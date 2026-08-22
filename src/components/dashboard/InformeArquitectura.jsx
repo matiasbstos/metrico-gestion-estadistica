@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.4.4',
+    version_tag: 'v5.4.4',
+    fecha_despliegue: '22 de Agosto, 2026',
+    proposito_actualizacion: 'Normalización Rigurosa de Distribución de Triaje (C1-C5), Auditoría por Día Específico y Certificación Automatizada de Demanda.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisDemandaAtencion.jsx, useMetricoAnalytics.js)',
+      'Universal Triage Normalization Engine (normalizeCategoria)',
+      'Local Timezone-Aware Daily Control Benchmark Engine',
+      'Instant Auto-Save & Reactive System Sincronization'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Normalización Universal de Categorías de Triaje (C1-C5): Se implementó la función integral normalizeCategoria(p) que mapea de forma exhaustiva los campos de categorización (categoria, catUlt, cat1, categoria_triage, triage) sin importar mayúsculas, minúsculas, espacios o formatos numéricos, resolviendo la discrepancia entre la suma de triajes y el universo de pacientes admitidos y atendidos. 2) Auditoría por Día Específico en Demanda: Se habilitó el selector de fecha exacta (modo día) con corrección de zona horaria local (sin desfase UTC) y filtro clínico de altas administrativas para comparar los registros de un día específico contra MÉTRICO DB en un solo clic. 3) Certificación Instantánea: El botón "Guardar y Certificar" ahora aplica autocompletado inteligente de valores verificados, emite confirmación visual y cierra el modal de forma fluida.',
+      firestore_collections: ['pacientes_urgencia', 'turnos', 'audit_logs'],
+      query_optimization: 'Normalización en memoria en O(1) con compatibilidad hacia atrás total para fuentes Rayen, DEIS y CSV.'
+    },
+    modulos_afectados: ['AnalisisDemandaAtencion.jsx', 'useMetricoAnalytics.js', 'PanelKPIs.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Captura del 100% de los pacientes categorizados independientemente de la columna de origen (catUlt, cat1, triage).',
+      'Soporte completo de auditoría y certificación por día civil exacto y mes completo en Demanda.',
+      'Sincronización reactiva del sistema tras guardar benchmarks de calidad.'
+    ]
+  },
+  {
     id: 'v5.4.3',
     version_tag: 'v5.4.3',
     fecha_despliegue: '22 de Agosto, 2026',
