@@ -8,6 +8,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.4.3',
+      version: 'v5.4.3',
+      fecha: '22 de Agosto, 2026',
+      badge: 'INTEGRIDAD & COHERENCIA EN VIVO',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Sincronización en Vivo de Alertas en Sidebar, Insignia de Alto Contraste e Iconografía Homologada',
+      categoria: 'Integridad y Auditoría',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: '1) Se enlazó la alerta de integridad del menú lateral con el estado de conciliación en vivo: al conciliar las reglas y variables asistenciales, la alerta roja del sidebar se apaga de inmediato y pasa a "Sistema En Línea" en verde. 2) Se rediseñó la insignia del score de integridad en el botón activo de "Reglas de Integridad SSOT" con un chip esmeralda de alto contraste que resalta sobre el fondo azul índigo. 3) Se alineó la iconografía de la Matriz de Verificación Rigurosa al estándar institucional ShieldCheck y se actualizó el botón Radar a IA GEMINI.',
+      instructivo: {
+        paraQueSirve: 'Mantiene una sincronización instantánea y coherente entre el menú lateral y las auditorías de datos, garantizando una lectura visual clara y sin falsas alertas.',
+        quePuedesVer: 'Al validar todas las reglas en Registro y Auditoría: el indicador del menú lateral cambia automáticamente a "Sistema En Línea", la insignia de porcentaje sobre el botón azul destaca nítidamente y los iconos siguen la línea gráfica institucional.',
+        ejemploUso: 'Realiza una conciliación en el módulo de auditoría y observa cómo la barra lateral se actualiza a verde sin recargar la página.'
+      },
+      changes: [
+        'Sidebar Reactivo en Vivo: Transición automática a "Sistema En Línea" al validar conciliaciones.',
+        'Insignia de Alto Contraste: Chip esmeralda brillante para máxima visibilidad sobre el fondo azul del botón activo.',
+        'Iconografía Homologada: Insignia enmarcada ShieldCheck en la Matriz de Reglas.',
+        'Botón Radar Predictivo: Identidad oficial IA GEMINI sin alertas residuales.'
+      ]
+    },
+    {
       id: 'v5.4.2',
       version: 'v5.4.2',
       fecha: '22 de Agosto, 2026',

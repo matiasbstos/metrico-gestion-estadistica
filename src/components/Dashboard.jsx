@@ -683,7 +683,25 @@ const DashboardContent = () => {
     };
   }, [kpisBigQuery, statsKPI, demografiaStats]);
 
+  const [rulesReconciledTick, setRulesReconciledTick] = useState(0);
+
+  useEffect(() => {
+    const handleRulesReconciled = () => setRulesReconciledTick(t => t + 1);
+    window.addEventListener('metrico-rules-reconciled', handleRulesReconciled);
+    return () => window.removeEventListener('metrico-rules-reconciled', handleRulesReconciled);
+  }, []);
+
   const integrityIncidencesCount = useMemo(() => {
+    // Si el usuario concilió las reglas de integridad en el módulo de auditoría
+    try {
+      const saved = localStorage.getItem('metrico_reconciled_rules');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const countConformes = Object.values(parsed).filter(Boolean).length;
+        if (countConformes >= 10) return 0;
+      }
+    } catch (e) {}
+
     if (!kpisBigQuery || !statsKPIFinal) return 0;
     let count = 0;
     const bq = kpisBigQuery;
@@ -695,7 +713,7 @@ const DashboardContent = () => {
     if (bq.altasAdmin?.current && st.altasAdmin?.current && Math.abs(bq.altasAdmin.current - st.altasAdmin.current) > 2) count++;
 
     return count;
-  }, [kpisBigQuery, statsKPIFinal]);
+  }, [kpisBigQuery, statsKPIFinal, rulesReconciledTick]);
 
   const prevIntegrityCountRef = useRef(0);
 
@@ -1448,17 +1466,17 @@ const DashboardContent = () => {
             <button 
               onClick={() => { setActiveTab('radar'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
               title="Radar Predictivo (IA)"
-              className={`flex items-center rounded-xl font-bold text-sm transition-all duration-200 my-1.5 overflow-visible ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${
+              className={`flex items-center rounded-xl font-bold text-sm transition-all duration-200 my-1.5 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${
                 activeTab === 'radar' 
                   ? 'accent-bg-custom text-white shadow-md' 
-                  : 'bg-red-500/15 text-red-500 border border-red-500/40 hover:bg-red-500/25 shadow-xs'
+                  : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/25 hover:bg-purple-500/20 shadow-xs'
               }`}>
-              <AnimatedRadarIcon className={`w-5 h-5 flex-shrink-0 ${activeTab !== 'radar' ? 'text-red-500' : 'text-white'}`} hasAlert={true} />
+              <AnimatedRadarIcon className={`w-5 h-5 flex-shrink-0 ${activeTab !== 'radar' ? 'text-purple-500' : 'text-white'}`} hasAlert={false} />
               {!sidebarCollapsed && (
                 <span className="animate-fade-in truncate flex items-center justify-between w-full">
-                  <span>Radar</span>
-                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-red-500 text-white animate-pulse ml-2 shadow-xs shrink-0">
-                    ALERTA
+                  <span>Radar Predictivo</span>
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-500 text-white shadow-xs shrink-0">
+                    IA GEMINI
                   </span>
                 </span>
               )}

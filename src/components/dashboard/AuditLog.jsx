@@ -412,6 +412,11 @@ export default function AuditLog({
       localStorage.setItem('metrico_reconciled_rules', JSON.stringify(updated));
     } catch (e) {}
 
+    // Notificar al Dashboard y Sidebar para actualizar el monitor de integridad en vivo
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('metrico-rules-reconciled'));
+    }
+
     playSuccessChime();
 
     try {
@@ -535,6 +540,11 @@ export default function AuditLog({
       try {
         localStorage.setItem('metrico_reconciled_rules', JSON.stringify(allRulesMap));
       } catch (e) {}
+
+      // Notificar al Dashboard y Sidebar para actualizar el monitor de integridad en vivo
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('metrico-rules-reconciled'));
+      }
 
       playSuccessChime();
 
@@ -719,11 +729,23 @@ export default function AuditLog({
 
           <button
             onClick={() => setSubTab('integridad')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${subTab === 'integridad' ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+              subTab === 'integridad' 
+                ? 'accent-bg-custom text-white shadow-md' 
+                : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'
+            }`}
           >
-            <Database className="w-3.5 h-3.5" />
+            <ShieldCheck className="w-3.5 h-3.5" />
             <span>Reglas de Integridad SSOT</span>
-            <span className="text-[9px] px-1.5 py-0.2 bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 rounded-full font-black">
+            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs transition-all ${
+              subTab === 'integridad'
+                ? (Number(scoreIntegridadGlobal) >= 100 
+                    ? 'bg-emerald-300 text-slate-950 font-black shadow-sm' 
+                    : 'bg-amber-300 text-slate-950 font-black shadow-sm')
+                : (Number(scoreIntegridadGlobal) >= 100 
+                    ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-black' 
+                    : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-black')
+            }`}>
               {scoreIntegridadGlobal}%
             </span>
           </button>
@@ -935,10 +957,12 @@ export default function AuditLog({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-card-custom/40 pb-3">
               <div>
                 <h3 className="text-xs font-black text-primary-custom uppercase tracking-wider flex items-center gap-2">
-                  <CheckCheck className="w-4 h-4 text-emerald-500" />
-                  Matriz de Verificación Rigurosa (10 Reglas Clínico-Estadísticas)
+                  <div className="p-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <span>Matriz de Verificación Rigurosa (10 Reglas Clínico-Estadísticas)</span>
                 </h3>
-                <p className="text-[11px] text-secondary-custom font-medium">
+                <p className="text-[11px] text-secondary-custom font-medium mt-1">
                   💡 Haz clic en cualquier tarjeta para inspeccionar las muestras de discrepancias y aplicar la conciliación directa.
                 </p>
               </div>

@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.4.3',
+    version_tag: 'v5.4.3',
+    fecha_despliegue: '22 de Agosto, 2026',
+    proposito_actualizacion: 'Sincronización en Vivo de Alertas en Barra Lateral (Sidebar SSOT), Insignia de Alto Contraste en Sub-Pestaña y Alineación de Iconografía.',
+    medios_y_stack: [
+      'React 18.3 (AuditLog.jsx, Dashboard.jsx)',
+      'CustomEvent Inter-Component Synchronization (metrico-rules-reconciled)',
+      'High-Contrast Badge Theming (Vibrant Emerald / Amber on Indigo Surface)',
+      'SAR Brand & Identity Iconography (ShieldCheck Badge & Clean IA Predictiva)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Sincronización Reactiva de Alertas en Sidebar: Se enlazó el cálculo de incidencias de integridad (integrityIncidencesCount) con el estado de conciliación de las 10 reglas y variables SSOT. Al conciliar todas las reglas o incidencias, la barra lateral apaga de inmediato la alerta roja y transiciona a "Sistema En Línea" en verde con pulso esmeralda. 2) Insignia de Porcentaje en Sub-Pestaña Superior: Se corrigió la insignia del score de integridad en el botón activo de "Reglas de Integridad SSOT", aplicando un chip esmeralda brillante (bg-emerald-300 / text-slate-950) con alto contraste lumínico sobre el fondo azul índigo. 3) Identidad Visual e Iconografía: Se homologó el icono de la cabecera de la Matriz de Verificación Rigurosa con la insignia ShieldCheck enmarcada institucional, y se reemplazó la alerta roja fija de Radar en la barra lateral por la insignia oficial "IA GEMINI" en tono púrpura asistencial.',
+      firestore_collections: ['audit_logs', 'pacientes_urgencia'],
+      query_optimization: 'Sincronización en 0ms vía CustomEvent y persistencia transparente en localStorage.'
+    },
+    modulos_afectados: ['AuditLog.jsx', 'Dashboard.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Eliminación de falsos positivos en monitor de integridad del Sidebar al completar conciliaciones.',
+      'Insignia de porcentaje de integridad con contraste optimizado sobre botones con fondo azul.',
+      'Estandarización de icono ShieldCheck institucional en la cabecera de la Matriz de Reglas.',
+      'Actualización estética del botón Radar en el sidebar a IA GEMINI sin badge de alerta fija.'
+    ]
+  },
+  {
     id: 'v5.4.2',
     version_tag: 'v5.4.2',
     fecha_despliegue: '22 de Agosto, 2026',
