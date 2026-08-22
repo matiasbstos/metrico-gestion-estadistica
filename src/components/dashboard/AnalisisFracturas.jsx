@@ -33,8 +33,8 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroDestino, setFiltroDestino] = useState('TODOS');
   const [filtroEdad, setFiltroEdad] = useState('TODOS');
-  const [filtroSexo, setFiltroSexo] = useState('TODOS');
-  const [modoVistaEdad, setModoVistaEdad] = useState('detallado'); // 'detallado' (17 tramos 5 años) | 'clinico' (4 tramos)
+  const [modoVistaEdadGrafico, setModoVistaEdadGrafico] = useState('clinico'); // 'clinico' (4 grupos) | 'quinquenal' (17 tramos) para distribucion y grafico
+  const [modoVistaEdadTabla, setModoVistaEdadTabla] = useState('clinico'); // 'clinico' (4 grupos) | 'detallado' (17 tramos) exclusivo para la tabla inferior
   const [mostrarDetalleTop5, setMostrarDetalleTop5] = useState(false);
   const [cardExpandedTop5, setCardExpandedTop5] = useState({});
 
@@ -483,9 +483,9 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
     return ((stats.total - fracturasPrevYear) / fracturasPrevYear) * 100;
   }, [stats.total, fracturasPrevYear]);
 
-  // Datos para gráfico de barras por Edad y Sexo (adaptable a modo clínico o quinquenal)
+  // Datos para gráfico de barras por Edad y Sexo (vinculado exclusivamente a la sección de Distribución Etaria)
   const dataGraficoEdad = useMemo(() => {
-    if (modoVistaEdad === 'clinico') {
+    if (modoVistaEdadGrafico === 'clinico') {
       return [
         { rango: 'Pediatría (0-14)', Mujeres: stats.clinicosMujeres?.['0-14'] || 0, Hombres: stats.clinicosHombres?.['0-14'] || 0, Total: stats.p0_14 || 0 },
         { rango: 'Jóvenes (15-29)', Mujeres: stats.clinicosMujeres?.['15-29'] || 0, Hombres: stats.clinicosHombres?.['15-29'] || 0, Total: stats.p15_29 || 0 },
@@ -499,7 +499,7 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
       Hombres: stats.porRangoEtario[range]?.M || 0,
       Total: stats.porRangoEtario[range]?.total || 0
     }));
-  }, [stats, modoVistaEdad]);
+  }, [stats, modoVistaEdadGrafico]);
 
   // Datos para gráfico de Torta (Destino de Alta)
   const dataGraficoDestino = useMemo(() => {
@@ -1263,9 +1263,9 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
           {/* TOGGLE SEGMENTADO DE VISTA */}
           <div className="flex items-center gap-1 bg-card-custom p-1 rounded-xl border border-card-custom text-xs font-bold">
             <button
-              onClick={() => setModoVistaEdad('clinico')}
+              onClick={() => setModoVistaEdadGrafico('clinico')}
               className={`px-3 py-1.5 rounded-lg transition-all text-[11px] cursor-pointer flex items-center gap-1.5 ${
-                modoVistaEdad === 'clinico'
+                modoVistaEdadGrafico === 'clinico'
                   ? 'bg-rose-500 text-white shadow-sm'
                   : 'text-secondary-custom hover:text-primary-custom'
               }`}
@@ -1275,9 +1275,9 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
               <span className="text-[9px] opacity-80">(4 Tramos)</span>
             </button>
             <button
-              onClick={() => setModoVistaEdad('quinquenal')}
+              onClick={() => setModoVistaEdadGrafico('quinquenal')}
               className={`px-3 py-1.5 rounded-lg transition-all text-[11px] cursor-pointer flex items-center gap-1.5 ${
-                modoVistaEdad === 'quinquenal'
+                modoVistaEdadGrafico === 'quinquenal'
                   ? 'bg-rose-500 text-white shadow-sm'
                   : 'text-secondary-custom hover:text-primary-custom'
               }`}
@@ -1290,7 +1290,7 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
         </div>
 
         {/* MODO 1: VISTA CLÍNICA INSTITUCIONAL (4 GRUPOS PRINCIPALES) */}
-        {modoVistaEdad === 'clinico' && (
+        {modoVistaEdadGrafico === 'clinico' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {[
               { id: '0-14', label: 'Pediatría', range: '0 a 14 años', count: stats.p0_14, mujeres: stats.clinicosMujeres?.['0-14'] || 0, hombres: stats.clinicosHombres?.['0-14'] || 0, IconComponent: Baby, iconColor: 'text-pink-500', bgIcon: 'bg-pink-500/10' },
@@ -1347,7 +1347,7 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
         )}
 
         {/* MODO 2: DESGLOSE QUINQUENAL (17 TRAMOS DE 5 AÑOS) */}
-        {modoVistaEdad === 'quinquenal' && (
+        {modoVistaEdadGrafico === 'quinquenal' && (
           <div>
             <p className="text-[10px] text-secondary-custom font-semibold mb-2">Haz clic en un tramo para filtrar la vista por rango de 5 años:</p>
             <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-9 gap-1.5">
@@ -1486,14 +1486,14 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
           <div className="flex items-center gap-1 bg-card-custom p-1 rounded-xl border border-card-custom text-xs font-bold">
             <span className="text-[10px] text-secondary-custom uppercase px-2">Ver Edad:</span>
             <button
-              onClick={() => setModoVistaEdad('clinico')}
-              className={`px-3 py-1 rounded-lg transition-all text-[11px] ${modoVistaEdad === 'clinico' ? 'bg-indigo-600 text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
+              onClick={() => setModoVistaEdadTabla('clinico')}
+              className={`px-3 py-1 rounded-lg transition-all text-[11px] cursor-pointer ${modoVistaEdadTabla === 'clinico' ? 'bg-indigo-600 text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
             >
               Rangos Clínicos (0-14, 15-29, 30-59, 60+)
             </button>
             <button
-              onClick={() => setModoVistaEdad('detallado')}
-              className={`px-3 py-1 rounded-lg transition-all text-[11px] ${modoVistaEdad === 'detallado' ? 'bg-indigo-600 text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
+              onClick={() => setModoVistaEdadTabla('detallado')}
+              className={`px-3 py-1 rounded-lg transition-all text-[11px] cursor-pointer ${modoVistaEdadTabla === 'detallado' ? 'bg-indigo-600 text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom'}`}
             >
               Detallado (17 Tramos 5 Años)
             </button>
@@ -1516,8 +1516,8 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
                 <th className="p-3 text-center text-sky-500 whitespace-nowrap">Otros</th>
                 <th className="p-3 text-center text-slate-400 whitespace-nowrap">Sin Registro</th>
 
-                {/* COLUMNAS DE EDAD SEGÚN MODO DE VISTA */}
-                {modoVistaEdad === 'clinico' ? (
+                {/* COLUMNAS DE EDAD SEGÚN MODO DE VISTA DE TABLA */}
+                {modoVistaEdadTabla === 'clinico' ? (
                   <>
                     <th className="p-3 text-center text-sky-500 whitespace-nowrap">0-14 Años (Pediatría)</th>
                     <th className="p-3 text-center text-indigo-500 whitespace-nowrap">15-29 Años (Jóvenes)</th>
@@ -1596,8 +1596,8 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
                       {row.sinRegistro > 0 ? row.sinRegistro : '-'}
                     </td>
 
-                    {/* VALORES DE EDAD SEGÚN MODO DE VISTA */}
-                    {modoVistaEdad === 'clinico' ? (
+                    {/* VALORES DE EDAD SEGÚN MODO DE VISTA DE TABLA */}
+                    {modoVistaEdadTabla === 'clinico' ? (
                       <>
                         <td className="p-3 text-center font-bold text-sky-500 bg-sky-500/5">
                           {row.p0_14 > 0 ? row.p0_14 : '-'}

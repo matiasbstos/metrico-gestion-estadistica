@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.3.5',
+      version: 'v5.3.5',
+      fecha: '21 de Agosto, 2026',
+      badge: 'TRAUMATOLOGÍA & EXPERIENCIA UI',
+      badgeColor: 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20',
+      title: 'Independencia de Filtros: Desacoplamiento de Gráficos y Tabla de Diagnósticos',
+      categoria: 'Traumatología',
+      icon: Layers,
+      iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+      summary: 'Se desacopló completamente el selector de columnas de edad de la tabla "Desglose de Diagnósticos y Cruce de Datos" respecto al gráfico de barras superior. Ahora, cambiar entre "Rangos Clínicos" y "Detallado 17 Tramos" en la tabla solo modifica las columnas inferiores, conservando intacto el gráfico de Incidencia por Rango Etario y Sexo.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que puedas personalizar las columnas de la tabla de diagnósticos sin alterar la vista gráfica ni la distribución superior seleccionada.',
+        quePuedesVer: 'El gráfico superior de "Incidencia de Fracturas por Rango Etario y Sexo" solo responderá al selector de "Distribución por Grupos Etarios", mientras que la tabla inferior cuenta con su propio selector independiente.',
+        ejemploUso: 'Puedes ver el gráfico superior en modalidad "Grupos Clínicos (4 Tramos)" y al mismo tiempo desplegar la tabla inferior en "Detallado (17 Tramos 5 Años)" sin interferencias.'
+      },
+      changes: [
+        'Aislamiento de Estado: modoVistaEdadGrafico y modoVistaEdadTabla operan de forma 100% independiente.',
+        'Preservación Visual: El gráfico de barras superior no muta al cambiar las columnas de la tabla.',
+        'Mayor Flexibilidad: Permite cruzar visualizaciones macro (clínicas) con datos tabulares micro (quinquenales) simultáneamente.'
+      ]
+    },
+    {
       id: 'v5.3.4',
       version: 'v5.3.4',
       fecha: '21 de Agosto, 2026',

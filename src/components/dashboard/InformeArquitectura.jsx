@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.3.5',
+    version_tag: 'v5.3.5',
+    fecha_despliegue: '21 de Agosto, 2026',
+    proposito_actualizacion: 'Desacoplamiento Total de Estados Etarios: Aislamiento del Gráfico de Incidencia respecto a la Tabla de Desglose de Diagnósticos.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisFracturas.jsx)',
+      'Aislamiento de Estado React (modoVistaEdadGrafico vs modoVistaEdadTabla)',
+      'Recharts BarChart Optimization'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Se independizó por completo el control de visualización de edad de la tabla de Desglose de Diagnósticos ("modoVistaEdadTabla") del gráfico superior de Incidencia por Rango Etario y Sexo ("modoVistaEdadGrafico"). Ahora, alternar entre "Rangos Clínicos" y "Detallado 17 Tramos" en la tabla modifica exclusivamente las columnas de la tabla inferior sin alterar los gráficos superiores ni la distribución etaria.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Memorización independiente de dataGraficoEdad sujeta únicamente al toggle de distribución etaria.'
+    },
+    modulos_afectados: ['AnalisisFracturas.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Separación de useState: modoVistaEdadGrafico (clinico/quinquenal) y modoVistaEdadTabla (clinico/detallado).',
+      'El gráfico de barras superior mantiene su estado independientemente de las acciones en la tabla.',
+      'Mejora de reactividad y experiencia de usuario en el explorador analítico de fracturas.'
+    ]
+  },
+  {
     id: 'v5.3.4',
     version_tag: 'v5.3.4',
     fecha_despliegue: '21 de Agosto, 2026',
