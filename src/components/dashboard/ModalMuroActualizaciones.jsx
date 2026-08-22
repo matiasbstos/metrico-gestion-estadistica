@@ -8,6 +8,27 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.3.6',
+      version: 'v5.3.6',
+      fecha: '22 de Agosto, 2026',
+      badge: 'ESTABILIDAD & ESTADO',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Corrección de Inicialización de Filtros en Estadísticas de Fractura',
+      categoria: 'Traumatología',
+      icon: Activity,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se solucionó un problema de inicialización de variables de estado que impedía la renderización de la vista al cargar los filtros de género en Estadísticas de Fractura.',
+      instructivo: {
+        paraQueSirve: 'Garantiza la estabilidad continua y sin interrupciones del explorador de fracturas.',
+        quePuedesVer: 'Acceso inmediato sin errores de carga a todas las herramientas de filtrado por sexo, edad y destino asistencial.',
+        ejemploUso: 'Navega con normalidad entre los filtros de la barra superior.'
+      },
+      changes: [
+        'Restauración de filtroSexo en el árbol de componentes.',
+        'Verificación de estabilidad de renderizado.'
+      ]
+    },
+    {
       id: 'v5.3.5',
       version: 'v5.3.5',
       fecha: '21 de Agosto, 2026',

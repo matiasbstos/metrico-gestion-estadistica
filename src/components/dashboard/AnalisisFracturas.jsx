@@ -33,6 +33,7 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroDestino, setFiltroDestino] = useState('TODOS');
   const [filtroEdad, setFiltroEdad] = useState('TODOS');
+  const [filtroSexo, setFiltroSexo] = useState('TODOS');
   const [modoVistaEdadGrafico, setModoVistaEdadGrafico] = useState('clinico'); // 'clinico' (4 grupos) | 'quinquenal' (17 tramos) para distribucion y grafico
   const [modoVistaEdadTabla, setModoVistaEdadTabla] = useState('clinico'); // 'clinico' (4 grupos) | 'detallado' (17 tramos) exclusivo para la tabla inferior
   const [mostrarDetalleTop5, setMostrarDetalleTop5] = useState(false);

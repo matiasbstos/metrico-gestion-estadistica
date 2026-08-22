@@ -10,6 +10,26 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.3.6',
+    version_tag: 'v5.3.6',
+    fecha_despliegue: '22 de Agosto, 2026',
+    proposito_actualizacion: 'Corrección Crítica de Alcance de Estado (filtroSexo) en Estadísticas de Fractura.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisFracturas.jsx)',
+      'Control de Estado Local de Filtros Multicriterio'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Se restauró la declaración formal del estado useState "filtroSexo" en el componente AnalisisFracturas.jsx, solucionando la excepción de referencia (ReferenceError) durante la inicialización y el filtrado por género.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Montaje de componente sin fallos de renderizado.'
+    },
+    modulos_afectados: ['AnalisisFracturas.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Restauración de const [filtroSexo, setFiltroSexo] = useState("TODOS").',
+      'Validación de pipeline de filtrado de admisiones de fractura.'
+    ]
+  },
+  {
     id: 'v5.3.5',
     version_tag: 'v5.3.5',
     fecha_despliegue: '21 de Agosto, 2026',
