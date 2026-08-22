@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.4.6',
+      version: 'v5.4.6',
+      fecha: '22 de Agosto, 2026',
+      badge: 'REVISIÓN INTEGRAL DE CÁLCULOS',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Consolidación de Cálculos Asistenciales, Bitácora de Antecedentes y Normalización Transversal',
+      categoria: 'Integridad y Auditoría',
+      icon: ShieldCheck,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: '1) Se efectuó una revisión y homologación exhaustiva de los cálculos en base a la agenda clínica y los puntos de control del sistema: triaje normalizado (C1-C5), pacientes atendidos efectivos (Admitidos - Altas) y clasificación precisa de altas administrativas en todos los submódulos. 2) Se optimizó la "Bitácora de Antecedentes & RAE" con cálculo automático en horario local para permitir registrar contingencias y cruzar datos con reportes oficiales al instante.',
+      instructivo: {
+        paraQueSirve: 'Brinda continuidad y consistencia matemática absoluta en todos los indicadores y submódulos de la plataforma.',
+        quePuedesVer: 'En Registro y Auditoría > Aporte de Antecedentes: puedes ingresar cualquier contingencia de papel o número ministerial, y MÉTRICO calculará la diferencia contra la base de datos de manera automática.',
+        ejemploUso: 'Revisa la Bitácora de Antecedentes para corroborar incidencias históricas y cotejar con el informe de arquitectura.'
+      },
+      changes: [
+        'Homologación Transversal de Fórmulas: Consistencia 100% en todos los submódulos.',
+        'Bitácora de Antecedentes Optimizada: Cotejo en tiempo real con zona horaria local.',
+        'Documentación Continua: Consolidado y Línea de Tiempo actualizados según protocolo AGENTS.'
+      ]
+    },
+    {
       id: 'v5.4.5',
       version: 'v5.4.5',
       fecha: '22 de Agosto, 2026',

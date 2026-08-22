@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.4.6',
+    version_tag: 'v5.4.6',
+    fecha_despliegue: '22 de Agosto, 2026',
+    proposito_actualizacion: 'Revisión Integral de Cálculos Asistenciales, Bitácora de Antecedentes y Normalización Clínica Transversal.',
+    medios_y_stack: [
+      'React 18.3 (BitacoraAntecedentes.jsx, useMetricoAnalytics.js, CalendarioHistorico.jsx)',
+      'Local Timezone-Aware Clinical Record Calculation Engine',
+      'Continuous Feedback & Architecture Consolidation (AGENTS Protocol)',
+      'Cross-Module SSOT Parity Engine'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Revisión Integral de Cálculos Clínicos: Se homologó la normalización universal de categorías de triaje (normalizeCategoria), el cálculo de pacientes atendidos efectivos (Admitidos - Altas) y la captura exacta de altas administrativas en todos los módulos de análisis (Demanda, Altas, Constataciones, Fracturas, Enfermería y Profesionales). 2) Bitácora de Antecedentes & RAE: Se ajustó el motor de cálculo automático en tiempo real de BitacoraAntecedentes.jsx con zona horaria local estricta y filtros clínicos avanzados (isAltaAdmin, isTraslado) para permitir el cruce inmediato de contingencias, planillas físicas y reportes ministeriales contra MÉTRICO DB.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'audit_logs'],
+      query_optimization: 'Normalización y cotejo en memoria en O(1).'
+    },
+    modulos_afectados: ['BitacoraAntecedentes.jsx', 'AuditLog.jsx', 'useMetricoAnalytics.js', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Revisión y consolidación de la agenda de cálculos asistenciales en toda la plataforma.',
+      'Soporte completo para ingreso de antecedentes de contingencia con cotejo automático en vivo.',
+      'Documentación viva 100% acumulativa y retroalimentada según el protocolo obligatorio de MÉTRICO.'
+    ]
+  },
+  {
     id: 'v5.4.5',
     version_tag: 'v5.4.5',
     fecha_despliegue: '22 de Agosto, 2026',

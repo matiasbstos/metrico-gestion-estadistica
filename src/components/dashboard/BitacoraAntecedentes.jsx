@@ -64,18 +64,23 @@ export default function BitacoraAntecedentes({
   const cifraDBCalculada = useMemo(() => {
     if (!formFecha) return 0;
     
-    // Contar pacientes con tAdmision en formFecha
+    // Contar pacientes con tAdmision en formFecha (en horario civil local)
     let countPac = 0;
     (pacientesDB || []).forEach(p => {
       if (!p.tAdmision) return;
-      const dStr = new Date(p.tAdmision).toISOString().substring(0, 10);
-      if (dStr === formFecha) {
+      const d = new Date(p.tAdmision);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dStr = `${y}-${m}-${day}`;
+
+      if (dStr === formFecha || p.fecha === formFecha) {
         if (formVariable === 'Pacientes Admitidos') countPac++;
-        else if (formVariable === 'Pacientes Atendidos' && p.estado !== 'Cancelada') countPac++;
-        else if (formVariable === 'Altas Administrativas' && p.estado === 'Cancelada') countPac++;
+        else if (formVariable === 'Pacientes Atendidos' && p.estado !== 'Cancelada' && !p.destinoAlta?.includes('ALTA ADMIN')) countPac++;
+        else if (formVariable === 'Altas Administrativas' && (p.estado === 'Cancelada' || p.destinoAlta?.includes('ALTA ADMIN') || p.destinoAlta?.includes('RETIRO'))) countPac++;
         else if (formVariable === 'Traslados Hospitalarios') {
           const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
-          if (dest.includes('hospital') || dest.includes('emergencia') || dest.includes('derivac')) countPac++;
+          if (dest.includes('hospital') || dest.includes('emergencia') || dest.includes('derivac') || dest.includes('ueh')) countPac++;
         }
       }
     });
@@ -87,6 +92,7 @@ export default function BitacoraAntecedentes({
           if (formVariable === 'Pacientes Admitidos') countPac += Number(t.totalPacientes || 0);
           else if (formVariable === 'Pacientes Atendidos') countPac += Math.max(0, Number(t.totalPacientes || 0) - Number(t.altasAdmin || 0));
           else if (formVariable === 'Altas Administrativas') countPac += Number(t.altasAdmin || 0);
+          else if (formVariable === 'Traslados Hospitalarios') countPac += Number(t.trasladosCount || 0);
         }
       });
     }
