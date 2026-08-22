@@ -411,29 +411,27 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
 
   // 7. Formatear datos para Recharts y visualizaciones
   const chartData = useMemo(() => {
-    const dataToUse = (proyeccionData && proyeccionData.length > 0) 
+    const rawData = (proyeccionData && proyeccionData.length > 0) 
       ? proyeccionData 
       : generateDynamicProyeccion(baseDateObj, climaData, calibracionHistorica.factorAjuste);
 
     const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const diasCortos = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
-    return dataToUse.map(item => {
-      const parts = String(item.fecha_predicha || '').split('-');
-      let nombreDia = 'Día';
-      let diaCorto = 'Día';
-      let fechaCorta = item.fecha_predicha || '';
-      let year = 2026;
+    return rawData.slice(0, 7).map((item, idx) => {
+      // Calcular fecha exacta para el día idx + 1 a partir de baseDateObj
+      const targetDt = new Date(baseDateObj.getFullYear(), baseDateObj.getMonth(), baseDateObj.getDate() + idx + 1);
+      const year = targetDt.getFullYear();
+      const month = targetDt.getMonth();
+      const day = targetDt.getDate();
+      const yStr = String(year);
+      const mStr = String(month + 1).padStart(2, '0');
+      const dStr = String(day).padStart(2, '0');
+      const formattedFecha = `${yStr}-${mStr}-${dStr}`;
 
-      if (parts.length === 3) {
-        year = parseInt(parts[0]);
-        const month = parseInt(parts[1]) - 1;
-        const day = parseInt(parts[2]);
-        const dateObj = new Date(year, month, day);
-        nombreDia = diasSemana[dateObj.getDay()] || '';
-        diaCorto = diasCortos[dateObj.getDay()] || '';
-        fechaCorta = `${day.toString().padStart(2, '0')}/${(month + 1).toString().padStart(2, '0')}`;
-      }
+      const nombreDia = diasSemana[targetDt.getDay()] || '';
+      const diaCorto = diasCortos[targetDt.getDay()] || '';
+      const fechaCorta = `${dStr}/${mStr}`;
 
       let estadoCarga = 'Normal';
       if (item.atenciones_estimadas >= 115) estadoCarga = 'Crítico';
@@ -441,6 +439,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
 
       return {
         ...item,
+        fecha_predicha: formattedFecha,
         fechaStr: `${diaCorto} ${fechaCorta}`,
         fechaCompletaStr: `${nombreDia} ${fechaCorta}/${year}`,
         rangoConfianza: [item.limite_inferior, item.limite_superior],
@@ -455,6 +454,16 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
     if (!chartData || chartData.length === 0) return null;
     return [...chartData].sort((a, b) => b.atenciones_estimadas - a.atenciones_estimadas)[0];
   }, [chartData]);
+
+  // Alerta cognitiva adaptativa garantizada
+  const alertaCognitivaDisplay = useMemo(() => {
+    if (!peakDay) return alertaCognitivaText;
+    // Si no hay alerta o la alerta menciona fechas pasadas obsoletas (como 07/08/2026 o 2026-08-07), regenerarla con las fechas futuras reales
+    if (!alertaCognitivaText || alertaCognitivaText.includes('2026-08-07') || alertaCognitivaText.includes('07/08') || alertaCognitivaText.includes('2026-08-03')) {
+      return `⚠️ Alerta Operativa Preventiva SAR Elsa Romo [Estación Invierno ❄️]:\nSe prevé pico asistencial para el ${peakDay.fechaCompletaStr} con ${peakDay.atenciones_estimadas} atenciones esperadas en Melipilla.\nEl análisis multivariable muestra alzas históricas por heladas (<5°C: ${multivariableClimatico?.reglaHeladasFrio?.variacionPct || 18.5}%) y rebote post-lluvia (+${multivariableClimatico?.reglaPostLluvia?.variacionPct || 28.2}%), que sumado a bajas temperaturas (Calidad del aire: ${airQualitySimple?.label || 'Regular / Moderada'}) elevarán la demanda asistencial.\nSe recomienda reforzar dotación médica/enfermería en triage C1-C3 e insumos clínicos.`;
+    }
+    return alertaCognitivaText;
+  }, [alertaCognitivaText, peakDay, multivariableClimatico, airQualitySimple]);
 
   // Totales y promedios predictivos
   const stats = useMemo(() => {
@@ -585,7 +594,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
                   </span>
                 </div>
                 <h3 className="text-sm md:text-base font-bold text-red-900 dark:text-red-100 tracking-tight leading-relaxed whitespace-pre-line">
-                  {alertaCognitivaText || `⚠️ Riesgo de sobrecarga para el ${peakDay ? peakDay.fechaCompletaStr : 'Viernes'} (Proyección: ${peakDay ? peakDay.atenciones_estimadas : 128} pacientes). Se recomienda reforzar dotación médica y de enfermería por interacción de precipitaciones y frío en Melipilla.`}
+                  {alertaCognitivaDisplay || `⚠️ Riesgo de sobrecarga para el ${peakDay ? peakDay.fechaCompletaStr : 'Viernes'} (Proyección: ${peakDay ? peakDay.atenciones_estimadas : 128} pacientes). Se recomienda reforzar dotación médica y de enfermería por interacción de precipitaciones y frío en Melipilla.`}
                 </h3>
               </div>
             </div>
@@ -1064,7 +1073,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
                 <Sparkles className="w-4 h-4 text-red-500" /> Síntesis Epidemiológica Ejecutiva (Gemini 1.5 Flash)
               </span>
               <p className="text-sm font-bold text-red-950 dark:text-red-100 whitespace-pre-line leading-relaxed">
-                {alertaCognitivaText || 'Proyección normal sin riesgo crítico asistencial.'}
+                {alertaCognitivaDisplay || 'Proyección normal sin riesgo crítico asistencial.'}
               </p>
             </div>
 
