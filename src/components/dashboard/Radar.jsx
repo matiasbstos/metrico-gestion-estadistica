@@ -176,15 +176,56 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
     return null;
   };
 
+  // 3b. CÁLCULO DINÁMICO DE PROMEDIOS HISTÓRICOS POR DÍA DE SEMANA DESDE LOS DATOS SUBIDOS
+  const metricasHistoricasSemanales = useMemo(() => {
+    const sumByDay = [0, 0, 0, 0, 0, 0, 0];
+    const countByDay = [0, 0, 0, 0, 0, 0, 0];
+    const defaultBaseByDay = [104, 82, 80, 78, 85, 122, 128]; // [0=Dom, 1=Lun, 2=Mar, 3=Mié, 4=Jue, 5=Vie, 6=Sáb]
+
+    if (turnosDB && turnosDB.length > 0) {
+      turnosDB.forEach(t => {
+        if (t.fechaInicio && typeof t.fechaInicio === 'string') {
+          const parts = t.fechaInicio.split('-');
+          if (parts.length === 3) {
+            const dt = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            const d = dt.getDay();
+            const pacs = Number(t.totalPacientes || 0);
+            if (pacs > 0) {
+              sumByDay[d] += pacs;
+              countByDay[d] += 1;
+            }
+          }
+        }
+      });
+    }
+
+    // Promedio aprendido para cada día de la semana según los datos reales subidos
+    const learnedByDay = defaultBaseByDay.map((defVal, dIdx) => {
+      if (countByDay[dIdx] >= 1) {
+        return Math.round(sumByDay[dIdx] / countByDay[dIdx]);
+      }
+      return defVal;
+    });
+
+    const totalDiasAnalizados = countByDay.reduce((a, b) => a + b, 0);
+    const semanasAnalizadas = Math.max(1, Math.round(totalDiasAnalizados / 7));
+
+    return {
+      learnedByDay,
+      totalDiasAnalizados,
+      semanasAnalizadas,
+      hasCustomData: totalDiasAnalizados > 0
+    };
+  }, [turnosDB, pacientesDB]);
+
   // 4. GENERADOR DINÁMICO DE PROYECCIÓN A 7 DÍAS CON MODELADO DE RETARDO CLIMÁTICO (LAG EFFECTS)
-  const generateDynamicProyeccion = (baseDate, liveWeather = null, calibrationFactor = 1.0) => {
+  const generateDynamicProyeccion = (baseDate, liveWeather = null, calibrationFactor = 1.0, customBaselines = null) => {
     const proyecciones = [];
     const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const weatherList = liveWeather || [];
 
-    // Promedios base por día de la semana observados empíricamente en el SAR Elsa Romo
-    // [0=Dom: 104, 1=Lun: 82, 2=Mar: 80, 3=Mié: 78, 4=Jue: 85, 5=Vie: 122, 6=Sáb: 128]
-    const baseByDay = [104, 82, 80, 78, 85, 122, 128];
+    // Promedios aprendidos de los datos reales o base por defecto
+    const baseByDay = customBaselines || metricasHistoricasSemanales.learnedByDay || [104, 82, 80, 78, 85, 122, 128];
 
     // Historial previo de precipitación para modelar el retardo (Lag Effect)
     let prevDayHadRain = false;
@@ -283,7 +324,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
       }
     });
 
-    const baseByDay = [104, 82, 80, 78, 85, 122, 128];
+    const baseByDay = metricasHistoricasSemanales.learnedByDay;
     const items = [];
     let sumErrorAbs = 0;
     let countEvaluados = 0;
@@ -335,7 +376,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
       : 1.02;
 
     return { items, precisionMedia, factorAjuste, mae };
-  }, [turnosDB, baseDateObj]);
+  }, [turnosDB, baseDateObj, metricasHistoricasSemanales]);
 
   // 6. CARGA Y SINCRONIZACIÓN DE PROYECCIONES
   const fetchProyeccion = async (isManualRefresh = false) => {
@@ -539,6 +580,9 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
             </span>
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">
               Base: {baseDateObj.toLocaleDateString('es-CL')} (Próximos 7 días)
+            </span>
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/30">
+              🧠 Auto-Calibrado: {metricasHistoricasSemanales.semanasAnalizadas} sem. ({metricasHistoricasSemanales.totalDiasAnalizados} turnos)
             </span>
           </div>
           <h2 className="text-2xl md:text-3xl font-black text-primary-custom tracking-tight flex items-center gap-3">
