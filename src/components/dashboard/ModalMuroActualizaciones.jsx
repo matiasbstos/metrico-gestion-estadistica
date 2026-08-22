@@ -8,6 +8,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.4.2',
+      version: 'v5.4.2',
+      fecha: '22 de Agosto, 2026',
+      badge: 'DISEÑO & EXPERIENCIA VISUAL',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Fondo Blanco de Alto Contraste y Encabezados Nítidos en Muestras de Discrepancias',
+      categoria: 'Integridad y Auditoría',
+      icon: Eye,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: '1) Se rediseñó el fondo del modal de detalle de reglas y conciliación a un blanco sólido puro en modo claro y grafito en modo oscuro, logrando un contraste nítido y eliminando el aspecto traslúcido frente al fondo del dashboard. 2) Se corrigió el encabezado fijo (sticky) de la tabla de registros afectados con fondo 100% opaco y capas aisladas, impidiendo que los títulos de las columnas (ID, Fecha, Detalle / Valor, Observación) se solapen con las filas de datos al hacer scroll.',
+      instructivo: {
+        paraQueSirve: 'Brinda una lectura clara, profesional y sin interferencias visuales al consultar los desgloses de discrepancias y realizar conciliaciones.',
+        quePuedesVer: 'Al hacer clic en cualquier regla con discrepancias: el modal se presenta en blanco puro con bordes definidos y la tabla de muestras permite desplazarse verticalmente manteniendo los títulos de las columnas firmes y 100% legibles.',
+        ejemploUso: 'Abre la regla "1. Ecuación de Flujo Asistencial" y haz scroll en la lista de turnos afectados para comprobar la fijación perfecta de los encabezados.'
+      },
+      changes: [
+        'Fondo Sólido Blanco / Oscuro: Mayor protagonismo y contraste frente al fondo de la plataforma.',
+        'Encabezado Sticky Opaco: Los títulos de las columnas nunca se solapan con los datos durante el desplazamiento.',
+        'Adaptación Cromática Integral: Tarjetas de métricas, diagnóstico y soluciones con textos de alta definición.',
+        'Tipografía y Espaciado Perfeccionados: Filas de registros clínicos con formato monoespaciado nítido.'
+      ]
+    },
+    {
       id: 'v5.4.1',
       version: 'v5.4.1',
       fecha: '22 de Agosto, 2026',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, CheckCircle2, RefreshCw, ShieldCheck, Database, Check } from 'lucide-react';
+import { CheckCircle2, RefreshCw, ShieldCheck } from 'lucide-react';
 
 export default function ModalProgresoConciliacion({
   isOpen,
@@ -13,7 +13,7 @@ export default function ModalProgresoConciliacion({
 
   return (
     <div className="fixed inset-0 z-[999999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-6 animate-fade-in">
-      <div className="bg-card-custom border border-card-custom rounded-3xl shadow-2xl p-8 max-w-md w-full text-center space-y-6 theme-transition relative overflow-hidden animate-scale-up">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl p-8 max-w-md w-full text-center space-y-6 theme-transition relative overflow-hidden animate-scale-up">
         
         {/* Glow dinámico de fondo */}
         <div 
@@ -24,13 +24,13 @@ export default function ModalProgresoConciliacion({
         {/* Icono Central / Spinner */}
         <div className="relative flex items-center justify-center pt-2">
           {isCompleted ? (
-            <div className="w-20 h-20 rounded-full bg-emerald-500/20 text-emerald-500 border border-emerald-500/40 flex items-center justify-center animate-bounce-in shadow-xl shadow-emerald-500/20">
+            <div className="w-20 h-20 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 flex items-center justify-center animate-bounce-in shadow-xl shadow-emerald-500/20">
               <CheckCircle2 className="w-10 h-10" />
             </div>
           ) : (
             <div className="relative flex items-center justify-center">
               <div className="w-20 h-20 border-4 border-indigo-500/20 border-t-indigo-600 rounded-full animate-spin"></div>
-              <div className="w-10 h-10 bg-indigo-500/10 rounded-full animate-pulse absolute flex items-center justify-center text-xs font-black text-indigo-600 dark:text-indigo-400 font-mono">
+              <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-950/40 rounded-full animate-pulse absolute flex items-center justify-center text-xs font-black text-indigo-600 dark:text-indigo-400 font-mono">
                 {Math.round(progress)}%
               </div>
             </div>
@@ -39,19 +39,19 @@ export default function ModalProgresoConciliacion({
 
         {/* Textos de Estado */}
         <div className="space-y-2 relative z-10">
-          <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500 px-2.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20">
+          <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/50">
             {indicatorName === 'General' ? 'Conciliación Global SSOT' : `Conciliación: ${indicatorName}`}
           </span>
-          <h3 className="text-xl font-black text-primary-custom tracking-tight mt-1">
+          <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight mt-1">
             {isCompleted ? '¡Conciliación 100% Exitosa!' : 'Ejecutando Conciliación de Datos...'}
           </h3>
-          <p className="text-xs text-secondary-custom font-medium leading-relaxed">
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
             {stageText}
           </p>
         </div>
 
         {/* Barra de Progreso Interna */}
-        <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-3 overflow-hidden border border-card-custom p-0.5 relative z-10">
+        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-200 dark:border-slate-700 p-0.5 relative z-10">
           <div 
             className={`h-full rounded-full transition-all duration-300 shadow-md ${
               isCompleted 
@@ -66,7 +66,7 @@ export default function ModalProgresoConciliacion({
         <div className="pt-2 relative z-10 flex flex-col items-center gap-3">
           {isCompleted ? (
             <div className="space-y-3 w-full animate-fade-in">
-              <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-black bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 shadow-sm">
+              <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-black bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-sm">
                 <ShieldCheck className="w-4 h-4 text-emerald-500" />
                 <span>Paridad y Coherencia 100% Validadas</span>
               </span>
@@ -81,7 +81,7 @@ export default function ModalProgresoConciliacion({
               </div>
             </div>
           ) : (
-            <span className="inline-flex items-center gap-1.5 text-xs text-secondary-custom font-medium">
+            <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
               <RefreshCw className="w-3.5 h-3.5 animate-spin text-indigo-500" />
               <span>Sincronizando registros con el motor SSOT...</span>
             </span>

@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.4.2',
+    version_tag: 'v5.4.2',
+    fecha_despliegue: '22 de Agosto, 2026',
+    proposito_actualizacion: 'Fondo Blanco de Alto Contraste y Corrección de Encabezado Fijo (Sticky) en Tabla de Muestras de Discrepancias.',
+    medios_y_stack: [
+      'React 18.3 (ModalDetalleReglaIntegridad.jsx, ModalProgresoConciliacion.jsx)',
+      'CSS Sticky Layering & Opaque Background Isolation',
+      'Solid White Surface System with Elevated Visual Hierarchy',
+      'Theme Contrast & Scroll Optimization'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Fondo Blanco y Protagonismo Visual: Se adaptaron los modales de Detalle de Regla (<ModalDetalleReglaIntegridad />) y Progreso de Conciliación (<ModalProgresoConciliacion />) a una superficie sólida blanca pura en modo claro (bg-white) y grafito profundo en modo oscuro (bg-slate-900), evitando la translucidez que opacaba el modal frente al fondo. 2) Corrección de Solapamiento en Scroll de Muestras: El encabezado thead de la tabla de registros afectados ahora cuenta con fondo 100% opaco (bg-slate-200 / bg-slate-800), z-index 20 y separación nítida con borde, garantizando que los títulos (ID, Fecha, Detalle / Valor, Observación) permanezcan completamente legibles y nunca se entrecrucen con las filas de datos al desplazarse.',
+      firestore_collections: ['audit_logs', 'pacientes_urgencia'],
+      query_optimization: 'Fijación de encabezado sticky 100% opaco y contraste visual de alta nitidez.'
+    },
+    modulos_afectados: ['ModalDetalleReglaIntegridad.jsx', 'ModalProgresoConciliacion.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Fondo sólido bg-white / bg-slate-900 para máximo protagonismo y legibilidad.',
+      'Encabezado thead sticky con fondo opaco y z-index 20 para evitar solapamientos.',
+      'Tarjetas métricas y bloques de diagnóstico con paleta adaptada y alto contraste.',
+      'Mejora de espaciado y tipografía en celdas de la tabla de registros afectados.'
+    ]
+  },
+  {
     id: 'v5.4.1',
     version_tag: 'v5.4.1',
     fecha_despliegue: '22 de Agosto, 2026',
