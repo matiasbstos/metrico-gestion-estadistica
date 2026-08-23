@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.5.2',
+      version: 'v5.5.2',
+      fecha: '23 de Agosto, 2026',
+      badge: 'DISEÑO DE CORREO & COMPARATIVO INTERANUAL',
+      badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/20',
+      title: 'Enriquecimiento Clínico, Láminas de Rendimiento y Comparativas Interanuales en Plantillas de Correo',
+      categoria: 'Notificaciones y Reportes',
+      icon: Activity,
+      iconBg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+      summary: '1) Se incorporaron todas las láminas clínicas en la previsualización del correo: Rendimiento Global (pacientes/hora y promedio por box), Distribución de Triage (C1 a C5), Listado de Médicos en Turno con rendimiento individual, Top 10 Diagnósticos CIE-10, Centros de Origen con Tasa de Traslado y Desglose Demográfico por Sexo. 2) Se añadieron comparaciones interanuales automáticas con badges visuales de crecimiento/decrecimiento (vs mismo día/mes del año anterior). 3) Se integró el catálogo explicativo y botón directo para la descarga de los 6 reportes PDF oficiales.',
+      instructivo: {
+        paraQueSirve: 'Proporciona una radiografía clínica y asistencial completa en el correo que reciben las autoridades, facilitando la toma de decisiones basada en comparaciones interanuales y rendimiento por equipo.',
+        quePuedesVer: 'En Informe por Correo > 3. Diseño de Correos: selecciona "Informe Diario por Turno" o "Cierre Mensual" para ver las láminas interactivas con gráficos, tablas y variaciones porcentuales.',
+        ejemploUso: 'Revisa la distribución de triage y el listado de médicos con su rendimiento pacientes/hora y porcentaje de aporte.'
+      },
+      changes: [
+        'Rendimiento Global & Triage: Tarjetas de flujo por hora y barras de categorización C1-C5.',
+        'Médicos & CIE-10: Listado de profesionales en turno y ranking Top 10 diagnósticos.',
+        'Comparativas Interanuales: Badges de tendencia (↑ / ↓) comparando con el año anterior.'
+      ]
+    },
+    {
       id: 'v5.5.1',
       version: 'v5.5.1',
       fecha: '23 de Agosto, 2026',

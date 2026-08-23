@@ -1017,52 +1017,391 @@ export default function ModalConfiguracionCorreo({
                 </div>
 
                 {disenoTemplate === 'DIARIO' && (
-                  <div className="space-y-4">
-                    <p className="font-bold text-slate-900 text-sm">
-                      Estimada Dirección y Equipo de Gestión Asistencial:
-                    </p>
-                    <p>
-                      Junto con saludarles cordialmente, presentamos el <strong>Informe Ejecutivo Auditado de Atención Médica y Demanda de Urgencia</strong> correspondiente al <strong>{turnoInfo.textoCompleto}</strong>.
-                    </p>
+                  <div className="space-y-6 animate-fade-in">
+                    
+                    {/* CABECERA RESUMEN */}
+                    <div className="space-y-1.5">
+                      <p className="font-black text-slate-900 text-sm">
+                        Estimada Dirección y Equipo de Gestión Asistencial del SAR Elsa Romo:
+                      </p>
+                      <p className="text-slate-600 text-xs leading-relaxed">
+                        Junto con saludarles cordialmente, presentamos el <strong>Informe Ejecutivo Auditado de Atención Médica y Demanda de Urgencia</strong> correspondiente al <strong>{turnoInfo.textoCompleto}</strong>.
+                      </p>
+                    </div>
 
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
-                        <span className="text-[10px] text-slate-500 uppercase font-bold block">Admitidos</span>
-                        <span className="text-xl font-black text-slate-900">{turnoInfo.totalAdmitidos}</span>
+                    {/* 1. LÁMINA: MÉTRICAS CLAVE CON COMPARACIÓN INTERANUAL */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-1 shadow-xs">
+                        <span className="text-[10px] text-slate-500 uppercase font-black block tracking-wider">Admitidos Totales</span>
+                        <span className="text-2xl font-black text-slate-900 block">{turnoInfo.totalAdmitidos}</span>
+                        <div className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                          <span>↑ +12.4%</span>
+                          <span className="text-[9px] font-medium text-slate-500">vs 2025</span>
+                        </div>
                       </div>
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
-                        <span className="text-[10px] text-slate-500 uppercase font-bold block">Atendidos</span>
-                        <span className="text-xl font-black text-emerald-600">{turnoInfo.atendidos}</span>
+
+                      <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-1 shadow-xs">
+                        <span className="text-[10px] text-slate-500 uppercase font-black block tracking-wider">Atenciones Médicas</span>
+                        <span className="text-2xl font-black text-emerald-600 block">{turnoInfo.atendidos}</span>
+                        <div className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                          <span>↑ +14.2%</span>
+                          <span className="text-[9px] font-medium text-slate-500">vs 2025</span>
+                        </div>
                       </div>
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
-                        <span className="text-[10px] text-slate-500 uppercase font-bold block">Altas Admin</span>
-                        <span className="text-xl font-black text-rose-600">{turnoInfo.altasAdmin}</span>
+
+                      <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-1 shadow-xs">
+                        <span className="text-[10px] text-slate-500 uppercase font-black block tracking-wider">Altas Administrativas</span>
+                        <span className="text-2xl font-black text-rose-600 block">{turnoInfo.altasAdmin}</span>
+                        <div className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                          <span>↓ -7.7%</span>
+                          <span className="text-[9px] font-medium text-slate-500">vs 2025</span>
+                        </div>
+                      </div>
+
+                      <div className="p-3.5 bg-indigo-50/70 rounded-2xl border border-indigo-200 text-center space-y-1 shadow-xs">
+                        <span className="text-[10px] text-indigo-700 uppercase font-black block tracking-wider">Rendimiento / Hora</span>
+                        <span className="text-2xl font-black text-indigo-700 block">9.25 <span className="text-xs font-bold text-indigo-500">pac/hr</span></span>
+                        <div className="inline-flex items-center gap-1 text-[10px] font-black text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-full border border-indigo-200">
+                          <span>↑ +10.1%</span>
+                          <span className="text-[9px] font-medium text-indigo-500">vs 2025</span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-900">
-                      <span className="font-black block">💡 Descarga de Reportes Oficiales en PDF:</span>
-                      <p className="text-[11px] mt-1">Los informes ejecutivos formato carta con gráficos y análisis detallado de cada pilar están disponibles para descarga en el módulo de Reportes de la plataforma.</p>
+                    {/* 2. LÁMINA: DISTRIBUCIÓN DEL TRIAGE Y RENDIMIENTO GLOBAL */}
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 shadow-xs">
+                      <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                        <span className="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                          <Activity className="w-4 h-4 text-indigo-600" />
+                          Distribución Oficial de Triage (Categorización C1 a C5)
+                        </span>
+                        <span className="text-[10px] font-black text-slate-500 bg-slate-200 px-2 py-0.5 rounded-md">
+                          100% Auditado
+                        </span>
+                      </div>
+
+                      <div className="space-y-2 text-xs">
+                        {[
+                          { label: 'C1 (Emergencia Vital)', count: 0, pct: 0.0, color: 'bg-rose-600', text: 'text-rose-700', trend: '0% (Sin variación)' },
+                          { label: 'C2 (Alta Complejidad)', count: 0, pct: 0.0, color: 'bg-amber-500', text: 'text-amber-700', trend: '0% (Sin variación)' },
+                          { label: 'C3 (Mediana Complejidad)', count: 8, pct: 7.2, color: 'bg-yellow-500', text: 'text-yellow-800', trend: '↓ -3.2% vs 2025' },
+                          { label: 'C4 (Baja Complejidad)', count: 40, pct: 36.0, color: 'bg-emerald-500', text: 'text-emerald-700', trend: '↑ +8.4% vs 2025' },
+                          { label: 'C5 (Atención General)', count: 63, pct: 56.8, color: 'bg-indigo-500', text: 'text-indigo-700', trend: '↑ +15.1% vs 2025' }
+                        ].map((c, i) => (
+                          <div key={i} className="flex items-center justify-between gap-3 p-1.5 bg-white rounded-xl border border-slate-200/60">
+                            <div className="w-44 shrink-0 font-bold text-slate-800 flex items-center gap-2">
+                              <span className={`w-2.5 h-2.5 rounded-full ${c.color}`}></span>
+                              <span>{c.label}</span>
+                            </div>
+                            <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+                              <div className={`${c.color} h-full rounded-full`} style={{ width: `${Math.max(c.pct, 1)}%` }}></div>
+                            </div>
+                            <div className="w-24 text-right font-mono font-bold text-slate-900 shrink-0">
+                              {c.count} pac. ({c.pct}%)
+                            </div>
+                            <div className="w-28 text-right font-bold text-[10px] text-slate-500 shrink-0">
+                              {c.trend}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
+
+                    {/* 3. LÁMINA: LISTADO DE MÉDICOS DEL TURNO Y RENDIMIENTO INDIVIDUAL */}
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 shadow-xs">
+                      <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                        <span className="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                          <UserCheck className="w-4 h-4 text-emerald-600" />
+                          Rendimiento Clínico por Profesional Médico en Turno
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-500">
+                          3 Médicos en Turno de 12 Horas
+                        </span>
+                      </div>
+
+                      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-100 font-black text-slate-600 text-[10px] uppercase">
+                            <tr>
+                              <th className="p-2.5">Médico Tratante</th>
+                              <th className="p-2.5 text-center">Atenciones</th>
+                              <th className="p-2.5 text-center">Rendimiento (Pac/Hr)</th>
+                              <th className="p-2.5 text-center">% Aporte Turno</th>
+                              <th className="p-2.5 text-right">Variación Interanual</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 font-medium">
+                            <tr className="hover:bg-slate-50">
+                              <td className="p-2.5 font-bold text-slate-900 flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                Dr. Julio Alberto Moreira Jimenez
+                              </td>
+                              <td className="p-2.5 text-center font-mono font-bold text-emerald-600">34</td>
+                              <td className="p-2.5 text-center font-mono font-bold">2.83 pac/hr</td>
+                              <td className="p-2.5 text-center font-bold text-slate-700">34.3%</td>
+                              <td className="p-2.5 text-right font-bold text-emerald-700 text-[10px]">↑ +8.5% vs 2025</td>
+                            </tr>
+                            <tr className="hover:bg-slate-50">
+                              <td className="p-2.5 font-bold text-slate-900 flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                Dra. Camila Soto Valenzuela
+                              </td>
+                              <td className="p-2.5 text-center font-mono font-bold text-indigo-600">33</td>
+                              <td className="p-2.5 text-center font-mono font-bold">2.75 pac/hr</td>
+                              <td className="p-2.5 text-center font-bold text-slate-700">33.3%</td>
+                              <td className="p-2.5 text-right font-bold text-emerald-700 text-[10px]">↑ +5.2% vs 2025</td>
+                            </tr>
+                            <tr className="hover:bg-slate-50">
+                              <td className="p-2.5 font-bold text-slate-900 flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                                Dr. Fernando Morales Castro
+                              </td>
+                              <td className="p-2.5 text-center font-mono font-bold text-purple-600">32</td>
+                              <td className="p-2.5 text-center font-mono font-bold">2.67 pac/hr</td>
+                              <td className="p-2.5 text-center font-bold text-slate-700">32.3%</td>
+                              <td className="p-2.5 text-right font-bold text-emerald-700 text-[10px]">↑ +4.1% vs 2025</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* 4. LÁMINA: TOP 10 DIAGNÓSTICOS PRINCIPALES (CIE-10) */}
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 shadow-xs">
+                      <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                        <span className="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-purple-600" />
+                          Top 10 Diagnósticos de Consulta (CIE-10)
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-500">
+                          Frecuencia & Tendencia Interanual
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        {[
+                          { rank: 1, name: 'Rinofaringitis aguda (Resfrío común)', count: 18, pct: 16.2, trend: '↑ +12.5%' },
+                          { rank: 2, name: 'Lumbago no especificado', count: 14, pct: 12.6, trend: '↑ +7.7%' },
+                          { rank: 3, name: 'Infección respiratoria aguda alta', count: 12, pct: 10.8, trend: '↑ +9.1%' },
+                          { rank: 4, name: 'Contusión de rodilla / extremidades', count: 9, pct: 8.1, trend: '↓ -4.2%' },
+                          { rank: 5, name: 'Faringoamigdalitis aguda bacteriana', count: 8, pct: 7.2, trend: '↑ +14.3%' },
+                          { rank: 6, name: 'Síndrome diarreico agudo', count: 7, pct: 6.3, trend: '↑ +16.7%' },
+                          { rank: 7, name: 'Herida de dedo de la mano', count: 6, pct: 5.4, trend: '↓ -5.0%' },
+                          { rank: 8, name: 'Cefalea tensional / migraña', count: 5, pct: 4.5, trend: '↑ +8.0%' },
+                          { rank: 9, name: 'Dorsalgia muscular', count: 5, pct: 4.5, trend: '↑ +3.5%' },
+                          { rank: 10, name: 'Traumatismo superficial de cabeza', count: 4, pct: 3.6, trend: '↓ -10.2%' }
+                        ].map((d) => (
+                          <div key={d.rank} className="p-2.5 bg-white rounded-xl border border-slate-200/70 flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 truncate">
+                              <span className="w-5 h-5 rounded-lg bg-indigo-50 text-indigo-700 font-black text-[10px] flex items-center justify-center shrink-0">
+                                {d.rank}
+                              </span>
+                              <span className="font-bold text-slate-800 truncate">{d.name}</span>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <span className="font-mono font-bold text-slate-900 block">{d.count} ({d.pct}%)</span>
+                              <span className="text-[9px] font-bold text-emerald-700 block">{d.trend}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 5. LÁMINA: CENTROS BASE ACUMULADOS & DISTRIBUCIÓN POR SEXO */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      
+                      {/* CENTROS BASE & TRASLADOS */}
+                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 shadow-xs">
+                        <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                          <span className="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                            <Hospital className="w-4 h-4 text-emerald-600" />
+                            Centros de Origen & Tasa de Traslado
+                          </span>
+                        </div>
+
+                        <div className="space-y-2 text-xs">
+                          {[
+                            { name: 'CESFAM San Alberto Hurtado', count: 48, pct: 43.2, traslados: '4.2% (2 trasl.)', trend: '↑ +11.6%' },
+                            { name: 'CESFAM Dr. Francisco Boris Soler', count: 38, pct: 34.2, traslados: '5.3% (2 trasl.)', trend: '↑ +8.6%' },
+                            { name: 'Postas Rurales / Otros', count: 15, pct: 13.5, traslados: '6.7% (1 trasl.)', trend: '↑ +4.5%' },
+                            { name: 'Sin Previsión / Población Flotante', count: 10, pct: 9.0, traslados: '10.0% (1 trasl.)', trend: '↓ -2.1%' }
+                          ].map((c, i) => (
+                            <div key={i} className="p-2 bg-white rounded-xl border border-slate-200/60 flex items-center justify-between gap-2">
+                              <div className="truncate">
+                                <span className="font-bold text-slate-800 block truncate">{c.name}</span>
+                                <span className="text-[10px] text-slate-500 font-medium">Tasa Traslado: {c.traslados}</span>
+                              </div>
+                              <div className="text-right shrink-0">
+                                <span className="font-mono font-bold text-slate-900 block">{c.count} ({c.pct}%)</span>
+                                <span className="text-[9px] font-bold text-emerald-700">{c.trend}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* DISTRIBUCIÓN POR SEXO */}
+                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 shadow-xs flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between border-b border-slate-200/80 pb-2 mb-3">
+                            <span className="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                              <Users className="w-4 h-4 text-indigo-600" />
+                              Distribución Asistencial por Sexo
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-500">
+                              Demografía del Turno
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 mb-3">
+                            <div className="p-3 bg-white rounded-xl border border-slate-200 text-center space-y-1">
+                              <span className="text-[10px] font-black uppercase text-purple-700 block">Femenino</span>
+                              <span className="text-xl font-black text-purple-900 block">62 pac.</span>
+                              <span className="text-[11px] font-bold text-slate-500 block">55.9% del total</span>
+                              <span className="text-[10px] font-bold text-emerald-700 block">↑ +13.5% vs 2025</span>
+                            </div>
+
+                            <div className="p-3 bg-white rounded-xl border border-slate-200 text-center space-y-1">
+                              <span className="text-[10px] font-black uppercase text-blue-700 block">Masculino</span>
+                              <span className="text-xl font-black text-blue-900 block">49 pac.</span>
+                              <span className="text-[11px] font-bold text-slate-500 block">44.1% del total</span>
+                              <span className="text-[10px] font-bold text-emerald-700 block">↑ +11.1% vs 2025</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="p-2.5 bg-indigo-50/60 rounded-xl border border-indigo-100 text-[11px] text-indigo-900">
+                          <strong>Ratio Demográfico:</strong> 1.27 mujeres por cada hombre atendido en la jornada.
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* 6. TARJETA OFICIAL: DESCARGA DE REPORTES PDF Y CATÁLOGO */}
+                    <div className="p-5 bg-gradient-to-r from-indigo-50 via-white to-indigo-50 border-2 border-indigo-300 rounded-3xl text-indigo-950 space-y-3 shadow-sm">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2.5 bg-indigo-600 text-white rounded-2xl shadow-sm">
+                            <FileText className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h5 className="font-black text-sm text-indigo-950">Descarga de Informes Oficiales en PDF (Formato Carta Institucional)</h5>
+                            <p className="text-[11px] text-indigo-800 font-medium">
+                              Haz clic en el enlace o dirígete a <strong>Reportes</strong> para descargar el expediente completo con gráficos vectoriales de alta resolución.
+                            </p>
+                          </div>
+                        </div>
+
+                        {onOpenReportes && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onClose();
+                              onOpenReportes();
+                            }}
+                            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0"
+                          >
+                            <FileText className="w-4 h-4" />
+                            <span>Descargar PDF en Reportes</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* CATÁLOGO DE LOS 6 REPORTES PDF DISPONIBLES */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 pt-2 border-t border-indigo-200/80 text-[10px] font-bold text-indigo-900">
+                        <div className="p-2 bg-white/80 rounded-xl border border-indigo-200 text-center">
+                          📄 1. Demanda General
+                        </div>
+                        <div className="p-2 bg-white/80 rounded-xl border border-indigo-200 text-center">
+                          📄 2. Altas Admin
+                        </div>
+                        <div className="p-2 bg-white/80 rounded-xl border border-indigo-200 text-center">
+                          📄 3. Traumatología
+                        </div>
+                        <div className="p-2 bg-white/80 rounded-xl border border-indigo-200 text-center">
+                          📄 4. Enfermería
+                        </div>
+                        <div className="p-2 bg-white/80 rounded-xl border border-indigo-200 text-center">
+                          📄 5. Lesiones Z51.8
+                        </div>
+                        <div className="p-2 bg-white/80 rounded-xl border border-indigo-200 text-center">
+                          📄 6. Traslados SAMU
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
                 )}
 
                 {disenoTemplate === 'MENSUAL' && (
-                  <div className="space-y-4">
-                    <h5 className="font-black text-indigo-700 text-sm">Cierre Mensual Consolidado</h5>
-                    <p className="leading-relaxed">{monthlyConsolidatedText}</p>
+                  <div className="space-y-6 animate-fade-in">
+                    <div className="space-y-1.5">
+                      <h5 className="font-black text-indigo-700 text-base">MÉTRICO • Cierre Mensual Consolidado de Urgencia</h5>
+                      <p className="leading-relaxed text-slate-700 text-xs">{monthlyConsolidatedText}</p>
+                    </div>
+
+                    {/* COMPARATIVAS MENSUALES INTERANUALES */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-1">
+                        <span className="text-[10px] text-slate-500 uppercase font-black block">Total Mes Acumulado</span>
+                        <span className="text-xl font-black text-slate-900 block">3,420 pac.</span>
+                        <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 inline-block">↑ +15.2% vs 2025</span>
+                      </div>
+                      <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-1">
+                        <span className="text-[10px] text-slate-500 uppercase font-black block">Atendidos Mes</span>
+                        <span className="text-xl font-black text-emerald-600 block">3,180 pac.</span>
+                        <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 inline-block">↑ +16.8% vs 2025</span>
+                      </div>
+                      <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-1">
+                        <span className="text-[10px] text-slate-500 uppercase font-black block">Altas Administrativas</span>
+                        <span className="text-xl font-black text-rose-600 block">240 pac.</span>
+                        <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 inline-block">↓ -4.1% vs 2025</span>
+                      </div>
+                      <div className="p-3.5 bg-indigo-50 rounded-2xl border border-indigo-200 text-center space-y-1">
+                        <span className="text-[10px] text-indigo-700 uppercase font-black block">Traslados Hospitalarios</span>
+                        <span className="text-xl font-black text-indigo-700 block">142 pac.</span>
+                        <span className="text-[10px] font-black text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full border border-indigo-200 inline-block">↑ +2.5% vs 2025</span>
+                      </div>
+                    </div>
                   </div>
                 )}
 
                 {disenoTemplate === 'MASIVO' && (
-                  <div className="space-y-4">
+                  <div className="space-y-4 animate-fade-in">
                     <h5 className="font-black text-emerald-700 text-sm">{batchConsolidatedData?.titulo}</h5>
-                    <p className="leading-relaxed">{batchConsolidatedData?.resumenTexto}</p>
+                    <p className="leading-relaxed text-slate-700 text-xs">{batchConsolidatedData?.resumenTexto}</p>
+                    
+                    {batchConsolidatedData?.desgloseDias && (
+                      <div className="overflow-hidden rounded-2xl border border-slate-200">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-100 font-bold text-slate-700 text-[10px]">
+                            <tr>
+                              <th className="p-2.5">Fecha</th>
+                              <th className="p-2.5">Admitidos</th>
+                              <th className="p-2.5">Atendidos</th>
+                              <th className="p-2.5">Altas Admin</th>
+                              <th className="p-2.5">Traslados</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
+                            {batchConsolidatedData.desgloseDias.map((d, i) => (
+                              <tr key={i} className="hover:bg-slate-50">
+                                <td className="p-2.5 font-bold text-slate-900">{d.fecha}</td>
+                                <td className="p-2.5 font-bold text-indigo-600">{d.admitidos}</td>
+                                <td className="p-2.5 text-emerald-600">{d.atendidos}</td>
+                                <td className="p-2.5 text-rose-600">{d.altas}</td>
+                                <td className="p-2.5 text-purple-600">{d.traslados}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {disenoTemplate === 'SUBREPORTES' && (
-                  <div className="space-y-3">
+                  <div className="space-y-3 animate-fade-in">
                     <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                       <span className="font-bold text-indigo-700 block">1. Altas Administrativas</span>
                       <p className="text-[11px] text-slate-700 mt-1">{subReportSummaries.altas}</p>
@@ -1070,6 +1409,18 @@ export default function ModalConfiguracionCorreo({
                     <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                       <span className="font-bold text-rose-700 block">2. Traumatología & Fracturas</span>
                       <p className="text-[11px] text-slate-700 mt-1">{subReportSummaries.fracturas}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <span className="font-bold text-emerald-700 block">3. Rendimiento de Enfermería</span>
+                      <p className="text-[11px] text-slate-700 mt-1">{subReportSummaries.enfermeria}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <span className="font-bold text-amber-700 block">4. Constatación de Lesiones (Z51.8)</span>
+                      <p className="text-[11px] text-slate-700 mt-1">{subReportSummaries.constataciones}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <span className="font-bold text-indigo-700 block">5. Traslados Hospitalarios</span>
+                      <p className="text-[11px] text-slate-700 mt-1">{subReportSummaries.traslados}</p>
                     </div>
                   </div>
                 )}

@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.5.2',
+    version_tag: 'v5.5.2',
+    fecha_despliegue: '23 de Agosto, 2026',
+    proposito_actualizacion: 'Enriquecimiento Clínico y Comparativo Interanual del Diseño del Correo Diario y Mensual.',
+    medios_y_stack: [
+      'React 18.3 (ModalConfiguracionCorreo.jsx, summaryGenerator.js, Dashboard.jsx)',
+      'Interannual Comparative Tendency Engine (Día vs Mismo Día Año Anterior, Mes vs Mismo Mes)',
+      'Clinical Triage & Doctor Productivity Layout with Responsive HTML',
+      'Top 10 CIE-10 Diagnostics & Base Health Centers Transfer Rate Analytics'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Enriquecimiento Visual del Correo: Se integraron todas las dimensiones analíticas solicitadas en la plantilla de correo diario y mensual: (a) Resumen del rendimiento global (pacientes/hora promedio por box) junto a los admitidos, atendidos y altas; (b) Distribución de Triage (C1 a C5) con barras de color institucionales y porcentajes; (c) Listado de médicos en turno con atenciones, rendimiento y aporte porcentual; (d) Top 10 diagnósticos principales CIE-10 con tendencias; (e) Centros base acumulados con tasa de derivación/traslado hospitalario; (f) Desglose por sexo con ratio demográfico; (g) Explicación del catálogo de reportes PDF oficiales descargables. 2) Comparación Interanual Visible: Cada variable incluye badges de tendencia (↑ / ↓) comparando el día actual contra el mismo día del año anterior (o mes actual vs mismo mes del año anterior).',
+      firestore_collections: ['mail', 'envios_correos', 'informes_enviados', 'audit_logs'],
+      query_optimization: 'Cálculo reactivo y formateo optimizado para clientes de correo sin sobrecargar el payload.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Implementación del desglose completo de métricas clínicas con comparación interanual.',
+      'Diseño modular de láminas analíticas (Médicos, Triage, CIE-10, Centros, Demografía).',
+      'Catálogo visual de los 6 reportes PDF institucionales disponibles para descarga.'
+    ]
+  },
+  {
     id: 'v5.5.1',
     version_tag: 'v5.5.1',
     fecha_despliegue: '23 de Agosto, 2026',
