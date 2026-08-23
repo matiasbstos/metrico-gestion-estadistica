@@ -187,15 +187,19 @@ export default function ModalConfiguracionCorreo({
 
   const turnoInfo = auditResult.turnoInfo || {
     fechaTurno: '16/08/2026',
-    turnoNum: 1,
-    equipo: 'Equipo 2',
-    rotativa: 'Fin de Semana Día (08:00 - 20:00)',
-    textoCompleto: '16/08/2026 - Turno 1 (Turno 2 • Fin de Semana Día 08:00 a 20:00 hrs)',
+    turnoNum: 2,
+    equipo: 'Turno 2',
+    rotativa: 'Fin de Semana Día (08:00 a 20:00 hrs)',
+    textoCompleto: '16/08/2026 - Turno 2 • Fin de Semana Día (08:00 a 20:00 hrs)',
     totalAdmitidos: 111,
     atendidos: 99,
     altasAdmin: 12,
-    triage: { c1: 0, c2: 0, c3: 8, c4: 40, c5: 60 },
-    medicoMasProductivo: 'Dr. Fernando Morales (32 atenciones)',
+    rendimientoHora: 9.2,
+    estadiaPromedioMin: 154,
+    triage: { c1: 0, c2: 0, c3: 8, c4: 40, c5: 63 },
+    constataciones: 2,
+    traslados: 1,
+    medicoMasProductivo: 'Dr. Julio Alberto Moreira Jimenez (34 atenciones)',
     jsonPayload: {}
   };
 
@@ -469,62 +473,65 @@ export default function ModalConfiguracionCorreo({
     <div className={`fixed inset-y-0 right-0 ${sidebarCollapsed ? 'left-0 md:left-16 lg:left-20' : 'left-0 md:left-64'} z-[60] bg-slate-950/98 backdrop-blur-2xl flex flex-col overflow-hidden animate-fade-in text-secondary-custom shadow-2xl border-l border-indigo-500/30 transition-all duration-300`}>
       
       {/* 1. TOP INSTITUTIONAL APP HEADER */}
-      <header className="bg-gradient-to-r from-indigo-700 via-indigo-800 to-slate-900 text-white px-6 py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-indigo-500/30 shrink-0 shadow-lg">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-white/15 rounded-2xl backdrop-blur-md border border-white/20 shadow-md">
-            <Mail className="w-7 h-7 text-indigo-200 animate-pulse" />
+      <header className="bg-gradient-to-r from-indigo-700 via-indigo-800 to-slate-900 text-white px-6 py-3.5 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 border-b border-indigo-500/30 shrink-0 shadow-lg">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="p-3 bg-white/15 rounded-2xl backdrop-blur-md border border-white/20 shadow-md shrink-0">
+            <Mail className="w-6 h-6 text-indigo-200 animate-pulse" />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full text-indigo-100">
+              <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full text-indigo-100 shrink-0">
                 Centro de Despacho & Control
               </span>
-              <span className="text-[10px] font-black bg-emerald-500/30 text-emerald-200 px-2.5 py-0.5 rounded-full border border-emerald-400/30 flex items-center gap-1">
+              <span className="text-[10px] font-black bg-emerald-500/30 text-emerald-200 px-2.5 py-0.5 rounded-full border border-emerald-400/30 flex items-center gap-1 shrink-0">
                 <ShieldCheck className="w-3 h-3 text-emerald-400" /> SAR Elsa Romo Aravena
               </span>
             </div>
-            <h1 className="text-xl font-black tracking-tight text-white mt-0.5">
+            <h1 className="text-lg font-black tracking-tight text-white mt-0.5 truncate">
               Programación, Auditoría y Gestión de Reportes por Correo
             </h1>
           </div>
         </div>
 
-        {/* NAVEGACIÓN PRINCIPAL DE 5 APARTADOS */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-black/30 p-1.5 rounded-2xl border border-white/10 backdrop-blur-md">
-          {[
-            { id: 'programados', label: '1. Detalle Programados', icon: ListOrdered, badge: `${diasCompletosAuditados.filter(d => !d.isSent).length} pend.` },
-            { id: 'calendario', label: '2. Calendario de Envíos', icon: CalendarIcon, badge: 'Mensual' },
-            { id: 'diseno', label: '3. Diseño de Correos', icon: Eye, badge: 'Plantillas' },
-            { id: 'pruebas', label: '4. Pruebas de Envío', icon: Send, badge: 'Ilimitadas' },
-            { id: 'destinatarios', label: '5. Destinatarios', icon: Users, badge: `${destinatariosList.filter(d => d.activo).length}` }
-          ].map(tab => {
-            const Icon = tab.icon;
-            const isSel = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
-                  isSel 
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 ring-1 ring-white/30' 
-                    : 'text-slate-300 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-black ${isSel ? 'bg-white/20 text-white' : 'bg-black/30 text-slate-300'}`}>
-                  {tab.badge}
-                </span>
-              </button>
-            );
-          })}
+        {/* NAVEGACIÓN PRINCIPAL DE 5 APARTADOS + BOTÓN CERRAR */}
+        <div className="flex items-center gap-3 w-full xl:w-auto justify-between xl:justify-end overflow-hidden">
+          <div className="flex items-center gap-1 bg-black/30 p-1 rounded-2xl border border-white/10 backdrop-blur-md overflow-x-auto custom-scrollbar-thin max-w-full">
+            {[
+              { id: 'programados', label: '1. Detalle Programados', icon: ListOrdered, badge: `${diasCompletosAuditados.filter(d => !d.isSent).length} pend.` },
+              { id: 'calendario', label: '2. Calendario de Envíos', icon: CalendarIcon, badge: 'Mensual' },
+              { id: 'diseno', label: '3. Diseño de Correos', icon: Eye, badge: 'Plantillas' },
+              { id: 'pruebas', label: '4. Pruebas de Envío', icon: Send, badge: 'Ilimitadas' },
+              { id: 'destinatarios', label: '5. Destinatarios', icon: Users, badge: `${destinatariosList.filter(d => d.activo).length}` }
+            ].map(tab => {
+              const Icon = tab.icon;
+              const isSel = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 shrink-0 cursor-pointer whitespace-nowrap ${
+                    isSel 
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 ring-1 ring-white/30' 
+                      : 'text-slate-300 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span>{tab.label}</span>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-black ${isSel ? 'bg-white/20 text-white' : 'bg-black/30 text-slate-300'}`}>
+                    {tab.badge}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
 
           <button
             onClick={onClose}
-            className="p-2 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-xl transition-all ml-2 cursor-pointer"
+            className="p-2.5 text-white/80 hover:text-white bg-white/10 hover:bg-rose-600/90 rounded-2xl border border-white/20 transition-all shrink-0 shadow-md cursor-pointer flex items-center gap-1 text-xs font-black"
             title="Cerrar módulo"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
+            <span className="hidden sm:inline">Cerrar</span>
           </button>
         </div>
       </header>
@@ -1069,19 +1076,19 @@ export default function ModalConfiguracionCorreo({
                       {/* RECUADRO 4: RENDIMIENTO / HORA */}
                       <div className="p-3.5 bg-indigo-50/70 rounded-2xl border border-indigo-200 text-center space-y-1 shadow-xs">
                         <span className="text-[10px] text-indigo-700 uppercase font-black block tracking-wider">Rendimiento / Hora</span>
-                        <span className="text-2xl font-black text-indigo-700 block">9.25 <span className="text-xs font-bold text-indigo-500">pac/hr</span></span>
+                        <span className="text-2xl font-black text-indigo-700 block">9.2 <span className="text-xs font-bold text-indigo-500">pac/hr</span></span>
                         <div className="inline-flex items-center gap-1 text-[10px] font-black text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-full border border-indigo-200">
-                          <span>↑ +10.1%</span>
+                          <span>↑ +9.5%</span>
                           <span className="text-[9px] font-medium text-indigo-500">vs 2025</span>
                         </div>
                       </div>
 
-                      {/* RECUADRO 5 (NUEVO): ESPERA TOTAL PROMEDIO CON DESGLOSE */}
+                      {/* RECUADRO 5: ESPERA TOTAL PROMEDIO (154 MIN / 2H 34M) */}
                       <div className="p-3.5 bg-purple-50/70 rounded-2xl border border-purple-200 text-center space-y-1 shadow-xs">
-                        <span className="text-[10px] text-purple-700 uppercase font-black block tracking-wider">Espera Total Promedio</span>
-                        <span className="text-2xl font-black text-purple-800 block">1h 42m</span>
+                        <span className="text-[10px] text-purple-700 uppercase font-black block tracking-wider">Estadía Total Promedio</span>
+                        <span className="text-2xl font-black text-purple-800 block">2h 34m <span className="text-xs font-bold text-purple-600">(154 min)</span></span>
                         <div className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                          <span>↓ -3.8%</span>
+                          <span>↓ -4.2%</span>
                           <span className="text-[9px] font-medium text-slate-500">vs 2025</span>
                         </div>
                       </div>
@@ -1091,52 +1098,58 @@ export default function ModalConfiguracionCorreo({
                     {/* RECUADRO SUPERIOR DESTACADO: DESGLOSE DE TIEMPOS DE ESPERA & CONSTATACIONES */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       
-                      {/* DESGLOSE DE 3 TRAMOS DE ESPERA */}
-                      <div className="p-4 bg-purple-50/40 rounded-2xl border border-purple-200 space-y-2.5">
+                      {/* DESGLOSE DE 3 TRAMOS DE ESPERA (TOTAL 154 MIN) */}
+                      <div className="p-4 bg-purple-50/40 rounded-2xl border border-purple-200 space-y-2.5 shadow-xs">
                         <div className="flex items-center justify-between border-b border-purple-200/70 pb-1.5">
                           <span className="font-black text-purple-950 text-xs uppercase tracking-wider flex items-center gap-2">
                             <Clock className="w-4 h-4 text-purple-600" />
                             Desglose de los 3 Tramos de Espera y Estadía
                           </span>
+                          <span className="text-[10px] font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md">
+                            Total: 154 min
+                          </span>
                         </div>
                         <div className="grid grid-cols-3 gap-2 text-center text-xs">
                           <div className="p-2 bg-white rounded-xl border border-purple-100 space-y-0.5">
                             <span className="text-[9px] font-black text-slate-500 uppercase block">1. Admisión a Triage</span>
-                            <span className="font-black text-slate-900 text-sm block">12 min</span>
+                            <span className="font-black text-slate-900 text-sm block">14 min</span>
                             <span className="text-[9px] font-bold text-emerald-700 block">↓ -2.5% vs 2025</span>
                           </div>
                           <div className="p-2 bg-white rounded-xl border border-purple-100 space-y-0.5">
                             <span className="text-[9px] font-black text-slate-500 uppercase block">2. Triage a Atención</span>
-                            <span className="font-black text-indigo-700 text-sm block">38 min</span>
-                            <span className="text-[9px] font-bold text-emerald-700 block">↓ -4.1% vs 2025</span>
+                            <span className="font-black text-indigo-700 text-sm block">52 min</span>
+                            <span className="text-[9px] font-bold text-emerald-700 block">↓ -3.8% vs 2025</span>
                           </div>
                           <div className="p-2 bg-white rounded-xl border border-purple-100 space-y-0.5">
                             <span className="text-[9px] font-black text-slate-500 uppercase block">3. Atención a Alta</span>
-                            <span className="font-black text-purple-700 text-sm block">52 min</span>
-                            <span className="text-[9px] font-bold text-emerald-700 block">↓ -1.8% vs 2025</span>
+                            <span className="font-black text-purple-700 text-sm block">88 min</span>
+                            <span className="text-[9px] font-bold text-emerald-700 block">↓ -1.5% vs 2025</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* CONSTATACIONES DE LESIONES ENCABEZADO SUPERIOR */}
-                      <div className="p-4 bg-amber-50/50 rounded-2xl border border-amber-200 space-y-2 flex flex-col justify-between">
+                      {/* CONSTATACIONES DE LESIONES (NÚMERO GRANDE DESTACADO 2) */}
+                      <div className="p-4 bg-amber-50/50 rounded-2xl border border-amber-200 space-y-2 flex flex-col justify-between shadow-xs">
                         <div className="flex items-center justify-between border-b border-amber-200/70 pb-1.5">
                           <span className="font-black text-amber-950 text-xs uppercase tracking-wider flex items-center gap-2">
                             <ShieldAlert className="w-4 h-4 text-amber-600" />
-                            Constatación de Lesiones (Z51.8)
+                            Constataciones de Lesiones (Z51.8)
                           </span>
                           <span className="text-[10px] font-black text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
-                            Peritaje Legal
+                            Requerimiento Judicial / Policial
                           </span>
                         </div>
-                        <div className="flex items-center justify-between gap-4 p-2 bg-white rounded-xl border border-amber-200/60">
-                          <div>
-                            <span className="text-xs font-black text-slate-900 block">6 peritajes clínicos</span>
-                            <span className="text-[10px] text-slate-500 font-medium">Requerimiento Judicial / Carabineros / PDI</span>
+                        <div className="flex items-center justify-between gap-4 p-3 bg-white rounded-xl border border-amber-200/60">
+                          <div className="flex items-center gap-3">
+                            <span className="text-3xl font-black text-amber-900 block leading-none">2</span>
+                            <div>
+                              <span className="text-xs font-black text-slate-900 block">Constataciones de Lesiones</span>
+                              <span className="text-[10px] text-slate-500 font-medium">Requerimiento Judicial / Carabineros / PDI</span>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <span className="text-xs font-mono font-bold text-amber-700 block">5.4% de la demanda</span>
-                            <span className="text-[10px] font-bold text-emerald-700 block">↑ +8.1% vs 2025</span>
+                          <div className="text-right shrink-0">
+                            <span className="text-xs font-mono font-bold text-amber-700 block">1.8% de la demanda</span>
+                            <span className="text-[10px] font-bold text-emerald-700 block">↑ +5.2% vs 2025</span>
                           </div>
                         </div>
                       </div>
@@ -1379,30 +1392,25 @@ export default function ModalConfiguracionCorreo({
                           </span>
                         </div>
                         <span className="text-[10px] font-black text-indigo-800 bg-indigo-100 px-2.5 py-0.5 rounded-full border border-indigo-200">
-                          Total: 6 Traslados (5.4% del turno)
+                          Total: 1 Traslado (0.9% del turno)
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                      <div className="grid grid-cols-1 gap-2 text-xs max-w-xl">
                         {[
-                          { id: 1, diag: 'Apendicitis aguda con peritonitis localizada', dest: 'Urgencia Quirúrgica Hospital Melipilla', tipo: 'SAMU Avanzado', triage: 'C2' },
-                          { id: 2, diag: 'Fractura expuesta de tibia y peroné', dest: 'Traumatología Hospital Melipilla', tipo: 'SAMU Básico', triage: 'C3' },
-                          { id: 3, diag: 'Síndrome coronario agudo con supradesnivel ST', dest: 'UPC Cardiovascular Hospital Melipilla', tipo: 'SAMU Avanzado', triage: 'C1' },
-                          { id: 4, diag: 'Accidente cerebrovascular isquémico en ventana', dest: 'Neurología / TAC Urgencia Hospital Melipilla', tipo: 'SAMU Avanzado', triage: 'C2' },
-                          { id: 5, diag: 'Traumatismo encéfalo craneano moderado', dest: 'Cirugía / Observación Hospitalaria', tipo: 'SAMU Básico', triage: 'C3' },
-                          { id: 6, diag: 'Neumonía bacteriana grave con hipoxemia', dest: 'Medicina Interna Hospital Melipilla', tipo: 'SAMU Básico', triage: 'C3' }
+                          { id: 1, diag: 'Apendicitis aguda con sospecha de peritonitis localizada', dest: 'Urgencia Quirúrgica Hospital Melipilla', tipo: 'SAMU Avanzado (M1)', triage: 'C2' }
                         ].map((t) => (
-                          <div key={t.id} className="p-2.5 bg-white rounded-xl border border-indigo-200/80 space-y-1 shadow-2xs">
+                          <div key={t.id} className="p-3 bg-white rounded-xl border border-indigo-200/80 space-y-1 shadow-2xs">
                             <div className="flex items-center justify-between">
                               <span className="font-black text-slate-900 text-[11px]">Paciente #{t.id}</span>
-                              <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-md ${t.triage === 'C1' ? 'bg-rose-100 text-rose-700' : t.triage === 'C2' ? 'bg-amber-100 text-amber-700' : 'bg-yellow-100 text-yellow-800'}`}>
-                                {t.triage}
+                              <span className={`text-[9px] font-black px-2 py-0.5 rounded-md ${t.triage === 'C1' ? 'bg-rose-100 text-rose-700' : t.triage === 'C2' ? 'bg-amber-100 text-amber-700' : 'bg-yellow-100 text-yellow-800'}`}>
+                                Categoría {t.triage}
                               </span>
                             </div>
                             <p className="font-bold text-indigo-950 text-xs">{t.diag}</p>
-                            <div className="flex items-center justify-between text-[10px] text-slate-500 font-medium pt-0.5 border-t border-slate-100">
-                              <span>Destino: {t.dest}</span>
-                              <span className="font-bold text-indigo-600">{t.tipo}</span>
+                            <div className="flex items-center justify-between text-[10px] text-slate-500 font-medium pt-1 border-t border-slate-100">
+                              <span>Destino: <strong className="text-slate-800">{t.dest}</strong></span>
+                              <span className="font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">{t.tipo}</span>
                             </div>
                           </div>
                         ))}

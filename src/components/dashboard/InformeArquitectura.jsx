@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.5.8',
+    version_tag: 'v5.5.8',
+    fecha_despliegue: '23 de Agosto, 2026',
+    proposito_actualizacion: 'Separación del Botón Cerrar, Número Destacado de Constataciones (2) y Sincronización de Datos Auditados.',
+    medios_y_stack: [
+      'React 18.3 (ModalConfiguracionCorreo.jsx, helpers.js)',
+      'Isolate Close Button Header Layout (Anti-wrapping flex system)',
+      'Verified Shift Metrics Engine (111 Adm, 99 Atendidos, 12 Altas, 9.2 pac/hr, 154 min estadía, 2 constataciones, 1 traslado)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Botón Cerrar Aislado: Se ubicó en la esquina superior derecha de forma fija e independiente para evitar caídas de línea. 2) Constatación de Lesiones: Se eliminó texto de peritajes y se destacó con número grande (2 constataciones Z51.8 • 1.8% de la demanda). 3) Nomenclatura Oficial Turno 2: Se formateó como Turno 2 • Fin de Semana Día (08:00 a 20:00 hrs) sin duplicidad de etiquetas. 4) Métricas Cuadradas: 111 admitidos, 99 atendidos, 12 altas, 9.2 pac/hr, 154 min de estadía promedio con desglose (14 min, 52 min, 88 min), 2 constataciones y 1 traslado hospitalario oficial.',
+      firestore_collections: ['mail', 'envios_correos', 'informes_enviados', 'audit_logs'],
+      query_optimization: 'Normalización de datos de turno auditado (SSOT).'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'helpers.js', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Separación del botón de cierre en cabecera de ModalConfiguracionCorreo.',
+      'Ajuste de tarjeta de constataciones con número grande (2).',
+      'Normalización de textoCompleto en helpers.js para Turno 2.',
+      'Sincronización de datos auditados a 1 traslado y 2 constataciones.'
+    ]
+  },
+  {
     id: 'v5.5.7',
     version_tag: 'v5.5.7',
     fecha_despliegue: '23 de Agosto, 2026',

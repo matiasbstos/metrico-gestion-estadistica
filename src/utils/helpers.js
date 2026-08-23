@@ -89,7 +89,7 @@ export const obtenerTurnoDetallado = (timestamp, pautasDB = null) => {
   const day = String(logicalDate.getDate()).padStart(2, '0');
   const fechaTurno = `${day}/${m}/${y}`;
 
-  const textoCompleto = `${fechaTurno} - Turno ${turnoNum} (${equipo} • ${tipo} ${horario})`;
+  const textoCompleto = `${fechaTurno} - ${equipo} • ${tipo} (${horario})`;
 
   return {
     turnoNum,

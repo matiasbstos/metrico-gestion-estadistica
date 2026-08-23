@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.5.8',
+      version: 'v5.5.8',
+      fecha: '23 de Agosto, 2026',
+      badge: 'CONSTATACIONES (2), TRASLADOS & TURNO 2 OFICIAL',
+      badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/20',
+      title: 'Ajuste de Botón Cerrar, Número Destacado de Constataciones y Sincronización de Datos del Turno 2',
+      categoria: 'Notificaciones y Reportes',
+      icon: ShieldAlert,
+      iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+      summary: '1) Se aisló el botón Cerrar en la esquina superior derecha para evitar caídas de línea. 2) Se simplificó la tarjeta de Constataciones de Lesiones (Z51.8) destacando el número grande (2 constataciones • 1.8% de la demanda). 3) Se normalizó el nombre a "Turno 2 • Fin de Semana Día (08:00 a 20:00 hrs)". 4) Se sincronizaron las métricas del turno a 111 admitidos, 99 atendidos, 12 altas, 9.2 pac/hr, 154 min de estadía, 2 constataciones y 1 traslado.',
+      instructivo: {
+        paraQueSirve: 'Presenta los datos oficiales exactos y auditados del Turno 2 sin duplicidades en la nomenclatura.',
+        quePuedesVer: 'El botón de cierre fijo a la derecha, la tarjeta de constataciones con el número 2 grande, y el detalle de 1 traslado hospitalario.',
+        ejemploUso: 'Revisa la previsualización del correo con todas las métricas cuadradas con el informe del turno.'
+      },
+      changes: [
+        'Botón Cerrar Fijo: Ubicación fija en la parte superior derecha sin solapamientos.',
+        'Constataciones (2): Número destacado sin textos redundantes.',
+        'Turno 2 Oficial: Nomenclatura limpia y datos 100% cuadrados.'
+      ]
+    },
+    {
       id: 'v5.5.7',
       version: 'v5.5.7',
       fecha: '23 de Agosto, 2026',
