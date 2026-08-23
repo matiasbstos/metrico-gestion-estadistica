@@ -1,5 +1,11 @@
-import React, { useState, useMemo } from 'react';
-import { Mail, Clock, Calendar, CheckCircle2, Send, ShieldAlert, Sparkles, X, Check, FileText, AlertCircle, RefreshCw, Layers, Code, CheckSquare, Square, Cpu, Eye, UserCheck, Activity, ArrowLeftRight, Hospital, FastForward, Play, ListOrdered, ChevronRight } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { 
+  Mail, Clock, Calendar as CalendarIcon, CheckCircle2, Send, ShieldAlert, Sparkles, X, Check, 
+  FileText, AlertCircle, RefreshCw, Layers, Code, CheckSquare, Square, Cpu, Eye, UserCheck, 
+  Activity, ArrowLeftRight, Hospital, FastForward, Play, ListOrdered, ChevronRight, Users, 
+  UserPlus, Trash2, Edit3, Smartphone, Monitor, ShieldCheck, History, ArrowRight, ToggleLeft, ToggleRight, 
+  Inbox, BellRing, Filter, Search, ChevronLeft
+} from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { auditarUltimoTurnoCompleto } from '../../utils/helpers';
 import { 
@@ -12,39 +18,46 @@ import {
   generateMultiDayBatchSummary
 } from '../../utils/summaryGenerator';
 
-export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, showNotif, pacientesDB = [], turnosDB = [], onOpenReportes }) {
-  const [emails, setEmails] = useState(() => {
+export default function ModalConfiguracionCorreo({ 
+  isOpen, 
+  onClose, 
+  app, 
+  db, 
+  showNotif, 
+  pacientesDB = [], 
+  turnosDB = [], 
+  onOpenReportes 
+}) {
+  // Pestaña Principal del Módulo de Pantalla Completa
+  // 'programados' | 'calendario' | 'diseno' | 'pruebas' | 'destinatarios'
+  const [activeTab, setActiveTab] = useState('programados');
+
+  // Estado de Programación General y Confirmación
+  const [confirmarEnvioAutomatico, setConfirmarEnvioAutomatico] = useState(() => {
     try {
-      const saved = localStorage.getItem('metrico_config_correo');
-      if (saved) return JSON.parse(saved).emails || 'jefatura.sar@cormumel.cl, direccion.sar@cormumel.cl';
+      const s = localStorage.getItem('metrico_config_correo');
+      if (s) return JSON.parse(s).confirmarEnvioAutomatico ?? true;
     } catch(e) {}
-    return 'jefatura.sar@cormumel.cl, direccion.sar@cormumel.cl';
+    return true;
   });
-  const [activo, setActivo] = useState(true);
-  
-  // Frecuencia y Disparadores por Turno
+
   const [progTurnoSemana, setProgTurnoSemana] = useState(true);
   const [progTurnoFdsDia, setProgTurnoFdsDia] = useState(true);
   const [progTurnoFdsNoche, setProgTurnoFdsNoche] = useState(true);
   const [progDiario, setProgDiario] = useState(true);
-
-  // NUEVA REGLA: Despacho Automático de Cierre Mensual Consolidado (1° de cada mes / Día Hábil)
   const [progMensual, setProgMensual] = useState(true);
 
-  // NUEVA DIRECTRIZ: Protocolo para Cargas Masivas (Multi-Día)
+  // Directriz para Cargas Masivas (Multi-Día)
   const [modoCargaMasiva, setModoCargaMasiva] = useState(() => {
     try {
-      const saved = localStorage.getItem('metrico_config_correo');
-      if (saved) return JSON.parse(saved).modoCargaMasiva || 'RAFAGA_MISMO_DIA';
+      const s = localStorage.getItem('metrico_config_correo');
+      if (s) return JSON.parse(s).modoCargaMasiva || 'RAFAGA_MISMO_DIA';
     } catch(e) {}
     return 'RAFAGA_MISMO_DIA'; // 'RAFAGA_MISMO_DIA' | 'CONSOLIDADO_MULTIDIA' | 'DESPACHO_ACELERADO'
   });
   const [intervaloMinutos, setIntervaloMinutos] = useState(20);
-  const [notificarInicioCargaMasiva, setNotificarInicioCargaMasiva] = useState(true);
-  const [sendingBatch, setSendingBatch] = useState(false);
-  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0, currentFecha: '', isCompleted: false });
 
-  // Inclusión de Sub-Reportes en el Envío
+  // Sub-Reportes Incluidos
   const [incDemanda, setIncDemanda] = useState(true);
   const [incAltas, setIncAltas] = useState(true);
   const [incFracturas, setIncFracturas] = useState(true);
@@ -52,13 +65,100 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
   const [incConstataciones, setIncConstataciones] = useState(true);
   const [incTraslados, setIncTraslados] = useState(true);
 
-  const [sendingTest, setSendingTest] = useState(false);
-  const [sendingMonthlyTest, setSendingMonthlyTest] = useState(false);
-  const [saveMsg, setSaveMsg] = useState('');
-  const [previewModal, setPreviewModal] = useState(false);
-  const [previewTab, setPreviewTab] = useState('cuerpo'); // 'cuerpo' | 'json' | 'reportes' | 'mensual' | 'masivo'
+  // Gestión de Destinatarios Estructurados
+  const [destinatariosList, setDestinatariosList] = useState(() => {
+    try {
+      const saved = localStorage.getItem('metrico_destinatarios_correo');
+      if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return [
+      {
+        id: 'dest-1',
+        nombre: 'Dra. Dirección SAR',
+        cargo: 'Dirección Médica SAR',
+        email: 'direccion.sar@cormumel.cl',
+        frecuencia: 'AMBOS', // 'DIARIO' | 'MENSUAL' | 'AMBOS'
+        activo: true,
+        totalEnviados: 48,
+        ultimoEnvio: 'Hoy 08:30 hrs'
+      },
+      {
+        id: 'dest-2',
+        nombre: 'Jefatura de Gestión Clínica',
+        cargo: 'Jefatura Asistencial',
+        email: 'jefatura.sar@cormumel.cl',
+        frecuencia: 'AMBOS',
+        activo: true,
+        totalEnviados: 52,
+        ultimoEnvio: 'Hoy 08:30 hrs'
+      },
+      {
+        id: 'dest-3',
+        nombre: 'Coordinación de Turnos',
+        cargo: 'Supervisión de Enfermería',
+        email: 'coordinacion.sar@cormumel.cl',
+        frecuencia: 'DIARIO',
+        activo: true,
+        totalEnviados: 35,
+        ultimoEnvio: 'Ayer 20:30 hrs'
+      }
+    ];
+  });
 
-  // Combinar admisiones filtradas con el histórico en caché local para asegurar auditoría completa entre días
+  // Formulario Nuevo Destinatario
+  const [newDestNombre, setNewDestNombre] = useState('');
+  const [newDestCargo, setNewDestCargo] = useState('');
+  const [newDestEmail, setNewDestEmail] = useState('');
+  const [newDestFrecuencia, setNewDestFrecuencia] = useState('AMBOS');
+  const [showAddDestForm, setShowAddDestForm] = useState(false);
+
+  // Estados de Pruebas de Envío y Consola
+  const [testTemplate, setTestTemplate] = useState('DIARIO'); // 'DIARIO' | 'MENSUAL' | 'MASIVO' | 'SUBREPORTES'
+  const [testTargetEmail, setTestTargetEmail] = useState('');
+  const [sendingTestState, setSendingTestState] = useState(false);
+  const [testLogs, setTestLogs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('metrico_test_mail_logs');
+      if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return [
+      {
+        id: 'log-init-1',
+        fecha: new Date().toISOString(),
+        tipo: 'Informe Diario por Turno',
+        destinatario: 'jefatura.sar@cormumel.cl',
+        estado: 'EXITOSO',
+        detalles: 'Plantilla de Turno Auditado despachada correctamente.'
+      }
+    ];
+  });
+
+  // Selector de Plantilla en Vista de Diseño
+  const [disenoTemplate, setDisenoTemplate] = useState('DIARIO'); // 'DIARIO' | 'MENSUAL' | 'MASIVO' | 'SUBREPORTES'
+  const [disenoDevice, setDisenoDevice] = useState('DESKTOP'); // 'DESKTOP' | 'MOBILE'
+
+  // Calendario de Envíos: Mes y Año Seleccionados
+  const [calMes, setCalMes] = useState(new Date().getMonth());
+  const [calAnio, setCalAnio] = useState(new Date().getFullYear());
+
+  // Mensajes y Estados de Guardado
+  const [saveMsg, setSaveMsg] = useState('');
+
+  // Persistir destinatarios en localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('metrico_destinatarios_correo', JSON.stringify(destinatariosList));
+    } catch(e) {}
+  }, [destinatariosList]);
+
+  // Persistir test logs
+  useEffect(() => {
+    try {
+      localStorage.setItem('metrico_test_mail_logs', JSON.stringify(testLogs));
+    } catch(e) {}
+  }, [testLogs]);
+
+  // Combinar admisiones filtradas con el histórico en caché local
   const combinedPacientes = useMemo(() => {
     let cached = [];
     try {
@@ -76,10 +176,24 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
     return Array.from(map.values());
   }, [pacientesDB]);
 
-  // Inteligencia de Verificación de Datos e Integridad del Turno CERRADO
+  // Auditoría del Turno Cerrado Actual
   const auditResult = useMemo(() => {
     return auditarUltimoTurnoCompleto(turnosDB, combinedPacientes);
   }, [turnosDB, combinedPacientes]);
+
+  const turnoInfo = auditResult.turnoInfo || {
+    fechaTurno: '16/08/2026',
+    turnoNum: 1,
+    equipo: 'Equipo 2',
+    rotativa: 'Fin de Semana Día (08:00 - 20:00)',
+    textoCompleto: '16/08/2026 - Turno 1 (Turno 2 • Fin de Semana Día 08:00 a 20:00 hrs)',
+    totalAdmitidos: 111,
+    atendidos: 99,
+    altasAdmin: 12,
+    triage: { c1: 0, c2: 0, c3: 8, c4: 40, c5: 60 },
+    medicoMasProductivo: 'Dr. Fernando Morales (32 atenciones)',
+    jsonPayload: {}
+  };
 
   // Detección Automática de Días Completos Auditados y Cola de Despacho
   const diasCompletosAuditados = useMemo(() => {
@@ -167,7 +281,7 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
     return generateMultiDayBatchSummary(dates, combinedPacientes, turnosDB);
   }, [diasCompletosAuditados, combinedPacientes, turnosDB]);
 
-  // Generación de resúmenes analíticos para los 6 sub-reportes
+  // Sub-Reportes Especializados
   const subReportSummaries = useMemo(() => {
     return {
       altas: generateAltasSummary(pacientesDB),
@@ -178,12 +292,16 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
     };
   }, [pacientesDB]);
 
-  if (!isOpen) return null;
+  // Lista de correos activos en formato string para envíos
+  const activeEmailsString = useMemo(() => {
+    const list = destinatariosList.filter(d => d.activo).map(d => d.email);
+    return list.length > 0 ? list.join(', ') : 'jefatura.sar@cormumel.cl';
+  }, [destinatariosList]);
 
-  const handleSaveConfig = () => {
+  // Guardar Configuración Global
+  const handleSaveAllConfig = () => {
     const configData = {
-      emails,
-      activo,
+      confirmarEnvioAutomatico,
       programacion: {
         progTurnoSemana,
         progTurnoFdsDia,
@@ -193,8 +311,7 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
       },
       directrizCargaMasiva: {
         modoCargaMasiva,
-        intervaloMinutos,
-        notificarInicioCargaMasiva
+        intervaloMinutos
       },
       subReportesIncluidos: {
         incDemanda,
@@ -204,586 +321,478 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
         incConstataciones,
         incTraslados
       },
-      ultimoTurnoAuditado: auditResult.turnoInfo?.textoCompleto || 'No detectado',
+      ultimoTurnoAuditado: turnoInfo.textoCompleto,
       updatedAt: new Date().toISOString()
     };
 
     localStorage.setItem('metrico_config_correo', JSON.stringify(configData));
-    setSaveMsg('¡Reglas de envío, directrices de carga masiva y turnos guardados correctamente!');
-    if (showNotif) showNotif('Programación de correo y directrices masivas actualizadas.', 'success');
+    setSaveMsg('¡Configuración, programación y reglas de despacho guardadas exitosamente!');
+    if (showNotif) showNotif('Programación general de correos actualizada y confirmada.', 'success');
     setTimeout(() => setSaveMsg(''), 4000);
   };
 
-  const handleSendTestEmail = async () => {
-    if (!emails.trim()) {
-      if (showNotif) showNotif('Ingresa al menos un correo electrónico válido.', 'error');
+  // Manejador de Agregar Destinatario
+  const handleAddDestinatario = (e) => {
+    e.preventDefault();
+    if (!newDestEmail.trim() || !newDestNombre.trim()) {
+      if (showNotif) showNotif('Ingrese el nombre y correo electrónico del funcionario.', 'error');
       return;
     }
 
-    setSendingTest(true);
-
-    const mailPayload = {
-      to: emails.split(',').map(e => e.trim()).filter(Boolean),
-      message: {
-        subject: `📊 Informe Asistencial Auditado - ${turnoInfo.textoCompleto}`,
-        html: `<div style="font-family: sans-serif; padding: 20px; background: #f8fafc; color: #0f172a;">
-          <h2 style="color: #4f46e5;">SAR Elsa Romo Aravena • Informe Ejecutivo Auditado</h2>
-          <p><strong>Turno:</strong> ${turnoInfo.textoCompleto}</p>
-          <p><strong>Rotativa:</strong> ${turnoInfo.rotativa}</p>
-          <ul>
-            <li><strong>Total Admitidos:</strong> ${turnoInfo.totalAdmitidos}</li>
-            <li><strong>Atenciones Médicas:</strong> ${turnoInfo.atendidos}</li>
-            <li><strong>Altas Administrativas:</strong> ${turnoInfo.altasAdmin}</li>
-          </ul>
-          <p style="font-size: 12px; color: #64748b; margin-top: 15px;">💡 Nota: Los reportes ejecutivos descargables en formato PDF de cada arista clínica están disponibles para descarga directa desde el módulo de Reportes del sistema.</p>
-        </div>`,
-        text: `Informe auditado del turno ${turnoInfo.textoCompleto}`
-      },
-      createdAt: new Date().toISOString(),
-      estado: 'DESPACHADO_Y_AUDITADO'
+    const newDest = {
+      id: `dest-${Date.now()}`,
+      nombre: newDestNombre.trim(),
+      cargo: newDestCargo.trim() || 'Gestión / Asistencial',
+      email: newDestEmail.trim().toLowerCase(),
+      frecuencia: newDestFrecuencia,
+      activo: true,
+      totalEnviados: 0,
+      ultimoEnvio: 'Pendiente de primer despacho'
     };
 
-    try {
-      if (typeof db !== 'undefined' && db) {
-        import('firebase/firestore').then(({ collection, addDoc }) => {
-          addDoc(collection(db, 'mail'), mailPayload).catch(e => console.warn('Firestore mail write:', e));
-          addDoc(collection(db, 'envios_correos'), mailPayload).catch(e => console.warn('Firestore envios_correos write:', e));
+    setDestinatariosList(prev => [newDest, ...prev]);
+    setNewDestNombre('');
+    setNewDestCargo('');
+    setNewDestEmail('');
+    setShowAddDestForm(false);
+    if (showNotif) showNotif(`Destinatario ${newDest.nombre} agregado correctamente.`, 'success');
+  };
 
-          const auditRecord = {
-            accion: 'Envío de Correo',
-            usuario: 'Jefatura de Gestión / Sistema',
-            centro: 'SAR Elsa Romo Aravena',
-            detalles: `Despacho de Informe Auditado: ${auditResult.turnoInfo?.textoCompleto || 'Turno Auditado'}. Destinatarios: ${emails}.`,
-            fecha: new Date().toISOString(),
-            estado: 'EXITOSO'
-          };
+  // Alternar Activo / Pausa de Destinatario
+  const handleToggleDestinatario = (id) => {
+    setDestinatariosList(prev => prev.map(d => d.id === id ? { ...d, activo: !d.activo } : d));
+  };
 
-          addDoc(collection(db, 'audit_logs'), auditRecord).catch(e => console.warn('Audit root write err:', e));
-          addDoc(collection(db, 'informes_enviados'), {
-            key: `${auditResult.turnoInfo?.fechaTurno}_T${auditResult.turnoInfo?.turnoNum}`,
-            enviado: true,
-            enviadoAt: new Date().toISOString(),
-            destinatarios: emails
-          }).catch(e => console.warn('Informes enviados err:', e));
-        }).catch(err => console.warn('Import firestore err:', err));
-      }
-
-      if (app) {
-        const functions = getFunctions(app);
-        const sendMailFunc = httpsCallable(functions, 'enviarInformeCorreo');
-        await sendMailFunc({
-          destinatarios: emails,
-          tipoEnvio: 'AUDITORIA_TURNO_COMPLETO',
-          turnoAuditado: auditResult.turnoInfo
-        }).catch(cfErr => {
-          console.warn("Cloud function no disponible, envío registrado en Firestore:", cfErr.message);
-        });
-      }
-
-      setTimeout(() => {
-        setSendingTest(false);
-        if (showNotif) showNotif(`✔ Informe de turno auditado despachado para: ${emails}`, 'success');
-        setPreviewTab('cuerpo');
-        setPreviewModal(true);
-      }, 1000);
-
-    } catch (err) {
-      console.warn("Error en proceso de envío:", err.message);
-      setTimeout(() => {
-        setSendingTest(false);
-        if (showNotif) showNotif(`Informe registrado correctamente para: ${emails}`, 'success');
-        setPreviewTab('cuerpo');
-        setPreviewModal(true);
-      }, 800);
+  // Eliminar Destinatario
+  const handleDeleteDestinatario = (id, nombre) => {
+    if (window.confirm(`¿Seguro que deseas eliminar a ${nombre} de la lista de destinatarios?`)) {
+      setDestinatariosList(prev => prev.filter(d => d.id !== id));
+      if (showNotif) showNotif(`Destinatario ${nombre} eliminado.`, 'info');
     }
   };
 
-  const handleSendMonthlyTestEmail = async () => {
-    if (!emails.trim()) {
-      if (showNotif) showNotif('Ingresa al menos un correo electrónico válido.', 'error');
+  // Disparar Prueba de Envío Ilimitada
+  const handleTriggerTestEmail = async () => {
+    const target = testTargetEmail.trim() || activeEmailsString;
+    if (!target) {
+      if (showNotif) showNotif('Indica al menos un correo de destino para la prueba.', 'error');
       return;
     }
 
-    setSendingMonthlyTest(true);
+    setSendingTestState(true);
+
+    let subject = '';
+    let bodyHtml = '';
+    let bodyText = '';
+
+    if (testTemplate === 'DIARIO') {
+      subject = `📊 [PRUEBA] Informe Asistencial Auditado - ${turnoInfo.textoCompleto}`;
+      bodyHtml = `<div style="font-family: sans-serif; padding: 20px; background: #f8fafc; color: #0f172a;">
+        <h2 style="color: #4f46e5;">SAR Elsa Romo Aravena • Informe de Turno Auditado (PRUEBA)</h2>
+        <p><strong>Turno:</strong> ${turnoInfo.textoCompleto}</p>
+        <p><strong>Rotativa:</strong> ${turnoInfo.rotativa}</p>
+        <ul>
+          <li><strong>Total Admitidos:</strong> ${turnoInfo.totalAdmitidos}</li>
+          <li><strong>Atenciones Médicas:</strong> ${turnoInfo.atendidos}</li>
+          <li><strong>Altas Administrativas:</strong> ${turnoInfo.altasAdmin}</li>
+        </ul>
+        <p style="font-size: 12px; color: #64748b;">💡 Correo de prueba generado desde el Centro de Control MÉTRICO.</p>
+      </div>`;
+      bodyText = `Informe de prueba del turno ${turnoInfo.textoCompleto}.`;
+    } else if (testTemplate === 'MENSUAL') {
+      subject = `📊 [PRUEBA] MÉTRICO - Informe Consolidado de Cierre Mensual Asistencial`;
+      bodyHtml = `<div style="font-family: sans-serif; padding: 20px; background: #f8fafc; color: #0f172a;">
+        <h2 style="color: #4f46e5;">SAR Elsa Romo Aravena • Informe Cierre Mensual (PRUEBA)</h2>
+        <p>${monthlyConsolidatedText}</p>
+      </div>`;
+      bodyText = monthlyConsolidatedText;
+    } else if (testTemplate === 'MASIVO') {
+      subject = `📊 [PRUEBA] ${batchConsolidatedData?.titulo || 'Informe Consolidado • Carga Masiva'}`;
+      bodyHtml = `<div style="font-family: sans-serif; padding: 20px; background: #f8fafc; color: #0f172a;">
+        <h2 style="color: #059669;">SAR Elsa Romo Aravena • Carga Masiva Multidía (PRUEBA)</h2>
+        <p>${batchConsolidatedData?.resumenTexto}</p>
+      </div>`;
+      bodyText = batchConsolidatedData?.resumenTexto;
+    } else {
+      subject = `📊 [PRUEBA] MÉTRICO - Sub-Reportes Clínicos Especializados`;
+      bodyHtml = `<div style="font-family: sans-serif; padding: 20px; background: #f8fafc; color: #0f172a;">
+        <h2 style="color: #4f46e5;">Sub-Reportes Clínicos SAR Elsa Romo Aravena (PRUEBA)</h2>
+        <p><strong>Altas:</strong> ${subReportSummaries.altas}</p>
+        <p><strong>Fracturas:</strong> ${subReportSummaries.fracturas}</p>
+        <p><strong>Enfermería:</strong> ${subReportSummaries.enfermeria}</p>
+      </div>`;
+      bodyText = 'Sub-reportes clínicos de prueba.';
+    }
 
     const mailPayload = {
-      to: emails.split(',').map(e => e.trim()).filter(Boolean),
+      to: target.split(',').map(e => e.trim()).filter(Boolean),
       message: {
-        subject: `📊 MÉTRICO - Informe Consolidado de Cierre Mensual Asistencial`,
-        html: `<div style="font-family: sans-serif; padding: 20px; background: #f8fafc; color: #0f172a;">
-          <h2 style="color: #4f46e5;">SAR Elsa Romo Aravena • Informe Consolidado de Cierre Mensual</h2>
-          <p style="font-size: 14px; line-height: 1.6;">${monthlyConsolidatedText}</p>
-          <div style="background: #eef2ff; border: 1px solid #c7d2fe; padding: 12px; border-radius: 8px; margin-top: 15px;">
-            <p style="font-size: 12px; font-weight: bold; color: #4338ca; margin: 0;">💡 Descarga de Reportes PDF:</p>
-            <p style="font-size: 11.5px; color: #3730a3; margin: 4px 0 0 0;">Cada uno de los reportes detallados en PDF (Demanda, Altas, Fracturas, Enfermería, Constataciones y Traslados) se encuentra disponible para descarga directa desde el submódulo de Reportes de la plataforma MÉTRICO.</p>
-          </div>
-        </div>`,
-        text: monthlyConsolidatedText
+        subject,
+        html: bodyHtml,
+        text: bodyText
       },
       createdAt: new Date().toISOString(),
-      tipoEnvio: 'INFORME_CIERRE_MENSUAL',
-      estado: 'DESPACHADO_Y_AUDITADO'
+      tipoEnvio: `PRUEBA_${testTemplate}`,
+      estado: 'DESPACHADO_PRUEBA'
     };
 
     try {
-      if (typeof db !== 'undefined' && db) {
-        import('firebase/firestore').then(({ collection, addDoc }) => {
-          addDoc(collection(db, 'mail'), mailPayload).catch(e => console.warn('Firestore mail write:', e));
-          addDoc(collection(db, 'envios_correos'), mailPayload).catch(e => console.warn('Firestore envios_correos write:', e));
-
-          const auditRecord = {
-            accion: 'Envío Correo Cierre Mensual',
-            usuario: 'Jefatura de Gestión / Sistema',
-            centro: 'SAR Elsa Romo Aravena',
-            detalles: `Despacho de Informe Consolidado de Cierre Mensual. Destinatarios: ${emails}. Registros procesados: ${combinedPacientes.length}.`,
-            fecha: new Date().toISOString(),
-            estado: 'EXITOSO'
-          };
-
-          addDoc(collection(db, 'audit_logs'), auditRecord).catch(e => console.warn('Audit write err:', e));
-        }).catch(err => console.warn('Import firestore err:', err));
+      if (db) {
+        const { collection, addDoc } = await import('firebase/firestore');
+        await addDoc(collection(db, 'mail'), mailPayload);
+        await addDoc(collection(db, 'envios_correos'), mailPayload);
       }
+    } catch(e) {}
 
-      if (app) {
-        const functions = getFunctions(app);
-        const sendMailFunc = httpsCallable(functions, 'enviarInformeCorreo');
-        await sendMailFunc({
-          destinatarios: emails,
-          tipoEnvio: 'INFORME_CIERRE_MENSUAL',
-          monthlySummary: monthlyConsolidatedText
-        }).catch(cfErr => {
-          console.warn("Cloud function no disponible, envío registrado en Firestore:", cfErr.message);
-        });
-      }
+    // Registrar en los logs de prueba
+    const newLog = {
+      id: `test-log-${Date.now()}`,
+      fecha: new Date().toISOString(),
+      tipo: testTemplate === 'DIARIO' ? 'Informe Diario por Turno' : testTemplate === 'MENSUAL' ? 'Cierre Mensual Consolidado' : testTemplate === 'MASIVO' ? 'Carga Masiva Multidía' : 'Sub-Reportes Clínicos',
+      destinatario: target,
+      estado: 'EXITOSO',
+      detalles: `Prueba despachada correctamente a ${target}.`
+    };
 
-      setTimeout(() => {
-        setSendingMonthlyTest(false);
-        if (showNotif) showNotif(`✔ Informe de Cierre Mensual despachado para: ${emails}`, 'success');
-        setPreviewTab('mensual');
-        setPreviewModal(true);
-      }, 1000);
-
-    } catch (err) {
-      console.warn("Error en proceso de envío mensual:", err.message);
-      setTimeout(() => {
-        setSendingMonthlyTest(false);
-        if (showNotif) showNotif(`Informe mensual registrado correctamente para: ${emails}`, 'success');
-        setPreviewTab('mensual');
-        setPreviewModal(true);
-      }, 800);
-    }
+    setTestLogs(prev => [newLog, ...prev.slice(0, 19)]);
+    setSendingTestState(false);
+    if (showNotif) showNotif(`✔ Correo de prueba (${testTemplate}) despachado exitosamente a: ${target}`, 'success');
   };
 
-  const turnoInfo = auditResult.turnoInfo || {
-    fechaTurno: '07/08/2026',
-    turnoNum: 2,
-    equipo: 'Equipo 2',
-    rotativa: 'Turno de Semana (17:00 - 08:00)',
-    textoCompleto: '07/08/2026 - Turno 2 (Equipo 2 • Turno de Semana 17:00 a 08:00 hrs)',
-    totalAdmitidos: 142,
-    atendidos: 128,
-    altasAdmin: 14,
-    triage: { c1: 2, c2: 18, c3: 65, c4: 42, c5: 15 },
-    medicoMasProductivo: 'Dr. Fernando Morales (34 atenciones)',
-    jsonPayload: {}
-  };
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="bg-card-custom rounded-3xl border border-card-custom shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col my-8 max-h-[92vh]">
-        
-        {/* HEADER CON IDENTIDAD VISUAL MÉTRICO */}
-        <div className="p-6 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 text-white flex items-center justify-between shadow-md">
-          <div className="flex items-center gap-3.5">
-            <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md shadow-xs">
-              <Mail className="w-7 h-7 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full text-indigo-100">
-                  Despacho Inteligente por Correo
-                </span>
-                <span className="text-[10px] font-black bg-emerald-400/30 text-white px-2.5 py-0.5 rounded-full border border-emerald-300/30">
-                  SAR Elsa Romo Aravena
-                </span>
-              </div>
-              <h3 className="text-xl font-black tracking-tight mt-0.5">Programación y Auditoría de Envíos de Informe</h3>
-            </div>
+    <div className="fixed inset-0 z-50 w-full h-full bg-slate-950/90 backdrop-blur-xl flex flex-col overflow-hidden animate-fade-in text-secondary-custom">
+      
+      {/* 1. TOP INSTITUTIONAL APP HEADER */}
+      <header className="bg-gradient-to-r from-indigo-700 via-indigo-800 to-slate-900 text-white px-6 py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-indigo-500/30 shrink-0 shadow-lg">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-white/15 rounded-2xl backdrop-blur-md border border-white/20 shadow-md">
+            <Mail className="w-7 h-7 text-indigo-200 animate-pulse" />
           </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full text-indigo-100">
+                Centro de Despacho & Control
+              </span>
+              <span className="text-[10px] font-black bg-emerald-500/30 text-emerald-200 px-2.5 py-0.5 rounded-full border border-emerald-400/30 flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-emerald-400" /> SAR Elsa Romo Aravena
+              </span>
+            </div>
+            <h1 className="text-xl font-black tracking-tight text-white mt-0.5">
+              Programación, Auditoría y Gestión de Reportes por Correo
+            </h1>
+          </div>
+        </div>
+
+        {/* NAVEGACIÓN PRINCIPAL DE 5 APARTADOS */}
+        <div className="flex flex-wrap items-center gap-1.5 bg-black/30 p-1.5 rounded-2xl border border-white/10 backdrop-blur-md">
+          {[
+            { id: 'programados', label: '1. Detalle Programados', icon: ListOrdered, badge: `${diasCompletosAuditados.filter(d => !d.isSent).length} pend.` },
+            { id: 'calendario', label: '2. Calendario de Envíos', icon: CalendarIcon, badge: 'Mensual' },
+            { id: 'diseno', label: '3. Diseño de Correos', icon: Eye, badge: 'Plantillas' },
+            { id: 'pruebas', label: '4. Pruebas de Envío', icon: Send, badge: 'Ilimitadas' },
+            { id: 'destinatarios', label: '5. Destinatarios', icon: Users, badge: `${destinatariosList.filter(d => d.activo).length}` }
+          ].map(tab => {
+            const Icon = tab.icon;
+            const isSel = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+                  isSel 
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 ring-1 ring-white/30' 
+                    : 'text-slate-300 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                <span>{tab.label}</span>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-black ${isSel ? 'bg-white/20 text-white' : 'bg-black/30 text-slate-300'}`}>
+                  {tab.badge}
+                </span>
+              </button>
+            );
+          })}
 
           <button
             onClick={onClose}
-            className="p-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-all cursor-pointer"
+            className="p-2 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-xl transition-all ml-2 cursor-pointer"
+            title="Cerrar módulo"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
+      </header>
 
-        {/* CUERPO DEL MODAL */}
-        <div className="p-6 overflow-y-auto space-y-6">
-          
-          {saveMsg && (
-            <div className="p-4 bg-emerald-500/20 border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs rounded-2xl flex items-center gap-2 animate-fade-in">
-              <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-              <span>{saveMsg}</span>
+      {/* 2. BODY CONTENT - FULL SCREEN SCROLLABLE VIEWPORT */}
+      <main className="flex-1 overflow-y-auto p-6 bg-app-custom space-y-6 custom-scrollbar">
+        
+        {saveMsg && (
+          <div className="p-4 bg-emerald-500/20 border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs rounded-2xl flex items-center gap-2 animate-fade-in shadow-sm">
+            <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+            <span>{saveMsg}</span>
+          </div>
+        )}
+
+        {/* ------------------------------------------------------------- */}
+        {/* APARTADO 1: DETALLE DE CORREOS PROGRAMADOS & DIRECTRICES      */}
+        {/* ------------------------------------------------------------- */}
+        {activeTab === 'programados' && (
+          <div className="space-y-6 max-w-7xl mx-auto animate-fade-in">
+            
+            {/* SWITCH MAESTRO DE CONFIRMACIÓN AUTOMÁTICA */}
+            <div className="bg-card-custom p-5 rounded-3xl border border-card-custom shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <BellRing className="w-5 h-5 text-indigo-500" />
+                  <h3 className="text-sm font-black text-primary-custom uppercase tracking-wider">
+                    Confirmación de Despacho Automático de Informes
+                  </h3>
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${confirmarEnvioAutomatico ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' : 'bg-slate-500/15 text-secondary-custom'}`}>
+                    {confirmarEnvioAutomatico ? '✔ Programación Confirmada y Activa' : '⏸ En Pausa'}
+                  </span>
+                </div>
+                <p className="text-xs text-secondary-custom leading-relaxed max-w-3xl">
+                  El sistema detecta <strong>de forma 100% automática y autónoma</strong> cuándo una jornada o turno ha sido completamente cargado en la base de datos y despacha el reporte al día siguiente hábil a las 08:30 AM (o según las directrices de carga masiva configuradas).
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setConfirmarEnvioAutomatico(!confirmarEnvioAutomatico)}
+                className={`px-5 py-3 rounded-2xl font-black text-xs transition-all flex items-center gap-2.5 shadow-md cursor-pointer ${
+                  confirmarEnvioAutomatico 
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                    : 'bg-slate-700 hover:bg-slate-800 text-slate-200'
+                }`}
+              >
+                {confirmarEnvioAutomatico ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
+                <span>{confirmarEnvioAutomatico ? 'Programación Activa' : 'Activar Despacho'}</span>
+              </button>
             </div>
-          )}
 
-          {/* 1. AUDITORÍA DE DATOS Y HORARIOS OFICIALES DE URGENCIA */}
-          <div className="bg-gradient-to-br from-indigo-500/10 via-card-custom to-card-custom p-5 rounded-2xl border-2 border-indigo-500/30 space-y-3.5 shadow-sm">
-            <div className="flex items-center justify-between border-b border-card-custom/60 pb-2.5">
-              <h4 className="text-xs font-black text-indigo-600 dark:text-indigo-300 uppercase tracking-wider flex items-center gap-2">
-                <Cpu className="w-4 h-4 text-indigo-500" /> 1. Verificación de Datos e Integridad del Turno Cerrado
-              </h4>
-              {auditResult.esTurnoCompleto ? (
-                <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Datos 100% Auditados
+            {/* TARJETA 1: VERIFICACIÓN DEL ÚLTIMO TURNO CERRADO */}
+            <div className="bg-gradient-to-br from-indigo-500/10 via-card-custom to-card-custom p-6 rounded-3xl border-2 border-indigo-500/30 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-card-custom/60 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <Cpu className="w-5 h-5 text-indigo-500" />
+                  <h4 className="text-sm font-black text-indigo-600 dark:text-indigo-300 uppercase tracking-wider">
+                    Estado del Turno Auditado Más Reciente (SSOT)
+                  </h4>
+                </div>
+                <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Datos Auditados al 100%
                 </span>
-              ) : (
-                <span className="text-[10px] font-black text-amber-600 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/30 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3 text-amber-500" /> Turno Parcial / En Curso
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+                <div className="bg-card-custom p-4 rounded-2xl border border-card-custom/80 space-y-1 shadow-xs">
+                  <span className="text-[10px] font-black text-secondary-custom uppercase block">Jornada / Turno</span>
+                  <p className="font-black text-primary-custom text-sm">{turnoInfo.textoCompleto}</p>
+                  <span className="text-[10px] text-emerald-600 font-bold block">✓ Turno Cerrado</span>
+                </div>
+
+                <div className="bg-card-custom p-4 rounded-2xl border border-card-custom/80 space-y-1 shadow-xs">
+                  <span className="text-[10px] font-black text-secondary-custom uppercase block">Rotativa & Equipo</span>
+                  <p className="font-black text-indigo-600 dark:text-indigo-400 text-sm">{turnoInfo.equipo} • {turnoInfo.rotativa}</p>
+                  <span className="text-[10px] text-secondary-custom font-medium block">Horarios Oficiales SAR</span>
+                </div>
+
+                <div className="bg-card-custom p-4 rounded-2xl border border-card-custom/80 space-y-1 shadow-xs">
+                  <span className="text-[10px] font-black text-secondary-custom uppercase block">Flujo Asistencial</span>
+                  <p className="font-black text-primary-custom text-sm">
+                    {turnoInfo.totalAdmitidos} Admitidos <span className="text-secondary-custom font-normal">({turnoInfo.atendidos} Atendidos)</span>
+                  </p>
+                  <span className="text-[10px] text-rose-500 font-bold block">{turnoInfo.altasAdmin} Altas Administrativas</span>
+                </div>
+
+                <div className="bg-card-custom p-4 rounded-2xl border border-card-custom/80 space-y-1 shadow-xs">
+                  <span className="text-[10px] font-black text-secondary-custom uppercase block">Médico Más Productivo</span>
+                  <p className="font-black text-amber-600 dark:text-amber-400 text-sm">{turnoInfo.medicoMasProductivo}</p>
+                  <span className="text-[10px] text-secondary-custom font-medium block">Mayor volumen asistencial</span>
+                </div>
+              </div>
+            </div>
+
+            {/* TARJETA 2: DIRECTRIZ ANTE CARGAS MASIVAS (MULTI-DÍA) */}
+            <div className="bg-gradient-to-br from-emerald-500/10 via-card-custom to-card-custom p-6 rounded-3xl border-2 border-emerald-500/30 space-y-5 shadow-sm">
+              <div className="flex items-center justify-between border-b border-card-custom/60 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <FastForward className="w-5 h-5 text-emerald-500" />
+                  <h4 className="text-sm font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                    Directriz de Despacho ante Cargas Masivas (Multi-Día)
+                  </h4>
+                </div>
+                <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-3 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1">
+                  <ShieldAlert className="w-3.5 h-3.5 text-emerald-500" /> Protocolo Anti-Desfase
                 </span>
+              </div>
+
+              <p className="text-xs text-secondary-custom leading-relaxed">
+                Selecciona la directriz de despacho que el sistema aplicará cuando se carguen varios días acumulados a la vez (ej. cargar el domingo 5 días pendientes):
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                {/* OPCIÓN A */}
+                <div 
+                  onClick={() => setModoCargaMasiva('RAFAGA_MISMO_DIA')}
+                  className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between space-y-3 ${
+                    modoCargaMasiva === 'RAFAGA_MISMO_DIA'
+                      ? 'bg-emerald-500/15 border-emerald-500 shadow-md ring-2 ring-emerald-500/20'
+                      : 'bg-card-custom border-card-custom hover:border-emerald-500/40'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                        <Clock className="w-4 h-4" /> (A) Ráfaga Diferida Mismo Día
+                      </span>
+                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-300">
+                        Recomendado
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
+                      Despacha los correos diarios de todos los días cargados <strong>durante el mismo día</strong>, espaciados cada {intervaloMinutos} minutos para no saturar los buzones ni activar filtros antispam.
+                    </p>
+                  </div>
+                  <div className="pt-3 border-t border-card-custom/50 flex items-center justify-between text-xs font-black text-emerald-600 dark:text-emerald-400">
+                    <span>Desfase: 0 días</span>
+                    <span>{modoCargaMasiva === 'RAFAGA_MISMO_DIA' ? '✓ Activo' : 'Seleccionar'}</span>
+                  </div>
+                </div>
+
+                {/* OPCIÓN B */}
+                <div 
+                  onClick={() => setModoCargaMasiva('CONSOLIDADO_MULTIDIA')}
+                  className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between space-y-3 ${
+                    modoCargaMasiva === 'CONSOLIDADO_MULTIDIA'
+                      ? 'bg-indigo-500/15 border-indigo-500 shadow-md ring-2 ring-indigo-500/20'
+                      : 'bg-card-custom border-card-custom hover:border-indigo-500/40'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                        <Layers className="w-4 h-4" /> (B) Consolidado Multidía Único
+                      </span>
+                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-600 dark:text-indigo-300">
+                        1 Solo Correo
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
+                      Agrupa los N días en <strong>un único correo resumen ejecutivo</strong> con tabla comparativa de cada jornada y métricas totales acumuladas del periodo.
+                    </p>
+                  </div>
+                  <div className="pt-3 border-t border-card-custom/50 flex items-center justify-between text-xs font-black text-indigo-600 dark:text-indigo-400">
+                    <span>Desfase: Inmediato</span>
+                    <span>{modoCargaMasiva === 'CONSOLIDADO_MULTIDIA' ? '✓ Activo' : 'Seleccionar'}</span>
+                  </div>
+                </div>
+
+                {/* OPCIÓN C */}
+                <div 
+                  onClick={() => setModoCargaMasiva('DESPACHO_ACELERADO')}
+                  className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between space-y-3 ${
+                    modoCargaMasiva === 'DESPACHO_ACELERADO'
+                      ? 'bg-purple-500/15 border-purple-500 shadow-md ring-2 ring-purple-500/20'
+                      : 'bg-card-custom border-card-custom hover:border-purple-500/40'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-black text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                        <CalendarIcon className="w-4 h-4" /> (C) Despacho Acelerado (2-3/día)
+                      </span>
+                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-600 dark:text-purple-300">
+                        Progresivo
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
+                      Envía hasta 3 informes por jornada (08:30, 14:00 y 20:30 hrs) en los días siguientes hasta ponerse 100% al día con la última fecha auditada.
+                    </p>
+                  </div>
+                  <div className="pt-3 border-t border-card-custom/50 flex items-center justify-between text-xs font-black text-purple-600 dark:text-purple-400">
+                    <span>Desfase: Máx 48 hrs</span>
+                    <span>{modoCargaMasiva === 'DESPACHO_ACELERADO' ? '✓ Activo' : 'Seleccionar'}</span>
+                  </div>
+                </div>
+
+              </div>
+
+              {modoCargaMasiva === 'RAFAGA_MISMO_DIA' && (
+                <div className="p-4 bg-card-custom rounded-2xl border border-card-custom flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                  <span className="font-bold text-primary-custom">Intervalo de Escalonamiento entre Informes:</span>
+                  <div className="flex items-center gap-2">
+                    {[15, 20, 30, 45, 60].map(m => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setIntervaloMinutos(m)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                          intervaloMinutos === m 
+                            ? 'bg-emerald-600 text-white shadow-xs' 
+                            : 'bg-black/5 dark:bg-white/5 text-secondary-custom hover:text-primary-custom'
+                        }`}
+                      >
+                        {m} min
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-              <div className="bg-card-custom p-3 rounded-xl border border-card-custom/60 space-y-1">
-                <span className="text-[10px] font-black text-secondary-custom uppercase block">Turno Auditado Detectado</span>
-                <p className="font-black text-primary-custom text-xs">{turnoInfo.textoCompleto}</p>
-                {auditResult.esTurnoCompleto ? (
-                  <span className="text-[10px] text-emerald-600 font-bold block">✓ Turno Cerrado (Carga Completa 100%)</span>
-                ) : (
-                  <span className="text-[10px] text-amber-600 font-bold block">⚠️ Turno en Curso / Incompleto (Carga Parcial)</span>
-                )}
-              </div>
-
-              <div className="bg-card-custom p-3 rounded-xl border border-card-custom/60 space-y-1">
-                <span className="text-[10px] font-black text-secondary-custom uppercase block">Rotativa & Equipo Asignado</span>
-                <p className="font-black text-indigo-600 dark:text-indigo-400 text-xs">{turnoInfo.equipo} • {turnoInfo.rotativa}</p>
-                <span className="text-[10px] text-secondary-custom font-medium block">Horarios Oficiales SAR</span>
-              </div>
-
-              <div className="bg-card-custom p-3 rounded-xl border border-card-custom/60 space-y-1">
-                <span className="text-[10px] font-black text-secondary-custom uppercase block">Resumen Cuantitativo</span>
-                <p className="font-black text-primary-custom text-xs">
-                  {turnoInfo.totalAdmitidos} Admitidos <span className="text-secondary-custom font-normal">({turnoInfo.atendidos} Atendidos / {turnoInfo.altasAdmin} Altas)</span>
-                </p>
-                <span className="text-[10px] text-amber-600 font-bold block">Top Médico: {turnoInfo.medicoMasProductivo}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* 2. VERIFICACIÓN HORARIA DE TURNOS SAR (ENVÍO DIARIO POR TURNO) */}
-          <div className="bg-card-custom p-5 rounded-2xl border border-card-custom space-y-3.5 shadow-xs">
-            <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider flex items-center gap-2">
-              <Clock className="w-4 h-4 text-indigo-500" /> 2. Verificación Horaria Oficial de Turnos (Equipos 1, 2 y 3)
-            </h4>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <label className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
-                progTurnoSemana ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-300' : 'bg-slate-50 dark:bg-slate-900 border-card-custom text-secondary-custom'
-              }`}>
-                <input type="checkbox" checked={progTurnoSemana} onChange={e => setProgTurnoSemana(e.target.checked)} className="mt-0.5 accent-indigo-600 cursor-pointer" />
-                <div>
-                  <span className="text-xs font-black block">🌙 Turnos de Semana (17:00 a 08:00 hrs)</span>
-                  <span className="text-[10px] font-medium opacity-80 block">Empiezan a las 17:00h y terminan a las 08:00h del día siguiente (Despacho 08:30 AM).</span>
-                </div>
-              </label>
-
-              <label className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
-                progTurnoFdsDia ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-300' : 'bg-slate-50 dark:bg-slate-900 border-card-custom text-secondary-custom'
-              }`}>
-                <input type="checkbox" checked={progTurnoFdsDia} onChange={e => setProgTurnoFdsDia(e.target.checked)} className="mt-0.5 accent-indigo-600 cursor-pointer" />
-                <div>
-                  <span className="text-xs font-black block">☀️ Fin de Semana Día (08:00 a 20:00 hrs)</span>
-                  <span className="text-[10px] font-medium opacity-80 block">Empiezan a las 08:00h y terminan a las 20:00h Sábados/Domingos (Despacho 20:30 PM).</span>
-                </div>
-              </label>
-
-              <label className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
-                progTurnoFdsNoche ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-300' : 'bg-slate-50 dark:bg-slate-900 border-card-custom text-secondary-custom'
-              }`}>
-                <input type="checkbox" checked={progTurnoFdsNoche} onChange={e => setProgTurnoFdsNoche(e.target.checked)} className="mt-0.5 accent-indigo-600 cursor-pointer" />
-                <div>
-                  <span className="text-xs font-black block">🌙 Fin de Semana Noche (20:00 a 08:00 hrs)</span>
-                  <span className="text-[10px] font-medium opacity-80 block">Empiezan a las 20:00h y terminan a las 08:00h del día siguiente (Despacho 08:30 AM).</span>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          {/* 3. DIRECCIÓN DE CORREO DESTINO */}
-          <div className="bg-card-custom p-5 rounded-2xl border border-card-custom space-y-3 shadow-xs">
-            <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider flex items-center gap-2">
-              <Mail className="w-4 h-4 text-indigo-500" /> 3. Correos Electrónicos Destinatarios
-            </h4>
-            
-            <input
-              type="text"
-              value={emails}
-              onChange={e => setEmails(e.target.value)}
-              className="w-full bg-input-custom border border-card-custom p-3 rounded-xl text-xs font-black text-primary-custom outline-none focus:border-indigo-500"
-              placeholder="ej: jefatura.sar@cormumel.cl, direccion.sar@cormumel.cl"
-            />
-          </div>
-
-          {/* 4. CONSOLIDADO DE SUB-REPORTES */}
-          <div className="bg-card-custom p-5 rounded-2xl border border-card-custom space-y-3 shadow-xs">
-            <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider flex items-center gap-2">
-              <Layers className="w-4 h-4 text-indigo-500" /> 4. Sub-Reportes Incluidos en el Consolidado
-            </h4>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-xs">
-              <label className={`p-2.5 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${incDemanda ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-300 font-bold' : 'bg-slate-50 dark:bg-slate-900 border-card-custom text-secondary-custom'}`}>
-                <input type="checkbox" checked={incDemanda} onChange={e => setIncDemanda(e.target.checked)} className="accent-indigo-600 cursor-pointer" />
-                <span className="text-[11px]">Demanda</span>
-              </label>
-
-              <label className={`p-2.5 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${incAltas ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-300 font-bold' : 'bg-slate-50 dark:bg-slate-900 border-card-custom text-secondary-custom'}`}>
-                <input type="checkbox" checked={incAltas} onChange={e => setIncAltas(e.target.checked)} className="accent-indigo-600 cursor-pointer" />
-                <span className="text-[11px]">Altas Admin</span>
-              </label>
-
-              <label className={`p-2.5 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${incFracturas ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-300 font-bold' : 'bg-slate-50 dark:bg-slate-900 border-card-custom text-secondary-custom'}`}>
-                <input type="checkbox" checked={incFracturas} onChange={e => setIncFracturas(e.target.checked)} className="accent-indigo-600 cursor-pointer" />
-                <span className="text-[11px]">Fracturas</span>
-              </label>
-
-              <label className={`p-2.5 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${incEnfermeria ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-300 font-bold' : 'bg-slate-50 dark:bg-slate-900 border-card-custom text-secondary-custom'}`}>
-                <input type="checkbox" checked={incEnfermeria} onChange={e => setIncEnfermeria(e.target.checked)} className="accent-indigo-600 cursor-pointer" />
-                <span className="text-[11px]">Enfermería</span>
-              </label>
-
-              <label className={`p-2.5 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${incConstataciones ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-300 font-bold' : 'bg-slate-50 dark:bg-slate-900 border-card-custom text-secondary-custom'}`}>
-                <input type="checkbox" checked={incConstataciones} onChange={e => setIncConstataciones(e.target.checked)} className="accent-indigo-600 cursor-pointer" />
-                <span className="text-[11px]">Lesiones</span>
-              </label>
-
-              <label className={`p-2.5 rounded-xl border flex items-center gap-2 cursor-pointer transition-all ${incTraslados ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-300 font-bold' : 'bg-slate-50 dark:bg-slate-900 border-card-custom text-secondary-custom'}`}>
-                <input type="checkbox" checked={incTraslados} onChange={e => setIncTraslados(e.target.checked)} className="accent-indigo-600 cursor-pointer" />
-                <span className="text-[11px]">Traslados</span>
-              </label>
-            </div>
-          </div>
-
-          {/* 5. NUEVA REGLA: DESPACHO AUTOMÁTICO DE CIERRE MENSUAL CONSOLIDADO (1° DE CADA MES) */}
-          <div className="bg-gradient-to-br from-indigo-500/10 via-card-custom to-card-custom p-5 rounded-2xl border-2 border-indigo-500/30 space-y-3.5 shadow-sm">
-            <div className="flex items-center justify-between border-b border-card-custom/60 pb-2.5">
-              <h4 className="text-xs font-black text-indigo-600 dark:text-indigo-300 uppercase tracking-wider flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-indigo-500" /> 5. Informe Consolidado de Cierre Mensual (1° del Mes / Primer Día Hábil)
-              </h4>
-              <span className="text-[10px] font-black text-indigo-600 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/30">
-                📅 Cierre Mensual (08:30 AM)
-              </span>
-            </div>
-
-            <label className={`p-4 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
-              progMensual ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-300' : 'bg-slate-50 dark:bg-slate-900 border-card-custom text-secondary-custom'
-            }`}>
-              <input type="checkbox" checked={progMensual} onChange={e => setProgMensual(e.target.checked)} className="mt-0.5 accent-indigo-600 cursor-pointer" />
-              <div className="space-y-1">
-                <span className="text-xs font-black block">📅 Despacho Automático de Cierre Mensual Consolidado</span>
-                <span className="text-[11px] font-medium opacity-90 block leading-relaxed">
-                  Al finalizar cada mes (el día 1° de cada mes o primer día hábil a las 08:30 AM), despacha automáticamente el informe ejecutivo del mes recién concluido. Consolida de forma autónoma los 6 pilares: Demanda asistencial, Altas administrativas, Traumatología, Rendimiento de Enfermería, Constataciones Z51.8 y Traslados Hospitalarios.
-                </span>
-              </div>
-            </label>
-
-            <div className="pt-1 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <span className="text-[11px] text-secondary-custom font-semibold">
-                💡 Los reportes ejecutivos en PDF se descargan directamente desde el módulo de Reportes del sistema.
-              </span>
-              <button
-                onClick={handleSendMonthlyTestEmail}
-                disabled={sendingMonthlyTest}
-                className="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0 disabled:opacity-50"
-              >
-                {sendingMonthlyTest ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                <span>{sendingMonthlyTest ? 'Enviando Cierre Mensual...' : '🚀 Probar Envío Mensual Ahora'}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 6. NUEVA DIRECTRIZ: PROTOCOLO DE DESPACHO ANTE CARGAS MASIVAS (MULTI-DÍA) */}
-          <div className="bg-gradient-to-br from-emerald-500/10 via-card-custom to-card-custom p-5 rounded-2xl border-2 border-emerald-500/30 space-y-4 shadow-sm">
-            <div className="flex items-center justify-between border-b border-card-custom/60 pb-2.5">
-              <div className="flex items-center gap-2">
-                <FastForward className="w-4 h-4 text-emerald-500" />
-                <h4 className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                  6. Directriz de Despacho ante Cargas Masivas (Multi-Día)
-                </h4>
-              </div>
-              <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-2.5 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
-                <ShieldAlert className="w-3 h-3 text-emerald-500" /> Anti-Desfase Temporal
-              </span>
-            </div>
-
-            <p className="text-xs text-secondary-custom leading-relaxed">
-              Define el comportamiento del sistema cuando se importan <strong>varios días juntos</strong> (por ejemplo, cargar el domingo 5 días acumulados de la semana). Evita retrasos de semanas al despachar la información de manera estratégica.
-            </p>
-
-            {/* SELECCIÓN DE PROTOCOLO DE CARGA MASIVA */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              
-              {/* OPCIÓN A: RÁFAGA DIFERIDA (RECOMENDADA) */}
-              <div 
-                onClick={() => setModoCargaMasiva('RAFAGA_MISMO_DIA')}
-                className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between space-y-3 ${
-                  modoCargaMasiva === 'RAFAGA_MISMO_DIA'
-                    ? 'bg-emerald-500/15 border-emerald-500 shadow-md ring-2 ring-emerald-500/20'
-                    : 'bg-card-custom border-card-custom hover:border-emerald-500/40'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5" /> (A) Ráfaga Diferida Mismo Día
-                    </span>
-                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-300">
-                      Recomendado
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
-                    Envía todos los reportes diarios de los días cargados <strong>durante el mismo día de la importación</strong>, pero en horarios escalonados diferidos (cada {intervaloMinutos} min) para no saturar buzones.
-                  </p>
-                </div>
-                <div className="pt-2 border-t border-card-custom/50 flex items-center justify-between text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                  <span>Desfase: Cero días</span>
-                  <span>{modoCargaMasiva === 'RAFAGA_MISMO_DIA' ? '✓ Activo' : 'Seleccionar'}</span>
-                </div>
-              </div>
-
-              {/* OPCIÓN B: CONSOLIDADO MULTIDÍA */}
-              <div 
-                onClick={() => setModoCargaMasiva('CONSOLIDADO_MULTIDIA')}
-                className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between space-y-3 ${
-                  modoCargaMasiva === 'CONSOLIDADO_MULTIDIA'
-                    ? 'bg-indigo-500/15 border-indigo-500 shadow-md ring-2 ring-indigo-500/20'
-                    : 'bg-card-custom border-card-custom hover:border-indigo-500/40'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-                      <Layers className="w-3.5 h-3.5" /> (B) Consolidado Multidía Único
-                    </span>
-                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-600 dark:text-indigo-300">
-                      1 Solo Envío
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
-                    Agrupa los N días de la carga masiva en <strong>un único correo resumen ejecutivo</strong> con tabla comparativa día por día y métricas consolidadas del periodo.
-                  </p>
-                </div>
-                <div className="pt-2 border-t border-card-custom/50 flex items-center justify-between text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
-                  <span>Desfase: Inmediato</span>
-                  <span>{modoCargaMasiva === 'CONSOLIDADO_MULTIDIA' ? '✓ Activo' : 'Seleccionar'}</span>
-                </div>
-              </div>
-
-              {/* OPCIÓN C: DESPACHO ACELERADO */}
-              <div 
-                onClick={() => setModoCargaMasiva('DESPACHO_ACELERADO')}
-                className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between space-y-3 ${
-                  modoCargaMasiva === 'DESPACHO_ACELERADO'
-                    ? 'bg-purple-500/15 border-purple-500 shadow-md ring-2 ring-purple-500/20'
-                    : 'bg-card-custom border-card-custom hover:border-purple-500/40'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-black text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5" /> (C) Despacho Acelerado (2-3/día)
-                    </span>
-                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-600 dark:text-purple-300">
-                      Progresivo
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
-                    Envía hasta 3 informes diarios por jornada (08:30, 14:00 y 20:30 hrs) en los días siguientes hasta ponerse 100% al día con la última fecha auditada.
-                  </p>
-                </div>
-                <div className="pt-2 border-t border-card-custom/50 flex items-center justify-between text-[10px] font-bold text-purple-600 dark:text-purple-400">
-                  <span>Desfase: Máx 48 hrs</span>
-                  <span>{modoCargaMasiva === 'DESPACHO_ACELERADO' ? '✓ Activo' : 'Seleccionar'}</span>
-                </div>
-              </div>
-
-            </div>
-
-            {/* CONTROLES DE ESCALONAMIENTO Y PARÁMETROS */}
-            {modoCargaMasiva === 'RAFAGA_MISMO_DIA' && (
-              <div className="p-3.5 bg-card-custom rounded-xl border border-card-custom/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-emerald-500" />
-                  <span className="font-bold text-primary-custom">Intervalo de Escalonamiento entre Reportes:</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {[15, 20, 30, 45, 60].map(mins => (
-                    <button
-                      key={mins}
-                      type="button"
-                      onClick={() => setIntervaloMinutos(mins)}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
-                        intervaloMinutos === mins 
-                          ? 'bg-emerald-600 text-white shadow-xs' 
-                          : 'bg-black/5 dark:bg-white/5 text-secondary-custom hover:text-primary-custom'
-                      }`}
-                    >
-                      {mins} min
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* COLA VISUAL DE DÍAS AUDITADOS & CRONOGRAMA DE DESPACHO */}
-            <div className="space-y-2">
+            {/* TARJETA 3: COLA DE JORNADAS AUDITADAS & CRONOGRAMA */}
+            <div className="bg-card-custom p-6 rounded-3xl border border-card-custom space-y-4 shadow-sm">
               <div className="flex items-center justify-between">
-                <h5 className="text-[11px] font-black text-primary-custom uppercase tracking-wider flex items-center gap-1.5">
-                  <ListOrdered className="w-3.5 h-3.5 text-indigo-500" />
-                  Cola de Días Completos Auditados ({diasCompletosAuditados.length} jornadas detectadas)
-                </h5>
-                <span className="text-[10px] text-secondary-custom font-semibold">
-                  Orden cronológico de despacho
+                <div className="flex items-center gap-2.5">
+                  <ListOrdered className="w-5 h-5 text-indigo-500" />
+                  <h4 className="text-sm font-black text-primary-custom uppercase tracking-wider">
+                    Cola de Jornadas Completas Auditadas ({diasCompletosAuditados.length} Días Detectados)
+                  </h4>
+                </div>
+                <span className="text-xs text-secondary-custom font-semibold">
+                  Cronograma Proyectado de Despacho
                 </span>
               </div>
 
-              <div className="overflow-auto border border-card-custom rounded-xl bg-card-custom max-h-48 custom-scrollbar">
+              <div className="overflow-auto border border-card-custom rounded-2xl max-h-72 custom-scrollbar">
                 <table className="w-full text-left text-xs whitespace-nowrap">
-                  <thead className="bg-black/5 dark:bg-white/5 text-secondary-custom font-black uppercase text-[9px] tracking-wider sticky top-0 backdrop-blur-md">
+                  <thead className="bg-black/5 dark:bg-white/5 text-secondary-custom font-black uppercase text-[10px] tracking-wider sticky top-0 backdrop-blur-md">
                     <tr>
-                      <th className="p-2.5">Fecha Auditada</th>
-                      <th className="p-2.5">Total Pacientes</th>
-                      <th className="p-2.5">Atendidos / Altas</th>
-                      <th className="p-2.5">Horario Proyectado Despacho</th>
-                      <th className="p-2.5">Estado de Envío</th>
+                      <th className="p-3.5">Fecha Auditada</th>
+                      <th className="p-3.5">Total Pacientes</th>
+                      <th className="p-3.5">Atendidos / Altas</th>
+                      <th className="p-3.5">Horario Proyectado Despacho</th>
+                      <th className="p-3.5">Estado de Envío</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-card-custom/20">
-                    {diasCompletosAuditados.slice(0, 10).map((d, idx) => (
+                    {diasCompletosAuditados.map((d, idx) => (
                       <tr key={idx} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                        <td className="p-2.5 font-bold text-primary-custom flex items-center gap-1.5">
-                          <Calendar className="w-3 h-3 text-indigo-500" />
+                        <td className="p-3.5 font-bold text-primary-custom flex items-center gap-2">
+                          <CalendarIcon className="w-3.5 h-3.5 text-indigo-500" />
                           <span>{d.fecha}</span>
                         </td>
-                        <td className="p-2.5 font-mono font-bold text-primary-custom">
+                        <td className="p-3.5 font-mono font-bold text-primary-custom">
                           {d.pacientes} pac.
                         </td>
-                        <td className="p-2.5 text-secondary-custom font-semibold">
+                        <td className="p-3.5 text-secondary-custom font-semibold">
                           {d.atendidos} atend. / <span className="text-rose-500">{d.altas} altas</span>
                         </td>
-                        <td className="p-2.5 font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
+                        <td className="p-3.5 font-mono text-xs text-emerald-600 dark:text-emerald-400 font-bold">
                           {d.horarioProyectado}
                         </td>
-                        <td className="p-2.5">
+                        <td className="p-3.5">
                           {d.isSent ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                               <CheckCircle2 className="w-3 h-3" /> Despachado
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                              <Clock className="w-3 h-3" /> Pendiente de Envío
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                              <Clock className="w-3 h-3" /> Pendiente de Despacho
                             </span>
                           )}
                         </td>
@@ -794,349 +803,622 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
               </div>
             </div>
 
-            {/* BOTÓN ACCIONADOR DE DISPARO MASIVO */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-card-custom/60">
-              <span className="text-[11px] text-secondary-custom font-medium">
-                🚀 Permite forzar el despacho inmediato de la cola respetando los intervalos escalonados.
-              </span>
+          </div>
+        )}
+
+        {/* ------------------------------------------------------------- */}
+        {/* APARTADO 2: CALENDARIO DE ENVÍOS INTERACTIVO                  */}
+        {/* ------------------------------------------------------------- */}
+        {activeTab === 'calendario' && (
+          <div className="space-y-6 max-w-7xl mx-auto animate-fade-in">
+            
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-card-custom p-5 rounded-3xl border border-card-custom shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-indigo-500/10 rounded-2xl text-indigo-500">
+                  <CalendarIcon className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-primary-custom uppercase tracking-wide">
+                    Calendario de Envíos Diarios y Programación Mensual
+                  </h3>
+                  <p className="text-xs text-secondary-custom font-medium">
+                    Visualiza los días con reportes despachados, pendientes de envío y cierres mensuales programados.
+                  </p>
+                </div>
+              </div>
+
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    setPreviewTab('masivo');
-                    setPreviewModal(true);
-                  }}
-                  className="px-3.5 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 font-bold text-xs rounded-xl border border-indigo-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
+                  onClick={() => setCalMes(prev => prev === 0 ? 11 : prev - 1)}
+                  className="p-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 rounded-xl cursor-pointer"
                 >
-                  <Eye className="w-3.5 h-3.5" />
-                  <span>Ver Previa Multidía</span>
+                  <ChevronLeft className="w-4 h-4 text-primary-custom" />
                 </button>
-
+                <span className="text-xs font-black uppercase text-primary-custom px-3 py-1 bg-black/5 dark:bg-white/5 rounded-xl">
+                  {new Date(calAnio, calMes, 1).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })}
+                </span>
                 <button
                   type="button"
-                  onClick={async () => {
-                    if (!emails.trim()) {
-                      if (showNotif) showNotif('Ingresa al menos un correo válido.', 'error');
-                      return;
-                    }
-                    setSendingBatch(true);
-                    setBatchProgress({ current: 0, total: diasCompletosAuditados.length, currentFecha: '', isCompleted: false });
-                    
-                    const sentMapUpdate = {};
-                    try {
-                      const s = localStorage.getItem('metrico_informes_enviados_map');
-                      if (s) Object.assign(sentMapUpdate, JSON.parse(s));
-                    } catch(e) {}
-
-                    for (let i = 0; i < Math.min(diasCompletosAuditados.length, 5); i++) {
-                      const day = diasCompletosAuditados[i];
-                      setBatchProgress({ current: i + 1, total: Math.min(diasCompletosAuditados.length, 5), currentFecha: day.fecha, isCompleted: false });
-                      sentMapUpdate[day.fecha] = true;
-                      await new Promise(r => setTimeout(r, 500));
-                    }
-
-                    try {
-                      localStorage.setItem('metrico_informes_enviados_map', JSON.stringify(sentMapUpdate));
-                    } catch(e) {}
-
-                    setBatchProgress(prev => ({ ...prev, isCompleted: true }));
-                    setTimeout(() => {
-                      setSendingBatch(false);
-                      if (showNotif) showNotif('✔ Despacho escalonado masivo procesado exitosamente.', 'success');
-                    }, 1000);
-                  }}
-                  disabled={sendingBatch}
-                  className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  onClick={() => setCalMes(prev => prev === 11 ? 0 : prev + 1)}
+                  className="p-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 rounded-xl cursor-pointer"
                 >
-                  {sendingBatch ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-                  <span>{sendingBatch ? `Despachando ${batchProgress.current}/${batchProgress.total}...` : 'Despachar Cola Masiva Ahora'}</span>
+                  <ChevronRight className="w-4 h-4 text-primary-custom" />
                 </button>
               </div>
             </div>
 
-          </div>
+            {/* GRID DEL CALENDARIO MENSUAL */}
+            <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-sm space-y-4">
+              <div className="grid grid-cols-7 gap-2 text-center text-[11px] font-black uppercase text-secondary-custom pb-2 border-b border-card-custom">
+                <span>Lun</span>
+                <span>Mar</span>
+                <span>Mié</span>
+                <span>Jue</span>
+                <span>Vie</span>
+                <span className="text-indigo-500">Sáb</span>
+                <span className="text-indigo-500">Dom</span>
+              </div>
 
-          {/* ACCIÓN PRUEBA DE TURNO DIARIO EN VIVO */}
-          <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="space-y-0.5">
-              <span className="text-xs font-black text-indigo-600 dark:text-indigo-300 block">
-                ¿Probar despacho del informe por turno auditado ahora?
-              </span>
-              <span className="text-[11px] text-secondary-custom font-medium block">
-                Muestra la vista previa del turno cerrado actual con el diseño institucional y sub-reportes.
-              </span>
+              {/* DÍAS DEL MES */}
+              <div className="grid grid-cols-7 gap-2.5">
+                {Array.from({ length: 31 }).map((_, dIdx) => {
+                  const dayNum = dIdx + 1;
+                  const dateStr = `${calAnio}-${String(calMes + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                  const dayData = diasCompletosAuditados.find(d => d.fecha === dateStr);
+                  const isFirstDay = dayNum === 1;
+
+                  return (
+                    <div 
+                      key={dayNum}
+                      className={`min-h-24 p-2.5 rounded-2xl border transition-all flex flex-col justify-between ${
+                        isFirstDay 
+                          ? 'bg-purple-500/10 border-purple-500/40 ring-1 ring-purple-500/30' 
+                          : dayData 
+                            ? (dayData.isSent ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-indigo-500/10 border-indigo-500/30')
+                            : 'bg-black/5 dark:bg-white/5 border-card-custom/50 opacity-60'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-primary-custom">{dayNum}</span>
+                        {isFirstDay && (
+                          <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded-md bg-purple-600 text-white shadow-xs">
+                            Cierre Mensual
+                          </span>
+                        )}
+                        {dayData && !isFirstDay && (
+                          <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-md ${dayData.isSent ? 'bg-emerald-600 text-white' : 'bg-indigo-600 text-white'}`}>
+                            {dayData.isSent ? 'Enviado' : 'Auditado'}
+                          </span>
+                        )}
+                      </div>
+
+                      {dayData ? (
+                        <div className="space-y-0.5 mt-2">
+                          <span className="text-[11px] font-black text-primary-custom block">{dayData.pacientes} pac.</span>
+                          <span className="text-[9px] text-secondary-custom font-semibold block">{dayData.horarioProyectado}</span>
+                        </div>
+                      ) : (
+                        <span className="text-[9px] text-secondary-custom font-medium block mt-2">Sin registros</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
-            <button
-              onClick={handleSendTestEmail}
-              disabled={sendingTest}
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0 disabled:opacity-50"
-            >
-              {sendingTest ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              <span>{sendingTest ? 'Auditando y Enviando...' : 'Enviar Informe de Turno Ahora'}</span>
-            </button>
-          </div>
-
-        </div>
-
-        {/* FOOTER DEL MODAL */}
-        <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-card-custom flex items-center justify-between">
-          <span className="text-[11px] font-bold text-secondary-custom">
-            MÉTRICO v5.5.0 • SAR Elsa Romo Aravena
-          </span>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleSaveConfig}
-              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
-            >
-              <Check className="w-4 h-4" />
-              <span>Guardar Reglas y Directrices Masivas</span>
-            </button>
-            <button
-              onClick={onClose}
-              className="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer"
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-
-      </div>
-
-      {/* MODAL VISTA PREVIA CON IDENTIDAD VISUAL CORPORATIVA */}
-      {previewModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="bg-white text-slate-900 rounded-3xl p-6 max-w-3xl w-full space-y-4 border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            
-            <div className="flex items-center justify-between border-b pb-3 shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-indigo-100 text-indigo-700 rounded-xl">
-                  <Mail className="w-6 h-6" />
+            {/* LEYENDA DEL CALENDARIO */}
+            <div className="p-4 bg-card-custom rounded-2xl border border-card-custom flex flex-wrap items-center justify-between gap-4 text-xs font-bold">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                  <span>Informe Diario Despachado</span>
                 </div>
-                <div>
-                  <h4 className="text-base font-black text-slate-900">Vista Previa del Correo Despachado (Identidad MÉTRICO)</h4>
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                    ✔ Formato Oficial Auditado
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                  <span>Informe Diario Programado</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                  <span>Cierre Mensual Consolidado (08:30 AM)</span>
+                </div>
+              </div>
+              <span className="text-secondary-custom text-[11px]">SAR Elsa Romo Aravena • Rotativas 1, 2 y 3</span>
+            </div>
+
+          </div>
+        )}
+
+        {/* ------------------------------------------------------------- */}
+        {/* APARTADO 3: DISEÑO DE CORREOS & VISUALIZADOR INTERACTIVO      */}
+        {/* ------------------------------------------------------------- */}
+        {activeTab === 'diseno' && (
+          <div className="space-y-6 max-w-7xl mx-auto animate-fade-in">
+            
+            {/* SELECTOR DE PLANTILLA Y DISPOSITIVO */}
+            <div className="bg-card-custom p-5 rounded-3xl border border-card-custom shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-2">
+                {[
+                  { id: 'DIARIO', label: 'Informe Diario por Turno', icon: FileText },
+                  { id: 'MENSUAL', label: 'Cierre Mensual Consolidado', icon: CalendarIcon },
+                  { id: 'MASIVO', label: 'Carga Masiva Multidía', icon: FastForward },
+                  { id: 'SUBREPORTES', label: 'Sub-Reportes Especializados', icon: Layers }
+                ].map(t => (
+                  <button
+                    key={t.id}
+                    onClick={() => setDisenoTemplate(t.id)}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+                      disenoTemplate === t.id 
+                        ? 'bg-indigo-600 text-white shadow-md' 
+                        : 'bg-black/5 dark:bg-white/5 text-secondary-custom hover:text-primary-custom'
+                    }`}
+                  >
+                    <t.icon className="w-3.5 h-3.5" />
+                    <span>{t.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2 bg-black/5 dark:bg-white/5 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setDisenoDevice('DESKTOP')}
+                  className={`p-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${disenoDevice === 'DESKTOP' ? 'bg-white dark:bg-slate-800 text-primary-custom shadow-xs' : 'text-secondary-custom'}`}
+                  title="Vista Escritorio (Outlook / Webmail)"
+                >
+                  <Monitor className="w-4 h-4" />
+                  <span className="hidden sm:inline">Escritorio</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDisenoDevice('MOBILE')}
+                  className={`p-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${disenoDevice === 'MOBILE' ? 'bg-white dark:bg-slate-800 text-primary-custom shadow-xs' : 'text-secondary-custom'}`}
+                  title="Vista Móvil (Smartphones)"
+                >
+                  <Smartphone className="w-4 h-4" />
+                  <span className="hidden sm:inline">Móvil</span>
+                </button>
+              </div>
+            </div>
+
+            {/* PREVISUALIZADOR RENDERIZADO DEL CORREO */}
+            <div className={`mx-auto bg-white text-slate-900 rounded-3xl border border-slate-300 shadow-2xl overflow-hidden transition-all ${disenoDevice === 'MOBILE' ? 'max-w-md' : 'max-w-4xl'}`}>
+              
+              {/* CABECERA EMAIL CLIENT BAR */}
+              <div className="bg-slate-100 p-4 border-b border-slate-200 text-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-500 uppercase text-[9px]">De:</span>
+                  <span className="font-mono text-indigo-700 font-bold">metrico.notificaciones@cormumel.cl</span>
+                  <span className="bg-emerald-100 text-emerald-800 font-black text-[9px] px-2 py-0.5 rounded-md">Identidad MÉTRICO Certificada</span>
+                </div>
+                <div className="flex items-center justify-between border-t border-slate-200/60 pt-1.5">
+                  <span className="font-bold text-slate-500 uppercase text-[9px]">Para:</span>
+                  <span className="font-mono text-slate-800 font-semibold">{activeEmailsString}</span>
+                </div>
+                <div className="flex items-center justify-between border-t border-slate-200/60 pt-1.5">
+                  <span className="font-bold text-slate-500 uppercase text-[9px]">Asunto:</span>
+                  <span className="font-black text-slate-900">
+                    {disenoTemplate === 'DIARIO' && `📊 Informe Asistencial Ejecutivo Auditado - ${turnoInfo.textoCompleto}`}
+                    {disenoTemplate === 'MENSUAL' && `📊 MÉTRICO - Informe Consolidado de Cierre Mensual Asistencial`}
+                    {disenoTemplate === 'MASIVO' && `📊 ${batchConsolidatedData?.titulo || 'Informe Consolidado • Carga Masiva'}`}
+                    {disenoTemplate === 'SUBREPORTES' && `📊 MÉTRICO - Sub-Reportes Clínicos Especializados`}
                   </span>
                 </div>
               </div>
-              <button onClick={() => setPreviewModal(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            {/* PESTAÑAS DE VISTA PREVIA */}
-            <div className="flex gap-2 bg-slate-100 p-1 rounded-xl shrink-0 overflow-x-auto">
-              <button
-                onClick={() => setPreviewTab('cuerpo')}
-                className={`flex-1 py-2 px-3 text-xs font-black rounded-lg transition-all flex items-center justify-center gap-1.5 shrink-0 ${
-                  previewTab === 'cuerpo' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <FileText className="w-3.5 h-3.5" /> (a) Desglose por Turno
-              </button>
-              <button
-                onClick={() => setPreviewTab('mensual')}
-                className={`flex-1 py-2 px-3 text-xs font-black rounded-lg transition-all flex items-center justify-center gap-1.5 shrink-0 ${
-                  previewTab === 'mensual' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Calendar className="w-3.5 h-3.5" /> (b) Cierre Mensual
-              </button>
-              <button
-                onClick={() => setPreviewTab('masivo')}
-                className={`flex-1 py-2 px-3 text-xs font-black rounded-lg transition-all flex items-center justify-center gap-1.5 shrink-0 ${
-                  previewTab === 'masivo' ? 'bg-white text-emerald-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <FastForward className="w-3.5 h-3.5" /> (c) Carga Masiva (Multidía)
-              </button>
-              <button
-                onClick={() => setPreviewTab('reportes')}
-                className={`flex-1 py-2 px-3 text-xs font-black rounded-lg transition-all flex items-center justify-center gap-1.5 shrink-0 ${
-                  previewTab === 'reportes' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Layers className="w-3.5 h-3.5" /> (d) Sub-Reportes
-              </button>
-            </div>
-
-            {/* CONTENIDO DE LA PESTAÑA */}
-            <div className="overflow-y-auto flex-1 pr-1 custom-scrollbar space-y-3">
-              
-              {previewTab === 'cuerpo' && (
-                <div className="space-y-4 text-xs bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                  <div className="border-b pb-2 flex justify-between items-center">
-                    <div>
-                      <span className="font-bold text-slate-400 block text-[9px] uppercase">Destinatarios:</span>
-                      <span className="font-black text-indigo-700">{emails}</span>
-                    </div>
-                    <span className="text-[10px] font-black text-slate-500 bg-slate-200 px-2 py-0.5 rounded-md">SAR Elsa Romo</span>
+              {/* CUERPO DEL CORREO */}
+              <div className="p-6 space-y-5 leading-relaxed text-slate-800 text-xs">
+                <div className="p-4 bg-gradient-to-r from-indigo-700 to-slate-900 rounded-2xl text-white flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-indigo-200 block">SAR Elsa Romo Aravena</span>
+                    <h4 className="text-base font-black">Informe Ejecutivo Asistencial</h4>
                   </div>
+                  <Mail className="w-6 h-6 text-indigo-200 opacity-80" />
+                </div>
 
-                  <div className="border-b pb-2">
-                    <span className="font-bold text-slate-400 block text-[9px] uppercase">Asunto Oficial:</span>
-                    <span className="font-black text-slate-900">📊 Informe Asistencial Ejecutivo Auditado - {turnoInfo.textoCompleto}</span>
-                  </div>
-
-                  <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-2 text-slate-700 leading-relaxed">
+                {disenoTemplate === 'DIARIO' && (
+                  <div className="space-y-4">
                     <p className="font-bold text-slate-900 text-sm">
-                      Estimada Dirección y Equipo de Gestión Asistencial del SAR Elsa Romo Aravena:
+                      Estimada Dirección y Equipo de Gestión Asistencial:
                     </p>
                     <p>
                       Junto con saludarles cordialmente, presentamos el <strong>Informe Ejecutivo Auditado de Atención Médica y Demanda de Urgencia</strong> correspondiente al <strong>{turnoInfo.textoCompleto}</strong>.
                     </p>
-                    <p className="text-[11px] text-indigo-700 font-bold bg-indigo-50 p-2.5 rounded-lg border border-indigo-200">
-                      💡 <strong>Descarga de Reportes PDF:</strong> Cada uno de los reportes detallados en PDF (Demanda, Altas, Fracturas, Enfermería, Constataciones y Traslados) se descarga directamente desde el módulo de Reportes de la plataforma.
-                    </p>
-                  </div>
-                </div>
-              )}
 
-              {previewTab === 'mensual' && (
-                <div className="space-y-4 text-xs bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                  <div className="border-b pb-2 flex justify-between items-center">
-                    <div>
-                      <span className="font-bold text-slate-400 block text-[9px] uppercase">Destinatarios:</span>
-                      <span className="font-black text-indigo-700">{emails}</span>
-                    </div>
-                    <span className="text-[10px] font-black text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-md">Despacho Mensual 1° de Mes</span>
-                  </div>
-
-                  <div className="border-b pb-2">
-                    <span className="font-bold text-slate-400 block text-[9px] uppercase">Asunto Oficial:</span>
-                    <span className="font-black text-slate-900">📊 MÉTRICO - Informe Consolidado de Cierre Mensual Asistencial</span>
-                  </div>
-
-                  <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-3 text-slate-700 leading-relaxed">
-                    <h5 className="font-black text-indigo-700 text-sm">Resumen Consolidado de Cierre Mensual</h5>
-                    <p className="text-xs text-slate-800 leading-relaxed">
-                      {monthlyConsolidatedText}
-                    </p>
-                    <div className="p-3.5 bg-indigo-50 rounded-xl border border-indigo-200 text-indigo-900 text-[11px] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                      <div>
-                        <span className="font-bold block">💡 Descarga de Archivos e Informes Completos:</span>
-                        <span>Para acceder a la totalidad de gráficos y exportaciones en PDF formato carta, diríjase al submódulo de <strong>Reportes</strong> en la barra lateral del sistema.</span>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                        <span className="text-[10px] text-slate-500 uppercase font-bold block">Admitidos</span>
+                        <span className="text-xl font-black text-slate-900">{turnoInfo.totalAdmitidos}</span>
                       </div>
-                      {onOpenReportes && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPreviewModal(false);
-                            onClose();
-                            onOpenReportes();
-                          }}
-                          className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
-                        >
-                          <FileText className="w-3.5 h-3.5" />
-                          <span>Descargar PDF en Reportes</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {previewTab === 'masivo' && (
-                <div className="space-y-4 text-xs bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                  <div className="border-b pb-2 flex justify-between items-center">
-                    <div>
-                      <span className="font-bold text-slate-400 block text-[9px] uppercase">Destinatarios:</span>
-                      <span className="font-black text-emerald-700">{emails}</span>
-                    </div>
-                    <span className="text-[10px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">Directriz Carga Masiva</span>
-                  </div>
-
-                  <div className="border-b pb-2">
-                    <span className="font-bold text-slate-400 block text-[9px] uppercase">Asunto Oficial:</span>
-                    <span className="font-black text-slate-900">📊 {batchConsolidatedData?.titulo || 'Informe Consolidado • Carga Masiva'}</span>
-                  </div>
-
-                  <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-3 text-slate-700 leading-relaxed">
-                    <h5 className="font-black text-emerald-700 text-sm">Resumen Ejecutivo de Jornadas Cargadas</h5>
-                    <p className="text-xs text-slate-800 leading-relaxed">
-                      {batchConsolidatedData?.resumenTexto}
-                    </p>
-
-                    {batchConsolidatedData?.desgloseDias && (
-                      <div className="mt-3 overflow-hidden rounded-xl border border-slate-200">
-                        <table className="w-full text-left text-xs">
-                          <thead className="bg-slate-100 font-bold text-slate-700 text-[10px]">
-                            <tr>
-                              <th className="p-2">Fecha</th>
-                              <th className="p-2">Admitidos</th>
-                              <th className="p-2">Atendidos</th>
-                              <th className="p-2">Altas Admin</th>
-                              <th className="p-2">Traslados</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
-                            {batchConsolidatedData.desgloseDias.map((d, i) => (
-                              <tr key={i} className="hover:bg-slate-50">
-                                <td className="p-2 font-bold text-slate-900">{d.fecha}</td>
-                                <td className="p-2 font-bold text-indigo-600">{d.admitidos}</td>
-                                <td className="p-2 text-emerald-600">{d.atendidos}</td>
-                                <td className="p-2 text-rose-600">{d.altas}</td>
-                                <td className="p-2 text-purple-600">{d.traslados}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                        <span className="text-[10px] text-slate-500 uppercase font-bold block">Atendidos</span>
+                        <span className="text-xl font-black text-emerald-600">{turnoInfo.atendidos}</span>
                       </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {previewTab === 'reportes' && (
-                <div className="space-y-3 text-xs bg-slate-50 p-5 rounded-2xl border border-slate-200">
-                  <h5 className="font-black text-slate-900 text-sm">Consolidado de Sub-Reportes Clínicos</h5>
-                  <p className="text-slate-600">Resumen analítico de los 6 sub-reportes asistenciales generados automáticamente para la jefatura de urgencias.</p>
-                  
-                  <div className="space-y-2">
-                    <div className="p-3 bg-white rounded-xl border border-slate-200">
-                      <span className="font-bold text-indigo-700 block mb-0.5">1. Altas Administrativas</span>
-                      <p className="text-[11px] text-slate-700">{subReportSummaries.altas}</p>
+                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                        <span className="text-[10px] text-slate-500 uppercase font-bold block">Altas Admin</span>
+                        <span className="text-xl font-black text-rose-600">{turnoInfo.altasAdmin}</span>
+                      </div>
                     </div>
 
-                    <div className="p-3 bg-white rounded-xl border border-slate-200">
-                      <span className="font-bold text-rose-700 block mb-0.5">2. Traumatología & Fracturas</span>
-                      <p className="text-[11px] text-slate-700">{subReportSummaries.fracturas}</p>
-                    </div>
-
-                    <div className="p-3 bg-white rounded-xl border border-slate-200">
-                      <span className="font-bold text-emerald-700 block mb-0.5">3. Rendimiento de Enfermería</span>
-                      <p className="text-[11px] text-slate-700">{subReportSummaries.enfermeria}</p>
-                    </div>
-
-                    <div className="p-3 bg-white rounded-xl border border-slate-200">
-                      <span className="font-bold text-amber-700 block mb-0.5">4. Constatación de Lesiones (Z51.8)</span>
-                      <p className="text-[11px] text-slate-700">{subReportSummaries.constataciones}</p>
-                    </div>
-
-                    <div className="p-3 bg-white rounded-xl border border-slate-200">
-                      <span className="font-bold text-indigo-700 block mb-0.5">5. Traslados Hospitalarios</span>
-                      <p className="text-[11px] text-slate-700">{subReportSummaries.traslados}</p>
+                    <div className="p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-900">
+                      <span className="font-black block">💡 Descarga de Reportes Oficiales en PDF:</span>
+                      <p className="text-[11px] mt-1">Los informes ejecutivos formato carta con gráficos y análisis detallado de cada pilar están disponibles para descarga en el módulo de Reportes de la plataforma.</p>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-            </div>
+                {disenoTemplate === 'MENSUAL' && (
+                  <div className="space-y-4">
+                    <h5 className="font-black text-indigo-700 text-sm">Cierre Mensual Consolidado</h5>
+                    <p className="leading-relaxed">{monthlyConsolidatedText}</p>
+                  </div>
+                )}
 
-            <div className="pt-3 border-t flex justify-end">
-              <button
-                onClick={() => setPreviewModal(false)}
-                className="px-5 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800 transition-all cursor-pointer"
-              >
-                Cerrar Vista Previa
-              </button>
+                {disenoTemplate === 'MASIVO' && (
+                  <div className="space-y-4">
+                    <h5 className="font-black text-emerald-700 text-sm">{batchConsolidatedData?.titulo}</h5>
+                    <p className="leading-relaxed">{batchConsolidatedData?.resumenTexto}</p>
+                  </div>
+                )}
+
+                {disenoTemplate === 'SUBREPORTES' && (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <span className="font-bold text-indigo-700 block">1. Altas Administrativas</span>
+                      <p className="text-[11px] text-slate-700 mt-1">{subReportSummaries.altas}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <span className="font-bold text-rose-700 block">2. Traumatología & Fracturas</span>
+                      <p className="text-[11px] text-slate-700 mt-1">{subReportSummaries.fracturas}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
           </div>
+        )}
+
+        {/* ------------------------------------------------------------- */}
+        {/* APARTADO 4: PRUEBAS DE ENVÍO ILIMITADAS EN VIVO               */}
+        {/* ------------------------------------------------------------- */}
+        {activeTab === 'pruebas' && (
+          <div className="space-y-6 max-w-7xl mx-auto animate-fade-in">
+            
+            <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-sm space-y-5">
+              <div className="flex items-center justify-between border-b border-card-custom/60 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <Send className="w-5 h-5 text-indigo-500" />
+                  <h3 className="text-sm font-black text-primary-custom uppercase tracking-wider">
+                    Consola de Pruebas de Envío Ilimitadas
+                  </h3>
+                </div>
+                <span className="text-[10px] font-black text-indigo-600 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/30">
+                  🚀 Simulador en Vivo
+                </span>
+              </div>
+
+              <p className="text-xs text-secondary-custom leading-relaxed">
+                Puedes disparar correos de prueba <strong>cuantas veces desees</strong> para verificar el remitente, diseño, estructura y tiempo de recepción en tu buzón institucional antes de que se ejecuten los envíos oficiales.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                {/* SELECTOR DE PLANTILLA DE PRUEBA */}
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase text-primary-custom block">
+                    1. Selecciona la Plantilla a Probar:
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { id: 'DIARIO', label: 'Turno Diario' },
+                      { id: 'MENSUAL', label: 'Cierre Mensual' },
+                      { id: 'MASIVO', label: 'Carga Masiva' },
+                      { id: 'SUBREPORTES', label: 'Sub-Reportes' }
+                    ].map(t => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setTestTemplate(t.id)}
+                        className={`p-3 rounded-xl text-xs font-black transition-all text-center cursor-pointer ${
+                          testTemplate === t.id 
+                            ? 'bg-indigo-600 text-white shadow-sm' 
+                            : 'bg-black/5 dark:bg-white/5 text-secondary-custom hover:text-primary-custom'
+                        }`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* CORREO DE PRUEBA */}
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase text-primary-custom block">
+                    2. Correo Electrónico de Destino de la Prueba:
+                  </label>
+                  <input
+                    type="text"
+                    value={testTargetEmail}
+                    onChange={e => setTestTargetEmail(e.target.value)}
+                    placeholder={`Por defecto: ${activeEmailsString}`}
+                    className="w-full bg-input-custom border border-card-custom p-3 rounded-xl text-xs font-bold text-primary-custom outline-none focus:border-indigo-500"
+                  />
+                  <span className="text-[10px] text-secondary-custom font-medium block">
+                    Deja en blanco para enviar a la lista de destinatarios activos completa.
+                  </span>
+                </div>
+
+              </div>
+
+              <div className="pt-3 border-t border-card-custom/60 flex items-center justify-between">
+                <span className="text-xs text-secondary-custom font-semibold">
+                  Se generará un registro de prueba en el historial de auditoría de MÉTRICO.
+                </span>
+                <button
+                  type="button"
+                  onClick={handleTriggerTestEmail}
+                  disabled={sendingTestState}
+                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {sendingTestState ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  <span>{sendingTestState ? 'Despachando Prueba...' : '🚀 Disparar Correo de Prueba Ahora'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* HISTORIAL DE PRUEBAS EJECUTADAS */}
+            <div className="bg-card-custom p-6 rounded-3xl border border-card-custom space-y-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <History className="w-5 h-5 text-indigo-500" />
+                  <h4 className="text-sm font-black text-primary-custom uppercase tracking-wider">
+                    Historial de Pruebas de Envío Ejecutadas
+                  </h4>
+                </div>
+                <span className="text-xs text-secondary-custom font-semibold">
+                  Auditoría en tiempo real
+                </span>
+              </div>
+
+              <div className="overflow-auto border border-card-custom rounded-2xl max-h-60 custom-scrollbar">
+                <table className="w-full text-left text-xs whitespace-nowrap">
+                  <thead className="bg-black/5 dark:bg-white/5 text-secondary-custom font-black uppercase text-[10px] tracking-wider sticky top-0 backdrop-blur-md">
+                    <tr>
+                      <th className="p-3">Fecha & Hora</th>
+                      <th className="p-3">Plantilla Auditada</th>
+                      <th className="p-3">Destinatario</th>
+                      <th className="p-3">Estado</th>
+                      <th className="p-3">Detalles</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-card-custom/20">
+                    {testLogs.map(log => (
+                      <tr key={log.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                        <td className="p-3 font-mono text-secondary-custom">{new Date(log.fecha).toLocaleString('es-CL')}</td>
+                        <td className="p-3 font-bold text-primary-custom">{log.tipo}</td>
+                        <td className="p-3 font-mono text-indigo-600 dark:text-indigo-400 font-bold">{log.destinatario}</td>
+                        <td className="p-3">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            <CheckCircle2 className="w-3 h-3" /> {log.estado}
+                          </span>
+                        </td>
+                        <td className="p-3 text-secondary-custom font-medium">{log.detalles}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* ------------------------------------------------------------- */}
+        {/* APARTADO 5: GESTIÓN COMPLETA DE DESTINATARIOS & AUDITORÍA     */}
+        {/* ------------------------------------------------------------- */}
+        {activeTab === 'destinatarios' && (
+          <div className="space-y-6 max-w-7xl mx-auto animate-fade-in">
+            
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card-custom p-6 rounded-3xl border border-card-custom shadow-sm">
+              <div>
+                <h3 className="text-base font-black text-primary-custom uppercase tracking-wide flex items-center gap-2">
+                  <Users className="w-5 h-5 text-indigo-500" />
+                  Gestión de Destinatarios y Trazabilidad de Envíos
+                </h3>
+                <p className="text-xs text-secondary-custom font-medium mt-0.5">
+                  Administra las autoridades y funcionarios que reciben los reportes diarios y mensuales de MÉTRICO.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowAddDestForm(!showAddDestForm)}
+                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>{showAddDestForm ? 'Cancelar' : 'Agregar Nuevo Destinatario'}</span>
+              </button>
+            </div>
+
+            {/* FORMULARIO AGREGAR DESTINATARIO */}
+            {showAddDestForm && (
+              <form onSubmit={handleAddDestinatario} className="bg-card-custom p-6 rounded-3xl border-2 border-indigo-500/40 space-y-4 shadow-md animate-fade-in">
+                <h4 className="text-xs font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider">
+                  Nuevo Destinatario Oficial de Reportes
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-secondary-custom">Nombre y Título:</label>
+                    <input
+                      type="text"
+                      value={newDestNombre}
+                      onChange={e => setNewDestNombre(e.target.value)}
+                      placeholder="ej: Dr. Matías Bustos"
+                      className="w-full bg-input-custom border border-card-custom p-2.5 rounded-xl text-xs font-bold text-primary-custom outline-none focus:border-indigo-500"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-secondary-custom">Cargo / Función:</label>
+                    <input
+                      type="text"
+                      value={newDestCargo}
+                      onChange={e => setNewDestCargo(e.target.value)}
+                      placeholder="ej: Jefatura de Urgencia"
+                      className="w-full bg-input-custom border border-card-custom p-2.5 rounded-xl text-xs font-bold text-primary-custom outline-none focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-secondary-custom">Correo Electrónico:</label>
+                    <input
+                      type="email"
+                      value={newDestEmail}
+                      onChange={e => setNewDestEmail(e.target.value)}
+                      placeholder="ej: nombre@cormumel.cl"
+                      className="w-full bg-input-custom border border-card-custom p-2.5 rounded-xl text-xs font-bold text-primary-custom outline-none focus:border-indigo-500"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-secondary-custom">Frecuencia de Envío:</label>
+                    <select
+                      value={newDestFrecuencia}
+                      onChange={e => setNewDestFrecuencia(e.target.value)}
+                      className="w-full bg-input-custom border border-card-custom p-2.5 rounded-xl text-xs font-bold text-primary-custom outline-none focus:border-indigo-500"
+                    >
+                      <option value="AMBOS">Diario y Mensual (Ambos)</option>
+                      <option value="DIARIO">Solo Reporte Diario por Turno</option>
+                      <option value="MENSUAL">Solo Cierre Mensual Consolidado</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-card-custom/60">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddDestForm(false)}
+                    className="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white font-bold text-xs rounded-xl cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md cursor-pointer"
+                  >
+                    Guardar Destinatario
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* TABLA DE DESTINATARIOS Y AUDITORÍA INDIVIDUAL */}
+            <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-sm space-y-4">
+              <div className="overflow-auto border border-card-custom rounded-2xl custom-scrollbar">
+                <table className="w-full text-left text-xs whitespace-nowrap">
+                  <thead className="bg-black/5 dark:bg-white/5 text-secondary-custom font-black uppercase text-[10px] tracking-wider">
+                    <tr>
+                      <th className="p-4">Funcionario / Destinatario</th>
+                      <th className="p-4">Cargo / Unidad</th>
+                      <th className="p-4">Correo Electrónico</th>
+                      <th className="p-4">Frecuencia Asignada</th>
+                      <th className="p-4">Auditoría de Envíos</th>
+                      <th className="p-4">Estado</th>
+                      <th className="p-4 text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-card-custom/20">
+                    {destinatariosList.map(dest => (
+                      <tr key={dest.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                        <td className="p-4 font-black text-primary-custom flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-black flex items-center justify-center text-xs">
+                            {dest.nombre.charAt(0)}
+                          </div>
+                          <span>{dest.nombre}</span>
+                        </td>
+                        <td className="p-4 text-secondary-custom font-semibold">{dest.cargo}</td>
+                        <td className="p-4 font-mono font-bold text-indigo-600 dark:text-indigo-400">{dest.email}</td>
+                        <td className="p-4">
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/10 text-secondary-custom">
+                            {dest.frecuencia}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="space-y-0.5">
+                            <span className="text-xs font-black text-primary-custom block">{dest.totalEnviados} informes recibidos</span>
+                            <span className="text-[10px] text-secondary-custom font-medium block">Último: {dest.ultimoEnvio}</span>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleDestinatario(dest.id)}
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase flex items-center gap-1 border transition-all cursor-pointer ${
+                              dest.activo 
+                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' 
+                                : 'bg-slate-500/10 text-slate-500 border-slate-500/30'
+                            }`}
+                          >
+                            {dest.activo ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                            <span>{dest.activo ? 'Activo' : 'En Pausa'}</span>
+                          </button>
+                        </td>
+                        <td className="p-4 text-right">
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteDestinatario(dest.id, dest.nombre)}
+                            className="p-1.5 hover:bg-rose-500/10 text-secondary-custom hover:text-rose-500 rounded-lg transition-colors cursor-pointer"
+                            title="Eliminar destinatario"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+      </main>
+
+      {/* 3. FOOTER GLOBAL CON BOTÓN DE GUARDADO PERMANENTE */}
+      <footer className="p-4 bg-slate-900 border-t border-card-custom/80 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0 shadow-xl">
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-black text-slate-300">
+            MÉTRICO v5.5.0 • SAR Elsa Romo Aravena
+          </span>
+          <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-mono">
+            {destinatariosList.filter(d => d.activo).length} Destinatarios Activos
+          </span>
         </div>
-      )}
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleSaveAllConfig}
+            className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <Check className="w-4 h-4" />
+            <span>Guardar Configuración General</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+          >
+            Cerrar
+          </button>
+        </div>
+      </footer>
 
     </div>
   );

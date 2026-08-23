@@ -8,6 +8,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.5.1',
+      version: 'v5.5.1',
+      fecha: '23 de Agosto, 2026',
+      badge: 'CENTRO DE CONTROL & DESPACHO A PANTALLA COMPLETA',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Módulo Integral de Reportes por Correo a Pantalla Completa y 5 Secciones de Control',
+      categoria: 'Notificaciones y Reportes',
+      icon: Mail,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: '1) Se transformó la ventana emergente en una vista a pantalla completa con navegación superior estructurada en 5 apartados clave: Detalle de Correos Programados, Calendario de Envíos, Diseño de Correos, Pruebas de Envío y Gestión de Destinatarios. 2) Se aclaró la automatización: el sistema detecta y despacha automáticamente en segundo plano según las directrices seleccionadas. 3) Se añadió consola de pruebas de envío ilimitadas con auditoría, selector multidispositivo para previsualizar plantillas y gestión integral de destinatarios con historial de entregas.',
+      instructivo: {
+        paraQueSirve: 'Brinda control total y centralizado sobre el despacho automático de informes diarios y mensuales, pruebas ilimitadas de diseño y administración de destinatarios institucionales.',
+        quePuedesVer: 'Al hacer clic en "Informe por Correo", se despliega la pantalla completa con 5 pestañas: 1. Detalle Programados, 2. Calendario de Envíos, 3. Diseño de Correos, 4. Pruebas de Envío y 5. Gestión de Destinatarios.',
+        ejemploUso: 'Navega entre las 5 pestañas superiores para ver el diseño responsive de los correos, disparar pruebas ilimitadas a tu bandeja o agregar nuevos directivos al listado.'
+      },
+      changes: [
+        'Arquitectura a Pantalla Completa: Eliminación de scrolls atrapados y vista panorámica 100% responsive.',
+        'Visualizador de Diseño Interactivo: Selector de plantillas y vista Desktop / Mobile en tiempo real.',
+        'Consola de Pruebas Ilimitadas: Envíos de prueba bajo demanda con log cronológico de auditoría.',
+        'Gestión Completa de Destinatarios: Altas, bajas, pausas y auditoría de informes entregados.'
+      ]
+    },
+    {
       id: 'v5.5.0',
       version: 'v5.5.0',
       fecha: '23 de Agosto, 2026',

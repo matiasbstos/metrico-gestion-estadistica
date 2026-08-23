@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.5.1',
+    version_tag: 'v5.5.1',
+    fecha_despliegue: '23 de Agosto, 2026',
+    proposito_actualizacion: 'Transformación del Módulo de Despacho de Correo a Pantalla Completa y Arquitectura de 5 Secciones Integradas.',
+    medios_y_stack: [
+      'React 18.3 (ModalConfiguracionCorreo.jsx, summaryGenerator.js, Dashboard.jsx)',
+      'Full-Screen Dedicated Viewport Architecture (5 Core Workspaces)',
+      'Interactive Email Design & Responsive Multi-Device Visualizer (Desktop/Mobile)',
+      'Recipient Management Engine with Granular Dispatch Audit & CRUD'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Despacho 100% Autónomo: Se consolidó la aclaración y arquitectura donde el sistema detecta de forma automática la finalización y auditoría completa de los días cargados para ejecutar el despacho programado según las directrices seleccionadas, manteniendo los botones interactivos como pruebas de contingencia bajo demanda. 2) Arquitectura de Pantalla Completa: Se rediseñó el módulo para ocupar el 100% del ancho y alto del viewport, eliminando scrolls superpuestos y organizando 5 apartados clave: (1) Detalle de Correos Programados con interruptor maestro de confirmación y selector de directrices masivas; (2) Calendario de Envíos con cuadrícula mensual y marcas de cierre consolidado; (3) Diseño de Correos con previsualización responsive HTML en vivo de todas las plantillas; (4) Pruebas de Envío Ilimitadas con log de auditoría en tiempo real; (5) Gestión Completa de Destinatarios con trazabilidad de envíos recibidos y alta/baja/edición.',
+      firestore_collections: ['mail', 'envios_correos', 'informes_enviados', 'audit_logs'],
+      query_optimization: 'Persistencia optimizada en localStorage y Firestore para reglas de despacho y destinatarios.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Estructuración del módulo a pantalla completa con navegación por pestañas de 5 apartados.',
+      'Gestión CRUD de destinatarios con roles y auditoría individual de envíos recibidos.',
+      'Consola de pruebas de envío ilimitadas con trazabilidad cronológica.'
+    ]
+  },
+  {
     id: 'v5.5.0',
     version_tag: 'v5.5.0',
     fecha_despliegue: '23 de Agosto, 2026',
