@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.5.0',
+    version_tag: 'v5.5.0',
+    fecha_despliegue: '23 de Agosto, 2026',
+    proposito_actualizacion: 'Directriz Estratégica Anti-Desfase Temporal para Cargas Masivas (Multi-Día) y Cola de Despacho Escalonado.',
+    medios_y_stack: [
+      'React 18.3 (ModalConfiguracionCorreo.jsx, summaryGenerator.js, Dashboard.jsx)',
+      'Multi-Day Batch Dispatch Engine (Ráfaga Diferida Mismo Día & Consolidado)',
+      'Full-Day Completed Audit Queue Recognition Engine',
+      'Configuración Persistente en Firestore y LocalStorage (metrico_config_correo)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Directriz para Cargas Masivas / Multi-Día: Se implementó un protocolo con 3 modalidades de despacho para evitar retrasos de semanas al importar múltiples jornadas a la vez (ej. 5 días acumulados importados el domingo): (A) Ráfaga Diferida Mismo Día: Despacha todos los informes individuales el mismo día en horarios escalonados (cada 15-60 min) eliminando todo desfase temporal y evitando bloqueos antispam; (B) Consolidado Multidía Único: Genera un único correo ejecutivo resumen con tabla comparativa de cada jornada del lote; (C) Despacho Acelerado: Envía hasta 3 informes diarios por jornada hasta ponerse al día en máximo 48 hrs. 2) Cola de Despacho Visual: Monitoreo en vivo de los días completos auditados en base de datos con su estado de envío y horario proyectado.',
+      firestore_collections: ['mail', 'envios_correos', 'informes_enviados', 'audit_logs'],
+      query_optimization: 'Procesamiento en memoria de lotes de fechas y despacho escalonado sin latencia.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'summaryGenerator.js', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Implementación del generador analítico generateMultiDayBatchSummary para resúmenes de lote.',
+      'Control de intervalo de escalonamiento configurable (15, 20, 30, 45, 60 min).',
+      'Visor interactivo de cola de días completos auditados y simulador de despacho masivo.'
+    ]
+  },
+  {
     id: 'v5.4.7',
     version_tag: 'v5.4.7',
     fecha_despliegue: '23 de Agosto, 2026',

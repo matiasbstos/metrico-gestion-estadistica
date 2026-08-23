@@ -306,3 +306,86 @@ export const generateMonthlyConsolidatedSummary = (pacs) => {
 
   return `En el cierre consolidado mensual se registraron un total de ${total.toLocaleString('es-CL')} admisiones asistenciales. De ellas, ${atendidos.toLocaleString('es-CL')} correspondieron a atenciones médicas efectivas (${pctAtendidos}%), ${altas.toLocaleString('es-CL')} a altas administrativas (${pctAltas}%), ${fracturas.toLocaleString('es-CL')} casos de traumatología y fracturas, ${constataciones.toLocaleString('es-CL')} constataciones de lesiones con requerimiento legal y ${traslados.toLocaleString('es-CL')} traslados hospitalarios a centros de mayor complejidad. El reporte detallado de cada arista clínica puede ser descargado directamente desde el módulo de Reportes del sistema.`;
 };
+
+export const generateMultiDayBatchSummary = (datesList = [], pacs = [], turnos = []) => {
+  if (!datesList || datesList.length === 0) return 'Sin fechas seleccionadas para el reporte masivo consolidado.';
+
+  let totalAdmitidos = 0;
+  let totalAtendidos = 0;
+  let totalAltas = 0;
+  let totalTraslados = 0;
+  let totalConstataciones = 0;
+
+  const desgloseDias = datesList.map(fechaStr => {
+    // Buscar pacientes de esa fecha
+    const pacsDia = pacs.filter(p => {
+      if (p.fecha === fechaStr) return true;
+      if (p.tAdmision) {
+        const d = new Date(p.tAdmision);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}` === fechaStr;
+      }
+      return false;
+    });
+
+    const turnosDia = turnos.filter(t => t.fechaInicio === fechaStr);
+
+    let adm = pacsDia.length;
+    let altas = pacsDia.filter(p => p.estado === 'Cancelada' || p.destinoAlta?.includes('ALTA ADMIN')).length;
+    let atend = Math.max(0, adm - altas);
+    let tras = pacsDia.filter(p => {
+      const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
+      return dest.includes('hosp') || dest.includes('urgenc') || dest.includes('ueh');
+    }).length;
+    let consts = pacsDia.filter(p => {
+      const cod = String(p.codigoDiagnostico || '').toUpperCase();
+      const diag = String(p.diagnosticoPrincipal || '').toUpperCase();
+      return cod.includes('Z51.8') || diag.includes('CONSTATAC');
+    }).length;
+
+    if (adm === 0 && turnosDia.length > 0) {
+      turnosDia.forEach(t => {
+        adm += Number(t.totalPacientes || 0);
+        altas += Number(t.altasAdmin || 0);
+        tras += Number(t.trasladosCount || 0);
+        consts += Number(t.constatacionesCount || 0);
+      });
+      atend = Math.max(0, adm - altas);
+    }
+
+    totalAdmitidos += adm;
+    totalAtendidos += atend;
+    totalAltas += altas;
+    totalTraslados += tras;
+    totalConstataciones += consts;
+
+    return {
+      fecha: fechaStr,
+      admitidos: adm,
+      atendidos: atend,
+      altas,
+      traslados: tras,
+      constataciones: consts
+    };
+  });
+
+  const numDias = datesList.length;
+  const pctAltas = totalAdmitidos > 0 ? ((totalAltas / totalAdmitidos) * 100).toFixed(1) : '0.0';
+
+  return {
+    titulo: `Informe Ejecutivo Consolidado • Carga Masiva de ${numDias} Jornadas`,
+    resumenTexto: `Se ha procesado y auditado la carga masiva correspondiente a ${numDias} jornadas asistenciales (${datesList[0]} al ${datesList[datesList.length - 1]}), registrando un universo acumulado de ${totalAdmitidos.toLocaleString('es-CL')} pacientes admitidos, ${totalAtendidos.toLocaleString('es-CL')} atenciones médicas efectivas, ${totalAltas.toLocaleString('es-CL')} altas administrativas (${pctAltas}%), ${totalTraslados.toLocaleString('es-CL')} traslados hospitalarios y ${totalConstataciones.toLocaleString('es-CL')} constataciones de lesiones.`,
+    totales: {
+      dias: numDias,
+      admitidos: totalAdmitidos,
+      atendidos: totalAtendidos,
+      altas: totalAltas,
+      traslados: totalTraslados,
+      constataciones: totalConstataciones
+    },
+    desgloseDias
+  };
+};
+

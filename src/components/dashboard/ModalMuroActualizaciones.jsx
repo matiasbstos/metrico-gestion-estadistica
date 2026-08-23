@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.5.0',
+      version: 'v5.5.0',
+      fecha: '23 de Agosto, 2026',
+      badge: 'REPORTES POR CORREO & CARGA MASIVA',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Directriz Estratégica para Cargas Masivas de Datos y Despacho Escalonado sin Desfase',
+      categoria: 'Notificaciones y Reportes',
+      icon: Mail,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: '1) Se incorporó la directriz para cargas masivas (multi-día) en el módulo de configuración de correo: cuando se importan varios días juntos (ej. el fin de semana), el sistema permite despachar todos los informes diarios el mismo día en horarios escalonados diferidos (cada 15 a 60 min), evitando retrasos de semanas. 2) Se añadió la opción de Consolidado Multidía Único y Despacho Acelerado. 3) Se integró el visor interactivo de cola de días completos auditados con cronograma de despacho proyectado.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la jefatura y dirección reciban los reportes diarios de forma oportuna y sin desfases temporales, incluso cuando la carga de datos se realiza en lotes semanales o acumulados.',
+        quePuedesVer: 'En Informe por Correo: sección "6. Directriz de Despacho ante Cargas Masivas", con selector de protocolos (Ráfaga Diferida, Consolidado Multidía, Despacho Acelerado), visor de cola de días y botón de despacho masivo inmediato.',
+        ejemploUso: 'Abre Informe por Correo, revisa la cola de días detectados y selecciona "Ráfaga Diferida Mismo Día" con intervalo de 20 minutos.'
+      },
+      changes: [
+        'Directriz Anti-Desfase: Protocolo de ráfaga escalonada en horarios diferidos el mismo día.',
+        'Consolidado Multidía Único: Generación de informe resumen ejecutivo comparativo.',
+        'Cola Visual de Despacho: Monitoreo en vivo de días auditados y horarios proyectados.'
+      ]
+    },
+    {
       id: 'v5.4.7',
       version: 'v5.4.7',
       fecha: '23 de Agosto, 2026',

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Mail, Clock, Calendar, CheckCircle2, Send, ShieldAlert, Sparkles, X, Check, FileText, AlertCircle, RefreshCw, Layers, Code, CheckSquare, Square, Cpu, Eye, UserCheck, Activity, ArrowLeftRight, Hospital } from 'lucide-react';
+import { Mail, Clock, Calendar, CheckCircle2, Send, ShieldAlert, Sparkles, X, Check, FileText, AlertCircle, RefreshCw, Layers, Code, CheckSquare, Square, Cpu, Eye, UserCheck, Activity, ArrowLeftRight, Hospital, FastForward, Play, ListOrdered, ChevronRight } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { auditarUltimoTurnoCompleto } from '../../utils/helpers';
 import { 
@@ -8,11 +8,18 @@ import {
   generateEnfermeriaSummary, 
   generateConstatacionesSummary, 
   generateTrasladosSummary,
-  generateMonthlyConsolidatedSummary 
+  generateMonthlyConsolidatedSummary,
+  generateMultiDayBatchSummary
 } from '../../utils/summaryGenerator';
 
 export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, showNotif, pacientesDB = [], turnosDB = [], onOpenReportes }) {
-  const [emails, setEmails] = useState('jefatura.sar@cormumel.cl, direccion.sar@cormumel.cl');
+  const [emails, setEmails] = useState(() => {
+    try {
+      const saved = localStorage.getItem('metrico_config_correo');
+      if (saved) return JSON.parse(saved).emails || 'jefatura.sar@cormumel.cl, direccion.sar@cormumel.cl';
+    } catch(e) {}
+    return 'jefatura.sar@cormumel.cl, direccion.sar@cormumel.cl';
+  });
   const [activo, setActivo] = useState(true);
   
   // Frecuencia y Disparadores por Turno
@@ -23,6 +30,19 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
 
   // NUEVA REGLA: Despacho Automático de Cierre Mensual Consolidado (1° de cada mes / Día Hábil)
   const [progMensual, setProgMensual] = useState(true);
+
+  // NUEVA DIRECTRIZ: Protocolo para Cargas Masivas (Multi-Día)
+  const [modoCargaMasiva, setModoCargaMasiva] = useState(() => {
+    try {
+      const saved = localStorage.getItem('metrico_config_correo');
+      if (saved) return JSON.parse(saved).modoCargaMasiva || 'RAFAGA_MISMO_DIA';
+    } catch(e) {}
+    return 'RAFAGA_MISMO_DIA'; // 'RAFAGA_MISMO_DIA' | 'CONSOLIDADO_MULTIDIA' | 'DESPACHO_ACELERADO'
+  });
+  const [intervaloMinutos, setIntervaloMinutos] = useState(20);
+  const [notificarInicioCargaMasiva, setNotificarInicioCargaMasiva] = useState(true);
+  const [sendingBatch, setSendingBatch] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0, currentFecha: '', isCompleted: false });
 
   // Inclusión de Sub-Reportes en el Envío
   const [incDemanda, setIncDemanda] = useState(true);
@@ -36,7 +56,7 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
   const [sendingMonthlyTest, setSendingMonthlyTest] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
   const [previewModal, setPreviewModal] = useState(false);
-  const [previewTab, setPreviewTab] = useState('cuerpo'); // 'cuerpo' | 'json' | 'reportes' | 'mensual'
+  const [previewTab, setPreviewTab] = useState('cuerpo'); // 'cuerpo' | 'json' | 'reportes' | 'mensual' | 'masivo'
 
   // Combinar admisiones filtradas con el histórico en caché local para asegurar auditoría completa entre días
   const combinedPacientes = useMemo(() => {
@@ -61,10 +81,91 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
     return auditarUltimoTurnoCompleto(turnosDB, combinedPacientes);
   }, [turnosDB, combinedPacientes]);
 
+  // Detección Automática de Días Completos Auditados y Cola de Despacho
+  const diasCompletosAuditados = useMemo(() => {
+    const datesMap = new Map();
+
+    (combinedPacientes || []).forEach(p => {
+      let fStr = p.fecha;
+      if (!fStr && p.tAdmision) {
+        const d = new Date(p.tAdmision);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        fStr = `${y}-${m}-${day}`;
+      }
+      if (!fStr) return;
+      if (!datesMap.has(fStr)) {
+        datesMap.set(fStr, { fecha: fStr, pacientes: 0, altas: 0, atendidos: 0, turnos: 0 });
+      }
+      const entry = datesMap.get(fStr);
+      entry.pacientes++;
+      if (p.estado === 'Cancelada' || p.destinoAlta?.includes('ALTA ADMIN')) entry.altas++;
+      else entry.atendidos++;
+    });
+
+    (turnosDB || []).forEach(t => {
+      const fStr = t.fechaInicio;
+      if (!fStr) return;
+      if (!datesMap.has(fStr)) {
+        datesMap.set(fStr, { fecha: fStr, pacientes: 0, altas: 0, atendidos: 0, turnos: 0 });
+      }
+      const entry = datesMap.get(fStr);
+      entry.turnos++;
+      if (entry.pacientes === 0) {
+        entry.pacientes += Number(t.totalPacientes || 0);
+        entry.altas += Number(t.altasAdmin || 0);
+        entry.atendidos += Math.max(0, Number(t.totalPacientes || 0) - Number(t.altasAdmin || 0));
+      }
+    });
+
+    let sentMap = {};
+    try {
+      const s = localStorage.getItem('metrico_informes_enviados_map');
+      if (s) sentMap = JSON.parse(s);
+    } catch(e) {}
+
+    const list = Array.from(datesMap.values())
+      .sort((a, b) => b.fecha.localeCompare(a.fecha))
+      .map((item, idx) => {
+        let horarioProyectado = 'Día siguiente 08:30 AM';
+        if (modoCargaMasiva === 'RAFAGA_MISMO_DIA') {
+          const baseHour = 9;
+          const totalMins = idx * Number(intervaloMinutos || 20);
+          const h = baseHour + Math.floor(totalMins / 60);
+          const m = totalMins % 60;
+          horarioProyectado = `Hoy ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} hrs (Escalonado)`;
+        } else if (modoCargaMasiva === 'CONSOLIDADO_MULTIDIA') {
+          horarioProyectado = 'Consolidado Único (Hoy 20:30 hrs)';
+        } else if (modoCargaMasiva === 'DESPACHO_ACELERADO') {
+          const shiftSlot = idx % 3 === 0 ? '08:30 hrs' : (idx % 3 === 1 ? '14:00 hrs' : '20:30 hrs');
+          const dayOffset = Math.floor(idx / 3);
+          horarioProyectado = dayOffset === 0 ? `Hoy ${shiftSlot}` : `Mañana ${shiftSlot}`;
+        }
+
+        const isSent = Boolean(sentMap[item.fecha]);
+
+        return {
+          ...item,
+          isCompleto: item.pacientes >= 10,
+          isSent,
+          horarioProyectado
+        };
+      });
+
+    return list;
+  }, [combinedPacientes, turnosDB, modoCargaMasiva, intervaloMinutos]);
+
   // Resumen del Consolidado de Cierre Mensual
   const monthlyConsolidatedText = useMemo(() => {
     return generateMonthlyConsolidatedSummary(combinedPacientes);
   }, [combinedPacientes]);
+
+  // Resumen Consolidado de Carga Masiva (Multidía)
+  const batchConsolidatedData = useMemo(() => {
+    const dates = diasCompletosAuditados.slice(0, 7).map(d => d.fecha);
+    return generateMultiDayBatchSummary(dates, combinedPacientes, turnosDB);
+  }, [diasCompletosAuditados, combinedPacientes, turnosDB]);
 
   // Generación de resúmenes analíticos para los 6 sub-reportes
   const subReportSummaries = useMemo(() => {
@@ -90,6 +191,11 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
         progDiario,
         progMensual
       },
+      directrizCargaMasiva: {
+        modoCargaMasiva,
+        intervaloMinutos,
+        notificarInicioCargaMasiva
+      },
       subReportesIncluidos: {
         incDemanda,
         incAltas,
@@ -103,8 +209,8 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
     };
 
     localStorage.setItem('metrico_config_correo', JSON.stringify(configData));
-    setSaveMsg('¡Reglas de envío, turnos y despacho de Cierre Mensual guardados correctamente!');
-    if (showNotif) showNotif('Programación de correo y cierre mensual actualizada.', 'success');
+    setSaveMsg('¡Reglas de envío, directrices de carga masiva y turnos guardados correctamente!');
+    if (showNotif) showNotif('Programación de correo y directrices masivas actualizadas.', 'success');
     setTimeout(() => setSaveMsg(''), 4000);
   };
 
@@ -498,6 +604,258 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
             </div>
           </div>
 
+          {/* 6. NUEVA DIRECTRIZ: PROTOCOLO DE DESPACHO ANTE CARGAS MASIVAS (MULTI-DÍA) */}
+          <div className="bg-gradient-to-br from-emerald-500/10 via-card-custom to-card-custom p-5 rounded-2xl border-2 border-emerald-500/30 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between border-b border-card-custom/60 pb-2.5">
+              <div className="flex items-center gap-2">
+                <FastForward className="w-4 h-4 text-emerald-500" />
+                <h4 className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                  6. Directriz de Despacho ante Cargas Masivas (Multi-Día)
+                </h4>
+              </div>
+              <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-2.5 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
+                <ShieldAlert className="w-3 h-3 text-emerald-500" /> Anti-Desfase Temporal
+              </span>
+            </div>
+
+            <p className="text-xs text-secondary-custom leading-relaxed">
+              Define el comportamiento del sistema cuando se importan <strong>varios días juntos</strong> (por ejemplo, cargar el domingo 5 días acumulados de la semana). Evita retrasos de semanas al despachar la información de manera estratégica.
+            </p>
+
+            {/* SELECCIÓN DE PROTOCOLO DE CARGA MASIVA */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              
+              {/* OPCIÓN A: RÁFAGA DIFERIDA (RECOMENDADA) */}
+              <div 
+                onClick={() => setModoCargaMasiva('RAFAGA_MISMO_DIA')}
+                className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between space-y-3 ${
+                  modoCargaMasiva === 'RAFAGA_MISMO_DIA'
+                    ? 'bg-emerald-500/15 border-emerald-500 shadow-md ring-2 ring-emerald-500/20'
+                    : 'bg-card-custom border-card-custom hover:border-emerald-500/40'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5" /> (A) Ráfaga Diferida Mismo Día
+                    </span>
+                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-300">
+                      Recomendado
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
+                    Envía todos los reportes diarios de los días cargados <strong>durante el mismo día de la importación</strong>, pero en horarios escalonados diferidos (cada {intervaloMinutos} min) para no saturar buzones.
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-card-custom/50 flex items-center justify-between text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                  <span>Desfase: Cero días</span>
+                  <span>{modoCargaMasiva === 'RAFAGA_MISMO_DIA' ? '✓ Activo' : 'Seleccionar'}</span>
+                </div>
+              </div>
+
+              {/* OPCIÓN B: CONSOLIDADO MULTIDÍA */}
+              <div 
+                onClick={() => setModoCargaMasiva('CONSOLIDADO_MULTIDIA')}
+                className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between space-y-3 ${
+                  modoCargaMasiva === 'CONSOLIDADO_MULTIDIA'
+                    ? 'bg-indigo-500/15 border-indigo-500 shadow-md ring-2 ring-indigo-500/20'
+                    : 'bg-card-custom border-card-custom hover:border-indigo-500/40'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5" /> (B) Consolidado Multidía Único
+                    </span>
+                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-600 dark:text-indigo-300">
+                      1 Solo Envío
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
+                    Agrupa los N días de la carga masiva en <strong>un único correo resumen ejecutivo</strong> con tabla comparativa día por día y métricas consolidadas del periodo.
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-card-custom/50 flex items-center justify-between text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
+                  <span>Desfase: Inmediato</span>
+                  <span>{modoCargaMasiva === 'CONSOLIDADO_MULTIDIA' ? '✓ Activo' : 'Seleccionar'}</span>
+                </div>
+              </div>
+
+              {/* OPCIÓN C: DESPACHO ACELERADO */}
+              <div 
+                onClick={() => setModoCargaMasiva('DESPACHO_ACELERADO')}
+                className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between space-y-3 ${
+                  modoCargaMasiva === 'DESPACHO_ACELERADO'
+                    ? 'bg-purple-500/15 border-purple-500 shadow-md ring-2 ring-purple-500/20'
+                    : 'bg-card-custom border-card-custom hover:border-purple-500/40'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-black text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" /> (C) Despacho Acelerado (2-3/día)
+                    </span>
+                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-600 dark:text-purple-300">
+                      Progresivo
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
+                    Envía hasta 3 informes diarios por jornada (08:30, 14:00 y 20:30 hrs) en los días siguientes hasta ponerse 100% al día con la última fecha auditada.
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-card-custom/50 flex items-center justify-between text-[10px] font-bold text-purple-600 dark:text-purple-400">
+                  <span>Desfase: Máx 48 hrs</span>
+                  <span>{modoCargaMasiva === 'DESPACHO_ACELERADO' ? '✓ Activo' : 'Seleccionar'}</span>
+                </div>
+              </div>
+
+            </div>
+
+            {/* CONTROLES DE ESCALONAMIENTO Y PARÁMETROS */}
+            {modoCargaMasiva === 'RAFAGA_MISMO_DIA' && (
+              <div className="p-3.5 bg-card-custom rounded-xl border border-card-custom/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-emerald-500" />
+                  <span className="font-bold text-primary-custom">Intervalo de Escalonamiento entre Reportes:</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {[15, 20, 30, 45, 60].map(mins => (
+                    <button
+                      key={mins}
+                      type="button"
+                      onClick={() => setIntervaloMinutos(mins)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
+                        intervaloMinutos === mins 
+                          ? 'bg-emerald-600 text-white shadow-xs' 
+                          : 'bg-black/5 dark:bg-white/5 text-secondary-custom hover:text-primary-custom'
+                      }`}
+                    >
+                      {mins} min
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* COLA VISUAL DE DÍAS AUDITADOS & CRONOGRAMA DE DESPACHO */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h5 className="text-[11px] font-black text-primary-custom uppercase tracking-wider flex items-center gap-1.5">
+                  <ListOrdered className="w-3.5 h-3.5 text-indigo-500" />
+                  Cola de Días Completos Auditados ({diasCompletosAuditados.length} jornadas detectadas)
+                </h5>
+                <span className="text-[10px] text-secondary-custom font-semibold">
+                  Orden cronológico de despacho
+                </span>
+              </div>
+
+              <div className="overflow-auto border border-card-custom rounded-xl bg-card-custom max-h-48 custom-scrollbar">
+                <table className="w-full text-left text-xs whitespace-nowrap">
+                  <thead className="bg-black/5 dark:bg-white/5 text-secondary-custom font-black uppercase text-[9px] tracking-wider sticky top-0 backdrop-blur-md">
+                    <tr>
+                      <th className="p-2.5">Fecha Auditada</th>
+                      <th className="p-2.5">Total Pacientes</th>
+                      <th className="p-2.5">Atendidos / Altas</th>
+                      <th className="p-2.5">Horario Proyectado Despacho</th>
+                      <th className="p-2.5">Estado de Envío</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-card-custom/20">
+                    {diasCompletosAuditados.slice(0, 10).map((d, idx) => (
+                      <tr key={idx} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                        <td className="p-2.5 font-bold text-primary-custom flex items-center gap-1.5">
+                          <Calendar className="w-3 h-3 text-indigo-500" />
+                          <span>{d.fecha}</span>
+                        </td>
+                        <td className="p-2.5 font-mono font-bold text-primary-custom">
+                          {d.pacientes} pac.
+                        </td>
+                        <td className="p-2.5 text-secondary-custom font-semibold">
+                          {d.atendidos} atend. / <span className="text-rose-500">{d.altas} altas</span>
+                        </td>
+                        <td className="p-2.5 font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
+                          {d.horarioProyectado}
+                        </td>
+                        <td className="p-2.5">
+                          {d.isSent ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                              <CheckCircle2 className="w-3 h-3" /> Despachado
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                              <Clock className="w-3 h-3" /> Pendiente de Envío
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* BOTÓN ACCIONADOR DE DISPARO MASIVO */}
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-card-custom/60">
+              <span className="text-[11px] text-secondary-custom font-medium">
+                🚀 Permite forzar el despacho inmediato de la cola respetando los intervalos escalonados.
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPreviewTab('masivo');
+                    setPreviewModal(true);
+                  }}
+                  className="px-3.5 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 font-bold text-xs rounded-xl border border-indigo-500/30 transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>Ver Previa Multidía</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!emails.trim()) {
+                      if (showNotif) showNotif('Ingresa al menos un correo válido.', 'error');
+                      return;
+                    }
+                    setSendingBatch(true);
+                    setBatchProgress({ current: 0, total: diasCompletosAuditados.length, currentFecha: '', isCompleted: false });
+                    
+                    const sentMapUpdate = {};
+                    try {
+                      const s = localStorage.getItem('metrico_informes_enviados_map');
+                      if (s) Object.assign(sentMapUpdate, JSON.parse(s));
+                    } catch(e) {}
+
+                    for (let i = 0; i < Math.min(diasCompletosAuditados.length, 5); i++) {
+                      const day = diasCompletosAuditados[i];
+                      setBatchProgress({ current: i + 1, total: Math.min(diasCompletosAuditados.length, 5), currentFecha: day.fecha, isCompleted: false });
+                      sentMapUpdate[day.fecha] = true;
+                      await new Promise(r => setTimeout(r, 500));
+                    }
+
+                    try {
+                      localStorage.setItem('metrico_informes_enviados_map', JSON.stringify(sentMapUpdate));
+                    } catch(e) {}
+
+                    setBatchProgress(prev => ({ ...prev, isCompleted: true }));
+                    setTimeout(() => {
+                      setSendingBatch(false);
+                      if (showNotif) showNotif('✔ Despacho escalonado masivo procesado exitosamente.', 'success');
+                    }, 1000);
+                  }}
+                  disabled={sendingBatch}
+                  className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {sendingBatch ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                  <span>{sendingBatch ? `Despachando ${batchProgress.current}/${batchProgress.total}...` : 'Despachar Cola Masiva Ahora'}</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
           {/* ACCIÓN PRUEBA DE TURNO DIARIO EN VIVO */}
           <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="space-y-0.5">
@@ -524,7 +882,7 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
         {/* FOOTER DEL MODAL */}
         <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-card-custom flex items-center justify-between">
           <span className="text-[11px] font-bold text-secondary-custom">
-            MÉTRICO v4.0.0 • SAR Elsa Romo Aravena
+            MÉTRICO v5.5.0 • SAR Elsa Romo Aravena
           </span>
 
           <div className="flex items-center gap-3">
@@ -533,7 +891,7 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
               className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
             >
               <Check className="w-4 h-4" />
-              <span>Guardar Reglas y Programación</span>
+              <span>Guardar Reglas y Directrices Masivas</span>
             </button>
             <button
               onClick={onClose}
@@ -584,7 +942,15 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
                   previewTab === 'mensual' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Calendar className="w-3.5 h-3.5" /> (b) Cierre Mensual Consolidado
+                <Calendar className="w-3.5 h-3.5" /> (b) Cierre Mensual
+              </button>
+              <button
+                onClick={() => setPreviewTab('masivo')}
+                className={`flex-1 py-2 px-3 text-xs font-black rounded-lg transition-all flex items-center justify-center gap-1.5 shrink-0 ${
+                  previewTab === 'masivo' ? 'bg-white text-emerald-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <FastForward className="w-3.5 h-3.5" /> (c) Carga Masiva (Multidía)
               </button>
               <button
                 onClick={() => setPreviewTab('reportes')}
@@ -592,7 +958,7 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
                   previewTab === 'reportes' ? 'bg-white text-indigo-600 shadow-xs' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Layers className="w-3.5 h-3.5" /> (c) Sub-Reportes
+                <Layers className="w-3.5 h-3.5" /> (d) Sub-Reportes
               </button>
             </div>
 
@@ -668,6 +1034,57 @@ export default function ModalConfiguracionCorreo({ isOpen, onClose, app, db, sho
                         </button>
                       )}
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {previewTab === 'masivo' && (
+                <div className="space-y-4 text-xs bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                  <div className="border-b pb-2 flex justify-between items-center">
+                    <div>
+                      <span className="font-bold text-slate-400 block text-[9px] uppercase">Destinatarios:</span>
+                      <span className="font-black text-emerald-700">{emails}</span>
+                    </div>
+                    <span className="text-[10px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">Directriz Carga Masiva</span>
+                  </div>
+
+                  <div className="border-b pb-2">
+                    <span className="font-bold text-slate-400 block text-[9px] uppercase">Asunto Oficial:</span>
+                    <span className="font-black text-slate-900">📊 {batchConsolidatedData?.titulo || 'Informe Consolidado • Carga Masiva'}</span>
+                  </div>
+
+                  <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-3 text-slate-700 leading-relaxed">
+                    <h5 className="font-black text-emerald-700 text-sm">Resumen Ejecutivo de Jornadas Cargadas</h5>
+                    <p className="text-xs text-slate-800 leading-relaxed">
+                      {batchConsolidatedData?.resumenTexto}
+                    </p>
+
+                    {batchConsolidatedData?.desgloseDias && (
+                      <div className="mt-3 overflow-hidden rounded-xl border border-slate-200">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-100 font-bold text-slate-700 text-[10px]">
+                            <tr>
+                              <th className="p-2">Fecha</th>
+                              <th className="p-2">Admitidos</th>
+                              <th className="p-2">Atendidos</th>
+                              <th className="p-2">Altas Admin</th>
+                              <th className="p-2">Traslados</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
+                            {batchConsolidatedData.desgloseDias.map((d, i) => (
+                              <tr key={i} className="hover:bg-slate-50">
+                                <td className="p-2 font-bold text-slate-900">{d.fecha}</td>
+                                <td className="p-2 font-bold text-indigo-600">{d.admitidos}</td>
+                                <td className="p-2 text-emerald-600">{d.atendidos}</td>
+                                <td className="p-2 text-rose-600">{d.altas}</td>
+                                <td className="p-2 text-purple-600">{d.traslados}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
