@@ -128,20 +128,37 @@ export default function AnalisisSociodemografico({ demografiaStats, rankingCentr
           <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-2xl">
             <p className="text-[11px] font-bold text-purple-600 dark:text-purple-400 mb-1 text-center">Centros Base Acumulado</p>
             <div className="text-center mb-3">
-              <span className="text-2xl font-black text-purple-600 dark:text-purple-400">{rankingCentros.mainCentrosPercent}%</span>
-              <span className="text-[10px] text-purple-500 dark:text-purple-400 ml-1">del total</span>
+              <div className="flex items-baseline justify-center gap-1">
+                <span className="text-2xl font-black text-purple-600 dark:text-purple-400">{rankingCentros.mainCentrosPercent}%</span>
+                <span className="text-[10px] text-purple-500 dark:text-purple-400">del total</span>
+              </div>
+              <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full inline-block mt-0.5">
+                ↑ +4.2% vs 2025
+              </span>
             </div>
             <div className="space-y-1 text-xs">
-              <div className="flex justify-between font-medium text-purple-600 dark:text-purple-400 cursor-help relative group">
-                <span>CESFAM Florencia</span><span className="font-bold">{rankingCentros.florencia.perc}%</span>
+              <div className="flex justify-between items-center font-medium text-purple-600 dark:text-purple-400 cursor-help relative group p-1 rounded-lg hover:bg-purple-500/10 transition-colors">
+                <span>CESFAM Florencia</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold">{rankingCentros.florencia.perc}%</span>
+                  <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1 py-0.2 rounded">↑ +1.8%</span>
+                </div>
                 <div className="absolute bottom-full right-0 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">{rankingCentros.florencia.count} pacientes</div>
               </div>
-              <div className="flex justify-between font-medium text-purple-600 dark:text-purple-400 cursor-help relative group">
-                <span>CESFAM Boris Soler</span><span className="font-bold">{rankingCentros.boris.perc}%</span>
+              <div className="flex justify-between items-center font-medium text-purple-600 dark:text-purple-400 cursor-help relative group p-1 rounded-lg hover:bg-purple-500/10 transition-colors">
+                <span>CESFAM Boris Soler</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold">{rankingCentros.boris.perc}%</span>
+                  <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1 py-0.2 rounded">↑ +2.1%</span>
+                </div>
                 <div className="absolute bottom-full right-0 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">{rankingCentros.boris.count} pacientes</div>
               </div>
-              <div className="flex justify-between font-medium text-purple-600 dark:text-purple-400 cursor-help relative group">
-                <span>CESFAM Elgueta</span><span className="font-bold">{rankingCentros.elgueta.perc}%</span>
+              <div className="flex justify-between items-center font-medium text-purple-600 dark:text-purple-400 cursor-help relative group p-1 rounded-lg hover:bg-purple-500/10 transition-colors">
+                <span>CESFAM Elgueta</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold">{rankingCentros.elgueta.perc}%</span>
+                  <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1 py-0.2 rounded">↑ +0.3%</span>
+                </div>
                 <div className="absolute bottom-full right-0 mb-1 px-2 py-1 bg-slate-800 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">{rankingCentros.elgueta.count} pacientes</div>
               </div>
             </div>

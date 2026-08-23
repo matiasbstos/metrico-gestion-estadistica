@@ -1278,33 +1278,54 @@ export default function ModalConfiguracionCorreo({
                     {/* 5. LÁMINA: CENTROS DE ORIGEN (BORIS, FLORENCIA Y ELGUETA) & DEMOGRAFÍA */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       
-                      {/* CENTROS PRINCIPALES (BORIS, FLORENCIA Y ELGUETA) */}
-                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 shadow-xs">
-                        <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
-                          <span className="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
-                            <Hospital className="w-4 h-4 text-emerald-600" />
-                            Centros de Origen Principales
-                          </span>
-                        </div>
+                      {/* CENTROS BASE ACUMULADO (EXACTO AL DISEÑO INSTITUCIONAL CON COMPARACIÓN INTERANUAL) */}
+                      <div className="bg-purple-500/10 border-2 border-purple-500/30 p-5 rounded-3xl flex flex-col justify-between shadow-xs">
+                        <div>
+                          <p className="text-xs font-black text-purple-700 dark:text-purple-300 mb-1.5 text-center uppercase tracking-wider">
+                            Centros Base Acumulado
+                          </p>
+                          
+                          <div className="text-center mb-4 space-y-1">
+                            <div className="flex items-baseline justify-center gap-1.5">
+                              <span className="text-4xl font-black text-purple-700 dark:text-purple-300">73.9%</span>
+                              <span className="text-xs font-bold text-purple-600 dark:text-purple-400">del total</span>
+                            </div>
+                            <div className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-100/70 dark:bg-emerald-500/20 dark:text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-500/30">
+                              <span>↑ +4.2%</span>
+                              <span className="text-[9px] font-medium text-slate-500 dark:text-slate-400">vs 2025</span>
+                            </div>
+                          </div>
 
-                        <div className="space-y-2 text-xs">
-                          {[
-                            { name: 'CESFAM Dr. Francisco Boris Soler (Boris)', count: 46, pct: 41.4, traslados: '4.3% (2 trasl.)', trend: '↑ +8.6%' },
-                            { name: 'CESFAM Florencia', count: 38, pct: 34.2, traslados: '5.3% (2 trasl.)', trend: '↑ +6.2%' },
-                            { name: 'CESFAM Dr. Manuel Elgueta (Elgueta)', count: 17, pct: 15.3, traslados: '5.9% (1 trasl.)', trend: '↑ +4.1%' },
-                            { name: 'Otros Centros / Población Flotante', count: 10, pct: 9.0, traslados: '10.0% (1 trasl.)', trend: '↓ -2.1%' }
-                          ].map((c, i) => (
-                            <div key={i} className="p-2 bg-white rounded-xl border border-slate-200/60 flex items-center justify-between gap-2">
-                              <div className="truncate">
-                                <span className="font-bold text-slate-800 block truncate">{c.name}</span>
-                                <span className="text-[10px] text-slate-500 font-medium">Tasa Traslado: {c.traslados}</span>
-                              </div>
-                              <div className="text-right shrink-0">
-                                <span className="font-mono font-bold text-slate-900 block">{c.count} ({c.pct}%)</span>
-                                <span className="text-[9px] font-bold text-emerald-700">{c.trend}</span>
+                          <div className="space-y-2.5 text-xs">
+                            <div className="flex items-center justify-between p-2.5 bg-white dark:bg-slate-900/80 rounded-xl border border-purple-200/60 dark:border-purple-500/20">
+                              <span className="font-bold text-purple-950 dark:text-purple-200">CESFAM Florencia</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-black text-purple-700 dark:text-purple-300 font-mono text-sm">23.4%</span>
+                                <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded-md">↑ +1.8% vs 2025</span>
                               </div>
                             </div>
-                          ))}
+
+                            <div className="flex items-center justify-between p-2.5 bg-white dark:bg-slate-900/80 rounded-xl border border-purple-200/60 dark:border-purple-500/20">
+                              <span className="font-bold text-purple-950 dark:text-purple-200">CESFAM Boris Soler</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-black text-purple-700 dark:text-purple-300 font-mono text-sm">23.4%</span>
+                                <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded-md">↑ +2.1% vs 2025</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between p-2.5 bg-white dark:bg-slate-900/80 rounded-xl border border-purple-200/60 dark:border-purple-500/20">
+                              <span className="font-bold text-purple-950 dark:text-purple-200">CESFAM Elgueta</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-black text-purple-700 dark:text-purple-300 font-mono text-sm">27.0%</span>
+                                <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded-md">↑ +0.3% vs 2025</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 pt-2.5 border-t border-purple-200/60 dark:border-purple-500/20 flex items-center justify-between text-[11px] font-bold text-purple-900 dark:text-purple-300">
+                          <span>Otros Centros / Población Flotante:</span>
+                          <span>26.1% (↓ -4.2% vs 2025)</span>
                         </div>
                       </div>
 

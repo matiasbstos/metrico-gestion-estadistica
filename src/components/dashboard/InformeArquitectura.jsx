@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.5.4',
+    version_tag: 'v5.5.4',
+    fecha_despliegue: '23 de Agosto, 2026',
+    proposito_actualizacion: 'Armonización de Tarjeta Oficial "Centros Base Acumulado" y Comparativas de Porcentajes Interanuales.',
+    medios_y_stack: [
+      'React 18.3 (ModalConfiguracionCorreo.jsx, AnalisisSociodemografico.jsx)',
+      'Centros Base Acumulado Visual Card Layout (Florencia, Boris Soler, Elgueta)',
+      'Interannual Growth & Decrease Percentage Badges Engine'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Tarjeta Oficial Centros Base Acumulado: Se unificó el diseño visual tanto en el Informe por Correo como en el Análisis Sociodemográfico con la tarjeta oficial de Centros Base Acumulado (73.9% del total). 2) Desglose por Centro & Variación Interanual: Muestra CESFAM Florencia (23.4% • ↑ +1.8% vs 2025), CESFAM Boris Soler (23.4% • ↑ +2.1% vs 2025) y CESFAM Elgueta (27.0% • ↑ +0.3% vs 2025), junto con el badge de crecimiento interanual del total acumulado (↑ +4.2% vs 2025).',
+      firestore_collections: ['mail', 'envios_correos', 'informes_enviados', 'audit_logs'],
+      query_optimization: 'Renderizado reactivo con micro-diseño institucional.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'AnalisisSociodemografico.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Estructuración de la tarjeta Centros Base Acumulado con total 73.9% y 3 centros.',
+      'Incorporación de comparativas interanuales porcentuales de crecimiento y decrecimiento.'
+    ]
+  },
+  {
     id: 'v5.5.3',
     version_tag: 'v5.5.3',
     fecha_despliegue: '23 de Agosto, 2026',

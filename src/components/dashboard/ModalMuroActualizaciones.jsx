@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.5.4',
+      version: 'v5.5.4',
+      fecha: '23 de Agosto, 2026',
+      badge: 'CENTROS BASE ACUMULADO & COMPARATIVO INTERANUAL',
+      badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/20',
+      title: 'Integración de Tarjeta Oficial "Centros Base Acumulado" con Variaciones Interanuales de Porcentaje',
+      categoria: 'Notificaciones y Reportes',
+      icon: Activity,
+      iconBg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+      summary: '1) Se adaptó la sección de Centros de Origen al diseño oficial exacto de la tarjeta Centros Base Acumulado (73.9% del total con ↑ +4.2% vs 2025). 2) Se desglosan los 3 centros principales con sus porcentajes y variaciones de crecimiento/decrecimiento: CESFAM Florencia (23.4% • ↑ +1.8%), CESFAM Boris Soler (23.4% • ↑ +2.1%) y CESFAM Elgueta (27.0% • ↑ +0.3%). 3) Se sincronizó este diseño tanto en el Informe de Correo como en el Análisis Sociodemográfico.',
+      instructivo: {
+        paraQueSirve: 'Muestra de forma destacada la concentración de la demanda en los tres centros de la red comunal y su comparación con periodos anteriores.',
+        quePuedesVer: 'En Informe por Correo > 3. Diseño de Correos y en Perfil del Paciente > Análisis Sociodemográfico: la tarjeta Centros Base Acumulado con sus badges interanuales.',
+        ejemploUso: 'Compara la participación porcentual de Florencia, Boris Soler y Elgueta contra el año 2025.'
+      },
+      changes: [
+        'Centros Base Acumulado: Tarjeta destacada con 73.9% del total comunal.',
+        'Florencia, Boris y Elgueta: Desglose porcentual con badges de tendencia interanual (↑ / ↓).',
+        'Sincronización Total: Mismo diseño armónico en correo y dashboard asistencial.'
+      ]
+    },
+    {
       id: 'v5.5.3',
       version: 'v5.5.3',
       fecha: '23 de Agosto, 2026',
