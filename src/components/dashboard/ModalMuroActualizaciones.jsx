@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.6.0',
+      version: 'v5.6.0',
+      fecha: '23 de Agosto, 2026',
+      badge: 'MATRIZ DE TURNOS EN REPORTES & AUDITORÍA DE CORREO',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Sincronización de Horarios de Turno en Sub-Reportes y Funcionamiento de Despacho',
+      categoria: 'Notificaciones y Reportes',
+      icon: Clock,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: '1) Se sincronizó el generador de reportes PDF e impresiones con los horarios de corte de la Matriz de Turnos SAR (08:00 a 20:00, 20:00 a 08:00 o 17:00 a 08:00), cuadrando los 111 pacientes atendidos en lugar del día calendario ciego. 2) Se documentó el circuito de transporte SMTP requerido para la recepción física en casillas @cormumel.cl.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que cualquier informe o sub-reporte generado respete el corte exacto del turno asistencial.',
+        quePuedesVer: 'El reporte ejecutivo y sub-reportes con exactamente los 111 pacientes del Turno 2 (08:00 a 20:00).',
+        ejemploUso: 'Genera el informe ejecutivo en la sección Reporte y comprueba los 111 pacientes y 99 atendidos.'
+      },
+      changes: [
+        'Matriz de Turnos en Reportes: Integración estricta de filtroHoraInicio y filtroHoraFin.',
+        'Cuadratura 111 Pacientes: Eliminación de la mezcla con otros turnos del día calendario.',
+        'Auditoría de Despacho: Registro en Firestore y conexión de pasarela SMTP.'
+      ]
+    },
+    {
       id: 'v5.5.9',
       version: 'v5.5.9',
       fecha: '23 de Agosto, 2026',

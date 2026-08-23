@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.6.0',
+    version_tag: 'v5.6.0',
+    fecha_despliegue: '23 de Agosto, 2026',
+    proposito_actualizacion: 'Sincronización de Horarios de Turno en Sub-Reportes y Explicación de Pasarela de Despacho SMTP.',
+    medios_y_stack: [
+      'React 18.3 (ReportesModule.jsx, ModalConfiguracionCorreo.jsx)',
+      'Matriz de Turnos Pipeline Synchronization (filtroHoraInicio & filtroHoraFin)',
+      'Audit Trail Engine & Cloud Functions SMTP Architecture'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Sub-Reportes Clínicos: Se vincularon los horarios de corte oficiales (filtroHoraInicio y filtroHoraFin) en ReportesModule.jsx, garantizando que los reportes ejecutivos e impresiones PDF reflejen exactamente el turno asistencial seleccionado (111 pacientes / 9.2 pac/hr / 154 min estadía) y no un día calendario ciego de 24 horas. 2) Auditoría de Despacho por Correo: Se documentó la pasarela de transporte SMTP requerida para la entrega física a bandejas de entrada externas (@cormumel.cl, gmail), complementando el registro nativo en Firestore (colecciones mail y envios_correos).',
+      firestore_collections: ['mail', 'envios_correos', 'informes_enviados', 'audit_logs'],
+      query_optimization: 'Normalización temporal por ventana de turno asistencial estricta.'
+    },
+    modulos_afectados: ['ReportesModule.jsx', 'ModalConfiguracionCorreo.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Paso de filtroHoraInicio y filtroHoraFin en useMetricoAnalytics y useMetricoProfesionales dentro de ReportesModule.',
+      'Sincronización de KPIs en reportes PDF con el turno activo.',
+      'Explicación técnica de la pasarela de transporte SMTP.'
+    ]
+  },
+  {
     id: 'v5.5.9',
     version_tag: 'v5.5.9',
     fecha_despliegue: '23 de Agosto, 2026',

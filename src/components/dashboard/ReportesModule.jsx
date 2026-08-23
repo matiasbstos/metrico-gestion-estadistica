@@ -63,9 +63,9 @@ export default function ReportesModule({
     return 'Consolidado del Periodo';
   }, [fechas.rawInicio, fechas.rawFin]);
 
-  // Extraer KPIs para el reporte
-  const { statsKPI, demografiaStats, topDiagnosticos, pacientesFiltrados, turnosFiltrados } = useMetricoAnalytics(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin);
-  const { filteredMetricsByDoctor } = useMetricoProfesionales(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin, [], '');
+  // Extraer KPIs para el reporte con la Matriz de Turnos y horarios seleccionados
+  const { statsKPI, demografiaStats, topDiagnosticos, pacientesFiltrados, turnosFiltrados } = useMetricoAnalytics(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin, {}, tipoCorte, filtroHoraInicio, filtroHoraFin);
+  const { filteredMetricsByDoctor } = useMetricoProfesionales(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin, [], '', tipoCorte, filtroHoraInicio, filtroHoraFin);
 
   // Rango de fechas reales detectado automáticamente de los datos de pacientes
   const rangoFechasReales = useMemo(() => {
