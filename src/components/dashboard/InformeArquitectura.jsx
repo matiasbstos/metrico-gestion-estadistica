@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.6.2',
+    version_tag: 'v5.6.2',
+    fecha_despliegue: '23 de Agosto, 2026',
+    proposito_actualizacion: 'Corrección de Importación de Íconos Lucide-React en Muro de Novedades.',
+    medios_y_stack: [
+      'React 18.3 (ModalMuroActualizaciones.jsx)',
+      'Lucide React Icon Imports (ArrowLeftRight, Send)',
+      'Error Boundary Resolution'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Corrección de Error Visual: Se añadieron las importaciones faltantes de ArrowLeftRight y Send en ModalMuroActualizaciones.jsx, restaurando inmediatamente la estabilidad completa del panel y eliminando el ReferenceError de pantalla roja.',
+      firestore_collections: ['mail', 'envios_correos', 'informes_enviados', 'audit_logs'],
+      query_optimization: 'Limpieza de imports y bundle consistency.'
+    },
+    modulos_afectados: ['ModalMuroActualizaciones.jsx', 'InformeArquitectura'],
+    detalles_tecnicos: [
+      'Import de ArrowLeftRight y Send desde lucide-react en ModalMuroActualizaciones.jsx.',
+      'Verificación y compilación exitosa en Vite.'
+    ]
+  },
+  {
     id: 'v5.6.1',
     version_tag: 'v5.6.1',
     fecha_despliegue: '23 de Agosto, 2026',

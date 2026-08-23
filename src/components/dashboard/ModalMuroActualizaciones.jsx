@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Megaphone, Sparkles, X, Calendar, CheckCircle2, ShieldAlert, MapPin, Cpu, BarChart2, Filter, Layers, Clock, HelpCircle, BookOpen, Lightbulb, Eye, Mail, Volume2, Lock, Activity, ShieldCheck, Database, FileSpreadsheet, BarChart3, LineChart } from 'lucide-react';
+import { Megaphone, Sparkles, X, Calendar, CheckCircle2, ShieldAlert, MapPin, Cpu, BarChart2, Filter, Layers, Clock, HelpCircle, BookOpen, Lightbulb, Eye, Mail, Volume2, Lock, Activity, ShieldCheck, Database, FileSpreadsheet, BarChart3, LineChart, ArrowLeftRight, Send } from 'lucide-react';
 
 export default function ModalMuroActualizaciones({ isOpen, onClose }) {
   const [selectedCat, setSelectedCat] = useState('TODOS');
@@ -7,6 +7,27 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const updatesList = [
+    {
+      id: 'v5.6.2',
+      version: 'v5.6.2',
+      fecha: '23 de Agosto, 2026',
+      badge: 'ESTABILIDAD & CORRECCIÓN DE ÍCONOS',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Restauración de Íconos y Estabilidad Global de la Plataforma',
+      categoria: 'Plataforma y Estabilidad',
+      icon: CheckCircle2,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se corrigieron las importaciones de íconos del sistema en el Muro de Novedades, restableciendo la navegación fluida y eliminando cualquier bloqueo de pantalla.',
+      instructivo: {
+        paraQueSirve: 'Mantiene la plataforma 100% libre de errores de renderizado.',
+        quePuedesVer: 'El panel funcionando con normalidad y el muro de actualizaciones disponible.',
+        ejemploUso: 'Navega libremente por todos los módulos del sistema.'
+      },
+      changes: [
+        'Corrección de Íconos: Importación correcta de ArrowLeftRight y Send.',
+        'Estabilidad Confirmada: Cero errores de referencia en tiempo de ejecución.'
+      ]
+    },
     {
       id: 'v5.6.1',
       version: 'v5.6.1',
