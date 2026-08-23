@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.5.6',
+    version_tag: 'v5.5.6',
+    fecha_despliegue: '23 de Agosto, 2026',
+    proposito_actualizacion: 'Depuración y Optimización de la Cabecera Limpia de 5 Pestañas del Módulo de Correo.',
+    medios_y_stack: [
+      'React 18.3 (ModalConfiguracionCorreo.jsx, Dashboard.jsx)',
+      'Dedicated Full-Width Institutional App Header',
+      'Clean 5-Tab Navigation Layout without Duplication or Overlaps'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Cabecera Limpia y Optimizada: Se eliminó la duplicación de barras en el módulo de correo, dejando una cabecera institucional única, nítida y perfectamente alineada con las 5 secciones clave: Detalle Programados, Calendario de Envíos, Diseño de Correos, Pruebas de Envío y Destinatarios. 2) Interacción Fluida: Acceso directo al botón de cierre, sin solapamientos visuales con la interfaz de fondo.',
+      firestore_collections: ['mail', 'envios_correos', 'informes_enviados', 'audit_logs'],
+      query_optimization: 'Eliminación de capas redundantes y mejora en rendimiento de renderizado.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'Dashboard.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Limpieza de cabecera en ModalConfiguracionCorreo.',
+      'Alineación perfecta de botones de navegación y cierre.'
+    ]
+  },
+  {
     id: 'v5.5.5',
     version_tag: 'v5.5.5',
     fecha_despliegue: '23 de Agosto, 2026',

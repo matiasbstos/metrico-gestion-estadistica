@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.5.6',
+      version: 'v5.5.6',
+      fecha: '23 de Agosto, 2026',
+      badge: 'CABECERA LIMPIA DE 5 PESTAÑAS',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Depuración y Alineación Nítida de la Cabecera del Centro de Despacho de Correo',
+      categoria: 'Notificaciones y Reportes',
+      icon: Mail,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: '1) Se depuró la cabecera superior del módulo de correo para eliminar solapamientos visuales y asegurar un encabezado nítido y espacioso. 2) Acceso claro a las 5 pestañas de control (Detalle Programados, Calendario de Envíos, Diseño de Correos, Pruebas de Envío y Destinatarios) con botón de cierre directo.',
+      instructivo: {
+        paraQueSirve: 'Mantiene una visualización despejada, profesional y sin interferencias para configurar y previsualizar los despachos de correo.',
+        quePuedesVer: 'La cabecera superior con diseño institucional limpio y botones de navegación sin traslapes.',
+        ejemploUso: 'Navega cómodamente entre el diseño de correos, las pruebas de envío y los destinatarios.'
+      },
+      changes: [
+        'Cabecera Nítida: Eliminación de capas duplicadas o solapadas.',
+        '5 Pestañas Clave: Navegación ordenada y responsiva.',
+        'Cierre Rápido: Botón accesible en la esquina superior derecha.'
+      ]
+    },
+    {
       id: 'v5.5.5',
       version: 'v5.5.5',
       fecha: '23 de Agosto, 2026',
