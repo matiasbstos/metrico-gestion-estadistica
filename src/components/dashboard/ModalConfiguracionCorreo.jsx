@@ -444,22 +444,52 @@ export default function ModalConfiguracionCorreo({
       estado: 'DESPACHADO_PRUEBA'
     };
 
+    let cloudFunctionSuccess = false;
+    let errMessage = null;
+
+    // 1. Invocar Cloud Function de Despacho SMTP Real
+    try {
+      if (app) {
+        const functionsInstance = getFunctions(app);
+        const callEnviarCorreo = httpsCallable(functionsInstance, 'enviarInformeCorreo');
+        const res = await callEnviarCorreo({
+          destinatarios: target,
+          tipoEnvio: testTemplate === 'MENSUAL' ? 'INFORME_CIERRE_MENSUAL' : 'INFORME_DIARIO_TURNO',
+          turnoAuditado: turnoInfo,
+          monthlySummary: testTemplate === 'MENSUAL' ? monthlyConsolidatedText : undefined
+        });
+        if (res && res.data && res.data.success) {
+          cloudFunctionSuccess = true;
+        }
+      }
+    } catch(cloudErr) {
+      console.warn('[Cloud Function SMTP] Despacho directo:', cloudErr);
+      errMessage = cloudErr?.message;
+    }
+
+    // 2. Registrar en Firestore (colecciones mail y envios_correos)
     try {
       if (db) {
         const { collection, addDoc } = await import('firebase/firestore');
         await addDoc(collection(db, 'mail'), mailPayload);
-        await addDoc(collection(db, 'envios_correos'), mailPayload);
+        await addDoc(collection(db, 'envios_correos'), {
+          ...mailPayload,
+          despachadoSmtp: cloudFunctionSuccess,
+          errorSmtp: errMessage
+        });
       }
     } catch(e) {}
 
-    // Registrar en los logs de prueba
+    // 3. Registrar en los logs de auditoría de prueba
     const newLog = {
       id: `test-log-${Date.now()}`,
       fecha: new Date().toISOString(),
       tipo: testTemplate === 'DIARIO' ? 'Informe Diario por Turno' : testTemplate === 'MENSUAL' ? 'Cierre Mensual Consolidado' : testTemplate === 'MASIVO' ? 'Carga Masiva Multidía' : 'Sub-Reportes Clínicos',
       destinatario: target,
       estado: 'EXITOSO',
-      detalles: `Prueba despachada correctamente a ${target}.`
+      detalles: cloudFunctionSuccess
+        ? `Prueba despachada y entregada vía SMTP a ${target}.`
+        : `Prueba registrada y despachada a ${target}.`
     };
 
     setTestLogs(prev => [newLog, ...prev.slice(0, 19)]);

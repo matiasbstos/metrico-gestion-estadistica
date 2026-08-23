@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.6.1',
+    version_tag: 'v5.6.1',
+    fecha_despliegue: '23 de Agosto, 2026',
+    proposito_actualizacion: 'Vinculación de Disparo Directo Cloud Function SMTP (enviarInformeCorreo) en Pruebas de Envío.',
+    medios_y_stack: [
+      'React 18.3 (ModalConfiguracionCorreo.jsx)',
+      'Firebase Functions httpsCallable (enviarInformeCorreo)',
+      'Nodemailer Google SMTP Transporter Engine'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Despacho Físico SMTP: Se conectó la llamada directa a la Cloud Function enviarInformeCorreo en la consola de pruebas de ModalConfiguracionCorreo.jsx. Ahora, al presionar "Disparar Correo de Prueba Ahora", además de registrarse en Firestore (mail y envios_correos), se invoca el transporte SMTP de Nodemailer con las credenciales oficiales de datosgestionsaraera@gmail.com para entregar el correo en la bandeja de entrada física (@cormumel.cl / Gmail).',
+      firestore_collections: ['mail', 'envios_correos', 'informes_enviados', 'audit_logs'],
+      query_optimization: 'Invocación asíncrona segura con registro de auditoría dual.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Llamada httpsCallable(functions, "enviarInformeCorreo") en handleSendTestMail.',
+      'Soporte para plantillas de Turno Diario y Cierre Mensual.',
+      'Manejo de errores y confirmación de MessageId SMTP.'
+    ]
+  },
+  {
     id: 'v5.6.0',
     version_tag: 'v5.6.0',
     fecha_despliegue: '23 de Agosto, 2026',

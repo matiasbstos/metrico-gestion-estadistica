@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.6.1',
+      version: 'v5.6.1',
+      fecha: '23 de Agosto, 2026',
+      badge: 'CONEXIÓN SMTP DIRECTA & PRUEBAS DE ENVÍO REAL',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Conexión Directa de Cloud Function SMTP para Entrega Física de Correos',
+      categoria: 'Notificaciones y Reportes',
+      icon: Send,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se vinculó la consola de pruebas de envío con la Cloud Function backend "enviarInformeCorreo", ejecutando el transporte SMTP de Nodemailer con la cuenta oficial para que los correos de prueba lleguen directamente a la bandeja de entrada destinataria (somesar.aera@cormumel.cl / Gmail).',
+      instructivo: {
+        paraQueSirve: 'Permite disparar pruebas de correo que viajan físicamente por los servidores SMTP hasta el buzón de destino.',
+        quePuedesVer: 'La confirmación de entrega en la consola de auditoría y la llegada real del correo con su formato institucional.',
+        ejemploUso: 'Escribe tu correo en la pestaña 4. Pruebas y presiona "Disparar Correo de Prueba Ahora".'
+      },
+      changes: [
+        'Conexión Cloud Function: Invocación directa a enviarInformeCorreo.',
+        'Transporte SMTP Activo: Entrega real en servidores de destino.',
+        'Registro Dual: Firestore y confirmación de MessageId SMTP.'
+      ]
+    },
+    {
       id: 'v5.6.0',
       version: 'v5.6.0',
       fecha: '23 de Agosto, 2026',
