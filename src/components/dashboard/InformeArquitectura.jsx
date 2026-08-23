@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.5.3',
+    version_tag: 'v5.5.3',
+    fecha_despliegue: '23 de Agosto, 2026',
+    proposito_actualizacion: 'Refinamiento de Desglose de Espera, Centros Principales, Lámina Exclusiva de Traslados y Certificación Oficial.',
+    medios_y_stack: [
+      'React 18.3 (ModalConfiguracionCorreo.jsx, Dashboard.jsx)',
+      'Wait Times & Progression Breakdown Engine (Admisión-Categorización, Categorización-Atención, Atención-Alta)',
+      'Hospital Transfer Diagnostics & SAMU Destination Analytics',
+      'Official Sub-Report Certification & SSOT Footer Layout'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Desglose de Esperas y Estadía: Se agregó el 5° recuadro superior para la Espera Total Promedio (1h 42m) con el desglose exacto de los 3 tramos: (a) Admisión a categorización (12 min), (b) Categorización a atención (38 min) y (c) Atención a alta (52 min), además del bloque superior destacado para Constataciones de Lesiones (Z51.8). 2) Centros Principales: Se filtró la lámina de centros para mostrar exclusivamente Boris (41.4%), Florencia (34.2%) y Elgueta (15.3%) + Población Flotante (9.0%). 3) Lámina Exclusiva de Traslados: Se estructuró un apartado dedicado con el diagnóstico clínico individual y centro/unidad de destino de cada traslado (SAMU). 4) Rendimiento Médico Limpio: Se removió la columna interanual de médicos. 5) Cierre Institucional Idéntico a Sub-Reportes: Se añadió el pie de certificación oficial con usuario certificante, sistema emisor y fecha exacta.',
+      firestore_collections: ['mail', 'envios_correos', 'informes_enviados', 'audit_logs'],
+      query_optimization: 'Navegación reactiva con sidebar interactivo sin bloqueo de pantalla.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'Dashboard.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Incorporación de los 3 tramos de espera y constataciones Z51.8 en cabecera.',
+      'Generación de apartado dedicado a traslados hospitalarios con diagnóstico específico.',
+      'Integración del pie de certificación y cierre institucional idéntico a sub-reportes.'
+    ]
+  },
+  {
     id: 'v5.5.2',
     version_tag: 'v5.5.2',
     fecha_despliegue: '23 de Agosto, 2026',

@@ -353,6 +353,10 @@ const DashboardContent = () => {
   }, []);
 
   useEffect(() => {
+    setShowCorreoModal(false);
+  }, [activeTab, subTabEspecifico]);
+
+  useEffect(() => {
     localStorage.setItem('metrico_centro', centroActivo);
   }, [centroActivo]);
 
@@ -1234,6 +1238,7 @@ const DashboardContent = () => {
         onClose={() => setShowCorreoModal(false)} 
         app={app} 
         db={db}
+        userProfile={userProfile}
         showNotif={showNotif} 
         pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB} 
         turnosDB={turnosDB} 

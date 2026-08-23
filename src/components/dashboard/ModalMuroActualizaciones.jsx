@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.5.3',
+      version: 'v5.5.3',
+      fecha: '23 de Agosto, 2026',
+      badge: 'DESGLOSE DE ESPERA, TRASLADOS & CIERRE OFICIAL',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Refinamiento de Desglose de Espera (3 Tramos), Apartado Exclusivo de Traslados y Certificación Oficial',
+      categoria: 'Notificaciones y Reportes',
+      icon: Clock,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: '1) Se incorporó el 5° recuadro de Espera Total Promedio (1h 42m) con desglose en 3 tramos: Admisión a Triage (12 min), Triage a Atención (38 min) y Atención a Alta (52 min), más el bloque de Constatación de Lesiones (Z51.8). 2) Se filtraron los centros de origen a los principales: Boris (41.4%), Florencia (34.2%) y Elgueta (15.3%). 3) Se añadió lámina exclusiva para traslados hospitalarios con diagnóstico individual y centro de destino (SAMU). 4) Se integró el pie de certificación institucional idéntico al cierre de los sub-reportes y navegación fluida con el sidebar.',
+      instructivo: {
+        paraQueSirve: 'Brinda un desglose minucioso de las esperas por fase asistencial, detalle clínico individual de derivaciones SAMU y la certificación de cierre institucional oficial.',
+        quePuedesVer: 'En Informe por Correo > 3. Diseño de Correos: visualiza los 5 recuadros superiores, desglose de esperas, centros Boris/Florencia/Elgueta, lámina de traslados con diagnósticos y el pie oficial de certificación.',
+        ejemploUso: 'Revisa el tiempo de espera por cada tramo y el listado de diagnósticos de los pacientes trasladados.'
+      },
+      changes: [
+        'Espera Total & 3 Tramos: Desglose de flujo y tiempos de permanencia en urgencia.',
+        'Traslados Exclusivos: Lista con diagnóstico clínico de derivación y destino SAMU.',
+        'Cierre Oficial: Pie de certificación institucional con usuario emisor y fecha.'
+      ]
+    },
+    {
       id: 'v5.5.2',
       version: 'v5.5.2',
       fecha: '23 de Agosto, 2026',

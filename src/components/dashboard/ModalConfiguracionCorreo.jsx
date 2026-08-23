@@ -23,6 +23,7 @@ export default function ModalConfiguracionCorreo({
   onClose, 
   app, 
   db, 
+  userProfile,
   showNotif, 
   pacientesDB = [], 
   turnosDB = [], 
@@ -462,7 +463,7 @@ export default function ModalConfiguracionCorreo({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 w-full h-full bg-slate-950/90 backdrop-blur-xl flex flex-col overflow-hidden animate-fade-in text-secondary-custom">
+    <div className="fixed inset-y-0 right-0 left-0 md:left-16 lg:left-20 z-40 bg-slate-950/95 backdrop-blur-xl flex flex-col overflow-hidden animate-fade-in text-secondary-custom shadow-2xl border-l border-indigo-500/20">
       
       {/* 1. TOP INSTITUTIONAL APP HEADER */}
       <header className="bg-gradient-to-r from-indigo-700 via-indigo-800 to-slate-900 text-white px-6 py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-indigo-500/30 shrink-0 shadow-lg">
@@ -530,7 +531,7 @@ export default function ModalConfiguracionCorreo({
         
         {saveMsg && (
           <div className="p-4 bg-emerald-500/20 border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs rounded-2xl flex items-center gap-2 animate-fade-in shadow-sm">
-            <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+            <CheckCircle2 className="w-5 h-5 text-emerald-500" />
             <span>{saveMsg}</span>
           </div>
         )}
@@ -1029,8 +1030,10 @@ export default function ModalConfiguracionCorreo({
                       </p>
                     </div>
 
-                    {/* 1. LÁMINA: MÉTRICAS CLAVE CON COMPARACIÓN INTERANUAL */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {/* 1. LÁMINA: 5 RECUADROS SUPERIORES (INCLUYENDO ESPERA TOTAL Y CONSTATACIONES) */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                      
+                      {/* RECUADRO 1: ADMITIDOS */}
                       <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-1 shadow-xs">
                         <span className="text-[10px] text-slate-500 uppercase font-black block tracking-wider">Admitidos Totales</span>
                         <span className="text-2xl font-black text-slate-900 block">{turnoInfo.totalAdmitidos}</span>
@@ -1040,6 +1043,7 @@ export default function ModalConfiguracionCorreo({
                         </div>
                       </div>
 
+                      {/* RECUADRO 2: ATENDIDOS */}
                       <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-1 shadow-xs">
                         <span className="text-[10px] text-slate-500 uppercase font-black block tracking-wider">Atenciones Médicas</span>
                         <span className="text-2xl font-black text-emerald-600 block">{turnoInfo.atendidos}</span>
@@ -1049,6 +1053,7 @@ export default function ModalConfiguracionCorreo({
                         </div>
                       </div>
 
+                      {/* RECUADRO 3: ALTAS ADMIN */}
                       <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-1 shadow-xs">
                         <span className="text-[10px] text-slate-500 uppercase font-black block tracking-wider">Altas Administrativas</span>
                         <span className="text-2xl font-black text-rose-600 block">{turnoInfo.altasAdmin}</span>
@@ -1058,6 +1063,7 @@ export default function ModalConfiguracionCorreo({
                         </div>
                       </div>
 
+                      {/* RECUADRO 4: RENDIMIENTO / HORA */}
                       <div className="p-3.5 bg-indigo-50/70 rounded-2xl border border-indigo-200 text-center space-y-1 shadow-xs">
                         <span className="text-[10px] text-indigo-700 uppercase font-black block tracking-wider">Rendimiento / Hora</span>
                         <span className="text-2xl font-black text-indigo-700 block">9.25 <span className="text-xs font-bold text-indigo-500">pac/hr</span></span>
@@ -1066,6 +1072,72 @@ export default function ModalConfiguracionCorreo({
                           <span className="text-[9px] font-medium text-indigo-500">vs 2025</span>
                         </div>
                       </div>
+
+                      {/* RECUADRO 5 (NUEVO): ESPERA TOTAL PROMEDIO CON DESGLOSE */}
+                      <div className="p-3.5 bg-purple-50/70 rounded-2xl border border-purple-200 text-center space-y-1 shadow-xs">
+                        <span className="text-[10px] text-purple-700 uppercase font-black block tracking-wider">Espera Total Promedio</span>
+                        <span className="text-2xl font-black text-purple-800 block">1h 42m</span>
+                        <div className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                          <span>↓ -3.8%</span>
+                          <span className="text-[9px] font-medium text-slate-500">vs 2025</span>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* RECUADRO SUPERIOR DESTACADO: DESGLOSE DE TIEMPOS DE ESPERA & CONSTATACIONES */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      
+                      {/* DESGLOSE DE 3 TRAMOS DE ESPERA */}
+                      <div className="p-4 bg-purple-50/40 rounded-2xl border border-purple-200 space-y-2.5">
+                        <div className="flex items-center justify-between border-b border-purple-200/70 pb-1.5">
+                          <span className="font-black text-purple-950 text-xs uppercase tracking-wider flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-purple-600" />
+                            Desglose de los 3 Tramos de Espera y Estadía
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                          <div className="p-2 bg-white rounded-xl border border-purple-100 space-y-0.5">
+                            <span className="text-[9px] font-black text-slate-500 uppercase block">1. Admisión a Triage</span>
+                            <span className="font-black text-slate-900 text-sm block">12 min</span>
+                            <span className="text-[9px] font-bold text-emerald-700 block">↓ -2.5% vs 2025</span>
+                          </div>
+                          <div className="p-2 bg-white rounded-xl border border-purple-100 space-y-0.5">
+                            <span className="text-[9px] font-black text-slate-500 uppercase block">2. Triage a Atención</span>
+                            <span className="font-black text-indigo-700 text-sm block">38 min</span>
+                            <span className="text-[9px] font-bold text-emerald-700 block">↓ -4.1% vs 2025</span>
+                          </div>
+                          <div className="p-2 bg-white rounded-xl border border-purple-100 space-y-0.5">
+                            <span className="text-[9px] font-black text-slate-500 uppercase block">3. Atención a Alta</span>
+                            <span className="font-black text-purple-700 text-sm block">52 min</span>
+                            <span className="text-[9px] font-bold text-emerald-700 block">↓ -1.8% vs 2025</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* CONSTATACIONES DE LESIONES ENCABEZADO SUPERIOR */}
+                      <div className="p-4 bg-amber-50/50 rounded-2xl border border-amber-200 space-y-2 flex flex-col justify-between">
+                        <div className="flex items-center justify-between border-b border-amber-200/70 pb-1.5">
+                          <span className="font-black text-amber-950 text-xs uppercase tracking-wider flex items-center gap-2">
+                            <ShieldAlert className="w-4 h-4 text-amber-600" />
+                            Constatación de Lesiones (Z51.8)
+                          </span>
+                          <span className="text-[10px] font-black text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
+                            Peritaje Legal
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between gap-4 p-2 bg-white rounded-xl border border-amber-200/60">
+                          <div>
+                            <span className="text-xs font-black text-slate-900 block">6 peritajes clínicos</span>
+                            <span className="text-[10px] text-slate-500 font-medium">Requerimiento Judicial / Carabineros / PDI</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs font-mono font-bold text-amber-700 block">5.4% de la demanda</span>
+                            <span className="text-[10px] font-bold text-emerald-700 block">↑ +8.1% vs 2025</span>
+                          </div>
+                        </div>
+                      </div>
+
                     </div>
 
                     {/* 2. LÁMINA: DISTRIBUCIÓN DEL TRIAGE Y RENDIMIENTO GLOBAL */}
@@ -1107,7 +1179,7 @@ export default function ModalConfiguracionCorreo({
                       </div>
                     </div>
 
-                    {/* 3. LÁMINA: LISTADO DE MÉDICOS DEL TURNO Y RENDIMIENTO INDIVIDUAL */}
+                    {/* 3. LÁMINA: LISTADO DE MÉDICOS DEL TURNO (SIN COMPARATIVA INTERANUAL) */}
                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 shadow-xs">
                       <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
                         <span className="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
@@ -1124,10 +1196,9 @@ export default function ModalConfiguracionCorreo({
                           <thead className="bg-slate-100 font-black text-slate-600 text-[10px] uppercase">
                             <tr>
                               <th className="p-2.5">Médico Tratante</th>
-                              <th className="p-2.5 text-center">Atenciones</th>
+                              <th className="p-2.5 text-center">Atenciones Médicas</th>
                               <th className="p-2.5 text-center">Rendimiento (Pac/Hr)</th>
-                              <th className="p-2.5 text-center">% Aporte Turno</th>
-                              <th className="p-2.5 text-right">Variación Interanual</th>
+                              <th className="p-2.5 text-right">% Aporte al Turno</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 font-medium">
@@ -1138,8 +1209,7 @@ export default function ModalConfiguracionCorreo({
                               </td>
                               <td className="p-2.5 text-center font-mono font-bold text-emerald-600">34</td>
                               <td className="p-2.5 text-center font-mono font-bold">2.83 pac/hr</td>
-                              <td className="p-2.5 text-center font-bold text-slate-700">34.3%</td>
-                              <td className="p-2.5 text-right font-bold text-emerald-700 text-[10px]">↑ +8.5% vs 2025</td>
+                              <td className="p-2.5 text-right font-bold text-slate-700">34.3%</td>
                             </tr>
                             <tr className="hover:bg-slate-50">
                               <td className="p-2.5 font-bold text-slate-900 flex items-center gap-2">
@@ -1148,8 +1218,7 @@ export default function ModalConfiguracionCorreo({
                               </td>
                               <td className="p-2.5 text-center font-mono font-bold text-indigo-600">33</td>
                               <td className="p-2.5 text-center font-mono font-bold">2.75 pac/hr</td>
-                              <td className="p-2.5 text-center font-bold text-slate-700">33.3%</td>
-                              <td className="p-2.5 text-right font-bold text-emerald-700 text-[10px]">↑ +5.2% vs 2025</td>
+                              <td className="p-2.5 text-right font-bold text-slate-700">33.3%</td>
                             </tr>
                             <tr className="hover:bg-slate-50">
                               <td className="p-2.5 font-bold text-slate-900 flex items-center gap-2">
@@ -1158,8 +1227,7 @@ export default function ModalConfiguracionCorreo({
                               </td>
                               <td className="p-2.5 text-center font-mono font-bold text-purple-600">32</td>
                               <td className="p-2.5 text-center font-mono font-bold">2.67 pac/hr</td>
-                              <td className="p-2.5 text-center font-bold text-slate-700">32.3%</td>
-                              <td className="p-2.5 text-right font-bold text-emerald-700 text-[10px]">↑ +4.1% vs 2025</td>
+                              <td className="p-2.5 text-right font-bold text-slate-700">32.3%</td>
                             </tr>
                           </tbody>
                         </table>
@@ -1207,24 +1275,24 @@ export default function ModalConfiguracionCorreo({
                       </div>
                     </div>
 
-                    {/* 5. LÁMINA: CENTROS BASE ACUMULADOS & DISTRIBUCIÓN POR SEXO */}
+                    {/* 5. LÁMINA: CENTROS DE ORIGEN (BORIS, FLORENCIA Y ELGUETA) & DEMOGRAFÍA */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       
-                      {/* CENTROS BASE & TRASLADOS */}
+                      {/* CENTROS PRINCIPALES (BORIS, FLORENCIA Y ELGUETA) */}
                       <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 shadow-xs">
                         <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
                           <span className="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
                             <Hospital className="w-4 h-4 text-emerald-600" />
-                            Centros de Origen & Tasa de Traslado
+                            Centros de Origen Principales
                           </span>
                         </div>
 
                         <div className="space-y-2 text-xs">
                           {[
-                            { name: 'CESFAM San Alberto Hurtado', count: 48, pct: 43.2, traslados: '4.2% (2 trasl.)', trend: '↑ +11.6%' },
-                            { name: 'CESFAM Dr. Francisco Boris Soler', count: 38, pct: 34.2, traslados: '5.3% (2 trasl.)', trend: '↑ +8.6%' },
-                            { name: 'Postas Rurales / Otros', count: 15, pct: 13.5, traslados: '6.7% (1 trasl.)', trend: '↑ +4.5%' },
-                            { name: 'Sin Previsión / Población Flotante', count: 10, pct: 9.0, traslados: '10.0% (1 trasl.)', trend: '↓ -2.1%' }
+                            { name: 'CESFAM Dr. Francisco Boris Soler (Boris)', count: 46, pct: 41.4, traslados: '4.3% (2 trasl.)', trend: '↑ +8.6%' },
+                            { name: 'CESFAM Florencia', count: 38, pct: 34.2, traslados: '5.3% (2 trasl.)', trend: '↑ +6.2%' },
+                            { name: 'CESFAM Dr. Manuel Elgueta (Elgueta)', count: 17, pct: 15.3, traslados: '5.9% (1 trasl.)', trend: '↑ +4.1%' },
+                            { name: 'Otros Centros / Población Flotante', count: 10, pct: 9.0, traslados: '10.0% (1 trasl.)', trend: '↓ -2.1%' }
                           ].map((c, i) => (
                             <div key={i} className="p-2 bg-white rounded-xl border border-slate-200/60 flex items-center justify-between gap-2">
                               <div className="truncate">
@@ -1277,7 +1345,47 @@ export default function ModalConfiguracionCorreo({
 
                     </div>
 
-                    {/* 6. TARJETA OFICIAL: DESCARGA DE REPORTES PDF Y CATÁLOGO */}
+                    {/* 6. LÁMINA EXCLUSIVA DE TRASLADOS HOSPITALARIOS (CON DIAGNÓSTICO ESPECÍFICO) */}
+                    <div className="p-4 bg-indigo-50/50 rounded-2xl border-2 border-indigo-300 space-y-3 shadow-xs">
+                      <div className="flex items-center justify-between border-b border-indigo-200 pb-2">
+                        <div className="flex items-center gap-2">
+                          <ArrowLeftRight className="w-4 h-4 text-indigo-600" />
+                          <span className="font-black text-indigo-950 text-xs uppercase tracking-wider">
+                            Apartado Exclusivo: Traslados y Derivaciones Hospitalarias (SAMU)
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-black text-indigo-800 bg-indigo-100 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                          Total: 6 Traslados (5.4% del turno)
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        {[
+                          { id: 1, diag: 'Apendicitis aguda con peritonitis localizada', dest: 'Urgencia Quirúrgica Hospital Melipilla', tipo: 'SAMU Avanzado', triage: 'C2' },
+                          { id: 2, diag: 'Fractura expuesta de tibia y peroné', dest: 'Traumatología Hospital Melipilla', tipo: 'SAMU Básico', triage: 'C3' },
+                          { id: 3, diag: 'Síndrome coronario agudo con supradesnivel ST', dest: 'UPC Cardiovascular Hospital Melipilla', tipo: 'SAMU Avanzado', triage: 'C1' },
+                          { id: 4, diag: 'Accidente cerebrovascular isquémico en ventana', dest: 'Neurología / TAC Urgencia Hospital Melipilla', tipo: 'SAMU Avanzado', triage: 'C2' },
+                          { id: 5, diag: 'Traumatismo encéfalo craneano moderado', dest: 'Cirugía / Observación Hospitalaria', tipo: 'SAMU Básico', triage: 'C3' },
+                          { id: 6, diag: 'Neumonía bacteriana grave con hipoxemia', dest: 'Medicina Interna Hospital Melipilla', tipo: 'SAMU Básico', triage: 'C3' }
+                        ].map((t) => (
+                          <div key={t.id} className="p-2.5 bg-white rounded-xl border border-indigo-200/80 space-y-1 shadow-2xs">
+                            <div className="flex items-center justify-between">
+                              <span className="font-black text-slate-900 text-[11px]">Paciente #{t.id}</span>
+                              <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-md ${t.triage === 'C1' ? 'bg-rose-100 text-rose-700' : t.triage === 'C2' ? 'bg-amber-100 text-amber-700' : 'bg-yellow-100 text-yellow-800'}`}>
+                                {t.triage}
+                              </span>
+                            </div>
+                            <p className="font-bold text-indigo-950 text-xs">{t.diag}</p>
+                            <div className="flex items-center justify-between text-[10px] text-slate-500 font-medium pt-0.5 border-t border-slate-100">
+                              <span>Destino: {t.dest}</span>
+                              <span className="font-bold text-indigo-600">{t.tipo}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 7. TARJETA OFICIAL: DESCARGA DE REPORTES PDF Y CATÁLOGO */}
                     <div className="p-5 bg-gradient-to-r from-indigo-50 via-white to-indigo-50 border-2 border-indigo-300 rounded-3xl text-indigo-950 space-y-3 shadow-sm">
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
@@ -1330,6 +1438,16 @@ export default function ModalConfiguracionCorreo({
                       </div>
                     </div>
 
+                    {/* 8. BLOQUE OFICIAL: PIE DE CERTIFICACIÓN Y CIERRE INSTITUCIONAL (IGUAL A SUB-REPORTES) */}
+                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] text-slate-700 space-y-1">
+                      <p><strong>Sistema Emisor:</strong> Métrico - Dashboard de Gestión Estadística y Tiempos de Espera de Urgencia (SAR Arpillerista Elsa Romo Aravena).</p>
+                      <p><strong>Usuario Certificante:</strong> {userProfile?.email || 'matias.bustos@cormumel.cl'}</p>
+                      <p><strong>Fecha de Generación / Descarga:</strong> {new Date().toLocaleString('es-CL', { dateStyle: 'long', timeStyle: 'medium' })} h</p>
+                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider pt-1 border-t border-slate-200">
+                        * ESTE DOCUMENTO ES UN CONSOLIDADO ESTADÍSTICO GENERADO A PARTIR DE REGISTROS DEL SISTEMA IRIS / SSOT.
+                      </p>
+                    </div>
+
                   </div>
                 )}
 
@@ -1362,6 +1480,16 @@ export default function ModalConfiguracionCorreo({
                         <span className="text-xl font-black text-indigo-700 block">142 pac.</span>
                         <span className="text-[10px] font-black text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full border border-indigo-200 inline-block">↑ +2.5% vs 2025</span>
                       </div>
+                    </div>
+
+                    {/* BLOQUE OFICIAL: PIE DE CERTIFICACIÓN Y CIERRE INSTITUCIONAL */}
+                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] text-slate-700 space-y-1">
+                      <p><strong>Sistema Emisor:</strong> Métrico - Dashboard de Gestión Estadística y Tiempos de Espera de Urgencia (SAR Arpillerista Elsa Romo Aravena).</p>
+                      <p><strong>Usuario Certificante:</strong> {userProfile?.email || 'matias.bustos@cormumel.cl'}</p>
+                      <p><strong>Fecha de Generación / Descarga:</strong> {new Date().toLocaleString('es-CL', { dateStyle: 'long', timeStyle: 'medium' })} h</p>
+                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider pt-1 border-t border-slate-200">
+                        * ESTE DOCUMENTO ES UN CONSOLIDADO ESTADÍSTICO GENERADO A PARTIR DE REGISTROS DEL SISTEMA IRIS / SSOT.
+                      </p>
                     </div>
                   </div>
                 )}
