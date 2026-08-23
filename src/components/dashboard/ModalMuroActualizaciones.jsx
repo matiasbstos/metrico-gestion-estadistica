@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.5.5',
+      version: 'v5.5.5',
+      fecha: '23 de Agosto, 2026',
+      badge: 'BARRA SUPERIOR GLOBAL RESTAURADA',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Restauración e Integración de la Barra Superior de Filtros y Control en el Módulo de Correo',
+      categoria: 'Notificaciones y Reportes',
+      icon: Filter,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: '1) Se restauró e integró la Barra Superior de Filtros Globales (FiltrosGlobales) en la parte superior del módulo de correo, permitiendo controlar fechas, cortes, turnos, sincronización en vivo y alertas de integridad desde la misma vista. 2) Se garantiza la visualización continua de los controles de fecha y centro asistencial en toda la pantalla.',
+      instructivo: {
+        paraQueSirve: 'Permite cambiar fechas, sincronizar datos y revisar el estado de integridad directamente desde la vista del correo sin tener que salir del módulo.',
+        quePuedesVer: 'En la parte superior del módulo de correo, visualiza la barra completa con selectores de fecha, botón de sincronización y estado de integridad.',
+        ejemploUso: 'Ajusta las fechas desde la barra superior para actualizar de forma inmediata las métricas auditadas en la plantilla.'
+      },
+      changes: [
+        'Barra Superior Integrada: Filtros Globales visibles y activos en la parte superior.',
+        'Sincronización en Vivo: Control de estado del sistema e integridad asistencial.',
+        'Experiencia Homogénea: Mismo encabezado contextual que el resto de los módulos.'
+      ]
+    },
+    {
       id: 'v5.5.4',
       version: 'v5.5.4',
       fecha: '23 de Agosto, 2026',

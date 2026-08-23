@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.5.5',
+    version_tag: 'v5.5.5',
+    fecha_despliegue: '23 de Agosto, 2026',
+    proposito_actualizacion: 'Restauración e Integración de la Barra Superior de Filtros Globales en el Módulo de Correo.',
+    medios_y_stack: [
+      'React 18.3 (ModalConfiguracionCorreo.jsx, FiltrosGlobales.jsx, Dashboard.jsx)',
+      'Global Top Filter Bar Sticky Integration',
+      'Context Control, Date Presets & Real-time Integrity Syncer'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Integración de Barra Superior Global: Se restauró e integró la Barra Superior de Filtros Globales (FiltrosGlobales) en la parte superior del módulo de correo, permitiendo controlar fechas, cortes, turnos, sincronización en vivo y alertas de integridad desde la misma vista. 2) Armonía de Navegación: Mantiene visibilidad continua del contexto operativo de la plataforma sin solapamientos.',
+      firestore_collections: ['mail', 'envios_correos', 'informes_enviados', 'audit_logs'],
+      query_optimization: 'Carga reactiva y sincronización bidireccional de filtros.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'Dashboard.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Integración de FiltrosGlobales en la cabecera de ModalConfiguracionCorreo.',
+      'Paso de props de control temporal y sincronización desde Dashboard.jsx.'
+    ]
+  },
+  {
     id: 'v5.5.4',
     version_tag: 'v5.5.4',
     fecha_despliegue: '23 de Agosto, 2026',

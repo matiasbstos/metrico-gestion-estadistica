@@ -1238,10 +1238,41 @@ const DashboardContent = () => {
         onClose={() => setShowCorreoModal(false)} 
         app={app} 
         db={db}
+        user={user}
         userProfile={userProfile}
         showNotif={showNotif} 
         pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB} 
         turnosDB={turnosDB} 
+        modoComparativo={modoComparativo} 
+        setModoComparativo={setModoComparativo}
+        filtroFechaInicio={filtroFechaInicio} 
+        setFiltroFechaInicio={setFiltroFechaInicio}
+        filtroFechaFin={filtroFechaFin} 
+        setFiltroFechaFin={setFiltroFechaFin}
+        filtroFechaInicioB={filtroFechaInicioB} 
+        setFiltroFechaInicioB={setFiltroFechaInicioB}
+        filtroFechaFinB={filtroFechaFinB} 
+        setFiltroFechaFinB={setFiltroFechaFinB}
+        applyDatePreset={applyDatePreset}
+        tipoCorte={tipoCorte} 
+        setTipoCorte={setTipoCorte}
+        filtroHoraInicio={filtroHoraInicio} 
+        setFiltroHoraInicio={setFiltroHoraInicio}
+        filtroHoraFin={filtroHoraFin} 
+        setFiltroHoraFin={setFiltroHoraFin}
+        horarioPreset={horarioPreset} 
+        setHorarioPreset={setHorarioPreset}
+        maxDateLabel={maxDateLabel}
+        handleClearFilters={handleClearFilters}
+        syncStatus={syncStatus}
+        lastSyncTime={lastSyncTime}
+        syncToast={syncToast}
+        integrityIncidencesCount={integrityIncidencesCount}
+        onSync={triggerRefresh}
+        onNavigateTab={(tab) => {
+          setShowCorreoModal(false);
+          setActiveTab(tab);
+        }}
         onOpenReportes={() => {
           setShowCorreoModal(false);
           setActiveTab('reportes');

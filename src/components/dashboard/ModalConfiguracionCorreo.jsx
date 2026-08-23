@@ -17,16 +17,45 @@ import {
   generateMonthlyConsolidatedSummary,
   generateMultiDayBatchSummary
 } from '../../utils/summaryGenerator';
+import FiltrosGlobales from './FiltrosGlobales';
 
 export default function ModalConfiguracionCorreo({ 
   isOpen, 
   onClose, 
   app, 
   db, 
+  user,
   userProfile,
   showNotif, 
   pacientesDB = [], 
   turnosDB = [], 
+  modoComparativo, 
+  setModoComparativo,
+  filtroFechaInicio, 
+  setFiltroFechaInicio,
+  filtroFechaFin, 
+  setFiltroFechaFin,
+  filtroFechaInicioB, 
+  setFiltroFechaInicioB,
+  filtroFechaFinB, 
+  setFiltroFechaFinB,
+  applyDatePreset,
+  tipoCorte, 
+  setTipoCorte,
+  filtroHoraInicio, 
+  setFiltroHoraInicio,
+  filtroHoraFin, 
+  setFiltroHoraFin,
+  horarioPreset, 
+  setHorarioPreset,
+  maxDateLabel,
+  handleClearFilters,
+  syncStatus,
+  lastSyncTime,
+  syncToast,
+  integrityIncidencesCount,
+  onSync,
+  onNavigateTab,
   onOpenReportes 
 }) {
   // Pestaña Principal del Módulo de Pantalla Completa
@@ -465,8 +494,39 @@ export default function ModalConfiguracionCorreo({
   return (
     <div className="fixed inset-y-0 right-0 left-0 md:left-16 lg:left-20 z-40 bg-slate-950/95 backdrop-blur-xl flex flex-col overflow-hidden animate-fade-in text-secondary-custom shadow-2xl border-l border-indigo-500/20">
       
+      {/* 0. BARRA SUPERIOR DE FILTROS GLOBALES & CONTROL DE CONTEXTO */}
+      {setFiltroFechaInicio && (
+        <div className="bg-slate-900/90 border-b border-indigo-500/20 px-4 md:px-6 py-2.5 backdrop-blur-md shrink-0 shadow-sm">
+          <FiltrosGlobales 
+            modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
+            filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={setFiltroFechaInicio}
+            filtroFechaFin={filtroFechaFin} setFiltroFechaFin={setFiltroFechaFin}
+            filtroFechaInicioB={filtroFechaInicioB} setFiltroFechaInicioB={setFiltroFechaInicioB}
+            filtroFechaFinB={filtroFechaFinB} setFiltroFechaFinB={setFiltroFechaFinB}
+            applyDatePreset={applyDatePreset}
+            tipoCorte={tipoCorte} setTipoCorte={setTipoCorte}
+            filtroHoraInicio={filtroHoraInicio} setFiltroHoraInicio={setFiltroHoraInicio}
+            filtroHoraFin={filtroHoraFin} setFiltroHoraFin={setFiltroHoraFin}
+            horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
+            maxDateLabel={maxDateLabel}
+            onClearFilters={handleClearFilters}
+            onSync={onSync}
+            syncStatus={syncStatus}
+            lastSyncTime={lastSyncTime}
+            syncToast={syncToast}
+            integrityIncidencesCount={integrityIncidencesCount}
+            onNavigateTab={onNavigateTab}
+            turnosDB={turnosDB}
+            user={user}
+            db={db}
+            pacientesDB={pacientesDB}
+            showNotif={showNotif}
+          />
+        </div>
+      )}
+
       {/* 1. TOP INSTITUTIONAL APP HEADER */}
-      <header className="bg-gradient-to-r from-indigo-700 via-indigo-800 to-slate-900 text-white px-6 py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-indigo-500/30 shrink-0 shadow-lg">
+      <header className="bg-gradient-to-r from-indigo-700 via-indigo-800 to-slate-900 text-white px-6 py-3.5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-indigo-500/30 shrink-0 shadow-lg">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-white/15 rounded-2xl backdrop-blur-md border border-white/20 shadow-md">
             <Mail className="w-7 h-7 text-indigo-200 animate-pulse" />
