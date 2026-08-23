@@ -473,34 +473,34 @@ export default function ModalConfiguracionCorreo({
     <div className={`fixed inset-y-0 right-0 ${sidebarCollapsed ? 'left-0 md:left-16 lg:left-20' : 'left-0 md:left-64'} z-[60] bg-slate-950/98 backdrop-blur-2xl flex flex-col overflow-hidden animate-fade-in text-secondary-custom shadow-2xl border-l border-indigo-500/30 transition-all duration-300`}>
       
       {/* 1. TOP INSTITUTIONAL APP HEADER */}
-      <header className="bg-gradient-to-r from-indigo-700 via-indigo-800 to-slate-900 text-white px-6 py-3.5 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 border-b border-indigo-500/30 shrink-0 shadow-lg">
-        <div className="flex items-center gap-4 min-w-0">
-          <div className="p-3 bg-white/15 rounded-2xl backdrop-blur-md border border-white/20 shadow-md shrink-0">
-            <Mail className="w-6 h-6 text-indigo-200 animate-pulse" />
+      <header className="bg-gradient-to-r from-indigo-700 via-indigo-800 to-slate-900 text-white px-5 py-3 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 border-b border-indigo-500/30 shrink-0 shadow-lg">
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="p-2.5 bg-white/15 rounded-2xl backdrop-blur-md border border-white/20 shadow-md shrink-0">
+            <Mail className="w-5 h-5 text-indigo-200 animate-pulse" />
           </div>
-          <div className="min-w-0">
+          <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full text-indigo-100 shrink-0">
-                Centro de Despacho & Control
+              <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full text-indigo-100">
+                Despacho & Control
               </span>
-              <span className="text-[10px] font-black bg-emerald-500/30 text-emerald-200 px-2.5 py-0.5 rounded-full border border-emerald-400/30 flex items-center gap-1 shrink-0">
-                <ShieldCheck className="w-3 h-3 text-emerald-400" /> SAR Elsa Romo Aravena
+              <span className="text-[10px] font-black bg-emerald-500/30 text-emerald-200 px-2 py-0.5 rounded-full border border-emerald-400/30 flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-emerald-400" /> SAR Elsa Romo
               </span>
             </div>
-            <h1 className="text-lg font-black tracking-tight text-white mt-0.5 truncate">
-              Programación, Auditoría y Gestión de Reportes por Correo
+            <h1 className="text-base font-black tracking-tight text-white mt-0.5">
+              Reportes por Correo
             </h1>
           </div>
         </div>
 
-        {/* NAVEGACIÓN PRINCIPAL DE 5 APARTADOS + BOTÓN CERRAR */}
-        <div className="flex items-center gap-3 w-full xl:w-auto justify-between xl:justify-end overflow-hidden">
-          <div className="flex items-center gap-1 bg-black/30 p-1 rounded-2xl border border-white/10 backdrop-blur-md overflow-x-auto custom-scrollbar-thin max-w-full">
+        {/* NAVEGACIÓN COMPACTA DE 5 PESTAÑAS + BOTÓN CERRAR (SIN SCROLLBAR) */}
+        <div className="flex items-center gap-2 w-full lg:w-auto justify-between lg:justify-end">
+          <div className="flex items-center gap-1 bg-black/30 p-1 rounded-2xl border border-white/10 backdrop-blur-md">
             {[
-              { id: 'programados', label: '1. Detalle Programados', icon: ListOrdered, badge: `${diasCompletosAuditados.filter(d => !d.isSent).length} pend.` },
-              { id: 'calendario', label: '2. Calendario de Envíos', icon: CalendarIcon, badge: 'Mensual' },
-              { id: 'diseno', label: '3. Diseño de Correos', icon: Eye, badge: 'Plantillas' },
-              { id: 'pruebas', label: '4. Pruebas de Envío', icon: Send, badge: 'Ilimitadas' },
+              { id: 'programados', label: '1. Programados', icon: ListOrdered, badge: `${diasCompletosAuditados.filter(d => !d.isSent).length}` },
+              { id: 'calendario', label: '2. Calendario', icon: CalendarIcon, badge: 'Mes' },
+              { id: 'diseno', label: '3. Diseño', icon: Eye, badge: 'Plantillas' },
+              { id: 'pruebas', label: '4. Pruebas', icon: Send, badge: 'Test' },
               { id: 'destinatarios', label: '5. Destinatarios', icon: Users, badge: `${destinatariosList.filter(d => d.activo).length}` }
             ].map(tab => {
               const Icon = tab.icon;
@@ -509,15 +509,15 @@ export default function ModalConfiguracionCorreo({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 shrink-0 cursor-pointer whitespace-nowrap ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shrink-0 cursor-pointer whitespace-nowrap ${
                     isSel 
                       ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 ring-1 ring-white/30' 
                       : 'text-slate-300 hover:text-white hover:bg-white/10'
                   }`}
                 >
-                  <Icon className="w-4 h-4 shrink-0" />
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
                   <span>{tab.label}</span>
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-black ${isSel ? 'bg-white/20 text-white' : 'bg-black/30 text-slate-300'}`}>
+                  <span className={`text-[9px] px-1.5 py-0.2 rounded-md font-black ${isSel ? 'bg-white/20 text-white' : 'bg-black/30 text-slate-300'}`}>
                     {tab.badge}
                   </span>
                 </button>
@@ -527,11 +527,11 @@ export default function ModalConfiguracionCorreo({
 
           <button
             onClick={onClose}
-            className="p-2.5 text-white/80 hover:text-white bg-white/10 hover:bg-rose-600/90 rounded-2xl border border-white/20 transition-all shrink-0 shadow-md cursor-pointer flex items-center gap-1 text-xs font-black"
+            className="px-3 py-1.5 text-white/80 hover:text-white bg-white/10 hover:bg-rose-600/90 rounded-xl border border-white/20 transition-all shrink-0 shadow-md cursor-pointer flex items-center gap-1.5 text-xs font-black"
             title="Cerrar módulo"
           >
             <X className="w-4 h-4" />
-            <span className="hidden sm:inline">Cerrar</span>
+            <span>Cerrar</span>
           </button>
         </div>
       </header>
@@ -1382,38 +1382,52 @@ export default function ModalConfiguracionCorreo({
 
                     </div>
 
-                    {/* 6. LÁMINA EXCLUSIVA DE TRASLADOS HOSPITALARIOS (CON DIAGNÓSTICO ESPECÍFICO) */}
+                    {/* 6. LÁMINA EXCLUSIVA DE TRASLADOS (CON RESUMEN, COMPARATIVA INTERANUAL Y DESGLOSE CLÍNICO) */}
                     <div className="p-4 bg-indigo-50/50 rounded-2xl border-2 border-indigo-300 space-y-3 shadow-xs">
-                      <div className="flex items-center justify-between border-b border-indigo-200 pb-2">
+                      <div className="flex items-center justify-between border-b border-indigo-200/80 pb-2">
                         <div className="flex items-center gap-2">
                           <ArrowLeftRight className="w-4 h-4 text-indigo-600" />
                           <span className="font-black text-indigo-950 text-xs uppercase tracking-wider">
-                            Apartado Exclusivo: Traslados y Derivaciones Hospitalarias (SAMU)
+                            Apartado Exclusivo: Traslados
                           </span>
                         </div>
                         <span className="text-[10px] font-black text-indigo-800 bg-indigo-100 px-2.5 py-0.5 rounded-full border border-indigo-200">
-                          Total: 1 Traslado (0.9% del turno)
+                          100% Auditado
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-1 gap-2 text-xs max-w-xl">
-                        {[
-                          { id: 1, diag: 'Apendicitis aguda con sospecha de peritonitis localizada', dest: 'Urgencia Quirúrgica Hospital Melipilla', tipo: 'SAMU Avanzado (M1)', triage: 'C2' }
-                        ].map((t) => (
-                          <div key={t.id} className="p-3 bg-white rounded-xl border border-indigo-200/80 space-y-1 shadow-2xs">
-                            <div className="flex items-center justify-between">
-                              <span className="font-black text-slate-900 text-[11px]">Paciente #{t.id}</span>
-                              <span className={`text-[9px] font-black px-2 py-0.5 rounded-md ${t.triage === 'C1' ? 'bg-rose-100 text-rose-700' : t.triage === 'C2' ? 'bg-amber-100 text-amber-700' : 'bg-yellow-100 text-yellow-800'}`}>
-                                Categoría {t.triage}
-                              </span>
-                            </div>
-                            <p className="font-bold text-indigo-950 text-xs">{t.diag}</p>
-                            <div className="flex items-center justify-between text-[10px] text-slate-500 font-medium pt-1 border-t border-slate-100">
-                              <span>Destino: <strong className="text-slate-800">{t.dest}</strong></span>
-                              <span className="font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">{t.tipo}</span>
+                      {/* TARJETA RESUMEN DE TRASLADOS CON COMPARACIÓN INTERANUAL */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="p-3.5 bg-white rounded-xl border border-indigo-200/80 shadow-2xs flex items-center justify-between">
+                          <div>
+                            <span className="text-[10px] font-black text-indigo-600 uppercase block">Total Traslados del Turno</span>
+                            <div className="flex items-baseline gap-2 mt-0.5">
+                              <span className="text-3xl font-black text-indigo-950">1</span>
+                              <span className="text-xs font-bold text-slate-500">traslado (0.9% del turno)</span>
                             </div>
                           </div>
-                        ))}
+                          <div className="text-right">
+                            <span className="text-[10px] font-black text-slate-500 block">Comparativa Interanual</span>
+                            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md inline-block mt-0.5">
+                              ↓ -50.0% vs 2025 (1 vs 2)
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* TARJETA DESGLOSE PACIENTE #1 */}
+                        <div className="p-3 bg-white rounded-xl border border-indigo-200/80 shadow-2xs space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-black text-slate-900 text-[11px]">Paciente #1</span>
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200">
+                              Categoría C2
+                            </span>
+                          </div>
+                          <p className="font-bold text-indigo-950 text-xs">Apendicitis aguda con sospecha de peritonitis localizada</p>
+                          <div className="text-[10px] text-slate-500 font-medium pt-1 border-t border-slate-100 flex items-center justify-between">
+                            <span>Destino: <strong className="text-slate-800">Hospital San José de Melipilla</strong></span>
+                            <span className="font-bold text-indigo-600">Urgencia Quirúrgica</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
 

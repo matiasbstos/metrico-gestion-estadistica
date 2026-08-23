@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.5.9',
+      version: 'v5.5.9',
+      fecha: '23 de Agosto, 2026',
+      badge: 'CABECERA COMPACTA & TRASLADOS CON COMPARATIVA',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Cabecera Compacta sin Scroll Lateral y Apartado de Traslados con Comparativa Interanual',
+      categoria: 'Notificaciones y Reportes',
+      icon: ArrowLeftRight,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: '1) Se compactaron los títulos y pestañas de la barra superior (1. Programados, 2. Calendario, 3. Diseño, 4. Pruebas, 5. Destinatarios), eliminando la barra de desplazamiento horizontal. 2) Se renombró a "Apartado Exclusivo: Traslados" (sin referencias a SAMU), incorporando tarjeta resumen (1 traslado • 0.9% del turno) con comparativa interanual (↓ -50.0% vs 2025) y detalle limpio del paciente.',
+      instructivo: {
+        paraQueSirve: 'Permite visualizar todas las pestañas de control sin desplazarse lateralmente y entrega un resumen claro de los traslados hospitalarios.',
+        quePuedesVer: 'La cabecera superior compacta en una sola fila y el bloque de traslados con su tarjeta de variación y ficha clínica limpia.',
+        ejemploUso: 'Revisa la variación interanual de traslados y haz clic en las pestañas superiores de acceso directo.'
+      },
+      changes: [
+        'Cabecera sin Scroll Lateral: Nombres concisos y ajuste perfecto.',
+        'Apartado Traslados Limpio: Sin textos SAMU y con comparativa interanual.',
+        'Tarjeta Resumen (1 traslado): Comparativa ↓ -50.0% vs 2025 (1 vs 2).'
+      ]
+    },
+    {
       id: 'v5.5.8',
       version: 'v5.5.8',
       fecha: '23 de Agosto, 2026',

@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.5.9',
+    version_tag: 'v5.5.9',
+    fecha_despliegue: '23 de Agosto, 2026',
+    proposito_actualizacion: 'Cabecera Compacta sin Desplazamiento Horizontal, Tarjeta Resumen de Traslados y Comparativa Interanual.',
+    medios_y_stack: [
+      'React 18.3 (ModalConfiguracionCorreo.jsx)',
+      'Compact Header Navigation without Horizontal Scrollbar',
+      'Dedicated Hospital Transfer Summary Card & YoY Comparative Analytics'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Cabecera Compacta: Se acortaron los títulos del encabezado y de las 5 pestañas (1. Programados, 2. Calendario, 3. Diseño, 4. Pruebas, 5. Destinatarios) garantizando un ajuste perfecto en una sola fila sin barras de scroll lateral. 2) Apartado Exclusivo de Traslados: Se eliminaron todas las referencias a "SAMU" y "avanzado", mostrando el título "Apartado Exclusivo: Traslados". Se incorporó la tarjeta resumen destacada (1 traslado • 0.9% del turno) con comparativa interanual (↓ -50.0% vs 2025: 1 vs 2) y el desglose clínico del paciente con su diagnóstico, categoría C2 y destino hospitalario.',
+      firestore_collections: ['mail', 'envios_correos', 'informes_enviados', 'audit_logs'],
+      query_optimization: 'Optimización de grid asistencial y visualización adaptativa.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Ajuste tipográfico y eliminación de scrollbar en la barra superior.',
+      'Estructuración de tarjeta resumen de traslados con métricas interanuales.',
+      'Limpieza de nomenclaturas SAMU en el desglose de pacientes.'
+    ]
+  },
+  {
     id: 'v5.5.8',
     version_tag: 'v5.5.8',
     fecha_despliegue: '23 de Agosto, 2026',
