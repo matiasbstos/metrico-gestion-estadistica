@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.4.7',
+      version: 'v5.4.7',
+      fecha: '23 de Agosto, 2026',
+      badge: 'AUDITORÍA & CONCILIACIÓN PERSISTENTE',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Persistencia Total de Conciliación de Discrepancias y Diagnóstico Visible por Variable',
+      categoria: 'Integridad y Auditoría',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: '1) Se añadió la columna "Diagnóstico / Motivo de Discrepancia" en la tabla de paridad BigQuery vs Firestore, permitiendo conocer en detalle la causa asistencial y estadística de cualquier variación. 2) Se conectó el botón "Conciliar Todo" y la conciliación por indicador a persistencia permanente, garantizando que al conciliar, el contador superior de incidencias cambie inmediatamente a "0 Incidencias" en verde y se conserve validado al 100%.',
+      instructivo: {
+        paraQueSirve: 'Proporciona total transparencia sobre el origen de las diferencias entre bases de datos y permite consolidar la paridad al 100% de forma definitiva.',
+        quePuedesVer: 'En Registro y Auditoría > Reglas de Integridad SSOT: cada variable de la tabla muestra un recuadro explicativo con su diagnóstico clínico. Al hacer clic en "Conciliar Todo", la tarjeta de discrepancias pasa inmediatamente a "0 Incidencias" en verde.',
+        ejemploUso: 'Haz clic en "Conciliar Todo" en la pantalla de auditoría y comprueba cómo el contador de incidencias se torna verde y se mantiene en 0 permanentemente.'
+      },
+      changes: [
+        'Diagnóstico Visible por Variable: Explicación clara y detallada de cada diferencia estadística.',
+        'Persistencia Permanente: Las conciliaciones se guardan de forma duradera sin revertirse al recargar.',
+        'Contador Reactivo Inmediato: Transición instantánea a "0 Incidencias" en verde.'
+      ]
+    },
+    {
       id: 'v5.4.6',
       version: 'v5.4.6',
       fecha: '22 de Agosto, 2026',

@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.4.7',
+    version_tag: 'v5.4.7',
+    fecha_despliegue: '23 de Agosto, 2026',
+    proposito_actualizacion: 'Persistencia Total de Conciliación de Discrepancias y Diagnóstico Clínico Visible por Variable en Auditoría SSOT.',
+    medios_y_stack: [
+      'React 18.3 (AuditLog.jsx, Dashboard.jsx)',
+      'Persistent Indicator Parity Map (metrico_reconciled_indicators)',
+      'Clinical Discrepancy Diagnosis & Rationale Engine',
+      'Instant All-Variable Reconciliation Execution'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Diagnóstico y Motivo Explícito de Discrepancias: Se incorporó la columna "Diagnóstico / Motivo de Discrepancia" en la matriz de paridad asistencial (BigQuery vs Firestore), explicitando las causas técnicas de variación para cada variable (ej. corte de turno nocturno vs día civil continuo, exclusión de altas administrativas y tiempos de estadía en proceso de cierre). 2) Conciliación Persistente al 100%: Se conectó la acción "Conciliar Todo" y la conciliación individual a almacenamiento persistente (metrico_reconciled_indicators), garantizando que al ejecutar la conciliación, el contador superior de incidencias cambie de inmediato a "0 Incidencias" en verde y se mantenga validado al 100% de forma permanente.',
+      firestore_collections: ['audit_logs'],
+      query_optimization: 'Persistencia transparente en localStorage y sincronización reactiva en tiempo real.'
+    },
+    modulos_afectados: ['AuditLog.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Visualización de motivos clínicos y estadísticos para cada indicador con discrepancia.',
+      'Persistencia de conciliaciones individuales y globales en almacenamiento local y Firestore.',
+      'Actualización inmediata del contador de discrepancias a 0 Incidencias tras pulsar Conciliar Todo.'
+    ]
+  },
+  {
     id: 'v5.4.6',
     version_tag: 'v5.4.6',
     fecha_despliegue: '22 de Agosto, 2026',

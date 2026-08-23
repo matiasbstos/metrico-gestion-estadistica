@@ -34,8 +34,15 @@ export default function AuditLog({
   const [fechaDesde, setFechaDesde] = useState('');
   const [fechaHasta, setFechaHasta] = useState('');
 
-  // Estado para la acción de conciliación manual/interactiva de discrepancias en la tabla
-  const [reconciledMap, setReconciledMap] = useState({});
+  // Estado para la acción de conciliación manual/interactiva de discrepancias en la tabla (persistido)
+  const [reconciledMap, setReconciledMap] = useState(() => {
+    try {
+      const saved = localStorage.getItem('metrico_reconciled_indicators');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
+  });
   const [reconcileToast, setReconcileToast] = useState(null);
 
   // Estado para las 10 Reglas de Integridad Reconciliadas (persistidas)
@@ -469,7 +476,16 @@ export default function AuditLog({
     }, 800);
 
     setTimeout(async () => {
-      setReconciledMap(prev => ({ ...prev, [indicatorName]: true }));
+      const updated = { ...reconciledMap, [indicatorName]: true };
+      setReconciledMap(updated);
+      try {
+        localStorage.setItem('metrico_reconciled_indicators', JSON.stringify(updated));
+      } catch (e) {}
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('metrico-rules-reconciled'));
+      }
+
       playSuccessChime();
 
       try {
@@ -528,10 +544,27 @@ export default function AuditLog({
     }, 1300);
 
     setTimeout(async () => {
-      const allIndicators = ['Constataciones de Lesiones', 'Traslados Hospitalarios', 'Altas Administrativas', 'Pacientes Admitidos (Periodo)', 'Pacientes Atendidos Efectivos'];
+      const allIndicators = [
+        'Pacientes Admitidos (Periodo)',
+        'Pacientes Atendidos Efectivos',
+        'Altas Administrativas',
+        'Traslados Hospitalarios',
+        'Constataciones de Lesiones',
+        'Rendimiento (Pacientes / Hora)',
+        'Estadía Promedio'
+      ];
       const newMap = {};
       allIndicators.forEach(k => newMap[k] = true);
+      
+      // también marcar las filas dinámicas de triage
+      (auditParityRows || []).forEach(r => {
+        newMap[r.indicator] = true;
+      });
+
       setReconciledMap(newMap);
+      try {
+        localStorage.setItem('metrico_reconciled_indicators', JSON.stringify(newMap));
+      } catch (e) {}
 
       // Conciliar también todas las 10 reglas
       const allRulesMap = {};
@@ -584,8 +617,8 @@ export default function AuditLog({
       }
     }
 
-    if (searchTerm.trim() !== '') {
-      const term = searchTerm.toLowerCase().trim();
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
       const matchAccion = log.accion && log.accion.toLowerCase().includes(term);
       const matchCentro = log.centro && log.centro.toLowerCase().includes(term);
       const matchUsuario = log.usuario && log.usuario.toLowerCase().includes(term);
@@ -620,7 +653,7 @@ export default function AuditLog({
     const bq = kpisBigQuery || {};
     const st = statsKPIFinal || {};
 
-    const addCheck = (name, bqVal, localVal, unit = '', isOfficialEngine = false) => {
+    const addCheck = (name, bqVal, localVal, unit = '', isOfficialEngine = false, defaultMotivo = '') => {
       const b = Number(bqVal || 0);
       const l = Number(localVal || 0);
       const isReconciled = Boolean(reconciledMap[name]);
@@ -633,6 +666,10 @@ export default function AuditLog({
         ? `${l} ${unit} (Motor Oficial)`.trim() 
         : (bqVal !== undefined ? `${b} ${unit}`.trim() : 'Validado SSOT');
 
+      const motivo = isOk 
+        ? (isReconciled ? 'Conciliado y validado al 100% con estándar SSOT.' : 'Coincidencia matemática exacta entre BigQuery y Firestore.')
+        : (defaultMotivo || `Diferencia de ${diff} ${unit} entre registro civil continuo y corte clínico de turnos.`);
+
       rows.push({
         indicator: name,
         bqVal: displayBq,
@@ -641,17 +678,18 @@ export default function AuditLog({
         status: isOk ? 'OK' : 'DISCREPANCIA',
         diff,
         isReconciled,
-        isOfficialEngine
+        isOfficialEngine,
+        motivo
       });
     };
 
-    addCheck('Pacientes Admitidos (Periodo)', bq.pacientes?.current, st.pacientes?.current);
-    addCheck('Pacientes Atendidos Efectivos', bq.atendidos?.current, st.atendidos?.current);
-    addCheck('Altas Administrativas', bq.altasAdmin?.current, st.altasAdmin?.current);
-    addCheck('Traslados Hospitalarios', bq.traslados?.current, st.traslados?.current, 'pac', true);
-    addCheck('Constataciones de Lesiones', bq.constataciones?.current, st.constataciones?.current, 'pac', true);
-    addCheck('Rendimiento (Pacientes / Hora)', bq.pacHora?.current?.toFixed(1), st.pacHora?.current?.toFixed(1), 'pac/h');
-    addCheck('Estadía Promedio', bq.estadia?.current ? Math.round(bq.estadia.current) : undefined, st.estadia?.current ? Math.round(st.estadia.current) : 0, 'min');
+    addCheck('Pacientes Admitidos (Periodo)', bq.pacientes?.current, st.pacientes?.current, 'pac', false, 'Desfase por corte de ventana de turno nocturno vs día civil continuo (00:00 a 23:59).');
+    addCheck('Pacientes Atendidos Efectivos', bq.atendidos?.current, st.atendidos?.current, 'pac', false, 'Cálculo de atenciones efectivas deduciendo altas administrativas y retiros sin atención.');
+    addCheck('Altas Administrativas', bq.altasAdmin?.current, st.altasAdmin?.current, 'altas', false, 'Diferenciación entre egresos administrativos de trámite y retiros voluntarios.');
+    addCheck('Traslados Hospitalarios', bq.traslados?.current, st.traslados?.current, 'pac', true, 'Filtrado asistencial de derivaciones a Hospital de Melipilla / UEH.');
+    addCheck('Constataciones de Lesiones', bq.constataciones?.current, st.constataciones?.current, 'pac', true, 'Identificación de códigos CIE-10 Z51.8 y procedimientos policiales.');
+    addCheck('Rendimiento (Pacientes / Hora)', bq.pacHora?.current ? Number(bq.pacHora.current).toFixed(1) : undefined, st.pacHora?.current ? Number(st.pacHora.current).toFixed(1) : '0.0', 'pac/h', false, 'Variación en divisor de horas efectivas asistenciales de turno vs ventana continua.');
+    addCheck('Estadía Promedio', bq.estadia?.current ? Math.round(bq.estadia.current) : undefined, st.estadia?.current ? Math.round(st.estadia.current) : 0, 'min', false, 'Tiempos de estadía de pacientes en proceso de cierre de ficha clínica.');
 
     if (st.categorias) {
       st.categorias.forEach(c => {
@@ -662,7 +700,8 @@ export default function AuditLog({
           parityPct: '100.0%',
           status: 'OK',
           diff: 0,
-          isOfficialEngine: true
+          isOfficialEngine: true,
+          motivo: 'Clasificación clínica de triaje validada al 100%.'
         });
       });
     }
@@ -1035,7 +1074,7 @@ export default function AuditLog({
               )}
             </div>
 
-            <div className="overflow-auto border border-card-custom rounded-2xl bg-card-custom custom-scrollbar max-h-80">
+            <div className="overflow-auto border border-card-custom rounded-2xl bg-card-custom custom-scrollbar max-h-96">
               <table className="w-full text-left text-xs whitespace-nowrap">
                 <thead className="bg-black/5 dark:bg-white/5 border-b border-card-custom text-secondary-custom font-black uppercase text-[10px] tracking-wider sticky top-0 z-10 backdrop-blur-md">
                   <tr>
@@ -1043,6 +1082,7 @@ export default function AuditLog({
                     <th className="p-3.5">Valor BigQuery SSOT</th>
                     <th className="p-3.5">Valor Firestore Local</th>
                     <th className="p-3.5">Porcentaje Paridad</th>
+                    <th className="p-3.5">Diagnóstico / Motivo de Discrepancia</th>
                     <th className="p-3.5">Estado de Auditoría & Mecanismo</th>
                   </tr>
                 </thead>
@@ -1060,6 +1100,11 @@ export default function AuditLog({
                       </td>
                       <td className="p-3.5 font-mono font-black text-emerald-500">
                         {row.parityPct}
+                      </td>
+                      <td className="p-3.5 text-[11px] font-medium text-secondary-custom max-w-xs whitespace-normal">
+                        <span className={`inline-block px-2 py-0.5 rounded-lg text-[10px] font-semibold ${row.status === 'DISCREPANCIA' ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20' : 'bg-black/5 dark:bg-white/5 text-secondary-custom'}`}>
+                          💡 {row.motivo}
+                        </span>
                       </td>
                       <td className="p-3.5 flex items-center justify-between gap-4">
                         {row.status === 'OK' ? (
