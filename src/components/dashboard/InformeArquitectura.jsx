@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.5.7',
+    version_tag: 'v5.5.7',
+    fecha_despliegue: '23 de Agosto, 2026',
+    proposito_actualizacion: 'Aislamiento Visual de Capas y Ocultamiento del Explorador de Emergencia en Vista de Correo.',
+    medios_y_stack: [
+      'React 18.3 (ModalConfiguracionCorreo.jsx, Dashboard.jsx)',
+      'Z-Index Layer Isolation (z-[60] + Responsive Sidebar Offset)',
+      'Conditional Background Filter Suspension Engine'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Aislamiento de Capas: Se ocultó dinámicamente la barra del Explorador Global de Urgencias (FiltrosGlobales) mientras la vista de Correo está activa, evitando cualquier solapamiento visual con la cabecera del Centro de Despacho. 2) Alineación Dinámica: El módulo ajusta su margen izquierdo de forma suave según el estado del menú lateral (colapsado o expandido), manteniendo su cabecera y 5 pestañas 100% despejadas y al descubierto.',
+      firestore_collections: ['mail', 'envios_correos', 'informes_enviados', 'audit_logs'],
+      query_optimization: 'Optimización de stacking context y renderizado condicional limpio.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'Dashboard.jsx', 'InformeArquitectura', 'ModalMuroActualizaciones'],
+    detalles_tecnicos: [
+      'Ocultamiento condicional de FiltrosGlobales con !showCorreoModal en Dashboard.jsx.',
+      'Elevación a z-[60] y dynamic left offset con sidebarCollapsed en ModalConfiguracionCorreo.jsx.'
+    ]
+  },
+  {
     id: 'v5.5.6',
     version_tag: 'v5.5.6',
     fecha_despliegue: '23 de Agosto, 2026',

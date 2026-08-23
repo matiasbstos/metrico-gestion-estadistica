@@ -8,6 +8,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.5.7',
+      version: 'v5.5.7',
+      fecha: '23 de Agosto, 2026',
+      badge: 'AISLAMIENTO DE CAPAS & VISTA DESPEJADA',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Aislamiento Visual de Capas y Ocultamiento del Explorador en la Vista de Correo',
+      categoria: 'Notificaciones y Reportes',
+      icon: Eye,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: '1) Se ocultó la barra superior del Explorador Global de Urgencias cuando el módulo de correo está abierto, dejando al descubierto la cabecera completa con las 5 pestañas de control. 2) Se ajustó dinámicamente el ancho de la vista según el menú lateral colapsado o expandido.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la barra del correo y sus 5 pestañas se muestren al 100% despejadas sin ninguna superposición de fondo.',
+        quePuedesVer: 'Toda la cabecera del Centro de Despacho sin elementos que tapen las pestañas de navegación.',
+        ejemploUso: 'Haz clic en cualquiera de las 5 opciones superiores para navegar fluidamente.'
+      },
+      changes: [
+        'Ocultamiento Condicional: El Explorador se suspende al abrir el correo.',
+        'Capa Superior z-[60]: Prioridad total de visualización.',
+        'Ajuste con Menú Lateral: Margen automático según estado de la barra lateral.'
+      ]
+    },
+    {
       id: 'v5.5.6',
       version: 'v5.5.6',
       fecha: '23 de Agosto, 2026',

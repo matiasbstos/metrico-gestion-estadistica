@@ -1236,6 +1236,7 @@ const DashboardContent = () => {
       <ModalConfiguracionCorreo 
         isOpen={showCorreoModal} 
         onClose={() => setShowCorreoModal(false)} 
+        sidebarCollapsed={sidebarCollapsed}
         app={app} 
         db={db}
         user={user}
@@ -1941,35 +1942,37 @@ const DashboardContent = () => {
         {hasModuleAccess(activeTab) && activeTab === 'resumen' && (
           <>
             {/* SECTOR DE FILTROS Y CONTROL DE CONTEXTO (STICKY/FLOTANTE CON BLUR EFECTO VIDRIO) */}
-            <div className={`sticky top-[61px] md:top-0 z-40 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-md shadow-md border-b border-card-custom/20 -mx-4 md:-mx-8 px-4 md:px-8 transition-all duration-300 ${isScrolled ? 'py-2' : 'pb-4 pt-3'}`}>
-              <FiltrosGlobales 
-                modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
-                filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={setFiltroFechaInicio}
-                filtroFechaFin={filtroFechaFin} setFiltroFechaFin={setFiltroFechaFin}
-                filtroFechaInicioB={filtroFechaInicioB} setFiltroFechaInicioB={setFiltroFechaInicioB}
-                filtroFechaFinB={filtroFechaFinB} setFiltroFechaFinB={setFiltroFechaFinB}
-                applyDatePreset={applyDatePreset}
-                tipoCorte={tipoCorte} setTipoCorte={setTipoCorte}
-                filtroHoraInicio={filtroHoraInicio} setFiltroHoraInicio={setFiltroHoraInicio}
-                filtroHoraFin={filtroHoraFin} setFiltroHoraFin={setFiltroHoraFin}
-                horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
-                maxDateLabel={maxDateLabel}
-                onClearFilters={handleClearFilters}
-                isScrolled={isScrolled}
-                onSync={triggerRefresh}
-                syncStatus={syncStatus}
-                lastSyncTime={lastSyncTime}
-                syncToast={syncToast}
-                integrityIncidencesCount={integrityIncidencesCount}
-                onNavigateTab={setActiveTab}
-                turnosDB={turnosDB}
-                pautasDB={pautasTurnosHook?.pautasDB}
-                user={user}
-                db={db}
-                pacientesDB={pacientesDB}
-                showNotif={showNotif}
-              />
-            </div>
+            {!showCorreoModal && (
+              <div className={`sticky top-[61px] md:top-0 z-40 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-md shadow-md border-b border-card-custom/20 -mx-4 md:-mx-8 px-4 md:px-8 transition-all duration-300 ${isScrolled ? 'py-2' : 'pb-4 pt-3'}`}>
+                <FiltrosGlobales 
+                  modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
+                  filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={setFiltroFechaInicio}
+                  filtroFechaFin={filtroFechaFin} setFiltroFechaFin={setFiltroFechaFin}
+                  filtroFechaInicioB={filtroFechaInicioB} setFiltroFechaInicioB={setFiltroFechaInicioB}
+                  filtroFechaFinB={filtroFechaFinB} setFiltroFechaFinB={setFiltroFechaFinB}
+                  applyDatePreset={applyDatePreset}
+                  tipoCorte={tipoCorte} setTipoCorte={setTipoCorte}
+                  filtroHoraInicio={filtroHoraInicio} setFiltroHoraInicio={setFiltroHoraInicio}
+                  filtroHoraFin={filtroHoraFin} setFiltroHoraFin={setFiltroHoraFin}
+                  horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
+                  maxDateLabel={maxDateLabel}
+                  onClearFilters={handleClearFilters}
+                  isScrolled={isScrolled}
+                  onSync={triggerRefresh}
+                  syncStatus={syncStatus}
+                  lastSyncTime={lastSyncTime}
+                  syncToast={syncToast}
+                  integrityIncidencesCount={integrityIncidencesCount}
+                  onNavigateTab={setActiveTab}
+                  turnosDB={turnosDB}
+                  pautasDB={pautasTurnosHook?.pautasDB}
+                  user={user}
+                  db={db}
+                  pacientesDB={pacientesDB}
+                  showNotif={showNotif}
+                />
+              </div>
+            )}
 
             {/* DATOS DE RENDIMIENTO Y KPIs */}
             {statsKPIFinal && (

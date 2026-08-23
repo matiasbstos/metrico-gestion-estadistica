@@ -22,6 +22,7 @@ import FiltrosGlobales from './FiltrosGlobales';
 export default function ModalConfiguracionCorreo({ 
   isOpen, 
   onClose, 
+  sidebarCollapsed = false,
   app, 
   db, 
   user,
@@ -29,33 +30,6 @@ export default function ModalConfiguracionCorreo({
   showNotif, 
   pacientesDB = [], 
   turnosDB = [], 
-  modoComparativo, 
-  setModoComparativo,
-  filtroFechaInicio, 
-  setFiltroFechaInicio,
-  filtroFechaFin, 
-  setFiltroFechaFin,
-  filtroFechaInicioB, 
-  setFiltroFechaInicioB,
-  filtroFechaFinB, 
-  setFiltroFechaFinB,
-  applyDatePreset,
-  tipoCorte, 
-  setTipoCorte,
-  filtroHoraInicio, 
-  setFiltroHoraInicio,
-  filtroHoraFin, 
-  setFiltroHoraFin,
-  horarioPreset, 
-  setHorarioPreset,
-  maxDateLabel,
-  handleClearFilters,
-  syncStatus,
-  lastSyncTime,
-  syncToast,
-  integrityIncidencesCount,
-  onSync,
-  onNavigateTab,
   onOpenReportes 
 }) {
   // Pestaña Principal del Módulo de Pantalla Completa
@@ -492,7 +466,7 @@ export default function ModalConfiguracionCorreo({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-y-0 right-0 left-0 md:left-16 lg:left-20 z-40 bg-slate-950/95 backdrop-blur-xl flex flex-col overflow-hidden animate-fade-in text-secondary-custom shadow-2xl border-l border-indigo-500/20">
+    <div className={`fixed inset-y-0 right-0 ${sidebarCollapsed ? 'left-0 md:left-16 lg:left-20' : 'left-0 md:left-64'} z-[60] bg-slate-950/98 backdrop-blur-2xl flex flex-col overflow-hidden animate-fade-in text-secondary-custom shadow-2xl border-l border-indigo-500/30 transition-all duration-300`}>
       
       {/* 1. TOP INSTITUTIONAL APP HEADER */}
       <header className="bg-gradient-to-r from-indigo-700 via-indigo-800 to-slate-900 text-white px-6 py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-indigo-500/30 shrink-0 shadow-lg">
