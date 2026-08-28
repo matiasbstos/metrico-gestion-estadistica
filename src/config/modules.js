@@ -1,6 +1,6 @@
 import { 
   BarChart2, GitCompare, Calendar, Award, Users, UserCheck, Activity,
-  ShieldAlert, ArrowLeftRight, FileSpreadsheet, Database, Shield, BookOpen, Terminal, Sparkles
+  ShieldAlert, ArrowLeftRight, FileSpreadsheet, Database, Shield, ShieldCheck, BookOpen, Terminal, Sparkles
 } from 'lucide-react';
 
 export const SYSTEM_MODULES = [
@@ -151,10 +151,10 @@ export const SYSTEM_MODULES = [
   },
   { 
     id: 'auditoria', 
-    name: 'Registro de Auditoría', 
-    description: 'Historial de modificaciones y acciones del sistema.', 
-    icon: Shield, 
-    color: 'text-indigo-500', 
+    name: 'Verificación', 
+    description: 'Centro integral de verificación, integridad, correlativos, deduplicación, recálculo y auditoría.', 
+    icon: ShieldCheck, 
+    color: 'text-emerald-500', 
     category: 'Gestión & Control',
     defaultEnabled: true 
   },

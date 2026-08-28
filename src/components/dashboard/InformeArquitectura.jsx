@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.7.0',
+    version_tag: 'v5.7.0',
+    fecha_despliegue: '28 de Agosto, 2026',
+    proposito_actualizacion: 'Unificación Maestro: Creación del Centro de Verificación, Integridad & Auditoría.',
+    medios_y_stack: [
+      'React 18.3 (CentroVerificacionAuditoria.jsx)',
+      'Clinical Integrity Engine (10 Reglas Automatizadas)',
+      'Rayen Sequential Sequence & Deduplication Scanner',
+      'Universal Demand Control Benchmark (Admitidos = Completados + Sin Atención + Egreso Admin)',
+      'Shift Recalculation & Grouping Sync Engine'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Consolidación del Centro Unificado de Verificación: Se integraron en un solo módulo de navegación en la barra lateral todas las herramientas de control y calidad: las 10 reglas de integridad clínica con muestras y conciliación, el escáner de correlativos Rayen y deduplicación mensual, el motor de sincronización y recálculo de turnos, la prueba de control de demanda de atención, la bitácora de antecedentes RAE, el historial en tiempo real de modificaciones y el informe consolidado de arquitectura. 2) Simplificación de Navegación: Se redujo la dispersión operativa concentrando todo el aseguramiento estructural en un único módulo maestro accesible con un clic.',
+      firestore_collections: ['pacientes_urgencia', 'turnos', 'audit_logs', 'pautas_turnos', 'auditoria_cargas'],
+      query_optimization: 'Carga granular por sub-pestañas y procesamiento paralelo de auditorías de correlativos.'
+    },
+    modulos_afectados: ['CentroVerificacionAuditoria.jsx', 'Dashboard.jsx', 'modules.js', 'GestionDatos.jsx', 'AnalisisDemandaAtencion.jsx'],
+    detalles_tecnicos: [
+      'Creación del componente maestro CentroVerificacionAuditoria.jsx con 6 sub-secciones temáticas.',
+      'Unificación del botón "Verificación" en la barra lateral con badge dinámico de salud global.',
+      'Acceso directo unificado a recálculo de turnos, prueba de control y conciliación de discrepancias.'
+    ]
+  },
+  {
     id: 'v5.6.3',
     version_tag: 'v5.6.3',
     fecha_despliegue: '28 de Agosto, 2026',

@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.7.0',
+      version: 'v5.7.0',
+      fecha: '28 de Agosto, 2026',
+      badge: 'CENTRO UNIFICADO DE VERIFICACIÓN & CONTROL',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Consolidación del Centro Unificado de Verificación, Integridad & Auditoría',
+      categoria: 'Gestión & Control',
+      icon: CheckCircle2,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se unificaron todos los mecanismos de verificación del sistema en un único apartado en la barra lateral ("Verificación"): las 10 reglas de calidad clínica, auditoría de correlativos Rayen, corrección de duplicados, recálculo de turnos, prueba de control de demanda, conciliación RAE, historial de eventos y el informe consolidado de arquitectura.',
+      instructivo: {
+        paraQueSirve: 'Permite auditar, conciliar y certificar la calidad estructural y clínica de todos los datos en un solo lugar centralizado.',
+        quePuedesVer: 'Un panel maestro con 6 sub-pestañas: Reglas de Integridad (10), Punto de Control & Correlativos, Prueba de Control de Demanda, Bitácora & Conciliación RAE, Historial de Modificaciones y Arquitectura & Consolidado.',
+        ejemploUso: 'Haz clic en "Verificación" en la barra lateral para revisar el índice de calidad global, auditar duplicados o ejecutar el recálculo masivo de turnos.'
+      },
+      changes: [
+        'Nuevo Módulo Central: Unificación de auditoría, control, duplicidad, recálculo y arquitectura en la barra lateral ("Verificación").',
+        '6 Sub-Pestañas Temáticas: Navegación limpia y organizada para cada proceso de aseguramiento.',
+        'Sincronización Total: Acceso directo a la prueba de control de demanda y al recálculo de turnos.'
+      ]
+    },
+    {
       id: 'v5.6.3',
       version: 'v5.6.3',
       fecha: '28 de Agosto, 2026',

@@ -17,6 +17,7 @@ import ReportesModule from './dashboard/ReportesModule';
 import MatrizCruzada from './dashboard/MatrizCruzada';
 import PautaTurnos from './dashboard/PautaTurnos';
 import AuditLog from './dashboard/AuditLog';
+import CentroVerificacionAuditoria from './dashboard/CentroVerificacionAuditoria';
 import AnalisisComparativoTriple from './dashboard/AnalisisComparativoTriple';
 import AuditoriaMedicaDetail from './dashboard/AuditoriaMedicaDetail';
 import CalendarioHistorico from './dashboard/CalendarioHistorico';
@@ -46,7 +47,7 @@ import {
   CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
   BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
   Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
-  HeartPulse, Shield, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail, BookOpen, Terminal
+  HeartPulse, Shield, ShieldCheck, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail, BookOpen, Terminal
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
@@ -1649,17 +1650,10 @@ const DashboardContent = () => {
                 </button>
                 <button 
                   onClick={() => { setActiveTab('auditoria'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
-                  title="Auditoría"
-                  className={`flex items-center rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'auditoria' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-                  <Shield className="w-4 h-4 flex-shrink-0" />
-                  {!sidebarCollapsed && <span className="animate-fade-in truncate">Auditoría</span>}
-                </button>
-                <button 
-                  onClick={() => { setActiveTab('arquitectura'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
-                  title="Informe de Arquitectura"
-                  className={`flex items-center rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'arquitectura' ? 'accent-bg-custom text-white font-bold' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-                  <BookOpen className="w-4 h-4 flex-shrink-0 text-indigo-400" />
-                  {!sidebarCollapsed && <span className="animate-fade-in truncate">Informe Arquitectura</span>}
+                  title="Verificación"
+                  className={`flex items-center rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'auditoria' || activeTab === 'arquitectura' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                  <ShieldCheck className="w-4 h-4 flex-shrink-0 text-emerald-400" />
+                  {!sidebarCollapsed && <span className="animate-fade-in truncate">Verificación</span>}
                 </button>
                 <button 
                   onClick={() => { setActiveTab('devlog'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
@@ -2302,8 +2296,8 @@ const DashboardContent = () => {
           />
         )}
 
-        {activeTab === 'auditoria' && (
-          <AuditLog 
+        {(activeTab === 'auditoria' || activeTab === 'arquitectura') && (
+          <CentroVerificacionAuditoria 
             db={db} 
             appId={appId} 
             centroActivo={centroActivo} 
@@ -2317,6 +2311,12 @@ const DashboardContent = () => {
             filtroFechaFin={filtroFechaFin}
             user={user}
             showNotif={showNotif}
+            pautasTurnosHook={pautasTurnosHook}
+            setSyncStatus={setSyncStatus}
+            setLoading={setLoading}
+            triggerRefresh={triggerRefresh}
+            isGlobalAdmin={isGlobalAdmin}
+            initialSubTab={activeTab === 'arquitectura' ? 'arquitectura' : 'reglas'}
           />
         )}
 
@@ -2333,15 +2333,6 @@ const DashboardContent = () => {
             db={db} 
             userProfile={userProfile} 
             isGlobalAdmin={isGlobalAdmin} 
-          />
-        )}
-
-        {activeTab === 'arquitectura' && (
-          <InformeArquitectura 
-            user={user} 
-            userProfile={userProfile} 
-            isGlobalAdmin={isGlobalAdmin} 
-            db={db}
           />
         )}
 
