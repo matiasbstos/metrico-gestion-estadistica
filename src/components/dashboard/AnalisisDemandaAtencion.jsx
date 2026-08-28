@@ -9,6 +9,7 @@ import {
   ComposedChart, BarChart, Line, Area, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
 } from 'recharts';
 import * as XLSX from 'xlsx';
+import { isAltaAdmin } from '../../utils/helpers';
 
 export default function AnalisisDemandaAtencion({ 
   pacientesDB = [], 

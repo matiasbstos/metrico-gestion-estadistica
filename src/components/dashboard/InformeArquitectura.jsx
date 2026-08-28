@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.6.3',
+    version_tag: 'v5.6.3',
+    fecha_despliegue: '28 de Agosto, 2026',
+    proposito_actualizacion: 'Corrección Crítica de Referencia (isAltaAdmin) en Análisis de Demanda y Normalización de Íconos en Muro de Novedades.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisDemandaAtencion.jsx, ModalMuroActualizaciones.jsx)',
+      'Clinical Helpers Engine (isAltaAdmin)',
+      'Lucide React Icon Imports Sanitization',
+      'Production Error Boundary Resolution'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Corrección de Excepción en Tiempo de Ejecución: Se incorporó la importación explícita del helper clínico isAltaAdmin en AnalisisDemandaAtencion.jsx, erradicando el ReferenceError que bloqueaba la renderización del panel. 2) Normalización de Íconos: Se completó la importación de toda la suite de glifos en ModalMuroActualizaciones.jsx (Award, Users, TrendingUp, CheckCircle, Zap, UserCheck, Cloud, ExternalLink, Search, Printer, FileText, RefreshCw, UploadCloud, Compass, Flame, Maximize2), garantizando cero fallos de referencia en todo el árbol de componentes.',
+      firestore_collections: ['mail', 'envios_correos', 'informes_enviados', 'audit_logs'],
+      query_optimization: 'Validación estricta de imports a nivel de bundle sin referencias no resueltas.'
+    },
+    modulos_afectados: ['AnalisisDemandaAtencion.jsx', 'ModalMuroActualizaciones.jsx', 'InformeArquitectura'],
+    detalles_tecnicos: [
+      'Importación de isAltaAdmin desde ../../utils/helpers en AnalisisDemandaAtencion.jsx.',
+      'Saneamiento integral de 16 íconos Lucide en ModalMuroActualizaciones.jsx.',
+      'Auditoría estricta de variables globales (0 no-undef errors en ESLint).'
+    ]
+  },
+  {
     id: 'v5.6.2',
     version_tag: 'v5.6.2',
     fecha_despliegue: '23 de Agosto, 2026',

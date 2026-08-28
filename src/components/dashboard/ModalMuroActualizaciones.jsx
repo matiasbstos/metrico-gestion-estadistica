@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { Megaphone, Sparkles, X, Calendar, CheckCircle2, ShieldAlert, MapPin, Cpu, BarChart2, Filter, Layers, Clock, HelpCircle, BookOpen, Lightbulb, Eye, Mail, Volume2, Lock, Activity, ShieldCheck, Database, FileSpreadsheet, BarChart3, LineChart, ArrowLeftRight, Send } from 'lucide-react';
+import { 
+  Megaphone, Sparkles, X, Calendar, CheckCircle2, ShieldAlert, MapPin, Cpu, BarChart2, Filter, Layers, Clock, 
+  HelpCircle, BookOpen, Lightbulb, Eye, Mail, Volume2, Lock, Activity, ShieldCheck, Database, FileSpreadsheet, 
+  BarChart3, LineChart, ArrowLeftRight, Send, Award, Users, TrendingUp, CheckCircle, Zap, UserCheck, Cloud, 
+  ExternalLink, Search, Printer, FileText, RefreshCw, UploadCloud, Compass, Flame, Maximize2 
+} from 'lucide-react';
 
 export default function ModalMuroActualizaciones({ isOpen, onClose }) {
   const [selectedCat, setSelectedCat] = useState('TODOS');
@@ -7,6 +12,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const updatesList = [
+    {
+      id: 'v5.6.3',
+      version: 'v5.6.3',
+      fecha: '28 de Agosto, 2026',
+      badge: 'ESTABILIDAD & CORRECCIÓN DE REFERENCIA',
+      badgeColor: 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20',
+      title: 'Corrección de isAltaAdmin y Saneamiento Universal de Íconos',
+      categoria: 'Plataforma y Estabilidad',
+      icon: CheckCircle2,
+      iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+      summary: 'Se subsanó el error de referencia no definida (isAltaAdmin) en el módulo de Análisis de Demanda y se completó la importación íntegra de íconos en el Muro de Novedades, restableciendo el acceso inmediato a todos los paneles clínicos.',
+      instructivo: {
+        paraQueSirve: 'Garantiza la carga inmediata de la plataforma sin bloqueos visuales ni pantallas de error.',
+        quePuedesVer: 'Acceso fluido a Demanda de Atención, Muro de Novedades y métricas en tiempo real.',
+        ejemploUso: 'Consulta cualquier rango de fechas o abre las novedades del sistema con total fluidez.'
+      },
+      changes: [
+        'Importación de isAltaAdmin: Enlace correcto del helper clínico en AnalisisDemandaAtencion.jsx.',
+        'Saneamiento de Íconos: Importación completa de 16 componentes visuales de Lucide React.',
+        'Estabilidad 100%: Erradicación total de ReferenceError en tiempo de ejecución.'
+      ]
+    },
     {
       id: 'v5.6.2',
       version: 'v5.6.2',
