@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.7.6',
+    version_tag: 'v5.7.6',
+    fecha_despliegue: '28 de Agosto, 2026',
+    proposito_actualizacion: 'Unificación de Jornada Completa y Récord Mensual en Módulo de Traslados Hospitalarios.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisTraslados.jsx, helpers.js, Dashboard.jsx)',
+      'Single-Shift Aggregation Engine (obtenerTurnoDetallado)',
+      'Monthly Benchmark Cross-Calculation (maxTrasladosMes)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Unificación de Turnos Largos de Semana: Se eliminó la separación artificial entre atenciones nocturnas y de madrugada "(Cierre)" en helpers.js. Ahora los traslados de la noche (17:00 a 23:59) y de la entrega de guardia (00:00 a 08:00) se agrupan en una única jornada lógica de turno (sumando los 4 traslados reales del turno). 2) Benchmark de Récord Mensual en Filtro Diario: Al visualizar un solo día en AnalisisTraslados.jsx, la tarjeta de récord muestra el pico histórico del mes (con fecha y equipo récord) junto al desempeño del turno actual, contextualizando el volumen diario contra el récord global.',
+      firestore_collections: ['pacientes_urgencia', 'turnos', 'pautas_turnos'],
+      query_optimization: 'Cálculo memoizado de maxTrasladosMes y ranking unificado con pautasDB.'
+    },
+    modulos_afectados: ['AnalisisTraslados.jsx', 'helpers.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Normalización de tipo a "Turno Largo Semana" en obtenerTurnoDetallado para evitar fragmentación de keys.',
+      'Implementación del cálculo maxTrasladosMes sobre todo el mes activo en AnalisisTraslados.jsx.',
+      'Inyección de pautasDB a AnalisisTraslados desde Dashboard.jsx para asegurar resolución fiel de equipos.'
+    ]
+  },
+  {
     id: 'v5.7.5',
     version_tag: 'v5.7.5',
     fecha_despliegue: '28 de Agosto, 2026',

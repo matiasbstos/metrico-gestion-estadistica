@@ -14,105 +14,6 @@ export const truncateStr = (str, n) => {
 };
 
 /**
- * Determina el Turno Asociado (Turno 1, 2 o 3), el equipo asignado y su horario oficial de urgencia.
- * - Turno de Semana: 17:00 a 08:00 hrs del día siguiente.
- * - Fin de Semana (Día): 08:00 a 20:00 hrs.
- * - Fin de Semana (Noche): 20:00 a 08:00 hrs del día siguiente.
- */
-export const obtenerTurnoDetallado = (timestamp, pautasDB = null) => {
-  if (!timestamp) return { turnoNum: '-', equipo: '-', tipo: '-', horario: '-', fechaTurno: '-', textoCompleto: '-' };
-
-  const d = new Date(timestamp);
-  if (isNaN(d.getTime())) return { turnoNum: '-', equipo: '-', tipo: '-', horario: '-', fechaTurno: '-', textoCompleto: '-' };
-
-  const hours = d.getHours();
-  const dayOfWeek = d.getDay(); // 0 = Domingo, 6 = Sábado
-  const isWeekendNatural = (dayOfWeek === 0 || dayOfWeek === 6);
-
-  // Formato de fecha para validar si el día fue marcado como "Festivo" en pautasDB
-  const yRaw = d.getFullYear();
-  const mRaw = String(d.getMonth() + 1).padStart(2, '0');
-  const dRaw = String(d.getDate()).padStart(2, '0');
-  const dateStrRaw = `${yRaw}-${mRaw}-${dRaw}`;
-  const monthIdRaw = `${yRaw}-${mRaw}`;
-
-  let isFestivo = false;
-  if (pautasDB && pautasDB[monthIdRaw] && pautasDB[monthIdRaw][dateStrRaw]) {
-    if (pautasDB[monthIdRaw][dateStrRaw].festivo) {
-      isFestivo = true;
-    }
-  }
-
-  const is24hOperatingDay = isWeekendNatural || isFestivo;
-
-  let logicalDate = new Date(timestamp);
-  let turnoNum = 1;
-  let tipo = 'Turno de Semana';
-  let horario = '17:00 a 08:00 hrs';
-
-  if (is24hOperatingDay) {
-    // Régimen de 24 Horas (Fin de Semana o Día Festivo declarado en pauta)
-    if (hours >= 8 && hours < 20) {
-      turnoNum = 1;
-      tipo = isFestivo ? 'Festivo Diurno' : 'Fin de Semana Día';
-      horario = '08:00 a 20:00 hrs';
-    } else {
-      turnoNum = 3;
-      tipo = isFestivo ? 'Festivo Nocturno' : 'Fin de Semana Noche';
-      horario = '20:00 a 08:00 hrs';
-      if (hours < 8) logicalDate.setDate(logicalDate.getDate() - 1);
-    }
-  } else {
-    // Régimen Hábil de Semana (Lunes a Viernes no festivo)
-    if (hours >= 16) {
-      // Turno Largo que arranca en la tarde del día actual (17:00 a 08:00)
-      turnoNum = 2;
-      tipo = 'Turno Largo Semana';
-      horario = '17:00 a 08:00 hrs';
-    } else {
-      // Atenciones de madrugada y mañana (00:00 a 15:59):
-      // Pertenecen al Turno Largo del día anterior que va entregando la guardia
-      turnoNum = 2;
-      tipo = 'Turno Largo Semana (Cierre)';
-      horario = '17:00 a 08:00 hrs';
-      logicalDate.setDate(logicalDate.getDate() - 1);
-    }
-  }
-
-  // Rotativa asignada de Equipo (Turno 1, Turno 2, Turno 3)
-  const dayOfYear = Math.floor((logicalDate - new Date(logicalDate.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
-  const equipoNum = ((dayOfYear + turnoNum) % 3) + 1;
-  const equipo = `Turno ${equipoNum}`;
-
-  const y = logicalDate.getFullYear();
-  const m = String(logicalDate.getMonth() + 1).padStart(2, '0');
-  const day = String(logicalDate.getDate()).padStart(2, '0');
-  const fechaTurno = `${day}/${m}/${y}`;
-
-  const textoCompleto = `${fechaTurno} - ${equipo} • ${tipo} (${horario})`;
-
-  return {
-    turnoNum,
-    equipo,
-    tipo,
-    horario,
-    fechaTurno,
-    textoCompleto
-  };
-};
-
-export const isAltaAdmin = (p) => {
-  if (!p) return false;
-  if (p.flag_alta_administrativa !== undefined && p.flag_alta_administrativa !== null) {
-    return Boolean(p.flag_alta_administrativa);
-  }
-  if (p.estado === 'Cancelada' || p.destinoAlta === 'ALTA ADMINISTRATIVA' || p.destinoAlta === 'RETIRO SIN ATENCIÓN' || p.destinoAlta === 'RETIRO') return true;
-  const med = String(p.medico || p.profesional || p.medico_tratante || '').trim().toUpperCase();
-  const invalidMeds = ['NO REGISTRADO', 'NO REGISTRADA', 'SIN ESPECIFICAR', 'SIN REGISTRO', 'NO ASIGNADO', 'S/R', 'NO ESPECIFICADO', 'SIN MEDICO', 'SIN MÉDICO', 'S/M', '-', 'N/A', 'UNDEFINED', 'NULL', ''];
-  return p.estado !== 'Finalizada' && invalidMeds.includes(med);
-};
-
-/**
  * Resuelve el Equipo/Turno asignado de forma universal:
  * 1. Prioridad 1: Pauta manual configurada en pautasDB para ese mes y fecha.
  * 2. Prioridad 2: Equipo explícito válido registrado en la base de datos de turnos.
@@ -180,6 +81,106 @@ export const resolverEquipoTurno = (fechaStr, horarioStr, pautasDB, equipoExplic
   }
 
   return 'Turno 1';
+};
+
+/**
+ * Determina el Turno Asociado (Turno 1, 2, 3 o 4), el equipo asignado y su horario oficial de urgencia.
+ * - Turno de Semana: 17:00 a 08:00 hrs del día siguiente (sin fragmentar cierre).
+ * - Fin de Semana (Día): 08:00 a 20:00 hrs.
+ * - Fin de Semana (Noche): 20:00 a 08:00 hrs del día siguiente.
+ */
+export const obtenerTurnoDetallado = (timestamp, pautasDB = null) => {
+  if (!timestamp) return { turnoNum: '-', equipo: '-', tipo: '-', horario: '-', fechaTurno: '-', textoCompleto: '-' };
+
+  const d = new Date(timestamp);
+  if (isNaN(d.getTime())) return { turnoNum: '-', equipo: '-', tipo: '-', horario: '-', fechaTurno: '-', textoCompleto: '-' };
+
+  const hours = d.getHours();
+  const dayOfWeek = d.getDay(); // 0 = Domingo, 6 = Sábado
+  const isWeekendNatural = (dayOfWeek === 0 || dayOfWeek === 6);
+
+  // Formato de fecha para validar si el día fue marcado como "Festivo" en pautasDB
+  const yRaw = d.getFullYear();
+  const mRaw = String(d.getMonth() + 1).padStart(2, '0');
+  const dRaw = String(d.getDate()).padStart(2, '0');
+  const dateStrRaw = `${yRaw}-${mRaw}-${dRaw}`;
+  const monthIdRaw = `${yRaw}-${mRaw}`;
+
+  let isFestivo = false;
+  if (pautasDB && pautasDB[monthIdRaw] && pautasDB[monthIdRaw][dateStrRaw]) {
+    if (pautasDB[monthIdRaw][dateStrRaw].festivo) {
+      isFestivo = true;
+    }
+  }
+
+  const is24hOperatingDay = isWeekendNatural || isFestivo;
+
+  let logicalDate = new Date(timestamp);
+  let turnoNum = 1;
+  let tipo = 'Turno de Semana';
+  let horario = '17:00 a 08:00 hrs';
+
+  if (is24hOperatingDay) {
+    // Régimen de 24 Horas (Fin de Semana o Día Festivo declarado en pauta)
+    if (hours >= 8 && hours < 20) {
+      turnoNum = 1;
+      tipo = isFestivo ? 'Festivo Diurno' : 'Fin de Semana Día';
+      horario = '08:00 a 20:00 hrs';
+    } else {
+      turnoNum = 3;
+      tipo = isFestivo ? 'Festivo Nocturno' : 'Fin de Semana Noche';
+      horario = '20:00 a 08:00 hrs';
+      if (hours < 8) logicalDate.setDate(logicalDate.getDate() - 1);
+    }
+  } else {
+    // Régimen Hábil de Semana (Lunes a Viernes no festivo): jornada unificada de 17:00 a 08:00 hrs
+    turnoNum = 2;
+    tipo = 'Turno Largo Semana';
+    horario = '17:00 a 08:00 hrs';
+    if (hours < 16) {
+      // Atenciones de madrugada y mañana pertenecen al Turno Largo del día anterior
+      logicalDate.setDate(logicalDate.getDate() - 1);
+    }
+  }
+
+  const y = logicalDate.getFullYear();
+  const m = String(logicalDate.getMonth() + 1).padStart(2, '0');
+  const day = String(logicalDate.getDate()).padStart(2, '0');
+  const fechaTurno = `${day}/${m}/${y}`;
+  const fechaIso = `${y}-${m}-${day}`;
+
+  // Resolver equipo con pautasDB o rotativa determinista
+  const resolvedEquipo = resolverEquipoTurno(fechaIso, horario, pautasDB, null);
+  const equipo = resolvedEquipo || `Turno ${turnoNum}`;
+
+  let parsedTurnoNum = turnoNum;
+  if (equipo.includes('1')) parsedTurnoNum = 1;
+  else if (equipo.includes('2')) parsedTurnoNum = 2;
+  else if (equipo.includes('3')) parsedTurnoNum = 3;
+  else if (equipo.includes('4')) parsedTurnoNum = 4;
+
+  const textoCompleto = `${fechaTurno} - ${equipo} • ${tipo} (${horario})`;
+
+  return {
+    turnoNum: parsedTurnoNum,
+    equipo,
+    tipo,
+    horario,
+    fechaTurno,
+    fechaIso,
+    textoCompleto
+  };
+};
+
+export const isAltaAdmin = (p) => {
+  if (!p) return false;
+  if (p.flag_alta_administrativa !== undefined && p.flag_alta_administrativa !== null) {
+    return Boolean(p.flag_alta_administrativa);
+  }
+  if (p.estado === 'Cancelada' || p.destinoAlta === 'ALTA ADMINISTRATIVA' || p.destinoAlta === 'RETIRO SIN ATENCIÓN' || p.destinoAlta === 'RETIRO') return true;
+  const med = String(p.medico || p.profesional || p.medico_tratante || '').trim().toUpperCase();
+  const invalidMeds = ['NO REGISTRADO', 'NO REGISTRADA', 'SIN ESPECIFICAR', 'SIN REGISTRO', 'NO ASIGNADO', 'S/R', 'NO ESPECIFICADO', 'SIN MEDICO', 'SIN MÉDICO', 'S/M', '-', 'N/A', 'UNDEFINED', 'NULL', ''];
+  return p.estado !== 'Finalizada' && invalidMeds.includes(med);
 };
 
 export const formatLocalDate = (timestamp) => {

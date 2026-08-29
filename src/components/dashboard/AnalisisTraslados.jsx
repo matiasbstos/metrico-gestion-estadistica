@@ -14,6 +14,7 @@ export default function AnalisisTraslados({
   pacientesFiltrados, 
   pacientesDB, 
   turnosDB, 
+  pautasDB,
   filtroFechaInicio, 
   filtroFechaFin,
   modoComparativo,
@@ -277,15 +278,67 @@ export default function AnalisisTraslados({
     return maxDay;
   }, [dailyDataA]);
 
+  // Cálculo de Récord del Mes Activo para contextualizar benchmarks (incluso viendo 1 solo día)
+  const maxTrasladosMes = useMemo(() => {
+    if (!pacientesDB || pacientesDB.length === 0) return { count: 0, det: null, pacientes: [], mesNombre: 'Mes' };
+
+    const activeMonth = (localFechaInicio || '2026-08').substring(0, 7);
+    const pacsMes = pacientesDB.filter(p => {
+      if (!p.tAdmision) return false;
+      const d = new Date(p.tAdmision);
+      const mStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      return mStr === activeMonth && isTraslado(p);
+    });
+
+    const deduplicatedMes = deduplicarPacientes(pacsMes);
+    const shiftMap = {};
+    const details = {};
+    const patientMap = {};
+
+    deduplicatedMes.forEach(p => {
+      const det = obtenerTurnoDetallado(p.tAdmision, pautasDB);
+      const key = `${det.fechaTurno} - ${det.equipo} • ${det.tipo} (${det.horario})`;
+      shiftMap[key] = (shiftMap[key] || 0) + 1;
+      details[key] = det;
+      if (!patientMap[key]) patientMap[key] = [];
+      patientMap[key].push(p);
+    });
+
+    let maxKey = null;
+    let maxCount = 0;
+    Object.entries(shiftMap).forEach(([key, count]) => {
+      if (count > maxCount) {
+        maxCount = count;
+        maxKey = key;
+      }
+    });
+
+    const monthNames = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const mNum = parseInt(activeMonth.split('-')[1] || '8', 10);
+
+    return {
+      count: maxCount,
+      det: maxKey ? details[maxKey] : null,
+      pacientes: maxKey ? patientMap[maxKey] : [],
+      mesNombre: monthNames[mNum] || activeMonth,
+      totalTrasladosMes: deduplicatedMes.length
+    };
+  }, [pacientesDB, localFechaInicio, pautasDB]);
+
+  // Turno Récord dentro del Período Seleccionado (con jornada completa unificada)
   const maxTrasladosTurno = useMemo(() => {
     const counts = {};
     const details = {};
+    const patientMap = {};
+
     pacientesTraslados.forEach(p => {
       if (!p.tAdmision) return;
-      const det = obtenerTurnoDetallado(p.tAdmision);
-      const key = det.textoCompleto;
+      const det = obtenerTurnoDetallado(p.tAdmision, pautasDB);
+      const key = `${det.fechaTurno} - ${det.equipo} • ${det.tipo} (${det.horario})`;
       counts[key] = (counts[key] || 0) + 1;
       details[key] = det;
+      if (!patientMap[key]) patientMap[key] = [];
+      patientMap[key].push(p);
     });
 
     let maxKey = null;
@@ -299,9 +352,10 @@ export default function AnalisisTraslados({
 
     return {
       count: maxCount,
-      det: maxKey ? details[maxKey] : null
+      det: maxKey ? details[maxKey] : null,
+      pacientes: maxKey ? patientMap[maxKey] : []
     };
-  }, [pacientesTraslados]);
+  }, [pacientesTraslados, pautasDB]);
 
   // Ranking Top 10 de Días y Turnos con mayor cantidad de traslados (Datos Reales de Pacientes)
   const top10TurnosTraslados = useMemo(() => {
@@ -309,8 +363,8 @@ export default function AnalisisTraslados({
 
     pacientesTraslados.forEach(p => {
       if (!p.tAdmision) return;
-      const det = obtenerTurnoDetallado(p.tAdmision);
-      const key = det.textoCompleto || `${det.fechaTurno} (${det.horario})`;
+      const det = obtenerTurnoDetallado(p.tAdmision, pautasDB);
+      const key = `${det.fechaTurno} - ${det.equipo} • ${det.tipo} (${det.horario})`;
       if (!map[key]) {
         map[key] = { key, count: 0, det, pacientes: [] };
       }
@@ -321,7 +375,7 @@ export default function AnalisisTraslados({
     return Object.values(map)
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
-  }, [pacientesTraslados]);
+  }, [pacientesTraslados, pautasDB]);
 
   const promedioDiarioTraslados = useMemo(() => {
     if (dailyDataA.length === 0) return 0;
@@ -633,36 +687,52 @@ export default function AnalisisTraslados({
           </p>
         </div>
 
-        {/* Tarjeta 3: Turno Récord (Rotativa) */}
-        <div 
-          onClick={() => {
-            if (!maxTrasladosTurno.det) return;
-            const filtered = pacientesTraslados.filter(p => {
-              if (!p.tAdmision) return false;
-              const det = obtenerTurnoDetallado(p.tAdmision);
-              return det.textoCompleto === maxTrasladosTurno.det.textoCompleto;
-            });
-            setSelectedDetailPatients(filtered);
-            setDetailModalTitle(`Traslados - Turno Récord: ${maxTrasladosTurno.det.textoCompleto} (${filtered.length} pac.)`);
-          }}
-          className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-sm flex flex-col justify-between min-h-[140px] theme-transition relative overflow-hidden cursor-pointer hover:border-indigo-500 hover:-translate-y-0.5 hover:shadow-lg group"
-        >
-          <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-rose-500/40 group-hover:text-rose-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200" />
-          <div>
-            <span className="text-[9px] font-black text-rose-600 dark:text-rose-400 tracking-wider uppercase">TURNO RÉCORD</span>
-            <div className="text-3xl font-black text-rose-500 mt-2 mb-1">
-              {maxTrasladosTurno.count} <span className="text-xs font-bold text-secondary-custom">pac.</span>
-            </div>
-            {maxTrasladosTurno.det && (
-              <div className="text-xs font-black text-rose-650 dark:text-rose-400 mt-0.5 leading-none">
-                Turno {maxTrasladosTurno.det.turnoNum}
+        {/* Tarjeta 3: Turno Récord (Rotativa & Benchmark del Mes) */}
+        {(() => {
+          const isSingleDay = localFechaInicio && localFechaFin && localFechaInicio === localFechaFin;
+          const displayRecord = (isSingleDay && maxTrasladosMes.count > 0) ? maxTrasladosMes : maxTrasladosTurno;
+          const isRecordSameDay = isSingleDay && maxTrasladosTurno.count === maxTrasladosMes.count && maxTrasladosMes.count > 0;
+
+          return (
+            <div 
+              onClick={() => {
+                if (!displayRecord.det) return;
+                setSelectedDetailPatients(displayRecord.pacientes || []);
+                setDetailModalTitle(
+                  isSingleDay 
+                    ? `Traslados - Récord Mensual de ${maxTrasladosMes.mesNombre}: ${displayRecord.det.textoCompleto} (${displayRecord.count} pac.)`
+                    : `Traslados - Turno Récord: ${displayRecord.det.textoCompleto} (${displayRecord.count} pac.)`
+                );
+              }}
+              className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-sm flex flex-col justify-between min-h-[140px] theme-transition relative overflow-hidden cursor-pointer hover:border-rose-500 hover:-translate-y-0.5 hover:shadow-lg group"
+            >
+              <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-rose-500/40 group-hover:text-rose-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200" />
+              <div>
+                <span className="text-[9px] font-black text-rose-600 dark:text-rose-400 tracking-wider uppercase flex items-center gap-1">
+                  {isSingleDay ? `RÉCORD ${maxTrasladosMes.mesNombre.toUpperCase()}` : 'TURNO RÉCORD'}
+                  {isRecordSameDay && <span className="text-[8px] bg-rose-500 text-white px-1.5 py-0.2 rounded-full font-black">Récord Hoy</span>}
+                </span>
+                <div className="text-3xl font-black text-rose-500 mt-2 mb-1">
+                  {displayRecord.count} <span className="text-xs font-bold text-secondary-custom">pac.</span>
+                </div>
+                {displayRecord.det && (
+                  <div className="text-xs font-black text-rose-600 dark:text-rose-400 mt-0.5 leading-none">
+                    {displayRecord.det.equipo}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          <p className="text-[9px] text-secondary-custom font-bold mt-auto leading-tight" title={maxTrasladosTurno.det ? `${maxTrasladosTurno.det.fechaTurno} - ${maxTrasladosTurno.det.tipo}` : 'Sin registros'}>
-            {maxTrasladosTurno.det ? `${maxTrasladosTurno.det.fechaTurno} (${maxTrasladosTurno.det.tipo})` : 'Sin registros'}
-          </p>
-        </div>
+              <p className="text-[9px] text-secondary-custom font-bold mt-auto leading-tight" title={displayRecord.det ? `${displayRecord.det.fechaTurno} - ${displayRecord.det.tipo}` : 'Sin registros'}>
+                {isSingleDay ? (
+                  <span>
+                    Pico: {displayRecord.det ? displayRecord.det.fechaTurno : '-'} • <strong className="text-primary-custom">Turno actual: {maxTrasladosTurno.count} pac.</strong>
+                  </span>
+                ) : (
+                  displayRecord.det ? `${displayRecord.det.fechaTurno} (${displayRecord.det.tipo})` : 'Sin registros'
+                )}
+              </p>
+            </div>
+          );
+        })()}
 
         {/* Tarjeta 4: Promedio Diario */}
         <div className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-sm flex flex-col justify-between min-h-[140px] theme-transition relative overflow-hidden">

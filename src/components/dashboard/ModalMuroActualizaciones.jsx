@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.7.6',
+      version: 'v5.7.6',
+      fecha: '29 de Agosto, 2026',
+      badge: 'TRASLADOS HOSPITALARIOS & BENCHMARK MENSUAL',
+      badgeColor: 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20',
+      title: 'Unificación de Jornada Completa y Récord Mensual en Módulo de Traslados',
+      categoria: 'Traslados & Gestión Operativa',
+      icon: CheckCircle2,
+      iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+      summary: 'Se unificó el cálculo de turnos largos de semana (17:00 a 08:00) para evitar que las derivaciones de madrugada se separaran en una fila distinta. Además, al filtrar un solo día, la tarjeta de récord muestra el pico histórico del mes como referencia comparativa.',
+      instructivo: {
+        paraQueSirve: 'Permite visualizar con exactitud todos los traslados de un turno en una sola jornada integrada (sumando noche y madrugada) y comparar cualquier día contra el récord del mes.',
+        quePuedesVer: 'En Módulo de Traslados: el turno largo del día agrupa el 100% de las derivaciones (ej: 4 pac.). La tarjeta "RÉCORD DEL MES" contextualiza el volumen récord histórico del mes activo.',
+        ejemploUso: 'Filtra el turno de un día y observa cómo el ranking muestra la jornada completa unificada y la tarjeta destaca el récord del mes.'
+      },
+      changes: [
+        'Jornada Unificada: Noche y madrugada se consolidan en el mismo turno sin divisiones artificiales.',
+        'Benchmark Mensual: La tarjeta de récord muestra el pico mensual de traslados al ver 1 solo día.',
+        'Sincronización con Pautas: Resolución precisa de equipos de turno mediante pautasDB.'
+      ]
+    },
+    {
       id: 'v5.7.5',
       version: 'v5.7.5',
       fecha: '28 de Agosto, 2026',
