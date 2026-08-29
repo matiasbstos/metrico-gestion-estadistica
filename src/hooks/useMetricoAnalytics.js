@@ -584,7 +584,12 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const currentCats = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
     countCategories(pacientesFiltrados, currentCats);
 
-    const getGrowth = (curr, prev) => prev === 0 ? (curr > 0 ? 100 : 0) : ((curr - prev) / prev) * 100;
+    const getGrowth = (curr, prev) => {
+      const c = Number(curr || 0);
+      const p = Number(prev || 0);
+      if (p <= 0) return undefined;
+      return ((c - p) / p) * 100;
+    };
 
     const isConstatacion = isConstatacionLesion;
 

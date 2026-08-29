@@ -6,11 +6,35 @@ import { COLORS } from '../../config/constants';
 export default function PanelKPIs({ statsKPI, onAltasClick, onTrasladosClick, onConstatacionesClick, isLoading }) {
   if (!statsKPI) return null;
 
-  const renderKPICard = (title, value, growthMonth, growthYear, prefix = '', suffix = '', isClickable = false, onClick = null) => (
-    <div 
-      onClick={isClickable ? onClick : undefined}
-      className={`bg-card-custom p-5 flex flex-col justify-between h-full min-h-[140px] relative theme-transition hover:z-30 hover:shadow-lg group ${isClickable ? 'cursor-pointer hover:border-indigo-500 hover:-translate-y-0.5' : ''}`}
-    >
+  const getGrowthBadge = (growth, isInverted = false) => {
+    if (growth === undefined || growth === null || isNaN(growth)) return null;
+    if (Math.abs(growth) < 0.001) {
+      return {
+        color: 'text-slate-400 dark:text-slate-400',
+        icon: null,
+        text: '0.0%'
+      };
+    }
+    const isUp = growth > 0;
+    // Métricas estándar (productividad, pacientes): sube = verde (positivo), baja = rojo (negativo).
+    // Métricas invertidas (altas admin, estadía/esperas): sube = rojo (alerta/deterioro), baja = verde (mejora asistencial).
+    const isGood = isInverted ? !isUp : isUp;
+    return {
+      color: isGood ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400',
+      icon: isUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />,
+      text: `${isUp ? '+' : ''}${growth.toFixed(1)}%`
+    };
+  };
+
+  const renderKPICard = (title, value, growthMonth, growthYear, prefix = '', suffix = '', isClickable = false, onClick = null, isInverted = false) => {
+    const badgeMonth = getGrowthBadge(growthMonth, isInverted);
+    const badgeYear = getGrowthBadge(growthYear, isInverted);
+
+    return (
+      <div 
+        onClick={isClickable ? onClick : undefined}
+        className={`bg-card-custom p-5 flex flex-col justify-between h-full min-h-[140px] relative theme-transition hover:z-30 hover:shadow-lg group ${isClickable ? 'cursor-pointer hover:border-indigo-500 hover:-translate-y-0.5' : ''}`}
+      >
         {isClickable && (
           <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-secondary-custom/40 group-hover:text-indigo-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200" />
         )}
@@ -35,32 +59,33 @@ export default function PanelKPIs({ statsKPI, onAltasClick, onTrasladosClick, on
             </div>
           ) : (
             <>
-              {growthMonth !== undefined && (
+              {badgeMonth && (
                 <div className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded">
                   <span className="text-[9px] font-bold text-secondary-custom">Vs Mes Ant.</span>
-                  <span className={`text-[10px] font-bold flex items-center gap-1 ${growthMonth > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                    {growthMonth > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                    {growthMonth > 0 ? '+' : ''}{growthMonth.toFixed(1)}%
+                  <span className={`text-[10px] font-bold flex items-center gap-1 ${badgeMonth.color}`}>
+                    {badgeMonth.icon}
+                    {badgeMonth.text}
                   </span>
                 </div>
               )}
-              {growthYear !== undefined && (
+              {badgeYear && (
                 <div className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded">
                   <span className="text-[9px] font-bold text-secondary-custom">Vs Año Ant.</span>
-                  <span className={`text-[10px] font-bold flex items-center gap-1 ${growthYear > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                    {growthYear > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                    {growthYear > 0 ? '+' : ''}{growthYear.toFixed(1)}%
+                  <span className={`text-[10px] font-bold flex items-center gap-1 ${badgeYear.color}`}>
+                    {badgeYear.icon}
+                    {badgeYear.text}
                   </span>
                 </div>
               )}
-              {growthMonth === undefined && growthYear === undefined && (
+              {!badgeMonth && !badgeYear && (
                  <span className="text-[10px] font-medium text-transparent select-none">.</span>
               )}
             </>
           )}
         </div>
-    </div>
-  );
+      </div>
+    );
+  };
 
   const renderAltasAdminCard = (isAnnual = false) => {
     const total = isAnnual ? statsKPI.anual.pacientes.current : statsKPI.pacientes.current;
@@ -69,6 +94,9 @@ export default function PanelKPIs({ statsKPI, onAltasClick, onTrasladosClick, on
     const isAlert = pct > 5;
     const growthMonth = isAnnual ? undefined : statsKPI.altasAdmin.growthMonth;
     const growthYear = isAnnual ? undefined : statsKPI.altasAdmin.growthYear;
+
+    const badgeMonth = getGrowthBadge(growthMonth, true);
+    const badgeYear = getGrowthBadge(growthYear, true);
 
     return (
       <div 
@@ -108,21 +136,21 @@ export default function PanelKPIs({ statsKPI, onAltasClick, onTrasladosClick, on
                 </div>
               ) : (
                 <>
-                  {growthMonth !== undefined && (
+                  {badgeMonth && (
                     <div className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded">
                       <span className="text-[9px] font-bold text-secondary-custom">Vs Mes Ant.</span>
-                      <span className={`text-[10px] font-bold flex items-center gap-1 ${growthMonth > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                        {growthMonth > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                        {growthMonth > 0 ? '+' : ''}{growthMonth.toFixed(1)}%
+                      <span className={`text-[10px] font-bold flex items-center gap-1 ${badgeMonth.color}`}>
+                        {badgeMonth.icon}
+                        {badgeMonth.text}
                       </span>
                     </div>
                   )}
-                  {growthYear !== undefined && (
+                  {badgeYear && (
                     <div className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded">
                       <span className="text-[9px] font-bold text-secondary-custom">Vs Año Ant.</span>
-                      <span className={`text-[10px] font-bold flex items-center gap-1 ${growthYear > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                        {growthYear > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                        {growthYear > 0 ? '+' : ''}{growthYear.toFixed(1)}%
+                      <span className={`text-[10px] font-bold flex items-center gap-1 ${badgeYear.color}`}>
+                        {badgeYear.icon}
+                        {badgeYear.text}
                       </span>
                     </div>
                   )}
@@ -214,15 +242,15 @@ export default function PanelKPIs({ statsKPI, onAltasClick, onTrasladosClick, on
           </span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-4">
-          {renderKPICard('Pac. Admitidos', statsKPI.pacientes.current, statsKPI.pacientes.growthMonth, statsKPI.pacientes.growthYear)}
-          {renderKPICard('Pac. Atendidos', statsKPI.atendidos.current, statsKPI.atendidos.growthMonth, statsKPI.atendidos.growthYear)}
-          {renderKPICard('Pac / Hora', statsKPI.pacHora.current.toFixed(1), statsKPI.pacHora.growthMonth, statsKPI.pacHora.growthYear)}
-          {renderKPICard('Prom. Estadía', statsKPI.estadia.current > 0 ? `${Math.round(statsKPI.estadia.current)}` : '0', statsKPI.estadia.growthMonth, statsKPI.estadia.growthYear, '', 'min')}
+          {renderKPICard('Pac. Admitidos', statsKPI.pacientes.current, statsKPI.pacientes.growthMonth, statsKPI.pacientes.growthYear, '', '', false, null, false)}
+          {renderKPICard('Pac. Atendidos', statsKPI.atendidos.current, statsKPI.atendidos.growthMonth, statsKPI.atendidos.growthYear, '', '', false, null, false)}
+          {renderKPICard('Pac / Hora', statsKPI.pacHora.current.toFixed(1), statsKPI.pacHora.growthMonth, statsKPI.pacHora.growthYear, '', '', false, null, false)}
+          {renderKPICard('Prom. Estadía', statsKPI.estadia.current > 0 ? `${Math.round(statsKPI.estadia.current)}` : '0', statsKPI.estadia.growthMonth, statsKPI.estadia.growthYear, '', 'min', false, null, true)}
           {renderAltasAdminCard()}
-          {renderKPICard('Traslados Hosp.', statsKPI.traslados ? statsKPI.traslados.current : 0, statsKPI.traslados ? statsKPI.traslados.growthMonth : 0, statsKPI.traslados ? statsKPI.traslados.growthYear : 0, '', 'pac', true, onTrasladosClick)}
-          {renderKPICard('Constat. Lesiones', statsKPI.constataciones ? statsKPI.constataciones.current : 0, statsKPI.constataciones ? statsKPI.constataciones.growthMonth : 0, statsKPI.constataciones ? statsKPI.constataciones.growthYear : 0, '', 'pac', true, onConstatacionesClick)}
-          {renderKPICard('Promedio Edad', statsKPI.demo.avgEdad, undefined, undefined, '', ' a.')}
-          {renderKPICard('Pac. Fonasa', statsKPI.demo.fonasaPercent.toFixed(1), undefined, undefined, '', '%')}
+          {renderKPICard('Traslados Hosp.', statsKPI.traslados ? statsKPI.traslados.current : 0, statsKPI.traslados ? statsKPI.traslados.growthMonth : 0, statsKPI.traslados ? statsKPI.traslados.growthYear : 0, '', 'pac', true, onTrasladosClick, false)}
+          {renderKPICard('Constat. Lesiones', statsKPI.constataciones ? statsKPI.constataciones.current : 0, statsKPI.constataciones ? statsKPI.constataciones.growthMonth : 0, statsKPI.constataciones ? statsKPI.constataciones.growthYear : 0, '', 'pac', true, onConstatacionesClick, false)}
+          {renderKPICard('Promedio Edad', statsKPI.demo.avgEdad, undefined, undefined, '', ' a.', false, null, false)}
+          {renderKPICard('Pac. Fonasa', statsKPI.demo.fonasaPercent.toFixed(1), undefined, undefined, '', '%', false, null, false)}
         </div>
       </div>
 
@@ -276,16 +304,16 @@ export default function PanelKPIs({ statsKPI, onAltasClick, onTrasladosClick, on
                             {c.growthMonth !== undefined && (
                               <div className="flex justify-between items-center">
                                 <span className="opacity-60">M:</span>
-                                <span className={`${c.growthMonth > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                                  {c.growthMonth > 0 ? '▲' : '▼'} {Math.abs(c.growthMonth).toFixed(1)}%
+                                <span className={`${c.growthMonth > 0 ? 'text-emerald-500' : (c.growthMonth < 0 ? 'text-rose-500' : 'text-slate-400')}`}>
+                                  {c.growthMonth > 0 ? '▲ +' : (c.growthMonth < 0 ? '▼ ' : '')}{c.growthMonth.toFixed(1)}%
                                 </span>
                               </div>
                             )}
                             {c.growthYear !== undefined && (
                               <div className="flex justify-between items-center">
                                 <span className="opacity-60">A:</span>
-                                <span className={`${c.growthYear > 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                                  {c.growthYear > 0 ? '▲' : '▼'} {Math.abs(c.growthYear).toFixed(1)}%
+                                <span className={`${c.growthYear > 0 ? 'text-emerald-500' : (c.growthYear < 0 ? 'text-rose-500' : 'text-slate-400')}`}>
+                                  {c.growthYear > 0 ? '▲ +' : (c.growthYear < 0 ? '▼ ' : '')}{c.growthYear.toFixed(1)}%
                                 </span>
                               </div>
                             )}

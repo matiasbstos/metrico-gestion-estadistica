@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.7.8',
+      version: 'v5.7.8',
+      fecha: '29 de Agosto, 2026',
+      badge: 'COMPARATIVAS MoM / YoY & LÓGICA CROMÁTICA',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Lógica Cromática Inteligente y Corrección de Porcentajes Comparativos',
+      categoria: 'Métricas & Panel Superior',
+      icon: CheckCircle2,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se alineó el significado de los colores en los porcentajes de variación: el aumento de pacientes o productividad se resalta en verde, mientras que el incremento de altas administrativas o tiempos de espera se destaca en rojo. Se eliminaron los porcentajes arbitrarios del 100% cuando no existen registros en el periodo previo.',
+      instructivo: {
+        paraQueSirve: 'Permite interpretar de inmediato si una variación porcentual representa una mejora o un deterioro asistencial mediante colores estandarizados.',
+        quePuedesVer: 'En el Panel de Periodo Seleccionado: variaciones MoM y YoY con flechas y colores acordes al tipo de indicador (verde para más productividad, rojo para más altas administrativas).',
+        ejemploUso: 'Filtra un mes o día y observa cómo las tarjetas muestran porcentajes reales con semántica cromática fiel.'
+      },
+      changes: [
+        'Colores Inteligentes: Métricas normales (sube = verde) y métricas críticas (sube = rojo).',
+        'Porcentajes Reales: Eliminación de falsos +100% cuando el periodo previo no tiene registros.',
+        'Triaje Sincronizado: Flechas y colores coherentes en la distribución de categorías C1 a C5.'
+      ]
+    },
+    {
       id: 'v5.7.7',
       version: 'v5.7.7',
       fecha: '29 de Agosto, 2026',

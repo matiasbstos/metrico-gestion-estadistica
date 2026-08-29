@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.7.8',
+    version_tag: 'v5.7.8',
+    fecha_despliegue: '29 de Agosto, 2026',
+    proposito_actualizacion: 'Corrección Semántica de Colores MoM/YoY y Neutralización de Comparativas sin Línea Base.',
+    medios_y_stack: [
+      'React 18.3 (PanelKPIs.jsx, useMetricoAnalytics.js, Dashboard.jsx)',
+      'Dual-Direction Chromatic Engine (getGrowthBadge)',
+      'Baseline Integrity Evaluator (prev <= 0 -> undefined)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Semántica Cromática de Variación Asistencial: Se corrigió la regla de color para métricas normales e invertidas. En productividad y volumen (Pacientes Admitidos, Atendidos, Pac/Hora, Traslados, Triaje), un incremento se muestra en verde y una caída en rojo. En métricas críticas (Altas Administrativas y Promedio de Estadía/Espera), un aumento se muestra en rojo y una disminución en verde. 2) Neutralización de Falsos +100%: Cuando el periodo previo no posee registros históricos (baseline = 0), la función getGrowth retorna undefined evitando comparativas distorsionadas del 100%.',
+      firestore_collections: ['pacientes_urgencia', 'turnos', 'kpis_mensuales'],
+      query_optimization: 'Evaluación rápida de variaciones memoizadas sin recálculo redundante.'
+    },
+    modulos_afectados: ['PanelKPIs.jsx', 'useMetricoAnalytics.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Inclusión de getGrowthBadge con soporte para métricas directas e invertidas (isInverted).',
+      'Normalización de getGrowth para retornar undefined cuando prev <= 0.',
+      'Sincronización de badges MoM y YoY en tarjetas KPI y distribución de triaje Manchester.'
+    ]
+  },
+  {
     id: 'v5.7.7',
     version_tag: 'v5.7.7',
     fecha_despliegue: '29 de Agosto, 2026',

@@ -567,7 +567,8 @@ const DashboardContent = () => {
           const getGrowth = (curr, prev) => {
             const c = Number(curr || 0);
             const p = Number(prev || 0);
-            return p === 0 ? (c > 0 ? 100 : 0) : ((c - p) / p) * 100;
+            if (p <= 0) return undefined;
+            return ((c - p) / p) * 100;
           };
 
           const parseKpis = (item) => ({
