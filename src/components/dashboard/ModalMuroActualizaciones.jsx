@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.7.3',
+      version: 'v5.7.3',
+      fecha: '28 de Agosto, 2026',
+      badge: 'ACCESO ASISTENCIAL & TELEMETRÍA DINÁMICA',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Selector de Centro Asistencial en Login y Rótulo Dinámico de Telemetría',
+      categoria: 'Seguridad & Autenticación',
+      icon: CheckCircle2,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se añadió el selector de centro asistencial en la pantalla de inicio de sesión y se vinculó en tiempo real con el nodo orbital superior de telemetría, mostrando de inmediato el centro de destino y detectando automáticamente la identidad del usuario.',
+      instructivo: {
+        paraQueSirve: 'Permite elegir o pre-configurar el centro asistencial al iniciar sesión y constatar en la constelación de fondo qué centro y usuario están activos.',
+        quePuedesVer: 'En el formulario de Login: menú desplegable para elegir el Centro Asistencial. En el fondo animado superior derecho: el nodo de base de datos actualiza su nombre en vivo (ej: SAR Elsa Romo, CESFAM Boris Soler, etc.) y detecta el usuario.',
+        ejemploUso: 'En la pantalla de Login, selecciona tu centro asistencial preferido y escribe tu correo para ver cómo el nodo superior se adapta en tiempo real.'
+      },
+      changes: [
+        'Selector de Centro en Login: Configuración previa del centro asistencial antes de ingresar.',
+        'Nodo Orbital Reactivo: El nodo de datos local refleja el nombre exacto de la sede seleccionada.',
+        'Detección de Identidad: Identificación automática del usuario en el badge de telemetría.'
+      ]
+    },
+    {
       id: 'v5.7.2',
       version: 'v5.7.2',
       fecha: '28 de Agosto, 2026',

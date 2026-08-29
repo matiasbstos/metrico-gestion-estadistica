@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { auth } from '../config/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { Activity, Lock, Mail, AlertTriangle, CheckCircle, ArrowRight } from 'lucide-react';
+import { Activity, Lock, Mail, AlertTriangle, CheckCircle, ArrowRight, Building2 } from 'lucide-react';
 import { playLoginChime } from '../utils/audioNotifications';
 import FondoClinicoAnimado from './common/FondoClinicoAnimado';
 
@@ -9,10 +9,20 @@ export default function Login() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [centroSeleccionado, setCentroSeleccionado] = useState(
+    () => localStorage.getItem('metrico_centro') || 'SAR Elsa Romo Aravena'
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [sessionExpired, setSessionExpired] = useState(false);
+
+  const handleCentroChange = (val) => {
+    setCentroSeleccionado(val);
+    try {
+      localStorage.setItem('metrico_centro', val);
+    } catch (e) {}
+  };
 
   React.useEffect(() => {
     try {
@@ -93,8 +103,12 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 font-sans text-slate-800 relative overflow-hidden">
-      {/* Fondo Clínico Animado con Ondas ECG, Nube, Base de Datos y Telemetría */}
-      <FondoClinicoAnimado variant="dark" />
+      {/* Fondo Clínico Animado con Ondas ECG, Nube, Base de Datos Dinámica y Telemetría */}
+      <FondoClinicoAnimado 
+        variant="dark" 
+        centroActivo={centroSeleccionado}
+        userEmail={email}
+      />
 
       <div className="max-w-md w-full bg-white/95 dark:bg-slate-900/90 rounded-3xl shadow-[0_0_50px_rgba(79,70,229,0.2)] overflow-hidden border border-slate-100 dark:border-slate-800 relative z-10 backdrop-blur-2xl">
         
@@ -141,6 +155,25 @@ export default function Login() {
           )}
 
           <form id="form-login-metrico" onSubmit={handleAuth} className="space-y-4">
+            <div>
+              <label htmlFor="login-centro" className="block text-xs font-bold text-slate-500 mb-1">Centro Asistencial de Atención</label>
+              <div className="relative">
+                <Building2 className="absolute left-3 top-3 w-5 h-5 text-slate-400" />
+                <select
+                  id="login-centro"
+                  value={centroSeleccionado}
+                  onChange={(e) => handleCentroChange(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg py-3 pl-10 pr-3 text-sm font-bold text-slate-700 outline-none focus:border-sky-500 transition-colors cursor-pointer"
+                >
+                  <option value="SAR Elsa Romo Aravena">SAR Elsa Romo Aravena</option>
+                  <option value="CESFAM Florencia">CESFAM Florencia</option>
+                  <option value="CESFAM Boris Soler">CESFAM Boris Soler</option>
+                  <option value="CESFAM Elgueta">CESFAM Elgueta</option>
+                  <option value="Todos los Centros (Red Salud Cormumel)">Todos los Centros (Red Salud Cormumel)</option>
+                </select>
+              </div>
+            </div>
+
             <div>
               <label htmlFor="login-email" className="block text-xs font-bold text-slate-500 mb-1">Correo Corporativo</label>
               <div className="relative">

@@ -1,8 +1,14 @@
 import React from 'react';
 import { Cloud, Database, Activity, Wifi, ShieldCheck, Server, Cpu, Radio } from 'lucide-react';
 
-export default function FondoClinicoAnimado({ variant = 'dark', className = '' }) {
+export default function FondoClinicoAnimado({ 
+  variant = 'dark', 
+  className = '',
+  centroActivo = 'SAR Elsa Romo Aravena',
+  userEmail = ''
+}) {
   const isDark = variant === 'dark';
+  const detectedUser = userEmail ? userEmail.split('@')[0].replace(/\./g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : '';
 
   return (
     <div className={`fixed inset-0 pointer-events-none overflow-hidden select-none z-0 ${className}`}>
@@ -66,7 +72,7 @@ export default function FondoClinicoAnimado({ variant = 'dark', className = '' }
         </div>
       </div>
 
-      {/* NODO 2: BASE DE DATOS / SERVIDOR LOCAL (Posición: Media Derecha Asimétrica ~82% X, ~34% Y) */}
+      {/* NODO 2: BASE DE DATOS / SERVIDOR LOCAL DINÁMICO (Posición: Media Derecha Asimétrica ~82% X, ~34% Y) */}
       <div className="absolute top-[28%] right-[6%] md:right-[12%] flex flex-col items-end animate-float-soft-delayed opacity-90 z-0">
         <div className="relative flex items-center justify-center">
           {/* Anillos de actividad de lectura/escritura */}
@@ -81,10 +87,17 @@ export default function FondoClinicoAnimado({ variant = 'dark', className = '' }
           </div>
         </div>
 
-        {/* Badge descriptivo de Base de Datos */}
-        <div className="mt-3 px-3 py-1 rounded-xl bg-slate-900/90 border border-indigo-500/35 text-[10px] font-black text-indigo-300 tracking-wider uppercase shadow-lg flex items-center gap-1.5 backdrop-blur-md">
-          <Server className="w-3 h-3 text-indigo-400 animate-pulse" />
-          <span>SAR Elsa Romo • Local Data</span>
+        {/* Badge descriptivo de Base de Datos y Centro Asistencial Dinámico */}
+        <div className="mt-3 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-indigo-500/40 text-[10px] font-black text-indigo-300 tracking-wider uppercase shadow-lg flex flex-col items-end gap-0.5 backdrop-blur-md transition-all duration-300">
+          <div className="flex items-center gap-1.5">
+            <Server className="w-3.5 h-3.5 text-indigo-400 animate-pulse shrink-0" />
+            <span className="text-white font-black">{centroActivo || 'SAR Elsa Romo Aravena'} • Local Data</span>
+          </div>
+          {detectedUser && (
+            <span className="text-[9px] text-sky-300/90 font-medium tracking-normal">
+              👤 Usuario: {detectedUser}
+            </span>
+          )}
         </div>
       </div>
 

@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.7.3',
+    version_tag: 'v5.7.3',
+    fecha_despliegue: '28 de Agosto, 2026',
+    proposito_actualizacion: 'Detección Dinámica de Centro Asistencial y Usuario en Pantalla de Inicio de Sesión.',
+    medios_y_stack: [
+      'React 18.3 (Login.jsx, FondoClinicoAnimado.jsx)',
+      'Telemetry Constellation Node Dynamic Binding',
+      'Local Storage State Synchronization (metrico_centro)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Selector de Centro en Pantalla de Acceso: Se incorporó en el formulario de Login el selector de sede asistencial (SAR Elsa Romo, CESFAM Florencia, CESFAM Boris Soler, CESFAM Elgueta o Red Cormumel), persistiendo la preferencia en localStorage. 2) Nodo de Red Dinámico en Tiempo Real: El nodo orbital superior derecho de telemetría (FondoClinicoAnimado.jsx) ahora reacciona en vivo al centro elegido y detecta automáticamente el nombre del usuario según el correo ingresado, adaptando el rótulo de datos locales de forma interactiva.',
+      firestore_collections: ['usuarios', 'configuraciones'],
+      query_optimization: 'Sincronización directa en memoria y renderizado reactivo del nodo de telemetría.'
+    },
+    modulos_afectados: ['Login.jsx', 'FondoClinicoAnimado.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Implementación del estado centroSeleccionado con sincronización bidireccional a localStorage.',
+      'Detección automática y formateo de nombre de usuario en base al correo corporativo ingresado.',
+      'Actualización reactiva del badge del nodo de base de datos en FondoClinicoAnimado.'
+    ]
+  },
+  {
     id: 'v5.7.2',
     version_tag: 'v5.7.2',
     fecha_despliegue: '28 de Agosto, 2026',
