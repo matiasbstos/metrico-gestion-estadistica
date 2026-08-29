@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.8.0',
+      version: 'v5.8.0',
+      fecha: '29 de Agosto, 2026',
+      badge: 'CURVAS & HUB DE CRECIMIENTO INTERANUAL',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Perfeccionamiento de Curvas y Hub Destacado de Crecimiento YoY',
+      categoria: 'Análisis de Demanda & Curvas',
+      icon: CheckCircle2,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se corrigió la continuidad de las curvas en el Gráfico Comparativo Interanual para evitar caídas artificiales a cero y se rediseñó el panel de crecimiento interanual mes a mes con tarjetas ejecutivas enriquecidas, volúmenes absolutos y semáforo cromático de demanda.',
+      instructivo: {
+        paraQueSirve: 'Permite analizar con total fidelidad la evolución estacional y el crecimiento interanual de la demanda asistencial entre años.',
+        quePuedesVer: 'Curvas limpias que finalizan en el mes activo actual, continuidad completa del año previo y un panel inferior con tarjetas mensuales de crecimiento YoY.',
+        ejemploUso: 'Ingresa a "Análisis de Demanda" y revisa el nuevo Hub Interanual para comparar volúmenes y porcentajes mes por mes.'
+      },
+      changes: [
+        'Curvas Continuas: Eliminación de caídas a cero en meses futuros en Recharts.',
+        'Línea Base 2025 Completa: Cobertura total de 12 meses para el año comparativo.',
+        'Hub de Crecimiento YoY Rediseñado: Tarjetas interactivas con volúmenes absolutos y variación porcentual destacada.'
+      ]
+    },
+    {
       id: 'v5.7.9',
       version: 'v5.7.9',
       fecha: '29 de Agosto, 2026',

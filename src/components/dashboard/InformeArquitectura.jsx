@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.8.0',
+    version_tag: 'v5.8.0',
+    fecha_despliegue: '29 de Agosto, 2026',
+    proposito_actualizacion: 'Perfeccionamiento de Curvas Interanuales y Hub Destacado de Crecimiento YoY de 12 Meses.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisDemandaAtencion.jsx)',
+      'Recharts ComposedChart Smoothing & Baseline Continuity',
+      'Dynamic YoY Monthly Growth Hub UI'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Continuidad y Fin de Curvas Interanuales: Se garantizó que los meses futuros sin registros del año actual (Sep-Dic 2026) terminen la curva en el último mes activo sin caer a cero (pasando null en Recharts), y que la línea base histórica del año anterior (2025) mantenga continuidad completa de 12 meses. 2) Hub Ejecutivo de Crecimiento YoY: Se transformó la cinta inferior en un panel de tarjetas interactivas con volúmenes absolutos comparados, insignias de crecimiento/decrecimiento con semáforo cromático vivo y métrica de variación acumulada del año.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'benchmarks_oficiales'],
+      query_optimization: 'Cómputo en memoria O(N) con memoización de series temporales de 12 meses.'
+    },
+    modulos_afectados: ['AnalisisDemandaAtencion.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Asignación de null a displayCur en meses sin registros para evitar caídas bruscas a cero en Recharts.',
+      'Refuerzo de fallback mensual a BASELINE_SAR_2025 para el año comparativo.',
+      'Rediseño visual del panel de crecimiento interanual con tarjetas ricas y métrica global YoY.'
+    ]
+  },
+  {
     id: 'v5.7.9',
     version_tag: 'v5.7.9',
     fecha_despliegue: '29 de Agosto, 2026',

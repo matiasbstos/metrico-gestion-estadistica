@@ -170,12 +170,11 @@ export default function AnalisisDemandaAtencion({
       });
     }
 
-    // 3. Fallback inteligente a Línea Base Histórica SAR si el año es 2025 y no existen turnos suficientes cargados en Firestore
-    const totalFoundInDB = Object.values(statsByMonth).reduce((acc, m) => acc + m.admitidos, 0);
-    if (targetYr === 2025 && totalFoundInDB < 500) {
+    // 3. Fallback inteligente a Línea Base Histórica SAR si el año es 2025 o si faltan meses específicos
+    if (targetYr === 2025) {
       mesesNombres.forEach(m => {
         const base = BASELINE_SAR_2025[m.key];
-        if (base && statsByMonth[m.key].admitidos === 0) {
+        if (base && (statsByMonth[m.key].admitidos === 0 || statsByMonth[m.key].admitidos < 100)) {
           statsByMonth[m.key].admitidos = base.admitidos;
           statsByMonth[m.key].atendidos = base.atendidos;
           statsByMonth[m.key].altas = base.altas;
@@ -219,16 +218,20 @@ export default function AnalisisDemandaAtencion({
         growthPct = Number((((vCur - vPrev) / vPrev) * 100).toFixed(1));
       }
 
+      // Para el año actual (2026), si el mes aún no tiene registros (mes futuro como Sep-Dic), pasamos null para que Recharts no dibuje una caída a 0
+      const displayCur = vCur > 0 ? vCur : null;
+
       return {
         mes: m.short,
         mesCompleto: m.full,
-        [`Año ${selectedYear} (${metricMode})`]: vCur,
-        [`Año ${compareYear} (${metricMode})`]: vPrev,
+        estacion: m.estacion,
+        [`Año ${selectedYear} (${metricMode})`]: displayCur,
+        [`Año ${compareYear} (${metricMode})`]: vPrev > 0 ? vPrev : null,
         valCurrent: vCur,
         valCompare: vPrev,
         diff: vCur - vPrev,
         growthPct,
-        isPending: vCur === 0 && vPrev > 0
+        isPending: vCur === 0
       };
     });
   }, [monthlyStatsCurrent, monthlyStatsCompare, selectedYear, compareYear, metricMode]);
@@ -730,37 +733,78 @@ export default function AnalisisDemandaAtencion({
           </ResponsiveContainer>
         </div>
 
-        {/* CINTA DE VARIACIÓN INTERANUAL (% YoY POR MES) */}
-        <div className="bg-black/5 dark:bg-white/5 p-3.5 rounded-2xl border border-card-custom/60 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-indigo-500" />
-              Crecimiento Interanual Mes a Mes ({selectedYear} vs {compareYear}):
-            </span>
-            <span className="text-[10px] font-bold text-secondary-custom">
-              Variación de {metricMode}
-            </span>
+        {/* PANEL DESTACADO DE CRECIMIENTO INTERANUAL (% YoY POR MES) */}
+        <div className="bg-gradient-to-br from-indigo-500/5 via-sky-500/5 to-transparent p-5 rounded-3xl border border-indigo-500/20 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-card-custom/60 pb-3">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                <Activity className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-black uppercase text-primary-custom tracking-wider block">
+                  Crecimiento Interanual Mes a Mes ({selectedYear} vs {compareYear})
+                </span>
+                <span className="text-[10px] text-secondary-custom font-semibold">
+                  Evolución comparativa de {metricMode} con semáforo cromático de demanda
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className={`px-3 py-1 rounded-xl text-xs font-black border flex items-center gap-1.5 ${
+                Number(totalesYear.totalGrowth) >= 0 
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' 
+                  : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
+              }`}>
+                {Number(totalesYear.totalGrowth) >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                <span>{Number(totalesYear.totalGrowth) >= 0 ? '+' : ''}{totalesYear.totalGrowth}% YoY Acumulado</span>
+              </span>
+            </div>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-12 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 gap-3">
             {chartData12Meses.map((item, idx) => {
-              let badgeColor = 'bg-black/5 dark:bg-white/5 text-secondary-custom';
-              let textDisplay = item.growthPct !== null ? `${item.growthPct >= 0 ? '+' : ''}${item.growthPct}%` : 'En curso ⏳';
-
-              if (item.growthPct !== null) {
-                if (item.growthPct >= 0) {
-                  badgeColor = 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border-emerald-500/30';
-                } else {
-                  badgeColor = 'bg-rose-500/15 text-rose-600 dark:text-rose-300 border-rose-500/30';
-                }
-              }
+              const hasData = item.growthPct !== null;
+              const isUp = hasData && item.growthPct >= 0;
 
               return (
-                <div key={idx} className="bg-card-custom p-2 rounded-xl border border-card-custom text-center space-y-0.5 shadow-2xs">
-                  <span className="text-[10px] font-black text-primary-custom block">{item.mes}</span>
-                  <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md block truncate border ${badgeColor}`}>
-                    {textDisplay}
-                  </span>
+                <div 
+                  key={idx} 
+                  className={`bg-card-custom p-3 rounded-2xl border transition-all duration-200 text-center space-y-1.5 shadow-2xs hover:shadow-md hover:-translate-y-0.5 ${
+                    hasData 
+                      ? (isUp ? 'border-emerald-500/40 hover:border-emerald-500' : 'border-rose-500/40 hover:border-rose-500') 
+                      : 'border-card-custom opacity-70'
+                  }`}
+                >
+                  <div className="flex items-center justify-between px-0.5">
+                    <span className="text-xs font-black text-primary-custom">{item.mes}</span>
+                    <span className="text-[9px] opacity-70">{item.estacion ? item.estacion.split(' ')[1] : ''}</span>
+                  </div>
+
+                  <div className="text-[10px] text-secondary-custom font-semibold leading-tight">
+                    {hasData ? (
+                      <span>
+                        <strong className="text-primary-custom">{item.valCurrent.toLocaleString('es-CL')}</strong> vs {item.valCompare.toLocaleString('es-CL')}
+                      </span>
+                    ) : (
+                      <span className="opacity-60">{item.valCompare > 0 ? `Ant: ${item.valCompare.toLocaleString('es-CL')}` : '-'}</span>
+                    )}
+                  </div>
+
+                  {hasData ? (
+                    <span className={`text-[10px] font-black px-2 py-1 rounded-xl flex items-center justify-center gap-1 border ${
+                      isUp 
+                        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' 
+                        : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                    }`}>
+                      {isUp ? <TrendingUp className="w-3 h-3 shrink-0" /> : <TrendingDown className="w-3 h-3 shrink-0" />}
+                      <span>{isUp ? '+' : ''}{item.growthPct}%</span>
+                    </span>
+                  ) : (
+                    <span className="text-[9px] font-bold px-1.5 py-1 rounded-xl bg-black/5 dark:bg-white/5 text-secondary-custom border border-card-custom block">
+                      En curso ⏳
+                    </span>
+                  )}
                 </div>
               );
             })}
