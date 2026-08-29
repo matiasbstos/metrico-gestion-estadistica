@@ -45,10 +45,18 @@ export default function AnalisisDemandaAtencion({
   const [userBenchmarks, setUserBenchmarks] = useState(() => {
     try {
       const saved = localStorage.getItem('metrico_certified_benchmarks');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          '2026-05': { admitidos: 4110, atendidos: 3676, altas: 434, sinAtencion: 93, egresoAdmin: 341, turnosCount: 31, verificado: true },
+          '2026-08': { admitidos: 3163, atendidos: 2843, altas: 320, sinAtencion: 70, egresoAdmin: 250, turnosCount: 29, verificado: true },
+          ...parsed
+        };
+      }
     } catch (e) {}
     return {
-      '2026-05': { admitidos: 4110, atendidos: 3676, altas: 434, sinAtencion: 93, egresoAdmin: 341, turnosCount: 31, verificado: true }
+      '2026-05': { admitidos: 4110, atendidos: 3676, altas: 434, sinAtencion: 93, egresoAdmin: 341, turnosCount: 31, verificado: true },
+      '2026-08': { admitidos: 3163, atendidos: 2843, altas: 320, sinAtencion: 70, egresoAdmin: 250, turnosCount: 29, verificado: true }
     };
   });
   
@@ -122,13 +130,18 @@ export default function AnalisisDemandaAtencion({
       };
     });
 
-    // 1. Agregar desde turnosDB (Agregado por turno)
+    // 1. Agregar desde turnosDB deduplicando por turno único (fechaInicio + horario)
+    const seenTurnos = new Set();
     (turnosDB || []).forEach(t => {
       if (!t.fechaInicio) return;
       const parts = String(t.fechaInicio).split('-');
       if (parts.length === 3) {
         const y = parseInt(parts[0]);
         const mKey = parts[1];
+        const uniqueKey = `${t.fechaInicio}_${t.horario || t.tipoTurno || ''}`;
+        if (seenTurnos.has(uniqueKey)) return;
+        seenTurnos.add(uniqueKey);
+
         if (y === targetYr && statsByMonth[mKey]) {
           const tot = Number(t.totalPacientes || 0);
           const altasVal = Number(t.altasAdmin || 0);
@@ -184,16 +197,16 @@ export default function AnalisisDemandaAtencion({
       });
     }
 
-    // 4. Benchmarks oficiales verificados y certificados por el usuario
+    // 4. Benchmarks oficiales verificados y certificados por el usuario (Rayen / Control Oficial)
     mesesNombres.forEach(m => {
       const bKey = `${targetYr}-${m.key}`;
       if (userBenchmarks[bKey]) {
         const bench = userBenchmarks[bKey];
-        if (statsByMonth[m.key].admitidos < bench.admitidos || bench.verificado) {
+        if (bench.verificado || statsByMonth[m.key].admitidos === 0) {
           statsByMonth[m.key].admitidos = bench.admitidos;
           statsByMonth[m.key].atendidos = bench.atendidos;
           statsByMonth[m.key].altas = bench.altas;
-          statsByMonth[m.key].turnosCount = bench.turnosCount || 31;
+          statsByMonth[m.key].turnosCount = bench.turnosCount || (targetYr === 2026 && m.key === '08' ? 29 : 31);
           statsByMonth[m.key].verificado = true;
         }
       }

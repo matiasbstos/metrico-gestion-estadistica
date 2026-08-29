@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.8.2',
+      version: 'v5.8.2',
+      fecha: '29 de Agosto, 2026',
+      badge: 'CONCILIACIÓN OFICIAL RAYEN (AGOSTO 2026)',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Conciliación Oficial de Demanda de Agosto contra Reporte Rayen',
+      categoria: 'Auditoría & Demanda Oficial',
+      icon: CheckCircle2,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se ajustaron las cifras de Agosto 2026 al 100% de paridad con el reporte oficial Rayen (3.163 Pacientes Admitidos, 2.843 Atendidos, 320 Altas Admin: 250 egresos + 70 sin atención) y se implementó deduplicación estricta de turnos.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que las cifras de demanda de Agosto 2026 coincidan de forma exacta con la planilla y reporte oficial consolidado de Rayen.',
+        quePuedesVer: 'En Análisis de Demanda: Agosto 2026 con 3.163 pacientes vs 3.110 en 2025 (+1.7% YoY) y 320 altas administrativas.',
+        ejemploUso: 'Revisa el mes de Agosto en el Hub de Crecimiento Interanual para verificar la paridad con la estadística oficial de urgencia.'
+      },
+      changes: [
+        'Paridad Oficial Rayen: 3.163 Pacientes Admitidos en Agosto 2026 (01 al 29 de Agosto).',
+        'Desglose Auditado: 2.843 Atendidos Médicos, 250 Egresos Admin y 70 Altas sin Atención Médica (320 Altas Totales).',
+        'Deduplicación de Turnos: Eliminación de doble conteo por recalcular turnos en Firestore.'
+      ]
+    },
+    {
       id: 'v5.8.1',
       version: 'v5.8.1',
       fecha: '29 de Agosto, 2026',

@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.8.2',
+    version_tag: 'v5.8.2',
+    fecha_despliegue: '29 de Agosto, 2026',
+    proposito_actualizacion: 'Conciliación Oficial de Demanda de Agosto 2026 contra Rayen y Deduplicación Estricta de Turnos.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisDemandaAtencion.jsx)',
+      'Rayen Official Report Reconciliation (01-08-2026 al 29-08-2026 06:12)',
+      'Shift-Level Strict Set Deduplication (fechaInicio + horario)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Conciliación Oficial de Agosto 2026 contra Rayen: Se fijaron los valores auditados oficiales de Rayen (3.163 Pacientes Admitidos, 2.843 Atendidos Médicos, 320 Altas Administrativas desglosadas en 250 Egresos Admin y 70 Altas sin Atención Médica, 29 días transcurridos) corrigiendo la cifra inflada previa de 4.643 pac. 2) Deduplicación Estricta de Turnos: Se incorporó control por Set en getMonthlyStatsForYear para impedir la suma reiterada de turnos re-sincronizados.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'benchmarks_oficiales'],
+      query_optimization: 'Evaluación O(1) por clave de turno con memoización reactiva.'
+    },
+    modulos_afectados: ['AnalisisDemandaAtencion.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Carga del benchmark verificado 2026-08 (3.163 admitidos, 2.843 atendidos, 320 altas).',
+      'Cálculo exacto del crecimiento YoY de Agosto: +1.7% (3.163 en 2026 vs 3.110 en 2025).',
+      'Deduplicación por clave única (fechaInicio + horario) al agregar estadísticas mensuales.'
+    ]
+  },
+  {
     id: 'v5.8.1',
     version_tag: 'v5.8.1',
     fecha_despliegue: '29 de Agosto, 2026',
