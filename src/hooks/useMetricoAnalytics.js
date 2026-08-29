@@ -690,14 +690,55 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       }
     });
 
+    // Comparativa YTD del Año Anterior (Mismo periodo 01/01 al día actual del año previo)
+    const prevYearNum = fEnd.getFullYear() - 1;
+    const pyYearStartStr = `${prevYearNum}-01-01`;
+    const pyMonthStr = String(fEnd.getMonth() + 1).padStart(2, '0');
+    const pyDayStr = String(fEnd.getDate()).padStart(2, '0');
+    const pyYearEndStr = `${prevYearNum}-${pyMonthStr}-${pyDayStr}`;
+
+    const pyYtdTurnos = (turnosDB || []).filter(t => t.fechaInicio && t.fechaInicio >= pyYearStartStr && t.fechaInicio <= pyYearEndStr);
+    const pyYearRange = getWindowRange(pyYearStartStr, pyYearEndStr, '00:00', '23:59');
+    const pyYearLoadedPacs = pyYearRange ? pacientesDB.filter(p => p.tAdmision && isPatientInWindowRange(p.tAdmision, pyYearRange)) : [];
+
+    const pyYtdPacientes = pyYearLoadedPacs.length > 0 ? pyYearLoadedPacs.length : pyYtdTurnos.reduce((acc, t) => acc + (t.totalPacientes || 0), 0);
+    const pyYtdAltas = pyYearLoadedPacs.length > 0 ? pyYearLoadedPacs.filter(isAltaAdmin).length : pyYtdTurnos.reduce((acc, t) => acc + (t.altasAdmin || 0), 0);
+    const pyYtdAtendidos = pyYtdPacientes - pyYtdAltas;
+    const pyYtdTraslados = pyYtdTurnos.reduce((acc, t) => acc + (t.trasladosCount || 0), 0);
+    const pyYtdConstataciones = pyYtdTurnos.reduce((acc, t) => acc + (t.constatacionesCount || 0), 0);
+    const pyYtdEstadia = calcEstadia(pyYearLoadedPacs);
+    const pyYtdHours = Math.max(1, getHoursInPeriod(pyYearStartStr, pyYearEndStr, '00:00', '23:59'));
+    const pyYtdPacHora = pyYtdHours > 0 ? pyYtdPacientes / pyYtdHours : 0;
+
     const statsAnual = {
-      pacientes: { current: ytdPacientes },
-      atendidos: { current: ytdAtendidos },
-      estadia: { current: ytdEstadia },
-      pacHora: { current: ytdPacientes / Math.max(1, getHoursInPeriod(yearStartStr, fEndStr, '00:00', '23:59')) },
-      altasAdmin: { current: ytdAltas },
-      traslados: { current: ytdTraslados },
-      constataciones: { current: ytdConstataciones },
+      pacientes: { 
+        current: ytdPacientes,
+        growthYear: getGrowth(ytdPacientes, pyYtdPacientes)
+      },
+      atendidos: { 
+        current: ytdAtendidos,
+        growthYear: getGrowth(ytdAtendidos, pyYtdAtendidos)
+      },
+      estadia: { 
+        current: ytdEstadia,
+        growthYear: getGrowth(ytdEstadia, pyYtdEstadia)
+      },
+      pacHora: { 
+        current: ytdPacientes / Math.max(1, getHoursInPeriod(yearStartStr, fEndStr, '00:00', '23:59')),
+        growthYear: getGrowth(ytdPacientes / Math.max(1, getHoursInPeriod(yearStartStr, fEndStr, '00:00', '23:59')), pyYtdPacHora)
+      },
+      altasAdmin: { 
+        current: ytdAltas,
+        growthYear: getGrowth(ytdAltas, pyYtdAltas)
+      },
+      traslados: { 
+        current: ytdTraslados,
+        growthYear: getGrowth(ytdTraslados, pyYtdTraslados)
+      },
+      constataciones: { 
+        current: ytdConstataciones,
+        growthYear: getGrowth(ytdConstataciones, pyYtdConstataciones)
+      },
       recordPacWkdy,
       recordPacWknd,
       recordAltasWkdy,

@@ -92,8 +92,8 @@ export default function PanelKPIs({ statsKPI, onAltasClick, onTrasladosClick, on
     const altas = isAnnual ? statsKPI.anual.altasAdmin.current : statsKPI.altasAdmin.current;
     const pct = total > 0 ? (altas / total) * 100 : 0;
     const isAlert = pct > 5;
-    const growthMonth = isAnnual ? undefined : statsKPI.altasAdmin.growthMonth;
-    const growthYear = isAnnual ? undefined : statsKPI.altasAdmin.growthYear;
+    const growthMonth = isAnnual ? undefined : statsKPI.altasAdmin?.growthMonth;
+    const growthYear = isAnnual ? statsKPI.anual?.altasAdmin?.growthYear : statsKPI.altasAdmin?.growthYear;
 
     const badgeMonth = getGrowthBadge(growthMonth, true);
     const badgeYear = getGrowthBadge(growthYear, true);
@@ -175,13 +175,13 @@ export default function PanelKPIs({ statsKPI, onAltasClick, onTrasladosClick, on
           </span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-          {renderKPICard('Pac. Admitidos (Total)', statsKPI.anual.pacientes.current, undefined, undefined, '', '')}
-          {renderKPICard('Pac. Atendidos (Total)', statsKPI.anual.atendidos.current, undefined, undefined, '', '')}
-          {renderKPICard('Rendimiento Global', statsKPI.anual.pacHora.current.toFixed(1), undefined, undefined, '', 'pac/h')}
-          {renderKPICard('Estadía Promedio Global', statsKPI.anual.estadia.current > 0 ? `${Math.round(statsKPI.anual.estadia.current)}` : '0', undefined, undefined, '', 'min')}
+          {renderKPICard('Pac. Admitidos (Total)', statsKPI.anual.pacientes.current, undefined, statsKPI.anual.pacientes?.growthYear, '', '', false, null, false)}
+          {renderKPICard('Pac. Atendidos (Total)', statsKPI.anual.atendidos.current, undefined, statsKPI.anual.atendidos?.growthYear, '', '', false, null, false)}
+          {renderKPICard('Rendimiento Global', statsKPI.anual.pacHora.current.toFixed(1), undefined, statsKPI.anual.pacHora?.growthYear, '', 'pac/h', false, null, false)}
+          {renderKPICard('Estadía Promedio Global', statsKPI.anual.estadia.current > 0 ? `${Math.round(statsKPI.anual.estadia.current)}` : '0', undefined, statsKPI.anual.estadia?.growthYear, '', 'min', false, null, true)}
           {renderAltasAdminCard(true)}
-          {renderKPICard('Traslados Hosp. (YTD)', statsKPI.anual.traslados ? statsKPI.anual.traslados.current : 0, undefined, undefined, '', 'pac', true, onTrasladosClick)}
-          {renderKPICard('Constat. Lesiones (YTD)', statsKPI.anual.constataciones ? statsKPI.anual.constataciones.current : 0, undefined, undefined, '', 'pac', true, onConstatacionesClick)}
+          {renderKPICard('Traslados Hosp. (YTD)', statsKPI.anual.traslados ? statsKPI.anual.traslados.current : 0, undefined, statsKPI.anual.traslados?.growthYear, '', 'pac', true, onTrasladosClick, false)}
+          {renderKPICard('Constat. Lesiones (YTD)', statsKPI.anual.constataciones ? statsKPI.anual.constataciones.current : 0, undefined, statsKPI.anual.constataciones?.growthYear, '', 'pac', true, onConstatacionesClick, false)}
         </div>
 
         {/* Récords Diarios YTD */}
@@ -199,7 +199,7 @@ export default function PanelKPIs({ statsKPI, onAltasClick, onTrasladosClick, on
 
             <div className="bg-indigo-500/10 dark:bg-indigo-500/15 p-4 rounded-2xl border border-indigo-500/20 shadow-sm flex items-center justify-between min-h-[70px] theme-transition">
               <div>
-                <span className="text-[9px] md:text-[10px] font-bold text-indigo-600 dark:text-indigo-400 tracking-wider uppercase">Récord Pac. Finde/Fest (YTD)</span>
+                <span className="text-[9px] md:text-[10px] font-bold text-indigo-600 dark:indigo-400 tracking-wider uppercase">Récord Pac. Finde/Fest (YTD)</span>
                 <p className="text-[11px] text-secondary-custom opacity-85 font-semibold mt-0.5">Fecha: {statsKPI.anual.recordPacWknd.date}</p>
               </div>
               <span className="text-xl font-black text-indigo-600 dark:text-indigo-400 bg-indigo-500/20 px-2.5 py-1 rounded-xl border border-indigo-500/30 shadow-inner whitespace-nowrap">
@@ -241,6 +241,54 @@ export default function PanelKPIs({ statsKPI, onAltasClick, onTrasladosClick, on
             Criterio de Turno (Encasillamiento Horario)
           </span>
         </div>
+
+        {/* Banner de Crecimiento/Decrecimiento y Metas Institucionales */}
+        {(() => {
+          const pacGrowthMonth = statsKPI.pacientes?.growthMonth;
+          const pacGrowthYear = statsKPI.pacientes?.growthYear;
+          const altasPct = statsKPI.pacientes.current > 0 ? (statsKPI.altasAdmin.current / statsKPI.pacientes.current) * 100 : 0;
+          const altasCumpleMeta = altasPct <= 5.0;
+
+          return (
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3 p-3 rounded-2xl bg-black/5 dark:bg-white/5 border border-card-custom text-xs">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-bold text-secondary-custom uppercase tracking-wider text-[10px]">
+                  📊 Tendencia de Demanda:
+                </span>
+                {pacGrowthMonth !== undefined && (
+                  <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] flex items-center gap-1 ${
+                    pacGrowthMonth >= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                  }`}>
+                    {pacGrowthMonth >= 0 ? '▲ Crecimiento MoM:' : '▼ Decrecimiento MoM:'} {pacGrowthMonth >= 0 ? '+' : ''}{pacGrowthMonth.toFixed(1)}%
+                  </span>
+                )}
+                {pacGrowthYear !== undefined && (
+                  <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] flex items-center gap-1 ${
+                    pacGrowthYear >= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                  }`}>
+                    {pacGrowthYear >= 0 ? '▲ Crecimiento YoY:' : '▼ Decrecimiento YoY:'} {pacGrowthYear >= 0 ? '+' : ''}{pacGrowthYear.toFixed(1)}%
+                  </span>
+                )}
+                {pacGrowthMonth === undefined && pacGrowthYear === undefined && (
+                  <span className="text-[10px] font-semibold text-secondary-custom">Evaluación continua en tiempo real</span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-bold text-secondary-custom">Metas Institucionales:</span>
+                <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] flex items-center gap-1 ${
+                  altasCumpleMeta ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20 animate-pulse'
+                }`}>
+                  {altasCumpleMeta ? '✓ Meta Altas Cumplida (<5%)' : `⚠ Alerta Altas (${altasPct.toFixed(1)}% > 5%)`}
+                </span>
+                <span className="px-2 py-0.5 rounded-lg font-bold text-[10px] bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                  Estadía: {statsKPI.estadia.current > 0 ? `${Math.round(statsKPI.estadia.current)} min` : '0 min'}
+                </span>
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-4">
           {renderKPICard('Pac. Admitidos', statsKPI.pacientes.current, statsKPI.pacientes.growthMonth, statsKPI.pacientes.growthYear, '', '', false, null, false)}
           {renderKPICard('Pac. Atendidos', statsKPI.atendidos.current, statsKPI.atendidos.growthMonth, statsKPI.atendidos.growthYear, '', '', false, null, false)}

@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.7.9',
+    version_tag: 'v5.7.9',
+    fecha_despliegue: '29 de Agosto, 2026',
+    proposito_actualizacion: 'Incorporación de Comparativas Interanuales YoY en Panel Global y Banner de Tendencia & Metas Institucionales.',
+    medios_y_stack: [
+      'React 18.3 (PanelKPIs.jsx, useMetricoAnalytics.js)',
+      'YTD Prior Year Baseline Aggregator (pyYtdTurnos / pyYearLoadedPacs)',
+      'Demand Growth Trend & Institutional Targets Banner'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Comparativas YoY en Global Anual: Se habilitó el cómputo y despliegue de variación porcentual interanual (Vs Año Anterior) en todas las tarjetas de Global Anual (Pacientes, Atendidos, Rendimiento, Estadía, Altas y Traslados). 2) Banner de Tendencia & Metas Institucionales: Se incorporó en el encabezado del Periodo Seleccionado un panel resumen que destaca la tendencia de crecimiento/decrecimiento neto de demanda (MoM y YoY) y el estado de cumplimiento en vivo de las metas asistenciales (<5% Altas, Tiempos de Estadía).',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'kpis_mensuales'],
+      query_optimization: 'Agregación memoizada de rangos temporales del año anterior sin impacto en la latencia.'
+    },
+    modulos_afectados: ['PanelKPIs.jsx', 'useMetricoAnalytics.js', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Cálculo de pyYtdPacientes, pyYtdAtendidos, pyYtdAltas, pyYtdTraslados, pyYtdEstadia en useMetricoAnalytics.js.',
+      'Paso de growthYear en renderKPICard y renderAltasAdminCard en vista anual.',
+      'Diseño responsive del banner de tendencia y metas asistenciales con alertas dinámicas.'
+    ]
+  },
+  {
     id: 'v5.7.8',
     version_tag: 'v5.7.8',
     fecha_despliegue: '29 de Agosto, 2026',

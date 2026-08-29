@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.7.9',
+      version: 'v5.7.9',
+      fecha: '29 de Agosto, 2026',
+      badge: 'CRECIMIENTO YTD & METAS ASISTENCIALES',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Comparativas Interanuales YoY y Banner de Tendencia & Metas',
+      categoria: 'Métricas & Panel Superior',
+      icon: CheckCircle2,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se habilitaron los porcentajes de crecimiento interanual (Vs Año Anterior) en el bloque Global Anual y se incorporó un banner superior que sintetiza el crecimiento/decrecimiento neto de pacientes junto con el cumplimiento de metas asistenciales.',
+      instructivo: {
+        paraQueSirve: 'Monitorea de forma inmediata el crecimiento interanual acumulado del establecimiento y el estado de cumplimiento de metas en el periodo consultado.',
+        quePuedesVer: 'En Global Anual: porcentaje Vs Año Ant. en cada tarjeta. En Periodo Seleccionado: banner interactivo con ritmo de crecimiento MoM/YoY y semáforo de metas.',
+        ejemploUso: 'Revisa el panel superior para verificar el ritmo de crecimiento de la demanda y el cumplimiento de la meta institucional de altas (<5%).'
+      },
+      changes: [
+        'Comparativas YoY en Global Anual: Porcentaje de variación interanual en admisiones, rendimiento y altas.',
+        'Banner de Tendencia: Resumen visual de crecimiento y decrecimiento de la demanda asistencial.',
+        'Metas Institucionales en Vivo: Semáforo de cumplimiento para altas y tiempos de estadía.'
+      ]
+    },
+    {
       id: 'v5.7.8',
       version: 'v5.7.8',
       fecha: '29 de Agosto, 2026',
