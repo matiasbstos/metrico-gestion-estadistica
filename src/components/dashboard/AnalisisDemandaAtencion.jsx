@@ -179,11 +179,11 @@ export default function AnalisisDemandaAtencion({
       }
     });
 
-    // 3. Fallback inteligente a Línea Base Histórica SAR si el año es 2025 o si faltan meses específicos
+    // 3. Fallback inteligente a Línea Base Histórica SAR si el año es 2025 o si faltan meses completos
     if (targetYr === 2025) {
       mesesNombres.forEach(m => {
         const base = BASELINE_SAR_2025[m.key];
-        if (base && (statsByMonth[m.key].admitidos === 0 || statsByMonth[m.key].admitidos < 100)) {
+        if (base && (statsByMonth[m.key].admitidos === 0 || statsByMonth[m.key].admitidos < 2000)) {
           statsByMonth[m.key].admitidos = base.admitidos;
           statsByMonth[m.key].atendidos = base.atendidos;
           statsByMonth[m.key].altas = base.altas;

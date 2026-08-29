@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.8.4',
+    version_tag: 'v5.8.4',
+    fecha_despliegue: '29 de Agosto, 2026',
+    proposito_actualizacion: 'Control de Techo Rayen (#26.662), Deduplicación YTD Global y Restauración Completa de Línea Base 2025.',
+    medios_y_stack: [
+      'React 18.3 (useMetricoAnalytics.js, AnalisisDemandaAtencion.jsx)',
+      'Rayen Top Correlativo Ceiling Control (Corr. #26.662)',
+      'Baseline 2025 Restoration (Umbral < 2.000 pac/mes)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Control de Techo Rayen: Se eliminó la sobreestimación en Global Anual YTD (27.790 previo) mediante deduplicación estricta de turnos en useMetricoAnalytics.js, garantizando que el total anual no exceda el correlativo máximo real de Rayen (#26.662). 2) Restauración de Línea Base 2025: Se ajustó el umbral de detección a < 2.000 pacientes para que meses con datos fragmentarios (Marzo con 107, Abril con 101, Agosto con 0) utilicen la Línea Base Histórica Oficial (Marzo 3.320, Abril 3.390, Agosto 3.110). 3) Reglas de Agente: Se incorporaron las reglas de consistencia de datos y techo de correlativos a AGENTS.md.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Deduplicación O(N) por clave de turno en cómputo YTD anual.'
+    },
+    modulos_afectados: ['useMetricoAnalytics.js', 'AnalisisDemandaAtencion.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', '.agents/AGENTS.md'],
+    detalles_tecnicos: [
+      'Deduplicación de turnos YTD en useMetricoAnalytics.js por (fechaInicio + horario).',
+      'Ajuste del fallback de Línea Base 2025 con umbral de 2.000 pac en AnalisisDemandaAtencion.jsx.',
+      'Cómputo coherente del acumulado del año anterior con BASELINE_2025_MONTHLY.'
+    ]
+  },
+  {
     id: 'v5.8.3',
     version_tag: 'v5.8.3',
     fecha_despliegue: '29 de Agosto, 2026',

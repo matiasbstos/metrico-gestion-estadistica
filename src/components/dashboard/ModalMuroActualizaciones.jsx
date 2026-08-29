@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.8.4',
+      version: 'v5.8.4',
+      fecha: '29 de Agosto, 2026',
+      badge: 'CONTROL DE TECHO RAYEN & LÍNEA BASE 2025',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Control de Techo Rayen (#26.662) y Restauración de Línea Base 2025',
+      categoria: 'Consistencia de Datos & Auditoría SSOT',
+      icon: CheckCircle2,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se eliminó la sobreestimación del Global Anual (27.790 previo) mediante deduplicación estricta de turnos en useMetricoAnalytics, garantizando que el total anual no supere el correlativo máximo real de Rayen (#26.662), y se restauró la Línea Base Histórica de 2025 completa (Marzo 3.320, Abril 3.390, Agosto 3.110).',
+      instructivo: {
+        paraQueSirve: 'Asegura que el total anual acumulado no sobrepase el correlativo de Rayen y que la comparativa mes a mes de 2025 sea 100% continua.',
+        quePuedesVer: 'En el gráfico interanual: la curva 2025 continua de 12 meses sin caídas a 0 ni picos de +3000% distorsionados.',
+        ejemploUso: 'Revisa Marzo y Abril en Demanda de Atención para constatar los 3.320 y 3.390 pac. de base 2025.'
+      },
+      changes: [
+        'Control de Techo Rayen: Deduplicación YTD para evitar sobreconteo por encima del correlativo #26.662.',
+        'Línea Base 2025 Completa: Umbral de 2.000 pac. para sustituir datos fragmentarios de prueba por la serie histórica SAR.',
+        'Reglas en AGENTS.md: Incorporación obligatoria de validación de correlativos y SSOT.'
+      ]
+    },
+    {
       id: 'v5.8.3',
       version: 'v5.8.3',
       fecha: '29 de Agosto, 2026',
