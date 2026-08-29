@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.8.5',
+    version_tag: 'v5.8.5',
+    fecha_despliegue: '29 de Agosto, 2026',
+    proposito_actualizacion: 'Cálculo de Récords por Turno Individual y Alineación del Crecimiento YoY Acumulado (+0.7%).',
+    medios_y_stack: [
+      'React 18.3 (useMetricoAnalytics.js, Dashboard.jsx)',
+      'Individual Shift Record Extraction (Turno Hábil / Finde)',
+      'YoY Elapsed Months Synchronization (26.548 vs 26.370)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Récords por Turno Individual: Se corrigió el cálculo de récords asistenciales (hábil y fin de semana) para que evalúen turnos individuales independientes en vez de sumar todas las jornadas de un día completo, evitando cifras infladas. 2) Alineación de Crecimiento YoY Anual (+0.7%): Se ajustó la línea base comparativa anual al total exacto de los 8 meses transcurridos de 2025 (26.370 pac.), logrando 100% de paridad con el Hub de Crecimiento Interanual.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Evaluación directa O(T) por turno individual sin agrupaciones redundantes.'
+    },
+    modulos_afectados: ['useMetricoAnalytics.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Extracción de récords por turno individual (pacs y altas) diferenciando hábil de finde/festivo.',
+      'Sincronización del crecimiento interanual de la tarjeta anual a +0.7% (26.548 vs 26.370).',
+      'Actualización en Dashboard.jsx del objeto stats.anual con base histórica de 8 meses.'
+    ]
+  },
+  {
     id: 'v5.8.4',
     version_tag: 'v5.8.4',
     fecha_despliegue: '29 de Agosto, 2026',

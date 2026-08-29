@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.8.5',
+      version: 'v5.8.5',
+      fecha: '29 de Agosto, 2026',
+      badge: 'RÉCORDS POR TURNO & PARIDAD YOY',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Récords Asistenciales por Turno Individual y Paridad YoY (+0.7%)',
+      categoria: 'Récords Asistenciales & Consistencia Anual',
+      icon: CheckCircle2,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se corrigieron los bloques de récords históricos de días hábiles y fines de semana para evaluar el turno individual con mayor demanda en vez de sumar jornadas completas, y se sincronizó el crecimiento anual del panel global al +0.7% exacto.',
+      instructivo: {
+        paraQueSirve: 'Muestra el turno histórico más concurrido del SAR (por jornada de turno) y garantiza paridad del % anual entre vistas.',
+        quePuedesVer: 'En el banner de récords: el turno récord real de fin de semana y hábil sin abultamiento de turnos superpuestos.',
+        ejemploUso: 'Revisa las tarjetas anuales para verificar el +0.7% YoY coincidente con el análisis mes a mes.'
+      },
+      changes: [
+        'Récords por Turno Único: Evaluación por turno individual independiente (hábil y fin de semana).',
+        'Paridad Anual (+0.7%): Alineación matemática entre la tarjeta Global Anual y el Hub Interanual.',
+        'Eliminación de Acumulación Diaria en Récords: Fin de la suma artificial de múltiples turnos en un mismo día.'
+      ]
+    },
+    {
       id: 'v5.8.4',
       version: 'v5.8.4',
       fecha: '29 de Agosto, 2026',

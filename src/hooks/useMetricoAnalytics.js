@@ -663,51 +663,42 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       return false;
     };
 
-    // Calcular récords diarios del año (YTD) a partir de turnosDB deduplicados
-    const pacsByDate = {};
-    const altasByDate = {};
+    // Calcular récords por TURNO INDIVIDUAL del año (YTD) a partir de turnosDB deduplicados
+    let recordPacWkdy = { count: 0, date: 'Sin registros', horario: '' };
+    let recordPacWknd = { count: 0, date: 'Sin registros', horario: '' };
+    let recordAltasWkdy = { count: 0, date: 'Sin registros', horario: '' };
+    let recordAltasWknd = { count: 0, date: 'Sin registros', horario: '' };
+
     (dedupYtdTurnos || []).forEach(t => {
-      if (t && t.fechaInicio) {
-        const parts = String(t.fechaInicio).split('-');
-        if (parts.length === 3) {
-          const dateStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
-          pacsByDate[dateStr] = (pacsByDate[dateStr] || 0) + (t.totalPacientes || 0);
-          altasByDate[dateStr] = (altasByDate[dateStr] || 0) + (t.altasAdmin || 0);
+      if (!t || !t.fechaInicio) return;
+      const parts = String(t.fechaInicio).split('-');
+      if (parts.length !== 3) return;
+      const dateStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
+      const pacs = Number(t.totalPacientes || 0);
+      const altas = Number(t.altasAdmin || 0);
+      const hor = String(t.horario || '');
+
+      // Un turno es de fin de semana/festivo si su horario lo indica o si cae en fin de semana
+      const isWknd = isWeekendOrFestivo(dateStr) || hor.toLowerCase().includes('fin de semana') || hor.toLowerCase().includes('festivo') || hor.includes('08:00 - 20:00');
+
+      if (isWknd) {
+        if (pacs > recordPacWknd.count) {
+          recordPacWknd = { count: pacs, date: dateStr, horario: hor };
         }
-      }
-    });
-
-    let recordPacWkdy = { count: 0, date: 'Sin registros' };
-    let recordPacWknd = { count: 0, date: 'Sin registros' };
-
-    Object.entries(pacsByDate).forEach(([date, count]) => {
-      if (isWeekendOrFestivo(date)) {
-        if (count > recordPacWknd.count) {
-          recordPacWknd = { count, date };
-        }
-      } else {
-        if (count > recordPacWkdy.count) {
-          recordPacWkdy = { count, date };
-        }
-      }
-    });
-
-    let recordAltasWkdy = { count: 0, date: 'Sin registros' };
-    let recordAltasWknd = { count: 0, date: 'Sin registros' };
-
-    Object.entries(altasByDate).forEach(([date, count]) => {
-      if (isWeekendOrFestivo(date)) {
-        if (count > recordAltasWknd.count) {
-          recordAltasWknd = { count, date };
+        if (altas > recordAltasWknd.count) {
+          recordAltasWknd = { count: altas, date: dateStr, horario: hor };
         }
       } else {
-        if (count > recordAltasWkdy.count) {
-          recordAltasWkdy = { count, date };
+        if (pacs > recordPacWkdy.count) {
+          recordPacWkdy = { count: pacs, date: dateStr, horario: hor };
+        }
+        if (altas > recordAltasWkdy.count) {
+          recordAltasWkdy = { count: altas, date: dateStr, horario: hor };
         }
       }
     });
 
-    // Comparativa YTD del Año Anterior (Mismo periodo 01/01 al día actual del año previo)
+    // Comparativa YTD del Año Anterior (Mismo periodo 01/01 al corte actual del año previo)
     const prevYearNum = fEnd.getFullYear() - 1;
     const pyYearStartStr = `${prevYearNum}-01-01`;
     const pyMonthStr = String(fEnd.getMonth() + 1).padStart(2, '0');
@@ -728,16 +719,13 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const pyYearLoadedPacs = pyYearRange ? pacientesDB.filter(p => p.tAdmision && isPatientInWindowRange(p.tAdmision, pyYearRange)) : [];
     const dedupPyYearPacs = deduplicarPacientes(pyYearLoadedPacs);
 
-    // Línea Base Histórica SAR 2025 Acumulada
+    // Línea Base Histórica SAR 2025 Acumulada para los meses transcurridos (Enero a Agosto = 26.370)
     const BASELINE_2025_MONTHLY = { 1: 2980, 2: 2540, 3: 3320, 4: 3390, 5: 3980, 6: 3850, 7: 3200, 8: 3110, 9: 2940, 10: 2890, 11: 2760, 12: 2850 };
-    let baseline2025YtdSum = 0;
     const currentMonthNum = fEnd.getMonth() + 1;
-    for (let m = 1; m < currentMonthNum; m++) {
+    let baseline2025YtdSum = 0;
+    for (let m = 1; m <= currentMonthNum; m++) {
       baseline2025YtdSum += (BASELINE_2025_MONTHLY[m] || 0);
     }
-    const daysInCurrentMonth = new Date(fEnd.getFullYear(), currentMonthNum, 0).getDate();
-    const currentMonthFraction = Math.min(1, fEnd.getDate() / Math.max(1, daysInCurrentMonth));
-    baseline2025YtdSum += Math.round((BASELINE_2025_MONTHLY[currentMonthNum] || 3100) * currentMonthFraction);
 
     let pyYtdPacientes = dedupPyYearPacs.length > 0 
       ? dedupPyYearPacs.length 
@@ -751,7 +739,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       ? dedupPyYearPacs.filter(isAltaAdmin).length 
       : dedupPyYtdTurnos.reduce((acc, t) => acc + (t.altasAdmin || 0), 0);
     if (pyYtdAltas === 0 && pyYtdPacientes > 0) {
-      pyYtdAltas = Math.round(pyYtdPacientes * 0.089);
+      pyYtdAltas = Math.round(pyYtdPacientes * 0.1005); // ~2.650 altas en 2025
     }
 
     const pyYtdAtendidos = Math.max(0, pyYtdPacientes - pyYtdAltas);

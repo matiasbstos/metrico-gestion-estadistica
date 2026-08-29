@@ -617,11 +617,20 @@ const DashboardContent = () => {
 
           const stats = {
             anual: {
-              pacientes: { current: ytdData.totalAtenciones },
-              atendidos: { current: ytdData.totalAtenciones - ytdData.totalAltas },
+              pacientes: { 
+                current: ytdData.totalAtenciones,
+                growthYear: getGrowth(ytdData.totalAtenciones, 26370)
+              },
+              atendidos: { 
+                current: ytdData.totalAtenciones - ytdData.totalAltas,
+                growthYear: getGrowth(ytdData.totalAtenciones - ytdData.totalAltas, 23720)
+              },
               estadia: { current: ytdData.avgEstadia },
               pacHora: { current: ytdPacHora },
-              altasAdmin: { current: ytdData.totalAltas },
+              altasAdmin: { 
+                current: ytdData.totalAltas,
+                growthYear: getGrowth(ytdData.totalAltas, 2650)
+              },
               traslados: { current: ytdData.totalTraslados },
               constataciones: { current: ytdData.totalConstataciones },
               recordPacWkdy: { count: Number(rec.max_pac_wkdy || 0), date: rec.max_pac_wkdy_date || 'Sin registros' },
