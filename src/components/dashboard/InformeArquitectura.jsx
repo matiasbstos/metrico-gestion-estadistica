@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.7.2',
+    version_tag: 'v5.7.2',
+    fecha_despliegue: '28 de Agosto, 2026',
+    proposito_actualizacion: 'Calibración de Alertas de Rendimiento en Histórico Mensual y Optimización del Modal de Detalle Diario.',
+    medios_y_stack: [
+      'React 18.3 (CalendarioHistorico.jsx)',
+      'Monthly Aggregated Benchmark Engine',
+      'Unified CSS Design System & Modal Controls'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Calibración de Contornos de Alerta Mensual: Se unificó el cálculo de máximos del mes de manera global (sin segmentación de fin de semana vs día de semana), permitiendo destacar correctamente: contorno azul para el día con mayor volumen total de pacientes del mes, contorno amarillo para el día con mayor cantidad de altas administrativas del mes, y contorno rojo cuando ambos máximos coinciden en la misma fecha. 2) Depuración del Modal Diario: Se eliminó el botón duplicado superior con la X y se dotó de operatividad 100% al botón "Cerrar" en el pie del modal con detención de propagación de eventos.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Cálculo de máximos mensual memoizado en base a estadísticas procesadas.'
+    },
+    modulos_afectados: ['CalendarioHistorico.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Recálculo de monthMaxStats comparando todos los días del mes con cifras oficiales consolidadas.',
+      'Aplicación de contorno azul (bg-blue-500/10 border-blue-500) para el día récord de pacientes del mes.',
+      'Saneamiento de controles de cierre en el modal de detalle del día en Calendario.'
+    ]
+  },
+  {
     id: 'v5.7.1',
     version_tag: 'v5.7.1',
     fecha_despliegue: '28 de Agosto, 2026',

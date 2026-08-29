@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.7.2',
+      version: 'v5.7.2',
+      fecha: '28 de Agosto, 2026',
+      badge: 'HISTÓRICO MENSUAL & CONTORNOS DE ALERTA',
+      badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20',
+      title: 'Calibración de Contornos de Alerta en Histórico Mensual y Depuración del Modal Diario',
+      categoria: 'Visualización & Calendario',
+      icon: CheckCircle2,
+      iconBg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+      summary: 'Se corrigió la detección del día con mayor volumen de pacientes en el calendario mensual (contorno azul), se sincronizó la comparación mensual absoluta para altas (contorno amarillo) y coincidencia simultánea (contorno rojo), y se optimizó el modal de detalle dejando un único botón de cerrar 100% operativo.',
+      instructivo: {
+        paraQueSirve: 'Permite identificar de un solo vistazo el día con más pacientes del mes y el día con más altas administrativas, además de abrir y cerrar detalles diarios con total fluidez.',
+        quePuedesVer: 'En Histórico Mensual: tarjeta con borde azul para el día récord de pacientes, borde amarillo para el día con más altas administrativas, o borde rojo si coinciden ambos.',
+        ejemploUso: 'Navega a "Histórico Mensual" y observa el día con mayor volumen (contorno azul). Haz clic en cualquier día y ciérralo presionando el botón inferior "Cerrar".'
+      },
+      changes: [
+        'Contorno Azul Activado: Destacado visual del día con mayor volumen total de pacientes del mes.',
+        'Alertas Combinadas: Distinción clara entre Máx Pacientes (Azul), Máx Altas (Amarillo) y Ambos (Rojo).',
+        'Modal Diario Depurado: Eliminación del botón X redundante y botón "Cerrar" con respuesta inmediata.'
+      ]
+    },
+    {
       id: 'v5.7.1',
       version: 'v5.7.1',
       fecha: '28 de Agosto, 2026',

@@ -240,29 +240,37 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [], c
     return false;
   };
 
-  const maxStatsInMonth = useMemo(() => {
-    let maxPacWkdy = 0;
-    let maxAltasWkdy = 0;
-    let maxPacWknd = 0;
-    let maxAltasWknd = 0;
+  const monthMaxStats = useMemo(() => {
+    let maxPac = 0;
+    let maxAltas = 0;
 
     calendarDays.forEach(d => {
       if (!d) return;
       const dayTurnos = turnosByDay[d] || [];
-      const pacs = dayTurnos.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0);
-      const altas = dayTurnos.reduce((acc, t) => acc + Number(t.altasAdmin || 0), 0);
-      
-      if (isWeekendOrFestivoDay(d)) {
-        if (pacs > maxPacWknd) maxPacWknd = pacs;
-        if (altas > maxAltasWknd) maxAltasWknd = altas;
-      } else {
-        if (pacs > maxPacWkdy) maxPacWkdy = pacs;
-        if (altas > maxAltasWkdy) maxAltasWkdy = altas;
-      }
+      const civil24hStats = get24hCivilStats(d);
+      const processedTurnos = dayTurnos.map(t => {
+        const strict = getStrictStats(t);
+        return {
+          ...t,
+          totalPacientes: strict.total,
+          altasAdmin: strict.altas
+        };
+      });
+
+      const totalPacientesDia = criterioVisualizacion === 'tramo_24h' 
+        ? civil24hStats.total 
+        : processedTurnos.reduce((acc, t) => acc + Number(t.totalPacientes || 0), 0);
+
+      const altasAdminDia = criterioVisualizacion === 'tramo_24h' 
+        ? civil24hStats.altas 
+        : processedTurnos.reduce((acc, t) => acc + Number(t.altasAdmin || 0), 0);
+
+      if (totalPacientesDia > maxPac) maxPac = totalPacientesDia;
+      if (altasAdminDia > maxAltas) maxAltas = altasAdminDia;
     });
 
-    return { maxPacWkdy, maxAltasWkdy, maxPacWknd, maxAltasWknd };
-  }, [calendarDays, turnosByDay]);
+    return { maxPac, maxAltas };
+  }, [calendarDays, turnosByDay, criterioVisualizacion, pacientesDB]);
 
   const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
@@ -354,22 +362,20 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [], c
             ? civil24hStats.altas 
             : processedTurnos.reduce((acc, t) => acc + Number(t.altasAdmin || 0), 0);
           
-          const isWknd = isWeekendOrFestivoDay(d);
-          const maxPac = isWknd ? maxStatsInMonth.maxPacWknd : maxStatsInMonth.maxPacWkdy;
-          const maxAltas = isWknd ? maxStatsInMonth.maxAltasWknd : maxStatsInMonth.maxAltasWkdy;
-
-          const isMaxPacientes = maxPac > 0 && totalPacientesDia === maxPac;
-          const isMaxAltas = maxAltas > 0 && altasAdminDia === maxAltas;
+          const isMaxPacientes = monthMaxStats.maxPac > 0 && totalPacientesDia === monthMaxStats.maxPac;
+          const isMaxAltas = monthMaxStats.maxAltas > 0 && altasAdminDia === monthMaxStats.maxAltas;
 
           let borderClass = 'bg-card-custom hover:bg-black/5 dark:hover:bg-white/5 border-card-custom';
           if (isToday) {
             borderClass = 'bg-indigo-500/10 border-indigo-500 ring-4 ring-indigo-500/25';
-          } else if (isMaxPacientes && isMaxAltas) {
+          }
+          
+          if (isMaxPacientes && isMaxAltas) {
             borderClass = 'bg-rose-500/10 border-rose-500 border-2 ring-4 ring-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.2)] hover:bg-rose-500/15';
           } else if (isMaxAltas) {
             borderClass = 'bg-amber-500/10 border-amber-500 border-2 ring-4 ring-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.2)] hover:bg-amber-500/15';
           } else if (isMaxPacientes) {
-            borderClass = 'bg-sky-500/10 border-sky-500 border-2 ring-4 ring-sky-500/20 shadow-[0_0_15px_rgba(14,165,233,0.2)] hover:bg-sky-500/15';
+            borderClass = 'bg-blue-500/10 border-blue-500 border-2 ring-4 ring-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.2)] hover:bg-blue-500/15';
           }
 
           return (
@@ -384,11 +390,11 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [], c
                   <div className="flex flex-col items-end gap-1">
                     <div className="flex items-center gap-1">
                       {isMaxPacientes && isMaxAltas ? (
-                        <span className="text-[7px] font-black bg-rose-500 text-white px-1 py-0.5 rounded shadow-sm animate-pulse whitespace-nowrap">MÁX DÍA</span>
+                        <span className="text-[7px] font-black bg-rose-500 text-white px-1 py-0.5 rounded shadow-sm animate-pulse whitespace-nowrap">MÁX MES</span>
                       ) : isMaxAltas ? (
-                        <span className="text-[7px] font-black bg-amber-500 text-white px-1 py-0.5 rounded shadow-sm animate-pulse whitespace-nowrap">MÁX ALTAS</span>
+                        <span className="text-[7px] font-black bg-amber-500 text-white px-1 py-0.5 rounded shadow-sm animate-pulse whitespace-nowrap">MAX ALTAS</span>
                       ) : isMaxPacientes ? (
-                        <span className="text-[7px] font-black bg-sky-500 text-white px-1 py-0.5 rounded shadow-sm animate-pulse whitespace-nowrap">MÁX PAC</span>
+                        <span className="text-[7px] font-black bg-blue-500 text-white px-1 py-0.5 rounded shadow-sm animate-pulse whitespace-nowrap">MAX PAC</span>
                       ) : null}
                       <span className="text-[9px] md:text-[10px] font-black text-primary-custom bg-black/5 dark:bg-white/5 px-1.5 py-0.5 rounded">T: {totalPacientesDia}</span>
                     </div>
@@ -404,7 +410,7 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [], c
                     <div className="p-1.5 md:p-2 rounded-lg border border-indigo-500/30 bg-indigo-500/5 shadow-sm relative overflow-hidden">
                       <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
                       <div className="pl-1.5">
-                        <p className="text-[8px] md:text-[9px] font-black uppercase mb-0.5 text-indigo-500">Tramo 24 Hours</p>
+                        <p className="text-[8px] md:text-[9px] font-black uppercase mb-0.5 text-indigo-500">Tramo 24 Horas</p>
                         <p className="text-[8px] font-bold text-secondary-custom opacity-85 mb-1">00:00 - 23:59 hrs</p>
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-2">
@@ -477,9 +483,9 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [], c
         <div>
           <h4 className="text-xs font-bold text-secondary-custom uppercase tracking-wider mb-3">Alertas de Rendimiento (Contornos del Día)</h4>
           <div className="flex flex-col gap-2.5">
-            <div className="flex items-center gap-2 bg-black/5 dark:bg-white/5 px-2.5 py-1.5 rounded-xl border border-sky-500/40 shadow-[0_0_10px_rgba(14,165,233,0.05)] text-xs font-semibold text-primary-custom">
-              <span className="w-3 h-3 rounded-full bg-sky-500"></span>
-              Contorno Azul: Día con mayor volumen de pacientes atendidos en el mes.
+            <div className="flex items-center gap-2 bg-black/5 dark:bg-white/5 px-2.5 py-1.5 rounded-xl border border-blue-500/40 shadow-[0_0_10px_rgba(59,130,246,0.05)] text-xs font-semibold text-primary-custom">
+              <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+              Contorno Azul: Día con mayor volumen de pacientes del día en el mes.
             </div>
             <div className="flex items-center gap-2 bg-black/5 dark:bg-white/5 px-2.5 py-1.5 rounded-xl border border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.05)] text-xs font-semibold text-primary-custom">
               <span className="w-3 h-3 rounded-full bg-amber-500"></span>
@@ -495,9 +501,15 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [], c
 
       {/* MODAL DE DETALLE */}
       {selectedDay && (
-        <div className="fixed inset-0 z-50 backdrop-blur-md flex items-center justify-center p-4" style={{ backgroundColor: 'var(--bg-overlay)' }} onClick={() => setSelectedDay(null)}>
-          <div className="bg-card-custom rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.3)] max-w-lg w-full overflow-hidden border border-card-custom theme-transition" onClick={e => e.stopPropagation()}>
-            <div className="bg-black/5 dark:bg-white/5 text-primary-custom p-6 flex justify-between items-center border-b border-card-custom relative overflow-hidden">
+        <div 
+          className="fixed inset-0 z-[99999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in" 
+          onClick={() => setSelectedDay(null)}
+        >
+          <div 
+            className="bg-card-custom rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-card-custom theme-transition animate-scale-up" 
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="bg-black/5 dark:bg-white/5 text-primary-custom p-6 border-b border-card-custom relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
               <div>
                 <h3 className="text-lg font-black tracking-wide text-primary-custom">Resumen Detallado del Día</h3>
@@ -505,61 +517,60 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [], c
                   {new Date(selectedDay + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </p>
               </div>
-              <button onClick={() => setSelectedDay(null)} className="hover:bg-black/10 dark:hover:bg-white/10 p-2 rounded-xl transition-all text-primary-custom"><X className="w-5 h-5"/></button>
             </div>
-            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
               
               {/* PANEL COMPARATIVO Y DE CONTROL DE CUADRATURA */}
-              <div className="bg-slate-50 dark:bg-black/25 border border-card-custom rounded-2xl p-4 space-y-3">
+              <div className="bg-black/5 dark:bg-white/5 border border-card-custom rounded-2xl p-4 space-y-3">
                 <div className="flex justify-between items-center cursor-pointer select-none" onClick={() => setShowCustomRangePanel(!showCustomRangePanel)}>
                   <span className="text-xs font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
                     Control de Cuadratura por Tramo Horario
                   </span>
-                  <span className="text-xs font-bold text-slate-400">{showCustomRangePanel ? 'Ocultar' : 'Mostrar'}</span>
+                  <span className="text-xs font-bold text-secondary-custom">{showCustomRangePanel ? 'Ocultar' : 'Mostrar'}</span>
                 </div>
                 
                 {showCustomRangePanel && (
-                  <div className="space-y-4 pt-2 border-t border-slate-200 dark:border-white/5 animate-fade-in text-left">
+                  <div className="space-y-4 pt-2 border-t border-card-custom/40 animate-fade-in text-left">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Hora Inicio</label>
+                        <label className="block text-[9px] font-bold text-secondary-custom uppercase mb-1">Hora Inicio</label>
                         <input 
                           type="time" 
                           value={customStartHour} 
                           onChange={e => setCustomStartHour(e.target.value)} 
-                          className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-2 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none" 
+                          className="w-full bg-card-custom border border-card-custom p-2 rounded-lg text-xs font-bold text-primary-custom focus:outline-none" 
                         />
                       </div>
                       <div>
-                        <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Hora Término</label>
+                        <label className="block text-[9px] font-bold text-secondary-custom uppercase mb-1">Hora Término</label>
                         <input 
                           type="time" 
                           value={customEndHour} 
                           onChange={e => setCustomEndHour(e.target.value)} 
-                          className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-2 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none" 
+                          className="w-full bg-card-custom border border-card-custom p-2 rounded-lg text-xs font-bold text-primary-custom focus:outline-none" 
                         />
                       </div>
                     </div>
                     
                     {customStats && (
                       <div className="grid grid-cols-3 gap-2 pt-2">
-                        <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-2.5 rounded-xl text-center">
-                          <span className="text-[9px] font-bold text-slate-400 block uppercase">Admitidos</span>
-                          <span className="text-lg font-black text-slate-700 dark:text-slate-200">{customStats.totalAdmitidos}</span>
+                        <div className="bg-card-custom border border-card-custom p-2.5 rounded-xl text-center">
+                          <span className="text-[9px] font-bold text-secondary-custom block uppercase">Admitidos</span>
+                          <span className="text-lg font-black text-primary-custom">{customStats.totalAdmitidos}</span>
                         </div>
-                        <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-2.5 rounded-xl text-center">
+                        <div className="bg-card-custom border border-card-custom p-2.5 rounded-xl text-center">
                           <span className="text-[9px] font-bold text-emerald-500 block uppercase">Atendidos</span>
                           <span className="text-lg font-black text-emerald-500">{customStats.atendidos}</span>
                         </div>
-                        <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-2.5 rounded-xl text-center">
+                        <div className="bg-card-custom border border-card-custom p-2.5 rounded-xl text-center">
                           <span className="text-[9px] font-bold text-rose-500 block uppercase">Altas Admin</span>
                           <span className="text-lg font-black text-rose-500">{customStats.altasAdmin}</span>
                         </div>
                       </div>
                     )}
                     
-                    <p className="text-[9px] font-semibold text-slate-400 leading-normal">
+                    <p className="text-[9px] font-semibold text-secondary-custom leading-normal">
                       * Nota: Si la hora de inicio es mayor que la de término (Ej: 17:00 a 08:00), el sistema calcula el tramo cruzando la medianoche hacia la mañana del día siguiente de forma automática.
                     </p>
                   </div>
@@ -572,7 +583,6 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [], c
                 (turnosByDay[selectedDay] || []).map((t, idx) => {
                   const resolvedEquipo = resolverEquipoTurno(t.fechaInicio, t.horario, pautasDB, t.equipoTurno);
                   const bgCol = TEAM_COLORS[resolvedEquipo] || TEAM_COLORS['Sin Asignar'];
-                  const pct = t.totalPacientes > 0 ? (t.altasAdmin / t.totalPacientes) * 100 : 0;
                   
                   const totalAdmitidos = Number(t.totalPacientes || 0);
                   const totalAltas = Number(t.altasAdmin || 0);
@@ -585,7 +595,7 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [], c
                       <div className="pl-3">
                         <div className="flex justify-between items-start mb-3">
                           <div>
-                            <h4 className="text-sm font-black uppercase tracking-wider" style={{color: bgCol}}>{t.equipoTurno}</h4>
+                            <h4 className="text-sm font-black uppercase tracking-wider" style={{color: bgCol}}>{resolvedEquipo}</h4>
                             <p className="text-xs text-secondary-custom opacity-85 font-semibold">{t.horario}</p>
                           </div>
                           <span className="text-xs font-black text-primary-custom bg-card-custom border border-card-custom px-2 py-1 rounded-lg shadow-sm">
@@ -634,8 +644,18 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [], c
                 })
               )}
             </div>
-            <div className="p-6 bg-black/5 dark:bg-white/5 border-t border-card-custom flex justify-end">
-              <button onClick={() => setSelectedDay(null)} className="px-5 py-2.5 accent-bg-custom text-white rounded-xl font-bold transition-all shadow-sm text-sm">Cerrar</button>
+            <div className="p-5 bg-black/5 dark:bg-white/5 border-t border-card-custom flex justify-end">
+              <button 
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setSelectedDay(null);
+                }} 
+                className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-xl font-bold transition-all shadow-md text-sm cursor-pointer"
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         </div>
