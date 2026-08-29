@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.7.5',
+    version_tag: 'v5.7.5',
+    fecha_despliegue: '28 de Agosto, 2026',
+    proposito_actualizacion: 'Resolución Universal de Equipos de Turno en Sub-Reporte Ejecutivo de Altas Administrativas.',
+    medios_y_stack: [
+      'React 18.3 (ReportesModule.jsx, Dashboard.jsx)',
+      'Universal Rotation Engine (resolverEquipoTurno)',
+      'pautasDB Multi-Monthly Ingestion Pipeline'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Eliminación de Turnos Sin Asignar en Reportes Ejecutivos: Se integró el helper universal resolverEquipoTurno e inyección de pautasDB en ReportesModule.jsx. Todos los turnos con tasa crítica de cancelaciones (>10%) ahora resuelven con exactitud su equipo de turno asignado (Turno 1, Turno 2, Turno 3 o Turno 4) mediante pautas manuales o la rotativa determinista oficial de 4 equipos. 2) Consistencia Asistencial Global: Los reportes ejecutivos ahora coinciden 100% con los desgloses del Módulo de Rendimiento de Turnos y Calendario Histórico.',
+      firestore_collections: ['turnos', 'pautas_turnos', 'pacientes_urgencia'],
+      query_optimization: 'Resolución de equipo memoizada por turno en altasStats.'
+    },
+    modulos_afectados: ['ReportesModule.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Importación e integración de resolverEquipoTurno en el cálculo de turnosCriticos en ReportesModule.',
+      'Inyección de la prop pautasDB desde el hook usePautasTurnos en Dashboard.jsx hacia ReportesModule.',
+      'Eliminación de la etiqueta "Sin Asignar" en la tabla de turnos críticos de altas administrativas.'
+    ]
+  },
+  {
     id: 'v5.7.4',
     version_tag: 'v5.7.4',
     fecha_despliegue: '28 de Agosto, 2026',

@@ -2130,6 +2130,7 @@ const DashboardContent = () => {
             user={user}
             pacientesDB={pacientesDB} 
             turnosDB={turnosDB} 
+            pautasDB={pautasTurnosHook?.pautasDB}
             modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
             filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={setFiltroFechaInicio}
             filtroFechaFin={filtroFechaFin} setFiltroFechaFin={setFiltroFechaFin}

@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.7.5',
+      version: 'v5.7.5',
+      fecha: '28 de Agosto, 2026',
+      badge: 'REPORTES EJECUTIVOS & ASIGNACIÓN DE TURNOS',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Resolución Universal de Equipos en Sub-Reporte de Altas Administrativas',
+      categoria: 'Reportes & Analítica',
+      icon: CheckCircle2,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se integró el algoritmo de resolución de turnos y pautas manuales en el Sub-Reporte Ejecutivo de Altas Administrativas, eliminando los registros "Sin Asignar" y asignando con total exactitud el equipo correspondiente a cada jornada crítica.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que en los reportes ejecutivos e impresos cada turno con tasa crítica de cancelaciones muestre el equipo asistencial responsable (Turno 1, 2, 3 o 4) sin dejar filas sin asignar.',
+        quePuedesVer: 'En Reporte Ejecutivo -> Sub-reporte de Altas Administrativas: la tabla de turnos críticos (>10%) ahora muestra el nombre oficial del equipo asistencial en cada fila.',
+        ejemploUso: 'Genera el Reporte Ejecutivo y verifica que en la tabla de Altas Administrativas todos los turnos tienen su equipo asignado correctamente.'
+      },
+      changes: [
+        'Resolución de Equipos Activada: Aplicación del motor resolverEquipoTurno en ReportesModule.',
+        'Sincronización con Pautas: Inyección de pautasDB para respetar las configuraciones del establecimiento.',
+        'Cero Filas Sin Asignar: Asignación limpia y profesional en todas las tablas ejecutivas.'
+      ]
+    },
+    {
       id: 'v5.7.4',
       version: 'v5.7.4',
       fecha: '28 de Agosto, 2026',

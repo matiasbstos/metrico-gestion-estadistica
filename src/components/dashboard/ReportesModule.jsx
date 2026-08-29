@@ -4,12 +4,13 @@ import { useMetricoAnalytics } from '../../hooks/useMetricoAnalytics';
 import { useMetricoProfesionales } from '../../hooks/useMetricoProfesionales';
 import FiltrosGlobales from './FiltrosGlobales';
 import { generateAltasSummary, generateFracturasSummary, generateEnfermeriaSummary, generateConstatacionesSummary, generateTrasladosSummary } from '../../utils/summaryGenerator';
-import { obtenerTurnoDetallado } from '../../utils/helpers';
+import { obtenerTurnoDetallado, resolverEquipoTurno } from '../../utils/helpers';
 
 export default function ReportesModule({ 
   user,
   pacientesDB, 
   turnosDB,
+  pautasDB,
   modoComparativo, setModoComparativo,
   filtroFechaInicio, setFiltroFechaInicio,
   filtroFechaFin, setFiltroFechaFin,
@@ -115,10 +116,14 @@ export default function ReportesModule({
     const pct = totalPacientes > 0 ? ((totalAltas / totalPacientes) * 100).toFixed(1) : '0.0';
 
     const turnosCriticos = (turnosFiltrados || [])
-      .map(t => ({
-        ...t,
-        pct: t.totalPacientes > 0 ? ((t.altasAdmin / t.totalPacientes) * 100).toFixed(1) : 0
-      }))
+      .map(t => {
+        const resolvedEq = resolverEquipoTurno(t.fechaInicio, t.horario, pautasDB, t.equipoTurno);
+        return {
+          ...t,
+          equipoTurno: resolvedEq || t.equipoTurno || 'Turno 1',
+          pct: t.totalPacientes > 0 ? ((t.altasAdmin / t.totalPacientes) * 100).toFixed(1) : 0
+        };
+      })
       .filter(t => Number(t.pct) > 10)
       .sort((a, b) => b.pct - a.pct);
 
@@ -153,7 +158,7 @@ export default function ReportesModule({
     }
 
     return { totalPacientes, totalAltas, pct, turnosCriticos, prevYearAltas, prevYearPct, yoyGrowth };
-  }, [statsKPI, turnosFiltrados, kpisBigQuery, pacientesDB, filtroFechaInicio, filtroFechaFin]);
+  }, [statsKPI, turnosFiltrados, pautasDB, kpisBigQuery, pacientesDB, filtroFechaInicio, filtroFechaFin]);
 
   // Datos para sub-reporte de Fracturas y Destino
   const fracturasStats = useMemo(() => {
