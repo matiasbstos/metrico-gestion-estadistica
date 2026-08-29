@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.7.7',
+    version_tag: 'v5.7.7',
+    fecha_despliegue: '29 de Agosto, 2026',
+    proposito_actualizacion: 'Restauración de Electrocardiogramas Animados y Micro-Widgets de Análisis Clínico en Pantalla de Acceso.',
+    medios_y_stack: [
+      'React 18.3 (FondoClinicoAnimado.jsx)',
+      'Vectorial SVG Scan Engine (animate-ecg-scan)',
+      'Clinical Telemetry Equalizer & Manchester Triaje Badges'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Trazados ECG Dinámicos Restaurados: Se reincorporó la animación de electrocardiograma clínico con picos P-Q-R-S-T luminosos, gradientes cian/índigo/esmeralda y partículas de pulso sincronizadas en los vértices cardíacos. 2) Micro-Paneles de Análisis de Datos: Se integraron widgets glassmorphic decorativos de telemetría asistencial: barras ecualizadoras de flujo clínico y pastillas de categorización Manchester (C1 a C5), enriqueciendo la estética clínica y científica de la plataforma sin saturar la interfaz.',
+      firestore_collections: ['usuarios', 'configuraciones'],
+      query_optimization: 'Aceleración por GPU en trazados SVG y micro-animaciones CSS sin overhead de render.'
+    },
+    modulos_afectados: ['FondoClinicoAnimado.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Implementación de doble trazado SVG ECG con gradiente vibrante y filtro de resplandor intenso.',
+      'Añadido de micro-widgets de telemetría de triaje y flujo asistencial en laterales.',
+      'Preservación integral de los 3 nodos orbitales interactivos de datos y centros.'
+    ]
+  },
+  {
     id: 'v5.7.6',
     version_tag: 'v5.7.6',
     fecha_despliegue: '28 de Agosto, 2026',

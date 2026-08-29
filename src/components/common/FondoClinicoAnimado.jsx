@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Cloud, Database, Activity, Wifi, ShieldCheck, Server, 
-  Cpu, Radio, CheckCircle2, Sparkles, X, Info, Layers, Lock
+  Cpu, Radio, CheckCircle2, Sparkles, X, Info, Layers, Lock,
+  TrendingUp, BarChart3, HeartPulse, LineChart
 } from 'lucide-react';
 
 export default function FondoClinicoAnimado({ 
@@ -113,6 +114,105 @@ export default function FondoClinicoAnimado({
           animationDelay: '3s'
         }}
       />
+
+      {/* ========================================================================= */}
+      {/* ONDAS DE ELECTROCARDIOGRAMA (ECG) CLÍNICO & TELEMETRÍA VITAL EN FONDO */}
+      {/* ========================================================================= */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-45 dark:opacity-55 overflow-hidden">
+        <svg 
+          className="w-full h-64 max-w-7xl"
+          viewBox="0 0 1200 140" 
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="none"
+        >
+          <defs>
+            <linearGradient id="ecgVibrantGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.05" />
+              <stop offset="25%" stopColor="#6366f1" stopOpacity="0.6" />
+              <stop offset="50%" stopColor="#38bdf8" stopOpacity="1" />
+              <stop offset="75%" stopColor="#10b981" stopOpacity="0.7" />
+              <stop offset="100%" stopColor="#6366f1" stopOpacity="0.05" />
+            </linearGradient>
+
+            <filter id="ecgIntenseGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="3.5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          {/* Trazado ECG 1: Línea Principal Brillante con Animación de Escaneo Cardiaco */}
+          <path
+            d="M0,70 L180,70 L210,70 L220,50 L230,90 L240,15 L255,125 L270,40 L280,75 L290,70 L480,70 L510,70 L520,50 L530,90 L540,15 L555,125 L570,40 L580,75 L590,70 L780,70 L810,70 L820,50 L830,90 L840,15 L855,125 L870,40 L880,75 L890,70 L1080,70 L1110,70 L1120,50 L1130,90 L1140,15 L1155,125 L1170,40 L1180,75 L1200,70"
+            stroke="url(#ecgVibrantGradient)"
+            strokeWidth="2.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            filter="url(#ecgIntenseGlow)"
+            className="animate-ecg-scan"
+          />
+
+          {/* Trazado ECG 2: Guía de Pulso con Rayas Discontinuas */}
+          <path
+            d="M0,70 L180,70 L210,70 L220,50 L230,90 L240,15 L255,125 L270,40 L280,75 L290,70 L480,70 L510,70 L520,50 L530,90 L540,15 L555,125 L570,40 L580,75 L590,70 L780,70 L810,70 L820,50 L830,90 L840,15 L855,125 L870,40 L880,75 L890,70 L1080,70 L1110,70 L1120,50 L1130,90 L1140,15 L1155,125 L1170,40 L1180,75 L1200,70"
+            stroke="#38bdf8"
+            strokeWidth="1.2"
+            strokeDasharray="6 8"
+            strokeOpacity="0.35"
+          />
+        </svg>
+      </div>
+
+      {/* Partículas de Pulso Vital en Vértices R del ECG */}
+      <div className="absolute top-[48%] left-[21%] w-2 h-2 rounded-full bg-sky-400 opacity-70 animate-ping pointer-events-none" style={{ animationDuration: '4s' }} />
+      <div className="absolute top-[52%] left-[46%] w-2 h-2 rounded-full bg-indigo-400 opacity-70 animate-ping pointer-events-none" style={{ animationDuration: '4s', animationDelay: '1.3s' }} />
+      <div className="absolute top-[48%] left-[71%] w-2 h-2 rounded-full bg-emerald-400 opacity-70 animate-ping pointer-events-none" style={{ animationDuration: '4s', animationDelay: '2.6s' }} />
+
+      {/* ========================================================================= */}
+      {/* ELEMENTOS DE ANÁLISIS DE DATOS & TELEMETRÍA CLÍNICA (Micro-Widgets de Fondo) */}
+      {/* ========================================================================= */}
+
+      {/* Widget 1: Indicador de Análisis Predictivo y Flujo Asistencial (Lateral Izquierdo) */}
+      <div className="absolute top-[42%] left-[3%] md:left-[6%] hidden lg:flex flex-col gap-2 p-3 rounded-2xl bg-slate-900/60 border border-slate-700/50 backdrop-blur-md text-left shadow-lg pointer-events-none animate-float-soft">
+        <div className="flex items-center gap-2">
+          <HeartPulse className="w-3.5 h-3.5 text-rose-400 animate-pulse" />
+          <span className="text-[9px] font-black tracking-wider uppercase text-slate-300">Telemetría Vital • ECG</span>
+        </div>
+        {/* Barras de Ecualizador de Flujo Clínico */}
+        <div className="flex items-end gap-1 h-6 pt-1">
+          <div className="w-1.5 bg-rose-500 rounded-t h-[60%] animate-pulse" style={{ animationDuration: '1.2s' }} />
+          <div className="w-1.5 bg-amber-400 rounded-t h-[90%] animate-pulse" style={{ animationDuration: '1.6s' }} />
+          <div className="w-1.5 bg-emerald-400 rounded-t h-[45%] animate-pulse" style={{ animationDuration: '1.1s' }} />
+          <div className="w-1.5 bg-sky-400 rounded-t h-[100%] animate-pulse" style={{ animationDuration: '1.8s' }} />
+          <div className="w-1.5 bg-indigo-500 rounded-t h-[70%] animate-pulse" style={{ animationDuration: '1.4s' }} />
+          <div className="w-1.5 bg-emerald-400 rounded-t h-[85%] animate-pulse" style={{ animationDuration: '1.5s' }} />
+        </div>
+        <span className="text-[8px] font-bold text-sky-400/90 font-mono">
+          IA Demanda • Activa (72 bpm)
+        </span>
+      </div>
+
+      {/* Widget 2: Micro-Panel de Categorización Manchester C1-C5 (Lateral Derecho) */}
+      <div className="absolute top-[60%] right-[3%] md:right-[6%] hidden lg:flex flex-col gap-1.5 p-3 rounded-2xl bg-slate-900/60 border border-slate-700/50 backdrop-blur-md text-left shadow-lg pointer-events-none animate-float-soft-delayed">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="w-3.5 h-3.5 text-sky-400 animate-pulse" />
+          <span className="text-[9px] font-black tracking-wider uppercase text-slate-300">Categorización Triaje</span>
+        </div>
+        {/* Pastillas de Triaje C1-C5 */}
+        <div className="flex items-center gap-1 text-[8px] font-black">
+          <span className="px-1.5 py-0.5 rounded bg-rose-600/80 text-white">C1</span>
+          <span className="px-1.5 py-0.5 rounded bg-amber-500/80 text-white">C2</span>
+          <span className="px-1.5 py-0.5 rounded bg-yellow-500/80 text-slate-900 font-bold">C3</span>
+          <span className="px-1.5 py-0.5 rounded bg-emerald-600/80 text-white">C4</span>
+          <span className="px-1.5 py-0.5 rounded bg-blue-600/80 text-white">C5</span>
+        </div>
+        <span className="text-[8px] font-bold text-emerald-400/90 font-mono">
+          ✓ Algoritmo de Prioridad OK
+        </span>
+      </div>
 
       {/* ========================================================================= */}
       {/* CONSTELACIÓN ASIMÉTRICA DE NODOS DE RED Y TELEMETRÍA (Triangulación Dinámica) */}

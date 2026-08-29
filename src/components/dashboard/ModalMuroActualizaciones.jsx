@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.7.7',
+      version: 'v5.7.7',
+      fecha: '29 de Agosto, 2026',
+      badge: 'ESTÉTICA CLÍNICA & TELEMETRÍA ECG',
+      badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/20',
+      title: 'Restauración de Ondas ECG y Micro-Widgets de Análisis de Datos en Login',
+      categoria: 'Diseño & Experiencia Visual',
+      icon: CheckCircle2,
+      iconBg: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+      summary: 'Se reincorporaron las ondas animadas de electrocardiograma clínico con picos P-Q-R-S-T luminosos y se complementaron con micro-paneles de telemetría de flujo asistencial y categorización Manchester en el fondo de inicio de sesión.',
+      instructivo: {
+        paraQueSirve: 'Brinda una estética biomédica inmersiva y de vanguardia que refleja el monitoreo de pacientes y el análisis de datos de urgencia en tiempo real.',
+        quePuedesVer: 'En la pantalla de Login: trazados de electrocardiograma con escaneo continuo, pulsos en picos R, ecualizador de flujo clínico y pastillas Manchester C1-C5.',
+        ejemploUso: 'Visita la pantalla de inicio de sesión y disfruta de la nueva atmósfera clínica animada con ECG y telemetría.'
+      },
+      changes: [
+        'Electrocardiograma Reactivado: Trazados SVG con animación de escaneo y resplandor luminoso.',
+        'Micro-Widgets de Datos: Ecualizador de demanda asistencial y badges Manchester C1 a C5.',
+        'Armonía Visual Total: Integración perfecta con los nodos orbitales interactivos de sedes.'
+      ]
+    },
+    {
       id: 'v5.7.6',
       version: 'v5.7.6',
       fecha: '29 de Agosto, 2026',
