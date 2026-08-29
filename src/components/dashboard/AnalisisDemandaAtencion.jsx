@@ -758,11 +758,14 @@ export default function AnalisisDemandaAtencion({
             </div>
 
             <div className="flex items-center gap-3 flex-wrap">
-              <span className={`px-4 py-2 rounded-2xl text-xs font-black border shadow-xs flex items-center gap-2 ${
-                Number(totalesYear.totalGrowth) >= 0 
-                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' 
-                  : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
-              }`}>
+              <span 
+                className={`px-4 py-2 rounded-2xl text-xs font-black border shadow-xs flex items-center gap-2 cursor-help transition-transform hover:scale-105 ${
+                  Number(totalesYear.totalGrowth) >= 0 
+                    ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' 
+                    : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                }`}
+                title={`Acumulado YTD (${totalesYear.elapsedMonthsCount} meses transcurridos): ${totalesYear.totAdmitidos.toLocaleString('es-CL')} pac. en ${selectedYear} vs ${totalesYear.totAdmitidosCompareElapsed.toLocaleString('es-CL')} pac. en ${compareYear} (Diferencia neta: ${totalesYear.totAdmitidos - totalesYear.totAdmitidosCompareElapsed >= 0 ? '+' : ''}${(totalesYear.totAdmitidos - totalesYear.totAdmitidosCompareElapsed).toLocaleString('es-CL')} pac.)`}
+              >
                 {Number(totalesYear.totalGrowth) >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                 <span>{Number(totalesYear.totalGrowth) >= 0 ? '+' : ''}{totalesYear.totalGrowth}% YoY Acumulado ({selectedYear})</span>
               </span>
