@@ -3,7 +3,8 @@ import {
   TrendingUp, TrendingDown, Users, Calendar, BarChart2, Activity, ArrowUpRight, ArrowDownRight,
   Sparkles, FileSpreadsheet, Download, RefreshCw, Filter, CheckCircle2, ShieldAlert, Info,
   Sun, Snowflake, ThermometerSun, Wind, HelpCircle, ChevronRight, ChevronDown, ChevronUp, Layers,
-  ShieldCheck, Check, AlertCircle, X, FileText, Edit3, Save, RotateCcw, BarChart3, LineChart
+  ShieldCheck, Check, AlertCircle, X, FileText, Edit3, Save, RotateCcw, BarChart3, LineChart,
+  Flower2, Clock, Hourglass
 } from 'lucide-react';
 import { 
   ComposedChart, BarChart, Line, Area, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
@@ -734,77 +735,138 @@ export default function AnalisisDemandaAtencion({
         </div>
 
         {/* PANEL DESTACADO DE CRECIMIENTO INTERANUAL (% YoY POR MES) */}
-        <div className="bg-gradient-to-br from-indigo-500/5 via-sky-500/5 to-transparent p-5 rounded-3xl border border-indigo-500/20 shadow-sm space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-card-custom/60 pb-3">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                <Activity className="w-4 h-4" />
+        <div className="bg-gradient-to-br from-indigo-500/5 via-sky-500/5 to-transparent p-6 rounded-3xl border border-indigo-500/20 shadow-sm space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-card-custom/60 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-inner">
+                <Activity className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-xs font-black uppercase text-primary-custom tracking-wider block">
+                <h4 className="text-base font-black uppercase text-primary-custom tracking-wider block">
                   Crecimiento Interanual Mes a Mes ({selectedYear} vs {compareYear})
-                </span>
-                <span className="text-[10px] text-secondary-custom font-semibold">
-                  Evolución comparativa de {metricMode} con semáforo cromático de demanda
-                </span>
+                </h4>
+                <p className="text-xs text-secondary-custom font-semibold">
+                  Evolución comparativa mensual de <strong>{metricMode}</strong> con semáforo cromático institucional
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className={`px-3 py-1 rounded-xl text-xs font-black border flex items-center gap-1.5 ${
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className={`px-4 py-2 rounded-2xl text-xs font-black border shadow-xs flex items-center gap-2 ${
                 Number(totalesYear.totalGrowth) >= 0 
                   ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' 
                   : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
               }`}>
-                {Number(totalesYear.totalGrowth) >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-                <span>{Number(totalesYear.totalGrowth) >= 0 ? '+' : ''}{totalesYear.totalGrowth}% YoY Acumulado</span>
+                {Number(totalesYear.totalGrowth) >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                <span>{Number(totalesYear.totalGrowth) >= 0 ? '+' : ''}{totalesYear.totalGrowth}% YoY Acumulado ({selectedYear})</span>
               </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 gap-3">
+          {/* GRID DE 12 TARJETAS MENSUALES AMPLIADAS */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
             {chartData12Meses.map((item, idx) => {
               const hasData = item.growthPct !== null;
               const isUp = hasData && item.growthPct >= 0;
 
+              const renderSeasonIcon = (estacion = '') => {
+                if (estacion.includes('Verano')) {
+                  return (
+                    <div className="px-2 py-1 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center gap-1" title="Estación Verano">
+                      <Sun className="w-3.5 h-3.5" />
+                      <span className="text-[9px] font-black uppercase">Verano</span>
+                    </div>
+                  );
+                }
+                if (estacion.includes('Otoño')) {
+                  return (
+                    <div className="px-2 py-1 rounded-xl bg-orange-500/10 text-orange-500 border border-orange-500/20 flex items-center gap-1" title="Estación Otoño">
+                      <Wind className="w-3.5 h-3.5" />
+                      <span className="text-[9px] font-black uppercase">Otoño</span>
+                    </div>
+                  );
+                }
+                if (estacion.includes('Invierno')) {
+                  return (
+                    <div className="px-2 py-1 rounded-xl bg-sky-500/10 text-sky-500 border border-sky-500/20 flex items-center gap-1" title="Estación Invierno">
+                      <Snowflake className="w-3.5 h-3.5" />
+                      <span className="text-[9px] font-black uppercase">Invierno</span>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="px-2 py-1 rounded-xl bg-rose-400/10 text-rose-500 border border-rose-400/20 flex items-center gap-1" title="Estación Primavera">
+                    <Flower2 className="w-3.5 h-3.5" />
+                    <span className="text-[9px] font-black uppercase">Primavera</span>
+                  </div>
+                );
+              };
+
               return (
                 <div 
                   key={idx} 
-                  className={`bg-card-custom p-3 rounded-2xl border transition-all duration-200 text-center space-y-1.5 shadow-2xs hover:shadow-md hover:-translate-y-0.5 ${
+                  className={`bg-card-custom p-4 rounded-3xl border transition-all duration-300 flex flex-col justify-between min-h-[155px] shadow-xs hover:shadow-lg hover:-translate-y-1 group relative overflow-hidden ${
                     hasData 
-                      ? (isUp ? 'border-emerald-500/40 hover:border-emerald-500' : 'border-rose-500/40 hover:border-rose-500') 
-                      : 'border-card-custom opacity-70'
+                      ? (isUp 
+                          ? 'border-emerald-500/30 hover:border-emerald-500/60 bg-gradient-to-b from-emerald-500/[0.04] to-transparent' 
+                          : 'border-rose-500/30 hover:border-rose-500/60 bg-gradient-to-b from-rose-500/[0.04] to-transparent') 
+                      : 'border-card-custom/60 opacity-75'
                   }`}
                 >
-                  <div className="flex items-center justify-between px-0.5">
-                    <span className="text-xs font-black text-primary-custom">{item.mes}</span>
-                    <span className="text-[9px] opacity-70">{item.estacion ? item.estacion.split(' ')[1] : ''}</span>
+                  {/* Cabecera de la tarjeta mensual */}
+                  <div className="flex items-center justify-between gap-2 border-b border-card-custom/40 pb-2.5">
+                    <div>
+                      <span className="text-sm font-black text-primary-custom block group-hover:text-indigo-500 transition-colors">
+                        {item.mesCompleto || item.mes}
+                      </span>
+                      <span className="text-[9px] text-secondary-custom font-bold">Mes {String(idx + 1).padStart(2, '0')}</span>
+                    </div>
+                    {renderSeasonIcon(item.estacion)}
                   </div>
 
-                  <div className="text-[10px] text-secondary-custom font-semibold leading-tight">
-                    {hasData ? (
-                      <span>
-                        <strong className="text-primary-custom">{item.valCurrent.toLocaleString('es-CL')}</strong> vs {item.valCompare.toLocaleString('es-CL')}
+                  {/* Cuerpo: Valores numéricos comparados */}
+                  <div className="py-2 space-y-1">
+                    <div className="flex items-baseline justify-between gap-1">
+                      <span className="text-xl font-black text-primary-custom tracking-tight">
+                        {hasData ? `${item.valCurrent.toLocaleString('es-CL')}` : (item.valCompare > 0 ? `${item.valCompare.toLocaleString('es-CL')}` : '-')}
                       </span>
+                      <span className="text-[10px] font-bold text-secondary-custom uppercase opacity-80">
+                        {metricMode === 'altas' ? 'altas' : 'pac.'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-secondary-custom font-semibold">
+                      <span>vs {compareYear}:</span>
+                      <span className="font-bold text-primary-custom/90">
+                        {item.valCompare > 0 ? `${item.valCompare.toLocaleString('es-CL')} ${metricMode === 'altas' ? 'altas' : 'pac.'}` : 'Sin datos'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Footer: Insignia destacada de variación YoY */}
+                  <div className="pt-1.5 mt-auto">
+                    {hasData ? (
+                      <div className={`px-2.5 py-1.5 rounded-xl font-black text-xs flex items-center justify-between border ${
+                        isUp 
+                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' 
+                          : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                      }`}>
+                        <span className="flex items-center gap-1">
+                          {isUp ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                          <span>{isUp ? 'Crecimiento' : 'Contracción'}</span>
+                        </span>
+                        <span>{isUp ? '+' : ''}{item.growthPct}%</span>
+                      </div>
                     ) : (
-                      <span className="opacity-60">{item.valCompare > 0 ? `Ant: ${item.valCompare.toLocaleString('es-CL')}` : '-'}</span>
+                      <div className="px-2.5 py-1.5 rounded-xl font-bold text-xs bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                          <span>Proyectado</span>
+                        </span>
+                        <span className="text-[10px] font-black uppercase text-indigo-500">En curso</span>
+                      </div>
                     )}
                   </div>
-
-                  {hasData ? (
-                    <span className={`text-[10px] font-black px-2 py-1 rounded-xl flex items-center justify-center gap-1 border ${
-                      isUp 
-                        ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' 
-                        : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30'
-                    }`}>
-                      {isUp ? <TrendingUp className="w-3 h-3 shrink-0" /> : <TrendingDown className="w-3 h-3 shrink-0" />}
-                      <span>{isUp ? '+' : ''}{item.growthPct}%</span>
-                    </span>
-                  ) : (
-                    <span className="text-[9px] font-bold px-1.5 py-1 rounded-xl bg-black/5 dark:bg-white/5 text-secondary-custom border border-card-custom block">
-                      En curso ⏳
-                    </span>
-                  )}
                 </div>
               );
             })}

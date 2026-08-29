@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.8.1',
+      version: 'v5.8.1',
+      fecha: '29 de Agosto, 2026',
+      badge: 'ESTÉTICA ILUSTRATIVA & TARJETAS AMPLIADAS',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Ampliación de Tarjetas Interanuales e Iconografía Ilustrativa',
+      categoria: 'Análisis de Demanda & Experiencia Visual',
+      icon: CheckCircle2,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se aumentó el tamaño de las tarjetas mensuales en el Hub de Crecimiento Interanual (formato 2x6) con cifras ampliadas y se integró iconografía ilustrativa estacional Lucide acorde a la identidad visual del sitio.',
+      instructivo: {
+        paraQueSirve: 'Brinda una lectura visual más espaciosa, cómoda y elegante de la demanda de cada mes y su variación contra el año previo.',
+        quePuedesVer: 'Tarjetas mensuales con mayor tamaño, iconografía ilustrativa de estaciones (Verano, Otoño, Invierno, Primavera) e insignias de crecimiento YoY ampliadas.',
+        ejemploUso: 'Navega a "Análisis de Demanda" y observa cómo las tarjetas de cada mes disponen de mayor área visual y detalles comparativos.'
+      },
+      changes: [
+        'Grid 2x6 Ampliado: Mayor espacio y altura para cada mes sin apiñamiento horizontal.',
+        'Iconografía Ilustrativa Lucide: Pastillas visuales de estación (Sun, Wind, Snowflake, Flower2, Clock).',
+        'Jerarquía Numérica: Cifras de pacientes más grandes con comparativa directa año a año.'
+      ]
+    },
+    {
       id: 'v5.8.0',
       version: 'v5.8.0',
       fecha: '29 de Agosto, 2026',

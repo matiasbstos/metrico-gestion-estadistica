@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.8.1',
+    version_tag: 'v5.8.1',
+    fecha_despliegue: '29 de Agosto, 2026',
+    proposito_actualizacion: 'Ampliación y Jerarquía Visual de Tarjetas Mensuales YoY con Iconografía Ilustrativa Lucide.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisDemandaAtencion.jsx)',
+      'Lucide React (Sun, Wind, Snowflake, Flower2, Clock, Hourglass)',
+      'High-Impact 2x6 Responsive Grid Layout'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Ampliación de Tarjetas Mensuales: Se rediseñó el grid a 2 filas de 6 tarjetas amplias en escritorio (grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6), otorgando mayor espacio y legibilidad para las cifras de demanda asistencial. 2) Iconografía Ilustrativa y Semántica Estacional: Se reemplazaron los emojis simples por componentes vectoriales Lucide (Sun, Wind, Snowflake, Flower2, Clock) con pastillas cromáticas institucionales y degradados sutiles.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'benchmarks_oficiales'],
+      query_optimization: 'Renderizado reactivo con memoización de series temporales de 12 meses.'
+    },
+    modulos_afectados: ['AnalisisDemandaAtencion.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Incorporación de pastillas ilustrativas de estación renderizadas con componentes Lucide.',
+      'Aumento del tamaño tipográfico y jerarquía en valores absolutos de pacientes y porcentajes YoY.',
+      'Efectos hover luminosos con micro-elevación y sombras sutiles adaptadas al tema claro/oscuro.'
+    ]
+  },
+  {
     id: 'v5.8.0',
     version_tag: 'v5.8.0',
     fecha_despliegue: '29 de Agosto, 2026',
