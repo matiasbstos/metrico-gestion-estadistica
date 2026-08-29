@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.8.3',
+      version: 'v5.8.3',
+      fecha: '29 de Agosto, 2026',
+      badge: 'SSOT PACIENTES REALES & CORRELATIVOS',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Alineación de Demanda Mensual a Registros Reales Importados',
+      categoria: 'Demanda & SSOT',
+      icon: CheckCircle2,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se estableció que la demanda mensual se compute directamente desde los registros desduplicados de pacientes importados, asegurando que el total de Agosto refleje fielmente las atenciones cargadas hasta el corte del 27 de agosto a las 22:24 hrs (Correlativo #26.548) sin sobreestimaciones.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que las cifras de cada mes coincidan exactamente con la cantidad de pacientes que efectivamente se han subido a la plataforma.',
+        quePuedesVer: 'En Análisis de Demanda: el conteo exacto de los archivos entregados, con corte hasta el correlativo #26.548.',
+        ejemploUso: 'Comprueba el mes de Agosto en el panel para constatar la fidelidad con los archivos cargados.'
+      },
+      changes: [
+        'SSOT en pacientesDB: Conteo exacto desde registros importados y deduplicados.',
+        'Corte Fiel al 27/08: Reflejo exclusivo de los datos cargados hasta el correlativo #26.548.',
+        'Eliminación de Sobreestimación: Evita sumar turnos pre-generados duplicados en Firestore.'
+      ]
+    },
+    {
       id: 'v5.8.2',
       version: 'v5.8.2',
       fecha: '29 de Agosto, 2026',

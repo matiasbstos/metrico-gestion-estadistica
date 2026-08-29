@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.8.3',
+    version_tag: 'v5.8.3',
+    fecha_despliegue: '29 de Agosto, 2026',
+    proposito_actualizacion: 'Establecimiento de pacientesDB como Fuente Única de Verdad (SSOT) para la Demanda Mensual.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisDemandaAtencion.jsx, helpers.js)',
+      'Deduplicación SSOT por Registro Individual (deduplicarPacientes)',
+      'Alineación Estricta al Último Archivo Importado (Corte 27/08 22:24 hrs, Corr. #26.548)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) SSOT en pacientesDB: Se priorizó el cómputo de demanda mensual directamente desde los registros desduplicados de pacientesDB, eliminando la sobreestimación generada al sumar colecciones de turnos pre-calculadas en Firestore. 2) Paridad Fiel con Archivos Entregados: El sistema calcula exactamente los pacientes efectivamente importados (hasta el corte del 27 de agosto a las 22:24 hrs y correlativo #26.548) sin añadir pacientes ficticios de días posteriores.',
+      firestore_collections: ['pacientes_urgencia', 'turnos'],
+      query_optimization: 'Evaluación rápida memoizada con deduplicación O(N) por correlativo de admisión.'
+    },
+    modulos_afectados: ['AnalisisDemandaAtencion.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Cómputo mensual basado en deduplicarPacientes(pacientesDB).',
+      'turnosDB solo se utiliza como respaldo secundario si no existen pacientes individuales.',
+      'Sincronización exacta con el correlativo máximo #26.548 cargado en la plataforma.'
+    ]
+  },
+  {
     id: 'v5.8.2',
     version_tag: 'v5.8.2',
     fecha_despliegue: '29 de Agosto, 2026',

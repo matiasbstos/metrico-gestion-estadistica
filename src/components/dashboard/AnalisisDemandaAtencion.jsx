@@ -10,7 +10,7 @@ import {
   ComposedChart, BarChart, Line, Area, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
 } from 'recharts';
 import * as XLSX from 'xlsx';
-import { isAltaAdmin } from '../../utils/helpers';
+import { isAltaAdmin, deduplicarPacientes } from '../../utils/helpers';
 
 export default function AnalisisDemandaAtencion({ 
   pacientesDB = [], 
@@ -45,18 +45,10 @@ export default function AnalisisDemandaAtencion({
   const [userBenchmarks, setUserBenchmarks] = useState(() => {
     try {
       const saved = localStorage.getItem('metrico_certified_benchmarks');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return {
-          '2026-05': { admitidos: 4110, atendidos: 3676, altas: 434, sinAtencion: 93, egresoAdmin: 341, turnosCount: 31, verificado: true },
-          '2026-08': { admitidos: 3163, atendidos: 2843, altas: 320, sinAtencion: 70, egresoAdmin: 250, turnosCount: 29, verificado: true },
-          ...parsed
-        };
-      }
+      if (saved) return JSON.parse(saved);
     } catch (e) {}
     return {
-      '2026-05': { admitidos: 4110, atendidos: 3676, altas: 434, sinAtencion: 93, egresoAdmin: 341, turnosCount: 31, verificado: true },
-      '2026-08': { admitidos: 3163, atendidos: 2843, altas: 320, sinAtencion: 70, egresoAdmin: 250, turnosCount: 29, verificado: true }
+      '2026-05': { admitidos: 4110, atendidos: 3676, altas: 434, sinAtencion: 93, egresoAdmin: 341, turnosCount: 31, verificado: true }
     };
   });
   
@@ -130,19 +122,52 @@ export default function AnalisisDemandaAtencion({
       };
     });
 
-    // 1. Agregar desde turnosDB deduplicando por turno único (fechaInicio + horario)
-    const seenTurnos = new Set();
+    // 1. Prioridad 1: Conteo exacto desde pacientesDB (SSOT de registros reales importados)
+    if (pacientesDB && pacientesDB.length > 0) {
+      const dedupPacs = deduplicarPacientes(pacientesDB);
+      const daysSetByMonth = {};
+      mesesNombres.forEach(m => { daysSetByMonth[m.key] = new Set(); });
+
+      dedupPacs.forEach(p => {
+        if (!p.tAdmision) return;
+        const d = new Date(p.tAdmision);
+        if (d.getFullYear() === targetYr) {
+          const mKey = String(d.getMonth() + 1).padStart(2, '0');
+          if (statsByMonth[mKey]) {
+            statsByMonth[mKey].admitidos += 1;
+            if (isAltaAdmin(p)) {
+              statsByMonth[mKey].altas += 1;
+            } else {
+              statsByMonth[mKey].atendidos += 1;
+            }
+            const dayStr = `${d.getFullYear()}-${mKey}-${String(d.getDate()).padStart(2, '0')}`;
+            daysSetByMonth[mKey].add(dayStr);
+          }
+        }
+      });
+
+      mesesNombres.forEach(m => {
+        if (statsByMonth[m.key].admitidos > 0) {
+          statsByMonth[m.key].turnosCount = daysSetByMonth[m.key].size;
+        }
+      });
+    }
+
+    // 2. Si para algún mes no hay pacientes individuales cargados en memoria, usar turnosDB deduplicados
+    const seenTurnoDays = new Set();
     (turnosDB || []).forEach(t => {
       if (!t.fechaInicio) return;
       const parts = String(t.fechaInicio).split('-');
       if (parts.length === 3) {
         const y = parseInt(parts[0]);
         const mKey = parts[1];
-        const uniqueKey = `${t.fechaInicio}_${t.horario || t.tipoTurno || ''}`;
-        if (seenTurnos.has(uniqueKey)) return;
-        seenTurnos.add(uniqueKey);
 
-        if (y === targetYr && statsByMonth[mKey]) {
+        // Si el mes ya tiene datos desde pacientesDB, no sumar turnosDB para evitar duplicidad
+        if (y === targetYr && statsByMonth[mKey] && statsByMonth[mKey].admitidos === 0) {
+          const uniqueKey = `${t.fechaInicio}_${t.horario || t.tipoTurno || ''}`;
+          if (seenTurnoDays.has(uniqueKey)) return;
+          seenTurnoDays.add(uniqueKey);
+
           const tot = Number(t.totalPacientes || 0);
           const altasVal = Number(t.altasAdmin || 0);
           const atend = Math.max(0, tot - altasVal);
@@ -153,36 +178,6 @@ export default function AnalisisDemandaAtencion({
         }
       }
     });
-
-    // 2. Si turnosDB está vacío para ese mes pero existen pacientesDB individuales
-    if (pacientesDB && pacientesDB.length > 0) {
-      const pacCountsByMonth = {};
-      mesesNombres.forEach(m => { pacCountsByMonth[m.key] = { admitidos: 0, altas: 0 }; });
-
-      pacientesDB.forEach(p => {
-        if (!p.tAdmision) return;
-        const d = new Date(p.tAdmision);
-        if (d.getFullYear() === targetYr) {
-          const mKey = String(d.getMonth() + 1).padStart(2, '0');
-          if (pacCountsByMonth[mKey]) {
-            pacCountsByMonth[mKey].admitidos += 1;
-            const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
-            if (dest.includes('alta') || dest.includes('domicilio')) {
-              pacCountsByMonth[mKey].altas += 1;
-            }
-          }
-        }
-      });
-
-      mesesNombres.forEach(m => {
-        const mKey = m.key;
-        if (statsByMonth[mKey].admitidos === 0 && pacCountsByMonth[mKey].admitidos > 0) {
-          statsByMonth[mKey].admitidos = pacCountsByMonth[mKey].admitidos;
-          statsByMonth[mKey].altas = pacCountsByMonth[mKey].altas;
-          statsByMonth[mKey].atendidos = Math.max(0, pacCountsByMonth[mKey].admitidos - pacCountsByMonth[mKey].altas);
-        }
-      });
-    }
 
     // 3. Fallback inteligente a Línea Base Histórica SAR si el año es 2025 o si faltan meses específicos
     if (targetYr === 2025) {
@@ -197,18 +192,16 @@ export default function AnalisisDemandaAtencion({
       });
     }
 
-    // 4. Benchmarks oficiales verificados y certificados por el usuario (Rayen / Control Oficial)
+    // 4. Benchmarks oficiales verificados y certificados por el usuario (solo si están marcados)
     mesesNombres.forEach(m => {
       const bKey = `${targetYr}-${m.key}`;
-      if (userBenchmarks[bKey]) {
+      if (userBenchmarks[bKey] && userBenchmarks[bKey].verificado) {
         const bench = userBenchmarks[bKey];
-        if (bench.verificado || statsByMonth[m.key].admitidos === 0) {
-          statsByMonth[m.key].admitidos = bench.admitidos;
-          statsByMonth[m.key].atendidos = bench.atendidos;
-          statsByMonth[m.key].altas = bench.altas;
-          statsByMonth[m.key].turnosCount = bench.turnosCount || (targetYr === 2026 && m.key === '08' ? 29 : 31);
-          statsByMonth[m.key].verificado = true;
-        }
+        statsByMonth[m.key].admitidos = bench.admitidos;
+        statsByMonth[m.key].atendidos = bench.atendidos;
+        statsByMonth[m.key].altas = bench.altas;
+        statsByMonth[m.key].turnosCount = bench.turnosCount || 31;
+        statsByMonth[m.key].verificado = true;
       }
     });
 
