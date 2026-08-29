@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.7.1',
+    version_tag: 'v5.7.1',
+    fecha_despliegue: '28 de Agosto, 2026',
+    proposito_actualizacion: 'Reorganización de Barra Lateral en Submenús Agrupados y Activación del Modal de Inspección & Muestras de Reglas.',
+    medios_y_stack: [
+      'React 18.3 (Dashboard.jsx, CentroVerificacionAuditoria.jsx)',
+      'ModalDetalleReglaIntegridad.jsx (Dual-prop schema & diagnostics viewer)',
+      'Collapsible Sidebar Submenus (Gestión & Control, Análisis Específicos)',
+      'Lucide React Icon System'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Reorganización y Descongestión de Barra Lateral: Se agruparon los accesos administrativos en el submenú desplegable "Gestión & Control" (Reportes, Gestión de Datos, Pauta de Turnos y Gestión de Usuarios), optimizando el espacio visual vertical y eliminando el desorden de navegación. 2) Activación de Inspección Previa de Conciliación: Se reparó el modal de muestras y diagnóstico en las 10 reglas de calidad clínica. Ahora, al presionar "Muestras" o "Conciliar", se despliega la ficha explicativa completa con el motivo de la discrepancia, la tabla de registros afectados y el botón de certificación asistencial.',
+      firestore_collections: ['pacientes_urgencia', 'turnos', 'audit_logs'],
+      query_optimization: 'Transiciones colapsables optimizadas y estado de apertura contextual.'
+    },
+    modulos_afectados: ['Dashboard.jsx', 'CentroVerificacionAuditoria.jsx', 'ModalDetalleReglaIntegridad.jsx'],
+    detalles_tecnicos: [
+      'Implementación del estado isGestionOpen para colapsar y expandir herramientas de gestión.',
+      'Soporte dual de props (rule/regla) y unificación de tokens estéticos en ModalDetalleReglaIntegridad.jsx.',
+      'Apertura obligatoria de ficha de diagnóstico antes de confirmar conciliaciones clínicas.'
+    ]
+  },
+  {
     id: 'v5.7.0',
     version_tag: 'v5.7.0',
     fecha_despliegue: '28 de Agosto, 2026',

@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.7.1',
+      version: 'v5.7.1',
+      fecha: '28 de Agosto, 2026',
+      badge: 'ERGONOMÍA VISUAL & CONCILIACIÓN INTERACTIVA',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Submenús Agrupados en Barra Lateral y Activación de Ficha de Diagnóstico & Muestras',
+      categoria: 'Plataforma & Ergonomía',
+      icon: CheckCircle2,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se reorganizó la barra lateral agrupando las herramientas de gestión dentro de un submenú desplegable elegante ("Gestión & Control"). Además, se reparó y activó la visualización de muestras y el motivo de discrepancias en las 10 reglas de calidad clínica antes de proceder a la conciliación.',
+      instructivo: {
+        paraQueSirve: 'Brinda una barra lateral limpia y despejada, y permite inspeccionar los registros exactos afectados antes de certificar una regla de integridad.',
+        quePuedesVer: 'En la barra lateral: nuevo grupo "Gestión & Control" con Reportes, Datos, Pautas y Usuarios. En Verificación: al hacer clic en "Muestras" o "Conciliar" se despliega la ficha con diagnóstico clínico, causa frecuente y lista de registros.',
+        ejemploUso: 'Haz clic en "Gestión & Control" para desplegar las opciones administrativas, o entra a "Verificación" y presiona "Conciliar" en cualquier regla para ver sus muestras.'
+      },
+      changes: [
+        'Agrupación Lateral: Fusión de accesos administrativos en el submenú desplegable Gestión & Control.',
+        'Inspección de Muestras 100% Funcional: Apertura inmediata de la ficha técnica al presionar Muestras o Conciliar.',
+        'Conciliación Guiada: Visualización transparente del diagnóstico y los registros con discrepancia.'
+      ]
+    },
+    {
       id: 'v5.7.0',
       version: 'v5.7.0',
       fecha: '28 de Agosto, 2026',

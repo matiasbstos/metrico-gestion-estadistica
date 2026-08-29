@@ -1118,20 +1118,20 @@ export default function CentroVerificacionAuditoria({
                     </span>
 
                     <div className="flex items-center gap-2">
-                      {regla.muestras && regla.muestras.length > 0 && (
-                        <button
-                          onClick={() => setSelectedRuleDetail(regla)}
-                          className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-card-custom border border-card-custom text-primary-custom hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1 cursor-pointer"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          Muestras ({regla.muestras.length})
-                        </button>
-                      )}
+                      <button
+                        onClick={() => setSelectedRuleDetail(regla)}
+                        className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-card-custom border border-card-custom text-primary-custom hover:bg-black/5 dark:hover:bg-white/5 flex items-center gap-1 cursor-pointer transition-all"
+                        title="Ver motivo, diagnóstico y muestras de registros"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        Muestras ({regla.muestras?.length || 0})
+                      </button>
 
                       {!isPerfect && !isReconciled && (
                         <button
-                          onClick={() => handleConciliarRegla(regla)}
-                          className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1 shadow-sm cursor-pointer"
+                          onClick={() => setSelectedRuleDetail(regla)}
+                          className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1 shadow-sm cursor-pointer transition-all"
+                          title="Inspeccionar motivo y conciliar regla"
                         >
                           <CheckCheck className="w-3.5 h-3.5" />
                           Conciliar
@@ -1632,12 +1632,20 @@ export default function CentroVerificacionAuditoria({
       {/* MODAL DE DETALLE DE REGISTROS DE REGLA */}
       {selectedRuleDetail && (
         <ModalDetalleReglaIntegridad
+          isOpen={true}
           regla={selectedRuleDetail}
+          rule={selectedRuleDetail}
+          isReconciled={Boolean(reconciledRules[selectedRuleDetail.id])}
           onClose={() => setSelectedRuleDetail(null)}
-          onConciliar={() => {
-            const r = selectedRuleDetail;
+          onConciliar={(r) => {
+            const target = r || selectedRuleDetail;
             setSelectedRuleDetail(null);
-            handleConciliarRegla(r);
+            handleConciliarRegla(target);
+          }}
+          onReconcileRule={() => {
+            const target = selectedRuleDetail;
+            setSelectedRuleDetail(null);
+            handleConciliarRegla(target);
           }}
         />
       )}

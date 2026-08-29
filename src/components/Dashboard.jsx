@@ -47,7 +47,7 @@ import {
   CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
   BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
   Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
-  HeartPulse, Shield, ShieldCheck, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail, BookOpen, Terminal
+  HeartPulse, Shield, ShieldCheck, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail, BookOpen, Terminal, SlidersHorizontal
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
@@ -97,7 +97,8 @@ function AnimatedRadarIcon({ className = "w-5 h-5", hasAlert = true }) {
 const DashboardContent = () => {
   const [activeTab, setActiveTab] = useState('resumen');
   const [subTabEspecifico, setSubTabEspecifico] = useState('fracturas'); // 'fracturas' | 'altas' | 'constataciones'
-  const [isEspecificosOpen, setIsEspecificosOpen] = useState(true);
+  const [isEspecificosOpen, setIsEspecificosOpen] = useState(false);
+  const [isGestionOpen, setIsGestionOpen] = useState(false);
   const [notification, setNotification] = useState(null);
   const [pendingUpload, setPendingUpload] = useState(null);
   const [editModal, setEditModal] = useState(null);
@@ -1618,51 +1619,107 @@ const DashboardContent = () => {
               </div>
             )}
 
-            <button 
-              onClick={() => { setActiveTab('reportes'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
-              title="Reporte"
-              className={`flex items-center rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'reportes' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-              <FileSpreadsheet className="w-4 h-4 flex-shrink-0" />
-              {!sidebarCollapsed && <span className="animate-fade-in truncate">Reporte</span>}
-            </button>
+            {/* APARTADO GENERAL: GESTIÓN & CONTROL (ADMINISTRACIÓN) */}
             {isGlobalAdmin && (
-              <>
-                <button 
-                  onClick={() => { setActiveTab('data'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
-                  title="Gestión de Datos"
-                  className={`flex items-center rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'data' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-                  <Database className="w-4 h-4 flex-shrink-0" />
-                  {!sidebarCollapsed && <span className="animate-fade-in truncate">Gestión de Datos</span>}
-                </button>
-                <button 
-                  onClick={() => { setActiveTab('pauta'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
-                  title="Pauta de Turnos"
-                  className={`flex items-center rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'pauta' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-                  <Calendar className="w-4 h-4 flex-shrink-0" />
-                  {!sidebarCollapsed && <span className="animate-fade-in truncate">Pauta de Turnos</span>}
-                </button>
-                <button 
-                  onClick={() => { setActiveTab('usuarios'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
-                  title="Gestión de Usuarios"
-                  className={`flex items-center rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'usuarios' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-                  <Users className="w-4 h-4 flex-shrink-0" />
-                  {!sidebarCollapsed && <span className="animate-fade-in truncate">Gestión de Usuarios</span>}
-                </button>
-                <button 
-                  onClick={() => { setActiveTab('auditoria'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
-                  title="Verificación"
-                  className={`flex items-center rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'auditoria' || activeTab === 'arquitectura' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-                  <ShieldCheck className="w-4 h-4 flex-shrink-0 text-emerald-400" />
-                  {!sidebarCollapsed && <span className="animate-fade-in truncate">Verificación</span>}
-                </button>
-                <button 
-                  onClick={() => { setActiveTab('devlog'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
-                  title="Bitácora de Desarrollo"
-                  className={`flex items-center rounded-lg font-medium text-sm shadow-sm transition-all duration-200 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${activeTab === 'devlog' ? 'accent-bg-custom text-white font-bold' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-                  <Terminal className="w-4 h-4 flex-shrink-0 text-emerald-400" />
-                  {!sidebarCollapsed && <span className="animate-fade-in truncate">Bitácora de Desarrollo</span>}
-                </button>
-              </>
+              sidebarCollapsed ? (
+                <>
+                  <button 
+                    onClick={() => { setActiveTab('reportes'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                    title="Reporte Ejecutivo"
+                    className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'reportes' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-emerald-500 hover:bg-emerald-500/10'}`}>
+                    <FileSpreadsheet className="w-4 h-4 flex-shrink-0" />
+                  </button>
+                  <button 
+                    onClick={() => { setActiveTab('data'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                    title="Gestión de Datos"
+                    className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'data' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-teal-500 hover:bg-teal-500/10'}`}>
+                    <Database className="w-4 h-4 flex-shrink-0" />
+                  </button>
+                  <button 
+                    onClick={() => { setActiveTab('pauta'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                    title="Pauta de Turnos"
+                    className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'pauta' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-sky-500 hover:bg-sky-500/10'}`}>
+                    <Calendar className="w-4 h-4 flex-shrink-0" />
+                  </button>
+                  <button 
+                    onClick={() => { setActiveTab('usuarios'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                    title="Gestión de Usuarios"
+                    className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'usuarios' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10'}`}>
+                    <Users className="w-4 h-4 flex-shrink-0" />
+                  </button>
+                  <button 
+                    onClick={() => { setActiveTab('auditoria'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                    title="Verificación"
+                    className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'auditoria' || activeTab === 'arquitectura' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-emerald-500 hover:bg-emerald-500/10'}`}>
+                    <ShieldCheck className="w-4 h-4 flex-shrink-0 text-emerald-400" />
+                  </button>
+                  <button 
+                    onClick={() => { setActiveTab('devlog'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                    title="Bitácora de Desarrollo"
+                    className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'devlog' ? 'accent-bg-custom text-white font-bold' : 'bg-transparent text-secondary-custom hover:text-emerald-400 hover:bg-emerald-400/10'}`}>
+                    <Terminal className="w-4 h-4 flex-shrink-0 text-emerald-400" />
+                  </button>
+                </>
+              ) : (
+                <div className="space-y-1 w-full">
+                  <button 
+                    onClick={() => {
+                      if (!['reportes', 'data', 'pauta', 'usuarios'].includes(activeTab)) {
+                        setIsGestionOpen(true);
+                      } else {
+                        setIsGestionOpen(!isGestionOpen);
+                      }
+                      setActiveTab('reportes');
+                    }}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 cursor-pointer ${['reportes', 'data', 'pauta', 'usuarios'].includes(activeTab) ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                    <div className="flex items-center gap-3">
+                      <SlidersHorizontal className="w-4 h-4" /> Gestión & Control
+                    </div>
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isGestionOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {isGestionOpen && (
+                    <div className="pl-6 flex flex-col gap-1 py-1 transition-all">
+                      <button 
+                        onClick={() => { setActiveTab('reportes'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'reportes' ? 'bg-emerald-500/20 text-emerald-500 font-black border border-emerald-500/30' : 'text-secondary-custom hover:text-emerald-500 hover:bg-emerald-500/10'}`}>
+                        <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" /> Reporte Ejecutivo
+                      </button>
+                      <button 
+                        onClick={() => { setActiveTab('data'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'data' ? 'bg-teal-500/20 text-teal-500 font-black border border-teal-500/30' : 'text-secondary-custom hover:text-teal-500 hover:bg-teal-500/10'}`}>
+                        <Database className="w-3.5 h-3.5 text-teal-500" /> Gestión de Datos
+                      </button>
+                      <button 
+                        onClick={() => { setActiveTab('pauta'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'pauta' ? 'bg-sky-500/20 text-sky-500 font-black border border-sky-500/30' : 'text-secondary-custom hover:text-sky-500 hover:bg-sky-500/10'}`}>
+                        <Calendar className="w-3.5 h-3.5 text-sky-500" /> Pauta de Turnos
+                      </button>
+                      <button 
+                        onClick={() => { setActiveTab('usuarios'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'usuarios' ? 'bg-indigo-500/20 text-indigo-500 font-black border border-indigo-500/30' : 'text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10'}`}>
+                        <Users className="w-3.5 h-3.5 text-indigo-500" /> Gestión de Usuarios
+                      </button>
+                    </div>
+                  )}
+
+                  <button 
+                    onClick={() => { setActiveTab('auditoria'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                    title="Verificación"
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${activeTab === 'auditoria' || activeTab === 'arquitectura' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                    <ShieldCheck className="w-4 h-4 flex-shrink-0 text-emerald-400" />
+                    <span className="animate-fade-in truncate">Verificación</span>
+                  </button>
+
+                  <button 
+                    onClick={() => { setActiveTab('devlog'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                    title="Bitácora de Desarrollo"
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${activeTab === 'devlog' ? 'accent-bg-custom text-white font-bold' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                    <Terminal className="w-4 h-4 flex-shrink-0 text-emerald-400" />
+                    <span className="animate-fade-in truncate">Bitácora de Desarrollo</span>
+                  </button>
+                </div>
+              )
             )}
           </nav>
         </div>
