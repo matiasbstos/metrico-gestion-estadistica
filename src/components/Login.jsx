@@ -108,6 +108,7 @@ export default function Login() {
         variant="dark" 
         centroActivo={centroSeleccionado}
         userEmail={email}
+        onSelectCentro={handleCentroChange}
       />
 
       <div className="max-w-md w-full bg-white/95 dark:bg-slate-900/90 rounded-3xl shadow-[0_0_50px_rgba(79,70,229,0.2)] overflow-hidden border border-slate-100 dark:border-slate-800 relative z-10 backdrop-blur-2xl">

@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.7.4',
+      version: 'v5.7.4',
+      fecha: '28 de Agosto, 2026',
+      badge: 'EXPERIENCIA VISUAL & LENGUAJE ACCESIBLE',
+      badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/20',
+      title: 'Nodos Interactivos con Lenguaje Claro y Pulso Reactivo al Cambiar de Sede',
+      categoria: 'Ergonomía & Plataforma',
+      icon: CheckCircle2,
+      iconBg: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+      summary: 'Se reemplazaron los tecnicismos por descripciones sencillas y claras en los 3 nodos de telemetría (Servidor en la Nube, Base de Datos Local y Motor Estadístico). Además, se añadió un pulso de luz al cambiar de centro y fichas informativas al hacer clic en cada nodo.',
+      instructivo: {
+        paraQueSirve: 'Permite comprender el rol de cada componente tecnológico sin necesidad de conocimientos técnicos y verificar visualmente la conexión al cambiar de centro asistencial.',
+        quePuedesVer: 'En la pantalla de Login: al cambiar el centro asistencial, el nodo local destella en verde esmeralda. Al hacer clic en cualquier nodo (Nube, Centro o Motor) se abre una ficha con su explicación detallada y estado de conexión.',
+        ejemploUso: 'Haz clic en el nodo "Servidor Central en la Nube" o "Motor Estadístico" para leer qué hace cada uno en lenguaje sencillo.'
+      },
+      changes: [
+        'Lenguaje Claro: Textos accesibles y comprensibles para todo público clínico y administrativo.',
+        'Pulso de Luz al Cambiar de Centro: Resplandor verde y onda expansiva de confirmación visual.',
+        'Nodos Clickeables: Fichas explicativas con latencia, seguridad y rol del componente.'
+      ]
+    },
+    {
       id: 'v5.7.3',
       version: 'v5.7.3',
       fecha: '28 de Agosto, 2026',

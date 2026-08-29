@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.7.4',
+    version_tag: 'v5.7.4',
+    fecha_despliegue: '28 de Agosto, 2026',
+    proposito_actualizacion: 'Interactividad en Nodos de Telemetría, Pulso Reactivo al Cambiar de Centro y Lenguaje Accesible.',
+    medios_y_stack: [
+      'React 18.3 (FondoClinicoAnimado.jsx, Login.jsx)',
+      'Telemetry Nodes Interactive Diagnostic Modal',
+      'Reactive Glow & Color Shifting Pulse Animation'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Lenguaje Concreto y Accesible: Se reemplazaron las siglas y términos técnicos en los 3 nodos por descripciones claras aptas para cualquier usuario: "Servidor Central en la Nube", "[Nombre del Centro Asistencial]" y "Motor Estadístico & Triage". 2) Pulso Visual de Cambio de Sede: Al cambiar el centro asistencial en el formulario de Login, el nodo de base de datos ejecuta de inmediato un pulso de luz esmeralda y resplandor dinámico confirmando la conexión con la sede seleccionada. 3) Fichas Informativas Interactivas: Al hacer clic en cualquiera de los 3 nodos se despliega un panel explicativo con la función en lenguaje sencillo, características clave y estado de latencia.',
+      firestore_collections: ['usuarios', 'configuraciones'],
+      query_optimization: 'Transiciones CSS por hardware y modales en memoria sin dependencias externas.'
+    },
+    modulos_afectados: ['FondoClinicoAnimado.jsx', 'Login.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Implementación del estado pulseCentro con temporizador reactivo al cambio de centroActivo.',
+      'Creación de modal interactivo con detalles operacionales para Nube, Base Local y Motor Estadístico.',
+      'Sustitución de etiquetas de jerga por términos asistenciales amigables.'
+    ]
+  },
+  {
     id: 'v5.7.3',
     version_tag: 'v5.7.3',
     fecha_despliegue: '28 de Agosto, 2026',
