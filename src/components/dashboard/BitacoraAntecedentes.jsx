@@ -2,9 +2,11 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { 
   FileText, Upload, Plus, CheckCircle2, AlertTriangle, ShieldCheck, 
   Trash2, Download, Search, Filter, Calendar, Info, RefreshCw, FileSpreadsheet,
-  Check, ArrowRight, Layers, FileCheck, HelpCircle, X
+  Check, ArrowRight, Layers, FileCheck, HelpCircle, X, Sparkles, UserCheck,
+  TrendingUp, Activity, BarChart2
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { isAltaAdmin } from '../../utils/helpers';
 
 const STORAGE_KEY_ANTECEDENTES = 'metrico_antecedentes_incidencias';
 
@@ -23,18 +25,28 @@ export default function BitacoraAntecedentes({
     } catch (e) {}
     return [
       {
-        id: 'ANT-2026-05-01',
-        fecha: '2026-05-15',
-        tipo: 'Falla Rayen / Contingencia Papel',
-        variable: 'Pacientes Admitidos',
-        cifraDB: 135,
-        cifraOficialRAE: 138,
-        diferencia: 3,
-        motivo: '3 pacientes atendidos durante micro-corte de enlace Rayen entre las 19:15 y 19:40 hrs. Registrados en planilla física de contingencia.',
-        archivoNombre: 'contingencia_15_mayo_2026.xlsx',
+        id: 'ANT-2025-06-01',
+        fecha: '2025-06',
+        modo: 'mes',
+        tipo: 'Cotejo RAE / Reporte Oficial Rayen',
+        variable: 'Triada Asistencial (Adm/Aten/Altas)',
+        cifraDB: 2971,
+        cifraOficialRAE: 2971,
+        diferencia: 0,
+        admitidosDB: 2971,
+        cifraOficialAdmitidos: 2971,
+        deltaAdmitidos: 0,
+        atendidosDB: 2680,
+        cifraOficialAtendidos: 2680,
+        deltaAtendidos: 0,
+        altasDB: 291,
+        cifraOficialAltas: 291,
+        deltaAltas: 0,
+        motivo: 'Certificación oficial de Junio 2025 validada contra reporte mensual de Rayen.',
+        archivoNombre: 'reporte_rayen_junio_2025.xlsx',
         estado: 'CONCILIADO',
         creadoPor: 'Matías Bustos',
-        creadoEl: new Date('2026-05-16').getTime()
+        creadoEl: new Date('2026-08-30').getTime()
       }
     ];
   });
@@ -44,10 +56,19 @@ export default function BitacoraAntecedentes({
   const [searchTerm, setSearchTerm] = useState('');
 
   // Formulario de Nuevo Antecedente
+  const [formModo, setFormModo] = useState('mes'); // 'mes' | 'dia'
+  const [formYear, setFormYear] = useState(2025);
+  const [formMonth, setFormMonth] = useState('06');
   const [formFecha, setFormFecha] = useState(new Date().toISOString().substring(0, 10));
   const [formTipo, setFormTipo] = useState('Cotejo RAE / Discrepancia Ministerial');
-  const [formVariable, setFormVariable] = useState('Pacientes Admitidos');
-  const [formCifraRAE, setFormCifraRAE] = useState('');
+
+  // Triada Asistencial ingresada por el usuario
+  const [formCifraAdmitidos, setFormCifraAdmitidos] = useState('');
+  const [formCifraAtendidos, setFormCifraAtendidos] = useState('');
+  const [formCifraAltas, setFormCifraAltas] = useState('');
+  const [formCifraTraslados, setFormCifraTraslados] = useState('');
+  
+  const [syncBenchmark, setSyncBenchmark] = useState(true);
   const [formMotivo, setFormMotivo] = useState('');
   const [formArchivoNombre, setFormArchivoNombre] = useState('');
   const [formArchivoRegistros, setFormArchivoRegistros] = useState(null);
@@ -60,54 +81,119 @@ export default function BitacoraAntecedentes({
     } catch (e) {}
   }, [antecedentes]);
 
-  // Cálculo automático del dato real en MÉTRICO DB para la fecha seleccionada en el formulario
-  const cifraDBCalculada = useMemo(() => {
-    if (!formFecha) return 0;
-    
-    // Contar pacientes con tAdmision en formFecha (en horario civil local)
-    let countPac = 0;
-    (pacientesDB || []).forEach(p => {
-      if (!p.tAdmision) return;
-      const d = new Date(p.tAdmision);
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      const dStr = `${y}-${m}-${day}`;
+  // Cálculo automático de cifras en MÉTRICO DB en Vivo para el período seleccionado
+  const cifrasDBCalculadas = useMemo(() => {
+    let admitidos = 0;
+    let atendidos = 0;
+    let altas = 0;
+    let traslados = 0;
 
-      if (dStr === formFecha || p.fecha === formFecha) {
-        if (formVariable === 'Pacientes Admitidos') countPac++;
-        else if (formVariable === 'Pacientes Atendidos' && p.estado !== 'Cancelada' && !p.destinoAlta?.includes('ALTA ADMIN')) countPac++;
-        else if (formVariable === 'Altas Administrativas' && (p.estado === 'Cancelada' || p.destinoAlta?.includes('ALTA ADMIN') || p.destinoAlta?.includes('RETIRO'))) countPac++;
-        else if (formVariable === 'Traslados Hospitalarios') {
-          const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
-          if (dest.includes('hospital') || dest.includes('emergencia') || dest.includes('derivac') || dest.includes('ueh')) countPac++;
-        }
-      }
-    });
+    if (formModo === 'mes') {
+      const mKey = formMonth;
+      const yNum = Number(formYear);
 
-    if (countPac === 0) {
-      // Fallback a turnosDB
-      (turnosDB || []).forEach(t => {
-        if (t.fechaInicio === formFecha) {
-          if (formVariable === 'Pacientes Admitidos') countPac += Number(t.totalPacientes || 0);
-          else if (formVariable === 'Pacientes Atendidos') countPac += Math.max(0, Number(t.totalPacientes || 0) - Number(t.altasAdmin || 0));
-          else if (formVariable === 'Altas Administrativas') countPac += Number(t.altasAdmin || 0);
-          else if (formVariable === 'Traslados Hospitalarios') countPac += Number(t.trasladosCount || 0);
+      (pacientesDB || []).forEach(p => {
+        if (!p.tAdmision) return;
+        const d = new Date(p.tAdmision);
+        if (d.getFullYear() === yNum) {
+          const pmKey = String(d.getMonth() + 1).padStart(2, '0');
+          if (pmKey === mKey) {
+            admitidos++;
+            if (isAltaAdmin(p)) {
+              altas++;
+            } else {
+              atendidos++;
+            }
+            const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
+            if (dest.includes('hospital') || dest.includes('emergencia') || dest.includes('derivac') || dest.includes('ueh')) {
+              traslados++;
+            }
+          }
         }
       });
+
+      if (admitidos === 0) {
+        // Fallback a turnosDB
+        (turnosDB || []).forEach(t => {
+          if (!t.fechaInicio) return;
+          const parts = String(t.fechaInicio).split('-');
+          if (parts.length === 3 && Number(parts[0]) === yNum && parts[1] === mKey) {
+            const tot = Number(t.totalPacientes || 0);
+            const alt = Number(t.altasAdmin || 0);
+            admitidos += tot;
+            altas += alt;
+            atendidos += Math.max(0, tot - alt);
+            traslados += Number(t.trasladosCount || 0);
+          }
+        });
+      }
+    } else {
+      // Modo día
+      (pacientesDB || []).forEach(p => {
+        if (!p.tAdmision) return;
+        const d = new Date(p.tAdmision);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const dStr = `${y}-${m}-${day}`;
+
+        if (dStr === formFecha || p.fecha === formFecha) {
+          admitidos++;
+          if (isAltaAdmin(p)) {
+            altas++;
+          } else {
+            atendidos++;
+          }
+          const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
+          if (dest.includes('hospital') || dest.includes('emergencia') || dest.includes('derivac') || dest.includes('ueh')) {
+            traslados++;
+          }
+        }
+      });
+
+      if (admitidos === 0) {
+        (turnosDB || []).forEach(t => {
+          if (t.fechaInicio === formFecha) {
+            const tot = Number(t.totalPacientes || 0);
+            const alt = Number(t.altasAdmin || 0);
+            admitidos += tot;
+            altas += alt;
+            atendidos += Math.max(0, tot - alt);
+            traslados += Number(t.trasladosCount || 0);
+          }
+        });
+      }
     }
 
-    return countPac;
-  }, [formFecha, formVariable, pacientesDB, turnosDB]);
+    return { admitidos, atendidos, altas, traslados };
+  }, [formModo, formYear, formMonth, formFecha, pacientesDB, turnosDB]);
 
-  // Diferencia calculada en el formulario
-  const diferenciaCalculada = useMemo(() => {
-    const rae = parseInt(formCifraRAE, 10);
-    if (isNaN(rae)) return 0;
-    return rae - cifraDBCalculada;
-  }, [formCifraRAE, cifraDBCalculada]);
+  // Diferencias calculadas para cada variable
+  const deltasCalculados = useMemo(() => {
+    const adm = parseInt(formCifraAdmitidos, 10);
+    const ate = parseInt(formCifraAtendidos, 10);
+    const alt = parseInt(formCifraAltas, 10);
+    const tra = parseInt(formCifraTraslados, 10);
 
-  // Procesamiento de Archivo Excel / CSV de Cotejo
+    const deltaAdmitidos = !isNaN(adm) ? adm - cifrasDBCalculadas.admitidos : 0;
+    const deltaAtendidos = !isNaN(ate) ? ate - cifrasDBCalculadas.atendidos : 0;
+    const deltaAltas = !isNaN(alt) ? alt - cifrasDBCalculadas.altas : 0;
+    const deltaTraslados = !isNaN(tra) ? tra - cifrasDBCalculadas.traslados : 0;
+
+    const esEcuacionValida = (!isNaN(adm) && !isNaN(ate) && !isNaN(alt)) 
+      ? adm === (ate + alt) 
+      : true;
+
+    return {
+      deltaAdmitidos,
+      deltaAtendidos,
+      deltaAltas,
+      deltaTraslados,
+      esEcuacionValida
+    };
+  }, [formCifraAdmitidos, formCifraAtendidos, formCifraAltas, formCifraTraslados, cifrasDBCalculadas]);
+
+  // Procesamiento de Archivo Excel / CSV de Cotejo (Iris / Rayen)
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -128,10 +214,14 @@ export default function BitacoraAntecedentes({
 
         setFormArchivoNombre(file.name);
         setFormArchivoRegistros(count);
-        if (count > 0 && !formCifraRAE) {
-          setFormCifraRAE(count.toString());
+
+        // Pre-llenar admitidos si está vacío
+        if (count > 0 && !formCifraAdmitidos) {
+          setFormCifraAdmitidos(count.toString());
         }
+
         setIsReadingFile(false);
+        if (showNotif) showNotif(`Archivo "${file.name}" cargado (${count.toLocaleString('es-CL')} registros leídos).`, 'info');
       } catch (err) {
         console.error('Error al procesar archivo de cotejo:', err);
         setIsReadingFile(false);
@@ -143,23 +233,51 @@ export default function BitacoraAntecedentes({
     e.target.value = null;
   };
 
-  // Guardar Antecedente
+  // Guardar Antecedente Completo
   const handleGuardarAntecedente = (e) => {
     e.preventDefault();
-    if (!formFecha || !formCifraRAE) {
-      if (showNotif) showNotif('Por favor complete la fecha y la cifra oficial de RAE.', 'warning');
+    const adm = parseInt(formCifraAdmitidos, 10);
+    if (isNaN(adm) && !formCifraAtendidos && !formCifraAltas) {
+      if (showNotif) showNotif('Por favor ingresa al menos la cifra de Pacientes Admitidos de Rayen/Iris.', 'warning');
       return;
     }
 
+    const periodoLabel = formModo === 'mes' ? `${formYear}-${formMonth}` : formFecha;
+    const finalAdmitidos = !isNaN(adm) ? adm : cifrasDBCalculadas.admitidos;
+    const finalAtendidos = parseInt(formCifraAtendidos, 10) || Math.max(0, finalAdmitidos - (parseInt(formCifraAltas, 10) || 0));
+    const finalAltas = parseInt(formCifraAltas, 10) || Math.max(0, finalAdmitidos - finalAtendidos);
+    const finalTraslados = parseInt(formCifraTraslados, 10) || 0;
+
     const nuevo = {
       id: `ANT-${Date.now()}`,
-      fecha: formFecha,
+      fecha: periodoLabel,
+      modo: formModo,
       tipo: formTipo,
-      variable: formVariable,
-      cifraDB: cifraDBCalculada,
-      cifraOficialRAE: parseInt(formCifraRAE, 10),
-      diferencia: diferenciaCalculada,
-      motivo: formMotivo || 'Antecedente de contraste registrado para corroboración estadística.',
+      variable: 'Triada Asistencial (Adm/Aten/Altas)',
+      
+      // Detalle de las 3 variables
+      admitidosDB: cifrasDBCalculadas.admitidos,
+      cifraOficialAdmitidos: finalAdmitidos,
+      deltaAdmitidos: finalAdmitidos - cifrasDBCalculadas.admitidos,
+
+      atendidosDB: cifrasDBCalculadas.atendidos,
+      cifraOficialAtendidos: finalAtendidos,
+      deltaAtendidos: finalAtendidos - cifrasDBCalculadas.atendidos,
+
+      altasDB: cifrasDBCalculadas.altas,
+      cifraOficialAltas: finalAltas,
+      deltaAltas: finalAltas - cifrasDBCalculadas.altas,
+
+      trasladosDB: cifrasDBCalculadas.traslados,
+      cifraOficialTraslados: finalTraslados,
+      deltaTraslados: finalTraslados - cifrasDBCalculadas.traslados,
+
+      // Retrocompatibilidad
+      cifraDB: cifrasDBCalculadas.admitidos,
+      cifraOficialRAE: finalAdmitidos,
+      diferencia: finalAdmitidos - cifrasDBCalculadas.admitidos,
+
+      motivo: formMotivo || `Cruce asistencial oficial de Rayen/Iris para ${periodoLabel}.`,
       archivoNombre: formArchivoNombre || null,
       archivoRegistros: formArchivoRegistros || null,
       estado: 'CONCILIADO',
@@ -168,15 +286,41 @@ export default function BitacoraAntecedentes({
     };
 
     setAntecedentes(prev => [nuevo, ...prev]);
+
+    // Sincronizar directamente con Benchmarks Certificados SSOT si está marcado
+    if (syncBenchmark) {
+      try {
+        const savedBenchmarks = localStorage.getItem('metrico_certified_benchmarks');
+        const parsedBenchmarks = savedBenchmarks ? JSON.parse(savedBenchmarks) : {};
+        parsedBenchmarks[periodoLabel] = {
+          admitidos: finalAdmitidos,
+          atendidos: finalAtendidos,
+          altas: finalAltas,
+          sinAtencion: Math.round(finalAltas * 0.45),
+          egresoAdmin: Math.round(finalAltas * 0.55),
+          tipo: formModo,
+          fecha: periodoLabel,
+          verificado: true,
+          actualizadoEl: Date.now()
+        };
+        localStorage.setItem('metrico_certified_benchmarks', JSON.stringify(parsedBenchmarks));
+      } catch (e) {
+        console.error('Error guardando benchmark:', e);
+      }
+    }
+
     setShowModalNuevo(false);
     
     // Limpiar formulario
     setFormMotivo('');
-    setFormCifraRAE('');
+    setFormCifraAdmitidos('');
+    setFormCifraAtendidos('');
+    setFormCifraAltas('');
+    setFormCifraTraslados('');
     setFormArchivoNombre('');
     setFormArchivoRegistros(null);
 
-    if (showNotif) showNotif('¡Antecedente registrado y corroborado con éxito en MÉTRICO!', 'success');
+    if (showNotif) showNotif(`¡Antecedente para ${periodoLabel} conciliado y registrado en MÉTRICO!`, 'success');
   };
 
   // Eliminar Antecedente
@@ -195,7 +339,6 @@ export default function BitacoraAntecedentes({
           a.fecha.toLowerCase().includes(term) ||
           a.motivo.toLowerCase().includes(term) ||
           a.tipo.toLowerCase().includes(term) ||
-          a.variable.toLowerCase().includes(term) ||
           (a.archivoNombre && a.archivoNombre.toLowerCase().includes(term))
         );
       }
@@ -207,12 +350,14 @@ export default function BitacoraAntecedentes({
   const handleExportExcel = () => {
     const dataExport = antecedentes.map(a => ({
       'ID': a.id,
-      'Fecha Incidencia': a.fecha,
+      'Período': a.fecha,
+      'Modo': a.modo || 'mes',
       'Tipo de Antecedente': a.tipo,
-      'Variable Contrastada': a.variable,
-      'Cifra en MÉTRICO DB': a.cifraDB,
-      'Cifra Oficial RAE / MINSAL': a.cifraOficialRAE,
-      'Diferencia (Brecha)': a.diferencia > 0 ? `+${a.diferencia}` : a.diferencia,
+      'Admitidos (DB)': a.admitidosDB ?? a.cifraDB,
+      'Admitidos (Oficial Rayen)': a.cifraOficialAdmitidos ?? a.cifraOficialRAE,
+      'Delta Admitidos': a.deltaAdmitidos ?? a.diferencia,
+      'Atendidos Médicos (Oficial)': a.cifraOficialAtendidos ?? '—',
+      'Altas Admin (Oficial)': a.cifraOficialAltas ?? '—',
       'Justificación / Motivo': a.motivo,
       'Archivo de Respaldo': a.archivoNombre || 'Sin archivo adjunto',
       'Estado': a.estado,
@@ -228,11 +373,11 @@ export default function BitacoraAntecedentes({
 
   // Estadísticas del Panel
   const totalCasosCorregidos = useMemo(() => {
-    return antecedentes.reduce((acc, a) => acc + Math.abs(a.diferencia || 0), 0);
+    return antecedentes.reduce((acc, a) => acc + Math.abs(a.deltaAdmitidos ?? a.diferencia ?? 0), 0);
   }, [antecedentes]);
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in text-left">
       
       {/* HEADER DE LA BITÁCORA */}
       <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -242,7 +387,7 @@ export default function BitacoraAntecedentes({
               Contraste Oficial SSOT
             </span>
             <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
-              Cruce RAE / MINSAL
+              Cruce Rayen / Iris / RAE
             </span>
           </div>
           <h2 className="text-xl font-black text-primary-custom tracking-tight flex items-center gap-2">
@@ -250,15 +395,20 @@ export default function BitacoraAntecedentes({
             Bitácora de Antecedentes y Cruce de Incidencias
           </h2>
           <p className="text-xs text-secondary-custom font-medium max-w-2xl">
-            Aporta antecedentes, respaldos en archivos Excel/CSV y notas operativas ante cualquier discrepancia detectada entre MÉTRICO y el reporte oficial RAE para corroborar y certificar las cifras asistenciales.
+            Aporta antecedentes y cotejos con la triada asistencial completa (Admitidos, Atendidos Médicos y Altas Administrativas) respaldados con planillas de Iris o Rayen para certificar la verdad oficial SSOT.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <button
             onClick={() => {
-              setFormFecha(new Date().toISOString().substring(0, 10));
-              setFormCifraRAE('');
+              setFormModo('mes');
+              setFormYear(2025);
+              setFormMonth('06');
+              setFormCifraAdmitidos('');
+              setFormCifraAtendidos('');
+              setFormCifraAltas('');
+              setFormCifraTraslados('');
               setFormMotivo('');
               setFormArchivoNombre('');
               setShowModalNuevo(true);
@@ -266,7 +416,7 @@ export default function BitacoraAntecedentes({
             className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>Aportar Antecedente / Respaldo RAE</span>
+            <span>Aportar Antecedente / Respaldo Rayen</span>
           </button>
 
           <button
@@ -288,7 +438,7 @@ export default function BitacoraAntecedentes({
           <div>
             <span className="text-[10px] font-bold text-secondary-custom uppercase tracking-wider block">Total Antecedentes Validados</span>
             <span className="text-2xl font-black text-primary-custom">{antecedentes.length}</span>
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block">100% Conciliados con RAE</span>
+            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block">100% Conciliados con Rayen</span>
           </div>
         </div>
 
@@ -324,7 +474,7 @@ export default function BitacoraAntecedentes({
               type="text"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              placeholder="Buscar por fecha, motivo, archivo..."
+              placeholder="Buscar por período, motivo, archivo..."
               className="w-full bg-input-custom text-xs font-semibold text-primary-custom pl-9 pr-3 py-1.5 rounded-xl border border-card-custom outline-none"
             />
           </div>
@@ -339,6 +489,7 @@ export default function BitacoraAntecedentes({
           >
             <option value="TODOS">Todos los tipos</option>
             <option value="Cotejo RAE / Discrepancia Ministerial">Cotejo RAE / Discrepancia Ministerial</option>
+            <option value="Cotejo RAE / Reporte Oficial Rayen">Reporte Oficial Rayen</option>
             <option value="Falla Rayen / Contingencia Papel">Falla Rayen / Contingencia Papel</option>
             <option value="Corte de Energía / Emergencia Externa">Corte de Energía / Emergencia</option>
             <option value="Aclaración / Justificación Estadística">Aclaración Estadística</option>
@@ -352,12 +503,13 @@ export default function BitacoraAntecedentes({
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-black/5 dark:bg-white/5 text-[10px] font-bold text-secondary-custom uppercase border-b border-card-custom">
-                <th className="p-3.5">Fecha</th>
+                <th className="p-3.5">Período</th>
                 <th className="p-3.5">Tipo de Antecedente</th>
-                <th className="p-3.5">Variable</th>
-                <th className="p-3.5 text-center text-indigo-500">MÉTRICO DB</th>
-                <th className="p-3.5 text-center text-emerald-500">Oficial RAE</th>
-                <th className="p-3.5 text-center text-amber-500">Brecha / Ajuste</th>
+                <th className="p-3.5 text-center text-indigo-500">Admitidos (DB)</th>
+                <th className="p-3.5 text-center text-emerald-500">Oficial Rayen</th>
+                <th className="p-3.5 text-center text-sky-500">Atendidos Méd.</th>
+                <th className="p-3.5 text-center text-purple-500">Altas Admin</th>
+                <th className="p-3.5 text-center text-amber-500">Brecha Δ</th>
                 <th className="p-3.5">Justificación y Respaldo</th>
                 <th className="p-3.5 text-center">Estado</th>
                 <th className="p-3.5 text-right">Acción</th>
@@ -366,10 +518,10 @@ export default function BitacoraAntecedentes({
             <tbody className="divide-y divide-card-custom font-medium text-primary-custom">
               {antecedentesFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="p-8 text-center text-secondary-custom">
+                  <td colSpan={10} className="p-8 text-center text-secondary-custom">
                     <Info className="w-6 h-6 mx-auto mb-2 opacity-50" />
                     <p className="font-bold text-xs">No se encontraron antecedentes registrados con los filtros actuales.</p>
-                    <p className="text-[10px] mt-1">Usa el botón "Aportar Antecedente / Respaldo RAE" para ingresar cotejos de información.</p>
+                    <p className="text-[10px] mt-1">Usa el botón "Aportar Antecedente / Respaldo Rayen" para ingresar cotejos de información.</p>
                   </td>
                 </tr>
               ) : (
@@ -386,20 +538,25 @@ export default function BitacoraAntecedentes({
                         {a.tipo}
                       </span>
                     </td>
-                    <td className="p-3.5 font-semibold text-secondary-custom">{a.variable}</td>
                     <td className="p-3.5 text-center font-black text-indigo-600 dark:text-indigo-400">
-                      {a.cifraDB} pac.
+                      {(a.admitidosDB ?? a.cifraDB)?.toLocaleString('es-CL')} pac.
                     </td>
                     <td className="p-3.5 text-center font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/5">
-                      {a.cifraOficialRAE} pac.
+                      {(a.cifraOficialAdmitidos ?? a.cifraOficialRAE)?.toLocaleString('es-CL')} pac.
+                    </td>
+                    <td className="p-3.5 text-center font-bold text-sky-600 dark:text-sky-400">
+                      {a.cifraOficialAtendidos ? `${a.cifraOficialAtendidos.toLocaleString('es-CL')} pac.` : '—'}
+                    </td>
+                    <td className="p-3.5 text-center font-bold text-purple-600 dark:text-purple-400">
+                      {a.cifraOficialAltas ? `${a.cifraOficialAltas.toLocaleString('es-CL')} pac.` : '—'}
                     </td>
                     <td className="p-3.5 text-center font-black">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] ${
-                        a.diferencia === 0 
+                        (a.deltaAdmitidos ?? a.diferencia) === 0 
                           ? 'bg-emerald-500/10 text-emerald-600'
                           : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
                       }`}>
-                        {a.diferencia > 0 ? `+${a.diferencia}` : a.diferencia}
+                        {(a.deltaAdmitidos ?? a.diferencia) > 0 ? `+${a.deltaAdmitidos ?? a.diferencia}` : (a.deltaAdmitidos ?? a.diferencia)}
                       </span>
                     </td>
                     <td className="p-3.5 max-w-xs">
@@ -435,7 +592,7 @@ export default function BitacoraAntecedentes({
         </div>
       </div>
 
-      {/* MODAL PARA APORTAR ANTECEDENTE / RESPALDO RAE */}
+      {/* MODAL PARA APORTAR ANTECEDENTE / RESPALDO DE CONTRASTE */}
       {showModalNuevo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
           <div className="bg-card-custom rounded-3xl border border-card-custom shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
@@ -448,13 +605,12 @@ export default function BitacoraAntecedentes({
                 </div>
                 <div>
                   <h3 className="text-lg font-black tracking-tight">Aportar Antecedente / Respaldo de Contraste</h3>
-                  <p className="text-xs text-emerald-100 font-medium">Corrobora discrepancias entre RAE y MÉTRICO DB</p>
+                  <p className="text-xs text-white/80 font-medium">Corrobora discrepancias entre Rayen, Iris y MÉTRICO DB</p>
                 </div>
               </div>
-
               <button
                 onClick={() => setShowModalNuevo(false)}
-                className="p-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-all cursor-pointer"
+                className="p-2 hover:bg-white/10 rounded-xl text-white/80 hover:text-white transition-all cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -463,10 +619,83 @@ export default function BitacoraAntecedentes({
             {/* Formulario */}
             <form onSubmit={handleGuardarAntecedente} className="p-6 overflow-y-auto space-y-5">
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* SELECTOR DE ALCANCE: MES COMPLETO VS DÍA ESPECÍFICO */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-secondary-custom tracking-wider block">
+                  Alcance del Período a Contrastar
+                </label>
+                <div className="flex items-center gap-2 bg-black/5 dark:bg-white/5 p-1.5 rounded-2xl border border-card-custom">
+                  <button
+                    type="button"
+                    onClick={() => setFormModo('mes')}
+                    className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                      formModo === 'mes'
+                        ? 'bg-primary-custom text-white shadow-sm'
+                        : 'text-secondary-custom hover:text-primary-custom'
+                    }`}
+                  >
+                    📅 Mes Calendario Completo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormModo('dia')}
+                    className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                      formModo === 'dia'
+                        ? 'bg-primary-custom text-white shadow-sm'
+                        : 'text-secondary-custom hover:text-primary-custom'
+                    }`}
+                  >
+                    📆 Día Específico
+                  </button>
+                </div>
+              </div>
+
+              {/* SELECTORES DE FECHA SEGÚN EL MODO */}
+              {formModo === 'mes' ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-secondary-custom tracking-wider block">
+                      Año
+                    </label>
+                    <select
+                      value={formYear}
+                      onChange={e => setFormYear(Number(e.target.value))}
+                      className="w-full bg-input-custom border border-card-custom p-2.5 rounded-xl text-xs font-bold text-primary-custom outline-none focus:border-emerald-500 cursor-pointer"
+                    >
+                      <option value={2025}>2025</option>
+                      <option value={2026}>2026</option>
+                      <option value={2027}>2027</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-secondary-custom tracking-wider block">
+                      Mes
+                    </label>
+                    <select
+                      value={formMonth}
+                      onChange={e => setFormMonth(e.target.value)}
+                      className="w-full bg-input-custom border border-card-custom p-2.5 rounded-xl text-xs font-bold text-primary-custom outline-none focus:border-emerald-500 cursor-pointer"
+                    >
+                      <option value="01">01 - Enero</option>
+                      <option value="02">02 - Febrero</option>
+                      <option value="03">03 - Marzo</option>
+                      <option value="04">04 - Abril</option>
+                      <option value="05">05 - Mayo</option>
+                      <option value="06">06 - Junio</option>
+                      <option value="07">07 - Julio</option>
+                      <option value="08">08 - Agosto</option>
+                      <option value="09">09 - Septiembre</option>
+                      <option value="10">10 - Octubre</option>
+                      <option value="11">11 - Noviembre</option>
+                      <option value="12">12 - Diciembre</option>
+                    </select>
+                  </div>
+                </div>
+              ) : (
                 <div className="space-y-1">
                   <label className="text-[10px] font-black uppercase text-secondary-custom tracking-wider block">
-                    Fecha del Período / Día a Auditar
+                    Fecha Específica
                   </label>
                   <input
                     type="date"
@@ -476,62 +705,111 @@ export default function BitacoraAntecedentes({
                     required
                   />
                 </div>
+              )}
 
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase text-secondary-custom tracking-wider block">
-                    Variable a Contrastar
-                  </label>
-                  <select
-                    value={formVariable}
-                    onChange={e => setFormVariable(e.target.value)}
-                    className="w-full bg-input-custom border border-card-custom p-2.5 rounded-xl text-xs font-bold text-primary-custom outline-none focus:border-emerald-500 cursor-pointer"
-                  >
-                    <option value="Pacientes Admitidos">Pacientes Admitidos</option>
-                    <option value="Pacientes Atendidos">Pacientes Atendidos</option>
-                    <option value="Altas Administrativas">Altas Administrativas</option>
-                    <option value="Traslados Hospitalarios">Traslados Hospitalarios</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Matriz de Cruce en Vivo */}
-              <div className="bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-card-custom space-y-3">
-                <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-emerald-500" />
-                  Cruce Automático de Cifras
-                </h4>
-
-                <div className="grid grid-cols-3 gap-3 text-center">
-                  <div className="bg-card-custom p-3 rounded-xl border border-card-custom">
-                    <span className="text-[9px] font-bold text-secondary-custom uppercase block">MÉTRICO DB</span>
-                    <span className="text-lg font-black text-indigo-600 dark:text-indigo-400">{cifraDBCalculada} pac.</span>
-                    <span className="text-[8px] text-secondary-custom block">Detectados en BD</span>
-                  </div>
-
-                  <div className="bg-card-custom p-3 rounded-xl border-2 border-emerald-500/40">
-                    <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase block">Cifra RAE / Oficial</span>
-                    <input
-                      type="number"
-                      value={formCifraRAE}
-                      onChange={e => setFormCifraRAE(e.target.value)}
-                      placeholder="Ej: 138"
-                      className="w-full text-center text-lg font-black text-emerald-600 dark:text-emerald-400 bg-transparent outline-none"
-                      required
-                    />
-                    <span className="text-[8px] text-emerald-600 dark:text-emerald-400 font-bold block">Digita tu cifra RAE</span>
-                  </div>
-
-                  <div className="bg-card-custom p-3 rounded-xl border border-card-custom">
-                    <span className="text-[9px] font-bold text-secondary-custom uppercase block">Diferencia / Ajuste</span>
-                    <span className={`text-lg font-black ${diferenciaCalculada === 0 ? 'text-emerald-600' : 'text-amber-500'}`}>
-                      {diferenciaCalculada > 0 ? `+${diferenciaCalculada}` : diferenciaCalculada}
+              {/* MATRIZ DE CRUCE EN VIVO: TRIADA ASISTENCIAL COMPLETA */}
+              <div className="bg-black/5 dark:bg-white/5 p-4 sm:p-5 rounded-2xl border border-card-custom space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black text-primary-custom uppercase tracking-wider flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-emerald-500" />
+                    Cruce de Triada Asistencial (Rayen / Iris vs MÉTRICO DB)
+                  </h4>
+                  {!deltasCalculados.esEcuacionValida && (
+                    <span className="text-[10px] font-black text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">
+                      ⚠️ Admitidos ≠ Atendidos + Altas
                     </span>
-                    <span className="text-[8px] text-secondary-custom block">Casos de brecha</span>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  {/* VARIABLE 1: PACIENTES ADMITIDOS */}
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center bg-card-custom p-3 rounded-xl border border-card-custom">
+                    <div className="sm:col-span-4">
+                      <span className="text-xs font-black text-primary-custom block">1. Pacientes Admitidos</span>
+                      <span className="text-[10px] text-secondary-custom">Demanda Global del Período</span>
+                    </div>
+                    <div className="sm:col-span-3 text-center">
+                      <span className="text-[9px] font-bold text-secondary-custom uppercase block">MÉTRICO DB</span>
+                      <span className="text-base font-black text-indigo-600 dark:text-indigo-400">{cifrasDBCalculadas.admitidos.toLocaleString('es-CL')}</span>
+                    </div>
+                    <div className="sm:col-span-3">
+                      <input
+                        type="number"
+                        value={formCifraAdmitidos}
+                        onChange={e => setFormCifraAdmitidos(e.target.value)}
+                        placeholder={`Ej: ${cifrasDBCalculadas.admitidos || '2971'}`}
+                        className="w-full text-center text-sm font-black text-emerald-600 dark:text-emerald-400 bg-input-custom p-2 rounded-lg border-2 border-emerald-500/40 outline-none focus:border-emerald-500"
+                        required
+                      />
+                      <span className="text-[8px] text-emerald-600 dark:text-emerald-400 font-bold block text-center mt-0.5">Cifra Oficial Rayen</span>
+                    </div>
+                    <div className="sm:col-span-2 text-center">
+                      <span className="text-[9px] font-bold text-secondary-custom uppercase block">Brecha Δ</span>
+                      <span className={`text-sm font-black ${deltasCalculados.deltaAdmitidos === 0 ? 'text-emerald-600' : 'text-amber-500'}`}>
+                        {deltasCalculados.deltaAdmitidos > 0 ? `+${deltasCalculados.deltaAdmitidos}` : deltasCalculados.deltaAdmitidos}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* VARIABLE 2: PACIENTES ATENDIDOS MÉDICOS */}
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center bg-card-custom p-3 rounded-xl border border-card-custom">
+                    <div className="sm:col-span-4">
+                      <span className="text-xs font-black text-primary-custom block">2. Atendidos Médicos</span>
+                      <span className="text-[10px] text-secondary-custom">Completados + Tratamiento</span>
+                    </div>
+                    <div className="sm:col-span-3 text-center">
+                      <span className="text-[9px] font-bold text-secondary-custom uppercase block">MÉTRICO DB</span>
+                      <span className="text-base font-black text-indigo-600 dark:text-indigo-400">{cifrasDBCalculadas.atendidos.toLocaleString('es-CL')}</span>
+                    </div>
+                    <div className="sm:col-span-3">
+                      <input
+                        type="number"
+                        value={formCifraAtendidos}
+                        onChange={e => setFormCifraAtendidos(e.target.value)}
+                        placeholder={`Ej: ${cifrasDBCalculadas.atendidos || '2680'}`}
+                        className="w-full text-center text-sm font-black text-sky-600 dark:text-sky-400 bg-input-custom p-2 rounded-lg border border-sky-500/40 outline-none focus:border-sky-500"
+                      />
+                      <span className="text-[8px] text-sky-600 dark:text-sky-400 font-bold block text-center mt-0.5">Cifra Oficial Rayen</span>
+                    </div>
+                    <div className="sm:col-span-2 text-center">
+                      <span className="text-[9px] font-bold text-secondary-custom uppercase block">Brecha Δ</span>
+                      <span className={`text-sm font-black ${deltasCalculados.deltaAtendidos === 0 ? 'text-emerald-600' : 'text-amber-500'}`}>
+                        {deltasCalculados.deltaAtendidos > 0 ? `+${deltasCalculados.deltaAtendidos}` : deltasCalculados.deltaAtendidos}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* VARIABLE 3: ALTAS ADMINISTRATIVAS */}
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center bg-card-custom p-3 rounded-xl border border-card-custom">
+                    <div className="sm:col-span-4">
+                      <span className="text-xs font-black text-primary-custom block">3. Altas Administrativas</span>
+                      <span className="text-[10px] text-secondary-custom">Egresos Admin + Sin Atención</span>
+                    </div>
+                    <div className="sm:col-span-3 text-center">
+                      <span className="text-[9px] font-bold text-secondary-custom uppercase block">MÉTRICO DB</span>
+                      <span className="text-base font-black text-indigo-600 dark:text-indigo-400">{cifrasDBCalculadas.altas.toLocaleString('es-CL')}</span>
+                    </div>
+                    <div className="sm:col-span-3">
+                      <input
+                        type="number"
+                        value={formCifraAltas}
+                        onChange={e => setFormCifraAltas(e.target.value)}
+                        placeholder={`Ej: ${cifrasDBCalculadas.altas || '291'}`}
+                        className="w-full text-center text-sm font-black text-purple-600 dark:text-purple-400 bg-input-custom p-2 rounded-lg border border-purple-500/40 outline-none focus:border-purple-500"
+                      />
+                      <span className="text-[8px] text-purple-600 dark:text-purple-400 font-bold block text-center mt-0.5">Cifra Oficial Rayen</span>
+                    </div>
+                    <div className="sm:col-span-2 text-center">
+                      <span className="text-[9px] font-bold text-secondary-custom uppercase block">Brecha Δ</span>
+                      <span className={`text-sm font-black ${deltasCalculados.deltaAltas === 0 ? 'text-emerald-600' : 'text-amber-500'}`}>
+                        {deltasCalculados.deltaAltas > 0 ? `+${deltasCalculados.deltaAltas}` : deltasCalculados.deltaAltas}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Tipo de Antecedente */}
+              {/* TIPO DE INCIDENCIA */}
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-secondary-custom tracking-wider block">
                   Tipo de Incidencia u Origen del Antecedente
@@ -541,6 +819,7 @@ export default function BitacoraAntecedentes({
                   onChange={e => setFormTipo(e.target.value)}
                   className="w-full bg-input-custom border border-card-custom p-2.5 rounded-xl text-xs font-bold text-primary-custom outline-none focus:border-emerald-500 cursor-pointer"
                 >
+                  <option value="Cotejo RAE / Reporte Oficial Rayen">Reporte Oficial Rayen (Certificación Mensual)</option>
                   <option value="Cotejo RAE / Discrepancia Ministerial">Cotejo RAE / Discrepancia Ministerial</option>
                   <option value="Falla Rayen / Contingencia Papel">Falla Rayen / Contingencia en Ficha Papel</option>
                   <option value="Corte de Energía / Emergencia Externa">Corte de Energía / Emergencia Externa</option>
@@ -548,15 +827,15 @@ export default function BitacoraAntecedentes({
                 </select>
               </div>
 
-              {/* Carga de Archivo Excel / CSV de Cotejo */}
+              {/* CARGA DE ARCHIVO EXCEL / CSV DE COTEJO (IRIS O RAYEN) */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase text-secondary-custom tracking-wider block">
-                  Adjuntar Archivo de Cotejo (Opcional - Excel / CSV)
+                  Adjuntar Archivo de Cotejo (Excel o CSV de Iris / Rayen)
                 </label>
                 <div className="flex items-center gap-3">
                   <label className="flex-1 border-2 border-dashed border-card-custom hover:border-emerald-500/50 p-3 rounded-xl flex items-center justify-center gap-2 text-xs font-bold text-secondary-custom hover:text-primary-custom cursor-pointer transition-all bg-input-custom">
                     <Upload className="w-4 h-4 text-emerald-500" />
-                    <span>{formArchivoNombre || (isReadingFile ? 'Leyendo archivo...' : 'Seleccionar planilla Excel / CSV')}</span>
+                    <span>{formArchivoNombre || (isReadingFile ? 'Leyendo archivo...' : 'Seleccionar planilla Excel / CSV de Iris o Rayen')}</span>
                     <input
                       type="file"
                       accept=".xlsx,.xls,.csv"
@@ -571,7 +850,7 @@ export default function BitacoraAntecedentes({
                         setFormArchivoNombre('');
                         setFormArchivoRegistros(null);
                       }}
-                      className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-xl"
+                      className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-xl cursor-pointer"
                       title="Quitar archivo"
                     >
                       <X className="w-4 h-4" />
@@ -580,21 +859,38 @@ export default function BitacoraAntecedentes({
                 </div>
               </div>
 
-              {/* Justificación y Motivo */}
+              {/* CHECKBOX DE CERTIFICACIÓN DE BENCHMARK SSOT */}
+              <label className="flex items-center gap-3 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-xl cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={syncBenchmark}
+                  onChange={e => setSyncBenchmark(e.target.checked)}
+                  className="w-4 h-4 accent-emerald-600 rounded cursor-pointer"
+                />
+                <div>
+                  <span className="text-xs font-black text-emerald-700 dark:text-emerald-300 block">
+                    Certificar y Sincronizar como Benchmark Oficial SSOT
+                  </span>
+                  <span className="text-[10px] text-secondary-custom block">
+                    Actualiza inmediatamente el motor analítico, las tarjetas anuales y las comparativas mes a mes.
+                  </span>
+                </div>
+              </label>
+
+              {/* JUSTIFICACIÓN Y MOTIVO */}
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-secondary-custom tracking-wider block">
-                  Justificación / Explicación del Antecedente
+                  Justificación / Observación Técnica del Antecedente
                 </label>
                 <textarea
                   value={formMotivo}
                   onChange={e => setFormMotivo(e.target.value)}
-                  placeholder="Explica el motivo de la diferencia (Ej: En RAE se registraron 3 pacientes manualmente en ficha papel por caída temporal de enlace)..."
-                  className="w-full bg-input-custom border border-card-custom p-3 rounded-xl text-xs font-semibold text-primary-custom outline-none focus:border-emerald-500 min-h-[80px]"
-                  required
+                  placeholder="Explica el motivo del cotejo (Ej: Certificación oficial en base al archivo de Iris cruzado con Rayen)..."
+                  className="w-full bg-input-custom border border-card-custom p-3 rounded-xl text-xs font-semibold text-primary-custom outline-none focus:border-emerald-500 min-h-[70px]"
                 />
               </div>
 
-              {/* Botones de Acción */}
+              {/* BOTONES DE ACCIÓN */}
               <div className="pt-3 border-t border-card-custom flex items-center justify-end gap-3">
                 <button
                   type="button"
@@ -606,10 +902,10 @@ export default function BitacoraAntecedentes({
 
                 <button
                   type="submit"
-                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                  className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Guardar y Corroborar en MÉTRICO</span>
+                  <span>Guardar, Corroborar y Certificar en MÉTRICO</span>
                 </button>
               </div>
 

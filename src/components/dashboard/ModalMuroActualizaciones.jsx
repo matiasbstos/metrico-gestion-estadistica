@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.8.9',
+      version: 'v5.8.9',
+      fecha: '30 de Agosto, 2026',
+      badge: 'TRIADA ASISTENCIAL COMPLETA & IRIS',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Ingreso Multivariable en Antecedentes: Admitidos, Atendidos y Altas Administrativas',
+      categoria: 'Calidad de Datos & Centro de Auditoría',
+      icon: Sparkles,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'El modal de Aporte de Antecedentes ahora permite contrastar y conciliar simultáneamente la triada asistencial completa (Pacientes Admitidos, Atendidos Médicos y Altas Admin) tanto para meses completos como para días específicos, con soporte para planillas de Iris y Rayen.',
+      instructivo: {
+        paraQueSirve: 'Permite entregar las cifras oficiales de Rayen para los 3 pilares clínicos y contrastarlos automáticamente contra la base de datos o planillas de Iris.',
+        quePuedesVer: 'En "Aportar Antecedente / Respaldo Rayen": matriz con MÉTRICO DB, Cifra Oficial Rayen y Brecha Delta para Admitidos, Atendidos y Altas, selector Mes/Día y certificación SSOT.',
+        ejemploUso: 'Selecciona "Mes Calendario Completo", elige 2025 - Junio, digita 2.971 en Admitidos, 2.680 en Atendidos y 291 en Altas, y presiona Guardar y Certificar.'
+      },
+      changes: [
+        'Triada Asistencial Simultánea: Entrada y cálculo de brechas para Admitidos, Atendidos Médicos y Altas Administrativas.',
+        'Alcance Mes vs Día: Facilidad para auditar un mes calendario completo o una jornada diaria.',
+        'Sincronización SSOT: Certificación instantánea en el motor de benchmarks y persistencia del sistema.'
+      ]
+    },
+    {
       id: 'v5.8.8',
       version: 'v5.8.8',
       fecha: '30 de Agosto, 2026',

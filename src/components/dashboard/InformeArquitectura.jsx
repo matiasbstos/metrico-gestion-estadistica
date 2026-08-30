@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.8.9',
+    version_tag: 'v5.8.9',
+    fecha_despliegue: '30 de Agosto, 2026',
+    proposito_actualizacion: 'Triada Asistencial Completa en Aporte de Antecedentes (Admitidos, Atendidos Médicos y Altas Admin) y Sincronización Automática con Iris/Rayen.',
+    medios_y_stack: [
+      'React 18.3 (BitacoraAntecedentes.jsx)',
+      'Multi-Variable Rayen / Iris Triage Reconciliation Engine',
+      'Instant SSOT Benchmark Synchronizer'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Triada Asistencial Simultánea: Se expandió el modal de antecedentes para ingresar y cruzar simultáneamente Pacientes Admitidos, Pacientes Atendidos Médicos y Altas Administrativas (Egresos Admin + Sin Atención), validando en vivo la ecuación de flujo (Admitidos = Atendidos + Altas). 2) Alcance Temporal Flexible: Se agregó selector para contrastar meses calendario completos (ej. Junio 2025) o días específicos. 3) Carga & Cruce Iris / Rayen: Soporte para adjuntar archivos Excel/CSV con lectura automatizada. 4) Sincronización SSOT: Opción de certificar directamente el benchmark oficial en memoria y persistencia del sistema.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'antecedentes_incidencias'],
+      query_optimization: 'Cálculo reactivo en memoria de métricas por mes/día civil.'
+    },
+    modulos_afectados: ['BitacoraAntecedentes.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Reemplazo del selector univariable por una matriz de cruce tripartita con cálculo automático de brechas delta para cada variable asistencial.',
+      'Sincronización instantánea con localStorage (metrico_certified_benchmarks) al marcar la casilla de verificación SSOT.',
+      'Incorporación de compatibilidad directa con planillas de Iris y reportes oficiales de Rayen.'
+    ]
+  },
+  {
     id: 'v5.8.8',
     version_tag: 'v5.8.8',
     fecha_despliegue: '30 de Agosto, 2026',
