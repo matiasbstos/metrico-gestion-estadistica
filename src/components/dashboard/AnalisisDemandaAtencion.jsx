@@ -45,10 +45,23 @@ export default function AnalisisDemandaAtencion({
   const [userBenchmarks, setUserBenchmarks] = useState(() => {
     try {
       const saved = localStorage.getItem('metrico_certified_benchmarks');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Limpiar benchmarks desactualizados de 2025 con las cifras oficiales de Rayen
+        if (parsed['2025-03'] && parsed['2025-03'].admitidos === 3320) {
+          parsed['2025-03'] = { admitidos: 2982, atendidos: 2738, altas: 244, sinAtencion: 80, egresoAdmin: 164, turnosCount: 31, verificado: true };
+        }
+        if (parsed['2025-06'] && parsed['2025-06'].admitidos === 3850) {
+          parsed['2025-06'] = { admitidos: 2971, atendidos: 2680, altas: 291, turnosCount: 30, verificado: true };
+        }
+        localStorage.setItem('metrico_certified_benchmarks', JSON.stringify(parsed));
+        return parsed;
+      }
     } catch (e) {}
     return {
-      '2026-05': { admitidos: 4110, atendidos: 3676, altas: 434, sinAtencion: 93, egresoAdmin: 341, turnosCount: 31, verificado: true }
+      '2026-05': { admitidos: 4110, atendidos: 3676, altas: 434, sinAtencion: 93, egresoAdmin: 341, turnosCount: 31, verificado: true },
+      '2025-03': { admitidos: 2982, atendidos: 2738, altas: 244, sinAtencion: 80, egresoAdmin: 164, turnosCount: 31, verificado: true },
+      '2025-06': { admitidos: 2971, atendidos: 2680, altas: 291, turnosCount: 30, verificado: true }
     };
   });
   
@@ -96,7 +109,7 @@ export default function AnalisisDemandaAtencion({
     '03': { admitidos: 2982, atendidos: 2738, altas: 244, sinAtencion: 80, egresoAdmin: 164, turnosCount: 31 },
     '04': { admitidos: 3242, atendidos: 2922, altas: 320, sinAtencion: 144, egresoAdmin: 176, turnosCount: 30 },
     '05': { admitidos: 3322, atendidos: 2959, altas: 363, sinAtencion: 167, egresoAdmin: 196, turnosCount: 31 },
-    '06': { admitidos: 3850, atendidos: 3460, altas: 390, turnosCount: 30 },
+    '06': { admitidos: 2971, atendidos: 2680, altas: 291, turnosCount: 30 },
     '07': { admitidos: 3200, atendidos: 2880, altas: 320, turnosCount: 31 },
     '08': { admitidos: 3110, atendidos: 2800, altas: 310, turnosCount: 31 },
     '09': { admitidos: 2940, atendidos: 2650, altas: 290, turnosCount: 30 },

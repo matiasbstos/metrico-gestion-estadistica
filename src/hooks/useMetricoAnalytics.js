@@ -720,7 +720,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const dedupPyYearPacs = deduplicarPacientes(pyYearLoadedPacs);
 
     // Línea Base Histórica SAR 2025 Certificada Rayen (Mes Civil 00:00 a 23:59)
-    const BASELINE_2025_MONTHLY = { 1: 2454, 2: 2193, 3: 2982, 4: 3242, 5: 3322, 6: 3850, 7: 3200, 8: 3110, 9: 2940, 10: 2890, 11: 2760, 12: 2850 };
+    const BASELINE_2025_MONTHLY = { 1: 2454, 2: 2193, 3: 2982, 4: 3242, 5: 3322, 6: 2971, 7: 3200, 8: 3110, 9: 2940, 10: 2890, 11: 2760, 12: 2850 };
     const currentMonthNum = fEnd.getMonth() + 1;
     let baseline2025YtdSum = 0;
     for (let m = 1; m <= currentMonthNum; m++) {

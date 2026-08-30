@@ -102,8 +102,11 @@ export default function CentroVerificacionAuditoria({
         // Limpiar benchmarks desactualizados de 2025 con las cifras oficiales de Rayen
         if (parsed['2025-03'] && parsed['2025-03'].admitidos === 3320) {
           parsed['2025-03'] = { admitidos: 2982, atendidos: 2738, altas: 244, sinAtencion: 80, egresoAdmin: 164, turnosCount: 31, verificado: true };
-          localStorage.setItem('metrico_certified_benchmarks', JSON.stringify(parsed));
         }
+        if (parsed['2025-06'] && parsed['2025-06'].admitidos === 3850) {
+          parsed['2025-06'] = { admitidos: 2971, atendidos: 2680, altas: 291, turnosCount: 30, verificado: true };
+        }
+        localStorage.setItem('metrico_certified_benchmarks', JSON.stringify(parsed));
         return parsed;
       }
     } catch (e) {
@@ -111,7 +114,8 @@ export default function CentroVerificacionAuditoria({
     }
     return {
       '2026-05': { admitidos: 4110, atendidos: 3676, altas: 434, sinAtencion: 93, egresoAdmin: 341, turnosCount: 31, verificado: true },
-      '2025-03': { admitidos: 2982, atendidos: 2738, altas: 244, sinAtencion: 80, egresoAdmin: 164, turnosCount: 31, verificado: true }
+      '2025-03': { admitidos: 2982, atendidos: 2738, altas: 244, sinAtencion: 80, egresoAdmin: 164, turnosCount: 31, verificado: true },
+      '2025-06': { admitidos: 2971, atendidos: 2680, altas: 291, turnosCount: 30, verificado: true }
     };
   });
 
@@ -1178,6 +1182,14 @@ export default function CentroVerificacionAuditoria({
                 </button>
 
                 <button
+                  onClick={() => setActiveSubTab('antecedentes')}
+                  className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-3.5 bg-white/80 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 border border-card-custom/80 text-primary-custom rounded-2xl font-bold text-xs shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                >
+                  <CheckCheck className="w-4 h-4 text-purple-500" />
+                  <span>Aportar Antecedentes (Cruce RAE)</span>
+                </button>
+
+                <button
                   onClick={() => setActiveSubTab('demanda')}
                   className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-3.5 bg-white/80 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 border border-card-custom/80 text-primary-custom rounded-2xl font-bold text-xs shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
                 >
@@ -1420,7 +1432,7 @@ export default function CentroVerificacionAuditoria({
                     { mes: 'Marzo', key: '03', r2025: 2982, r2026: 3476, estado: 'Auditado Oficial' },
                     { mes: 'Abril', key: '04', r2025: 3242, r2026: 3410, estado: 'Auditado Oficial' },
                     { mes: 'Mayo', key: '05', r2025: 3322, r2026: 4110, estado: 'Auditado Oficial' },
-                    { mes: 'Junio', key: '06', r2025: 3850, r2026: 3796, estado: 'Auditado Oficial' },
+                    { mes: 'Junio', key: '06', r2025: 2971, r2026: 3796, estado: 'Auditado Oficial' },
                     { mes: 'Julio', key: '07', r2025: 3200, r2026: 3047, estado: 'Auditado Oficial' },
                     { mes: 'Agosto', key: '08', r2025: 3110, r2026: 3051, estado: 'Al 27/08 (26.548)' },
                     { mes: 'Septiembre', key: '09', r2025: 2940, r2026: null, estado: 'Pendiente' },

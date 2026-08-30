@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.8.8',
+      version: 'v5.8.8',
+      fecha: '30 de Agosto, 2026',
+      badge: 'APERTURA PANEL DE CONTROL & JUNIO 2025',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Apertura Predeterminada en Panel de Control, Junio 2025 (2.971 pac.) y Aporte de Antecedentes',
+      categoria: 'Calidad de Datos & Centro de Auditoría',
+      icon: CheckCircle2,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se estableció la vista predeterminada en el Panel de Control & Estado General al abrir Verificación, se actualizó la línea base oficial de Junio 2025 a 2.971 pacientes y se integró acceso directo al módulo de Aporte de Antecedentes y Cruce RAE.',
+      instructivo: {
+        paraQueSirve: 'Permite ver de inmediato el estado global del sistema y subir planillas/respaldos para justificar discrepancias entre Rayen y MÉTRICO.',
+        quePuedesVer: 'Al entrar a Verificación: el Panel de Control con indicadores de salud, botón de Conciliación Maestra y botón directo "Aportar Antecedentes (Cruce RAE)".',
+        ejemploUso: 'Haz clic en "Aportar Antecedentes" para subir planillas de cotejo, registrar el motivo y conciliar diferencias.'
+      },
+      changes: [
+        'Apertura Directa: El Centro de Verificación abre por defecto el Panel de Control & Estado General.',
+        'Calibración Junio 2025: Actualización oficial de 3.850 a 2.971 pacientes admitidos.',
+        'Aporte de Antecedentes RAE: Acceso directo con carga de archivos y cálculo automático de deltas.'
+      ]
+    },
+    {
       id: 'v5.8.7',
       version: 'v5.8.7',
       fecha: '30 de Agosto, 2026',

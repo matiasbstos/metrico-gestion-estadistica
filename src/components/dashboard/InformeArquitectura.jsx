@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.8.8',
+    version_tag: 'v5.8.8',
+    fecha_despliegue: '30 de Agosto, 2026',
+    proposito_actualizacion: 'Apertura Predeterminada de Pantalla Inicial en Verificación, Calibración Junio 2025 (2.971 pac.) y Acceso Directo a Aporte de Antecedentes.',
+    medios_y_stack: [
+      'React 18.3 (Dashboard.jsx, CentroVerificacionAuditoria.jsx, AnalisisDemandaAtencion.jsx)',
+      'Rayen Certified June 2025 (2.971 pac.) SSOT Baseline',
+      'Direct Antecedentes / RAE Reconciliation Access'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Apertura Predeterminada: Se corrigió Dashboard.jsx para que al ingresar al Centro de Verificación se abra de manera predeterminada el Panel de Control & Estado General en lugar de la pestaña de reglas. 2) Calibración Junio 2025: Se actualizó la línea base oficial a 2.971 pacientes admitidos (en vez de la estimación preliminar de 3.850) y se limpiaron benchmarks en memoria. 3) Aporte de Antecedentes: Se integró acceso directo al módulo de cotejo y carga de archivos RAE para justificar y conciliar discrepancias asistenciales.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'antecedentes_incidencias'],
+      query_optimization: 'Sincronización instantánea de línea base y cómputo de variación YoY.'
+    },
+    modulos_afectados: ['Dashboard.jsx', 'CentroVerificacionAuditoria.jsx', 'AnalisisDemandaAtencion.jsx', 'useMetricoAnalytics.js', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Configuración de initialSubTab="resumen" en la invocación de CentroVerificacionAuditoria en Dashboard.jsx.',
+      'Actualización de Junio 2025 a 2.971 pac. en BASELINE_SAR_2025, BASELINE_2025_MONTHLY y Dashboard.jsx.',
+      'Incorporación del botón "Aportar Antecedentes (Cruce RAE)" en la barra de acciones rápidas del Panel de Control.'
+    ]
+  },
+  {
     id: 'v5.8.7',
     version_tag: 'v5.8.7',
     fecha_despliegue: '30 de Agosto, 2026',

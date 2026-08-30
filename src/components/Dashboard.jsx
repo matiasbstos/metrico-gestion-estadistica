@@ -619,17 +619,17 @@ const DashboardContent = () => {
             anual: {
               pacientes: { 
                 current: ytdData.totalAtenciones,
-                growthYear: getGrowth(ytdData.totalAtenciones, 24353)
+                growthYear: getGrowth(ytdData.totalAtenciones, 23474)
               },
               atendidos: { 
                 current: ytdData.totalAtenciones - ytdData.totalAltas,
-                growthYear: getGrowth(ytdData.totalAtenciones - ytdData.totalAltas, 22228)
+                growthYear: getGrowth(ytdData.totalAtenciones - ytdData.totalAltas, 21448)
               },
               estadia: { current: ytdData.avgEstadia },
               pacHora: { current: ytdPacHora },
               altasAdmin: { 
                 current: ytdData.totalAltas,
-                growthYear: getGrowth(ytdData.totalAltas, 2125)
+                growthYear: getGrowth(ytdData.totalAltas, 2026)
               },
               traslados: { current: ytdData.totalTraslados },
               constataciones: { current: ytdData.totalConstataciones },
@@ -2385,7 +2385,7 @@ const DashboardContent = () => {
             setLoading={setLoading}
             triggerRefresh={triggerRefresh}
             isGlobalAdmin={isGlobalAdmin}
-            initialSubTab={activeTab === 'arquitectura' ? 'arquitectura' : 'reglas'}
+            initialSubTab={activeTab === 'arquitectura' ? 'arquitectura' : 'resumen'}
           />
         )}
 
