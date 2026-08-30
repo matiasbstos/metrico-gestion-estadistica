@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.9.0',
+    version_tag: 'v5.9.0',
+    fecha_despliegue: '30 de Agosto, 2026',
+    proposito_actualizacion: 'Rango de Fechas Flexible (Fecha Inicio a Fecha Término) en Aporte de Antecedentes y Auditoría Interanual.',
+    medios_y_stack: [
+      'React 18.3 (BitacoraAntecedentes.jsx)',
+      'Flexible Date Range Filter & Evaluator Engine',
+      'Multi-Temporal SSOT Reconciliator'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Rango de Fechas Personalizado: Se habilitó la modalidad de ingreso por intervalo de fechas (ej. del 01/10/2025 al 31/10/2025) con cálculo en vivo de pacientes admitidos, atendidos médicos y altas administrativas en horario civil local (00:00 a 23:59 hrs). 2) Compatibilidad Multimodal: Se consolidaron tres modos de alcance temporal: Rango de Fechas Libre, Mes Calendario y Día Único. 3) Certificación SSOT Automática: Al guardar un rango mensual completo, se indexa inmediatamente en el motor de benchmarks.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'antecedentes_incidencias'],
+      query_optimization: 'Filtrado en memoria por rango [desde, hasta] con fallback granular a turnos.'
+    },
+    modulos_afectados: ['BitacoraAntecedentes.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Implementación de selectores formFechaDesde y formFechaHasta con validación de límites.',
+      'Cálculo de métricas en tiempo real sobre pacientesDB dentro del intervalo [desde, hasta].',
+      'Etiquetado semántico de períodos y persistencia estructurada en la bitácora.'
+    ]
+  },
+  {
     id: 'v5.8.9',
     version_tag: 'v5.8.9',
     fecha_despliegue: '30 de Agosto, 2026',

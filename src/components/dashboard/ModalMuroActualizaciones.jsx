@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.9.0',
+      version: 'v5.9.0',
+      fecha: '30 de Agosto, 2026',
+      badge: 'RANGO DE FECHAS FLEXIBLE',
+      badgeColor: 'bg-teal-500/10 text-teal-600 dark:text-teal-300 border-teal-500/20',
+      title: 'Ingreso por Rango de Fechas Personalizado (ej. 01/10/2025 al 31/10/2025)',
+      categoria: 'Calidad de Datos & Centro de Auditoría',
+      icon: Calendar,
+      iconBg: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20',
+      summary: 'Se habilitó la opción de definir rangos de fecha libres (Fecha Desde y Fecha Hasta) para auditar, conciliar y aportar antecedentes de cualquier intervalo específico con cálculo automático de pacientes y triada asistencial.',
+      instructivo: {
+        paraQueSirve: 'Permite cotejar intervalos mensuales o períodos personalizados (como 01/10/2025 al 31/10/2025) directamente contra la base de datos.',
+        quePuedesVer: 'En el modal de Antecedentes: la pestaña "Rango de Fechas" con selectores de Fecha Inicio y Fecha Término, y cálculo en tiempo real.',
+        ejemploUso: 'Selecciona "Rango de Fechas", ingresa 01/10/2025 al 31/10/2025, digita tus cifras de Rayen y presiona Guardar y Certificar.'
+      },
+      changes: [
+        'Rango de Fechas Flexible: Modalidad de intervalo con selectores independientes Desde y Hasta.',
+        'Cálculo Reactivo: Sumatoria en vivo de pacientes admitidos, atendidos y altas en el rango definido.',
+        'Indexación SSOT: Sincronización automática de benchmarks oficiales.'
+      ]
+    },
+    {
       id: 'v5.8.9',
       version: 'v5.8.9',
       fecha: '30 de Agosto, 2026',
