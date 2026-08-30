@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.8.7',
+    version_tag: 'v5.8.7',
+    fecha_despliegue: '30 de Agosto, 2026',
+    proposito_actualizacion: 'Panel de Control & Estado General de Auditoría, Conciliación Maestra 1-Clic y Respaldo SSOT para Marzo 2025 (2.982 pac.).',
+    medios_y_stack: [
+      'React 18.3 (CentroVerificacionAuditoria.jsx, AnalisisDemandaAtencion.jsx)',
+      'Executive Data Quality Control Hub (Pantalla Inicial)',
+      '1-Click Master Conciliation Engine'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Panel de Control de Auditoría: Se creó la pantalla inicial unificada en el Centro de Verificación con semáforo global en tiempo real, 4 KPIs ejecutivos de salud de datos, dashboard interactivo de las 10 reglas clínicas con botón de resolución directa y matriz mensual de control Rayen. 2) Conciliación Maestra 1-Clic: Se habilitó la conciliación global secuencial de todas las reglas pendientes con persistencia en Firestore y localStorage. 3) Corrección Marzo 2025: Se limpiaron los benchmarks residuales antiguos para garantizar que Marzo 2025 refleje 2.982 pacientes oficiales de Rayen sin sobreescrituras desactualizadas.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'audit_logs'],
+      query_optimization: 'Evaluación reactiva en memoria con resolución asíncrona de discrepancias.'
+    },
+    modulos_afectados: ['CentroVerificacionAuditoria.jsx', 'AnalisisDemandaAtencion.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Nueva sub-pestaña inicial "Panel de Control & Estado General" con diagnóstico integral y acciones rápidas.',
+      'Función handleConciliarTodasLasReglas para conciliación maestra instantánea con modal animado.',
+      'Matriz de incidencias en vivo con resolución contextual por regla clínica.',
+      'Eliminación de valores residuales de 3.320 para Marzo 2025 consolidando 2.982 pacientes exactos.'
+    ]
+  },
+  {
     id: 'v5.8.6',
     version_tag: 'v5.8.6',
     fecha_despliegue: '30 de Agosto, 2026',

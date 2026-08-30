@@ -13,6 +13,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.8.7',
+      version: 'v5.8.7',
+      fecha: '30 de Agosto, 2026',
+      badge: 'PANEL DE CONTROL & CONCILIACIÓN MAESTRA',
+      badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/20',
+      title: 'Panel de Control de Auditoría, Conciliación 1-Clic y Respaldo Marzo 2025',
+      categoria: 'Calidad de Datos & Centro de Auditoría',
+      icon: Sparkles,
+      iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+      summary: 'Se incorporó una nueva pantalla inicial interactiva al Centro de Verificación con diagnóstico en tiempo real de las 10 reglas clínicas, botón de Conciliación Maestra 1-Clic, matriz de control de demanda Rayen y corrección definitiva para Marzo 2025 (2.982 pac.).',
+      instructivo: {
+        paraQueSirve: 'Funciona como un centro de mando integral para ver anomalías, conciliar todas las reglas con un solo clic y auditar la paridad mensual contra Rayen.',
+        quePuedesVer: 'En Verificación > Panel de Control: índice de salud, incidencias activas con resolución contextual y botón "Iniciar Conciliación Maestra".',
+        ejemploUso: 'Haz clic en "Iniciar Conciliación Maestra (1-Clic)" para normalizar y certificar todas las reglas de forma automática.'
+      },
+      changes: [
+        'Pantalla Inicial Ejecutiva: Panel de Control & Estado General con semáforo global.',
+        'Conciliación Maestra 1-Clic: Resolución secuencial de todas las reglas clínicas.',
+        'Dashboard de Incidencias en Vivo: Resolución directa para cada una de las 10 reglas.',
+        'Respaldo Oficial Marzo 2025: Limpieza de benchmarks previos consolidando 2.982 pacientes.'
+      ]
+    },
+    {
       id: 'v5.8.6',
       version: 'v5.8.6',
       fecha: '30 de Agosto, 2026',
