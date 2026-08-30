@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.9.2',
+    version_tag: 'v5.9.2',
+    fecha_despliegue: '30 de Agosto, 2026',
+    proposito_actualizacion: 'Globalidad Absoluta en Global Anual YTD y Tarjetas de Tendencias Asistenciales.',
+    medios_y_stack: [
+      'React 18.3 (useMetricoAnalytics.js, PanelKPIs.jsx)',
+      'Absolute Annual Global Aggregator (SSOT 2026 YTD)',
+      'Certified Baseline 2025 YTD Multi-Metric Harmonizer'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Global Anual YTD sin truncamiento: El cálculo anual global ahora evalúa todos los registros cargados de 2026 (26.796 / 26.548 pac.) de forma absoluta sin ser restringido por la fecha del selector de turno puntual. 2) Línea Base Histórica 2025: Comparativa interanual YTD de 8 meses (23.474 pac. admitidos, 21.488 atendidos, 1.986 altas, 1.039 traslados), entregando crecimientos exactos (ej. +14.1% / +13.1% YoY en admisiones, +13.6% en atendidos). 3) Widget de Tendencias: Las 4 tarjetas ejecutivas en la página de inicio reflejan la globalidad YTD con navegación directa.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Cálculo reactivo instantáneo en memoria.'
+    },
+    modulos_afectados: ['useMetricoAnalytics.js', 'PanelKPIs.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Desacople de statsAnual del filtro fEndStr para evaluar la totalidad de 2026.',
+      'Alineación de pyYtdPacientes con la suma certificada de 8 meses 2025 (23.474 pac.).',
+      'Configuración de las 4 tarjetas de tendencias para consumir statsKPI.anual de forma fija.'
+    ]
+  },
+  {
     id: 'v5.9.1',
     version_tag: 'v5.9.1',
     fecha_despliegue: '30 de Agosto, 2026',

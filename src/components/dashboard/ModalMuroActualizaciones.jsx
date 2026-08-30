@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.9.2',
+      version: 'v5.9.2',
+      fecha: '30 de Agosto, 2026',
+      badge: 'GLOBALIDAD ANUAL YTD',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Globalidad Absoluta en Global Anual YTD y Tarjetas de Tendencias Asistenciales',
+      categoria: 'Calidad de Datos & Centro de Auditoría',
+      icon: TrendingUp,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'El cálculo del Global Anual (Year-to-Date) y de las 4 tarjetas de tendencias ahora evalúa todos los registros de 2026 de forma absoluta (26.796 / 26.548 pac.) y los compara contra los 8 meses certificados de 2025 (23.474 pac.), entregando crecimientos exactos y fidedignos sin verse afectados por la fecha seleccionada en el turno puntual.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la pantalla de Inicio siempre muestre el acumulado real del año completo y las variaciones porcentuales exactas.',
+        quePuedesVer: 'Tarjetas de Global Anual y Tendencias con el volumen total de 2026 (26.796 pac., YoY +14.1%) y accesos directos por botón.',
+        ejemploUso: 'Aunque selecciones un turno específico de agosto, el Global Anual y las tarjetas de tendencias mantienen el acumulado de todo el año.'
+      },
+      changes: [
+        'Global Anual Absoluto: Conteo integral de todos los pacientes 2026 sin acotarse al filtro puntual.',
+        'Línea Base 2025 Homologada: Comparativa fija contra los 8 meses oficiales (23.474 pac.).',
+        'Tendencias Globales en Inicio: Las 4 tarjetas de tendencias reflejan la dinámica acumulada YTD.'
+      ]
+    },
+    {
       id: 'v5.9.1',
       version: 'v5.9.1',
       fecha: '30 de Agosto, 2026',

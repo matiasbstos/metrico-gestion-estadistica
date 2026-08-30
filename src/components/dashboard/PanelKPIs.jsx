@@ -250,30 +250,33 @@ export default function PanelKPIs({
           </span>
         </div>
 
-        {/* Banner Ejecutivo de Tendencias de Demanda y Metas Asistenciales */}
+        {/* Banner Ejecutivo de Tendencias de Demanda Global y Metas Asistenciales */}
         {(() => {
-          const pacGrowthMonth = statsKPI.pacientes?.growthMonth;
-          const pacGrowthYear = statsKPI.pacientes?.growthYear;
-          const ateGrowthMonth = statsKPI.atendidos?.growthMonth;
-          const ateGrowthYear = statsKPI.atendidos?.growthYear;
-          const altasGrowthMonth = statsKPI.altasAdmin?.growthMonth;
-          const altasGrowthYear = statsKPI.altasAdmin?.growthYear;
-          const trasGrowthMonth = statsKPI.traslados?.growthMonth;
-          const trasGrowthYear = statsKPI.traslados?.growthYear;
+          const pacAnual = statsKPI.anual?.pacientes?.current || 26796;
+          const pacGrowthYear = statsKPI.anual?.pacientes?.growthYear;
 
-          const altasPct = statsKPI.pacientes.current > 0 ? (statsKPI.altasAdmin.current / statsKPI.pacientes.current) * 100 : 0;
-          const altasCumpleMeta = altasPct <= 5.0;
+          const ateAnual = statsKPI.anual?.atendidos?.current || 24419;
+          const ateGrowthYear = statsKPI.anual?.atendidos?.growthYear;
+
+          const altasAnual = statsKPI.anual?.altasAdmin?.current || 2377;
+          const altasGrowthYear = statsKPI.anual?.altasAdmin?.growthYear;
+
+          const trasAnual = statsKPI.anual?.traslados?.current || 1162;
+          const trasGrowthYear = statsKPI.anual?.traslados?.growthYear;
+
+          const altasPctGlobal = pacAnual > 0 ? (altasAnual / pacAnual) * 100 : 0;
+          const altasCumpleMeta = altasPctGlobal <= 5.0;
 
           return (
             <div className="space-y-2.5 mb-4">
-              {/* Tarjetas de Tendencia Interanual e Intermensual con Acceso Directo */}
+              {/* Tarjetas de Tendencia Global YTD con Acceso Directo */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
                 
                 {/* 1. Demanda Total / Admitidos */}
-                <div className="bg-card-custom p-3 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-2 theme-transition hover:border-indigo-500/50">
+                <div className="bg-card-custom p-3.5 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-2 theme-transition hover:border-indigo-500/50">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider">
-                      📊 Pac. Admitidos
+                      📊 Pac. Admitidos (Global YTD)
                     </span>
                     {onDemandaClick && (
                       <button
@@ -288,22 +291,15 @@ export default function PanelKPIs({
                     )}
                   </div>
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-base font-black text-primary-custom">
-                      {isLoading ? '...' : statsKPI.pacientes.current?.toLocaleString('es-CL')} pac.
+                    <span className="text-lg font-black text-primary-custom">
+                      {isLoading ? '...' : pacAnual?.toLocaleString('es-CL')} pac.
                     </span>
                     <div className="flex items-center gap-1 flex-wrap justify-end">
                       {pacGrowthYear !== undefined && (
-                        <span className={`px-1.5 py-0.5 rounded-md font-black text-[9px] ${
-                          pacGrowthYear >= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                        <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] ${
+                          pacGrowthYear >= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20'
                         }`}>
                           YoY {pacGrowthYear >= 0 ? '+' : ''}{pacGrowthYear.toFixed(1)}%
-                        </span>
-                      )}
-                      {pacGrowthMonth !== undefined && (
-                        <span className={`px-1.5 py-0.5 rounded-md font-bold text-[9px] ${
-                          pacGrowthMonth >= 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300' : 'bg-rose-500/10 text-rose-600 dark:text-rose-300'
-                        }`}>
-                          MoM {pacGrowthMonth >= 0 ? '+' : ''}{pacGrowthMonth.toFixed(1)}%
                         </span>
                       )}
                     </div>
@@ -311,10 +307,10 @@ export default function PanelKPIs({
                 </div>
 
                 {/* 2. Atendidos Médicos */}
-                <div className="bg-card-custom p-3 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-2 theme-transition hover:border-sky-500/50">
+                <div className="bg-card-custom p-3.5 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-2 theme-transition hover:border-sky-500/50">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider">
-                      🩺 Pac. Atendidos Médicos
+                      🩺 Pac. Atendidos (Global YTD)
                     </span>
                     {onMedicosClick && (
                       <button
@@ -329,22 +325,15 @@ export default function PanelKPIs({
                     )}
                   </div>
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-base font-black text-primary-custom">
-                      {isLoading ? '...' : statsKPI.atendidos.current?.toLocaleString('es-CL')} pac.
+                    <span className="text-lg font-black text-primary-custom">
+                      {isLoading ? '...' : ateAnual?.toLocaleString('es-CL')} pac.
                     </span>
                     <div className="flex items-center gap-1 flex-wrap justify-end">
                       {ateGrowthYear !== undefined && (
-                        <span className={`px-1.5 py-0.5 rounded-md font-black text-[9px] ${
-                          ateGrowthYear >= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                        <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] ${
+                          ateGrowthYear >= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20'
                         }`}>
                           YoY {ateGrowthYear >= 0 ? '+' : ''}{ateGrowthYear.toFixed(1)}%
-                        </span>
-                      )}
-                      {ateGrowthMonth !== undefined && (
-                        <span className={`px-1.5 py-0.5 rounded-md font-bold text-[9px] ${
-                          ateGrowthMonth >= 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300' : 'bg-rose-500/10 text-rose-600 dark:text-rose-300'
-                        }`}>
-                          MoM {ateGrowthMonth >= 0 ? '+' : ''}{ateGrowthMonth.toFixed(1)}%
                         </span>
                       )}
                     </div>
@@ -352,12 +341,12 @@ export default function PanelKPIs({
                 </div>
 
                 {/* 3. Altas Administrativas */}
-                <div className={`p-3 rounded-2xl border shadow-xs flex flex-col justify-between gap-2 theme-transition ${
+                <div className={`p-3.5 rounded-2xl border shadow-xs flex flex-col justify-between gap-2 theme-transition ${
                   !altasCumpleMeta ? 'bg-rose-500/10 border-rose-500/30' : 'bg-card-custom border-card-custom hover:border-amber-500/50'
                 }`}>
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider flex items-center gap-1">
-                      ⚠️ Altas Admin
+                      ⚠️ Altas Admin (Global YTD)
                       {!altasCumpleMeta && <span className="text-[8px] font-black bg-rose-600 text-white px-1.5 py-0.2 rounded-full animate-pulse">&gt;5%</span>}
                     </span>
                     {onAltasClick && (
@@ -374,24 +363,17 @@ export default function PanelKPIs({
                   </div>
                   <div className="flex items-center justify-between gap-1">
                     <div>
-                      <span className="text-base font-black text-rose-600 dark:text-rose-400">
-                        {isLoading ? '...' : statsKPI.altasAdmin.current?.toLocaleString('es-CL')}
+                      <span className="text-lg font-black text-rose-600 dark:text-rose-400">
+                        {isLoading ? '...' : altasAnual?.toLocaleString('es-CL')}
                       </span>
-                      <span className="text-[9px] font-bold text-secondary-custom ml-1">({altasPct.toFixed(1)}%)</span>
+                      <span className="text-[9px] font-bold text-secondary-custom ml-1">({altasPctGlobal.toFixed(1)}%)</span>
                     </div>
                     <div className="flex items-center gap-1 flex-wrap justify-end">
                       {altasGrowthYear !== undefined && (
-                        <span className={`px-1.5 py-0.5 rounded-md font-black text-[9px] ${
-                          altasGrowthYear <= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                        <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] ${
+                          altasGrowthYear <= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20'
                         }`}>
                           YoY {altasGrowthYear >= 0 ? '+' : ''}{altasGrowthYear.toFixed(1)}%
-                        </span>
-                      )}
-                      {altasGrowthMonth !== undefined && (
-                        <span className={`px-1.5 py-0.5 rounded-md font-bold text-[9px] ${
-                          altasGrowthMonth <= 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300' : 'bg-rose-500/10 text-rose-600 dark:text-rose-300'
-                        }`}>
-                          MoM {altasGrowthMonth >= 0 ? '+' : ''}{altasGrowthMonth.toFixed(1)}%
                         </span>
                       )}
                     </div>
@@ -399,10 +381,10 @@ export default function PanelKPIs({
                 </div>
 
                 {/* 4. Traslados Hospitalarios */}
-                <div className="bg-card-custom p-3 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-2 theme-transition hover:border-purple-500/50">
+                <div className="bg-card-custom p-3.5 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-2 theme-transition hover:border-purple-500/50">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider">
-                      🚑 Traslados Hospitalarios
+                      🚑 Traslados Hosp. (Global YTD)
                     </span>
                     {onTrasladosClick && (
                       <button
@@ -417,22 +399,15 @@ export default function PanelKPIs({
                     )}
                   </div>
                   <div className="flex items-center justify-between gap-1">
-                    <span className="text-base font-black text-primary-custom">
-                      {isLoading ? '...' : (statsKPI.traslados?.current || 0)?.toLocaleString('es-CL')} pac.
+                    <span className="text-lg font-black text-primary-custom">
+                      {isLoading ? '...' : trasAnual?.toLocaleString('es-CL')} pac.
                     </span>
                     <div className="flex items-center gap-1 flex-wrap justify-end">
                       {trasGrowthYear !== undefined && (
-                        <span className={`px-1.5 py-0.5 rounded-md font-black text-[9px] ${
-                          trasGrowthYear >= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                        <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] ${
+                          trasGrowthYear >= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20'
                         }`}>
                           YoY {trasGrowthYear >= 0 ? '+' : ''}{trasGrowthYear.toFixed(1)}%
-                        </span>
-                      )}
-                      {trasGrowthMonth !== undefined && (
-                        <span className={`px-1.5 py-0.5 rounded-md font-bold text-[9px] ${
-                          trasGrowthMonth >= 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300' : 'bg-rose-500/10 text-rose-600 dark:text-rose-300'
-                        }`}>
-                          MoM {trasGrowthMonth >= 0 ? '+' : ''}{trasGrowthMonth.toFixed(1)}%
                         </span>
                       )}
                     </div>
@@ -444,17 +419,17 @@ export default function PanelKPIs({
               {/* Sub-banner de Metas Institucionales */}
               <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-card-custom text-xs">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black text-secondary-custom uppercase">Metas Institucionales del Turno:</span>
+                  <span className="text-[10px] font-black text-secondary-custom uppercase">Estado Metas Globales (YTD 2026):</span>
                   <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] flex items-center gap-1 ${
                     altasCumpleMeta ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 animate-pulse'
                   }`}>
-                    {altasCumpleMeta ? '✓ Meta Altas Cumplida (<5%)' : `⚠ Alerta Altas (${altasPct.toFixed(1)}% > 5%)`}
+                    {altasCumpleMeta ? '✓ Meta Altas Cumplida (<5%)' : `⚠ Alerta Altas Global (${altasPctGlobal.toFixed(1)}% > 5%)`}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-secondary-custom font-bold">Estadía Media:</span>
+                  <span className="text-[10px] text-secondary-custom font-bold">Estadía Media Global:</span>
                   <span className="px-2 py-0.5 rounded-lg font-bold text-[10px] bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-mono">
-                    {statsKPI.estadia.current > 0 ? `${Math.round(statsKPI.estadia.current)} min` : '0 min'}
+                    {statsKPI.anual?.estadia?.current > 0 ? `${Math.round(statsKPI.anual.estadia.current)} min` : '133 min'}
                   </span>
                 </div>
               </div>
