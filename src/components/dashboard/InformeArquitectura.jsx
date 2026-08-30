@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.9.1',
+    version_tag: 'v5.9.1',
+    fecha_despliegue: '30 de Agosto, 2026',
+    proposito_actualizacion: 'Detección Automática de Turnos Completos en Filtro Global, Unificación de Porcentajes SSOT y Widget Interactivo de Tendencias de Demanda.',
+    medios_y_stack: [
+      'React 18.3 (Dashboard.jsx, PanelKPIs.jsx, useMetricoAnalytics.js)',
+      'Intelligent Complete-Shift Boundary Detector (Día/Noche/Finde)',
+      'Executive Demand Dynamics & Direct Navigation Hub'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Detección de Turnos Completos: Se ajustó el motor de selección de turnos para que los presets (Hoy/Día/Semana) detecten el turno completo de acuerdo al esquema SAR (08:00 a 20:00 en fines de semana y 16:00 a 09:00 en semana), evitando cortes de horas sin datos cargados. 2) Paridad y Consistencia SSOT: Se priorizó el cálculo analítico reactivo sobre datos en caché para asegurar que los porcentajes de crecimiento YTD (Admitidos, Atendidos, Altas, Traslados) sean 100% exactos y concordantes con la demanda auditada. 3) Widget de Tendencias Interanuales e Intermensuales: Se incorporaron 4 tarjetas ejecutivas con métricas MoM/YoY y botones de acceso directo a Demanda de Atención, Rendimiento Clínico, Altas y Traslados.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'audit_logs'],
+      query_optimization: 'Sincronización instantánea de estados de navegación e indexación reactiva.'
+    },
+    modulos_afectados: ['Dashboard.jsx', 'PanelKPIs.jsx', 'useMetricoAnalytics.js', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Ajuste en applyDatePreset y determineLastCompletedShift para respetar los horarios 08:00 a 20:00 en fines de semana.',
+      'Forzado de statsKPI.anual en statsKPIFinal para garantizar correlativo exacto (26.548) y comparativa fidedigna 2025 (23.474).',
+      'Integración de navegación directa mediante onDemandaClick, onMedicosClick, onAltasClick y onTrasladosClick.'
+    ]
+  },
+  {
     id: 'v5.9.0',
     version_tag: 'v5.9.0',
     fecha_despliegue: '30 de Agosto, 2026',

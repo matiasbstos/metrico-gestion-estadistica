@@ -473,20 +473,58 @@ const DashboardContent = () => {
         setHorarioPreset('largo');
         return;
       } else {
-        startA = endA = baseDate;
-        startB = endB = new Date(baseDate.getTime() - 24 * 60 * 60 * 1000);
+        const hours = baseDate.getHours();
+        const minutes = baseDate.getMinutes();
+        const timeDecimal = hours + minutes / 60;
+
+        setFiltroFechaInicio(maxDateStr);
+        if (timeDecimal >= 8.0 && timeDecimal < 20.0) {
+          setFiltroFechaFin(maxDateStr);
+          setFiltroHoraInicio('08:00');
+          setFiltroHoraFin('20:00');
+          setHorarioPreset('finde_dia');
+        } else if (timeDecimal >= 20.0) {
+          // Finde Día completado hoy
+          setFiltroFechaFin(maxDateStr);
+          setFiltroHoraInicio('08:00');
+          setFiltroHoraFin('20:00');
+          setHorarioPreset('finde_dia');
+        } else {
+          // Madrugada Finde Noche
+          const prevDate = new Date(baseDate);
+          prevDate.setDate(prevDate.getDate() - 1);
+          setFiltroFechaInicio(formatDate(prevDate));
+          setFiltroFechaFin(maxDateStr);
+          setFiltroHoraInicio('20:00');
+          setFiltroHoraFin('08:00');
+          setHorarioPreset('finde_noche');
+        }
+        return;
       }
     } else if (preset === 'invierno_2026') {
       startA = new Date(2026, 5, 1);
       endA = new Date(2026, 8, 0);
       startB = new Date(2025, 5, 1);
       endB = new Date(2025, 8, 0);
+      setFiltroHoraInicio('00:00');
+      setFiltroHoraFin('23:59');
+      setHorarioPreset('civil');
     } else if (preset === 'invierno_2025') {
       startA = new Date(2025, 5, 1);
       endA = new Date(2025, 8, 0);
       startB = new Date(2024, 5, 1);
       endB = new Date(2024, 8, 0);
+      setFiltroHoraInicio('00:00');
+      setFiltroHoraFin('23:59');
+      setHorarioPreset('civil');
     }
+
+    if (preset === 'mes' || preset === 'semana') {
+      setFiltroHoraInicio('00:00');
+      setFiltroHoraFin('23:59');
+      setHorarioPreset('civil');
+    }
+
     setFiltroFechaInicio(formatDate(startA));
     setFiltroFechaFin(formatDate(endA));
     if(modoComparativo) {
@@ -692,10 +730,14 @@ const DashboardContent = () => {
 
     return {
       ...base,
-      // Garantizar paridad 100% entre las tarjetas del Resumen y los sub-módulos específicos (Constataciones, Traslados, Altas)
-      constataciones: statsKPI?.constataciones || base.constataciones,
-      traslados: statsKPI?.traslados || base.traslados,
+      anual: statsKPI?.anual || base.anual,
+      pacientes: statsKPI?.pacientes || base.pacientes,
+      atendidos: statsKPI?.atendidos || base.atendidos,
+      estadia: statsKPI?.estadia || base.estadia,
+      pacHora: statsKPI?.pacHora || base.pacHora,
       altasAdmin: statsKPI?.altasAdmin || base.altasAdmin,
+      traslados: statsKPI?.traslados || base.traslados,
+      constataciones: statsKPI?.constataciones || base.constataciones,
       categorias: statsKPI?.categorias || base.categorias,
       demo: { avgEdad, fonasaPercent, meliPercent }
     };
@@ -2041,9 +2083,11 @@ const DashboardContent = () => {
                 <PanelKPIs 
                   statsKPI={statsKPIFinal} 
                   isLoading={loading || loadingKpis}
-                  onAltasClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); }} 
-                  onTrasladosClick={() => { setActiveTab('traslados'); setSubTabEspecifico('traslados'); }} 
-                  onConstatacionesClick={() => { setActiveTab('constataciones'); setSubTabEspecifico('constataciones'); }} 
+                  onDemandaClick={() => { setActiveTab('especificos'); setSubTabEspecifico('demanda'); }}
+                  onMedicosClick={() => setActiveTab('rendimiento_clinico')}
+                  onAltasClick={() => { setActiveTab('especificos'); setSubTabEspecifico('altas'); }} 
+                  onTrasladosClick={() => { setActiveTab('especificos'); setSubTabEspecifico('traslados'); }} 
+                  onConstatacionesClick={() => { setActiveTab('especificos'); setSubTabEspecifico('constataciones'); }} 
                 />
               </div>
             )}

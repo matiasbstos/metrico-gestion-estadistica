@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.9.1',
+      version: 'v5.9.1',
+      fecha: '30 de Agosto, 2026',
+      badge: 'TURNOS COMPLETOS & TENDENCIAS DE DEMANDA',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Detección de Turnos Completos en Filtro Global y Widget de Tendencias Asistenciales',
+      categoria: 'Calidad de Datos & Centro de Auditoría',
+      icon: TrendingUp,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se calibró el selector de turnos para alinearse con los horarios oficiales SAR de fin de semana (08:00 a 20:00) y de semana (16:00 a 09:00), se unificaron los porcentajes de crecimiento YTD contra la línea base SSOT y se creó un nuevo widget interactivo de Tendencias de Demanda con botones directos.',
+      instructivo: {
+        paraQueSirve: 'Permite seleccionar el último turno completo sin desfases horarios y acceder con 1 clic a los análisis específicos desde la pantalla principal.',
+        quePuedesVer: 'En la pantalla de Inicio: 4 tarjetas ejecutivas de tendencias (Admitidos, Atendidos, Altas y Traslados) con variaciones YoY y MoM, y botones directos a cada sección.',
+        ejemploUso: 'Haz clic en "Demanda ↗" en la tarjeta de Pacientes Admitidos para ir directo al análisis de demanda de atención.'
+      },
+      changes: [
+        'Alineación de Turnos SAR: Detección inteligente de turnos completos (Finde Día 08:00-20:00 y Turno Largo 16:00-09:00).',
+        'Consistencia de Porcentajes SSOT: Corrección definitiva de comparativas anuales contra la línea base 2025.',
+        'Widget de Tendencias Asistenciales: Navegación directa a Demanda, Rendimiento Clínico, Altas y Traslados.'
+      ]
+    },
+    {
       id: 'v5.9.0',
       version: 'v5.9.0',
       fecha: '30 de Agosto, 2026',

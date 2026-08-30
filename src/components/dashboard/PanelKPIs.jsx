@@ -3,7 +3,15 @@ import { TrendingUp, TrendingDown, AlertTriangle, ArrowUpRight, Hourglass } from
 import InfoTooltip from '../InfoTooltip';
 import { COLORS } from '../../config/constants';
 
-export default function PanelKPIs({ statsKPI, onAltasClick, onTrasladosClick, onConstatacionesClick, isLoading }) {
+export default function PanelKPIs({ 
+  statsKPI, 
+  onDemandaClick, 
+  onMedicosClick, 
+  onAltasClick, 
+  onTrasladosClick, 
+  onConstatacionesClick, 
+  isLoading 
+}) {
   if (!statsKPI) return null;
 
   const getGrowthBadge = (growth, isInverted = false) => {
@@ -242,48 +250,213 @@ export default function PanelKPIs({ statsKPI, onAltasClick, onTrasladosClick, on
           </span>
         </div>
 
-        {/* Banner de Crecimiento/Decrecimiento y Metas Institucionales */}
+        {/* Banner Ejecutivo de Tendencias de Demanda y Metas Asistenciales */}
         {(() => {
           const pacGrowthMonth = statsKPI.pacientes?.growthMonth;
           const pacGrowthYear = statsKPI.pacientes?.growthYear;
+          const ateGrowthMonth = statsKPI.atendidos?.growthMonth;
+          const ateGrowthYear = statsKPI.atendidos?.growthYear;
+          const altasGrowthMonth = statsKPI.altasAdmin?.growthMonth;
+          const altasGrowthYear = statsKPI.altasAdmin?.growthYear;
+          const trasGrowthMonth = statsKPI.traslados?.growthMonth;
+          const trasGrowthYear = statsKPI.traslados?.growthYear;
+
           const altasPct = statsKPI.pacientes.current > 0 ? (statsKPI.altasAdmin.current / statsKPI.pacientes.current) * 100 : 0;
           const altasCumpleMeta = altasPct <= 5.0;
 
           return (
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-3 p-3 rounded-2xl bg-black/5 dark:bg-white/5 border border-card-custom text-xs">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-bold text-secondary-custom uppercase tracking-wider text-[10px]">
-                  📊 Tendencia de Demanda:
-                </span>
-                {pacGrowthMonth !== undefined && (
-                  <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] flex items-center gap-1 ${
-                    pacGrowthMonth >= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20'
-                  }`}>
-                    {pacGrowthMonth >= 0 ? '▲ Crecimiento MoM:' : '▼ Decrecimiento MoM:'} {pacGrowthMonth >= 0 ? '+' : ''}{pacGrowthMonth.toFixed(1)}%
-                  </span>
-                )}
-                {pacGrowthYear !== undefined && (
-                  <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] flex items-center gap-1 ${
-                    pacGrowthYear >= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20'
-                  }`}>
-                    {pacGrowthYear >= 0 ? '▲ Crecimiento YoY:' : '▼ Decrecimiento YoY:'} {pacGrowthYear >= 0 ? '+' : ''}{pacGrowthYear.toFixed(1)}%
-                  </span>
-                )}
-                {pacGrowthMonth === undefined && pacGrowthYear === undefined && (
-                  <span className="text-[10px] font-semibold text-secondary-custom">Evaluación continua en tiempo real</span>
-                )}
+            <div className="space-y-2.5 mb-4">
+              {/* Tarjetas de Tendencia Interanual e Intermensual con Acceso Directo */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                
+                {/* 1. Demanda Total / Admitidos */}
+                <div className="bg-card-custom p-3 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-2 theme-transition hover:border-indigo-500/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider">
+                      📊 Pac. Admitidos
+                    </span>
+                    {onDemandaClick && (
+                      <button
+                        type="button"
+                        onClick={onDemandaClick}
+                        className="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-0.5 cursor-pointer"
+                        title="Ver análisis específico de demanda de atención"
+                      >
+                        <span>Demanda</span>
+                        <ArrowUpRight className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-base font-black text-primary-custom">
+                      {isLoading ? '...' : statsKPI.pacientes.current?.toLocaleString('es-CL')} pac.
+                    </span>
+                    <div className="flex items-center gap-1 flex-wrap justify-end">
+                      {pacGrowthYear !== undefined && (
+                        <span className={`px-1.5 py-0.5 rounded-md font-black text-[9px] ${
+                          pacGrowthYear >= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                        }`}>
+                          YoY {pacGrowthYear >= 0 ? '+' : ''}{pacGrowthYear.toFixed(1)}%
+                        </span>
+                      )}
+                      {pacGrowthMonth !== undefined && (
+                        <span className={`px-1.5 py-0.5 rounded-md font-bold text-[9px] ${
+                          pacGrowthMonth >= 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300' : 'bg-rose-500/10 text-rose-600 dark:text-rose-300'
+                        }`}>
+                          MoM {pacGrowthMonth >= 0 ? '+' : ''}{pacGrowthMonth.toFixed(1)}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Atendidos Médicos */}
+                <div className="bg-card-custom p-3 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-2 theme-transition hover:border-sky-500/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider">
+                      🩺 Pac. Atendidos Médicos
+                    </span>
+                    {onMedicosClick && (
+                      <button
+                        type="button"
+                        onClick={onMedicosClick}
+                        className="text-[9px] font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-0.5 cursor-pointer"
+                        title="Ver análisis de rendimiento clínico y médicos"
+                      >
+                        <span>Clínico</span>
+                        <ArrowUpRight className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-base font-black text-primary-custom">
+                      {isLoading ? '...' : statsKPI.atendidos.current?.toLocaleString('es-CL')} pac.
+                    </span>
+                    <div className="flex items-center gap-1 flex-wrap justify-end">
+                      {ateGrowthYear !== undefined && (
+                        <span className={`px-1.5 py-0.5 rounded-md font-black text-[9px] ${
+                          ateGrowthYear >= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                        }`}>
+                          YoY {ateGrowthYear >= 0 ? '+' : ''}{ateGrowthYear.toFixed(1)}%
+                        </span>
+                      )}
+                      {ateGrowthMonth !== undefined && (
+                        <span className={`px-1.5 py-0.5 rounded-md font-bold text-[9px] ${
+                          ateGrowthMonth >= 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300' : 'bg-rose-500/10 text-rose-600 dark:text-rose-300'
+                        }`}>
+                          MoM {ateGrowthMonth >= 0 ? '+' : ''}{ateGrowthMonth.toFixed(1)}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Altas Administrativas */}
+                <div className={`p-3 rounded-2xl border shadow-xs flex flex-col justify-between gap-2 theme-transition ${
+                  !altasCumpleMeta ? 'bg-rose-500/10 border-rose-500/30' : 'bg-card-custom border-card-custom hover:border-amber-500/50'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider flex items-center gap-1">
+                      ⚠️ Altas Admin
+                      {!altasCumpleMeta && <span className="text-[8px] font-black bg-rose-600 text-white px-1.5 py-0.2 rounded-full animate-pulse">&gt;5%</span>}
+                    </span>
+                    {onAltasClick && (
+                      <button
+                        type="button"
+                        onClick={onAltasClick}
+                        className="text-[9px] font-bold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-0.5 cursor-pointer"
+                        title="Ver desglose detallado de altas administrativas"
+                      >
+                        <span>Altas</span>
+                        <ArrowUpRight className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between gap-1">
+                    <div>
+                      <span className="text-base font-black text-rose-600 dark:text-rose-400">
+                        {isLoading ? '...' : statsKPI.altasAdmin.current?.toLocaleString('es-CL')}
+                      </span>
+                      <span className="text-[9px] font-bold text-secondary-custom ml-1">({altasPct.toFixed(1)}%)</span>
+                    </div>
+                    <div className="flex items-center gap-1 flex-wrap justify-end">
+                      {altasGrowthYear !== undefined && (
+                        <span className={`px-1.5 py-0.5 rounded-md font-black text-[9px] ${
+                          altasGrowthYear <= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                        }`}>
+                          YoY {altasGrowthYear >= 0 ? '+' : ''}{altasGrowthYear.toFixed(1)}%
+                        </span>
+                      )}
+                      {altasGrowthMonth !== undefined && (
+                        <span className={`px-1.5 py-0.5 rounded-md font-bold text-[9px] ${
+                          altasGrowthMonth <= 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300' : 'bg-rose-500/10 text-rose-600 dark:text-rose-300'
+                        }`}>
+                          MoM {altasGrowthMonth >= 0 ? '+' : ''}{altasGrowthMonth.toFixed(1)}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. Traslados Hospitalarios */}
+                <div className="bg-card-custom p-3 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-2 theme-transition hover:border-purple-500/50">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider">
+                      🚑 Traslados Hospitalarios
+                    </span>
+                    {onTrasladosClick && (
+                      <button
+                        type="button"
+                        onClick={onTrasladosClick}
+                        className="text-[9px] font-bold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-0.5 cursor-pointer"
+                        title="Ver detalle de traslados a centros hospitalarios"
+                      >
+                        <span>Traslados</span>
+                        <ArrowUpRight className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-base font-black text-primary-custom">
+                      {isLoading ? '...' : (statsKPI.traslados?.current || 0)?.toLocaleString('es-CL')} pac.
+                    </span>
+                    <div className="flex items-center gap-1 flex-wrap justify-end">
+                      {trasGrowthYear !== undefined && (
+                        <span className={`px-1.5 py-0.5 rounded-md font-black text-[9px] ${
+                          trasGrowthYear >= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                        }`}>
+                          YoY {trasGrowthYear >= 0 ? '+' : ''}{trasGrowthYear.toFixed(1)}%
+                        </span>
+                      )}
+                      {trasGrowthMonth !== undefined && (
+                        <span className={`px-1.5 py-0.5 rounded-md font-bold text-[9px] ${
+                          trasGrowthMonth >= 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300' : 'bg-rose-500/10 text-rose-600 dark:text-rose-300'
+                        }`}>
+                          MoM {trasGrowthMonth >= 0 ? '+' : ''}{trasGrowthMonth.toFixed(1)}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-bold text-secondary-custom">Metas Institucionales:</span>
-                <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] flex items-center gap-1 ${
-                  altasCumpleMeta ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20 animate-pulse'
-                }`}>
-                  {altasCumpleMeta ? '✓ Meta Altas Cumplida (<5%)' : `⚠ Alerta Altas (${altasPct.toFixed(1)}% > 5%)`}
-                </span>
-                <span className="px-2 py-0.5 rounded-lg font-bold text-[10px] bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                  Estadía: {statsKPI.estadia.current > 0 ? `${Math.round(statsKPI.estadia.current)} min` : '0 min'}
-                </span>
+              {/* Sub-banner de Metas Institucionales */}
+              <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-card-custom text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-secondary-custom uppercase">Metas Institucionales del Turno:</span>
+                  <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] flex items-center gap-1 ${
+                    altasCumpleMeta ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 animate-pulse'
+                  }`}>
+                    {altasCumpleMeta ? '✓ Meta Altas Cumplida (<5%)' : `⚠ Alerta Altas (${altasPct.toFixed(1)}% > 5%)`}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-secondary-custom font-bold">Estadía Media:</span>
+                  <span className="px-2 py-0.5 rounded-lg font-bold text-[10px] bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-mono">
+                    {statsKPI.estadia.current > 0 ? `${Math.round(statsKPI.estadia.current)} min` : '0 min'}
+                  </span>
+                </div>
               </div>
             </div>
           );
