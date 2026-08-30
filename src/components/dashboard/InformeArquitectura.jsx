@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.8.6',
+    version_tag: 'v5.8.6',
+    fecha_despliegue: '30 de Agosto, 2026',
+    proposito_actualizacion: 'Calibración y Certificación de la Línea Base Histórica 2025 en Base a Reportes Oficiales Rayen (Ene a May).',
+    medios_y_stack: [
+      'React 18.3 (AnalisisDemandaAtencion.jsx, useMetricoAnalytics.js, Dashboard.jsx)',
+      'Rayen Certified Monthly Reports (00:00 a 23:59 Mes Civil)',
+      'YoY Accurate Percentage Growth Matrix'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Calibración Oficial 2025: Se incorporaron las cifras exactas de los reportes oficiales Rayen para Enero (2.454), Febrero (2.193), Marzo (2.982), Abril (3.242) y Mayo (3.322) sustituyendo las estimaciones previas. 2) Criterio de Mes Civil Estricto: Se validó que las comparativas mensuales se evalúen desde las 00:00:00 del primer día hasta las 23:59:59 del último día del mes, garantizando 100% de consistencia contra auditorías oficiales Rayen.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'benchmarks_oficiales'],
+      query_optimization: 'Cómputo instantáneo con matriz histórica certificada.'
+    },
+    modulos_afectados: ['AnalisisDemandaAtencion.jsx', 'useMetricoAnalytics.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Actualización de BASELINE_SAR_2025 (Ene: 2.454, Feb: 2.193, Mar: 2.982, Abr: 3.242, May: 3.322).',
+      'Desglose exacto de atendidos médicos y altas administrativas para cada mes certificado.',
+      'Sincronización de acumulados anuales en useMetricoAnalytics.js y Dashboard.jsx.'
+    ]
+  },
+  {
     id: 'v5.8.5',
     version_tag: 'v5.8.5',
     fecha_despliegue: '29 de Agosto, 2026',

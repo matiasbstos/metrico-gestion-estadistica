@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.8.6',
+      version: 'v5.8.6',
+      fecha: '30 de Agosto, 2026',
+      badge: 'CERTIFICACIÓN LÍNEA BASE 2025 RAYEN',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Certificación de Línea Base 2025 contra Reportes Oficiales Rayen',
+      categoria: 'Auditoría & Línea Base Histórica',
+      icon: CheckCircle2,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se calibraron las cifras históricas de 2025 con los reportes oficiales de Rayen (Enero 2.454, Febrero 2.193, Marzo 2.982, Abril 3.242, Mayo 3.322) evaluados en Mes Civil Completo (00:00 a 23:59), garantizando comparativas interanuales 100% auditadas.',
+      instructivo: {
+        paraQueSirve: 'Proporciona la línea base real de 2025 emitida por Rayen para contrastar el crecimiento interanual del SAR Elsa Romo Aravena.',
+        quePuedesVer: 'En Demanda de Atención: cada mes de 2025 con su cifra oficial Rayen de admitidos, atendidos médicos y altas administrativas.',
+        ejemploUso: 'Comprueba el mes de Marzo (2.982 pac.) y Abril (3.242 pac.) en el Hub Interanual para ver las variaciones reales.'
+      },
+      changes: [
+        'Línea Base Oficial Rayen 2025: Ene (2.454), Feb (2.193), Mar (2.982), Abr (3.242) y May (3.322).',
+        'Protocolo de Mes Civil: Rango estricto desde 01-MM 00:00 hasta último día 23:59.',
+        'Sincronización Total: Alineación de tablas, tarjetas y series de Recharts.'
+      ]
+    },
+    {
       id: 'v5.8.5',
       version: 'v5.8.5',
       fecha: '29 de Agosto, 2026',

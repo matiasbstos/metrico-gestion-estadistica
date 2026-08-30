@@ -719,8 +719,8 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const pyYearLoadedPacs = pyYearRange ? pacientesDB.filter(p => p.tAdmision && isPatientInWindowRange(p.tAdmision, pyYearRange)) : [];
     const dedupPyYearPacs = deduplicarPacientes(pyYearLoadedPacs);
 
-    // Línea Base Histórica SAR 2025 Acumulada para los meses transcurridos (Enero a Agosto = 26.370)
-    const BASELINE_2025_MONTHLY = { 1: 2980, 2: 2540, 3: 3320, 4: 3390, 5: 3980, 6: 3850, 7: 3200, 8: 3110, 9: 2940, 10: 2890, 11: 2760, 12: 2850 };
+    // Línea Base Histórica SAR 2025 Certificada Rayen (Mes Civil 00:00 a 23:59)
+    const BASELINE_2025_MONTHLY = { 1: 2454, 2: 2193, 3: 2982, 4: 3242, 5: 3322, 6: 3850, 7: 3200, 8: 3110, 9: 2940, 10: 2890, 11: 2760, 12: 2850 };
     const currentMonthNum = fEnd.getMonth() + 1;
     let baseline2025YtdSum = 0;
     for (let m = 1; m <= currentMonthNum; m++) {
@@ -739,7 +739,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       ? dedupPyYearPacs.filter(isAltaAdmin).length 
       : dedupPyYtdTurnos.reduce((acc, t) => acc + (t.altasAdmin || 0), 0);
     if (pyYtdAltas === 0 && pyYtdPacientes > 0) {
-      pyYtdAltas = Math.round(pyYtdPacientes * 0.1005); // ~2.650 altas en 2025
+      pyYtdAltas = Math.round(pyYtdPacientes * 0.076); // ~1.850 altas en 2025
     }
 
     const pyYtdAtendidos = Math.max(0, pyYtdPacientes - pyYtdAltas);

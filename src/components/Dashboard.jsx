@@ -619,17 +619,17 @@ const DashboardContent = () => {
             anual: {
               pacientes: { 
                 current: ytdData.totalAtenciones,
-                growthYear: getGrowth(ytdData.totalAtenciones, 26370)
+                growthYear: getGrowth(ytdData.totalAtenciones, 24353)
               },
               atendidos: { 
                 current: ytdData.totalAtenciones - ytdData.totalAltas,
-                growthYear: getGrowth(ytdData.totalAtenciones - ytdData.totalAltas, 23720)
+                growthYear: getGrowth(ytdData.totalAtenciones - ytdData.totalAltas, 22228)
               },
               estadia: { current: ytdData.avgEstadia },
               pacHora: { current: ytdPacHora },
               altasAdmin: { 
                 current: ytdData.totalAltas,
-                growthYear: getGrowth(ytdData.totalAltas, 2650)
+                growthYear: getGrowth(ytdData.totalAltas, 2125)
               },
               traslados: { current: ytdData.totalTraslados },
               constataciones: { current: ytdData.totalConstataciones },

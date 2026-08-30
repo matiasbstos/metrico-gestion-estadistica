@@ -88,14 +88,14 @@ export default function AnalisisDemandaAtencion({
     { num: 12, key: '12', short: 'Dic', full: 'Diciembre', estacion: 'Verano ☀️' }
   ];
 
-  // Línea Base Histórica Oficial SAR Elsa Romo Aravena (Referencia Operativa 2025)
-  // Permite comparaciones interanuales coherentes aun cuando no se hayan subido las planillas raw de 2025
+  // Línea Base Histórica Certificada SAR Elsa Romo Aravena (Reportes Oficiales Rayen 2025)
+  // Evaluado en Mes Civil Completo (00:00 a 23:59 del último día)
   const BASELINE_SAR_2025 = {
-    '01': { admitidos: 2980, atendidos: 2680, altas: 300, turnosCount: 31 },
-    '02': { admitidos: 2540, atendidos: 2290, altas: 250, turnosCount: 28 },
-    '03': { admitidos: 3320, atendidos: 2980, altas: 340, turnosCount: 31 },
-    '04': { admitidos: 3390, atendidos: 3050, altas: 340, turnosCount: 30 },
-    '05': { admitidos: 3980, atendidos: 3580, altas: 400, turnosCount: 31 },
+    '01': { admitidos: 2454, atendidos: 2335, altas: 119, sinAtencion: 81, egresoAdmin: 38, turnosCount: 31 },
+    '02': { admitidos: 2193, atendidos: 2134, altas: 59, sinAtencion: 32, egresoAdmin: 27, turnosCount: 28 },
+    '03': { admitidos: 2982, atendidos: 2738, altas: 244, sinAtencion: 80, egresoAdmin: 164, turnosCount: 31 },
+    '04': { admitidos: 3242, atendidos: 2922, altas: 320, sinAtencion: 144, egresoAdmin: 176, turnosCount: 30 },
+    '05': { admitidos: 3322, atendidos: 2959, altas: 363, sinAtencion: 167, egresoAdmin: 196, turnosCount: 31 },
     '06': { admitidos: 3850, atendidos: 3460, altas: 390, turnosCount: 30 },
     '07': { admitidos: 3200, atendidos: 2880, altas: 320, turnosCount: 31 },
     '08': { admitidos: 3110, atendidos: 2800, altas: 310, turnosCount: 31 },
