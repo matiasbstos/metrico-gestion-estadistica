@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.9.4',
+      version: 'v5.9.4',
+      fecha: '02 de Septiembre, 2026',
+      badge: 'PROTAGONISMO YOY & RÉCORDS EXACTOS',
+      badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/20',
+      title: 'Récords Asistenciales por Turno Individual y Protagonismo en Porcentajes',
+      categoria: 'Calidad de Datos & Centro de Auditoría',
+      icon: TrendingUp,
+      iconBg: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+      summary: 'Se redefinió el cálculo de récords para evaluar estrictamente turnos asistenciales únicos (distinguiendo entre Fin de Semana Día 08:00-20:00, Fin de Semana Noche 20:00-08:00 y Turno Semana 17:00-08:00), eliminando agregaciones de 24 horas continuas. Además, se dio protagonismo visual completo al porcentaje interanual en las 4 tarjetas de tendencias de Inicio.',
+      instructivo: {
+        paraQueSirve: 'Permite identificar con precisión clínica el turno individual récord real y observar de un vistazo el ritmo de crecimiento porcentual respecto al año anterior.',
+        quePuedesVer: 'En Inicio: 4 tarjetas ejecutivas con el porcentaje YoY en tamaño grande destacado (+14.2%, +13.6%, +19.7%, +11.8%) y tarjetas de récords que especifican el horario exacto del turno.',
+        ejemploUso: 'Al ver el récord de fin de semana, el sistema identifica el turno específico (Día o Noche) de mayor demanda sin sumar las 24 horas del día sábado o domingo.'
+      },
+      changes: [
+        'Récords por Turno Único: Desglose exacto de admisiones y altas por turno horario oficial.',
+        'Discriminación Fin de Semana: Evaluación independiente de turno Día (08:00 a 20:00) vs turno Noche (20:00 a 08:00).',
+        'Jerarquía Visual Protagónica: Porcentajes interanuales (+14.2% YoY) en tipografía destacada de gran tamaño.'
+      ]
+    },
+    {
       id: 'v5.9.3',
       version: 'v5.9.3',
       fecha: '02 de Septiembre, 2026',

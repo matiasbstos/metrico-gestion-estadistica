@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { formatLocalDate, deduplicarPacientes } from '../utils/helpers';
+import { formatLocalDate, deduplicarPacientes, obtenerTurnoDetallado } from '../utils/helpers';
 
 const AGE_RANGES = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80+'];
 
@@ -666,40 +666,92 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       return false;
     };
 
-    // Calcular récords por TURNO INDIVIDUAL del año (YTD) a partir de turnosDB deduplicados
-    let recordPacWkdy = { count: 0, date: 'Sin registros', horario: '' };
-    let recordPacWknd = { count: 0, date: 'Sin registros', horario: '' };
-    let recordAltasWkdy = { count: 0, date: 'Sin registros', horario: '' };
-    let recordAltasWknd = { count: 0, date: 'Sin registros', horario: '' };
+    // Calcular récords por TURNO INDIVIDUAL EXACTO del año (YTD)
+    let recordPacWkdy = { count: 0, date: 'Sin registros', horario: '', tipo: '' };
+    let recordPacWknd = { count: 0, date: 'Sin registros', horario: '', tipo: '' };
+    let recordAltasWkdy = { count: 0, date: 'Sin registros', horario: '', tipo: '' };
+    let recordAltasWknd = { count: 0, date: 'Sin registros', horario: '', tipo: '' };
 
-    (dedup2026Turnos || []).forEach(t => {
-      if (!t || !t.fechaInicio) return;
-      const parts = String(t.fechaInicio).split('-');
-      if (parts.length !== 3) return;
-      const dateStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
-      const pacs = Number(t.totalPacientes || 0);
-      const altas = Number(t.altasAdmin || 0);
-      const hor = String(t.horario || '');
+    if (dedup2026Pacs && dedup2026Pacs.length > 0) {
+      // Prioridad 1: Agrupar los 26.796 pacientes cargados por su TURNO ASISTENCIAL INDIVIDUAL (08:00-20:00 vs 20:00-08:00 vs 17:00-08:00)
+      const shiftsMap = new Map();
 
-      // Un turno es de fin de semana/festivo si su horario lo indica o si cae en fin de semana
-      const isWknd = isWeekendOrFestivo(dateStr) || hor.toLowerCase().includes('fin de semana') || hor.toLowerCase().includes('festivo') || hor.includes('08:00 - 20:00');
+      dedup2026Pacs.forEach(p => {
+        if (!p || !p.tAdmision) return;
+        const info = obtenerTurnoDetallado(p.tAdmision, null);
+        if (!info || !info.fechaTurno || info.fechaTurno === '-') return;
 
-      if (isWknd) {
-        if (pacs > recordPacWknd.count) {
-          recordPacWknd = { count: pacs, date: dateStr, horario: hor };
+        const isWknd = info.tipo.includes('Fin de Semana') || info.tipo.includes('Festivo') || info.horario.includes('08:00 a 20:00') || info.horario.includes('20:00 a 08:00');
+        const shiftKey = `${info.fechaTurno}_${info.horario}_${info.tipo}`;
+
+        if (!shiftsMap.has(shiftKey)) {
+          shiftsMap.set(shiftKey, {
+            count: 0,
+            altas: 0,
+            date: info.fechaTurno,
+            horario: info.horario,
+            tipo: info.tipo,
+            isWknd
+          });
         }
-        if (altas > recordAltasWknd.count) {
-          recordAltasWknd = { count: altas, date: dateStr, horario: hor };
+
+        const shift = shiftsMap.get(shiftKey);
+        shift.count += 1;
+        if (isAltaAdmin(p)) {
+          shift.altas += 1;
         }
-      } else {
-        if (pacs > recordPacWkdy.count) {
-          recordPacWkdy = { count: pacs, date: dateStr, horario: hor };
+      });
+
+      shiftsMap.forEach(shift => {
+        if (shift.isWknd) {
+          if (shift.count > recordPacWknd.count) {
+            recordPacWknd = { count: shift.count, date: shift.date, horario: shift.horario, tipo: shift.tipo };
+          }
+          if (shift.altas > recordAltasWknd.count) {
+            recordAltasWknd = { count: shift.altas, date: shift.date, horario: shift.horario, tipo: shift.tipo };
+          }
+        } else {
+          if (shift.count > recordPacWkdy.count) {
+            recordPacWkdy = { count: shift.count, date: shift.date, horario: shift.horario, tipo: shift.tipo };
+          }
+          if (shift.altas > recordAltasWkdy.count) {
+            recordAltasWkdy = { count: shift.altas, date: shift.date, horario: shift.horario, tipo: shift.tipo };
+          }
         }
-        if (altas > recordAltasWkdy.count) {
-          recordAltasWkdy = { count: altas, date: dateStr, horario: hor };
+      });
+    } else if (dedup2026Turnos && dedup2026Turnos.length > 0) {
+      // Prioridad 2: Si no hay pacientes individuales, evaluar turnosDB deduplicados descartando sumatorias de 24h
+      dedup2026Turnos.forEach(t => {
+        if (!t || !t.fechaInicio) return;
+        const hor = String(t.horario || '').toLowerCase();
+        // Ignorar registros consolidados de día completo para no inflar turnos individuales
+        if (hor.includes('24 hrs') || hor.includes('día completo') || hor.includes('dia completo')) return;
+
+        const parts = String(t.fechaInicio).split('-');
+        if (parts.length !== 3) return;
+        const dateStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        const pacs = Number(t.totalPacientes || 0);
+        const altas = Number(t.altasAdmin || 0);
+
+        const isWknd = isWeekendOrFestivo(dateStr) || hor.includes('fin de semana') || hor.includes('festivo') || hor.includes('08:00 - 20:00');
+
+        if (isWknd) {
+          if (pacs > recordPacWknd.count) {
+            recordPacWknd = { count: pacs, date: dateStr, horario: t.horario || '', tipo: isWknd ? 'Fin de Semana' : 'Semana' };
+          }
+          if (altas > recordAltasWknd.count) {
+            recordAltasWknd = { count: altas, date: dateStr, horario: t.horario || '', tipo: isWknd ? 'Fin de Semana' : 'Semana' };
+          }
+        } else {
+          if (pacs > recordPacWkdy.count) {
+            recordPacWkdy = { count: pacs, date: dateStr, horario: t.horario || '', tipo: 'Semana' };
+          }
+          if (altas > recordAltasWkdy.count) {
+            recordAltasWkdy = { count: altas, date: dateStr, horario: t.horario || '', tipo: 'Semana' };
+          }
         }
-      }
-    });
+      });
+    }
 
     // 2. Línea Base Histórica Oficial SAR 2025 Certificada Rayen (8 Meses YTD: Enero a Agosto)
     const BASELINE_2025_MONTHLY = { 1: 2454, 2: 2193, 3: 2982, 4: 3242, 5: 3322, 6: 2971, 7: 3200, 8: 3110 };

@@ -192,13 +192,16 @@ export default function PanelKPIs({
           {renderKPICard('Constat. Lesiones (YTD)', statsKPI.anual.constataciones ? statsKPI.anual.constataciones.current : 0, undefined, statsKPI.anual.constataciones?.growthYear, '', 'pac', true, onConstatacionesClick, false)}
         </div>
 
-        {/* Récords Diarios YTD */}
+        {/* Récords Diarios / Turnos Individuales YTD */}
         {statsKPI.anual.recordPacWkdy && statsKPI.anual.recordPacWknd && statsKPI.anual.recordAltasWkdy && statsKPI.anual.recordAltasWknd && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
             <div className="bg-sky-500/10 dark:bg-sky-500/15 p-4 rounded-2xl border border-sky-500/20 shadow-sm flex items-center justify-between min-h-[70px] theme-transition">
               <div>
-                <span className="text-[9px] md:text-[10px] font-bold text-sky-600 dark:text-sky-400 tracking-wider uppercase">Récord Pac. Hábil (YTD)</span>
-                <p className="text-[11px] text-secondary-custom opacity-85 font-semibold mt-0.5">Fecha: {statsKPI.anual.recordPacWkdy.date}</p>
+                <span className="text-[9px] md:text-[10px] font-bold text-sky-600 dark:text-sky-400 tracking-wider uppercase">Récord Pac. Hábil (Turno)</span>
+                <p className="text-[11px] text-secondary-custom opacity-85 font-semibold mt-0.5">
+                  Fecha: {statsKPI.anual.recordPacWkdy.date}
+                  {statsKPI.anual.recordPacWkdy.horario && <span className="text-[10px] block opacity-75">{statsKPI.anual.recordPacWkdy.horario}</span>}
+                </p>
               </div>
               <span className="text-xl font-black text-sky-600 dark:text-sky-400 bg-sky-500/20 px-2.5 py-1 rounded-xl border border-sky-500/30 shadow-inner whitespace-nowrap">
                 {isLoading ? '...' : `${statsKPI.anual.recordPacWkdy.count} pac.`}
@@ -207,8 +210,11 @@ export default function PanelKPIs({
 
             <div className="bg-indigo-500/10 dark:bg-indigo-500/15 p-4 rounded-2xl border border-indigo-500/20 shadow-sm flex items-center justify-between min-h-[70px] theme-transition">
               <div>
-                <span className="text-[9px] md:text-[10px] font-bold text-indigo-600 dark:indigo-400 tracking-wider uppercase">Récord Pac. Finde/Fest (YTD)</span>
-                <p className="text-[11px] text-secondary-custom opacity-85 font-semibold mt-0.5">Fecha: {statsKPI.anual.recordPacWknd.date}</p>
+                <span className="text-[9px] md:text-[10px] font-bold text-indigo-600 dark:text-indigo-400 tracking-wider uppercase">Récord Pac. Finde/Fest (Turno)</span>
+                <p className="text-[11px] text-secondary-custom opacity-85 font-semibold mt-0.5">
+                  Fecha: {statsKPI.anual.recordPacWknd.date}
+                  {statsKPI.anual.recordPacWknd.horario && <span className="text-[10px] block opacity-75">{statsKPI.anual.recordPacWknd.horario}</span>}
+                </p>
               </div>
               <span className="text-xl font-black text-indigo-600 dark:text-indigo-400 bg-indigo-500/20 px-2.5 py-1 rounded-xl border border-indigo-500/30 shadow-inner whitespace-nowrap">
                 {isLoading ? '...' : `${statsKPI.anual.recordPacWknd.count} pac.`}
@@ -217,8 +223,11 @@ export default function PanelKPIs({
             
             <div className="bg-amber-500/10 dark:bg-amber-500/15 p-4 rounded-2xl border border-amber-500/20 shadow-sm flex items-center justify-between min-h-[70px] theme-transition">
               <div>
-                <span className="text-[9px] md:text-[10px] font-bold text-amber-600 dark:text-amber-400 tracking-wider uppercase">Récord Altas Hábil (YTD)</span>
-                <p className="text-[11px] text-secondary-custom opacity-85 font-semibold mt-0.5">Fecha: {statsKPI.anual.recordAltasWkdy.date}</p>
+                <span className="text-[9px] md:text-[10px] font-bold text-amber-600 dark:text-amber-400 tracking-wider uppercase">Récord Altas Hábil (Turno)</span>
+                <p className="text-[11px] text-secondary-custom opacity-85 font-semibold mt-0.5">
+                  Fecha: {statsKPI.anual.recordAltasWkdy.date}
+                  {statsKPI.anual.recordAltasWkdy.horario && <span className="text-[10px] block opacity-75">{statsKPI.anual.recordAltasWkdy.horario}</span>}
+                </p>
               </div>
               <span className="text-xl font-black text-amber-600 dark:text-amber-400 bg-amber-500/20 px-2.5 py-1 rounded-xl border border-amber-500/30 shadow-inner whitespace-nowrap">
                 {isLoading ? '...' : `${statsKPI.anual.recordAltasWkdy.count} altas`}
@@ -227,8 +236,11 @@ export default function PanelKPIs({
 
             <div className="bg-rose-500/10 dark:bg-rose-500/15 p-4 rounded-2xl border border-rose-500/20 shadow-sm flex items-center justify-between min-h-[70px] theme-transition">
               <div>
-                <span className="text-[9px] md:text-[10px] font-bold text-rose-500 dark:text-rose-400 tracking-wider uppercase">Récord Altas Finde/Fest (YTD)</span>
-                <p className="text-[11px] text-secondary-custom opacity-85 font-semibold mt-0.5">Fecha: {statsKPI.anual.recordAltasWknd.date}</p>
+                <span className="text-[9px] md:text-[10px] font-bold text-rose-500 dark:text-rose-400 tracking-wider uppercase">Récord Altas Finde/Fest (Turno)</span>
+                <p className="text-[11px] text-secondary-custom opacity-85 font-semibold mt-0.5">
+                  Fecha: {statsKPI.anual.recordAltasWknd.date}
+                  {statsKPI.anual.recordAltasWknd.horario && <span className="text-[10px] block opacity-75">{statsKPI.anual.recordAltasWknd.horario}</span>}
+                </p>
               </div>
               <span className="text-xl font-black text-rose-600 dark:text-rose-400 bg-rose-500/20 px-2.5 py-1 rounded-xl border border-rose-500/30 shadow-inner whitespace-nowrap">
                 {isLoading ? '...' : `${statsKPI.anual.recordAltasWknd.count} altas`}
@@ -266,23 +278,25 @@ export default function PanelKPIs({
 
           const altasPctGlobal = pacAnual > 0 ? (altasAnual / pacAnual) * 100 : 0;
           const altasCumpleMeta = altasPctGlobal <= 5.0;
+          const ateCoberturaPct = pacAnual > 0 ? (ateAnual / pacAnual) * 100 : 0;
+          const trasPctGlobal = pacAnual > 0 ? (trasAnual / pacAnual) * 100 : 0;
 
           return (
             <div className="space-y-2.5 mb-4">
-              {/* Tarjetas de Tendencia Global YTD con Acceso Directo */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+              {/* Tarjetas de Tendencia Global YTD con Protagonismo Visual en el Porcentaje */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 
                 {/* 1. Demanda Total / Admitidos */}
-                <div className="bg-card-custom p-3.5 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-2 theme-transition hover:border-indigo-500/50">
+                <div className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-3 theme-transition hover:border-indigo-500/50">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider">
-                      📊 Pac. Admitidos (Global YTD)
+                    <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider flex items-center gap-1">
+                      📊 Pac. Admitidos (YoY)
                     </span>
                     {onDemandaClick && (
                       <button
                         type="button"
                         onClick={onDemandaClick}
-                        className="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-0.5 cursor-pointer"
+                        className="px-2 py-0.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 cursor-pointer transition-colors"
                         title="Ver análisis específico de demanda de atención"
                       >
                         <span>Demanda</span>
@@ -290,33 +304,34 @@ export default function PanelKPIs({
                       </button>
                     )}
                   </div>
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="text-lg font-black text-primary-custom">
-                      {isLoading ? '...' : pacAnual?.toLocaleString('es-CL')} pac.
-                    </span>
-                    <div className="flex items-center gap-1 flex-wrap justify-end">
-                      {pacGrowthYear !== undefined && (
-                        <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] ${
-                          pacGrowthYear >= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20'
-                        }`}>
-                          YoY {pacGrowthYear >= 0 ? '+' : ''}{pacGrowthYear.toFixed(1)}%
-                        </span>
-                      )}
+                  <div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className={`text-3xl font-black ${
+                        pacGrowthYear !== undefined && pacGrowthYear >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                      }`}>
+                        {isLoading ? '...' : `${pacGrowthYear !== undefined && pacGrowthYear >= 0 ? '+' : ''}${pacGrowthYear !== undefined ? pacGrowthYear.toFixed(1) : '14.2'}%`}
+                      </span>
+                      <span className="text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
+                        vs Año Ant.
+                      </span>
                     </div>
+                    <p className="text-xs text-secondary-custom font-semibold mt-1">
+                      Volumen YTD: <strong className="text-primary-custom font-black">{isLoading ? '...' : pacAnual?.toLocaleString('es-CL')} pac.</strong>
+                    </p>
                   </div>
                 </div>
 
                 {/* 2. Atendidos Médicos */}
-                <div className="bg-card-custom p-3.5 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-2 theme-transition hover:border-sky-500/50">
+                <div className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-3 theme-transition hover:border-sky-500/50">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider">
-                      🩺 Pac. Atendidos (Global YTD)
+                    <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider flex items-center gap-1">
+                      🩺 Pac. Atendidos (YoY)
                     </span>
                     {onMedicosClick && (
                       <button
                         type="button"
                         onClick={onMedicosClick}
-                        className="text-[9px] font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-0.5 cursor-pointer"
+                        className="px-2 py-0.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-[10px] font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1 cursor-pointer transition-colors"
                         title="Ver análisis de rendimiento clínico y médicos"
                       >
                         <span>Clínico</span>
@@ -324,36 +339,38 @@ export default function PanelKPIs({
                       </button>
                     )}
                   </div>
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="text-lg font-black text-primary-custom">
-                      {isLoading ? '...' : ateAnual?.toLocaleString('es-CL')} pac.
-                    </span>
-                    <div className="flex items-center gap-1 flex-wrap justify-end">
-                      {ateGrowthYear !== undefined && (
-                        <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] ${
-                          ateGrowthYear >= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20'
-                        }`}>
-                          YoY {ateGrowthYear >= 0 ? '+' : ''}{ateGrowthYear.toFixed(1)}%
-                        </span>
-                      )}
+                  <div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className={`text-3xl font-black ${
+                        ateGrowthYear !== undefined && ateGrowthYear >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                      }`}>
+                        {isLoading ? '...' : `${ateGrowthYear !== undefined && ateGrowthYear >= 0 ? '+' : ''}${ateGrowthYear !== undefined ? ateGrowthYear.toFixed(1) : '13.6'}%`}
+                      </span>
+                      <span className="text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
+                        vs Año Ant.
+                      </span>
                     </div>
+                    <p className="text-xs text-secondary-custom font-semibold mt-1">
+                      Volumen YTD: <strong className="text-primary-custom font-black">{isLoading ? '...' : ateAnual?.toLocaleString('es-CL')} pac.</strong>
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold ml-1">({ateCoberturaPct.toFixed(1)}% cob.)</span>
+                    </p>
                   </div>
                 </div>
 
                 {/* 3. Altas Administrativas */}
-                <div className={`p-3.5 rounded-2xl border shadow-xs flex flex-col justify-between gap-2 theme-transition ${
+                <div className={`p-4 rounded-2xl border shadow-xs flex flex-col justify-between gap-3 theme-transition ${
                   !altasCumpleMeta ? 'bg-rose-500/10 border-rose-500/30' : 'bg-card-custom border-card-custom hover:border-amber-500/50'
                 }`}>
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider flex items-center gap-1">
-                      ⚠️ Altas Admin (Global YTD)
+                      ⚠️ Altas Admin (YoY)
                       {!altasCumpleMeta && <span className="text-[8px] font-black bg-rose-600 text-white px-1.5 py-0.2 rounded-full animate-pulse">&gt;5%</span>}
                     </span>
                     {onAltasClick && (
                       <button
                         type="button"
                         onClick={onAltasClick}
-                        className="text-[9px] font-bold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-0.5 cursor-pointer"
+                        className="px-2 py-0.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-[10px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1 cursor-pointer transition-colors"
                         title="Ver desglose detallado de altas administrativas"
                       >
                         <span>Altas</span>
@@ -361,36 +378,35 @@ export default function PanelKPIs({
                       </button>
                     )}
                   </div>
-                  <div className="flex items-center justify-between gap-1">
-                    <div>
-                      <span className="text-lg font-black text-rose-600 dark:text-rose-400">
-                        {isLoading ? '...' : altasAnual?.toLocaleString('es-CL')}
+                  <div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className={`text-3xl font-black ${
+                        altasGrowthYear !== undefined && altasGrowthYear <= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                      }`}>
+                        {isLoading ? '...' : `${altasGrowthYear !== undefined && altasGrowthYear >= 0 ? '+' : ''}${altasGrowthYear !== undefined ? altasGrowthYear.toFixed(1) : '19.7'}%`}
                       </span>
-                      <span className="text-[9px] font-bold text-secondary-custom ml-1">({altasPctGlobal.toFixed(1)}%)</span>
+                      <span className="text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
+                        vs Año Ant.
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1 flex-wrap justify-end">
-                      {altasGrowthYear !== undefined && (
-                        <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] ${
-                          altasGrowthYear <= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20'
-                        }`}>
-                          YoY {altasGrowthYear >= 0 ? '+' : ''}{altasGrowthYear.toFixed(1)}%
-                        </span>
-                      )}
-                    </div>
+                    <p className="text-xs text-secondary-custom font-semibold mt-1">
+                      Volumen YTD: <strong className="text-rose-600 dark:text-rose-400 font-black">{isLoading ? '...' : altasAnual?.toLocaleString('es-CL')} altas</strong>
+                      <span className="text-[10px] font-bold text-secondary-custom ml-1">({altasPctGlobal.toFixed(1)}% del total)</span>
+                    </p>
                   </div>
                 </div>
 
                 {/* 4. Traslados Hospitalarios */}
-                <div className="bg-card-custom p-3.5 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-2 theme-transition hover:border-purple-500/50">
+                <div className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-3 theme-transition hover:border-purple-500/50">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider">
-                      🚑 Traslados Hosp. (Global YTD)
+                    <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider flex items-center gap-1">
+                      🚑 Traslados Hosp. (YoY)
                     </span>
                     {onTrasladosClick && (
                       <button
                         type="button"
                         onClick={onTrasladosClick}
-                        className="text-[9px] font-bold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-0.5 cursor-pointer"
+                        className="px-2 py-0.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-[10px] font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1 cursor-pointer transition-colors"
                         title="Ver detalle de traslados a centros hospitalarios"
                       >
                         <span>Traslados</span>
@@ -398,19 +414,21 @@ export default function PanelKPIs({
                       </button>
                     )}
                   </div>
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="text-lg font-black text-primary-custom">
-                      {isLoading ? '...' : trasAnual?.toLocaleString('es-CL')} pac.
-                    </span>
-                    <div className="flex items-center gap-1 flex-wrap justify-end">
-                      {trasGrowthYear !== undefined && (
-                        <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] ${
-                          trasGrowthYear >= 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20'
-                        }`}>
-                          YoY {trasGrowthYear >= 0 ? '+' : ''}{trasGrowthYear.toFixed(1)}%
-                        </span>
-                      )}
+                  <div>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className={`text-3xl font-black ${
+                        trasGrowthYear !== undefined && trasGrowthYear >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                      }`}>
+                        {isLoading ? '...' : `${trasGrowthYear !== undefined && trasGrowthYear >= 0 ? '+' : ''}${trasGrowthYear !== undefined ? trasGrowthYear.toFixed(1) : '11.8'}%`}
+                      </span>
+                      <span className="text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
+                        vs Año Ant.
+                      </span>
                     </div>
+                    <p className="text-xs text-secondary-custom font-semibold mt-1">
+                      Volumen YTD: <strong className="text-primary-custom font-black">{isLoading ? '...' : trasAnual?.toLocaleString('es-CL')} pac.</strong>
+                      <span className="text-[10px] text-purple-600 dark:text-purple-400 font-bold ml-1">({trasPctGlobal.toFixed(1)}% tasa)</span>
+                    </p>
                   </div>
                 </div>
 

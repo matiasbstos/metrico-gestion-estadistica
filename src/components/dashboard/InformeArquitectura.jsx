@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.9.4',
+    version_tag: 'v5.9.4',
+    fecha_despliegue: '02 de Septiembre, 2026',
+    proposito_actualizacion: 'Cálculo Riguroso de Récords Asistenciales por Turno Individual y Jerarquía Visual con Protagonismo en Porcentajes Interanuales.',
+    medios_y_stack: [
+      'React 18.3 (useMetricoAnalytics.js, PanelKPIs.jsx)',
+      'Individual Shift Granular Grouping Engine (Day 08-20 vs Night 20-08)',
+      'Prominent Hero Percentage UI Design Pattern'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Récords por Turno Asistencial Individual: Se corrigió el cálculo de récords para que evalúe rigurosamente turnos individuales únicos (Fin de Semana Día 08:00-20:00 vs Fin de Semana Noche 20:00-08:00 vs Turno Semana 17:00-08:00) a través de obtenerTurnoDetallado, eliminando cualquier sumatoria artificial de 24 horas continuas (ej. 198 o 183 pac.). 2) Protagonismo Visual del Porcentaje (+14.2% YoY): Se rediseñaron las 4 tarjetas ejecutivas de Demanda, Rendimiento Clínico, Altas y Traslados en el encabezado de Periodo Seleccionado, jerarquizando el porcentaje de crecimiento como métrica heroica principal (text-3xl font-black) y mostrando el volumen total y tasas relativas como contexto complementario.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Agrupación O(N) de pacientes individuales en mapa de turnos horarios.'
+    },
+    modulos_afectados: ['useMetricoAnalytics.js', 'PanelKPIs.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Agrupación granular de dedup2026Pacs mediante obtenerTurnoDetallado para aislar el volumen exacto de cada turno asistencial.',
+      'Discriminación estricta entre turnos de fin de semana diurnos (08:00 a 20:00) y nocturnos (20:00 a 08:00) para récords asistenciales y de altas.',
+      'Rediseño visual de las 4 tarjetas de tendencias en PanelKPIs.jsx dando escala protagónica al porcentaje vs año anterior.'
+    ]
+  },
+  {
     id: 'v5.9.3',
     version_tag: 'v5.9.3',
     fecha_despliegue: '02 de Septiembre, 2026',
