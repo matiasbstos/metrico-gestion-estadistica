@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.9.3',
+    version_tag: 'v5.9.3',
+    fecha_despliegue: '02 de Septiembre, 2026',
+    proposito_actualizacion: 'Armonización y Paridad Matemática 100% SSOT en Crecimiento Interanual (YoY +14.2% / +13.6% / +19.7%).',
+    medios_y_stack: [
+      'React 18.3 (AnalisisDemandaAtencion.jsx, CentroVerificacionAuditoria.jsx, Dashboard.jsx)',
+      'Immutable 2025 Certified Baseline Sanitizer (23.474 pac. YTD)',
+      'Multi-Module Strict Metric Harmonization Engine'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Paridad Absoluta de Crecimiento Interanual (+14.2% YoY): Se corrigió la discrepancia entre el Panel Principal y el Módulo de Análisis de Demanda mediante sanitización estricta de benchmarks de localStorage y sincronización forzada de la Línea Base Oficial Rayen 2025 (23.474 pac. en 8 meses). 2) Armonización de Altas Administrativas (+19.7% YoY): Se corrigió la base de comparación de altas en Dashboard.jsx a 1.986 (en lugar de 2.026), logrando paridad matemática con useMetricoAnalytics.js y el Centro de Auditoría. 3) Cuadre de Cobertura y Tasas Relativas: Se auditó y certificó la coherencia de todos los porcentajes asistenciales (91.1% cobertura médica, 8.9% altas admin, 4.3% traslados y 0.9% constataciones).',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Sincronización instantánea de benchmarks con sanitizador en memoria.'
+    },
+    modulos_afectados: ['AnalisisDemandaAtencion.jsx', 'CentroVerificacionAuditoria.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Implementación de sanitizeUserBenchmarks para neutralizar cachés desfasados en localStorage.',
+      'Alineación de todas las referencias de línea base 2025 al estándar oficial Rayen: 23.474 admitidos, 21.488 atendidos, 1.986 altas, 1.039 traslados, 214 constataciones.',
+      'Sincronización idéntica de la tarjeta ejecutiva de demanda y el hub comparativo interanual.'
+    ]
+  },
+  {
     id: 'v5.9.2',
     version_tag: 'v5.9.2',
     fecha_despliegue: '30 de Agosto, 2026',

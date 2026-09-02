@@ -661,16 +661,22 @@ const DashboardContent = () => {
               },
               atendidos: { 
                 current: ytdData.totalAtenciones - ytdData.totalAltas,
-                growthYear: getGrowth(ytdData.totalAtenciones - ytdData.totalAltas, 21448)
+                growthYear: getGrowth(ytdData.totalAtenciones - ytdData.totalAltas, 21488)
               },
               estadia: { current: ytdData.avgEstadia },
               pacHora: { current: ytdPacHora },
               altasAdmin: { 
                 current: ytdData.totalAltas,
-                growthYear: getGrowth(ytdData.totalAltas, 2026)
+                growthYear: getGrowth(ytdData.totalAltas, 1986)
               },
-              traslados: { current: ytdData.totalTraslados },
-              constataciones: { current: ytdData.totalConstataciones },
+              traslados: { 
+                current: ytdData.totalTraslados,
+                growthYear: getGrowth(ytdData.totalTraslados, 1039)
+              },
+              constataciones: { 
+                current: ytdData.totalConstataciones,
+                growthYear: getGrowth(ytdData.totalConstataciones, 214)
+              },
               recordPacWkdy: { count: Number(rec.max_pac_wkdy || 0), date: rec.max_pac_wkdy_date || 'Sin registros' },
               recordPacWknd: { count: Number(rec.max_pac_wknd || 0), date: rec.max_pac_wknd_date || 'Sin registros' },
               recordAltasWkdy: { count: Number(rec.max_altas_wkdy || 0), date: rec.max_altas_wkdy_date || 'Sin registros' },

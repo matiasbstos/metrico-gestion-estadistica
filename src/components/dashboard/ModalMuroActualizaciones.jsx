@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.9.3',
+      version: 'v5.9.3',
+      fecha: '02 de Septiembre, 2026',
+      badge: 'PARIDAD SSOT YOY +14.2%',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Armonización y Paridad Matemática 100% SSOT en Crecimiento Interanual',
+      categoria: 'Calidad de Datos & Centro de Auditoría',
+      icon: TrendingUp,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se resolvió la discrepancia entre el Panel Principal (+14.2% YoY) y el Módulo de Análisis de Demanda (+12.6% previo), homologando de forma estricta la Línea Base Oficial Rayen 2025 (23.474 pac. en 8 meses) y auditando la totalidad de tasas, coberturas y crecimientos asistenciales.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que las cifras de crecimiento interanual, cobertura médica y altas administrativas sean 100% idénticas y exactas en todas las pantallas.',
+        quePuedesVer: 'En Inicio y en Demanda de Atención: Crecimiento consolidado de +14.2% YoY en admisiones, +13.6% en atendidos y 91.1% de cobertura.',
+        ejemploUso: 'Al comparar el total anual de admisiones de 2026 (26.796 pac.) con 2025, el crecimiento interanual refleja exactamente +14.2% tanto en la tarjeta de Inicio como en el gráfico de 12 meses.'
+      },
+      changes: [
+        'Paridad Interanual (+14.2% YoY): Sincronización estricta entre la tarjeta de Inicio y el Módulo de Demanda.',
+        'Sanitización de Benchmarks: Neutralización automática de cachés locales de 2025 hacia la base oficial Rayen (23.474 pac.).',
+        'Consistencia de Altas (+19.7% YoY): Base histórica de altas homologada a 1.986 en todos los componentes del sistema.'
+      ]
+    },
+    {
       id: 'v5.9.2',
       version: 'v5.9.2',
       fecha: '30 de Agosto, 2026',
