@@ -288,15 +288,19 @@ export default function PanelKPIs({
         {/* Banner Ejecutivo de Tendencias de Demanda Global y Metas Asistenciales */}
         {(() => {
           const pacAnual = statsKPI.anual?.pacientes?.current || 26796;
+          const pacPrevYear = statsKPI.anual?.pacientes?.prevYear || 23474;
           const pacGrowthYear = statsKPI.anual?.pacientes?.growthYear;
 
           const ateAnual = statsKPI.anual?.atendidos?.current || 24419;
+          const atePrevYear = statsKPI.anual?.atendidos?.prevYear || 21488;
           const ateGrowthYear = statsKPI.anual?.atendidos?.growthYear;
 
           const altasAnual = statsKPI.anual?.altasAdmin?.current || 2377;
+          const altasPrevYear = statsKPI.anual?.altasAdmin?.prevYear || 1986;
           const altasGrowthYear = statsKPI.anual?.altasAdmin?.growthYear;
 
           const trasAnual = statsKPI.anual?.traslados?.current || 1162;
+          const trasPrevYear = statsKPI.anual?.traslados?.prevYear || 1039;
           const trasGrowthYear = statsKPI.anual?.traslados?.growthYear;
 
           const altasPctGlobal = pacAnual > 0 ? (altasAnual / pacAnual) * 100 : 0;
@@ -331,19 +335,24 @@ export default function PanelKPIs({
                     )}
                   </div>
                   <div>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className={`text-3xl font-black ${
+                    <div className="flex items-baseline gap-2">
+                      <span className={`text-4xl md:text-5xl font-black tracking-tight leading-none ${
                         pacGrowthYear !== undefined && pacGrowthYear >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                       }`}>
                         {isLoading ? '...' : `${pacGrowthYear !== undefined && pacGrowthYear >= 0 ? '+' : ''}${pacGrowthYear !== undefined ? pacGrowthYear.toFixed(1) : '14.2'}%`}
                       </span>
-                      <span className="text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
+                      <span className="text-[10px] md:text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
                         vs Año Ant.
                       </span>
                     </div>
-                    <p className="text-xs text-secondary-custom font-semibold mt-1">
-                      Volumen YTD: <strong className="text-primary-custom font-black">{isLoading ? '...' : pacAnual?.toLocaleString('es-CL')} pac.</strong>
-                    </p>
+                    <div className="mt-2.5 space-y-1 text-xs">
+                      <p className="text-secondary-custom font-semibold">
+                        Volumen YTD: <strong className="text-primary-custom font-black">{isLoading ? '...' : pacAnual?.toLocaleString('es-CL')} pac.</strong>
+                      </p>
+                      <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1">
+                        Año Ant. (2025): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : pacPrevYear?.toLocaleString('es-CL')} pac.</strong>
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -369,20 +378,25 @@ export default function PanelKPIs({
                     )}
                   </div>
                   <div>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className={`text-3xl font-black ${
+                    <div className="flex items-baseline gap-2">
+                      <span className={`text-4xl md:text-5xl font-black tracking-tight leading-none ${
                         ateGrowthYear !== undefined && ateGrowthYear >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                       }`}>
                         {isLoading ? '...' : `${ateGrowthYear !== undefined && ateGrowthYear >= 0 ? '+' : ''}${ateGrowthYear !== undefined ? ateGrowthYear.toFixed(1) : '13.6'}%`}
                       </span>
-                      <span className="text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
+                      <span className="text-[10px] md:text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
                         vs Año Ant.
                       </span>
                     </div>
-                    <p className="text-xs text-secondary-custom font-semibold mt-1">
-                      Volumen YTD: <strong className="text-primary-custom font-black">{isLoading ? '...' : ateAnual?.toLocaleString('es-CL')} pac.</strong>
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold ml-1">({ateCoberturaPct.toFixed(1)}% cob.)</span>
-                    </p>
+                    <div className="mt-2.5 space-y-1 text-xs">
+                      <p className="text-secondary-custom font-semibold">
+                        Volumen YTD: <strong className="text-primary-custom font-black">{isLoading ? '...' : ateAnual?.toLocaleString('es-CL')} pac.</strong>
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold ml-1">({ateCoberturaPct.toFixed(1)}% cob.)</span>
+                      </p>
+                      <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1">
+                        Año Ant. (2025): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : atePrevYear?.toLocaleString('es-CL')} pac.</strong>
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -411,20 +425,25 @@ export default function PanelKPIs({
                     )}
                   </div>
                   <div>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className={`text-3xl font-black ${
+                    <div className="flex items-baseline gap-2">
+                      <span className={`text-4xl md:text-5xl font-black tracking-tight leading-none ${
                         altasGrowthYear !== undefined && altasGrowthYear <= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                       }`}>
                         {isLoading ? '...' : `${altasGrowthYear !== undefined && altasGrowthYear >= 0 ? '+' : ''}${altasGrowthYear !== undefined ? altasGrowthYear.toFixed(1) : '19.7'}%`}
                       </span>
-                      <span className="text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
+                      <span className="text-[10px] md:text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
                         vs Año Ant.
                       </span>
                     </div>
-                    <p className="text-xs text-secondary-custom font-semibold mt-1">
-                      Volumen YTD: <strong className="text-rose-600 dark:text-rose-400 font-black">{isLoading ? '...' : altasAnual?.toLocaleString('es-CL')} altas</strong>
-                      <span className="text-[10px] font-bold text-secondary-custom ml-1">({altasPctGlobal.toFixed(1)}% del total)</span>
-                    </p>
+                    <div className="mt-2.5 space-y-1 text-xs">
+                      <p className="text-secondary-custom font-semibold">
+                        Volumen YTD: <strong className="text-rose-600 dark:text-rose-400 font-black">{isLoading ? '...' : altasAnual?.toLocaleString('es-CL')} altas</strong>
+                        <span className="text-[10px] font-bold text-secondary-custom ml-1">({altasPctGlobal.toFixed(1)}% del total)</span>
+                      </p>
+                      <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1">
+                        Año Ant. (2025): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : altasPrevYear?.toLocaleString('es-CL')} altas</strong>
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -450,20 +469,25 @@ export default function PanelKPIs({
                     )}
                   </div>
                   <div>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className={`text-3xl font-black ${
+                    <div className="flex items-baseline gap-2">
+                      <span className={`text-4xl md:text-5xl font-black tracking-tight leading-none ${
                         trasGrowthYear !== undefined && trasGrowthYear >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                       }`}>
                         {isLoading ? '...' : `${trasGrowthYear !== undefined && trasGrowthYear >= 0 ? '+' : ''}${trasGrowthYear !== undefined ? trasGrowthYear.toFixed(1) : '11.8'}%`}
                       </span>
-                      <span className="text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
+                      <span className="text-[10px] md:text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
                         vs Año Ant.
                       </span>
                     </div>
-                    <p className="text-xs text-secondary-custom font-semibold mt-1">
-                      Volumen YTD: <strong className="text-primary-custom font-black">{isLoading ? '...' : trasAnual?.toLocaleString('es-CL')} pac.</strong>
-                      <span className="text-[10px] text-purple-600 dark:text-purple-400 font-bold ml-1">({trasPctGlobal.toFixed(1)}% tasa)</span>
-                    </p>
+                    <div className="mt-2.5 space-y-1 text-xs">
+                      <p className="text-secondary-custom font-semibold">
+                        Volumen YTD: <strong className="text-primary-custom font-black">{isLoading ? '...' : trasAnual?.toLocaleString('es-CL')} pac.</strong>
+                        <span className="text-[10px] text-purple-600 dark:text-purple-400 font-bold ml-1">({trasPctGlobal.toFixed(1)}% tasa)</span>
+                      </p>
+                      <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1">
+                        Año Ant. (2025): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : trasPrevYear?.toLocaleString('es-CL')} pac.</strong>
+                      </p>
+                    </div>
                   </div>
                 </div>
 

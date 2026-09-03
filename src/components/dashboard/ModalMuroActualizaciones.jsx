@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.9.5',
+      version: 'v5.9.5',
+      fecha: '03 de Septiembre, 2026',
+      badge: 'PROTAGONISMO HEROICO YOY & VOLUMEN HISTÓRICO',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Porcentajes Heroicos de Gran Escala y Visualización de Línea Base Histórica',
+      categoria: 'Diseño Visual & Experiencia Ejecutiva',
+      icon: TrendingUp,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se incrementó la escala tipográfica de los porcentajes interanuales a tamaño heroico (text-4xl/text-5xl font-black) en las 4 tarjetas ejecutivas de Inicio y se incorporó de forma visible la cifra cuantitativa exacta de los años anteriores (Base 2025) bajo el volumen actual.',
+      instructivo: {
+        paraQueSirve: 'Permite contrastar al instante el ritmo porcentual de crecimiento con el número cuantitativo exacto del año anterior frente al año en curso.',
+        quePuedesVer: 'En las 4 tarjetas de tendencias de Inicio: Porcentajes gigantes (+14.2%, +13.9%, +17.3%, +11.8%) con el desglose dual: Volumen YTD 2026 y Base Año Ant. (2025).',
+        ejemploUso: 'Al ver la tarjeta de Pacientes Admitidos, se visualiza el +14.2% YoY en tamaño heroico, con el volumen actual de 26.796 pac. y la base 2025 de 23.474 pac.'
+      },
+      changes: [
+        'Tipografía Heroica: Porcentajes interanuales escalados a text-4xl / text-5xl font-black.',
+        'Contraste Histórico Directo: Inclusión de la cifra cuantitativa certificada de 2025 (23.474 admitidos, 21.488 atendidos, 1.986 altas, 1.039 traslados).',
+        'Jerarquía Estructurada: Separador sutil y tipografía estructurada para máxima legibilidad.'
+      ]
+    },
+    {
       id: 'v5.9.4',
       version: 'v5.9.4',
       fecha: '02 de Septiembre, 2026',

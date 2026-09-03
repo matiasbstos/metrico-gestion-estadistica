@@ -772,30 +772,37 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const statsAnual = {
       pacientes: { 
         current: ytdPacientes,
+        prevYear: pyYtdPacientes,
         growthYear: getGrowth(ytdPacientes, pyYtdPacientes)
       },
       atendidos: { 
         current: ytdAtendidos,
+        prevYear: pyYtdAtendidos,
         growthYear: getGrowth(ytdAtendidos, pyYtdAtendidos)
       },
       estadia: { 
         current: ytdEstadia,
+        prevYear: pyYtdEstadia,
         growthYear: getGrowth(ytdEstadia, pyYtdEstadia)
       },
       pacHora: { 
         current: ytdPacHora,
+        prevYear: pyYtdPacHora,
         growthYear: getGrowth(ytdPacHora, pyYtdPacHora)
       },
       altasAdmin: { 
         current: ytdAltas,
+        prevYear: pyYtdAltas,
         growthYear: getGrowth(ytdAltas, pyYtdAltas)
       },
       traslados: { 
         current: ytdTraslados,
+        prevYear: pyYtdTraslados,
         growthYear: getGrowth(ytdTraslados, pyYtdTraslados)
       },
       constataciones: { 
         current: ytdConstataciones,
+        prevYear: pyYtdConstataciones,
         growthYear: getGrowth(ytdConstataciones, pyYtdConstataciones)
       },
       recordPacWkdy,

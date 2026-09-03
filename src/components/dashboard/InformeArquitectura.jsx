@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.9.5',
+    version_tag: 'v5.9.5',
+    fecha_despliegue: '03 de Septiembre, 2026',
+    proposito_actualizacion: 'Escalamiento Heroico de Porcentajes Interanuales y Despliegue de Cifras Cuantitativas del Año Anterior (Base 2025).',
+    medios_y_stack: [
+      'React 18.3 (PanelKPIs.jsx, useMetricoAnalytics.js, Dashboard.jsx)',
+      'Hero Typography & Split Metrics Design Pattern',
+      'Certified Baseline 2025 Contextual Render Engine'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Escalamiento Heroico de Porcentajes YoY: Se aumentó la escala tipográfica a text-4xl/text-5xl font-black en las 4 tarjetas principales de tendencias asistenciales para dotarlas de máxima jerarquía visual. 2) Despliegue Dual de Volúmenes: Bajo la cifra actual (2026), se incorporó la referencia cuantitativa explícita del año anterior (2025) con base oficial Rayen (23.474 admitidos, 21.488 atendidos, 1.986 altas, 1.039 traslados), facilitando la contrastación cuantitativa inmediata.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Cómputo en memoria O(1) de benchmarks históricos certificados.'
+    },
+    modulos_afectados: ['PanelKPIs.jsx', 'useMetricoAnalytics.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Ampliación tipográfica del porcentaje interanual a text-4xl md:text-5xl font-black.',
+      'Inclusión del campo prevYear en statsAnual para exposición universal en useMetricoAnalytics.js y Dashboard.jsx.',
+      'Diseño estructurado con separador sutil y tipografía con contraste lumínico para la línea base del año 2025.'
+    ]
+  },
+  {
     id: 'v5.9.4',
     version_tag: 'v5.9.4',
     fecha_despliegue: '02 de Septiembre, 2026',
