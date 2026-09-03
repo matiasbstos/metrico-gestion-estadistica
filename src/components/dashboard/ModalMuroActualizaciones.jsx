@@ -31,7 +31,8 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
       changes: [
         'Récords por Turno Único: Desglose exacto de admisiones y altas por turno horario oficial.',
         'Discriminación Fin de Semana: Evaluación independiente de turno Día (08:00 a 20:00) vs turno Noche (20:00 a 08:00).',
-        'Jerarquía Visual Protagónica: Porcentajes interanuales (+14.2% YoY) en tipografía destacada de gran tamaño.'
+        'Jerarquía Visual Protagónica: Porcentajes interanuales (+14.2% YoY) en tipografía destacada de gran tamaño.',
+        'Identidad Visual Homologada: Sustitución completa de emojis informales por íconos SVG vectoriales Lucide con micro-contenedores Glassmorphic.'
       ]
     },
     {

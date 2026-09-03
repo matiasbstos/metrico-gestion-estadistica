@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Database, UploadCloud, FileSpreadsheet, CheckCircle, Save, X, Calendar, AlertTriangle, Loader2, BookOpen, ArrowRight, Zap, Trash2, Search, Eye, RefreshCw } from 'lucide-react';
+import { Database, UploadCloud, FileSpreadsheet, CheckCircle, CheckCircle2, Save, X, Calendar, AlertTriangle, Loader2, BookOpen, ArrowRight, Zap, Trash2, Search, Eye, RefreshCw, BarChart3 } from 'lucide-react';
 import { collection, doc, writeBatch, serverTimestamp, onSnapshot, getDocs } from 'firebase/firestore';
 import { formatLocalDate } from '../../utils/helpers';
 import { playSuccessChime, playErrorChime } from '../../utils/audioNotifications';
@@ -2028,14 +2028,17 @@ export default function GestionDatos({
               return (
                 <div className="p-3.5 bg-slate-50 border border-slate-150 rounded-xl text-[11px] font-bold text-slate-600 space-y-1">
                   <div className="flex items-center gap-1.5 text-slate-700">
-                    <span className="text-xs">📊</span>
+                    <BarChart3 className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                     <span>Diferencia con Rayen:</span>
                     {diff > 0 ? (
                       <span className="text-amber-600 font-extrabold">Pendientes por cargar: {diff.toLocaleString('es-CL')} pacientes</span>
                     ) : diff < 0 ? (
                       <span className="text-rose-600 font-extrabold">Exceso de registros: {Math.abs(diff).toLocaleString('es-CL')} pacientes</span>
                     ) : (
-                      <span className="text-emerald-600 font-extrabold">✅ Cruce perfecto (Carga al día)</span>
+                      <span className="text-emerald-600 font-extrabold flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 inline" />
+                        Cruce perfecto (Carga al día)
+                      </span>
                     )}
                   </div>
                   <p className="text-[10px] text-slate-400 font-semibold leading-relaxed">

@@ -24,11 +24,12 @@ export const HISTORIAL_ARQUITECTURA_BASE = [
       firestore_collections: ['turnos', 'pacientes_urgencia'],
       query_optimization: 'Agrupación O(N) de pacientes individuales en mapa de turnos horarios.'
     },
-    modulos_afectados: ['useMetricoAnalytics.js', 'PanelKPIs.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    modulos_afectados: ['useMetricoAnalytics.js', 'PanelKPIs.jsx', 'GestionDatos.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
     detalles_tecnicos: [
       'Agrupación granular de dedup2026Pacs mediante obtenerTurnoDetallado para aislar el volumen exacto de cada turno asistencial.',
       'Discriminación estricta entre turnos de fin de semana diurnos (08:00 a 20:00) y nocturnos (20:00 a 08:00) para récords asistenciales y de altas.',
-      'Rediseño visual de las 4 tarjetas de tendencias en PanelKPIs.jsx dando escala protagónica al porcentaje vs año anterior.'
+      'Rediseño visual de las 4 tarjetas de tendencias en PanelKPIs.jsx dando escala protagónica al porcentaje vs año anterior.',
+      'Homologación estricta de Identidad Visual: Reemplazo total de emojis por íconos SVG vectoriales Lucide (Users, Stethoscope, AlertTriangle, Ambulance, Clock, Sparkles, Activity) en micro-contenedores con acabado Glassmorphism.'
     ]
   },
   {
