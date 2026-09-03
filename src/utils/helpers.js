@@ -83,11 +83,36 @@ export const resolverEquipoTurno = (fechaStr, horarioStr, pautasDB, equipoExplic
   return 'Turno 1';
 };
 
+export const CHILE_HOLIDAYS_OFFICIAL = new Set([
+  // 2026
+  '2026-01-01', // Año Nuevo
+  '2026-04-03', // Viernes Santo
+  '2026-04-04', // Sábado Santo
+  '2026-05-01', // Día Nacional del Trabajo (Viernes)
+  '2026-05-21', // Día de las Glorias Navales (Jueves)
+  '2026-06-07', // Elecciones Primarias / Morro de Arica
+  '2026-06-21', // Día Nacional de los Pueblos Indígenas (Domingo)
+  '2026-06-29', // San Pedro y San Pablo (Lunes)
+  '2026-07-16', // Día de la Virgen del Carmen (Jueves)
+  '2026-08-15', // Asunción de la Virgen (Sábado)
+  '2026-09-18', // Fiestas Patrias (Viernes)
+  '2026-09-19', // Glorias del Ejército (Sábado)
+  '2026-10-12', // Encuentro de Dos Mundos (Lunes)
+  '2026-10-31', // Día de las Iglesias Evangélicas (Sábado)
+  '2026-11-01', // Día de Todos los Santos (Domingo)
+  '2026-12-08', // Inmaculada Concepción (Martes)
+  '2026-12-25', // Navidad (Viernes)
+  // 2025
+  '2025-01-01', '2025-04-18', '2025-04-19', '2025-05-01', '2025-05-21',
+  '2025-06-20', '2025-06-29', '2025-07-16', '2025-08-15', '2025-09-18',
+  '2025-09-19', '2025-10-12', '2025-10-31', '2025-11-01', '2025-12-08', '2025-12-25'
+]);
+
 /**
  * Determina el Turno Asociado (Turno 1, 2, 3 o 4), el equipo asignado y su horario oficial de urgencia.
- * - Turno de Semana: 17:00 a 08:00 hrs del día siguiente (sin fragmentar cierre).
- * - Fin de Semana (Día): 08:00 a 20:00 hrs.
- * - Fin de Semana (Noche): 20:00 a 08:00 hrs del día siguiente.
+ * - Turno Hábil de Semana: 17:00 a 08:00 hrs del día siguiente (Lunes a Viernes no festivo).
+ * - Fin de Semana / Festivo (Día): 08:00 a 20:00 hrs.
+ * - Fin de Semana / Festivo (Noche): 20:00 a 08:00 hrs del día siguiente.
  */
 export const obtenerTurnoDetallado = (timestamp, pautasDB = null) => {
   if (!timestamp) return { turnoNum: '-', equipo: '-', tipo: '-', horario: '-', fechaTurno: '-', textoCompleto: '-' };
@@ -99,47 +124,65 @@ export const obtenerTurnoDetallado = (timestamp, pautasDB = null) => {
   const dayOfWeek = d.getDay(); // 0 = Domingo, 6 = Sábado
   const isWeekendNatural = (dayOfWeek === 0 || dayOfWeek === 6);
 
-  // Formato de fecha para validar si el día fue marcado como "Festivo" en pautasDB
+  // Formato de fecha del día actual
   const yRaw = d.getFullYear();
   const mRaw = String(d.getMonth() + 1).padStart(2, '0');
   const dRaw = String(d.getDate()).padStart(2, '0');
   const dateStrRaw = `${yRaw}-${mRaw}-${dRaw}`;
   const monthIdRaw = `${yRaw}-${mRaw}`;
 
-  let isFestivo = false;
-  if (pautasDB && pautasDB[monthIdRaw] && pautasDB[monthIdRaw][dateStrRaw]) {
-    if (pautasDB[monthIdRaw][dateStrRaw].festivo) {
-      isFestivo = true;
-    }
-  }
+  const isFestivoToday = CHILE_HOLIDAYS_OFFICIAL.has(dateStrRaw) || Boolean(pautasDB?.[monthIdRaw]?.[dateStrRaw]?.festivo);
+  const is24hToday = isWeekendNatural || isFestivoToday;
 
-  const is24hOperatingDay = isWeekendNatural || isFestivo;
+  // Evaluar día anterior (yesterday) para resolver madrugadas 00:00 a 07:59
+  const dPrev = new Date(timestamp);
+  dPrev.setDate(dPrev.getDate() - 1);
+  const yPrev = dPrev.getFullYear();
+  const mPrev = String(dPrev.getMonth() + 1).padStart(2, '0');
+  const dPrevDay = String(dPrev.getDate()).padStart(2, '0');
+  const prevIso = `${yPrev}-${mPrev}-${dPrevDay}`;
+  const prevDayOfWeek = dPrev.getDay();
+  const isFestivoPrev = CHILE_HOLIDAYS_OFFICIAL.has(prevIso) || Boolean(pautasDB?.[prevIso.substring(0, 7)]?.[prevIso]?.festivo);
+  const is24hPrev = (prevDayOfWeek === 0 || prevDayOfWeek === 6) || isFestivoPrev;
 
   let logicalDate = new Date(timestamp);
   let turnoNum = 1;
   let tipo = 'Turno de Semana';
   let horario = '17:00 a 08:00 hrs';
 
-  if (is24hOperatingDay) {
-    // Régimen de 24 Horas (Fin de Semana o Día Festivo declarado en pauta)
-    if (hours >= 8 && hours < 20) {
+  if (hours < 8) {
+    // Madrugada (00:00 a 07:59): pertenece a la guardia que inició el día anterior
+    logicalDate.setDate(logicalDate.getDate() - 1);
+    if (is24hPrev) {
+      turnoNum = 3;
+      tipo = isFestivoPrev ? 'Festivo Nocturno' : 'Fin de Semana Noche';
+      horario = '20:00 a 08:00 hrs';
+    } else {
+      turnoNum = 2;
+      tipo = 'Turno Largo Semana';
+      horario = '17:00 a 08:00 hrs';
+    }
+  } else if (hours >= 8 && hours < 20) {
+    // Franja Diurna (08:00 a 19:59)
+    if (is24hToday) {
       turnoNum = 1;
-      tipo = isFestivo ? 'Festivo Diurno' : 'Fin de Semana Día';
+      tipo = isFestivoToday ? 'Festivo Diurno' : 'Fin de Semana Día';
       horario = '08:00 a 20:00 hrs';
     } else {
-      turnoNum = 3;
-      tipo = isFestivo ? 'Festivo Nocturno' : 'Fin de Semana Noche';
-      horario = '20:00 a 08:00 hrs';
-      if (hours < 8) logicalDate.setDate(logicalDate.getDate() - 1);
+      turnoNum = 2;
+      tipo = 'Turno Largo Semana';
+      horario = '17:00 a 08:00 hrs';
     }
   } else {
-    // Régimen Hábil de Semana (Lunes a Viernes no festivo): jornada unificada de 17:00 a 08:00 hrs
-    turnoNum = 2;
-    tipo = 'Turno Largo Semana';
-    horario = '17:00 a 08:00 hrs';
-    if (hours < 16) {
-      // Atenciones de madrugada y mañana pertenecen al Turno Largo del día anterior
-      logicalDate.setDate(logicalDate.getDate() - 1);
+    // Franja Nocturna (20:00 a 23:59)
+    if (is24hToday) {
+      turnoNum = 3;
+      tipo = isFestivoToday ? 'Festivo Nocturno' : 'Fin de Semana Noche';
+      horario = '20:00 a 08:00 hrs';
+    } else {
+      turnoNum = 2;
+      tipo = 'Turno Largo Semana';
+      horario = '17:00 a 08:00 hrs';
     }
   }
 

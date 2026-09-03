@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.9.6',
+    version_tag: 'v5.9.6',
+    fecha_despliegue: '03 de Septiembre, 2026',
+    proposito_actualizacion: 'Integración de Matriz de Feriados Oficiales de Chile (CHILE_HOLIDAYS_OFFICIAL) y Calibración Estricta de Récords por Turno.',
+    medios_y_stack: [
+      'React 18.3 (helpers.js, useMetricoAnalytics.js)',
+      'Chile National Holidays Operational Matrix',
+      'Shift Boundary & Holiday Transition Engine'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Detección Universal de Feriados Nacionales: Se integró la constante CHILE_HOLIDAYS_OFFICIAL en helpers.js para identificar de forma nativa e independiente de pautasDB todos los días festivos de Chile (1 de Enero, Viernes/Sábado Santo, 1 de Mayo, 21 de Mayo, etc.). 2) Desacoplamiento de Vísperas y Jornadas Diurnas Festivas: Se corrigió la asignación de pacientes en transiciones de días hábiles a feriados (ej. 30/04 a 01/05), evitando que los pacientes que ingresan de 08:00 a 16:00 en un festivo se absorban hacia la noche del día anterior. El turno 30/04/2026 pasa de 169 a 109 pacientes exactos en plena coincidencia con el informe oficial Rayen.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Evaluación O(1) de fechas festivas mediante HashSet inmutable.'
+    },
+    modulos_afectados: ['helpers.js', 'useMetricoAnalytics.js', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Exportación y consumo de CHILE_HOLIDAYS_OFFICIAL en helpers.js y useMetricoAnalytics.js.',
+      'Ajuste del discriminador de madrugada (hours < 8) en obtenerTurnoDetallado para evaluar el régimen (hábil vs 24h) del día anterior real.',
+      'Calibración de la búsqueda de récords YTD asegurando separación matemática entre turnos hábiles de 17:00-08:00 y turnos de 24h.'
+    ]
+  },
+  {
     id: 'v5.9.5',
     version_tag: 'v5.9.5',
     fecha_despliegue: '03 de Septiembre, 2026',

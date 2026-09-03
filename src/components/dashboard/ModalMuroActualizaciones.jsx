@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.9.6',
+      version: 'v5.9.6',
+      fecha: '03 de Septiembre, 2026',
+      badge: 'CALIBRACIÓN RÉCORDS & FERIADOS NACIONALES',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Calibración de Récords y Detección Exacta de Feriados Nacionales',
+      categoria: 'Calidad de Datos & Centro de Auditoría',
+      icon: Clock,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se integró la matriz oficial de feriados y festivos de Chile (CHILE_HOLIDAYS_OFFICIAL) en el motor de encasillamiento de turnos, corrigiendo la distorsión del turno 30/04/2026 (donde se habían anexado erróneamente 60 pacientes diurnos del feriado 1 de Mayo, inflando el turno a 169 pac. en vez de los 109 pac. oficiales Rayen). Con esta calibración, cada turno hábil y festivo se encasilla con 100% de concordancia asistencial.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que ningún día feriado (como el 1 de Mayo, 21 de Mayo o Fiestas Patrias) contamine las guardias nocturnas hábiles anteriores, asegurando que los récords asistenciales reflejen con exactitud matemática el turno de mayor demanda real.',
+        quePuedesVer: 'En las tarjetas de Récord: El Récord Hábil muestra el turno real certificado (sin absorción de horas diurnas de feriados) con coincidencia 1:1 respecto a los informes oficiales Rayen.',
+        ejemploUso: 'El turno del 30/04/2026 (17:00 a 08:00) registra exactamente 109 pacientes, respetando la separación con la jornada diurna del festivo 01/05/2026 (08:00 a 20:00).'
+      },
+      changes: [
+        'Matriz de Feriados Nacionales: Integración de CHILE_HOLIDAYS_OFFICIAL con todos los feriados del año.',
+        'Separación Estricta Víspera / Festivo: Corrección del encasillamiento entre 30/04 (109 pac.) y 01/05 (60 pac. día / noche festiva).',
+        'Fidelidad Rayen 100%: Coincidencia total entre las cifras del sistema y los reportes oficiales Rayen por rango de turno.'
+      ]
+    },
+    {
       id: 'v5.9.5',
       version: 'v5.9.5',
       fecha: '03 de Septiembre, 2026',

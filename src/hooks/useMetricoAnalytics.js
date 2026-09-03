@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { formatLocalDate, deduplicarPacientes, obtenerTurnoDetallado } from '../utils/helpers';
+import { formatLocalDate, deduplicarPacientes, obtenerTurnoDetallado, CHILE_HOLIDAYS_OFFICIAL } from '../utils/helpers';
 
 const AGE_RANGES = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80+'];
 
@@ -658,6 +658,8 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       if (weekendDates.has(dateStr)) return true;
       const parts = dateStr.split('/');
       if (parts.length === 3) {
+        const iso = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        if (CHILE_HOLIDAYS_OFFICIAL.has(iso)) return true;
         const d = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
         if (isNaN(d.getTime())) return false;
         const day = d.getDay();
@@ -681,7 +683,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
         const info = obtenerTurnoDetallado(p.tAdmision, null);
         if (!info || !info.fechaTurno || info.fechaTurno === '-') return;
 
-        const isWknd = info.tipo.includes('Fin de Semana') || info.tipo.includes('Festivo') || info.horario.includes('08:00 a 20:00') || info.horario.includes('20:00 a 08:00');
+        const isWknd = info.tipo.includes('Fin de Semana') || info.tipo.includes('Festivo') || info.horario.includes('08:00 a 20:00') || (info.horario.includes('20:00 a 08:00') && !info.tipo.includes('Semana'));
         const shiftKey = `${info.fechaTurno}_${info.horario}_${info.tipo}`;
 
         if (!shiftsMap.has(shiftKey)) {
