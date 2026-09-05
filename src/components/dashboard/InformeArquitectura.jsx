@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.0.0',
+    version_tag: 'v6.0.0',
+    fecha_despliegue: '05 de Septiembre, 2026',
+    proposito_actualizacion: 'Rendimiento y Agrupación por Centros de Salud CORMUMEL, Top 10 Diagnósticos Respiratorios por Establecimiento y Módulo de Verificación Clínica de Pacientes.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisRespiratorio.jsx)',
+      'Directorio Oficial CORMUMEL (Directores, Contactos, Dirección, Teléfonos, Correos)',
+      'Center-Level Top 10 Diagnostic Ranking & Patient Audit Engine'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Agrupación y Rendimiento por Establecimiento CORMUMEL: Mapeo y encasillamiento de pacientes en el Directorio Oficial de Centros de Salud de Melipilla (CESFAM Dr. Francisco Boris Soler, CESFAM Dr. Edelberto Elgueta, CESFAM Alfarera Rosa Reyes Vilches de Pomaire, CESFAM Florencia, CESFAM San Manuel, Posta El Pabellón, Posta El Bollenar, Posta Pahuilmo, CECOSF Padre Demetrio Bravo, CECOSF Obispo Pablo Lizama, CECOSF Codigua, COSAM Melipilla, SAR Elsa Romo, Hospital San José y comunas de la provincia). 2) Top 10 Diagnósticos Respiratorios por Centro: Cálculo automático del ranking de las 10 hipótesis diagnósticas más frecuentes con su código CIE-10, conteo y porcentaje de concentración para cada centro. 3) Apartado de Verificación de Pacientes: Modal interactivo y vista detallada por centro con ficha institucional, KPIs específicos y tabla de auditoría clínica anonimizada (con Correlativo/ID, Fecha/Hora, Triaje Manchester, Edad/Sexo, Hipótesis, CIE-10, Destino y Médico) con exportación individual a Excel.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Cálculo memoizado O(N) por centro y agregación de Top 10 diagnósticos sin latencia.'
+    },
+    modulos_afectados: ['AnalisisRespiratorio.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Integración del Directorio Oficial CORMUMEL con metadatos completos de jefaturas, teléfonos y correos.',
+      'Cálculo y renderizado del Top 10 de patologías respiratorias específicas por establecimiento.',
+      'Módulo y modal interactivo de verificación de nóminas de pacientes con exportación a Excel por centro.'
+    ]
+  },
+  {
     id: 'v5.9.9',
     version_tag: 'v5.9.9',
     fecha_despliegue: '04 de Septiembre, 2026',

@@ -13,6 +13,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.0.0',
+      version: 'v6.0.0',
+      fecha: '05 de Septiembre, 2026',
+      badge: 'RED CORMUMEL & TOP 10 DIAGNÓSTICOS',
+      badgeColor: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-300 border-cyan-500/20',
+      title: 'Rendimiento Asistencial por Centros CORMUMEL, Top 10 Diagnósticos Respiratorios y Verificación de Pacientes',
+      categoria: 'Análisis Específicos & Red Asistencial',
+      icon: Building2,
+      iconBg: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
+      summary: 'Se incorporó la visualización agrupada por los Centros de Salud de la Red CORMUMEL y Provincia de Melipilla (CESFAM Boris Soler, Elgueta, Florencia, San Manuel, Alfarera Rosa Reyes/Pomaire, Postas El Pabellón, El Bollenar, Pahuilmo, CECOSF Padre Demetrio Bravo, Obispo Pablo Lizama, Codigua, COSAM, SAR Elsa Romo y Hospital). Cada centro cuenta con sus datos oficiales de directores/encargadas, total de pacientes, ranking Top 10 de diagnósticos respiratorios y un módulo/modal de verificación clínica de pacientes anonimizada con exportación individual a Excel.',
+      instructivo: {
+        paraQueSirve: 'Permite evaluar el rendimiento respiratorio específico de cada centro de atención primaria de Melipilla, identificar sus patologías prevalentes y verificar los datos de los pacientes derivados al SAR para auditoría médica.',
+        quePuedesVer: 'En Análisis Específicos > Vigilancia Respiratoria: Pestaña "Rendimiento por Centros (CORMUMEL)" con tarjetas ejecutivas por establecimiento, Top 10 diagnósticos con barras porcentuales y el botón "Verificar Pacientes" que abre la nómina detallada y exportable a Excel.',
+        ejemploUso: 'Haz clic en "Verificar Pacientes" en la tarjeta de CESFAM Dr. Francisco Boris Soler o CECOSF Codigua para inspeccionar los casos respiratorios, su triaje, edad e hipótesis diagnóstica.'
+      },
+      changes: [
+        'Directorio Oficial CORMUMEL: Metadatos de directores/encargadas, direcciones, teléfonos y correos institucionales.',
+        'Top 10 Diagnósticos por Centro: Ranking de hipótesis respiratorias y códigos CIE-10 más recurrentes en cada establecimiento.',
+        'Apartado de Verificación de Pacientes: Modal interactivo con nómina clínica detallada y trazable por correlativo.',
+        'Exportación por Centro: Descarga en Excel individualizada por cada establecimiento de salud.'
+      ]
+    },
+    {
       id: 'v5.9.9',
       version: 'v5.9.9',
       fecha: '04 de Septiembre, 2026',
