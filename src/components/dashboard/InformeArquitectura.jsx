@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.9.9',
+    version_tag: 'v5.9.9',
+    fecha_despliegue: '04 de Septiembre, 2026',
+    proposito_actualizacion: 'Calibración Universal de Auto-Detección del Último Turno, Renderizado de Vigilancia Respiratoria y Gestor Dinámico Administrativo de Diagnósticos.',
+    medios_y_stack: [
+      'React 18.3 (Dashboard.jsx, AnalisisRespiratorio.jsx)',
+      'Dynamic Clinical Diagnostic Discovery & Exclusion Manager',
+      'Real-Time Custom Term LocalStorage/Firestore Pipeline'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Corrección de Renderizado de Análisis Específicos: Se incorporó \"respiratorio\" en la lista de tabs activas de Dashboard.jsx para desplegar de forma inmediata el módulo sin pantallas en blanco. 2) Auto-Detección Fiel del Último Turno Cargado: Se ajustó el selector al iniciar sesión para que detecte el turno exacto que corresponde a la fecha y hora máxima cargada (Turno Largo de 16:00 a 09:00 AM o Finde Día/Noche según corresponda), eliminando cualquier retroceso artificial al fin de semana anterior. 3) Gestor Administrativo de Diagnósticos Respiratorios: Se dotó a los administradores de una interfaz para descubrir todos los diagnósticos únicos del archivo cargado, incluir o excluir diagnósticos con 1 clic, y agregar nuevos términos o códigos CIE-10 manualmente en tiempo real con recálculo instantáneo.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Memoización O(1) de términos respiratorios personalizados y reactividad instantánea.'
+    },
+    modulos_afectados: ['Dashboard.jsx', 'AnalisisRespiratorio.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Inclusión de \"respiratorio\" en el array includes de render de módulos específicos en Dashboard.jsx.',
+      'Calibración del detector inicial de turnos para posicionarse siempre en el turno activo del día de corte.',
+      'Integración del modal de gestión de diagnósticos con buscador de descubrimiento en dataset y persistencia local.'
+    ]
+  },
+  {
     id: 'v5.9.8',
     version_tag: 'v5.9.8',
     fecha_despliegue: '04 de Septiembre, 2026',

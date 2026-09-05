@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Wind, Activity, Stethoscope, Building2, Users, Search, Download, Filter, 
   AlertCircle, Calendar, ChevronRight, ChevronDown, ChevronUp, ArrowRightLeft, 
   Info, TrendingUp, TrendingDown, Layers, BarChart3, Baby, UserCheck, HeartPulse, 
-  ArrowUpRight, Sparkles, ShieldAlert, FileSpreadsheet, Printer, Clock, Hospital
+  ArrowUpRight, Sparkles, ShieldAlert, FileSpreadsheet, Printer, Clock, Hospital,
+  Settings2, Plus, Trash2, CheckCircle2, X, RefreshCw, Sliders
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, CartesianGrid, AreaChart, Area 
@@ -12,8 +13,6 @@ import InfoTooltip from '../InfoTooltip';
 import { obtenerTurnoDetallado } from '../../utils/helpers';
 
 const perc = (val, tot) => tot > 0 ? ((val / tot) * 100).toFixed(1) : '0.0';
-
-const AGE_RANGES = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80+'];
 
 // Colores Manchester Triaje
 const TRIAGE_COLORS = {
@@ -24,12 +23,43 @@ const TRIAGE_COLORS = {
   C5: '#3b82f6'  // Azul
 };
 
-// Clasificación de Subcategorías Respiratorias
-export const clasificarDiagnosticoRespiratorio = (diagnostico, codigo) => {
-  const diag = String(diagnostico || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+// Subgrupos base por defecto
+const DEFAULT_SUBGROUPS = {
+  'Neumonía / Influenza': { color: '#ef4444', icono: '🔴' },
+  'SBO / Asma / EPOC': { color: '#f97316', icono: '🟠' },
+  'Bronquitis / Bronquiolitis / VRS': { color: '#8b5cf6', icono: '🟣' },
+  'Vías Altas (IRA Alta)': { color: '#06b6d4', icono: '🔵' },
+  'COVID-19 / Otros Respiratorios': { color: '#10b981', icono: '🟢' }
+};
+
+// Función de clasificación diagnóstica con soporte dinámico de personalización
+export const clasificarDiagnosticoRespiratorio = (diagnostico, codigo, customTerms = [], excludedTerms = []) => {
+  const diag = String(diagnostico || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
   const cod = String(codigo || '').toUpperCase().trim();
 
-  // 1. Neumonías & Influenza
+  if (!diag && !cod) return null;
+
+  // 0. Si el término está explícitamente excluido por el administrador
+  if (excludedTerms.some(ex => diag.includes(ex.toLowerCase()) || cod.includes(ex.toUpperCase()))) {
+    return null;
+  }
+
+  // 1. Evaluar si coincide con algún término personalizado agregado por el administrador
+  for (const custom of customTerms) {
+    const termClean = String(custom.term || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    if (termClean && (diag.includes(termClean) || cod.includes(termClean.toUpperCase()))) {
+      const sub = custom.subgrupo || 'COVID-19 / Otros Respiratorios';
+      const meta = DEFAULT_SUBGROUPS[sub] || DEFAULT_SUBGROUPS['COVID-19 / Otros Respiratorios'];
+      return {
+        subgrupo: sub,
+        color: meta.color,
+        icono: meta.icono,
+        isCustom: true
+      };
+    }
+  }
+
+  // 2. Neumonías & Influenza
   if (
     cod.startsWith('J09') || cod.startsWith('J10') || cod.startsWith('J11') || 
     cod.startsWith('J12') || cod.startsWith('J13') || cod.startsWith('J14') || 
@@ -44,7 +74,7 @@ export const clasificarDiagnosticoRespiratorio = (diagnostico, codigo) => {
     };
   }
 
-  // 2. Patologías Obstructivas, Asma & SBO
+  // 3. Patologías Obstructivas, Asma & SBO
   if (
     cod.startsWith('J40') || cod.startsWith('J41') || cod.startsWith('J42') || 
     cod.startsWith('J43') || cod.startsWith('J44') || cod.startsWith('J45') || 
@@ -59,7 +89,7 @@ export const clasificarDiagnosticoRespiratorio = (diagnostico, codigo) => {
     };
   }
 
-  // 3. Vías Respiratorias Bajas / Bronquitis & Bronquiolitis (VRS)
+  // 4. Vías Respiratorias Bajas / Bronquitis & Bronquiolitis (VRS)
   if (
     cod.startsWith('J20') || cod.startsWith('J21') || cod.startsWith('J22') || 
     diag.includes('bronquiolitis') || diag.includes('bronquitis') || 
@@ -72,7 +102,7 @@ export const clasificarDiagnosticoRespiratorio = (diagnostico, codigo) => {
     };
   }
 
-  // 4. Infecciones de Vías Respiratorias Altas
+  // 5. Infecciones de Vías Respiratorias Altas
   if (
     cod.startsWith('J00') || cod.startsWith('J01') || cod.startsWith('J02') || 
     cod.startsWith('J03') || cod.startsWith('J04') || cod.startsWith('J05') || 
@@ -88,7 +118,7 @@ export const clasificarDiagnosticoRespiratorio = (diagnostico, codigo) => {
     };
   }
 
-  // 5. Covid-19, Síndromes Respiratorios y Otros
+  // 6. Covid-19, Síndromes Respiratorios y Otros
   if (
     cod.startsWith('U07') || cod.startsWith('J96') || cod.startsWith('J98') || 
     diag.includes('covid') || diag.includes('sars') || diag.includes('coronavirus') || 
@@ -184,6 +214,38 @@ export default function AnalisisRespiratorio({
   const [paginaActual, setPaginaActual] = useState(1);
   const itemsPorPagina = 12;
 
+  // ESTADO: GESTOR ADMINISTRATIVO DE DIAGNÓSTICOS RESPIRATORIOS
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  const [customTerms, setCustomTerms] = useState(() => {
+    try {
+      const saved = localStorage.getItem('metrico_respiratorio_custom_terms');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [excludedTerms, setExcludedTerms] = useState(() => {
+    try {
+      const saved = localStorage.getItem('metrico_respiratorio_excluded_terms');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const [newCustomTerm, setNewCustomTerm] = useState('');
+  const [newCustomSubgroup, setNewCustomSubgroup] = useState('COVID-19 / Otros Respiratorios');
+  const [searchDiscoveryTerm, setSearchDiscoveryTerm] = useState('');
+  const [configTab, setConfigTab] = useState('descubiertos'); // 'descubiertos' | 'manual' | 'activos'
+
+  useEffect(() => {
+    localStorage.setItem('metrico_respiratorio_custom_terms', JSON.stringify(customTerms));
+  }, [customTerms]);
+
+  useEffect(() => {
+    localStorage.setItem('metrico_respiratorio_excluded_terms', JSON.stringify(excludedTerms));
+  }, [excludedTerms]);
+
   // 1. Determinar Universo de Pacientes del Período
   const targetPacientes = useMemo(() => {
     if (pacientesFiltrados && pacientesFiltrados.length > 0) {
@@ -194,10 +256,43 @@ export default function AnalisisRespiratorio({
     return (pacientesDB || []).filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
   }, [pacientesFiltrados, pacientesDB, filtroFechaInicio, filtroFechaFin]);
 
+  // Catálogo de todos los diagnósticos únicos presentes en los datos cargados para descubrimiento por el Admin
+  const catalogoDiagnosticosDescubiertos = useMemo(() => {
+    const map = new Map();
+    const records = (pacientesDB && pacientesDB.length > 0) ? pacientesDB : targetPacientes;
+
+    records.forEach(p => {
+      const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').trim();
+      const cod = String(p.codigoDiagnostico || p.codigo_diagnostico_cie10 || '').trim().toUpperCase();
+      if (!diag && !cod) return;
+
+      const key = `${cod ? `[${cod}] ` : ''}${diag || 'Sin Glosa'}`;
+      if (!map.has(key)) {
+        const isResp = Boolean(clasificarDiagnosticoRespiratorio(diag, cod, customTerms, excludedTerms));
+        map.set(key, {
+          key,
+          diag,
+          cod,
+          count: 0,
+          isResp,
+          subgrupo: isResp ? clasificarDiagnosticoRespiratorio(diag, cod, customTerms, excludedTerms)?.subgrupo : null
+        });
+      }
+      map.get(key).count++;
+    });
+
+    return Array.from(map.values()).sort((a, b) => b.count - a.count);
+  }, [pacientesDB, targetPacientes, customTerms, excludedTerms]);
+
   // 2. Extraer y Enriquecer Pacientes con Patología Respiratoria
   const pacientesRespiratorios = useMemo(() => {
     return targetPacientes.map(p => {
-      const respInfo = clasificarDiagnosticoRespiratorio(p.diagnosticoPrincipal || p.diagnostico, p.codigoDiagnostico || p.codigo_diagnostico_cie10);
+      const respInfo = clasificarDiagnosticoRespiratorio(
+        p.diagnosticoPrincipal || p.diagnostico, 
+        p.codigoDiagnostico || p.codigo_diagnostico_cie10,
+        customTerms,
+        excludedTerms
+      );
       if (!respInfo) return null;
 
       const centroInfo = encasillarCentroProvinciaMelipilla(p);
@@ -215,7 +310,7 @@ export default function AnalisisRespiratorio({
         triageManchester: triageKey
       };
     }).filter(Boolean);
-  }, [targetPacientes]);
+  }, [targetPacientes, customTerms, excludedTerms]);
 
   // 3. Pacientes del Año Anterior para Comparativa YoY
   const prevYearStart = useMemo(() => {
@@ -239,7 +334,7 @@ export default function AnalisisRespiratorio({
     const prevPacs = pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
     let totalResp = 0;
     prevPacs.forEach(p => {
-      if (clasificarDiagnosticoRespiratorio(p.diagnosticoPrincipal || p.diagnostico, p.codigoDiagnostico || p.codigo_diagnostico_cie10)) {
+      if (clasificarDiagnosticoRespiratorio(p.diagnosticoPrincipal || p.diagnostico, p.codigoDiagnostico || p.codigo_diagnostico_cie10, customTerms, excludedTerms)) {
         totalResp++;
       }
     });
@@ -247,7 +342,7 @@ export default function AnalisisRespiratorio({
       totalResp,
       totalGlobal: prevPacs.length
     };
-  }, [pacientesDB, prevYearStart, prevYearEnd]);
+  }, [pacientesDB, prevYearStart, prevYearEnd, customTerms, excludedTerms]);
 
   // 4. Aplicar Filtros Interactivos
   const pacientesFiltradosResp = useMemo(() => {
@@ -370,41 +465,15 @@ export default function AnalisisRespiratorio({
       map[s] = (map[s] || 0) + 1;
     });
 
-    const COLORS_SUB = {
-      'Neumonía / Influenza': '#ef4444',
-      'SBO / Asma / EPOC': '#f97316',
-      'Bronquitis / Bronquiolitis / VRS': '#8b5cf6',
-      'Vías Altas (IRA Alta)': '#06b6d4',
-      'COVID-19 / Otros Respiratorios': '#10b981'
-    };
-
     return Object.entries(map).map(([name, value]) => ({
       name,
       value,
-      color: COLORS_SUB[name] || '#6366f1',
+      color: DEFAULT_SUBGROUPS[name]?.color || '#6366f1',
       pct: perc(value, pacientesFiltradosResp.length)
     })).sort((a, b) => b.value - a.value);
   }, [pacientesFiltradosResp]);
 
-  // 8. Datos para Gráfico de Triaje Manchester
-  const dataTriaje = useMemo(() => {
-    const map = { C1: 0, C2: 0, C3: 0, C4: 0, C5: 0 };
-    pacientesFiltradosResp.forEach(p => {
-      if (map[p.triageManchester] !== undefined) {
-        map[p.triageManchester]++;
-      }
-    });
-
-    return Object.entries(map).map(([name, value]) => ({
-      name: `Categoría ${name}`,
-      cat: name,
-      value,
-      color: TRIAGE_COLORS[name],
-      pct: perc(value, pacientesFiltradosResp.length)
-    }));
-  }, [pacientesFiltradosResp]);
-
-  // 9. Datos para Curva de Tendencia Temporal (Diaria)
+  // 8. Datos para Curva de Tendencia Temporal (Diaria)
   const dataTemporal = useMemo(() => {
     const map = {};
     pacientesFiltradosResp.forEach(p => {
@@ -445,6 +514,51 @@ export default function AnalisisRespiratorio({
     pacientesRespiratorios.forEach(p => set.add(p.comunaProvincia));
     return Array.from(set).sort();
   }, [pacientesRespiratorios]);
+
+  // Funciones Administrativas de Diagnósticos
+  const handleToggleDiagnosisInclusion = (diagItem) => {
+    const term = diagItem.diag || diagItem.cod;
+    if (!term) return;
+
+    if (diagItem.isResp) {
+      // Excluirlo
+      setExcludedTerms(prev => [...prev.filter(t => t !== term), term]);
+      setCustomTerms(prev => prev.filter(c => c.term.toLowerCase() !== term.toLowerCase()));
+    } else {
+      // Incluirlo
+      setExcludedTerms(prev => prev.filter(t => t !== term));
+      setCustomTerms(prev => [
+        ...prev.filter(c => c.term.toLowerCase() !== term.toLowerCase()),
+        { term, subgrupo: 'COVID-19 / Otros Respiratorios' }
+      ]);
+    }
+  };
+
+  const handleAddManualCustomTerm = (e) => {
+    e.preventDefault();
+    if (!newCustomTerm.trim()) return;
+
+    const termClean = newCustomTerm.trim();
+    setExcludedTerms(prev => prev.filter(t => t.toLowerCase() !== termClean.toLowerCase()));
+    setCustomTerms(prev => [
+      ...prev.filter(c => c.term.toLowerCase() !== termClean.toLowerCase()),
+      { term: termClean, subgrupo: newCustomSubgroup }
+    ]);
+    setNewCustomTerm('');
+  };
+
+  const handleRemoveCustomTerm = (termToRemove) => {
+    setCustomTerms(prev => prev.filter(c => c.term !== termToRemove));
+  };
+
+  const handleResetCustomTerms = () => {
+    if (window.confirm("¿Deseas restaurar la lista de diagnósticos respiratorios a la configuración de fábrica?")) {
+      setCustomTerms([]);
+      setExcludedTerms([]);
+      localStorage.removeItem('metrico_respiratorio_custom_terms');
+      localStorage.removeItem('metrico_respiratorio_excluded_terms');
+    }
+  };
 
   // Exportar a Excel con SheetJS
   const handleExportExcel = () => {
@@ -556,8 +670,19 @@ export default function AnalisisRespiratorio({
           </div>
         </div>
 
-        {/* BOTONERA DE ACCIÓN Y EXPORTACIÓN */}
+        {/* BOTONERA DE ACCIÓN, CONFIGURACIÓN Y EXPORTACIÓN */}
         <div className="flex items-center gap-2 self-end lg:self-auto flex-wrap">
+          
+          {/* BOTÓN ADMINISTRATIVO: GESTOR DE DIAGNÓSTICOS RESPIRATORIOS */}
+          <button
+            onClick={() => setIsConfigModalOpen(true)}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all cursor-pointer"
+            title="Abrir gestor administrativo de diagnósticos respiratorios y personalización"
+          >
+            <Settings2 className="w-4 h-4" />
+            <span>Configurar Diagnósticos ({customTerms.length > 0 ? `+${customTerms.length}` : 'Clasificador'})</span>
+          </button>
+
           <button
             onClick={handleExportExcel}
             className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all cursor-pointer"
@@ -1167,6 +1292,217 @@ export default function AnalisisRespiratorio({
         )}
 
       </div>
+
+      {/* MODAL ADMINISTRATIVO: GESTIÓN DE DIAGNÓSTICOS RESPIRATORIOS */}
+      {isConfigModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
+          <div className="bg-slate-900 border border-indigo-500/30 rounded-3xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            
+            {/* Header del Modal */}
+            <div className="p-5 border-b border-indigo-500/20 flex items-center justify-between bg-slate-950/60">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center">
+                  <Settings2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white tracking-tight">
+                    Gestor de Diagnósticos Respiratorios
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Selecciona o añade diagnósticos para incluirlos en el clasificador de vigilancia epidemiológica.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsConfigModalOpen(false)}
+                className="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Pestañas de Gestión */}
+            <div className="flex border-b border-slate-800 bg-slate-950/40 px-5 pt-3 gap-2">
+              <button
+                onClick={() => setConfigTab('descubiertos')}
+                className={`px-4 py-2 text-xs font-bold rounded-t-xl transition-all cursor-pointer border-b-2 ${configTab === 'descubiertos' ? 'text-indigo-400 border-indigo-500 bg-indigo-500/10' : 'text-slate-400 border-transparent hover:text-white'}`}
+              >
+                Diagnósticos en Base de Datos ({catalogoDiagnosticosDescubiertos.length})
+              </button>
+              <button
+                onClick={() => setConfigTab('manual')}
+                className={`px-4 py-2 text-xs font-bold rounded-t-xl transition-all cursor-pointer border-b-2 ${configTab === 'manual' ? 'text-indigo-400 border-indigo-500 bg-indigo-500/10' : 'text-slate-400 border-transparent hover:text-white'}`}
+              >
+                + Añadir Diagnóstico Manual
+              </button>
+              <button
+                onClick={() => setConfigTab('activos')}
+                className={`px-4 py-2 text-xs font-bold rounded-t-xl transition-all cursor-pointer border-b-2 ${configTab === 'activos' ? 'text-indigo-400 border-indigo-500 bg-indigo-500/10' : 'text-slate-400 border-transparent hover:text-white'}`}
+              >
+                Personalizados Activos ({customTerms.length})
+              </button>
+            </div>
+
+            {/* Contenido de las Pestañas */}
+            <div className="p-5 overflow-y-auto flex-1 space-y-4">
+              
+              {/* TAB 1: DIAGNÓSTICOS DESCUBIERTOS EN LA BD */}
+              {configTab === 'descubiertos' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="relative flex-1">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        placeholder="Filtrar diagnósticos encontrados en el archivo cargado..."
+                        value={searchDiscoveryTerm}
+                        onChange={(e) => setSearchDiscoveryTerm(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder:text-slate-500 outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <button
+                      onClick={handleResetCustomTerms}
+                      className="px-3 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all shrink-0 cursor-pointer"
+                    >
+                      Restaurar Todo
+                    </button>
+                  </div>
+
+                  <div className="space-y-1.5 max-h-80 overflow-y-auto pr-1">
+                    {catalogoDiagnosticosDescubiertos
+                      .filter(d => searchDiscoveryTerm === '' || d.key.toLowerCase().includes(searchDiscoveryTerm.toLowerCase()))
+                      .slice(0, 100)
+                      .map((d) => (
+                        <div 
+                          key={d.key} 
+                          className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${d.isResp ? 'bg-indigo-500/10 border-indigo-500/30 text-slate-100' : 'bg-slate-950/40 border-slate-800/80 text-slate-400'}`}
+                        >
+                          <div className="flex items-center gap-2.5 overflow-hidden">
+                            <input
+                              type="checkbox"
+                              checked={d.isResp}
+                              onChange={() => handleToggleDiagnosisInclusion(d)}
+                              className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 bg-slate-900 border-slate-700 cursor-pointer"
+                            />
+                            <div className="flex flex-col truncate">
+                              <span className="font-bold text-xs truncate">{d.key}</span>
+                              <span className="text-[10px] text-slate-500">
+                                {d.isResp ? `Incluido en: ${d.subgrupo}` : 'No clasificado como respiratorio'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300">
+                              {d.count} pac.
+                            </span>
+                            <button
+                              onClick={() => handleToggleDiagnosisInclusion(d)}
+                              className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase transition-all cursor-pointer ${d.isResp ? 'bg-rose-500/20 text-rose-400 hover:bg-rose-500/30' : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'}`}
+                            >
+                              {d.isResp ? 'Excluir' : 'Incluir'}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: AGREGAR DIAGNÓSTICO MANUAL */}
+              {configTab === 'manual' && (
+                <form onSubmit={handleAddManualCustomTerm} className="space-y-4 bg-slate-950/40 p-4 rounded-2xl border border-slate-800">
+                  <h4 className="text-xs font-black text-white uppercase tracking-wider">
+                    Registrar nuevo término o código CIE-10
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-400 block mb-1">Nombre o Glosa / Código CIE-10:</label>
+                      <input
+                        type="text"
+                        placeholder="Ej: Laringotraqueitis, J21.8, Croup..."
+                        value={newCustomTerm}
+                        onChange={(e) => setNewCustomTerm(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-500 outline-none focus:border-indigo-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-400 block mb-1">Subgrupo Clínico Asignado:</label>
+                      <select
+                        value={newCustomSubgroup}
+                        onChange={(e) => setNewCustomSubgroup(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500 cursor-pointer"
+                      >
+                        {Object.keys(DEFAULT_SUBGROUPS).map(sub => (
+                          <option key={sub} value={sub}>{sub}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Guardar y Procesar en Vigilancia</span>
+                  </button>
+                </form>
+              )}
+
+              {/* TAB 3: DIAGNÓSTICOS PERSONALIZADOS ACTIVOS */}
+              {configTab === 'activos' && (
+                <div className="space-y-3">
+                  <p className="text-xs text-slate-400">
+                    Lista de términos agregados o ajustados de forma personalizada por la administración:
+                  </p>
+                  {customTerms.length > 0 ? (
+                    <div className="space-y-1.5 max-h-72 overflow-y-auto">
+                      {customTerms.map(c => (
+                        <div key={c.term} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                            <span className="text-xs font-bold text-white">{c.term}</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300">
+                              {c.subgrupo}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => handleRemoveCustomTerm(c.term)}
+                            className="text-rose-400 hover:text-rose-300 p-1 rounded-lg hover:bg-rose-500/10 cursor-pointer"
+                            title="Eliminar de personalizados"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center text-slate-500 text-xs">
+                      No hay diagnósticos personalizados manuales. Se están utilizando los algoritmos normativos CIE-10.
+                    </div>
+                  )}
+                </div>
+              )}
+
+            </div>
+
+            {/* Footer del Modal */}
+            <div className="p-4 border-t border-slate-800 bg-slate-950 flex items-center justify-between">
+              <span className="text-xs text-slate-400">
+                Los cambios se aplican inmediatamente sobre todos los gráficos y tablas de la sesión.
+              </span>
+              <button
+                onClick={() => setIsConfigModalOpen(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-all cursor-pointer"
+              >
+                Cerrar y Ver Resultados
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

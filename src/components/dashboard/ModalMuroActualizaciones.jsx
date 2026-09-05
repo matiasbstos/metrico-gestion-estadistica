@@ -13,6 +13,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.9.9',
+      version: 'v5.9.9',
+      fecha: '04 de Septiembre, 2026',
+      badge: 'AUTO-DETECCIÓN DE TURNO & GESTOR DE DIAGNÓSTICOS',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Auto-Detección Fiel del Último Turno y Gestor Dinámico de Diagnósticos Respiratorios para Administradores',
+      categoria: 'Análisis Específicos & Configuración',
+      icon: Wind,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se resolvió la visualización del módulo de Vigilancia Respiratoria (eliminando la pantalla en blanco), se perfeccionó la auto-selección en el inicio para enfocar directamente el último turno cargado (Turno Largo del 31 de Agosto) y se añadió la nueva herramienta de Gestión Dinámica de Diagnósticos para Administradores, que permite descubrir diagnósticos desde los datos cargados, agregarlos o excluirlos interactivamente.',
+      instructivo: {
+        paraQueSirve: 'Permite que el sistema se posicione automáticamente en el turno más reciente al entrar y otorga control total a los administradores para personalizar qué diagnósticos o códigos CIE-10 se consideran casos respiratorios.',
+        quePuedesVer: 'En Análisis Específicos > Vigilancia Respiratoria: Botón "Gestionar Diagnósticos" (visible para Administradores) con lista interactiva de diagnósticos descubiertos en el archivo, buscador, casillas de selección, opción de añadir diagnósticos personalizados y restablecimiento a valores estándar.',
+        ejemploUso: 'Como administrador, haz clic en "Gestionar Diagnósticos", escribe un nuevo término o selecciona diagnósticos detectados en el archivo para incorporarlos de inmediato a los indicadores respiratorios.'
+      },
+      changes: [
+        'Corrección de Navegación: Habilitación total de la pestaña de Vigilancia Respiratoria en el panel principal.',
+        'Calibración de Auto-Detección de Turno: Selección fiel del turno más reciente al iniciar sesión o recargar la página.',
+        'Gestor Dinámico de Diagnósticos: Modal de administración para seleccionar, agregar y excluir diagnósticos o CIE-10 con persistencia local.',
+        'Descubrimiento Inteligente de Casos: Detección automática de términos clínicos en la base de datos para sugerir diagnósticos al administrador.'
+      ]
+    },
+    {
       id: 'v5.9.8',
       version: 'v5.9.8',
       fecha: '04 de Septiembre, 2026',
