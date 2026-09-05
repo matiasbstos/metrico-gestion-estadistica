@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.0.1',
+    version_tag: 'v6.0.1',
+    fecha_despliegue: '05 de Septiembre, 2026',
+    proposito_actualizacion: 'Integración Universal y Protagonismo del Médico Tratante en Vigilancia Epidemiológica Respiratoria, Tarjetas por Centro, Top 10 Diagnósticos y Auditoría Clínica.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisRespiratorio.jsx)',
+      'Physician Workload & Clinical Attendance Analytics Engine',
+      'Normalized Medical Practitioner Resolution Matrix (Dr/Dra. Attribution)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Normalización Rigurosa del Médico Tratante: Evaluación y limpieza de los atributos de atención médica (p.medico, p.profesional, p.medico_tratante, p.nombre_profesional, p.profesional_atencion) con prefijado Dr(a). y fallback asistencial a MÉDICO GENERAL SAR. 2) Filtro Global y Ranking Médico: Inclusión de selector dinámico por facultativo en la barra de control y tabla de Ranking y Carga Asistencial (con volumen, categorización Manchester C1 a C5 y concentración porcentual). 3) Desglose por Centro y Top Diagnósticos: Visibilidad de los médicos tratantes en cada tarjeta CORMUMEL y visualización del médico tratante principal en cada fila del Top 10 de diagnósticos respiratorios. 4) Nóminas de Verificación y Exportaciones: Incorporación obligatoria de la columna Médico Tratante en el modal de verificación de establecimientos, nómina global de auditoría anonimizada y en todas las exportaciones a planillas Excel (XLSX) y CSV.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Extracción O(N) indexada de facultativos únicos y agregación instantánea de carga asistencial.'
+    },
+    modulos_afectados: ['AnalisisRespiratorio.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Normalización integral de médicoTratante en el mapeo de casos respiratorios.',
+      'Componente y tabla de ranking asistencial médico con distribución de triaje.',
+      'Filtro dropdown por médico tratante tanto en la cabecera global como dentro del modal de verificación por centro.',
+      'Garantía de columna Médico Tratante en exportaciones XLSX y CSV.'
+    ]
+  },
+  {
     id: 'v6.0.0',
     version_tag: 'v6.0.0',
     fecha_despliegue: '05 de Septiembre, 2026',

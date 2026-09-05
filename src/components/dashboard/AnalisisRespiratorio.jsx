@@ -5,7 +5,7 @@ import {
   Info, TrendingUp, TrendingDown, Layers, BarChart3, Baby, UserCheck, HeartPulse, 
   ArrowUpRight, Sparkles, ShieldAlert, FileSpreadsheet, Printer, Clock, Hospital,
   Settings2, Plus, Trash2, CheckCircle2, X, RefreshCw, Sliders, Phone, Mail, 
-  MapPin, User, Eye, ExternalLink, FileText, CheckCircle
+  MapPin, User, Eye, ExternalLink, FileText, CheckCircle, Award
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, CartesianGrid, AreaChart, Area 
@@ -495,6 +495,7 @@ export default function AnalisisRespiratorio({
   // Filtros generales
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroCentro, setFiltroCentro] = useState('TODOS');
+  const [filtroMedico, setFiltroMedico] = useState('TODOS'); // FILTRO DEDICADO POR MÉDICO TRATANTE
   const [filtroComuna, setFiltroComuna] = useState('TODOS');
   const [filtroSubgrupo, setFiltroSubgrupo] = useState('TODOS');
   const [filtroTriaje, setFiltroTriaje] = useState('TODOS');
@@ -511,6 +512,7 @@ export default function AnalisisRespiratorio({
 
   // Estado del Modal / Panel de Verificación de Centro Específico
   const [centroSeleccionadoModal, setCentroSeleccionadoModal] = useState(null);
+  const [filtroMedicoModal, setFiltroMedicoModal] = useState('TODOS');
   const [paginaModalCentro, setPaginaModalCentro] = useState(1);
   const [searchModalCentro, setSearchModalCentro] = useState('');
 
@@ -584,7 +586,7 @@ export default function AnalisisRespiratorio({
     return Array.from(map.values()).sort((a, b) => b.count - a.count);
   }, [pacientesDB, targetPacientes, customTerms, excludedTerms]);
 
-  // 2. Extraer y Enriquecer Pacientes con Patología Respiratoria
+  // 2. Extraer y Enriquecer Pacientes con Patología Respiratoria (CON MÉDICO TRATANTE NORMALIZADO)
   const pacientesRespiratorios = useMemo(() => {
     return targetPacientes.map(p => {
       const respInfo = clasificarDiagnosticoRespiratorio(
@@ -599,8 +601,26 @@ export default function AnalisisRespiratorio({
       const cat = String(p.categoria || p.categoria_triage || 'C4').toUpperCase();
       const triageKey = ['C1', 'C2', 'C3', 'C4', 'C5'].includes(cat) ? cat : (cat.includes('1') ? 'C1' : cat.includes('2') ? 'C2' : cat.includes('3') ? 'C3' : cat.includes('4') ? 'C4' : 'C5');
 
+      // EXTRACCIÓN Y NORMALIZACIÓN RIGUROSA DEL MÉDICO TRATANTE
+      const medRaw = String(
+        p.medico || 
+        p.profesional || 
+        p.medico_tratante || 
+        p.medicoTratante || 
+        p.nombre_profesional || 
+        p.profesional_atencion || 
+        p.usuario_atencion || 
+        ''
+      ).trim();
+
+      const medicoTratante = medRaw && medRaw !== 'SIN MEDICO' && medRaw !== 'DESCONOCIDO' && medRaw !== '-' && medRaw !== 'UNDEFINED'
+        ? (medRaw.toUpperCase().startsWith('DR') ? medRaw : `Dr(a). ${medRaw}`)
+        : 'MÉDICO GENERAL SAR';
+
       return {
         ...p,
+        medicoTratante,
+        profesionalTratante: medicoTratante,
         respSubgrupo: respInfo.subgrupo,
         respColor: respInfo.color,
         respIcono: respInfo.icono,
@@ -611,6 +631,15 @@ export default function AnalisisRespiratorio({
       };
     }).filter(Boolean);
   }, [targetPacientes, customTerms, excludedTerms]);
+
+  // Lista de Médicos Únicos para Filtros
+  const listaMedicosUnicos = useMemo(() => {
+    const set = new Set();
+    pacientesRespiratorios.forEach(p => {
+      if (p.medicoTratante) set.add(p.medicoTratante);
+    });
+    return Array.from(set).sort();
+  }, [pacientesRespiratorios]);
 
   // 3. Pacientes del Año Anterior para Comparativa YoY
   const prevYearStart = useMemo(() => {
@@ -644,7 +673,54 @@ export default function AnalisisRespiratorio({
     };
   }, [pacientesDB, prevYearStart, prevYearEnd, customTerms, excludedTerms]);
 
-  // 4. ANÁLISIS DETALLADO AGRUPADO POR CENTROS DE SALUD (CORMUMEL + RED PROVINCIAL)
+  // 4. RANKING GLOBAL DE MÉDICOS TRATANTES EN VIGILANCIA RESPIRATORIA
+  const rankingMedicosGlobales = useMemo(() => {
+    const map = new Map();
+    pacientesRespiratorios.forEach(p => {
+      const med = p.medicoTratante || 'MÉDICO GENERAL SAR';
+      if (!map.has(med)) {
+        map.set(med, {
+          medico: med,
+          total: 0,
+          pediatricos: 0,
+          adultosMayores: 0,
+          gravesC1C2: 0,
+          hospitalizados: 0,
+          diagnosticosMap: new Map()
+        });
+      }
+      const item = map.get(med);
+      item.total++;
+
+      const e = Number(p.edad);
+      if (!isNaN(e)) {
+        if (e < 15) item.pediatricos++;
+        if (e >= 60) item.adultosMayores++;
+      }
+      if (p.triageManchester === 'C1' || p.triageManchester === 'C2') item.gravesC1C2++;
+      const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
+      if (dest.includes('HOSPITAL') || dest.includes('DERIV') || dest.includes('TRASLADO')) item.hospitalizados++;
+
+      const dName = p.diagnosticoPrincipal || p.diagnostico || 'Respiratorio';
+      item.diagnosticosMap.set(dName, (item.diagnosticosMap.get(dName) || 0) + 1);
+    });
+
+    const totalRespGlobal = pacientesRespiratorios.length;
+
+    return Array.from(map.values()).map(m => {
+      const topDiagArr = Array.from(m.diagnosticosMap.entries()).sort((a, b) => b[1] - a[1]);
+      const topPatologia = topDiagArr.length > 0 ? `${topDiagArr[0][0]} (${topDiagArr[0][1]} pac.)` : 'Vías Respiratorias';
+
+      return {
+        ...m,
+        pctGlobal: totalRespGlobal > 0 ? ((m.total / totalRespGlobal) * 100).toFixed(1) : '0.0',
+        pctGraves: m.total > 0 ? ((m.gravesC1C2 / m.total) * 100).toFixed(1) : '0.0',
+        topPatologia
+      };
+    }).sort((a, b) => b.total - a.total);
+  }, [pacientesRespiratorios]);
+
+  // 5. ANÁLISIS DETALLADO AGRUPADO POR CENTROS DE SALUD CON MÉDICOS TRATANTES
   const centrosAnalisisDetallado = useMemo(() => {
     const map = new Map();
 
@@ -661,7 +737,8 @@ export default function AnalisisRespiratorio({
         gravesC1C2: 0,
         hospitalizados: 0,
         domicilio: 0,
-        diagnosticosMap: new Map()
+        diagnosticosMap: new Map(),
+        medicosMap: new Map() // REGISTRO DE MÉDICOS TRATANTES POR CENTRO
       });
     });
 
@@ -691,7 +768,8 @@ export default function AnalisisRespiratorio({
           gravesC1C2: 0,
           hospitalizados: 0,
           domicilio: 0,
-          diagnosticosMap: new Map()
+          diagnosticosMap: new Map(),
+          medicosMap: new Map()
         });
       }
 
@@ -715,7 +793,11 @@ export default function AnalisisRespiratorio({
         item.domicilio++;
       }
 
-      // Conteo de Diagnósticos para el Top 10
+      // Registro de Médico Tratante en el Centro
+      const medTrat = p.medicoTratante || 'MÉDICO GENERAL SAR';
+      item.medicosMap.set(medTrat, (item.medicosMap.get(medTrat) || 0) + 1);
+
+      // Conteo de Diagnósticos para el Top 10 con Médico Tratante Principal
       const diagStr = (p.diagnosticoPrincipal || p.diagnostico || 'Sin Glosa Diagnóstica').trim();
       const cie = p.codigoDiagnostico || p.codigo_diagnostico_cie10 || 'J00';
       const diagKey = `${cie ? `[${cie}] ` : ''}${diagStr}`;
@@ -727,23 +809,43 @@ export default function AnalisisRespiratorio({
           cie10: cie,
           subgrupo: p.respSubgrupo,
           color: p.respColor,
-          count: 0
+          count: 0,
+          medicosDiagMap: new Map()
         });
       }
-      item.diagnosticosMap.get(diagKey).count++;
+      const dObj = item.diagnosticosMap.get(diagKey);
+      dObj.count++;
+      dObj.medicosDiagMap.set(medTrat, (dObj.medicosDiagMap.get(medTrat) || 0) + 1);
     });
 
     const totalUniversoResp = pacientesRespiratorios.length;
 
-    // Calcular estadísticas y Top 10 diagnósticos para cada centro
+    // Calcular estadísticas, Top 10 diagnósticos y Top Médicos Tratantes para cada centro
     const lista = Array.from(map.values()).map(c => {
       const top10 = Array.from(c.diagnosticosMap.values())
         .sort((a, b) => b.count - a.count)
         .slice(0, 10)
-        .map((d, i) => ({
-          ...d,
-          ranking: i + 1,
-          porcentajeCentro: c.total > 0 ? ((d.count / c.total) * 100).toFixed(1) : '0.0'
+        .map((d, i) => {
+          // Extraer el médico que más diagnosticó esta patología en este centro
+          const topMedDiag = Array.from(d.medicosDiagMap.entries()).sort((a, b) => b[1] - a[1])[0];
+          const medicoPrincipal = topMedDiag ? `${topMedDiag[0]} (${topMedDiag[1]} pac.)` : 'Médico SAR';
+
+          return {
+            ...d,
+            ranking: i + 1,
+            medicoPrincipal,
+            porcentajeCentro: c.total > 0 ? ((d.count / c.total) * 100).toFixed(1) : '0.0'
+          };
+        });
+
+      // Top 3 Médicos Tratantes en este Centro
+      const topMedicosCentro = Array.from(c.medicosMap.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([nombre, count]) => ({
+          nombre,
+          count,
+          pct: c.total > 0 ? ((count / c.total) * 100).toFixed(1) : '0.0'
         }));
 
       return {
@@ -753,7 +855,8 @@ export default function AnalisisRespiratorio({
         pctAdultosMayores: c.total > 0 ? ((c.adultosMayores / c.total) * 100).toFixed(1) : '0.0',
         pctGraves: c.total > 0 ? ((c.gravesC1C2 / c.total) * 100).toFixed(1) : '0.0',
         pctHospitalizados: c.total > 0 ? ((c.hospitalizados / c.total) * 100).toFixed(1) : '0.0',
-        top10Diagnosticos: top10
+        top10Diagnosticos: top10,
+        topMedicosCentro
       };
     });
 
@@ -777,17 +880,18 @@ export default function AnalisisRespiratorio({
       }
       if (searchCentroTerm.trim() !== '') {
         const q = searchCentroTerm.toLowerCase().trim();
-        const str = `${c.nombre} ${c.metadata.encargado} ${c.metadata.direccion} ${c.metadata.comuna}`.toLowerCase();
+        const str = `${c.nombre} ${c.metadata.encargado} ${c.metadata.direccion} ${c.metadata.comuna} ${c.topMedicosCentro.map(m=>m.nombre).join(' ')}`.toLowerCase();
         if (!str.includes(q)) return false;
       }
       return true;
     });
   }, [centrosAnalisisDetallado, filtroCategoriaCentro, searchCentroTerm]);
 
-  // 5. Aplicar Filtros Interactivos para la Nómina General
+  // 6. Aplicar Filtros Interactivos para la Nómina General (INCLUYE FILTRO DE MÉDICO TRATANTE)
   const pacientesFiltradosResp = useMemo(() => {
     return pacientesRespiratorios.filter(p => {
       if (filtroCentro !== 'TODOS' && p.centroProvincia !== filtroCentro) return false;
+      if (filtroMedico !== 'TODOS' && p.medicoTratante !== filtroMedico) return false;
       if (filtroComuna !== 'TODOS' && p.comunaProvincia !== filtroComuna) return false;
       if (filtroSubgrupo !== 'TODOS' && p.respSubgrupo !== filtroSubgrupo) return false;
       if (filtroTriaje !== 'TODOS' && p.triageManchester !== filtroTriaje) return false;
@@ -818,15 +922,15 @@ export default function AnalisisRespiratorio({
 
       if (searchTerm.trim() !== '') {
         const q = searchTerm.toLowerCase().trim();
-        const fullStr = `${p.diagnosticoPrincipal || ''} ${p.codigoDiagnostico || ''} ${p.profesional || p.medico || ''} ${p.centroProvincia || ''} ${p.destinoAlta || ''} ${p.correlativo || ''}`.toLowerCase();
+        const fullStr = `${p.diagnosticoPrincipal || ''} ${p.codigoDiagnostico || ''} ${p.medicoTratante || ''} ${p.profesional || ''} ${p.centroProvincia || ''} ${p.destinoAlta || ''} ${p.correlativo || ''}`.toLowerCase();
         if (!fullStr.includes(q)) return false;
       }
 
       return true;
     });
-  }, [pacientesRespiratorios, filtroCentro, filtroComuna, filtroSubgrupo, filtroTriaje, filtroSexo, filtroDestino, filtroEdad, searchTerm]);
+  }, [pacientesRespiratorios, filtroCentro, filtroMedico, filtroComuna, filtroSubgrupo, filtroTriaje, filtroSexo, filtroDestino, filtroEdad, searchTerm]);
 
-  // 6. KPIs y Métricas Resumen
+  // 7. KPIs y Métricas Resumen
   const statsResumen = useMemo(() => {
     const totalResp = pacientesFiltradosResp.length;
     const totalUniverso = targetPacientes.length;
@@ -868,7 +972,7 @@ export default function AnalisisRespiratorio({
     };
   }, [pacientesFiltradosResp, targetPacientes, statsPrevYear]);
 
-  // 7. Datos para Gráficos
+  // 8. Datos para Gráficos
   const dataCentros = useMemo(() => {
     return centrosAnalisisDetallado
       .filter(c => c.total > 0)
@@ -923,17 +1027,20 @@ export default function AnalisisRespiratorio({
     return pacientesFiltradosResp.slice(start, start + itemsPorPagina);
   }, [pacientesFiltradosResp, paginaActual]);
 
-  // Pacientes filtrados dentro del Modal de Centro Específico
+  // Pacientes filtrados dentro del Modal de Centro Específico (CON FILTRO DE MÉDICO TRATANTE)
   const pacientesModalCentroFiltrados = useMemo(() => {
     if (!centroSeleccionadoModal) return [];
-    const pacs = centroSeleccionadoModal.pacientes || [];
+    let pacs = centroSeleccionadoModal.pacientes || [];
+    if (filtroMedicoModal !== 'TODOS') {
+      pacs = pacs.filter(p => p.medicoTratante === filtroMedicoModal);
+    }
     if (!searchModalCentro.trim()) return pacs;
     const q = searchModalCentro.toLowerCase().trim();
     return pacs.filter(p => {
-      const full = `${p.correlativo || ''} ${p.diagnosticoPrincipal || ''} ${p.codigoDiagnostico || ''} ${p.profesional || ''} ${p.destinoAlta || ''}`.toLowerCase();
+      const full = `${p.correlativo || ''} ${p.diagnosticoPrincipal || ''} ${p.codigoDiagnostico || ''} ${p.medicoTratante || ''} ${p.destinoAlta || ''}`.toLowerCase();
       return full.includes(q);
     });
-  }, [centroSeleccionadoModal, searchModalCentro]);
+  }, [centroSeleccionadoModal, filtroMedicoModal, searchModalCentro]);
 
   const totalPaginasModalCentro = Math.ceil(pacientesModalCentroFiltrados.length / 10) || 1;
   const pacientesModalCentroPaginados = useMemo(() => {
@@ -941,18 +1048,15 @@ export default function AnalisisRespiratorio({
     return pacientesModalCentroFiltrados.slice(start, start + 10);
   }, [pacientesModalCentroFiltrados, paginaModalCentro]);
 
-  // Listas para Filtros Desplegables
-  const listaCentrosUnicos = useMemo(() => {
+  // Médicos presentes en el centro seleccionado
+  const listaMedicosModalCentro = useMemo(() => {
+    if (!centroSeleccionadoModal) return [];
     const set = new Set();
-    pacientesRespiratorios.forEach(p => set.add(p.centroProvincia));
+    (centroSeleccionadoModal.pacientes || []).forEach(p => {
+      if (p.medicoTratante) set.add(p.medicoTratante);
+    });
     return Array.from(set).sort();
-  }, [pacientesRespiratorios]);
-
-  const listaComunasUnicas = useMemo(() => {
-    const set = new Set();
-    pacientesRespiratorios.forEach(p => set.add(p.comunaProvincia));
-    return Array.from(set).sort();
-  }, [pacientesRespiratorios]);
+  }, [centroSeleccionadoModal]);
 
   // Exportar Ficha Específica de Centro a Excel
   const handleExportCentroExcel = (centroObj) => {
@@ -972,15 +1076,15 @@ export default function AnalisisRespiratorio({
           'Correlativo / ID': p.correlativo || p.id || `REC-${idx + 1}`,
           'Fecha y Hora': fechaStr,
           'Turno': turnoInfo.textoCompleto || '-',
+          'Médico Tratante': p.medicoTratante || 'MÉDICO GENERAL SAR',
           'Edad': p.edad || '-',
           'Sexo': p.sexo || '-',
-          'Establecimiento': p.centroProvincia || centroObj.nombre,
+          'Establecimiento Origen': p.centroProvincia || centroObj.nombre,
           'Triaje': p.triageManchester || 'C4',
           'Subgrupo': p.respSubgrupo || '-',
           'CIE-10': p.codigoDiagnostico || p.codigo_diagnostico_cie10 || 'J00',
           'Hipótesis Diagnóstica Principal': p.diagnosticoPrincipal || p.diagnostico || '-',
-          'Destino Alta': p.destinoAlta || p.destino || 'DOMICILIO',
-          'Médico Tratante': p.profesional || p.medico || 'MÉDICO GENERAL'
+          'Destino Alta': p.destinoAlta || p.destino || 'DOMICILIO'
         };
       });
 
@@ -994,7 +1098,7 @@ export default function AnalisisRespiratorio({
     }
   };
 
-  // Exportar Nómina Global a Excel
+  // Exportar Nómina Global a Excel (INCLUYE MÉDICO TRATANTE)
   const handleExportExcel = () => {
     try {
       if (typeof window.XLSX === 'undefined') {
@@ -1012,6 +1116,7 @@ export default function AnalisisRespiratorio({
           'Correlativo / ID': p.correlativo || p.id || `REC-${idx + 1}`,
           'Fecha y Hora Admisión': fechaStr,
           'Turno Asignado': turnoInfo.textoCompleto || '-',
+          'Médico Tratante': p.medicoTratante || 'MÉDICO GENERAL SAR',
           'Edad (Años)': p.edad || '-',
           'Sexo': p.sexo || '-',
           'Previsión': p.prevision || 'FONASA',
@@ -1022,7 +1127,6 @@ export default function AnalisisRespiratorio({
           'Código CIE-10': p.codigoDiagnostico || p.codigo_diagnostico_cie10 || 'J00',
           'Hipótesis Diagnóstica Principal': p.diagnosticoPrincipal || p.diagnostico || '-',
           'Destino de Alta': p.destinoAlta || p.destino || 'DOMICILIO',
-          'Profesional Tratante': p.profesional || p.medico || 'MÉDICO SAR',
           'Estado Atención': p.estado || 'Finalizada'
         };
       });
@@ -1037,12 +1141,12 @@ export default function AnalisisRespiratorio({
     }
   };
 
-  // Exportar a CSV
+  // Exportar a CSV (INCLUYE MÉDICO TRATANTE)
   const handleExportCSV = () => {
     const headers = [
-      'Correlativo', 'Fecha_Hora', 'Edad', 'Sexo', 'Prevision', 
+      'Correlativo', 'Fecha_Hora', 'Medico_Tratante', 'Edad', 'Sexo', 'Prevision', 
       'Establecimiento_Melipilla', 'Comuna', 'Triaje', 'Subgrupo_Respiratorio', 
-      'CIE10', 'Hipotesis_Diagnostica', 'Destino', 'Profesional', 'Estado'
+      'CIE10', 'Hipotesis_Diagnostica', 'Destino', 'Estado'
     ];
 
     const csvRows = [headers.join(';')];
@@ -1054,6 +1158,7 @@ export default function AnalisisRespiratorio({
       const row = [
         `"${p.correlativo || p.id || ''}"`,
         `"${fechaStr}"`,
+        `"${p.medicoTratante || 'MÉDICO GENERAL SAR'}"`,
         `"${p.edad || ''}"`,
         `"${p.sexo || ''}"`,
         `"${p.prevision || 'FONASA'}"`,
@@ -1064,7 +1169,6 @@ export default function AnalisisRespiratorio({
         `"${p.codigoDiagnostico || ''}"`,
         `"${(p.diagnosticoPrincipal || '').replace(/"/g, '""')}"`,
         `"${p.destinoAlta || 'DOMICILIO'}"`,
-        `"${p.profesional || p.medico || ''}"`,
         `"${p.estado || 'Finalizada'}"`
       ];
       csvRows.push(row.join(';'));
@@ -1099,7 +1203,7 @@ export default function AnalisisRespiratorio({
               </span>
             </div>
             <p className="text-xs text-secondary-custom font-medium mt-0.5">
-              Rendimiento asistencial agrupado por centros de salud, Top 10 de diagnósticos respiratorios y módulo de verificación clínica.
+              Rendimiento asistencial agrupado por centros de salud, Médicos Tratantes en turno, Top 10 de diagnósticos respiratorios y verificación clínica.
             </p>
           </div>
         </div>
@@ -1175,7 +1279,7 @@ export default function AnalisisRespiratorio({
             }`}
           >
             <BarChart3 className="w-4 h-4" />
-            <span>Visión General & Gráficos</span>
+            <span>Visión General, Gráficos & Médicos</span>
           </button>
 
           {/* TAB 3: NÓMINA COMPLETA DE AUDITORÍA */}
@@ -1188,7 +1292,7 @@ export default function AnalisisRespiratorio({
             }`}
           >
             <Stethoscope className="w-4 h-4" />
-            <span>Nómina Completa de Auditoría</span>
+            <span>Nómina Completa de Auditoría (Con Médicos)</span>
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
               seccionActiva === 'auditoria' ? 'bg-white/20 text-white' : 'bg-black/5 dark:bg-white/5 text-secondary-custom'
             }`}>
@@ -1356,12 +1460,12 @@ export default function AnalisisRespiratorio({
               ))}
             </div>
 
-            {/* Buscador de Centro / Directora */}
+            {/* Buscador de Centro / Directora / Médico */}
             <div className="relative w-full sm:w-72">
               <Search className="w-4 h-4 text-secondary-custom absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Buscar por centro, directora o dirección..."
+                placeholder="Buscar por centro, directora o médico tratante..."
                 value={searchCentroTerm}
                 onChange={(e) => setSearchCentroTerm(e.target.value)}
                 className="w-full bg-black/5 dark:bg-white/5 border border-card-custom rounded-xl pl-9 pr-3 py-1.5 text-xs text-primary-custom placeholder:text-secondary-custom/60 outline-none focus:border-cyan-500/50 transition-all"
@@ -1453,6 +1557,32 @@ export default function AnalisisRespiratorio({
                       </div>
                     </div>
 
+                    {/* SECCIÓN DESTACADA: MÉDICOS TRATANTES EN ESTE CENTRO */}
+                    {centro.topMedicosCentro && centro.topMedicosCentro.length > 0 && (
+                      <div className="mt-4 p-3 rounded-2xl bg-cyan-500/5 border border-cyan-500/20">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-xs font-black text-cyan-600 dark:text-cyan-400 flex items-center gap-1.5">
+                            <Stethoscope className="w-3.5 h-3.5" />
+                            <span>Médicos Tratantes en este Establecimiento</span>
+                          </span>
+                          <span className="text-[10px] font-bold text-secondary-custom">
+                            {centro.topMedicosCentro.length} médicos
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {centro.topMedicosCentro.map((m, mi) => (
+                            <span 
+                              key={mi}
+                              className="px-2 py-0.5 rounded-lg bg-black/5 dark:bg-white/10 text-[11px] font-bold text-primary-custom flex items-center gap-1 border border-card-custom/40"
+                            >
+                              <span>🩺 {m.nombre}</span>
+                              <strong className="text-cyan-500">({m.count} pac.)</strong>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* TOP 10 DE DIAGNÓSTICOS RESPIRATORIOS DEL CENTRO */}
                     <div className="mt-4 pt-3 border-t border-card-custom/40">
                       <div className="flex items-center justify-between mb-2">
@@ -1466,11 +1596,11 @@ export default function AnalisisRespiratorio({
                       </div>
 
                       {centro.top10Diagnosticos.length > 0 ? (
-                        <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                        <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
                           {centro.top10Diagnosticos.map((diag) => (
                             <div 
                               key={diag.key}
-                              className="p-1.5 rounded-xl bg-black/5 dark:bg-white/5 border border-card-custom/30 text-xs flex flex-col gap-1"
+                              className="p-2 rounded-xl bg-black/5 dark:bg-white/5 border border-card-custom/30 text-xs flex flex-col gap-1.5"
                             >
                               <div className="flex items-center justify-between gap-1">
                                 <div className="flex items-center gap-1.5 truncate">
@@ -1485,6 +1615,7 @@ export default function AnalisisRespiratorio({
                                   {diag.cie10}
                                 </span>
                               </div>
+
                               {/* Barra de Proporción */}
                               <div className="flex items-center gap-2">
                                 <div className="w-full bg-black/10 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
@@ -1499,6 +1630,12 @@ export default function AnalisisRespiratorio({
                                 <span className="text-[10px] font-bold text-secondary-custom shrink-0">
                                   {diag.count} pac. ({diag.porcentajeCentro}%)
                                 </span>
+                              </div>
+
+                              {/* Médico Tratante Principal de este diagnóstico */}
+                              <div className="flex items-center gap-1 text-[10px] text-secondary-custom pt-0.5 border-t border-card-custom/20">
+                                <Stethoscope className="w-3 h-3 text-cyan-500 shrink-0" />
+                                <span className="truncate">Médico ppal: <strong className="text-primary-custom">{diag.medicoPrincipal}</strong></span>
                               </div>
                             </div>
                           ))}
@@ -1521,6 +1658,7 @@ export default function AnalisisRespiratorio({
                       disabled={!hasPacientes}
                       onClick={() => {
                         setCentroSeleccionadoModal(centro);
+                        setFiltroMedicoModal('TODOS');
                         setPaginaModalCentro(1);
                         setSearchModalCentro('');
                       }}
@@ -1550,15 +1688,16 @@ export default function AnalisisRespiratorio({
       )}
 
       {/* ========================================================================= */}
-      {/* VISTA 2: VISIÓN GENERAL EPIDEMIOLÓGICA & GRÁFICOS INTERACTIVOS             */}
+      {/* VISTA 2: VISIÓN GENERAL EPIDEMIOLÓGICA, GRÁFICOS & MÉDICOS TRATANTES      */}
       {/* ========================================================================= */}
       {seccionActiva === 'general' && (
         <div className="flex flex-col gap-6 animate-fade-in">
           
-          {/* BARRA DE FILTROS INTERACTIVOS */}
+          {/* BARRA DE FILTROS INTERACTIVOS (CON SELECTOR DE MÉDICO TRATANTE) */}
           <div className="bg-card-custom border border-card-custom p-4 rounded-2xl shadow-sm flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
               
+              {/* Selector de Centro */}
               <div className="flex items-center gap-1.5 bg-black/5 dark:bg-white/5 border border-card-custom px-3 py-1.5 rounded-xl text-xs">
                 <Building2 className="w-3.5 h-3.5 text-cyan-500 shrink-0" />
                 <span className="text-secondary-custom font-medium">Centro:</span>
@@ -1574,6 +1713,23 @@ export default function AnalisisRespiratorio({
                 </select>
               </div>
 
+              {/* SELECTOR DEDICADO DE MÉDICO TRATANTE */}
+              <div className="flex items-center gap-1.5 bg-black/5 dark:bg-white/5 border border-card-custom px-3 py-1.5 rounded-xl text-xs">
+                <Stethoscope className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span className="text-secondary-custom font-medium">Médico Tratante:</span>
+                <select
+                  value={filtroMedico}
+                  onChange={(e) => { setFiltroMedico(e.target.value); setPaginaActual(1); }}
+                  className="bg-transparent font-bold text-primary-custom outline-none cursor-pointer text-xs"
+                >
+                  <option value="TODOS" className="bg-slate-900 text-white">Todos los Médicos ({listaMedicosUnicos.length})</option>
+                  {listaMedicosUnicos.map(m => (
+                    <option key={m} value={m} className="bg-slate-900 text-white">{m}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Selector de Subgrupo */}
               <div className="flex items-center gap-1.5 bg-black/5 dark:bg-white/5 border border-card-custom px-3 py-1.5 rounded-xl text-xs">
                 <Wind className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                 <span className="text-secondary-custom font-medium">Patología:</span>
@@ -1591,6 +1747,7 @@ export default function AnalisisRespiratorio({
                 </select>
               </div>
 
+              {/* Selector de Triaje */}
               <div className="flex items-center gap-1.5 bg-black/5 dark:bg-white/5 border border-card-custom px-3 py-1.5 rounded-xl text-xs">
                 <span className="text-secondary-custom font-medium">Triaje:</span>
                 <select
@@ -1607,10 +1764,11 @@ export default function AnalisisRespiratorio({
                 </select>
               </div>
 
-              {(filtroCentro !== 'TODOS' || filtroSubgrupo !== 'TODOS' || filtroTriaje !== 'TODOS' || searchTerm !== '') && (
+              {(filtroCentro !== 'TODOS' || filtroMedico !== 'TODOS' || filtroSubgrupo !== 'TODOS' || filtroTriaje !== 'TODOS' || searchTerm !== '') && (
                 <button
                   onClick={() => {
                     setFiltroCentro('TODOS');
+                    setFiltroMedico('TODOS');
                     setFiltroSubgrupo('TODOS');
                     setFiltroTriaje('TODOS');
                     setSearchTerm('');
@@ -1781,11 +1939,90 @@ export default function AnalisisRespiratorio({
 
           </div>
 
+          {/* TABLA EJECUTIVA: RANKING DE MÉDICOS TRATANTES EN VIGILANCIA RESPIRATORIA */}
+          <div className="bg-card-custom border border-card-custom rounded-2xl p-5 shadow-sm">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-card-custom/40">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  <Stethoscope className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-primary-custom tracking-tight">
+                    Ranking de Médicos Tratantes en Vigilancia Respiratoria
+                  </h3>
+                  <p className="text-xs text-secondary-custom">
+                    Volumen de atenciones, perfil de complejidad y patología más frecuente por profesional médico
+                  </p>
+                </div>
+              </div>
+
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                {rankingMedicosGlobales.length} Médicos Registrados
+              </span>
+            </div>
+
+            <div className="overflow-x-auto mt-3">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-card-custom/40 bg-black/5 dark:bg-white/5 text-[10px] font-black text-secondary-custom uppercase tracking-wider">
+                    <th className="py-2.5 px-3">Ranking</th>
+                    <th className="py-2.5 px-3">Médico Tratante</th>
+                    <th className="py-2.5 px-3 text-center">Total Pacientes</th>
+                    <th className="py-2.5 px-3 text-center">% de la Demanda</th>
+                    <th className="py-2.5 px-3 text-center text-purple-500">Pediátricos (&lt;15a)</th>
+                    <th className="py-2.5 px-3 text-center text-amber-500">60+ Años</th>
+                    <th className="py-2.5 px-3 text-center text-rose-500">Graves (C1/C2)</th>
+                    <th className="py-2.5 px-3 text-center text-indigo-500">Traslados Hospital</th>
+                    <th className="py-2.5 px-3">Patología Más Diagnosticada</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-card-custom/30">
+                  {rankingMedicosGlobales.map((m, idx) => (
+                    <tr key={m.medico} className="hover:bg-cyan-500/5 transition-colors">
+                      <td className="py-2.5 px-3 font-bold text-center">
+                        <span className={`w-5 h-5 rounded-full inline-flex items-center justify-center text-[10px] font-black ${
+                          idx === 0 ? 'bg-amber-500 text-white' : idx === 1 ? 'bg-slate-400 text-white' : idx === 2 ? 'bg-amber-700 text-white' : 'bg-black/5 dark:bg-white/5 text-secondary-custom'
+                        }`}>
+                          #{idx + 1}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 font-black text-primary-custom flex items-center gap-2">
+                        <Stethoscope className="w-3.5 h-3.5 text-cyan-500 shrink-0" />
+                        <span>{m.medico}</span>
+                      </td>
+                      <td className="py-2.5 px-3 text-center font-black text-cyan-600 dark:text-cyan-400">
+                        {m.total} pac.
+                      </td>
+                      <td className="py-2.5 px-3 text-center font-bold text-secondary-custom">
+                        {m.pctGlobal}%
+                      </td>
+                      <td className="py-2.5 px-3 text-center font-bold text-purple-600 dark:text-purple-400">
+                        {m.pediatricos}
+                      </td>
+                      <td className="py-2.5 px-3 text-center font-bold text-amber-600 dark:text-amber-400">
+                        {m.adultosMayores}
+                      </td>
+                      <td className="py-2.5 px-3 text-center font-bold text-rose-600 dark:text-rose-400">
+                        {m.gravesC1C2} ({m.pctGraves}%)
+                      </td>
+                      <td className="py-2.5 px-3 text-center font-bold text-indigo-600 dark:text-indigo-400">
+                        {m.hospitalizados}
+                      </td>
+                      <td className="py-2.5 px-3 text-secondary-custom font-medium truncate max-w-[200px]" title={m.topPatologia}>
+                        {m.topPatologia}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* VISTA 3: NÓMINA COMPLETA DE AUDITORÍA CLÍNICA (ANONIMIZADA)                */}
+      {/* VISTA 3: NÓMINA COMPLETA DE AUDITORÍA CLÍNICA (CON MÉDICO TRATANTE)       */}
       {/* ========================================================================= */}
       {seccionActiva === 'auditoria' && (
         <div className="bg-card-custom border border-card-custom rounded-2xl shadow-sm overflow-hidden animate-fade-in">
@@ -1799,11 +2036,11 @@ export default function AnalisisRespiratorio({
                   Nómina de Auditoría y Vigilancia Epidemiológica Respiratoria
                 </h3>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                  Anonimizado (Sin RUT ni Nombres)
+                  Anonimizado (Sin RUT ni Nombres de Pacientes)
                 </span>
               </div>
               <p className="text-xs text-secondary-custom font-medium mt-1">
-                Registro trazable por Correlativo / ID con Hipótesis Diagnóstica para auditoría médica y validación de coberturas.
+                Registro trazable por Correlativo / ID con Hipótesis Diagnóstica y Médico Tratante para auditoría médica.
               </p>
             </div>
 
@@ -1826,8 +2063,8 @@ export default function AnalisisRespiratorio({
                   <th className="py-3.5 px-4">Centro Provincia Melipilla</th>
                   <th className="py-3.5 px-4">Hipótesis Diagnóstica Principal</th>
                   <th className="py-3.5 px-3">CIE-10</th>
+                  <th className="py-3.5 px-4 text-emerald-500">Médico Tratante</th>
                   <th className="py-3.5 px-4">Destino de Alta</th>
-                  <th className="py-3.5 px-4">Médico / Profesional</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-card-custom/30 text-xs">
@@ -1893,6 +2130,16 @@ export default function AnalisisRespiratorio({
                           </span>
                         </td>
 
+                        {/* COLUMNA DESTACADA: MÉDICO TRATANTE */}
+                        <td className="py-3 px-4 font-bold text-primary-custom">
+                          <div className="flex items-center gap-1.5">
+                            <Stethoscope className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                            <span className="truncate max-w-[180px]" title={p.medicoTratante}>
+                              {p.medicoTratante || 'MÉDICO GENERAL SAR'}
+                            </span>
+                          </div>
+                        </td>
+
                         <td className="py-3 px-4 font-medium text-secondary-custom">
                           <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${
                             String(p.destinoAlta || '').toUpperCase().includes('HOSPITAL')
@@ -1900,12 +2147,6 @@ export default function AnalisisRespiratorio({
                               : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                           }`}>
                             {p.destinoAlta || p.destino || 'DOMICILIO'}
-                          </span>
-                        </td>
-
-                        <td className="py-3 px-4 text-secondary-custom font-medium text-xs">
-                          <span className="truncate max-w-[160px] block" title={p.profesional || p.medico}>
-                            {p.profesional || p.medico || 'MÉDICO GENERAL SAR'}
                           </span>
                         </td>
 
@@ -2037,17 +2278,34 @@ export default function AnalisisRespiratorio({
 
             </div>
 
-            {/* Buscador dentro del Modal */}
-            <div className="p-3 bg-slate-950/30 border-b border-slate-800 flex items-center justify-between gap-3">
-              <div className="relative w-full max-w-sm">
-                <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Filtrar por correlativo, hipótesis, CIE-10 o médico..."
-                  value={searchModalCentro}
-                  onChange={(e) => { setSearchModalCentro(e.target.value); setPaginaModalCentro(1); }}
-                  className="w-full bg-slate-800/80 border border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder:text-slate-500 outline-none focus:border-cyan-500 transition-all"
-                />
+            {/* Buscador y Filtro de Médico Tratante dentro del Modal */}
+            <div className="p-3 bg-slate-950/30 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 flex-1 max-w-md">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Filtrar por correlativo, hipótesis, CIE-10..."
+                    value={searchModalCentro}
+                    onChange={(e) => { setSearchModalCentro(e.target.value); setPaginaModalCentro(1); }}
+                    className="w-full bg-slate-800/80 border border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder:text-slate-500 outline-none focus:border-cyan-500 transition-all"
+                  />
+                </div>
+
+                {/* Filtro por Médico en el Modal */}
+                <div className="flex items-center gap-1.5 bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded-xl text-xs">
+                  <Stethoscope className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <select
+                    value={filtroMedicoModal}
+                    onChange={(e) => { setFiltroMedicoModal(e.target.value); setPaginaModalCentro(1); }}
+                    className="bg-transparent font-bold text-white outline-none cursor-pointer text-xs"
+                  >
+                    <option value="TODOS" className="bg-slate-900 text-white">Todos los Médicos ({listaMedicosModalCentro.length})</option>
+                    {listaMedicosModalCentro.map(m => (
+                      <option key={m} value={m} className="bg-slate-900 text-white">{m}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <span className="text-xs text-slate-400 font-medium">
@@ -2055,9 +2313,9 @@ export default function AnalisisRespiratorio({
               </span>
             </div>
 
-            {/* TABLA DETALLADA DE PACIENTES DEL CENTRO (ANONIMIZADA) */}
+            {/* TABLA DETALLADA DE PACIENTES DEL CENTRO (CON MÉDICO TRATANTE) */}
             <div className="flex-1 overflow-y-auto p-4">
-              <table className="w-full text-left border-collapse min-w-[800px]">
+              <table className="w-full text-left border-collapse min-w-[850px]">
                 <thead>
                   <tr className="border-b border-slate-800 bg-slate-950/40 text-[11px] font-black text-slate-400 uppercase tracking-wider">
                     <th className="py-2.5 px-3">Correlativo</th>
@@ -2066,8 +2324,8 @@ export default function AnalisisRespiratorio({
                     <th className="py-2.5 px-2">Edad/Sexo</th>
                     <th className="py-2.5 px-3">Hipótesis Diagnóstica</th>
                     <th className="py-2.5 px-2">CIE-10</th>
+                    <th className="py-2.5 px-3 text-emerald-400">Médico Tratante</th>
                     <th className="py-2.5 px-3">Destino Alta</th>
-                    <th className="py-2.5 px-3">Médico Tratante</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800 text-xs">
@@ -2098,6 +2356,17 @@ export default function AnalisisRespiratorio({
                           <td className="py-2.5 px-2 font-mono font-bold text-indigo-400">
                             {p.codigoDiagnostico || 'J00'}
                           </td>
+                          
+                          {/* MÉDICO TRATANTE DESTACADO EN EL MODAL */}
+                          <td className="py-2.5 px-3 font-bold text-white">
+                            <div className="flex items-center gap-1.5">
+                              <Stethoscope className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                              <span className="truncate max-w-[170px]" title={p.medicoTratante}>
+                                {p.medicoTratante || 'MÉDICO GENERAL SAR'}
+                              </span>
+                            </div>
+                          </td>
+
                           <td className="py-2.5 px-3 text-slate-300">
                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                               String(p.destinoAlta || '').toUpperCase().includes('HOSPITAL')
@@ -2107,7 +2376,6 @@ export default function AnalisisRespiratorio({
                               {p.destinoAlta || 'DOMICILIO'}
                             </span>
                           </td>
-                          <td className="py-2.5 px-3 text-slate-300 truncate max-w-[140px]">{p.profesional || 'MÉDICO SAR'}</td>
                         </tr>
                       );
                     })

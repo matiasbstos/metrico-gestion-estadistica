@@ -3,7 +3,8 @@ import {
   Megaphone, Sparkles, X, Calendar, CheckCircle2, ShieldAlert, MapPin, Cpu, BarChart2, Filter, Layers, Clock, 
   HelpCircle, BookOpen, Lightbulb, Eye, Mail, Volume2, Lock, Activity, ShieldCheck, Database, FileSpreadsheet, 
   BarChart3, LineChart, ArrowLeftRight, Send, Award, Users, TrendingUp, CheckCircle, Zap, UserCheck, Cloud, 
-  ExternalLink, Search, Printer, FileText, RefreshCw, UploadCloud, Compass, Flame, Maximize2, Wind 
+  ExternalLink, Search, Printer, FileText, RefreshCw, UploadCloud, Compass, Flame, Maximize2, Wind,
+  Building2, Stethoscope
 } from 'lucide-react';
 
 export default function ModalMuroActualizaciones({ isOpen, onClose }) {
@@ -12,6 +13,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const updatesList = [
+    {
+      id: 'v6.0.1',
+      version: 'v6.0.1',
+      fecha: '05 de Septiembre, 2026',
+      badge: 'MÉDICO TRATANTE EN TODAS LAS VISTAS',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Integración Universal y Protagonismo del Médico Tratante en Vigilancia Epidemiológica, Centros y Auditoría',
+      categoria: 'Análisis Específicos & Gestión Médica',
+      icon: Stethoscope,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se integró el Médico Tratante normalizado (Dr/Dra.) de manera universal en todos los módulos de vigilancia respiratoria: filtro dropdown en la barra principal, ranking y carga asistencial médica, desglose de médicos tratantes en tarjetas por centro CORMUMEL, médico principal en el Top 10 de diagnósticos, columna destacada en modal de verificación y nómina de auditoría, y exportaciones completas a Excel y CSV.',
+      instructivo: {
+        paraQueSirve: 'Permite auditar la atención médica y distribución de carga asistencial por profesional de guardia en cada centro de salud y patología respiratoria.',
+        quePuedesVer: 'Filtro por Médico Tratante en el encabezado, tabla de Ranking Médico en Visión General, lista de médicos tratantes en cada tarjeta de centro, y columna "Médico Tratante" en todas las tablas de verificación y archivos Excel descargados.',
+        ejemploUso: 'Filtra por un médico específico en la barra superior o abre la verificación de un centro para revisar qué profesional atendió cada correlativo.'
+      },
+      changes: [
+        'Filtro Global por Médico: Selector dinámico en la barra superior para aislar casos atendidos por cada médico tratante.',
+        'Ranking y Carga Asistencial: Tabla ejecutiva con total de atenciones, distribución de triaje Manchester (C1-C5) y porcentaje del volumen respiratorio.',
+        'Médicos por Centro: Visualización de los profesionales tratantes en cada tarjeta de la Red CORMUMEL.',
+        'Médico Principal en Top 10: Identificación del médico con mayor número de atenciones en cada patología por centro.',
+        'Nóminas y Exportaciones: Inclusión obligatoria de la columna "Médico Tratante" en vistas de verificación y planillas Excel/CSV.'
+      ]
+    },
     {
       id: 'v6.0.0',
       version: 'v6.0.0',
