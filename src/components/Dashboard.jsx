@@ -26,6 +26,7 @@ import AnalisisEnfermeria from './dashboard/AnalisisEnfermeria';
 import AnalisisConstataciones from './dashboard/AnalisisConstataciones';
 import AnalisisTraslados from './dashboard/AnalisisTraslados';
 import AnalisisDemandaAtencion from './dashboard/AnalisisDemandaAtencion';
+import AnalisisRespiratorio from './dashboard/AnalisisRespiratorio';
 import GestionUsuarios from './dashboard/GestionUsuarios';
 import ModalInactividad from './dashboard/ModalInactividad';
 import ModalVerificacionSesion from './dashboard/ModalVerificacionSesion';
@@ -47,7 +48,7 @@ import {
   CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
   BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
   Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
-  HeartPulse, Shield, ShieldCheck, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail, BookOpen, Terminal, SlidersHorizontal
+  HeartPulse, Shield, ShieldCheck, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail, BookOpen, Terminal, SlidersHorizontal, Wind
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
@@ -377,6 +378,7 @@ const DashboardContent = () => {
       enfermeria: 'Rendimiento Enfermería',
       constataciones: 'Constatación de Lesiones',
       traslados: 'Traslados Hospitalarios',
+      respiratorio: 'Vigilancia Epidemiológica Respiratoria',
       reportes: 'Reporte Ejecutivo',
       data: 'Gestión de Datos',
       pauta: 'Pauta de Turnos',
@@ -1625,12 +1627,18 @@ const DashboardContent = () => {
                   className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'traslados' ? 'bg-indigo-500/20 text-indigo-500 font-black border border-indigo-500/30' : 'bg-transparent text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10'}`}>
                   <ArrowLeftRight className="w-4 h-4 text-indigo-500 flex-shrink-0" />
                 </button>
+                <button 
+                  onClick={() => { setActiveTab('respiratorio'); setSubTabEspecifico('respiratorio'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                  title="Vigilancia Respiratoria & Red Melipilla"
+                  className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'respiratorio' ? 'bg-cyan-500/20 text-cyan-500 font-black border border-cyan-500/30' : 'bg-transparent text-secondary-custom hover:text-cyan-500 hover:bg-cyan-500/10'}`}>
+                  <Wind className="w-4 h-4 text-cyan-500 flex-shrink-0" />
+                </button>
               </>
             ) : (
               <div className="space-y-1 w-full">
                 <button 
                   onClick={() => {
-                    if (!['especificos', 'demanda', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados'].includes(activeTab)) {
+                    if (!['especificos', 'demanda', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados', 'respiratorio'].includes(activeTab)) {
                       setIsEspecificosOpen(true);
                     } else {
                       setIsEspecificosOpen(!isEspecificosOpen);
@@ -1638,7 +1646,7 @@ const DashboardContent = () => {
                     setActiveTab('demanda');
                     setSubTabEspecifico('demanda');
                   }}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 cursor-pointer ${['especificos', 'demanda', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados'].includes(activeTab) ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 cursor-pointer ${['especificos', 'demanda', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados', 'respiratorio'].includes(activeTab) ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
                   <div className="flex items-center gap-3">
                     <Layers className="w-4 h-4" /> Análisis Específicos
                   </div>
@@ -1651,6 +1659,11 @@ const DashboardContent = () => {
                       onClick={() => { setActiveTab('demanda'); setSubTabEspecifico('demanda'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
                       className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'demanda' || (activeTab === 'especificos' && subTabEspecifico === 'demanda') ? 'bg-indigo-500/20 text-indigo-500 font-black border border-indigo-500/30' : 'text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10'}`}>
                       <BarChart2 className="w-3.5 h-3.5 text-indigo-400" /> Demanda de Atención
+                    </button>
+                    <button 
+                      onClick={() => { setActiveTab('respiratorio'); setSubTabEspecifico('respiratorio'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'respiratorio' || (activeTab === 'especificos' && subTabEspecifico === 'respiratorio') ? 'bg-cyan-500/20 text-cyan-500 font-black border border-cyan-500/30' : 'text-secondary-custom hover:text-cyan-500 hover:bg-cyan-500/10'}`}>
+                      <Wind className="w-3.5 h-3.5 text-cyan-500" /> Vigilancia Respiratoria
                     </button>
                     <button 
                       onClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
@@ -2289,6 +2302,13 @@ const DashboardContent = () => {
                 Demanda de Atención
               </button>
               <button
+                onClick={() => { setActiveTab('respiratorio'); setSubTabEspecifico('respiratorio'); }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'respiratorio' || (activeTab === 'especificos' && subTabEspecifico === 'respiratorio') ? 'bg-cyan-600 text-white shadow-sm' : 'text-secondary-custom hover:text-cyan-600 hover:bg-cyan-600/10'}`}
+              >
+                <Wind className="w-4 h-4" />
+                Vigilancia Respiratoria
+              </button>
+              <button
                 onClick={() => { setActiveTab('altas'); setSubTabEspecifico('altas'); }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'altas' || (activeTab === 'especificos' && subTabEspecifico === 'altas') ? 'accent-bg-custom text-white shadow-sm' : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}
               >
@@ -2395,6 +2415,17 @@ const DashboardContent = () => {
                 modoComparativo={modoComparativo}
                 filtroFechaInicioB={filtroFechaInicioB}
                 filtroFechaFinB={filtroFechaFinB}
+                kpisBigQuery={kpisBigQuery}
+              />
+            )}
+
+            {(activeTab === 'respiratorio' || (activeTab === 'especificos' && subTabEspecifico === 'respiratorio')) && (
+              <AnalisisRespiratorio 
+                pacientesFiltrados={pacientesFiltrados}
+                pacientesDB={pacientesDB} 
+                turnosDB={turnosDB} 
+                filtroFechaInicio={filtroFechaInicio} 
+                filtroFechaFin={filtroFechaFin} 
                 kpisBigQuery={kpisBigQuery}
               />
             )}

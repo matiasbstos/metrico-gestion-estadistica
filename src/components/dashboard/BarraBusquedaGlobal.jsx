@@ -4,7 +4,7 @@ import {
   Search, X, Command, Activity, Users, FileSpreadsheet, BarChart2, Shield, Calendar, 
   Database, UserCheck, ShieldAlert, ArrowLeftRight, Clock, Award, BookOpen, Terminal,
   ExternalLink, Sparkles, ChevronRight, Hash, Eye, MapPin, Stethoscope, Cpu, TrendingUp,
-  FileText, UserPlus, Sliders, CheckCircle, PieChart as PieIcon, Layers, HeartPulse
+  FileText, UserPlus, Sliders, CheckCircle, PieChart as PieIcon, Layers, HeartPulse, Wind
 } from 'lucide-react';
 import { formatTime } from '../../utils/helpers';
 
@@ -241,6 +241,22 @@ export default function BarraBusquedaGlobal({
         liveKPI: 'Monitoreo de severidad y distribución horaria',
         description: 'Radar predictivo y distribución de pacientes por índice de gravedad C1-C5.',
         action: () => navigateAndScroll('radar')
+      },
+      {
+        id: 'respiratorio',
+        title: 'Vigilancia Epidemiológica Respiratoria (CIE-10 J00-J99)',
+        category: 'Análisis Específicos',
+        keywords: [
+          'respiratorio', 'respiratoria', 'campaña de invierno', 'invierno', 'neumonia', 'neumonía', 
+          'bronquitis', 'bronquiolitis', 'vrs', 'sincicial', 'sbo', 'asma', 'epoc', 'faringitis', 
+          'laringitis', 'amigdalitis', 'crup', 'disnea', 'influenza', 'gripe', 'covid', 'melipilla', 
+          'boris soler', 'elgueta', 'florencia', 'san manuel', 'san pedro', 'alhue', 'alhué', 'maria pinto', 'curacavi'
+        ],
+        icon: Wind,
+        color: 'text-cyan-600 bg-cyan-100 dark:bg-cyan-950/50 border-cyan-300 dark:border-cyan-800',
+        liveKPI: 'Monitoreo de patología respiratoria y red Melipilla',
+        description: 'Vigilancia epidemiológica, aumentos y encasillamiento por centros de la Provincia de Melipilla.',
+        action: () => navigateAndScroll('respiratorio', 'respiratorio')
       },
       {
         id: 'fracturas',

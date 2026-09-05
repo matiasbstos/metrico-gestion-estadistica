@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.9.8',
+    version_tag: 'v5.9.8',
+    fecha_despliegue: '04 de Septiembre, 2026',
+    proposito_actualizacion: 'Integración del Subreporte de Vigilancia Epidemiológica Respiratoria (Campaña de Invierno) & Encasillamiento por Centros de la Provincia de Melipilla.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisRespiratorio.jsx, Dashboard.jsx, BarraBusquedaGlobal.jsx)',
+      'Respiratory Triage & CIE-10 Diagnostic Classifier Engine (J00-J99, U07, VRS, SBO, Asma)',
+      'Melipilla Province Georeferencing & Primary Care Center Mapping Matrix'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Clasificación Respiratoria Multifactorial: Identificación y encasillamiento de patologías respiratorias en 5 subgrupos clínicos (Neumonías/Influenza, SBO/Asma/EPOC, Bronquitis/VRS, Vías Altas y COVID-19/Otros) evaluando códigos CIE-10 (J00 a J99, U07) y glosas clínicas textuales. 2) Encasillamiento por Centros de Melipilla: Georreferenciación y agrupación de pacientes por los centros de salud de la provincia (CESFAM Boris Soler, Elgueta, Florencia, San Manuel, SAR Elsa Romo, Postas Rurales Melipilla, San Pedro, Alhué, María Pinto, Curacaví y Hospital San José). 3) Auditoría Clínica Anonimizada: Tabla estructurada con protección total de datos (sin RUT ni nombres de pacientes), manteniendo Correlativo/ID, Triaje Manchester, Centro de Origen, Hipótesis Diagnóstica, Destino y Médico para auditoría o recuperación clínica en Rayen.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Clasificación O(N) en memoria con memoización de centros y subgrupos diagnósticos.'
+    },
+    modulos_afectados: ['AnalisisRespiratorio.jsx', 'Dashboard.jsx', 'BarraBusquedaGlobal.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Creación del componente interactivo AnalisisRespiratorio.jsx con KPIs, curvas de tendencia diaria, gráfico de barras por centros de Melipilla y donuts de patologías.',
+      'Tabla de auditoría anonimizada con paginación, filtros combinados y exportación a Excel (XLSX), CSV e Impresión.',
+      'Integración fluida en la barra de búsqueda global y selector de navegación de Análisis Específicos.'
+    ]
+  },
+  {
     id: 'v5.9.7',
     version_tag: 'v5.9.7',
     fecha_despliegue: '04 de Septiembre, 2026',

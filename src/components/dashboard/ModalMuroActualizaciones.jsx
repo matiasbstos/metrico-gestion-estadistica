@@ -3,7 +3,7 @@ import {
   Megaphone, Sparkles, X, Calendar, CheckCircle2, ShieldAlert, MapPin, Cpu, BarChart2, Filter, Layers, Clock, 
   HelpCircle, BookOpen, Lightbulb, Eye, Mail, Volume2, Lock, Activity, ShieldCheck, Database, FileSpreadsheet, 
   BarChart3, LineChart, ArrowLeftRight, Send, Award, Users, TrendingUp, CheckCircle, Zap, UserCheck, Cloud, 
-  ExternalLink, Search, Printer, FileText, RefreshCw, UploadCloud, Compass, Flame, Maximize2 
+  ExternalLink, Search, Printer, FileText, RefreshCw, UploadCloud, Compass, Flame, Maximize2, Wind 
 } from 'lucide-react';
 
 export default function ModalMuroActualizaciones({ isOpen, onClose }) {
@@ -12,6 +12,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const updatesList = [
+    {
+      id: 'v5.9.8',
+      version: 'v5.9.8',
+      fecha: '04 de Septiembre, 2026',
+      badge: 'VIGILANCIA RESPIRATORIA & RED MELIPILLA',
+      badgeColor: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-300 border-cyan-500/20',
+      title: 'Nuevo Subreporte de Vigilancia Epidemiológica Respiratoria y Red Melipilla',
+      categoria: 'Análisis Específicos & Epidemiología',
+      icon: Wind,
+      iconBg: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
+      summary: 'Se incorporó un nuevo subreporte especializado en Vigilancia Epidemiológica Respiratoria (Campaña de Invierno) dentro de Análisis Específicos. Incluye encasillamiento por centros de salud de la Provincia de Melipilla (Boris Soler, Elgueta, Florencia, San Manuel, SAR Elsa Romo, Postas Rurales, San Pedro, Alhué, María Pinto, Curacaví), análisis de aumentos y una nómina de auditoría clínica anonimizada con Correlativo e Hipótesis Diagnóstica.',
+      instructivo: {
+        paraQueSirve: 'Permite monitorear la demanda respiratoria de urgencia, evaluar la presión asistencial por centro emisor de la provincia y auditar casos clínicos de forma segura y confidencial.',
+        quePuedesVer: 'En Análisis Específicos > Vigilancia Respiratoria: KPIs de carga respiratoria (% sobre el total del SAR), curvas de evolución diaria, distribución por centros de salud y tabla de auditoría con exportación a Excel, CSV e Impresión.',
+        ejemploUso: 'Selecciona "CESFAM Dr. Francisco Boris Soler" o "SBO / Asma / EPOC" en los filtros superiores para aislar de inmediato la demanda respiratoria correspondiente a ese centro o patología.'
+      },
+      changes: [
+        'Nuevo Sub-módulo: Vigilancia Epidemiológica Respiratoria integrada en Análisis Específicos y Barra de Búsqueda.',
+        'Encasillamiento por Red Melipilla: Clasificación por todos los CESFAM, SAR, Postas y comunas de la provincia.',
+        'Auditoría Clínica Anonimizada: Tabla sin RUT ni nombres, con trazabilidad por Correlativo / ID e Hipótesis Diagnóstica.',
+        'Herramientas de Exportación: Descarga en Excel (.xlsx), CSV e Impresión formal del reporte.'
+      ]
+    },
     {
       id: 'v5.9.7',
       version: 'v5.9.7',
