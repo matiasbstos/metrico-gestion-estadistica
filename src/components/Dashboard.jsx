@@ -297,12 +297,12 @@ const DashboardContent = () => {
       if (timeDecimal >= 20.0) {
         // Pasó las 20:00 del Sábado: El turno Finde Día del Sábado (08:00 a 20:00) está 100% COMPLETO.
         detectedShift = getShiftObject(maxDate, maxDate, '08:00', '20:00', 'finde_dia');
-      } else if (timeDecimal >= 9.0) {
-        // Entre 09:00 y 20:00 del Sábado: El turno Finde Día está en curso. El último turno completo fue el Turno Largo del Viernes (Viernes 16:00 a Sábado 09:00 AM).
+      } else if (timeDecimal >= 8.0) {
+        // Entre 08:00 y 20:00 del Sábado: El turno Finde Día está en curso. El último turno completo fue el Turno Largo del Viernes (Viernes 16:00 a Sábado 09:00 AM).
         const prevDate = new Date(y, m, d - 1);
         detectedShift = getShiftObject(prevDate, maxDate, '16:00', '09:00', 'largo');
       } else {
-        // Antes de las 09:00 del Sábado (madrugada): El turno Largo del Viernes sigue en curso. El último turno completo fue el Turno Largo del Jueves (Jueves 16:00 a Viernes 09:00 AM).
+        // Antes de las 08:00 del Sábado (madrugada): El turno Largo del Viernes sigue en curso. El último turno completo fue el Turno Largo del Jueves (Jueves 16:00 a Viernes 09:00 AM).
         const thursdayDate = new Date(y, m, d - 2);
         const fridayDate = new Date(y, m, d - 1);
         detectedShift = getShiftObject(thursdayDate, fridayDate, '16:00', '09:00', 'largo');
@@ -320,12 +320,12 @@ const DashboardContent = () => {
       }
     } else {
       // Si maxDate es Martes a Viernes (2, 3, 4, 5)
-      if (timeDecimal >= 9.0) {
-        // Pasó las 09:00 AM: El turno Largo de la noche anterior (Día D-1 16:00 a Día D 09:00 AM) está 100% COMPLETO.
+      if (timeDecimal >= 8.0) {
+        // Pasó las 08:00 AM: El turno Largo de la noche anterior (Día D-1 16:00 a Día D 09:00 AM) está 100% COMPLETO.
         const prevDate = new Date(y, m, d - 1);
         detectedShift = getShiftObject(prevDate, maxDate, '16:00', '09:00', 'largo');
       } else {
-        // Antes de las 09:00 AM (madrugada): El turno Largo de la noche anterior sigue en curso. El último completo fue el del día D-2 al día D-1.
+        // Antes de las 08:00 AM (madrugada): El turno Largo de la noche anterior sigue en curso. El último completo fue el del día D-2 al día D-1.
         const prev2Date = new Date(y, m, d - 2);
         const prevDate = new Date(y, m, d - 1);
         detectedShift = getShiftObject(prev2Date, prevDate, '16:00', '09:00', 'largo');

@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v5.9.7',
+    version_tag: 'v5.9.7',
+    fecha_despliegue: '04 de Septiembre, 2026',
+    proposito_actualizacion: 'Calibración de Protocolo de Cierre de Turno Matinal (08:00 AM) y Atribución Continua en Transiciones de Mes.',
+    medios_y_stack: [
+      'React 18.3 (Dashboard.jsx, helpers.js)',
+      'Cross-Month & Midnight Logical Date Attribution Engine',
+      'Morning Shift Handover Auto-Detection (08:00 AM Threshold)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Auto-Cierre Matinal a las 08:00 AM: Se calibró el umbral horario de detección en Dashboard.jsx (timeDecimal >= 8.0) para que cualquier carga de datos posterior a las 08:00 AM reconozca inmediatamente el turno nocturno anterior como 100% COMPLETO y lo seleccione por defecto al iniciar sesión. 2) Atribución Continua en Cruce de Mes: Se certificó la regla de Fecha Lógica Asistencial en helpers.js (obtenerTurnoDetallado), asegurando que todas las atenciones de madrugada (00:00 a 07:59 hrs) ocurridas en el inicio de un nuevo mes se consoliden íntegramente en el turno que abrió la tarde/noche del mes anterior (ej. 31/08 17:00 a 01/09 08:00), reflejando la totalidad de pacientes atendidos por el equipo de guardia sin fragmentación.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Filtro compuesto O(1) de encasillamiento de 15h y 12h con fecha lógica indexada.'
+    },
+    modulos_afectados: ['Dashboard.jsx', 'helpers.js', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Ajuste del umbral de detección de turno cerrado a timeDecimal >= 8.0 para días hábiles y fines de semana.',
+      'Certificación de acumulación continua de pacientes entre días calendario en useMetricoAnalytics y Dashboard.jsx.',
+      'Garantía de preservación del Global Anual (YTD) frente a filtros temporales de turno individual.'
+    ]
+  },
+  {
     id: 'v5.9.6',
     version_tag: 'v5.9.6',
     fecha_despliegue: '03 de Septiembre, 2026',

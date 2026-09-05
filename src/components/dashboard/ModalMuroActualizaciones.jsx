@@ -13,6 +13,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v5.9.7',
+      version: 'v5.9.7',
+      fecha: '04 de Septiembre, 2026',
+      badge: 'CIERRE DE TURNO & CRUCE DE MES',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Calibración de Cierre Matinal a las 08:00 AM y Atribución Continua en Transición de Mes',
+      categoria: 'Calidad de Datos & Centro de Auditoría',
+      icon: Clock,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se calibró la auto-detección del último turno completo para que al realizar cargas matinales (a partir de las 08:00 AM) el sistema seleccione de inmediato el turno nocturno previo con el 100% de sus pacientes consolidados, incluyendo las atenciones de madrugada en transiciones entre meses (ej. del 31 de Agosto al 1 de Septiembre).',
+      instructivo: {
+        paraQueSirve: 'Garantiza que el equipo de guardia que inició su turno al final de un mes conserve la totalidad de sus pacientes atendidos en la madrugada del mes entrante en una sola cifra consolidada.',
+        quePuedesVer: 'En Inicio y Rendimiento Turno: Al cargar el cierre del turno tras las 08:00 AM, el sistema selecciona automáticamente la ventana 16:00 a 09:00 AM (+1 día) y agrupa todas las atenciones sin separación artificial por cambio de mes.',
+        ejemploUso: 'El Turno Largo del 31/08/2026 computa en conjunto los pacientes ingresados la tarde/noche del 31 de Agosto y los de la madrugada del 01 de Septiembre hasta las 08:00 AM.'
+      },
+      changes: [
+        'Detección Inmediata a las 08:00 AM: Cierre de turno automático a partir de las 08:00 hrs para Turno Largo y Finde Noche.',
+        'Atribución de Mes Continua: Consolidación íntegra de pacientes de madrugada en el turno de apertura del día anterior.',
+        'Integridad Global Anual: Preservación del acumulador YTD frente a la selección de turnos individuales.'
+      ]
+    },
+    {
       id: 'v5.9.6',
       version: 'v5.9.6',
       fecha: '03 de Septiembre, 2026',
