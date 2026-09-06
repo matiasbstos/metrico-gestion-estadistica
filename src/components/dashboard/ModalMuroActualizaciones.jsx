@@ -14,6 +14,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.0.4',
+      version: 'v6.0.4',
+      fecha: '06 de Septiembre, 2026',
+      badge: 'TOOLTIPS EN TODOS LOS PORCENTAJES',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Descripciones Emergentes y Explicación Inmediata al Pasar el Mouse sobre Todos los Porcentajes',
+      categoria: 'Panel Principal & Usabilidad',
+      icon: Lightbulb,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se incorporaron textos explicativos contextuales (tooltips emergentes) en todos los porcentajes del Dashboard (tasa de cobertura médica, porcentaje de altas administrativas, tasa de traslados, comparativas interanuales YoY, mensuales MoM, previsión Fonasa y distribución de triaje Manchester), permitiendo conocer su significado y base matemática simplemente pasando el cursor por encima.',
+      instructivo: {
+        paraQueSirve: 'Permite comprender de forma instantánea qué mide cada porcentaje y cómo fue calculado sin necesidad de recurrir al manual de fórmulas.',
+        quePuedesVer: 'Al posicionar el ratón (hover) sobre cualquier porcentaje como (+17.1% vs Año Ant., 90.9% cob., 9.1% del total, 4.3% tasa, o las variaciones de triaje), aparece un recuadro emergente con la descripción completa del indicador y su fórmula de cálculo.',
+        ejemploUso: 'Coloca el cursor sobre "(90.9% cob.)" o sobre los recuadros de "Vs Año Ant." para ver la explicación detallada.'
+      },
+      changes: [
+        'Tooltips Universales: Descripción emergente en cada métrica porcentual del panel de KPIs.',
+        'Señalética Contextual: Cursor interactivo con icono de ayuda ("cursor-help") en los indicadores.',
+        'Detalle de Cobertura y Tasas: Claridad semántica en porcentajes de altas, traslados y atenciones efectivas.'
+      ]
+    },
+    {
       id: 'v6.0.3',
       version: 'v6.0.3',
       fecha: '06 de Septiembre, 2026',

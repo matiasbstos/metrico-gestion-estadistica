@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.0.4',
+    version_tag: 'v6.0.4',
+    fecha_despliegue: '06 de Septiembre, 2026',
+    proposito_actualizacion: 'Integración Universal de Descripciones Emergentes (Tooltips Interactivos al Pasar el Mouse) en Todos los Indicadores Porcentuales del Panel.',
+    medios_y_stack: [
+      'React 18.3 (PanelKPIs.jsx)',
+      'UI/UX Hover Tooltip & Metric Contextualization Engine',
+      'Micro-Interactions & Accessible Cursor Feedback (cursor-help)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Contexto Semántico Asistencial Inmediato: Todos los valores porcentuales (% YoY interanual, % MoM mensual, tasa de altas administrativas, tasa de cobertura médica % cob., tasa de traslados hospitalarios, previsión FONASA y distribución de triaje Manchester) incorporan descripciones emergentes nativas al colocar el cursor (hover), indicando su fórmula, definición clínica, base de cálculo y relación con el total. 2) Señalética de Accesibilidad: Se agregaron estilos de cursor contextual ("cursor-help") y subrayado punteado sutil para facilitar la autoexploración pedagógica de las estadísticas sin requerir instructivos externos.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Generación declarativa en el árbol DOM sin impacto de rendimiento en renderizado.'
+    },
+    modulos_afectados: ['PanelKPIs.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Implementación de title descriptivo en todas las etiquetas de crecimiento interanual (Vs Año Ant.) y mensual (Vs Mes Ant.).',
+      'Tooltips específicos para Cobertura Médica (% cob.), Altas Administrativas (% del total), Traslados Hospitalarios (% tasa) y Triaje C1-C5.',
+      'Cursor de ayuda interactivo ("cursor-help") en todas las métricas porcentuales.'
+    ]
+  },
+  {
     id: 'v6.0.3',
     version_tag: 'v6.0.3',
     fecha_despliegue: '06 de Septiembre, 2026',
