@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.1.2',
+      version: 'v6.1.2',
+      fecha: '06 de Septiembre, 2026',
+      badge: 'VIGILANCIA RESPIRATORIA & DERIVACIONES',
+      badgeColor: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-300 border-cyan-500/20',
+      title: 'Rangos Etarios Pediátricos (0-4 y 5-9) y Detección de Derivaciones Hospitalarias',
+      categoria: 'Vigilancia Epidemiológica & Red Asistencial',
+      icon: Wind,
+      iconBg: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
+      summary: 'Estandarización de los rangos de edad en la carga pediátrica (0-4 y 5-9 años) y adultos mayores (60+ y 80+), clasificador multivariable de traslados a urgencia/hospital y porcentaje de participación de CESFAM con conteo de pacientes.',
+      instructivo: {
+        paraQueSirve: 'Monitorea con precisión la carga pediátrica y geriátrica en la red comunal y clasifica correctamente todo egreso con destino hospitalario o unidad de urgencia (incluyendo altas hacia UEH/SAMU/Hospital).',
+        quePuedesVer: '1) Tarjeta Carga Pediátrica: desglose visible de 0-4 años y 5-9 años. 2) Tarjeta Adultos Mayores: tramos 60-79 años y 80+ años. 3) Tarjeta Derivación Hospital: conteo de traslados a Hospital San José y unidades de urgencia. 4) Tarjetas de CESFAM: porcentaje de representatividad destacado en la cabecera y cantidad de pacientes abajo.',
+        ejemploUso: 'Abre Vigilancia Respiratoria para consultar el turno o período seleccionado; revisa el desglose infantil y las derivaciones registradas en cada establecimiento.'
+      },
+      changes: [
+        'Incorporación de sub-desglose pediátrico (0-4 y 5-9 años) y senescente (60-79 y 80+ años).',
+        'Clasificador asistencial estricto de derivaciones hospitalarias (isHospitalDestino).',
+        'Reestructuración de tarjetas de centros con porcentaje de participación y total de pacientes.',
+        'Filtros interactivos de edad y destino asistencial en la barra de herramientas.'
+      ]
+    },
+    {
       id: 'v6.1.1',
       version: 'v6.1.1',
       fecha: '06 de Septiembre, 2026',

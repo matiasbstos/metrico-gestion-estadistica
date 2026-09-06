@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.1.2',
+    version_tag: 'v6.1.2',
+    fecha_despliegue: '06 de Septiembre, 2026',
+    proposito_actualizacion: 'Estandarización de Rangos Etarios Pediátricos (0-4 y 5-9 años) y Clasificación Universal de Derivaciones y Traslados Hospitalarios.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisRespiratorio.jsx)',
+      'Multi-Attribute Hospital Transfer Classifier & Epidemiological Age Strata Engine'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Estandarización de Rangos Etarios Pediátricos y Adultos Mayores: Se integró el desglose clínico y epidemiológico exacto de la carga pediátrica (<15 años) en tramos de 0 a 4 años (lactantes/preescolares) y 5 a 9 años (escolares tempranos), además de la estratificación de adultos mayores (60+ años y 80+ años) tanto en KPIs globales como en cada una de las fichas de los CESFAM de Melipilla. 2) Clasificador Asistencial Estricto de Derivaciones y Traslados Hospitalarios (`isHospitalDestino`): Detección omnicanal de traslados a hospital y unidades de urgencia (Hospital San José, UEH, SAMU, "alta, unidad de urgencia", "derivación hospital", "traslado"), garantizando que pacientes como el correlativo 27568.00 sean computados con 100% de precisión en la tasa de derivación hospitalaria. 3) Jerarquía Visual en Cuadrícula de Centros: Se reestructuraron las tarjetas de los CESFAM destacando en la parte superior el porcentaje de participación sobre la urgencia comunal y debajo la cantidad absoluta de pacientes (`XX pac.`).',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Clasificación multivariable O(1) por paciente y agregación en memoria reactiva.'
+    },
+    modulos_afectados: ['AnalisisRespiratorio.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'Dashboard.jsx'],
+    detalles_tecnicos: [
+      'Incorporación de la función `isHospitalDestino` en AnalisisRespiratorio.jsx.',
+      'Cómputo desagregado de subgrupos etarios ped0a4, ped5a9, ped10a14, am60a79, am80mas y sinEdad.',
+      'Ajuste del diseño en cabecera de tarjeta CESFAM con % de participación prominente y conteo de pacientes.'
+    ]
+  },
+  {
     id: 'v6.1.1',
     version_tag: 'v6.1.1',
     fecha_despliegue: '06 de Septiembre, 2026',

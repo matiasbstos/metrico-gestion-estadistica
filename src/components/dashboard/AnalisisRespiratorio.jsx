@@ -15,6 +15,31 @@ import { obtenerTurnoDetallado } from '../../utils/helpers';
 
 const perc = (val, tot) => tot > 0 ? ((val / tot) * 100).toFixed(1) : '0.0';
 
+// Clasificador Asistencial Estricto de Derivaciones y Traslados Hospitalarios
+export const isHospitalDestino = (p) => {
+  if (!p) return false;
+  const dest = String(p.destinoAlta || p.destino || p.lugarDerivacion || p.motivoAlta || p.tipoAlta || '').toLowerCase();
+  const obs = String(p.observacion || p.obs || '').toLowerCase();
+  const cat = String(p.categoria || p.triage || p.triageManchester || '').toLowerCase();
+
+  const isConsultorioOAmb = dest.includes('consultorio') || dest.includes('cesfam') || (dest.includes('domicilio') && !dest.includes('urgenc') && !dest.includes('hosp'));
+  const hasHospitalOUrgencia = dest.includes('hosp') || dest.includes('urgenc') || dest.includes('emergenc') || dest.includes('ueh') || dest.includes('traslado') || dest.includes('deriv');
+
+  if (isConsultorioOAmb && !hasHospitalOUrgencia) {
+    return false;
+  }
+
+  return (
+    hasHospitalOUrgencia ||
+    dest.includes('samu') ||
+    obs.includes('hosp') ||
+    obs.includes('urgenc') ||
+    obs.includes('traslado') ||
+    obs.includes('deriv') ||
+    cat === 'c1'
+  );
+};
+
 // Colores Manchester Triaje
 const TRIAGE_COLORS = {
   C1: '#ef4444', // Rojo
@@ -691,6 +716,8 @@ export default function AnalisisRespiratorio({
           medico: med,
           total: 0,
           pediatricos: 0,
+          ped0a4: 0,
+          ped5a9: 0,
           adultosMayores: 0,
           gravesC1C2: 0,
           hospitalizados: 0,
@@ -701,13 +728,16 @@ export default function AnalisisRespiratorio({
       item.total++;
 
       const e = Number(p.edad);
-      if (!isNaN(e)) {
-        if (e < 15) item.pediatricos++;
+      if (!isNaN(e) && p.edad !== '' && p.edad !== null && p.edad !== undefined) {
+        if (e < 15) {
+          item.pediatricos++;
+          if (e >= 0 && e <= 4) item.ped0a4++;
+          else if (e >= 5 && e <= 9) item.ped5a9++;
+        }
         if (e >= 60) item.adultosMayores++;
       }
       if (p.triageManchester === 'C1' || p.triageManchester === 'C2') item.gravesC1C2++;
-      const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
-      if (dest.includes('HOSPITAL') || dest.includes('DERIV') || dest.includes('TRASLADO')) item.hospitalizados++;
+      if (isHospitalDestino(p)) item.hospitalizados++;
 
       const dName = p.diagnosticoPrincipal || p.diagnostico || 'Respiratorio';
       item.diagnosticosMap.set(dName, (item.diagnosticosMap.get(dName) || 0) + 1);
@@ -740,8 +770,14 @@ export default function AnalisisRespiratorio({
         pacientes: [],
         total: 0,
         pediatricos: 0,
+        ped0a4: 0,
+        ped5a9: 0,
+        ped10a14: 0,
         adultos: 0,
         adultosMayores: 0,
+        am60a79: 0,
+        am80mas: 0,
+        sinEdad: 0,
         gravesC1C2: 0,
         hospitalizados: 0,
         domicilio: 0,
@@ -771,8 +807,14 @@ export default function AnalisisRespiratorio({
           pacientes: [],
           total: 0,
           pediatricos: 0,
+          ped0a4: 0,
+          ped5a9: 0,
+          ped10a14: 0,
           adultos: 0,
           adultosMayores: 0,
+          am60a79: 0,
+          am80mas: 0,
+          sinEdad: 0,
           gravesC1C2: 0,
           hospitalizados: 0,
           domicilio: 0,
@@ -786,16 +828,26 @@ export default function AnalisisRespiratorio({
       item.total++;
 
       const e = Number(p.edad);
-      if (!isNaN(e)) {
-        if (e < 15) item.pediatricos++;
-        else if (e >= 60) item.adultosMayores++;
-        else item.adultos++;
+      if (!isNaN(e) && p.edad !== '' && p.edad !== null && p.edad !== undefined) {
+        if (e < 15) {
+          item.pediatricos++;
+          if (e >= 0 && e <= 4) item.ped0a4++;
+          else if (e >= 5 && e <= 9) item.ped5a9++;
+          else item.ped10a14++;
+        } else if (e >= 60) {
+          item.adultosMayores++;
+          if (e >= 80) item.am80mas++;
+          else item.am60a79++;
+        } else {
+          item.adultos++;
+        }
+      } else {
+        item.sinEdad++;
       }
 
       if (p.triageManchester === 'C1' || p.triageManchester === 'C2') item.gravesC1C2++;
 
-      const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
-      if (dest.includes('HOSPITAL') || dest.includes('DERIV') || dest.includes('TRASLADO')) {
+      if (isHospitalDestino(p)) {
         item.hospitalizados++;
       } else {
         item.domicilio++;
@@ -895,7 +947,7 @@ export default function AnalisisRespiratorio({
     });
   }, [centrosAnalisisDetallado, filtroCategoriaCentro, searchCentroTerm]);
 
-  // 6. Aplicar Filtros Interactivos para la Nómina General (INCLUYE FILTRO DE MÉDICO TRATANTE)
+  // 6. Aplicar Filtros Interactivos para la Nómina General (INCLUYE FILTRO DE MÉDICO TRATANTE, EDAD Y DESTINO)
   const pacientesFiltradosResp = useMemo(() => {
     return pacientesRespiratorios.filter(p => {
       if (filtroCentro !== 'TODOS' && p.centroProvincia !== filtroCentro) return false;
@@ -911,21 +963,29 @@ export default function AnalisisRespiratorio({
       }
 
       if (filtroDestino !== 'TODOS') {
+        const isHosp = isHospitalDestino(p);
         const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
-        if (filtroDestino === 'HOSPITAL' && !(dest.includes('HOSPITAL') || dest.includes('DERIV') || dest.includes('TRASLADO'))) return false;
-        if (filtroDestino === 'DOMICILIO' && !dest.includes('DOMICILIO')) return false;
-        if (filtroDestino === 'OTRO' && (dest.includes('HOSPITAL') || dest.includes('DOMICILIO'))) return false;
+        if (filtroDestino === 'HOSPITAL' && !isHosp) return false;
+        if (filtroDestino === 'DOMICILIO' && (isHosp || !dest.includes('DOMICILIO'))) return false;
+        if (filtroDestino === 'OTRO' && (isHosp || dest.includes('DOMICILIO'))) return false;
       }
 
       if (filtroEdad !== 'TODOS') {
         const edadNum = Number(p.edad);
-        if (isNaN(edadNum)) return false;
-        if (filtroEdad === 'pediatrico' && !(edadNum < 15)) return false;
-        if (filtroEdad === '0-4' && !(edadNum >= 0 && edadNum <= 4)) return false;
-        if (filtroEdad === '5-14' && !(edadNum >= 5 && edadNum <= 14)) return false;
-        if (filtroEdad === 'adulto' && !(edadNum >= 15 && edadNum <= 59)) return false;
-        if (filtroEdad === 'adulto_mayor' && !(edadNum >= 60)) return false;
-        if (filtroEdad === '80+' && !(edadNum >= 80)) return false;
+        if (filtroEdad === 'sin_edad') {
+          if (!isNaN(edadNum) && p.edad !== '' && p.edad !== null && p.edad !== undefined) return false;
+        } else {
+          if (isNaN(edadNum) || p.edad === '' || p.edad === null || p.edad === undefined) return false;
+          if (filtroEdad === 'pediatrico' && !(edadNum < 15)) return false;
+          if (filtroEdad === '0-4' && !(edadNum >= 0 && edadNum <= 4)) return false;
+          if (filtroEdad === '5-9' && !(edadNum >= 5 && edadNum <= 9)) return false;
+          if (filtroEdad === '10-14' && !(edadNum >= 10 && edadNum <= 14)) return false;
+          if (filtroEdad === '5-14' && !(edadNum >= 5 && edadNum <= 14)) return false;
+          if (filtroEdad === 'adulto' && !(edadNum >= 15 && edadNum <= 59)) return false;
+          if (filtroEdad === 'adulto_mayor' && !(edadNum >= 60)) return false;
+          if (filtroEdad === '60-79' && !(edadNum >= 60 && edadNum <= 79)) return false;
+          if (filtroEdad === '80+' && !(edadNum >= 80)) return false;
+        }
       }
 
       if (searchTerm.trim() !== '') {
@@ -945,19 +1005,38 @@ export default function AnalisisRespiratorio({
     const pctDemandaGlobal = totalUniverso > 0 ? ((totalResp / totalUniverso) * 100).toFixed(1) : '0.0';
 
     let pediatricos = 0;
+    let ped0a4 = 0;
+    let ped5a9 = 0;
+    let ped10a14 = 0;
+    let adultos = 0;
     let adultosMayores = 0;
+    let am60a79 = 0;
+    let am80mas = 0;
+    let sinEdad = 0;
     let gravesC1C2 = 0;
     let hospitalizados = 0;
 
     pacientesFiltradosResp.forEach(p => {
       const e = Number(p.edad);
-      if (!isNaN(e)) {
-        if (e < 15) pediatricos++;
-        if (e >= 60) adultosMayores++;
+      if (isNaN(e) || p.edad === '' || p.edad === null || p.edad === undefined) {
+        sinEdad++;
+      } else {
+        if (e < 15) {
+          pediatricos++;
+          if (e >= 0 && e <= 4) ped0a4++;
+          else if (e >= 5 && e <= 9) ped5a9++;
+          else ped10a14++;
+        } else if (e >= 60) {
+          adultosMayores++;
+          if (e >= 80) am80mas++;
+          else am60a79++;
+        } else {
+          adultos++;
+        }
       }
+
       if (p.triageManchester === 'C1' || p.triageManchester === 'C2') gravesC1C2++;
-      const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
-      if (dest.includes('HOSPITAL') || dest.includes('DERIV') || dest.includes('TRASLADO')) hospitalizados++;
+      if (isHospitalDestino(p)) hospitalizados++;
     });
 
     let varYoY = null;
@@ -970,8 +1049,21 @@ export default function AnalisisRespiratorio({
       pctDemandaGlobal,
       pediatricos,
       pctPediatricos: perc(pediatricos, totalResp),
+      ped0a4,
+      pctPed0a4: perc(ped0a4, totalResp),
+      ped5a9,
+      pctPed5a9: perc(ped5a9, totalResp),
+      ped10a14,
+      pctPed10a14: perc(ped10a14, totalResp),
+      adultos,
+      pctAdultos: perc(adultos, totalResp),
       adultosMayores,
       pctAdultosMayores: perc(adultosMayores, totalResp),
+      am60a79,
+      pctAm60a79: perc(am60a79, totalResp),
+      am80mas,
+      pctAm80mas: perc(am80mas, totalResp),
+      sinEdad,
       gravesC1C2,
       pctGraves: perc(gravesC1C2, totalResp),
       hospitalizados,
@@ -1322,7 +1414,10 @@ export default function AnalisisRespiratorio({
         {/* KPI 1: TOTAL CASOS RESPIRATORIOS */}
         <div className="bg-card-custom border border-card-custom rounded-2xl p-4 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-cyan-500/40 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-secondary-custom uppercase tracking-wider">Casos Respiratorios</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-secondary-custom uppercase tracking-wider">Casos Respiratorios</span>
+              <InfoTooltip text="Total acumulado de admisiones respiratorias en el período y su representatividad sobre la demanda global del SAR Elsa Romo." />
+            </div>
             <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-500">
               <Wind className="w-4 h-4" />
             </div>
@@ -1348,7 +1443,10 @@ export default function AnalisisRespiratorio({
         {/* KPI 2: DEMANDA PEDIÁTRICA */}
         <div className="bg-card-custom border border-card-custom rounded-2xl p-4 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-purple-500/40 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-secondary-custom uppercase tracking-wider">Carga Pediátrica (&lt;15a)</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-secondary-custom uppercase tracking-wider">Carga Pediátrica (&lt;15a)</span>
+              <InfoTooltip text="Total de pacientes respiratorios menores de 15 años. Se desglosa en tramos epidemiológicos: 0-4 años (lactantes/preescolares) y 5-9 años (escolares tempranos)." />
+            </div>
             <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500">
               <Baby className="w-4 h-4" />
             </div>
@@ -1362,15 +1460,19 @@ export default function AnalisisRespiratorio({
               <strong className="text-purple-500 font-bold">{statsResumen.pctPediatricos}%</strong>
             </div>
           </div>
-          <div className="mt-2 pt-2 border-t border-card-custom/40 text-[10px] text-secondary-custom">
-            Lactantes y escolares de la provincia
+          <div className="mt-2 pt-2 border-t border-card-custom/40 flex items-center justify-between text-[11px] font-bold text-purple-600 dark:text-purple-300">
+            <span>0-4a: <strong className="font-black">{statsResumen.ped0a4}</strong> ({statsResumen.pctPed0a4}%)</span>
+            <span>5-9a: <strong className="font-black">{statsResumen.ped5a9}</strong> ({statsResumen.pctPed5a9}%)</span>
           </div>
         </div>
 
         {/* KPI 3: ADULTOS MAYORES */}
         <div className="bg-card-custom border border-card-custom rounded-2xl p-4 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-amber-500/40 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-secondary-custom uppercase tracking-wider">Adultos Mayores (60+a)</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-secondary-custom uppercase tracking-wider">Adultos Mayores (60+a)</span>
+              <InfoTooltip text="Población senescente respiratoria de 60 años o más, estratificada en 60-79 años y 80+ años de edad." />
+            </div>
             <div className="p-2 rounded-xl bg-amber-500/10 text-amber-500">
               <Users className="w-4 h-4" />
             </div>
@@ -1384,15 +1486,19 @@ export default function AnalisisRespiratorio({
               <strong className="text-amber-500 font-bold">{statsResumen.pctAdultosMayores}%</strong>
             </div>
           </div>
-          <div className="mt-2 pt-2 border-t border-card-custom/40 text-[10px] text-secondary-custom">
-            Población vulnerable respiratoria
+          <div className="mt-2 pt-2 border-t border-card-custom/40 flex items-center justify-between text-[11px] font-bold text-amber-600 dark:text-amber-300">
+            <span>60-79a: <strong className="font-black">{statsResumen.am60a79}</strong> ({statsResumen.pctAm60a79}%)</span>
+            <span>80+a: <strong className="font-black">{statsResumen.am80mas}</strong> ({statsResumen.pctAm80mas}%)</span>
           </div>
         </div>
 
         {/* KPI 4: CASOS COMPLEJOS / GRAVES (C1-C2) */}
         <div className="bg-card-custom border border-card-custom rounded-2xl p-4 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-rose-500/40 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-secondary-custom uppercase tracking-wider">Alta Complejidad (C1/C2)</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-secondary-custom uppercase tracking-wider">Alta Complejidad (C1/C2)</span>
+              <InfoTooltip text="Casos de reanimación (C1) y emergencia crítica (C2) que requirieron estabilización inmediata en sala de reanimación." />
+            </div>
             <div className="p-2 rounded-xl bg-rose-500/10 text-rose-500">
               <AlertCircle className="w-4 h-4" />
             </div>
@@ -1414,7 +1520,10 @@ export default function AnalisisRespiratorio({
         {/* KPI 5: TRASLADOS / DERIVACIONES HOSPITALARIAS */}
         <div className="bg-card-custom border border-card-custom rounded-2xl p-4 shadow-sm flex flex-col justify-between relative overflow-hidden group hover:border-indigo-500/40 transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-secondary-custom uppercase tracking-wider">Derivación Hospital</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-bold text-secondary-custom uppercase tracking-wider">Derivación Hospital</span>
+              <InfoTooltip text="Pacientes derivados a hospital base (Hospital San José de Melipilla), unidades de urgencia (UEH/SAMU) o con traslado asistencial registrado." />
+            </div>
             <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500">
               <Hospital className="w-4 h-4" />
             </div>
@@ -1424,12 +1533,12 @@ export default function AnalisisRespiratorio({
               {statsResumen.hospitalizados.toLocaleString()} <span className="text-sm font-bold text-secondary-custom">pac.</span>
             </div>
             <div className="flex items-center gap-1.5 mt-1 text-xs font-medium text-secondary-custom">
-              <span>Tasa hospitalización:</span>
+              <span>Tasa derivación:</span>
               <strong className="text-indigo-500 font-bold">{statsResumen.pctHospitalizados}%</strong>
             </div>
           </div>
           <div className="mt-2 pt-2 border-t border-card-custom/40 text-[10px] text-secondary-custom">
-            Derivados a Hospital San José
+            Hospital San José / UEH / Traslados
           </div>
         </div>
 
@@ -1508,13 +1617,13 @@ export default function AnalisisRespiratorio({
                         </h3>
                       </div>
 
-                      {/* Badge Total Pacientes */}
-                      <div className="text-right shrink-0">
-                        <div className="text-2xl font-black text-cyan-500">
-                          {centro.total} <span className="text-xs font-bold text-secondary-custom">pac.</span>
+                      {/* Badge Participación % y Total Pacientes */}
+                      <div className="text-right shrink-0 bg-cyan-500/10 dark:bg-cyan-500/15 border border-cyan-500/30 rounded-2xl px-3 py-1.5 shadow-xs">
+                        <div className="text-lg sm:text-xl font-black text-cyan-600 dark:text-cyan-400 leading-tight">
+                          {centro.pctTotalSAR}%
                         </div>
-                        <span className="text-[10px] font-bold text-secondary-custom block">
-                          {centro.pctTotalSAR}% de la urgencia
+                        <span className="text-[11px] font-bold text-secondary-custom block">
+                          {centro.total} <span className="text-[10px]">pac.</span>
                         </span>
                       </div>
                     </div>
@@ -1547,11 +1656,13 @@ export default function AnalisisRespiratorio({
                         <span className="text-[10px] font-bold text-purple-600 dark:text-purple-300 block">Pediátricos</span>
                         <strong className="text-sm font-black text-purple-600 dark:text-purple-400">{centro.pediatricos}</strong>
                         <span className="text-[9px] text-purple-500 block">({centro.pctPediatricos}%)</span>
+                        <span className="text-[8px] text-secondary-custom block mt-0.5 font-bold">0-4: {centro.ped0a4} • 5-9: {centro.ped5a9}</span>
                       </div>
                       <div className="p-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
                         <span className="text-[10px] font-bold text-amber-600 dark:text-amber-300 block">60+ Años</span>
                         <strong className="text-sm font-black text-amber-600 dark:text-amber-400">{centro.adultosMayores}</strong>
                         <span className="text-[9px] text-amber-500 block">({centro.pctAdultosMayores}%)</span>
+                        <span className="text-[8px] text-secondary-custom block mt-0.5 font-bold">80+: {centro.am80mas}</span>
                       </div>
                       <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20">
                         <span className="text-[10px] font-bold text-rose-600 dark:text-rose-300 block">C1 / C2</span>
@@ -1755,6 +1866,44 @@ export default function AnalisisRespiratorio({
                 </select>
               </div>
 
+              {/* Selector de Rango Etario */}
+              <div className="flex items-center gap-1.5 bg-black/5 dark:bg-white/5 border border-card-custom px-3 py-1.5 rounded-xl text-xs">
+                <Users className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                <span className="text-secondary-custom font-medium">Edad:</span>
+                <select
+                  value={filtroEdad}
+                  onChange={(e) => { setFiltroEdad(e.target.value); setPaginaActual(1); }}
+                  className="bg-transparent font-bold text-primary-custom outline-none cursor-pointer text-xs"
+                >
+                  <option value="TODOS" className="bg-slate-900 text-white">Todas las Edades</option>
+                  <option value="pediatrico" className="bg-slate-900 text-purple-400 font-bold">Pediátricos (&lt;15a Total)</option>
+                  <option value="0-4" className="bg-slate-900 text-purple-300">↳ 0 a 4 Años (Lactantes / Preescolares)</option>
+                  <option value="5-9" className="bg-slate-900 text-purple-300">↳ 5 a 9 Años (Escolares tempranos)</option>
+                  <option value="10-14" className="bg-slate-900 text-purple-300">↳ 10 a 14 Años (Escolares / Adolescentes)</option>
+                  <option value="adulto" className="bg-slate-900 text-slate-300">Adultos (15 a 59 Años)</option>
+                  <option value="adulto_mayor" className="bg-slate-900 text-amber-400 font-bold">Adultos Mayores (60+a Total)</option>
+                  <option value="60-79" className="bg-slate-900 text-amber-300">↳ 60 a 79 Años</option>
+                  <option value="80+" className="bg-slate-900 text-amber-300">↳ 80+ Años</option>
+                  <option value="sin_edad" className="bg-slate-900 text-slate-400">Sin Edad Registrada</option>
+                </select>
+              </div>
+
+              {/* Selector de Destino Asistencial */}
+              <div className="flex items-center gap-1.5 bg-black/5 dark:bg-white/5 border border-card-custom px-3 py-1.5 rounded-xl text-xs">
+                <Hospital className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                <span className="text-secondary-custom font-medium">Destino:</span>
+                <select
+                  value={filtroDestino}
+                  onChange={(e) => { setFiltroDestino(e.target.value); setPaginaActual(1); }}
+                  className="bg-transparent font-bold text-primary-custom outline-none cursor-pointer text-xs"
+                >
+                  <option value="TODOS" className="bg-slate-900 text-white">Todos los Destinos</option>
+                  <option value="HOSPITAL" className="bg-slate-900 text-indigo-400 font-bold">Derivación / Hospital / Traslados</option>
+                  <option value="DOMICILIO" className="bg-slate-900 text-emerald-400">Alta Domicilio</option>
+                  <option value="OTRO" className="bg-slate-900 text-slate-300">Otros Destinos</option>
+                </select>
+              </div>
+
               {/* Selector de Triaje */}
               <div className="flex items-center gap-1.5 bg-black/5 dark:bg-white/5 border border-card-custom px-3 py-1.5 rounded-xl text-xs">
                 <span className="text-secondary-custom font-medium">Triaje:</span>
@@ -1772,13 +1921,15 @@ export default function AnalisisRespiratorio({
                 </select>
               </div>
 
-              {(filtroCentro !== 'TODOS' || filtroMedico !== 'TODOS' || filtroSubgrupo !== 'TODOS' || filtroTriaje !== 'TODOS' || searchTerm !== '') && (
+              {(filtroCentro !== 'TODOS' || filtroMedico !== 'TODOS' || filtroSubgrupo !== 'TODOS' || filtroTriaje !== 'TODOS' || filtroEdad !== 'TODOS' || filtroDestino !== 'TODOS' || searchTerm !== '') && (
                 <button
                   onClick={() => {
                     setFiltroCentro('TODOS');
                     setFiltroMedico('TODOS');
                     setFiltroSubgrupo('TODOS');
                     setFiltroTriaje('TODOS');
+                    setFiltroEdad('TODOS');
+                    setFiltroDestino('TODOS');
                     setSearchTerm('');
                     setPaginaActual(1);
                   }}
@@ -2150,11 +2301,11 @@ export default function AnalisisRespiratorio({
 
                         <td className="py-3 px-4 font-medium text-secondary-custom">
                           <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold ${
-                            String(p.destinoAlta || '').toUpperCase().includes('HOSPITAL')
+                            isHospitalDestino(p)
                               ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                               : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                           }`}>
-                            {p.destinoAlta || p.destino || 'DOMICILIO'}
+                            {p.destinoAlta || p.destino || (isHospitalDestino(p) ? 'TRASLADO / HOSPITAL' : 'DOMICILIO')}
                           </span>
                         </td>
 
@@ -2377,11 +2528,11 @@ export default function AnalisisRespiratorio({
 
                           <td className="py-2.5 px-3 text-slate-300">
                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              String(p.destinoAlta || '').toUpperCase().includes('HOSPITAL')
+                              isHospitalDestino(p)
                                 ? 'bg-rose-500/10 text-rose-400'
                                 : 'bg-emerald-500/10 text-emerald-400'
                             }`}>
-                              {p.destinoAlta || 'DOMICILIO'}
+                              {p.destinoAlta || p.destino || (isHospitalDestino(p) ? 'TRASLADO / HOSPITAL' : 'DOMICILIO')}
                             </span>
                           </td>
                         </tr>
