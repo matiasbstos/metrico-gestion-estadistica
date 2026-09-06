@@ -639,50 +639,6 @@ export default function PanelKPIs({
                 </div>
 
               </div>
-
-              {/* Sub-banner de Metas Institucionales */}
-              <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-card-custom text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black text-secondary-custom uppercase">Estado Metas Globales (YTD 2026):</span>
-                  <TooltipWrapper
-                    title="Meta Institucional de Altas Administrativas"
-                    text={`Mantener la tasa de altas bajo el 5.0% del total. Tasa actual YTD: ${altasPctGlobal.toFixed(1)}% (${altasCumpleMeta ? 'Dentro de la meta' : 'Excede umbral tolerado'}).`}
-                    highlight={`Meta: < 5.0% | Actual: ${altasPctGlobal.toFixed(1)}%`}
-                    position="top"
-                  >
-                    <span 
-                      className={`px-2 py-0.5 rounded-lg font-black text-[10px] flex items-center gap-1.5 cursor-help ${
-                        altasCumpleMeta ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 animate-pulse'
-                      }`}
-                    >
-                      {altasCumpleMeta ? (
-                        <>
-                          <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                          Meta Altas Cumplida (&lt;5%)
-                        </>
-                      ) : (
-                        <>
-                          <AlertTriangle className="w-3 h-3 text-rose-500" />
-                          Alerta Altas Global ({altasPctGlobal.toFixed(1)}% &gt; 5%)
-                        </>
-                      )}
-                    </span>
-                  </TooltipWrapper>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-secondary-custom font-bold">Estadía Media Global:</span>
-                  <TooltipWrapper
-                    title="Estadía Media Global (YTD)"
-                    text="Tiempo promedio transcurrido desde la admisión del paciente en SOME hasta su egreso médico o administrativo."
-                    highlight={statsKPI.anual?.estadia?.current > 0 ? `${Math.round(statsKPI.anual.estadia.current)} min` : '133 min'}
-                    position="top"
-                  >
-                    <span className="px-2 py-0.5 rounded-lg font-bold text-[10px] bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-mono cursor-help">
-                      {statsKPI.anual?.estadia?.current > 0 ? `${Math.round(statsKPI.anual.estadia.current)} min` : '133 min'}
-                    </span>
-                  </TooltipWrapper>
-                </div>
-              </div>
             </div>
           );
         })()}

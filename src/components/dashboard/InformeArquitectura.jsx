@@ -10,6 +10,26 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.0.7',
+    version_tag: 'v6.0.7',
+    fecha_despliegue: '06 de Septiembre, 2026',
+    proposito_actualizacion: 'Depuración y Limpieza Visual: Eliminación del Sub-banner de Estado Metas Globales en el Panel de KPIs.',
+    medios_y_stack: [
+      'React 18.3 (PanelKPIs.jsx)',
+      'UI Layout Streamlining & Visual Cleanliness'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Simplificación y Descongestión del Panel: Se retiró el sub-banner inferior de "Estado Metas Globales (YTD 2026)" y "Estadía Media Global", ya que su información se encuentra contenida de manera más ágil y contextual en las tarjetas de Altas Admin (con su alerta institucional y tooltips) y la tarjeta de Promedio Estadía. 2) Optimización de Espacio Vertical: Mayor visibilidad y fluidez visual entre el bloque de tendencias YoY y la cuadrícula de métricas del período.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Reducción de nodos DOM en la vista principal sin alterar los cálculos de estado de metas.'
+    },
+    modulos_afectados: ['PanelKPIs.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'Dashboard.jsx'],
+    detalles_tecnicos: [
+      'Eliminación de la fila de sub-banner de metas y estadía global en PanelKPIs.',
+      'Ajuste del margen y espaciado vertical entre contenedores.'
+    ]
+  },
+  {
     id: 'v6.0.6',
     version_tag: 'v6.0.6',
     fecha_despliegue: '06 de Septiembre, 2026',

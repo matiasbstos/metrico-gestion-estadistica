@@ -14,6 +14,27 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.0.7',
+      version: 'v6.0.7',
+      fecha: '06 de Septiembre, 2026',
+      badge: 'LIMPIEZA VISUAL & PANEL',
+      badgeColor: 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20',
+      title: 'Eliminación del Sub-banner de Metas Globales en el Panel Principal',
+      categoria: 'Panel Principal & Usabilidad',
+      icon: Sparkles,
+      iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+      summary: 'Se retiró la barra secundaria de estado de metas globales y estadía media ubicada debajo de las tarjetas interanuales para brindar una visualización más limpia, compacta y directa.',
+      instructivo: {
+        paraQueSirve: 'Optimiza el espacio en pantalla y reduce redundancias visuales en el panel principal.',
+        quePuedesVer: 'El bloque de indicadores interanuales (YoY) ahora conecta directamente con la cuadrícula de métricas del período, sin la franja inferior adicional.',
+        ejemploUso: 'La información del estado de metas se mantiene disponible en las alertas y tooltips de las tarjetas de Altas y Estadía.'
+      },
+      changes: [
+        'Remoción del sub-banner "Estado Metas Globales (YTD 2026)".',
+        'Mejora en el espaciado y transición fluida entre secciones.'
+      ]
+    },
+    {
       id: 'v6.0.6',
       version: 'v6.0.6',
       fecha: '06 de Septiembre, 2026',
