@@ -10,6 +10,26 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.1.1',
+    version_tag: 'v6.1.1',
+    fecha_despliegue: '06 de Septiembre, 2026',
+    proposito_actualizacion: 'Corrección Crítica de Referencia (ReferenceError: listaCentrosUnicos is not defined) en Vigilancia Epidemiológica Respiratoria.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisRespiratorio.jsx)',
+      'Error Boundary Prevention & Memoized Unique Centers Collection'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Corrección de Error Visual Bloqueante: Se incorporó la definición reactiva de `listaCentrosUnicos` (`useMemo` sobre `pacientesRespiratorios`) en AnalisisRespiratorio.jsx, resolviendo de forma inmediata el error de referencia en el selector de centros de la vista epidemiológica general. 2) Integridad del Filtro Multicéntrico: El dropdown de centros ahora lista de forma reactiva y ordenada alfabéticamente todos los establecimientos de la Red de Salud Melipilla con conteo en vivo de pacientes.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Extracción en memoria mediante Set O(N) deduplicada.'
+    },
+    modulos_afectados: ['AnalisisRespiratorio.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'Dashboard.jsx'],
+    detalles_tecnicos: [
+      'Creación del memo `listaCentrosUnicos` en AnalisisRespiratorio.jsx.',
+      'Prevención de fallas en Error Boundary al ingresar al módulo respiratorio.'
+    ]
+  },
+  {
     id: 'v6.1.0',
     version_tag: 'v6.1.0',
     fecha_despliegue: '06 de Septiembre, 2026',

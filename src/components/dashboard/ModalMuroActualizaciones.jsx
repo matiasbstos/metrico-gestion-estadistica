@@ -14,6 +14,27 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.1.1',
+      version: 'v6.1.1',
+      fecha: '06 de Septiembre, 2026',
+      badge: 'CORRECCIÓN CRÍTICA DE PANEL',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Corrección de Referencia en Selector de Centros de Vigilancia Respiratoria',
+      categoria: 'Corrección de Errores & Estabilidad',
+      icon: Sparkles,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se subsanó el error visual ReferenceError: listaCentrosUnicos is not defined que bloqueaba temporalmente la carga de la vista epidemiológica respiratoria.',
+      instructivo: {
+        paraQueSirve: 'Restaura la navegación sin interrupciones en el módulo de Vigilancia Respiratoria y permite filtrar libremente por todos los centros de salud de Melipilla.',
+        quePuedesVer: 'Al ingresar a Vigilancia Respiratoria, la vista general se despliega de inmediato con el selector de centros funcionando con su listado completo de establecimientos.',
+        ejemploUso: 'Abre Análisis Específicos > Vigilancia Respiratoria y filtra por cualquier CESFAM o CECOSF sin bloqueos.'
+      },
+      changes: [
+        'Definición de listaCentrosUnicos en AnalisisRespiratorio.jsx.',
+        'Normalización del dropdown multicéntrico y selector de médicos tratantes.'
+      ]
+    },
+    {
       id: 'v6.1.0',
       version: 'v6.1.0',
       fecha: '06 de Septiembre, 2026',

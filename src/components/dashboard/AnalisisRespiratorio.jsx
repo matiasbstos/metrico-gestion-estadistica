@@ -632,7 +632,15 @@ export default function AnalisisRespiratorio({
     }).filter(Boolean);
   }, [targetPacientes, customTerms, excludedTerms]);
 
-  // Lista de Médicos Únicos para Filtros
+  // Lista de Centros y Médicos Únicos para Filtros
+  const listaCentrosUnicos = useMemo(() => {
+    const set = new Set();
+    pacientesRespiratorios.forEach(p => {
+      if (p.centroProvincia) set.add(p.centroProvincia);
+    });
+    return Array.from(set).sort();
+  }, [pacientesRespiratorios]);
+
   const listaMedicosUnicos = useMemo(() => {
     const set = new Set();
     pacientesRespiratorios.forEach(p => {
