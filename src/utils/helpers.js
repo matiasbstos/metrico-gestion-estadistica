@@ -27,13 +27,18 @@ export const resolverEquipoTurno = (fechaStr, horarioStr, pautasDB, equipoExplic
       const dayData = pautasDB[monthId][fechaStr];
       const h = String(horarioStr || '').toLowerCase();
       let eqPauta = null;
-      if (h.includes('17:00') || h.includes('largo') || h.includes('semana')) {
+
+      // Evaluar primero franjas específicas y no ambiguas:
+      if (h.includes('08:00 - 20:00') || h.includes('08:00 a 20:00') || (h.includes('08:00') && (h.includes('dia') || h.includes('día') || h.includes('diurno')))) {
+        eqPauta = dayData['08:00 - 20:00'] || dayData['08:00 a 20:00 hrs'] || dayData.dia || dayData.diurno || dayData['17:00 - 08:00'] || dayData.noche;
+      } else if (h.includes('20:00 - 08:00') || h.includes('20:00 a 08:00') || (h.includes('20:00') && (h.includes('noche') || h.includes('nocturno')))) {
+        eqPauta = dayData['20:00 - 08:00'] || dayData['20:00 a 08:00 hrs'] || dayData.noche || dayData.nocturno;
+      } else if (h.includes('17:00 - 08:00') || h.includes('17:00 a 08:00') || h.includes('17:00') || h.includes('largo') || (h.includes('semana') && !h.includes('fin de semana'))) {
         eqPauta = dayData['17:00 - 08:00'] || dayData['17:00 a 08:00 hrs'] || dayData.noche || dayData.largo;
-      } else if (h.includes('20:00') || h.includes('noche')) {
-        eqPauta = dayData['20:00 - 08:00'] || dayData['20:00 a 08:00 hrs'] || dayData.noche;
-      } else if (h.includes('08:00') || h.includes('dia') || h.includes('día')) {
-        // En fin de semana busca 08:00 - 20:00, si es día de semana donde sólo existe 17:00 - 08:00, toma 17:00 - 08:00
-        eqPauta = dayData['08:00 - 20:00'] || dayData['08:00 a 20:00 hrs'] || dayData.dia || dayData['17:00 - 08:00'] || dayData.noche;
+      } else if (h.includes('dia') || h.includes('día') || h.includes('diurno')) {
+        eqPauta = dayData['08:00 - 20:00'] || dayData['08:00 a 20:00 hrs'] || dayData.dia;
+      } else if (h.includes('noche') || h.includes('nocturno')) {
+        eqPauta = dayData['20:00 - 08:00'] || dayData['17:00 - 08:00'] || dayData.noche;
       } else {
         eqPauta = dayData['17:00 - 08:00'] || dayData['08:00 - 20:00'] || dayData['20:00 - 08:00'] || Object.values(dayData).find(v => typeof v === 'string' && (v.includes('Turno') || v.includes('Equipo')));
       }

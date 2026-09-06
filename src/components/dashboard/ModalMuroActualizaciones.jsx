@@ -14,6 +14,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.0.9',
+      version: 'v6.0.9',
+      fecha: '06 de Septiembre, 2026',
+      badge: 'CONSISTENCIA DE TURNOS & PAUTA',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Alineación de Pauta de Turnos y Auto-Detección de Turnos 100% Completos',
+      categoria: 'Turnos & Reglas de Negocio',
+      icon: Sparkles,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se corrigió la correspondencia entre la Pauta de Turnos y el Histórico Mensual (eliminando discrepancias en fines de semana) y se perfeccionó la auto-selección del período para enfocarse siempre en el último turno clínico 100% completo.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la plataforma refleje exactamente los equipos ingresados en la pauta y no muestre fragmentos parciales de turnos en curso al ingresar.',
+        quePuedesVer: 'En el Histórico Mensual, el Sábado 5 de Septiembre refleja exactamente el Turno 1 (08:00 a 20:00 con 97 pacientes) configurado en la pauta. Al ingresar al panel principal, el período por defecto selecciona este último turno cerrado completo en lugar de un fragmento nocturno de 13 pacientes.',
+        ejemploUso: 'Revisa el Histórico Mensual y la Pauta de Turnos: ambos módulos exhiben ahora una paridad del 100% en todos los días de la semana y turnos diurnos/nocturnos.'
+      },
+      changes: [
+        'Desambiguación en Clasificador de Turnos: Resolución exacta de turnos 08:00-20:00 y 20:00-08:00.',
+        'Auto-Detección de Turno Cerrado: El filtro inicial prioriza turnos 100% concluidos (corte 20:00 y 08:00 hrs).',
+        'Reglas 4 y 5 Integradas: Protocolo maestro (.agents/AGENTS.md) actualizado permanentemente.'
+      ]
+    },
+    {
       id: 'v6.0.8',
       version: 'v6.0.8',
       fecha: '06 de Septiembre, 2026',

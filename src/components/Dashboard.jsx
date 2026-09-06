@@ -42,7 +42,7 @@ import FondoClinicoAnimado from './common/FondoClinicoAnimado';
 import { formatLocalDate } from '../utils/helpers';
 import { playIntegrityAlertChime, playLogoutChime } from '../utils/audioNotifications';
 
-const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.0.8';
+const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.0.9';
 import Login from './Login';
 import { 
   Clock, Users, UserCheck, AlertTriangle, Activity, ArrowRight, 
@@ -281,58 +281,61 @@ const DashboardContent = () => {
 
     let detectedShift;
 
-    // Detección precisa y robusta del último turno asistencial según día y hora
+    // Detección estricta del ÚLTIMO TURNO CLÍNICO 100% COMPLETO Y CERRADO
     if (dayOfWeek === 0) {
       // DOMINGO
       if (hours >= 20) {
-        // Domingo en la noche (20:00 a 08:00 Lunes)
-        const nextDate = new Date(y, m, d + 1);
-        detectedShift = getShiftObject(maxDate, nextDate, '20:00', '08:00', 'finde_noche');
-      } else if (hours >= 8) {
-        // Domingo diurno (08:00 a 20:00)
+        // A partir de las 20:00, el turno diurno del Domingo (08:00 a 20:00) ha cerrado 100% completo
         detectedShift = getShiftObject(maxDate, maxDate, '08:00', '20:00', 'finde_dia');
-      } else {
-        // Madrugada Domingo (00:00 a 07:59): Finde Noche que inició Sábado
+      } else if (hours >= 8) {
+        // Entre 08:00 y 19:59, el turno diurno está en curso; el último cerrado fue Sábado Noche (20:00 a 08:00)
         const prevDate = new Date(y, m, d - 1);
         detectedShift = getShiftObject(prevDate, maxDate, '20:00', '08:00', 'finde_noche');
+      } else {
+        // Madrugada de Domingo (00:00 a 07:59): Sábado Noche está en curso; el último cerrado fue Sábado Diurno (08:00 a 20:00)
+        const prevDate = new Date(y, m, d - 1);
+        detectedShift = getShiftObject(prevDate, prevDate, '08:00', '20:00', 'finde_dia');
       }
     } else if (dayOfWeek === 6) {
       // SÁBADO
       if (hours >= 20) {
-        // Sábado en la noche (20:00 a 08:00 Domingo)
-        const nextDate = new Date(y, m, d + 1);
-        detectedShift = getShiftObject(maxDate, nextDate, '20:00', '08:00', 'finde_noche');
-      } else if (hours >= 8) {
-        // Sábado diurno (08:00 a 20:00)
+        // A partir de las 20:00, el turno diurno del Sábado (08:00 a 20:00) ha cerrado 100% completo
         detectedShift = getShiftObject(maxDate, maxDate, '08:00', '20:00', 'finde_dia');
-      } else {
-        // Madrugada Sábado (00:00 a 07:59): Turno Largo que inició Viernes
+      } else if (hours >= 8) {
+        // Entre 08:00 y 19:59, el turno diurno está en curso; el último cerrado fue Viernes Turno Largo (16:00 a 09:00)
         const prevDate = new Date(y, m, d - 1);
         detectedShift = getShiftObject(prevDate, maxDate, '16:00', '09:00', 'largo');
+      } else {
+        // Madrugada de Sábado (00:00 a 07:59): Viernes Turno Largo está en curso; el último cerrado fue Jueves Turno Largo
+        const prev2Date = new Date(y, m, d - 2);
+        const prevDate = new Date(y, m, d - 1);
+        detectedShift = getShiftObject(prev2Date, prevDate, '16:00', '09:00', 'largo');
       }
     } else if (dayOfWeek >= 1 && dayOfWeek <= 5) {
       // LUNES A VIERNES (Días hábiles)
-      if (hours >= 16) {
-        // Tarde/Noche del día hábil: Turno Largo de HOY (16:00 a 09:00 del día siguiente)
-        const nextDate = new Date(y, m, d + 1);
-        detectedShift = getShiftObject(maxDate, nextDate, '16:00', '09:00', 'largo');
-      } else if (hours < 8) {
-        // Madrugada (00:00 a 07:59): Turno que inició la noche anterior
+      if (hours >= 8) {
+        // Desde las 08:00 AM en adelante, el turno de la noche anterior ya cerró completamente
         const prevDate = new Date(y, m, d - 1);
         if (dayOfWeek === 1) {
-          // Madrugada del Lunes: Finde Noche del Domingo
+          // Lunes durante el día: el último turno cerrado fue Domingo Noche (20:00 a 08:00)
           detectedShift = getShiftObject(prevDate, maxDate, '20:00', '08:00', 'finde_noche');
         } else {
-          // Madrugada Martes a Viernes: Turno Largo del día anterior
+          // Martes a Viernes durante el día: el último turno cerrado fue el Turno Largo de ayer
           detectedShift = getShiftObject(prevDate, maxDate, '16:00', '09:00', 'largo');
         }
       } else {
-        // Jornada de 08:00 a 15:59: El último turno fue el que entregó a las 08:00 AM
+        // Madrugada día hábil (00:00 a 07:59): el turno de la noche anterior aún no cierra; tomar el anteayer
+        const prev2Date = new Date(y, m, d - 2);
         const prevDate = new Date(y, m, d - 1);
         if (dayOfWeek === 1) {
-          detectedShift = getShiftObject(prevDate, maxDate, '20:00', '08:00', 'finde_noche');
+          // Madrugada Lunes: Domingo Noche está en curso; el último cerrado fue Domingo Diurno (08:00 a 20:00)
+          detectedShift = getShiftObject(prevDate, prevDate, '08:00', '20:00', 'finde_dia');
+        } else if (dayOfWeek === 2) {
+          // Madrugada Martes: Lunes Largo está en curso; el último cerrado fue Domingo Noche (20:00 a 08:00)
+          detectedShift = getShiftObject(prev2Date, prevDate, '20:00', '08:00', 'finde_noche');
         } else {
-          detectedShift = getShiftObject(prevDate, maxDate, '16:00', '09:00', 'largo');
+          // Madrugada Mié-Vie: el último cerrado fue el Turno Largo de anteayer a ayer
+          detectedShift = getShiftObject(prev2Date, prevDate, '16:00', '09:00', 'largo');
         }
       }
     }

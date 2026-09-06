@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.0.9',
+    version_tag: 'v6.0.9',
+    fecha_despliegue: '06 de Septiembre, 2026',
+    proposito_actualizacion: 'Garantía Estricta de Pauta de Turnos y Auto-Detección del Último Turno Clínico 100% Completo y Cerrado.',
+    medios_y_stack: [
+      'React 18.3 (helpers.js, usePautasTurnos.js, Dashboard.jsx)',
+      'Shift Pattern Parsing Engine & Robust Business Rules Validator'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Prioridad Absoluta y Desambiguación de Pautas de Turno: Se corrigió la lógica de parseo en resolverEquipoTurno (helpers.js) y getEquipoParaTurno (usePautasTurnos.js), evaluando de forma aislada y no ambigua los turnos diurnos de fin de semana (08:00 a 20:00) y nocturnos (20:00 a 08:00), impidiendo que la subcadena "fin de semana" active por error el turno hábil (17:00 a 08:00). Los turnos del Histórico Mensual coinciden ahora al 100% con la Pauta de Turnos guardada (ej. Sábado 05/09 08:00-20:00 asignado correctamente a Turno 1). 2) Auto-Detección Estricta de Turno Completo: El período inicial seleccionado por defecto en Dashboard.jsx evalúa únicamente turnos asistenciales 100% CERRADOS. En cargas con datos parciales de noche (ej. corte a las 21:57 hrs del Sábado con 13 pacientes en curso), el sistema auto-selecciona el último turno concluido (Sábado Diurno 08:00 a 20:00 con 97 pacientes). 3) Registro Institucional de Reglas: Se incorporaron formalmente las Reglas 4 y 5 al protocolo maestro de consistencia (.agents/AGENTS.md).',
+      firestore_collections: ['pautas_turnos', 'turnos', 'pacientes_urgencia'],
+      query_optimization: 'Búsqueda O(1) en memoria sobre pautasDB con clasificación estricta por regex/subcadena.'
+    },
+    modulos_afectados: ['helpers.js', 'usePautasTurnos.js', 'Dashboard.jsx', 'CalendarioHistorico.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', '.agents/AGENTS.md'],
+    detalles_tecnicos: [
+      'Corrección de colisión de string "fin de semana" en resolverEquipoTurno.',
+      'Sincronización bidireccional entre PautaTurnos y CalendarioHistorico.',
+      'Regla de corte matinal 08:00 AM y nocturno 20:00 hrs para turnos cerrados.'
+    ]
+  },
+  {
     id: 'v6.0.8',
     version_tag: 'v6.0.8',
     fecha_despliegue: '06 de Septiembre, 2026',

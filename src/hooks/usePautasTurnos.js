@@ -77,14 +77,14 @@ export const usePautasTurnos = () => {
     if (!dayData) return null;
 
     const h = String(horario).toLowerCase();
-    if (h.includes('17:00') || h.includes('largo') || h.includes('semana')) {
-      return dayData['17:00 - 08:00'] || dayData['17:00 a 08:00 hrs'] || dayData.noche || dayData.largo || null;
+    if (h.includes('08:00 - 20:00') || h.includes('08:00 a 20:00') || (h.includes('08:00') && (h.includes('dia') || h.includes('día') || h.includes('diurno')))) {
+      return dayData['08:00 - 20:00'] || dayData['08:00 a 20:00 hrs'] || dayData.dia || null;
     }
-    if (h.includes('20:00') || h.includes('noche')) {
+    if (h.includes('20:00 - 08:00') || h.includes('20:00 a 08:00') || (h.includes('20:00') && (h.includes('noche') || h.includes('nocturno')))) {
       return dayData['20:00 - 08:00'] || dayData['20:00 a 08:00 hrs'] || dayData.noche || null;
     }
-    if (h.includes('08:00') || h.includes('dia') || h.includes('día')) {
-      return dayData['08:00 - 20:00'] || dayData['08:00 a 20:00 hrs'] || dayData.dia || null;
+    if (h.includes('17:00 - 08:00') || h.includes('17:00 a 08:00') || h.includes('17:00') || h.includes('largo') || (h.includes('semana') && !h.includes('fin de semana'))) {
+      return dayData['17:00 - 08:00'] || dayData['17:00 a 08:00 hrs'] || dayData.noche || dayData.largo || null;
     }
     return dayData['17:00 - 08:00'] || dayData['08:00 - 20:00'] || dayData['20:00 - 08:00'] || null;
   };
