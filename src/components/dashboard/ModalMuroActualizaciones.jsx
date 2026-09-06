@@ -14,6 +14,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.0.6',
+      version: 'v6.0.6',
+      fecha: '06 de Septiembre, 2026',
+      badge: 'TOOLTIPS FLOTANTES CON FLECHA',
+      badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/20',
+      title: 'Tooltips Flotantes de Alto Impacto Visual en Todos los Porcentajes e Indicadores',
+      categoria: 'Panel Principal & Usabilidad',
+      icon: Sparkles,
+      iconBg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+      summary: 'Todos los porcentajes y métricas del panel ahora despliegan ventanas emergentes flotantes oscuras con flecha indicadora, idénticas al estilo de los botones de ayuda de MÉTRICO, explicando el significado, base de cálculo y valor comparativo.',
+      instructivo: {
+        paraQueSirve: 'Brinda contexto clínico y estadístico instantáneo con solo pasar el cursor sobre cualquier porcentaje o tasa del panel.',
+        quePuedesVer: 'Al situar el ratón sobre cualquier cifra porcentual (crecimiento anual YoY, porcentaje de cobertura médica, porcentaje de altas, tasa de traslados o variaciones mensuales de triaje), aparece un cuadro flotante oscuro con flecha indicadora y el resumen explicativo.',
+        ejemploUso: 'Coloca el cursor sobre "(90.9% cob.)" o sobre los porcentajes de variación del triaje Manchester para ver de inmediato la explicación detallada del indicador.'
+      },
+      changes: [
+        'Componente TooltipWrapper: Popover oscuro flotante con flecha direccional y píldora de valor.',
+        'Integración en Porcentajes YoY: Cobertura médica, altas administrativas, traslados y admisiones.',
+        'Triaje Manchester: Explicación interactiva en las variaciones mensuales (M) y anuales (A).'
+      ]
+    },
+    {
       id: 'v6.0.5',
       version: 'v6.0.5',
       fecha: '06 de Septiembre, 2026',

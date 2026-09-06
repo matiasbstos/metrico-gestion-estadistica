@@ -1,9 +1,9 @@
 import React from 'react';
 import { 
   TrendingUp, TrendingDown, AlertTriangle, ArrowUpRight, Hourglass, 
-  Users, Stethoscope, Ambulance, Clock, Sparkles, Activity, Award, ShieldAlert 
+  Users, Stethoscope, Ambulance, Clock, Sparkles, Activity, Award, ShieldAlert, CheckCircle2 
 } from 'lucide-react';
-import InfoTooltip from '../InfoTooltip';
+import InfoTooltip, { TooltipWrapper } from '../InfoTooltip';
 import { COLORS } from '../../config/constants';
 
 export default function PanelKPIs({ 
@@ -53,19 +53,35 @@ export default function PanelKPIs({
         )}
         <span className="text-[10px] font-bold text-secondary-custom tracking-wider uppercase opacity-80">{title}</span>
         <div className="flex justify-between items-end mt-1 mb-2">
-            <span 
-              className={`text-3xl font-black text-primary-custom flex items-baseline ${suffix === '%' ? 'cursor-help' : ''}`}
-              title={suffix === '%' ? `Porcentaje de ${title}: ${value}% del volumen de pacientes analizados.` : undefined}
-            >
-              {isLoading ? (
-                <span className="animate-pulse text-indigo-500/70">...</span>
-              ) : (
-                <>
-                  {prefix}{value}
-                  {suffix ? <span className="text-sm font-bold ml-1 text-secondary-custom">{suffix}</span> : null}
-                </>
-              )}
-            </span>
+            {suffix === '%' ? (
+              <TooltipWrapper 
+                text={`Porcentaje de ${title}: ${value}% del volumen de pacientes analizados.`}
+                title={title}
+                position="top"
+              >
+                <span className="text-3xl font-black text-primary-custom flex items-baseline cursor-help">
+                  {isLoading ? (
+                    <span className="animate-pulse text-indigo-500/70">...</span>
+                  ) : (
+                    <>
+                      {prefix}{value}
+                      <span className="text-sm font-bold ml-1 text-secondary-custom">{suffix}</span>
+                    </>
+                  )}
+                </span>
+              </TooltipWrapper>
+            ) : (
+              <span className="text-3xl font-black text-primary-custom flex items-baseline">
+                {isLoading ? (
+                  <span className="animate-pulse text-indigo-500/70">...</span>
+                ) : (
+                  <>
+                    {prefix}{value}
+                    {suffix ? <span className="text-sm font-bold ml-1 text-secondary-custom">{suffix}</span> : null}
+                  </>
+                )}
+              </span>
+            )}
         </div>
         <div className="flex flex-col gap-1 mt-auto">
           {isLoading ? (
@@ -76,28 +92,36 @@ export default function PanelKPIs({
           ) : (
             <>
               {badgeMonth && (
-                <div 
-                  className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded cursor-help transition-colors hover:bg-black/10 dark:hover:bg-white/10"
-                  title={`Variación versus Mes Anterior: ${badgeMonth.text} en comparación con el mes calendario inmediatamente precedente.`}
+                <TooltipWrapper 
+                  text={`Variación porcentual respecto al mes inmediatamente precedente (${badgeMonth.text}).`}
+                  title="Comparativa Mes Anterior"
+                  position="top"
+                  className="w-full"
                 >
-                  <span className="text-[9px] font-bold text-secondary-custom">Vs Mes Ant.</span>
-                  <span className={`text-[10px] font-bold flex items-center gap-1 ${badgeMonth.color}`}>
-                    {badgeMonth.icon}
-                    {badgeMonth.text}
-                  </span>
-                </div>
+                  <div className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded w-full cursor-help hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                    <span className="text-[9px] font-bold text-secondary-custom">Vs Mes Ant.</span>
+                    <span className={`text-[10px] font-bold flex items-center gap-1 ${badgeMonth.color}`}>
+                      {badgeMonth.icon}
+                      {badgeMonth.text}
+                    </span>
+                  </div>
+                </TooltipWrapper>
               )}
               {badgeYear && (
-                <div 
-                  className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded cursor-help transition-colors hover:bg-black/10 dark:hover:bg-white/10"
-                  title={`Crecimiento Interanual (YoY): ${badgeYear.text} en comparación con el mismo período acumulado del año 2025.`}
+                <TooltipWrapper 
+                  text={`Crecimiento interanual (YoY) comparado con el mismo período del año 2025 (${badgeYear.text}).`}
+                  title="Crecimiento Interanual (YoY)"
+                  position="top"
+                  className="w-full"
                 >
-                  <span className="text-[9px] font-bold text-secondary-custom">Vs Año Ant.</span>
-                  <span className={`text-[10px] font-bold flex items-center gap-1 ${badgeYear.color}`}>
-                    {badgeYear.icon}
-                    {badgeYear.text}
-                  </span>
-                </div>
+                  <div className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded w-full cursor-help hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                    <span className="text-[9px] font-bold text-secondary-custom">Vs Año Ant.</span>
+                    <span className={`text-[10px] font-bold flex items-center gap-1 ${badgeYear.color}`}>
+                      {badgeYear.icon}
+                      {badgeYear.text}
+                    </span>
+                  </div>
+                </TooltipWrapper>
               )}
               {!badgeMonth && !badgeYear && (
                  <span className="text-[10px] font-medium text-transparent select-none">.</span>
@@ -132,35 +156,46 @@ export default function PanelKPIs({
             {isAlert && <AlertTriangle className="w-3.5 h-3.5 text-red-500 animate-bounce" />}
          </div>
          {isAlert && (
-           <span 
-             className="text-[8px] font-black bg-red-600 text-white px-2 py-0.5 rounded-full flex items-center gap-1 w-fit animate-pulse mt-1 cursor-help"
-             title="Alerta Institucional: El porcentaje de altas administrativas supera el límite máximo permitido del 5.0% del volumen total de pacientes."
+           <TooltipWrapper 
+             text="Las altas administrativas superan la meta institucional máxima del 5.0% fijada para el establecimiento."
+             title="Alerta de Gestión"
+             position="top"
            >
-             <AlertTriangle className="w-2.5 h-2.5" /> ALERTA ALTAS &gt;5%
-           </span>
+             <span className="text-[8px] font-black bg-red-600 text-white px-2 py-0.5 rounded-full flex items-center gap-1 w-fit animate-pulse mt-1 cursor-help">
+               <AlertTriangle className="w-2.5 h-2.5" /> ALERTA ALTAS &gt;5%
+             </span>
+           </TooltipWrapper>
          )}
          <div className="flex justify-between items-end mt-1 mb-2">
-              <span 
-                className={`text-3xl font-black cursor-help ${isAlert ? 'text-red-600 dark:text-red-400' : 'text-emerald-500'}`}
-                title={`Tasa de Altas Administrativas: ${pct.toFixed(1)}% de las admisiones correspondieron a egresos administrativos o retiros sin atención (${typeof altas === 'number' ? altas.toLocaleString('es-CL') : altas} de ${typeof total === 'number' ? total.toLocaleString('es-CL') : total} pacientes). Meta: < 5.0%.`}
+              <TooltipWrapper 
+                text={`Tasa de Altas Administrativas: ${pct.toFixed(1)}% del total de pacientes admitidos. Representa a ${typeof altas === 'number' ? altas.toLocaleString('es-CL') : altas} de ${typeof total === 'number' ? total.toLocaleString('es-CL') : total} pacientes.`}
+                title="Tasa de Altas Administrativas"
+                highlight="Meta institucional: Mantener por debajo del 5% del volumen total."
+                position="top"
               >
-                {isLoading ? (
-                  <span className="animate-pulse text-indigo-500/70">...</span>
-                ) : (
-                  `${pct.toFixed(1)}%`
-                )}
-              </span>
+                <span className={`text-3xl font-black cursor-help ${isAlert ? 'text-red-600 dark:text-red-400' : 'text-emerald-500'}`}>
+                  {isLoading ? (
+                    <span className="animate-pulse text-indigo-500/70">...</span>
+                  ) : (
+                    `${pct.toFixed(1)}%`
+                  )}
+                </span>
+              </TooltipWrapper>
          </div>
          <div className="flex flex-col gap-1 mt-auto">
-              <div 
-                className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded cursor-help transition-colors hover:bg-black/10 dark:hover:bg-white/10"
-                title={`Cantidad absoluta de pacientes egresados por alta administrativa: ${typeof altas === 'number' ? altas.toLocaleString('es-CL') : altas} personas.`}
+              <TooltipWrapper 
+                text={`Cantidad absoluta de pacientes egresados por vía administrativa sin completar la atención médica (${typeof altas === 'number' ? altas.toLocaleString('es-CL') : altas} pac.).`}
+                title="Volumen de Altas"
+                position="top"
+                className="w-full"
               >
+                <div className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded w-full cursor-help hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
                   <span className="text-[9px] font-bold text-secondary-custom">Cantidad</span>
                   <span className={`text-[10px] font-bold ${isAlert ? 'text-red-600 dark:text-red-400' : 'text-primary-custom'}`}>
                     {isLoading ? '...' : `${typeof altas === 'number' ? altas.toLocaleString('es-CL') : altas} pac.`}
                   </span>
-              </div>
+                </div>
+              </TooltipWrapper>
               {isLoading ? (
                 <div className="space-y-1">
                   <div className="h-3 w-16 bg-slate-300/35 dark:bg-white/5 rounded animate-pulse"></div>
@@ -169,28 +204,36 @@ export default function PanelKPIs({
               ) : (
                 <>
                   {badgeMonth && (
-                    <div 
-                      className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded cursor-help transition-colors hover:bg-black/10 dark:hover:bg-white/10"
-                      title={`Variación versus Mes Anterior: ${badgeMonth.text} en altas administrativas respecto al mes precedente.`}
+                    <TooltipWrapper 
+                      text={`Variación porcentual de altas administrativas respecto al mes inmediatamente precedente (${badgeMonth.text}).`}
+                      title="Comparativa Mes Anterior"
+                      position="top"
+                      className="w-full"
                     >
-                      <span className="text-[9px] font-bold text-secondary-custom">Vs Mes Ant.</span>
-                      <span className={`text-[10px] font-bold flex items-center gap-1 ${badgeMonth.color}`}>
-                        {badgeMonth.icon}
-                        {badgeMonth.text}
-                      </span>
-                    </div>
+                      <div className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded w-full cursor-help hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                        <span className="text-[9px] font-bold text-secondary-custom">Vs Mes Ant.</span>
+                        <span className={`text-[10px] font-bold flex items-center gap-1 ${badgeMonth.color}`}>
+                          {badgeMonth.icon}
+                          {badgeMonth.text}
+                        </span>
+                      </div>
+                    </TooltipWrapper>
                   )}
                   {badgeYear && (
-                    <div 
-                      className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded cursor-help transition-colors hover:bg-black/10 dark:hover:bg-white/10"
-                      title={`Crecimiento Interanual (YoY): ${badgeYear.text} en altas administrativas respecto al año 2025.`}
+                    <TooltipWrapper 
+                      text={`Crecimiento interanual (YoY) de altas administrativas respecto al año 2025 (${badgeYear.text}).`}
+                      title="Crecimiento Interanual (YoY)"
+                      position="top"
+                      className="w-full"
                     >
-                      <span className="text-[9px] font-bold text-secondary-custom">Vs Año Ant.</span>
-                      <span className={`text-[10px] font-bold flex items-center gap-1 ${badgeYear.color}`}>
-                        {badgeYear.icon}
-                        {badgeYear.text}
-                      </span>
-                    </div>
+                      <div className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded w-full cursor-help hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                        <span className="text-[9px] font-bold text-secondary-custom">Vs Año Ant.</span>
+                        <span className={`text-[10px] font-bold flex items-center gap-1 ${badgeYear.color}`}>
+                          {badgeYear.icon}
+                          {badgeYear.text}
+                        </span>
+                      </div>
+                    </TooltipWrapper>
                   )}
                 </>
               )}
@@ -363,14 +406,20 @@ export default function PanelKPIs({
                   </div>
                   <div>
                     <div className="flex items-baseline gap-2">
-                      <span 
-                        className={`text-4xl md:text-5xl font-black tracking-tight leading-none cursor-help ${
-                          pacGrowthYear !== undefined && pacGrowthYear >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                        }`}
-                        title={`Crecimiento Interanual de Admisiones (YoY): ${pacGrowthYear !== undefined && pacGrowthYear >= 0 ? '+' : ''}${pacGrowthYear !== undefined ? pacGrowthYear.toFixed(1) : '14.2'}% de variación respecto al mismo período del año 2025 (${pacAnual?.toLocaleString('es-CL')} vs ${pacPrevYear?.toLocaleString('es-CL')} pacientes).`}
+                      <TooltipWrapper
+                        title="Crecimiento Interanual (YoY)"
+                        text={`Variación de admisiones respecto al mismo período del año 2025 (${pacAnual?.toLocaleString('es-CL')} vs ${pacPrevYear?.toLocaleString('es-CL')} pacientes acumulados).`}
+                        highlight={`${pacGrowthYear !== undefined && pacGrowthYear >= 0 ? '+' : ''}${pacGrowthYear !== undefined ? pacGrowthYear.toFixed(1) : '14.2'}%`}
+                        position="top"
                       >
-                        {isLoading ? '...' : `${pacGrowthYear !== undefined && pacGrowthYear >= 0 ? '+' : ''}${pacGrowthYear !== undefined ? pacGrowthYear.toFixed(1) : '14.2'}%`}
-                      </span>
+                        <span 
+                          className={`text-4xl md:text-5xl font-black tracking-tight leading-none cursor-help ${
+                            pacGrowthYear !== undefined && pacGrowthYear >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                          }`}
+                        >
+                          {isLoading ? '...' : `${pacGrowthYear !== undefined && pacGrowthYear >= 0 ? '+' : ''}${pacGrowthYear !== undefined ? pacGrowthYear.toFixed(1) : '14.2'}%`}
+                        </span>
+                      </TooltipWrapper>
                       <span className="text-[10px] md:text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
                         vs Año Ant.
                       </span>
@@ -409,14 +458,20 @@ export default function PanelKPIs({
                   </div>
                   <div>
                     <div className="flex items-baseline gap-2">
-                      <span 
-                        className={`text-4xl md:text-5xl font-black tracking-tight leading-none cursor-help ${
-                          ateGrowthYear !== undefined && ateGrowthYear >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                        }`}
-                        title={`Crecimiento Interanual de Atenciones Efectivas (YoY): ${ateGrowthYear !== undefined && ateGrowthYear >= 0 ? '+' : ''}${ateGrowthYear !== undefined ? ateGrowthYear.toFixed(1) : '13.6'}% de variación respecto al año 2025 (${ateAnual?.toLocaleString('es-CL')} vs ${atePrevYear?.toLocaleString('es-CL')} pacientes).`}
+                      <TooltipWrapper
+                        title="Crecimiento Interanual (YoY)"
+                        text={`Variación de atenciones médicas efectivas respecto al año 2025 (${ateAnual?.toLocaleString('es-CL')} vs ${atePrevYear?.toLocaleString('es-CL')} pacientes).`}
+                        highlight={`${ateGrowthYear !== undefined && ateGrowthYear >= 0 ? '+' : ''}${ateGrowthYear !== undefined ? ateGrowthYear.toFixed(1) : '13.6'}%`}
+                        position="top"
                       >
-                        {isLoading ? '...' : `${ateGrowthYear !== undefined && ateGrowthYear >= 0 ? '+' : ''}${ateGrowthYear !== undefined ? ateGrowthYear.toFixed(1) : '13.6'}%`}
-                      </span>
+                        <span 
+                          className={`text-4xl md:text-5xl font-black tracking-tight leading-none cursor-help ${
+                            ateGrowthYear !== undefined && ateGrowthYear >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                          }`}
+                        >
+                          {isLoading ? '...' : `${ateGrowthYear !== undefined && ateGrowthYear >= 0 ? '+' : ''}${ateGrowthYear !== undefined ? ateGrowthYear.toFixed(1) : '13.6'}%`}
+                        </span>
+                      </TooltipWrapper>
                       <span className="text-[10px] md:text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
                         vs Año Ant.
                       </span>
@@ -424,12 +479,17 @@ export default function PanelKPIs({
                     <div className="mt-2.5 space-y-1 text-xs">
                       <p className="text-secondary-custom font-semibold">
                         Volumen YTD: <strong className="text-primary-custom font-black">{isLoading ? '...' : ateAnual?.toLocaleString('es-CL')} pac.</strong>
-                        <span 
-                          className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold ml-1 cursor-help hover:underline decoration-dotted"
-                          title={`Tasa de Cobertura Médica Efectiva: El ${ateCoberturaPct.toFixed(1)}% de las admisiones recibieron atención médica completa por facultativo (${ateAnual?.toLocaleString('es-CL')} de ${pacAnual?.toLocaleString('es-CL')} admisiones totales).`}
+                        <TooltipWrapper
+                          title="Tasa de Cobertura Médica Efectiva"
+                          text={`Porcentaje de pacientes admitidos que recibieron atención médica por facultativo (${ateAnual?.toLocaleString('es-CL')} de ${pacAnual?.toLocaleString('es-CL')} admisiones totales).`}
+                          highlight={`${ateCoberturaPct.toFixed(1)}%`}
+                          position="top"
+                          className="inline-block ml-1"
                         >
-                          ({ateCoberturaPct.toFixed(1)}% cob.)
-                        </span>
+                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold cursor-help hover:underline decoration-dotted">
+                            ({ateCoberturaPct.toFixed(1)}% cob.)
+                          </span>
+                        </TooltipWrapper>
                       </p>
                       <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1">
                         Año Ant. (2025): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : atePrevYear?.toLocaleString('es-CL')} pac.</strong>
@@ -449,12 +509,16 @@ export default function PanelKPIs({
                       </div>
                       Altas Admin (YoY)
                       {!altasCumpleMeta && (
-                        <span 
-                          className="text-[8px] font-black bg-rose-600 text-white px-1.5 py-0.2 rounded-full animate-pulse cursor-help"
-                          title="Alerta Institucional: El porcentaje de altas administrativas supera la meta institucional del 5.0%."
+                        <TooltipWrapper
+                          title="Alerta Institucional de Altas"
+                          text="El porcentaje global de altas administrativas supera la meta institucional máxima fijada en 5.0%."
+                          highlight={`${altasPctGlobal.toFixed(1)}%`}
+                          position="top"
                         >
-                          &gt;5%
-                        </span>
+                          <span className="text-[8px] font-black bg-rose-600 text-white px-1.5 py-0.2 rounded-full animate-pulse cursor-help">
+                            &gt;5%
+                          </span>
+                        </TooltipWrapper>
                       )}
                     </span>
                     {onAltasClick && (
@@ -471,14 +535,20 @@ export default function PanelKPIs({
                   </div>
                   <div>
                     <div className="flex items-baseline gap-2">
-                      <span 
-                        className={`text-4xl md:text-5xl font-black tracking-tight leading-none cursor-help ${
-                          altasGrowthYear !== undefined && altasGrowthYear <= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                        }`}
-                        title={`Variación Interanual de Altas Administrativas (YoY): ${altasGrowthYear !== undefined && altasGrowthYear >= 0 ? '+' : ''}${altasGrowthYear !== undefined ? altasGrowthYear.toFixed(1) : '19.7'}% respecto al año 2025 (${altasAnual?.toLocaleString('es-CL')} vs ${altasPrevYear?.toLocaleString('es-CL')} altas).`}
+                      <TooltipWrapper
+                        title="Variación Interanual de Altas (YoY)"
+                        text={`Variación de altas administrativas respecto al año 2025 (${altasAnual?.toLocaleString('es-CL')} vs ${altasPrevYear?.toLocaleString('es-CL')} altas registradas).`}
+                        highlight={`${altasGrowthYear !== undefined && altasGrowthYear >= 0 ? '+' : ''}${altasGrowthYear !== undefined ? altasGrowthYear.toFixed(1) : '19.7'}%`}
+                        position="top"
                       >
-                        {isLoading ? '...' : `${altasGrowthYear !== undefined && altasGrowthYear >= 0 ? '+' : ''}${altasGrowthYear !== undefined ? altasGrowthYear.toFixed(1) : '19.7'}%`}
-                      </span>
+                        <span 
+                          className={`text-4xl md:text-5xl font-black tracking-tight leading-none cursor-help ${
+                            altasGrowthYear !== undefined && altasGrowthYear <= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                          }`}
+                        >
+                          {isLoading ? '...' : `${altasGrowthYear !== undefined && altasGrowthYear >= 0 ? '+' : ''}${altasGrowthYear !== undefined ? altasGrowthYear.toFixed(1) : '19.7'}%`}
+                        </span>
+                      </TooltipWrapper>
                       <span className="text-[10px] md:text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
                         vs Año Ant.
                       </span>
@@ -486,12 +556,17 @@ export default function PanelKPIs({
                     <div className="mt-2.5 space-y-1 text-xs">
                       <p className="text-secondary-custom font-semibold">
                         Volumen YTD: <strong className="text-rose-600 dark:text-rose-400 font-black">{isLoading ? '...' : altasAnual?.toLocaleString('es-CL')} altas</strong>
-                        <span 
-                          className="text-[10px] font-bold text-secondary-custom ml-1 cursor-help hover:underline decoration-dotted"
-                          title={`Tasa de Altas Administrativas: El ${altasPctGlobal.toFixed(1)}% del total de pacientes admitidos egresaron administrativamente sin atención (${altasAnual?.toLocaleString('es-CL')} de ${pacAnual?.toLocaleString('es-CL')} admisiones).`}
+                        <TooltipWrapper
+                          title="Tasa de Altas Administrativas"
+                          text={`Proporción de pacientes que egresaron administrativamente sin atención (${altasAnual?.toLocaleString('es-CL')} de ${pacAnual?.toLocaleString('es-CL')} admisiones totales).`}
+                          highlight={`${altasPctGlobal.toFixed(1)}%`}
+                          position="top"
+                          className="inline-block ml-1"
                         >
-                          ({altasPctGlobal.toFixed(1)}% del total)
-                        </span>
+                          <span className="text-[10px] font-bold text-secondary-custom cursor-help hover:underline decoration-dotted">
+                            ({altasPctGlobal.toFixed(1)}% del total)
+                          </span>
+                        </TooltipWrapper>
                       </p>
                       <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1">
                         Año Ant. (2025): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : altasPrevYear?.toLocaleString('es-CL')} altas</strong>
@@ -523,14 +598,20 @@ export default function PanelKPIs({
                   </div>
                   <div>
                     <div className="flex items-baseline gap-2">
-                      <span 
-                        className={`text-4xl md:text-5xl font-black tracking-tight leading-none cursor-help ${
-                          trasGrowthYear !== undefined && trasGrowthYear >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                        }`}
-                        title={`Variación Interanual de Traslados Hospitalarios (YoY): ${trasGrowthYear !== undefined && trasGrowthYear >= 0 ? '+' : ''}${trasGrowthYear !== undefined ? trasGrowthYear.toFixed(1) : '11.8'}% respecto al año 2025 (${trasAnual?.toLocaleString('es-CL')} vs ${trasPrevYear?.toLocaleString('es-CL')} traslados).`}
+                      <TooltipWrapper
+                        title="Variación Interanual de Traslados (YoY)"
+                        text={`Variación de derivaciones hospitalarias respecto al año 2025 (${trasAnual?.toLocaleString('es-CL')} vs ${trasPrevYear?.toLocaleString('es-CL')} traslados).`}
+                        highlight={`${trasGrowthYear !== undefined && trasGrowthYear >= 0 ? '+' : ''}${trasGrowthYear !== undefined ? trasGrowthYear.toFixed(1) : '11.8'}%`}
+                        position="top"
                       >
-                        {isLoading ? '...' : `${trasGrowthYear !== undefined && trasGrowthYear >= 0 ? '+' : ''}${trasGrowthYear !== undefined ? trasGrowthYear.toFixed(1) : '11.8'}%`}
-                      </span>
+                        <span 
+                          className={`text-4xl md:text-5xl font-black tracking-tight leading-none cursor-help ${
+                            trasGrowthYear !== undefined && trasGrowthYear >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                          }`}
+                        >
+                          {isLoading ? '...' : `${trasGrowthYear !== undefined && trasGrowthYear >= 0 ? '+' : ''}${trasGrowthYear !== undefined ? trasGrowthYear.toFixed(1) : '11.8'}%`}
+                        </span>
+                      </TooltipWrapper>
                       <span className="text-[10px] md:text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
                         vs Año Ant.
                       </span>
@@ -538,12 +619,17 @@ export default function PanelKPIs({
                     <div className="mt-2.5 space-y-1 text-xs">
                       <p className="text-secondary-custom font-semibold">
                         Volumen YTD: <strong className="text-primary-custom font-black">{isLoading ? '...' : trasAnual?.toLocaleString('es-CL')} pac.</strong>
-                        <span 
-                          className="text-[10px] text-purple-600 dark:text-purple-400 font-bold ml-1 cursor-help hover:underline decoration-dotted"
-                          title={`Tasa de Traslados Hospitalarios: El ${trasPctGlobal.toFixed(1)}% de los pacientes admitidos requirieron traslado en ambulancia a hospitales de mayor complejidad (${trasAnual?.toLocaleString('es-CL')} de ${pacAnual?.toLocaleString('es-CL')} admisiones).`}
+                        <TooltipWrapper
+                          title="Tasa de Traslados Hospitalarios"
+                          text={`Porcentaje de pacientes admitidos derivados a la red hospitalaria (${trasAnual?.toLocaleString('es-CL')} de ${pacAnual?.toLocaleString('es-CL')} admisiones totales).`}
+                          highlight={`${trasPctGlobal.toFixed(1)}%`}
+                          position="top"
+                          className="inline-block ml-1"
                         >
-                          ({trasPctGlobal.toFixed(1)}% tasa)
-                        </span>
+                          <span className="text-[10px] text-purple-600 dark:text-purple-400 font-bold cursor-help hover:underline decoration-dotted">
+                            ({trasPctGlobal.toFixed(1)}% tasa)
+                          </span>
+                        </TooltipWrapper>
                       </p>
                       <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1">
                         Año Ant. (2025): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : trasPrevYear?.toLocaleString('es-CL')} pac.</strong>
@@ -558,33 +644,43 @@ export default function PanelKPIs({
               <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-card-custom text-xs">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black text-secondary-custom uppercase">Estado Metas Globales (YTD 2026):</span>
-                  <span 
-                    className={`px-2 py-0.5 rounded-lg font-black text-[10px] flex items-center gap-1.5 cursor-help ${
-                      altasCumpleMeta ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 animate-pulse'
-                    }`}
-                    title={`Meta Institucional: Mantener la tasa de altas administrativas bajo el 5.0% del total. Tasa actual: ${altasPctGlobal.toFixed(1)}% (${altasCumpleMeta ? 'Dentro del estándar' : 'Excede umbral tolerado'}).`}
+                  <TooltipWrapper
+                    title="Meta Institucional de Altas Administrativas"
+                    text={`Mantener la tasa de altas bajo el 5.0% del total. Tasa actual YTD: ${altasPctGlobal.toFixed(1)}% (${altasCumpleMeta ? 'Dentro de la meta' : 'Excede umbral tolerado'}).`}
+                    highlight={`Meta: < 5.0% | Actual: ${altasPctGlobal.toFixed(1)}%`}
+                    position="top"
                   >
-                    {altasCumpleMeta ? (
-                      <>
-                        <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-                        Meta Altas Cumplida (&lt;5%)
-                      </>
-                    ) : (
-                      <>
-                        <AlertTriangle className="w-3 h-3 text-rose-500" />
-                        Alerta Altas Global ({altasPctGlobal.toFixed(1)}% &gt; 5%)
-                      </>
-                    )}
-                  </span>
+                    <span 
+                      className={`px-2 py-0.5 rounded-lg font-black text-[10px] flex items-center gap-1.5 cursor-help ${
+                        altasCumpleMeta ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 animate-pulse'
+                      }`}
+                    >
+                      {altasCumpleMeta ? (
+                        <>
+                          <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                          Meta Altas Cumplida (&lt;5%)
+                        </>
+                      ) : (
+                        <>
+                          <AlertTriangle className="w-3 h-3 text-rose-500" />
+                          Alerta Altas Global ({altasPctGlobal.toFixed(1)}% &gt; 5%)
+                        </>
+                      )}
+                    </span>
+                  </TooltipWrapper>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] text-secondary-custom font-bold">Estadía Media Global:</span>
-                  <span 
-                    className="px-2 py-0.5 rounded-lg font-bold text-[10px] bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-mono cursor-help"
-                    title="Tiempo promedio de permanencia del paciente en el servicio de urgencia (desde admisión hasta egreso)."
+                  <TooltipWrapper
+                    title="Estadía Media Global (YTD)"
+                    text="Tiempo promedio transcurrido desde la admisión del paciente en SOME hasta su egreso médico o administrativo."
+                    highlight={statsKPI.anual?.estadia?.current > 0 ? `${Math.round(statsKPI.anual.estadia.current)} min` : '133 min'}
+                    position="top"
                   >
-                    {statsKPI.anual?.estadia?.current > 0 ? `${Math.round(statsKPI.anual.estadia.current)} min` : '133 min'}
-                  </span>
+                    <span className="px-2 py-0.5 rounded-lg font-bold text-[10px] bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 font-mono cursor-help">
+                      {statsKPI.anual?.estadia?.current > 0 ? `${Math.round(statsKPI.anual.estadia.current)} min` : '133 min'}
+                    </span>
+                  </TooltipWrapper>
                 </div>
               </div>
             </div>
@@ -622,12 +718,16 @@ export default function PanelKPIs({
                 Evaluación del flujo y gravedad de pacientes ingresados.
               </p>
               {isAltasAlert && (
-                <span 
-                  className="text-[9px] font-black text-rose-650 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/25 mt-2 flex items-center gap-1.5 animate-pulse cursor-help"
-                  title="Alerta de Triaje: El porcentaje de altas administrativas supera el 5% en este período."
+                <TooltipWrapper
+                  title="Alerta de Altas en Triaje"
+                  text="El porcentaje de altas administrativas del período seleccionado supera el límite institucional del 5.0%."
+                  highlight={`${periodPct.toFixed(1)}%`}
+                  position="top"
                 >
-                  <AlertTriangle className="w-3.5 h-3.5 text-rose-650" /> Alerta de Altas
-                </span>
+                  <span className="text-[9px] font-black text-rose-650 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/25 mt-2 flex items-center gap-1.5 animate-pulse cursor-help">
+                    <AlertTriangle className="w-3.5 h-3.5 text-rose-650" /> Alerta de Altas
+                  </span>
+                </TooltipWrapper>
               )}
             </div>
             <div className="flex-1 grid grid-cols-3 md:grid-cols-6 gap-3 w-full">
@@ -655,26 +755,36 @@ export default function PanelKPIs({
                         ) : (
                           <>
                             {c.growthMonth !== undefined && (
-                              <div 
-                                className="flex justify-between items-center cursor-help"
-                                title={`Variación versus Mes Anterior en categoría ${c.name}: ${c.growthMonth > 0 ? '+' : ''}${c.growthMonth.toFixed(1)}% respecto al mes precedente.`}
+                              <TooltipWrapper
+                                title={`Variación Mensual (M) - ${c.name}`}
+                                text={`Variación porcentual de pacientes clasificados como ${c.name} respecto al mes inmediatamente anterior.`}
+                                highlight={`${c.growthMonth > 0 ? '+' : ''}${c.growthMonth.toFixed(1)}%`}
+                                position="top"
+                                className="w-full"
                               >
-                                <span className="opacity-60">M:</span>
-                                <span className={`${c.growthMonth > 0 ? 'text-emerald-500' : (c.growthMonth < 0 ? 'text-rose-500' : 'text-slate-400')}`}>
-                                  {c.growthMonth > 0 ? '▲ +' : (c.growthMonth < 0 ? '▼ ' : '')}{c.growthMonth.toFixed(1)}%
-                                </span>
-                              </div>
+                                <div className="flex justify-between items-center cursor-help">
+                                  <span className="opacity-60">M:</span>
+                                  <span className={`${c.growthMonth > 0 ? 'text-emerald-500' : (c.growthMonth < 0 ? 'text-rose-500' : 'text-slate-400')}`}>
+                                    {c.growthMonth > 0 ? '▲ +' : (c.growthMonth < 0 ? '▼ ' : '')}{c.growthMonth.toFixed(1)}%
+                                  </span>
+                                </div>
+                              </TooltipWrapper>
                             )}
                             {c.growthYear !== undefined && (
-                              <div 
-                                className="flex justify-between items-center cursor-help"
-                                title={`Crecimiento Interanual (YoY) en categoría ${c.name}: ${c.growthYear > 0 ? '+' : ''}${c.growthYear.toFixed(1)}% respecto al año 2025.`}
+                              <TooltipWrapper
+                                title={`Crecimiento Interanual (A) - ${c.name}`}
+                                text={`Crecimiento porcentual acumulado de pacientes ${c.name} respecto al mismo período del año 2025.`}
+                                highlight={`${c.growthYear > 0 ? '+' : ''}${c.growthYear.toFixed(1)}%`}
+                                position="top"
+                                className="w-full"
                               >
-                                <span className="opacity-60">A:</span>
-                                <span className={`${c.growthYear > 0 ? 'text-emerald-500' : (c.growthYear < 0 ? 'text-rose-500' : 'text-slate-400')}`}>
-                                  {c.growthYear > 0 ? '▲ +' : (c.growthYear < 0 ? '▼ ' : '')}{c.growthYear.toFixed(1)}%
-                                </span>
-                              </div>
+                                <div className="flex justify-between items-center cursor-help">
+                                  <span className="opacity-60">A:</span>
+                                  <span className={`${c.growthYear > 0 ? 'text-emerald-500' : (c.growthYear < 0 ? 'text-rose-500' : 'text-slate-400')}`}>
+                                    {c.growthYear > 0 ? '▲ +' : (c.growthYear < 0 ? '▼ ' : '')}{c.growthYear.toFixed(1)}%
+                                  </span>
+                                </div>
+                              </TooltipWrapper>
                             )}
                           </>
                         )}

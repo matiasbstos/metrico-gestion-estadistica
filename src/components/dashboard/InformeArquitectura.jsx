@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.0.6',
+    version_tag: 'v6.0.6',
+    fecha_despliegue: '06 de Septiembre, 2026',
+    proposito_actualizacion: 'Tooltips Flotantes de Alto Impacto Visual (Popovers con Flecha y Píldora de Valor) en Todos los Porcentajes e Indicadores del Panel.',
+    medios_y_stack: [
+      'React 18.3 (TooltipWrapper & InfoTooltip)',
+      'Custom Floating Popovers with Dark Backdrop & Arrow Indicator',
+      'PanelKPIs.jsx Universal Integration'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Estandarización de Tooltips Visuales Estilo InfoTooltip: Se reemplazaron los tooltips nativos del navegador por el componente `TooltipWrapper`, brindando cuadros flotantes oscuros con tipografía nítida, flecha direccional y píldoras de valor destacado ("highlight") en cada porcentaje del panel principal (YoY de admisiones, atenciones médicas, cobertura %, altas admin %, traslados hospitalarios %, estado de metas y variaciones M/A en triaje Manchester). 2) Consistencia Estética y Accesibilidad: Toda la información contextual de las métricas ahora se despliega con el mismo diseño premium en fondo oscuro (`bg-slate-900`/`bg-slate-800`), sombra profunda y posición inteligente (`top`/`bottom`).',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Cálculo reactivo y renderizado condicional de tooltips en DOM local sin sobrecarga de red.'
+    },
+    modulos_afectados: ['InfoTooltip.jsx', 'PanelKPIs.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'Dashboard.jsx'],
+    detalles_tecnicos: [
+      'Creación del componente universal `TooltipWrapper` con animación y flecha indicadora.',
+      'Sustitución universal en tarjetas KPI, banners de tendencia YoY, píldoras porcentuales y categorías Manchester.',
+      'Alineación 100% fiel al manual de diseño e interfaz de usuario de MÉTRICO.'
+    ]
+  },
+  {
     id: 'v6.0.5',
     version_tag: 'v6.0.5',
     fecha_despliegue: '06 de Septiembre, 2026',
