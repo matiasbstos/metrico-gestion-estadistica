@@ -10,6 +10,26 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.0.3',
+    version_tag: 'v6.0.3',
+    fecha_despliegue: '06 de Septiembre, 2026',
+    proposito_actualizacion: 'Corrección de Enlace de Navegación Ejecutable "Clínico" hacia el Módulo de Rendimiento Clínico y Auditoría Médica.',
+    medios_y_stack: [
+      'React 18.3 (Dashboard.jsx, PanelKPIs.jsx)',
+      'Tab State Routing Engine (setActiveTab profesionales)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Navegación Directa Asistencial: El botón "Clínico" de la tarjeta de Pacientes Atendidos ahora redirecciona de forma inmediata a la pestaña activa "profesionales" (Rendimiento Clínico & Auditoría Médica), permitiendo auditar la distribución de atenciones por facultativo, tiempos clínicos y promedios por turno. 2) Cobertura Médica Efectiva (% cob.): Se mantiene documentada la tasa de cobertura médica efectiva calculada como (Pacientes Atendidos Efectivos / Total Admitidos) * 100.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Transición instantánea de contexto y persistencia de dataset cargado.'
+    },
+    modulos_afectados: ['Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Corrección de target tab de "rendimiento_clinico" a "profesionales" en onMedicosClick.',
+      'Activación fluida del módulo AuditoriaMedicaDetail al accionar el botón Clínico.'
+    ]
+  },
+  {
     id: 'v6.0.2',
     version_tag: 'v6.0.2',
     fecha_despliegue: '06 de Septiembre, 2026',

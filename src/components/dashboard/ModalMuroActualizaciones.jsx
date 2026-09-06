@@ -14,6 +14,27 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.0.3',
+      version: 'v6.0.3',
+      fecha: '06 de Septiembre, 2026',
+      badge: 'ENLACE CLÍNICO OPERATIVO',
+      badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/20',
+      title: 'Habilitación y Enlace del Botón "Clínico" hacia Rendimiento Clínico y Auditoría Médica',
+      categoria: 'Panel Principal & Navegación',
+      icon: Stethoscope,
+      iconBg: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+      summary: 'Se vinculó el botón de acceso directo "Clínico" presente en la tarjeta de Pacientes Atendidos con el módulo de Rendimiento Clínico y Auditoría Médica ("profesionales"), permitiendo consultar de inmediato la productividad médica por turno, desglose de pacientes por facultativo y categorización Manchester.',
+      instructivo: {
+        paraQueSirve: 'Permite saltar con un solo clic desde la métrica de pacientes atendidos directamente a la auditoría médica y análisis de facultativos.',
+        quePuedesVer: 'Al pulsar el botón "Clínico" en la tarjeta de Pac. Atendidos, se abre la vista de Rendimiento Clínico con el desglose de atenciones por médico, tiempos de atención y distribución de pacientes.',
+        ejemploUso: 'Haz clic en el botón "Clínico" arriba a la derecha de la tarjeta "Pac. Atendidos (YoY)" para auditar el desempeño médico.'
+      },
+      changes: [
+        'Enlace Asistencial Operativo: Redirección instantánea a la pestaña Rendimiento Clínico / Auditoría Médica.',
+        'Claridad Conceptual: Explicación de la tasa de cobertura médica efectiva (% cob.) como relación Atendidos / Admitidos.'
+      ]
+    },
+    {
       id: 'v6.0.2',
       version: 'v6.0.2',
       fecha: '06 de Septiembre, 2026',

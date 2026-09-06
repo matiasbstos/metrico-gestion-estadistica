@@ -2110,7 +2110,7 @@ const DashboardContent = () => {
                   statsKPI={statsKPIFinal} 
                   isLoading={loading || loadingKpis}
                   onDemandaClick={() => { setActiveTab('especificos'); setSubTabEspecifico('demanda'); }}
-                  onMedicosClick={() => setActiveTab('rendimiento_clinico')}
+                  onMedicosClick={() => setActiveTab('profesionales')}
                   onAltasClick={() => { setActiveTab('especificos'); setSubTabEspecifico('altas'); }} 
                   onTrasladosClick={() => { setActiveTab('especificos'); setSubTabEspecifico('traslados'); }} 
                   onConstatacionesClick={() => { setActiveTab('especificos'); setSubTabEspecifico('constataciones'); }} 
