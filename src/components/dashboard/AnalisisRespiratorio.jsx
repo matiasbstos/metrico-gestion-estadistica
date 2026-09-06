@@ -50,7 +50,7 @@ const TRIAGE_COLORS = {
 };
 
 // Subgrupos base por defecto
-const DEFAULT_SUBGROUPS = {
+export const DEFAULT_SUBGROUPS = {
   'Neumonía / Influenza': { color: '#ef4444', icono: '🔴' },
   'SBO / Asma / EPOC': { color: '#f97316', icono: '🟠' },
   'Bronquitis / Bronquiolitis / VRS': { color: '#8b5cf6', icono: '🟣' },
@@ -512,7 +512,8 @@ export default function AnalisisRespiratorio({
   turnosDB, 
   filtroFechaInicio, 
   filtroFechaFin,
-  kpisBigQuery 
+  kpisBigQuery,
+  onNavigateTab
 }) {
   // Pestaña de navegación principal del módulo: 'centros' | 'general' | 'auditoria'
   const [seccionActiva, setSeccionActiva] = useState('centros');
@@ -1319,6 +1320,17 @@ export default function AnalisisRespiratorio({
             <Settings2 className="w-4 h-4" />
             <span>Gestionar Diagnósticos ({customTerms.length > 0 ? `+${customTerms.length}` : 'Filtro'})</span>
           </button>
+
+          {onNavigateTab && (
+            <button
+              onClick={() => onNavigateTab('reportes')}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-sm transition-all cursor-pointer"
+              title="Ir al Generador de Reportes Ejecutivos Oficiales (PDF)"
+            >
+              <FileText className="w-4 h-4 text-indigo-500" />
+              <span>Reporte Ejecutivo (PDF)</span>
+            </button>
+          )}
 
           <button
             onClick={handleExportExcel}

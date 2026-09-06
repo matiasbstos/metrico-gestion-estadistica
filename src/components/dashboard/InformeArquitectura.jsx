@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.1.3',
+    version_tag: 'v6.1.3',
+    fecha_despliegue: '06 de Septiembre, 2026',
+    proposito_actualizacion: 'Integración Oficial del Sub-reporte Ejecutivo de Vigilancia Epidemiológica Respiratoria en el Generador de Informes (Hoja Carta / PDF).',
+    medios_y_stack: [
+      'React 18.3 (ReportesModule.jsx, AnalisisRespiratorio.jsx, summaryGenerator.js)',
+      'Letter-Page Pagination Engine & Epidemiological Respiratory Sub-report Generator'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Sub-reporte Oficial de Vigilancia Respiratoria (Hoja Carta / PDF): Se integró el generador de reportes formales de Vigilancia Epidemiológica Respiratoria dentro del módulo de Reportes Ejecutivos (`ReportesModule.jsx`). Incluye cabecera oficial SAR con logo institucional, nota metodológica, resumen ejecutivo narrativo automático (`generateRespiratorioSummary`), 5 KPI cards principales (Demanda global, Carga pediátrica con tramos 0-4 y 5-9 años, Adultos mayores 60+ y 80+ años, Derivaciones a hospital y YoY), gráfico de distribución por sexo, barras de subgrupos clínicos CIE-10, ranking de Centros APS CORMUMEL, Top 10 diagnósticos respiratorios, Top médicos tratantes y nómina clínica de auditoría con 25 registros detallados. 2) Interoperabilidad Directa: Se habilitó el botón de navegación directa `Reporte Ejecutivo (PDF)` en la barra superior de `AnalisisRespiratorio.jsx` para acceso inmediato. 3) Selector Reactivo de Sub-reportes: Incorporación del botón selector `Sub-reporte Vigilancia Respiratoria` en la grilla de selección de páginas del reporte ejecutivo.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Cálculo reactivo useMemo O(N) deduplicado con desglose multivariable y paginación CSS print-page.'
+    },
+    modulos_afectados: ['ReportesModule.jsx', 'AnalisisRespiratorio.jsx', 'Dashboard.jsx', 'summaryGenerator.js', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Creación del memo `respiratorioReportStats` en ReportesModule.jsx con agregaciones por subgrupos, edades y centros.',
+      'Integración del bloque imprimible HOJA 7 SUB-REPORTE OFICIAL DE VIGILANCIA EPIDEMIOLÓGICA RESPIRATORIA.',
+      'Añadido botón selector con icono Wind y tema cyan en la barra de configuración de sub-reportes.',
+      'Incorporación de botón de acceso directo `Reporte Ejecutivo (PDF)` en la cabecera de AnalisisRespiratorio.jsx.'
+    ]
+  },
+  {
     id: 'v6.1.2',
     version_tag: 'v6.1.2',
     fecha_despliegue: '06 de Septiembre, 2026',

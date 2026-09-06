@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.1.3',
+      version: 'v6.1.3',
+      fecha: '06 de Septiembre, 2026',
+      badge: 'SUB-REPORTE EJECUTIVO RESPIRATORIO',
+      badgeColor: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-300 border-cyan-500/20',
+      title: 'Sub-reporte Oficial de Vigilancia Epidemiológica Respiratoria (PDF / Hoja Carta)',
+      categoria: 'Reportes Ejecutivos & Gestión Clínica',
+      icon: FileText,
+      iconBg: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
+      summary: 'Incorporación del sub-reporte oficial de Vigilancia Respiratoria en el Generador de Reportes Ejecutivos con nota metodológica, KPIs de carga pediátrica/senescente, subgrupos clínicos CIE-10, ranking de CESFAM CORMUMEL y auditoría clínica.',
+      instructivo: {
+        paraQueSirve: 'Genera e imprime en formato Hoja Carta o PDF el informe epidemiológico oficial consolidado de patologías respiratorias para auditorías MINSAL, Servicio de Salud y jefatura asistencial.',
+        quePuedesVer: '1) Cabecera institucional SAR y nota metodológica de vigilancia activa. 2) 5 KPIs principales con representatividad global, desglose 0-4 / 5-9 años, 60+ / 80+ años y derivaciones a hospital. 3) Gráfico de anillo por sexo, distribución por subgrupos y participación por centros APS. 4) Top 10 diagnósticos y ranking de médicos en atención respiratoria. 5) Nómina de auditoría clínica con las primeras 25 atenciones.',
+        ejemploUso: 'Haz clic en el botón "Reporte Ejecutivo (PDF)" desde la vista de Vigilancia Respiratoria o ingresa al módulo de Reportes y selecciona "Sub-reporte Vigilancia Respiratoria" para imprimir o exportar a PDF.'
+      },
+      changes: [
+        'Nuevo sub-reporte oficial de Vigilancia Epidemiológica Respiratoria paginado en Hoja Carta.',
+        'Resumen narrativo ejecutivo generado dinámicamente con comparativa interanual (YoY).',
+        'Botón de acceso directo "Reporte Ejecutivo (PDF)" en la barra superior de Vigilancia Respiratoria.',
+        'Toggle interactivo en el generador de reportes ejecutivos para incluir o excluir el sub-reporte respiratorio.'
+      ]
+    },
+    {
       id: 'v6.1.2',
       version: 'v6.1.2',
       fecha: '06 de Septiembre, 2026',

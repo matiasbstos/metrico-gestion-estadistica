@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { FileText, Download, Printer, Calendar, Users, Clock, AlertTriangle, CheckSquare, Square, Activity, Hospital, UserCheck, ShieldCheck, ShieldAlert, Layers, Mail } from 'lucide-react';
+import { FileText, Download, Printer, Calendar, Users, Clock, AlertTriangle, CheckSquare, Square, Activity, Hospital, UserCheck, ShieldCheck, ShieldAlert, Layers, Mail, Wind, Stethoscope, Building2 } from 'lucide-react';
 import { useMetricoAnalytics } from '../../hooks/useMetricoAnalytics';
 import { useMetricoProfesionales } from '../../hooks/useMetricoProfesionales';
 import FiltrosGlobales from './FiltrosGlobales';
-import { generateAltasSummary, generateFracturasSummary, generateEnfermeriaSummary, generateConstatacionesSummary, generateTrasladosSummary } from '../../utils/summaryGenerator';
+import { generateAltasSummary, generateFracturasSummary, generateEnfermeriaSummary, generateConstatacionesSummary, generateTrasladosSummary, generateRespiratorioSummary } from '../../utils/summaryGenerator';
+import { clasificarDiagnosticoRespiratorio, encasillarCentroProvinciaMelipilla, isHospitalDestino, DEFAULT_SUBGROUPS, DIRECTORIO_CENTROS_MELIPILLA } from './AnalisisRespiratorio';
 import { obtenerTurnoDetallado, resolverEquipoTurno } from '../../utils/helpers';
 
 export default function ReportesModule({ 
@@ -36,6 +37,7 @@ export default function ReportesModule({
   const [incluirEnfermeria, setIncluirEnfermeria] = useState(true);
   const [incluirConstataciones, setIncluirConstataciones] = useState(true);
   const [incluirTraslados, setIncluirTraslados] = useState(true);
+  const [incluirRespiratorio, setIncluirRespiratorio] = useState(true);
   const [incluirRadar, setIncluirRadar] = useState(true);
 
   // Fechas dinámicas desde la barra de filtros globales
@@ -990,6 +992,230 @@ totalTriados,
     };
   }, [pacientesFiltrados, pacientesDB, filtroFechaInicio, filtroFechaFin]);
 
+  // Datos para sub-reporte de Vigilancia Epidemiológica Respiratoria
+  const respiratorioReportStats = useMemo(() => {
+    const pacs = pacientesFiltrados || [];
+    const totalSAR = pacs.length;
+
+    // Filtrar pacientes con patologías respiratorias
+    const listPacientes = pacs.filter(p => {
+      const cls = clasificarDiagnosticoRespiratorio(p.diagnosticoPrincipal, p.codigoDiagnostico);
+      return cls !== null;
+    });
+
+    const totalRespiratorio = listPacientes.length;
+    const pctDemanda = totalSAR > 0 ? ((totalRespiratorio / totalSAR) * 100).toFixed(1) : '0.0';
+
+    let ped0a4 = 0;
+    let ped5a9 = 0;
+    let ped10a14 = 0;
+    let pedTotal = 0;
+    let adulto15a59 = 0;
+    let am60a79 = 0;
+    let am80mas = 0;
+    let amTotal = 0;
+    let sinEdad = 0;
+    let hospitalizados = 0;
+    let hombres = 0;
+    let mujeres = 0;
+
+    const subgruposMap = {
+      'Neumonía / Influenza': 0,
+      'SBO / Asma / EPOC': 0,
+      'Bronquitis / Bronquiolitis / VRS': 0,
+      'Vías Altas (IRA Alta)': 0,
+      'COVID-19 / Otros Respiratorios': 0
+    };
+
+    const diagCounts = {};
+    const diagNames = {};
+    const medicosCounts = {};
+    const centrosCounts = {};
+
+    listPacientes.forEach(p => {
+      // Edad
+      let edadNum = null;
+      if (typeof p.edadNum === 'number') edadNum = p.edadNum;
+      else if (p.edad !== null && p.edad !== undefined && p.edad !== '') {
+        const parsed = parseInt(String(p.edad).replace(/\D/g, ''));
+        if (!isNaN(parsed)) edadNum = parsed;
+      }
+
+      if (edadNum !== null) {
+        if (edadNum < 15) {
+          pedTotal++;
+          if (edadNum <= 4) ped0a4++;
+          else if (edadNum <= 9) ped5a9++;
+          else ped10a14++;
+        } else if (edadNum >= 60) {
+          amTotal++;
+          if (edadNum >= 80) am80mas++;
+          else am60a79++;
+        } else {
+          adulto15a59++;
+        }
+      } else {
+        sinEdad++;
+      }
+
+      // Sexo
+      const s = String(p.sexo || '').toUpperCase();
+      if (s.includes('H') || s.includes('MASC') || s === 'M') hombres++;
+      else if (s.includes('M') || s.includes('FEM') || s === 'F') mujeres++;
+
+      // Hospitalización / Derivación
+      if (isHospitalDestino(p)) hospitalizados++;
+
+      // Subgrupos
+      const cls = clasificarDiagnosticoRespiratorio(p.diagnosticoPrincipal, p.codigoDiagnostico);
+      if (cls && subgruposMap[cls.subgrupo] !== undefined) {
+        subgruposMap[cls.subgrupo]++;
+      } else if (cls) {
+        subgruposMap['COVID-19 / Otros Respiratorios'] = (subgruposMap['COVID-19 / Otros Respiratorios'] || 0) + 1;
+      }
+
+      // Diagnóstico Top
+      const cod = (p.codigoDiagnostico || 'J00').toUpperCase().trim();
+      const name = (p.diagnosticoPrincipal || 'Patología respiratoria no especificada').toUpperCase().trim();
+      diagCounts[cod] = (diagCounts[cod] || 0) + 1;
+      diagNames[cod] = name;
+
+      // Centros APS Melipilla
+      const centroObj = encasillarCentroProvinciaMelipilla(p.establecimiento, p.comuna, p.lugarDerivacion);
+      const cNombre = centroObj.centro;
+      centrosCounts[cNombre] = (centrosCounts[cNombre] || 0) + 1;
+
+      // Médicos tratantes
+      const med = p.medicoTratante || p.medico || p.profesional || '';
+      if (med && med !== 'DESCONOCIDO' && med !== 'SIN ESPECIFICAR' && med !== '-' && !med.includes('NO ASIGNADO')) {
+        const cleanMed = med.toUpperCase().trim();
+        medicosCounts[cleanMed] = (medicosCounts[cleanMed] || 0) + 1;
+      }
+    });
+
+    const pctPed = totalRespiratorio > 0 ? ((pedTotal / totalRespiratorio) * 100).toFixed(1) : '0.0';
+    const pct0a4 = totalRespiratorio > 0 ? ((ped0a4 / totalRespiratorio) * 100).toFixed(1) : '0.0';
+    const pct5a9 = totalRespiratorio > 0 ? ((ped5a9 / totalRespiratorio) * 100).toFixed(1) : '0.0';
+    const pct10a14 = totalRespiratorio > 0 ? ((ped10a14 / totalRespiratorio) * 100).toFixed(1) : '0.0';
+
+    const pctAM = totalRespiratorio > 0 ? ((amTotal / totalRespiratorio) * 100).toFixed(1) : '0.0';
+    const pct60a79 = totalRespiratorio > 0 ? ((am60a79 / totalRespiratorio) * 100).toFixed(1) : '0.0';
+    const pct80mas = totalRespiratorio > 0 ? ((am80mas / totalRespiratorio) * 100).toFixed(1) : '0.0';
+
+    const pctAdulto = totalRespiratorio > 0 ? ((adulto15a59 / totalRespiratorio) * 100).toFixed(1) : '0.0';
+    const pctHosp = totalRespiratorio > 0 ? ((hospitalizados / totalRespiratorio) * 100).toFixed(1) : '0.0';
+
+    const hombresPct = totalRespiratorio > 0 ? ((hombres / totalRespiratorio) * 100).toFixed(1) : '0.0';
+    const mujeresPct = totalRespiratorio > 0 ? ((mujeres / totalRespiratorio) * 100).toFixed(1) : '0.0';
+
+    // Top Diagnósticos
+    const topDiagnosticos = Object.entries(diagCounts)
+      .map(([code, count]) => ({
+        code,
+        name: diagNames[code],
+        count,
+        pct: totalRespiratorio > 0 ? ((count / totalRespiratorio) * 100).toFixed(1) : '0.0'
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
+
+    // Subgrupos Array
+    const subgruposArr = Object.entries(subgruposMap).map(([nombre, count]) => ({
+      nombre,
+      count,
+      pct: totalRespiratorio > 0 ? ((count / totalRespiratorio) * 100).toFixed(1) : '0.0',
+      color: DEFAULT_SUBGROUPS[nombre]?.color || '#06b6d4',
+      icono: DEFAULT_SUBGROUPS[nombre]?.icono || '🔵'
+    })).sort((a, b) => b.count - a.count);
+
+    // Centros Principales Melipilla
+    const centrosArr = Object.entries(centrosCounts)
+      .map(([nombre, count]) => ({
+        nombre,
+        count,
+        pct: totalRespiratorio > 0 ? ((count / totalRespiratorio) * 100).toFixed(1) : '0.0'
+      }))
+      .sort((a, b) => b.count - a.count);
+
+    // Top Médicos
+    const topMedicos = Object.entries(medicosCounts)
+      .map(([nombre, count]) => ({
+        nombre,
+        count,
+        pct: totalRespiratorio > 0 ? ((count / totalRespiratorio) * 100).toFixed(1) : '0.0'
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    // Comparación Año Anterior (YoY)
+    let prevYearResp = 0;
+    let prevYearTotalAdms = 0;
+    let prevYearPct = '0.0';
+    let yoyGrowth = '0.0';
+    let prevYearPacsResp = [];
+
+    if (filtroFechaInicio && filtroFechaFin && pacientesDB) {
+      const pStart = filtroFechaInicio.split('-');
+      const pEnd = filtroFechaFin.split('-');
+      if (pStart.length === 3 && pEnd.length === 3) {
+        const prevStartStr = `${parseInt(pStart[0]) - 1}-${pStart[1]}-${pStart[2]}`;
+        const prevEndStr = `${parseInt(pEnd[0]) - 1}-${pEnd[1]}-${pEnd[2]}`;
+        const startMs = new Date(prevStartStr + 'T00:00:00').getTime();
+        const endMs = new Date(prevEndStr + 'T23:59:59').getTime();
+        const prevYearPacs = pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
+        prevYearPacsResp = prevYearPacs.filter(p => clasificarDiagnosticoRespiratorio(p.diagnosticoPrincipal, p.codigoDiagnostico) !== null);
+        prevYearResp = prevYearPacsResp.length;
+        prevYearTotalAdms = prevYearPacs.length;
+        prevYearPct = prevYearTotalAdms > 0 ? ((prevYearResp / prevYearTotalAdms) * 100).toFixed(1) : '0.0';
+        if (prevYearResp > 0) {
+          yoyGrowth = (((totalRespiratorio - prevYearResp) / prevYearResp) * 100).toFixed(1);
+        } else if (totalRespiratorio > 0) {
+          yoyGrowth = '100.0';
+        }
+      }
+    }
+
+    const summaryText = generateRespiratorioSummary(listPacientes, prevYearPacsResp, totalSAR);
+
+    return {
+      totalRespiratorio,
+      totalSAR,
+      pctDemanda,
+      pedTotal,
+      ped0a4,
+      ped5a9,
+      ped10a14,
+      pctPed,
+      pct0a4,
+      pct5a9,
+      pct10a14,
+      amTotal,
+      am60a79,
+      am80mas,
+      pctAM,
+      pct60a79,
+      pct80mas,
+      adulto15a59,
+      pctAdulto,
+      sinEdad,
+      hospitalizados,
+      pctHosp,
+      hombres,
+      mujeres,
+      hombresPct,
+      mujeresPct,
+      subgruposArr,
+      topDiagnosticos,
+      centrosArr,
+      topMedicos,
+      prevYearResp,
+      prevYearPct,
+      yoyGrowth,
+      summaryText,
+      listPacientes
+    };
+  }, [pacientesFiltrados, pacientesDB, filtroFechaInicio, filtroFechaFin]);
+
   const altasSummaryText = useMemo(() => generateAltasSummary(pacientesFiltrados), [pacientesFiltrados]);
   const fracturasSummaryText = useMemo(() => generateFracturasSummary(pacientesFiltrados), [pacientesFiltrados]);
   const enfermeriaSummaryText = useMemo(() => generateEnfermeriaSummary(pacientesFiltrados), [pacientesFiltrados]);
@@ -1005,6 +1231,7 @@ totalTriados,
     if (incluirEnfermeria) seleccionados.push('Enfermería');
     if (incluirConstataciones) seleccionados.push('Constatación Lesiones Z51.8');
     if (incluirTraslados) seleccionados.push('Traslados');
+    if (incluirRespiratorio) seleccionados.push('Vigilancia Respiratoria');
 
     if (seleccionados.length === 1) {
       if (incluirConstataciones) nombreReporte = 'Informe Técnico Constatación de Lesiones Z51.8';
@@ -1013,6 +1240,7 @@ totalTriados,
       else if (incluirFracturas) nombreReporte = 'Sub-reporte Fracturas y Destino';
       else if (incluirGeneral) nombreReporte = 'Reporte Ejecutivo General';
       else if (incluirTraslados) nombreReporte = 'Sub-reporte Traslados Hospitalarios';
+      else if (incluirRespiratorio) nombreReporte = 'Sub-reporte Vigilancia Epidemiológica Respiratoria';
     } else if (seleccionados.length > 1) {
       nombreReporte = `Reporte Consolidado (${seleccionados.join(' - ')})`;
     }
@@ -1210,6 +1438,14 @@ totalTriados,
             >
               {incluirTraslados ? <CheckSquare className="w-4 h-4 text-indigo-500 shrink-0" /> : <Square className="w-4 h-4 opacity-40 shrink-0" />}
               <span>Sub-reporte Traslados Hospitalarios</span>
+            </button>
+
+            <button 
+              onClick={() => setIncluirRespiratorio(!incluirRespiratorio)}
+              className={`flex items-center gap-2.5 p-3 rounded-2xl border text-xs font-bold transition-all text-left cursor-pointer ${incluirRespiratorio ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-600 dark:text-cyan-400' : 'bg-black/5 dark:bg-white/5 border-card-custom text-secondary-custom'}`}
+            >
+              {incluirRespiratorio ? <CheckSquare className="w-4 h-4 text-cyan-500 shrink-0" /> : <Square className="w-4 h-4 opacity-40 shrink-0" />}
+              <span>Sub-reporte Vigilancia Respiratoria</span>
             </button>
 
             <button 
@@ -2372,9 +2608,295 @@ totalTriados,
               </div>
             )}
 
-            {/* HOJA 7: SUB-REPORTE RADAR PREDICTIVO (IA) */}
+            {/* HOJA 7: SUB-REPORTE OFICIAL DE VIGILANCIA EPIDEMIOLÓGICA RESPIRATORIA */}
+            {incluirRespiratorio && (
+              <div className="print-page border-t border-slate-200 pt-8 mt-8 first:border-0 first:pt-0 first:mt-0 space-y-6">
+                {/* Cabecera del Documento Institucional */}
+                <div className="border-b-2 border-slate-900 pb-4 flex justify-between items-end">
+                  <div className="flex items-center gap-4">
+                    <img src="/IMG/LogoSAR.png" alt="Logo SAR" className="h-14 object-contain" />
+                    <div>
+                      <h1 className="text-xl font-black text-slate-900 tracking-tight">MÉTRICO - SUB-REPORTE OPERATIVO</h1>
+                      <p className="text-xs font-bold text-cyan-700 uppercase tracking-widest mt-0.5">Vigilancia Epidemiológica Respiratoria (Campaña de Invierno / MINSAL)</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] font-bold bg-cyan-100 text-cyan-800 px-2.5 py-1 rounded border border-cyan-200">Vigilancia Epidemiológica / APS</span>
+                    <p className="text-[11px] text-slate-600 font-bold mt-1.5">Periodo: {rangoFechasReales.texto}</p>
+                  </div>
+                </div>
+
+                {/* Resumen de Metodología */}
+                <div className="bg-cyan-50/60 p-4 rounded-xl border border-cyan-200">
+                  <h3 className="text-xs font-bold text-cyan-900 uppercase tracking-wider mb-1 flex items-center gap-2">
+                    <Wind className="w-4 h-4 text-cyan-700" /> Nota Metodológica y Vigilancia Epidemiológica Integral
+                  </h3>
+                  <p className="text-[11px] text-slate-700 leading-relaxed text-justify">
+                    El presente informe consolida la vigilancia activa de infecciones respiratorias agudas (IRA) y patologías respiratorias crónicas agudizadas atendidas en el SAR Elsa Romo Aravena. Incluye estratificación por grupos etarios prioritarios (0-4 lactantes/preescolares, 5-9 escolares, 60+ adultos mayores), distribución por subgrupos clínicos CIE-10, origen territorial según la Red de Centros de Salud (CORMUMEL) y tasa de derivación hospitalaria a unidades de mayor complejidad.
+                  </p>
+                </div>
+
+                {/* Narrative Summary Box */}
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 print-avoid-break">
+                  <p className="text-[9px] font-bold text-slate-500 uppercase mb-1">Resumen Ejecutivo de Gestión Respiratoria</p>
+                  <p className="text-xs text-slate-700 leading-relaxed font-semibold">
+                    {respiratorioReportStats.summaryText}
+                  </p>
+                </div>
+
+                {/* Cifras Oficiales y KPIs */}
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Total Consultas Respiratorias</span>
+                    <p className="text-2xl font-black text-cyan-800 my-1">{respiratorioReportStats.totalRespiratorio} <span className="text-xs font-bold text-slate-500">pac.</span></p>
+                    <span className="text-[9px] text-slate-500 font-medium">Representa el <strong>{respiratorioReportStats.pctDemanda}%</strong> de la demanda asistencial global.</span>
+                  </div>
+
+                  <div className="bg-cyan-50/70 p-3.5 rounded-xl border border-cyan-300 shadow-sm flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-cyan-900 uppercase">Carga Pediátrica (&lt;15 años)</span>
+                    <p className="text-2xl font-black text-cyan-900 my-1">{respiratorioReportStats.pedTotal} <span className="text-xs font-bold text-cyan-700">({respiratorioReportStats.pctPed}%)</span></p>
+                    <span className="text-[9px] text-cyan-800 font-medium">0-4 a: <strong>{respiratorioReportStats.ped0a4}</strong> ({respiratorioReportStats.pct0a4}%) | 5-9 a: <strong>{respiratorioReportStats.ped5a9}</strong> ({respiratorioReportStats.pct5a9}%)</span>
+                  </div>
+
+                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Adultos Mayores (60+ años)</span>
+                    <p className="text-2xl font-black text-slate-800 my-1">{respiratorioReportStats.amTotal} <span className="text-xs font-bold text-slate-500">({respiratorioReportStats.pctAM}%)</span></p>
+                    <span className="text-[9px] text-slate-500 font-medium">60-79 a: <strong>{respiratorioReportStats.am60a79}</strong> | 80+ a: <strong>{respiratorioReportStats.am80mas}</strong> ({respiratorioReportStats.pct80mas}%)</span>
+                  </div>
+
+                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Derivaciones a Hospital</span>
+                    <p className="text-2xl font-black text-indigo-900 my-1">{respiratorioReportStats.hospitalizados} <span className="text-xs font-bold text-indigo-700">pac.</span></p>
+                    <span className="text-[9px] text-indigo-800 font-medium">Tasa de traslado hospitalario: <strong>{respiratorioReportStats.pctHosp}%</strong></span>
+                  </div>
+
+                  <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <span className="text-[10px] font-bold text-slate-600 uppercase">Comparación Año Ant. (YoY)</span>
+                    <p className="text-xl font-black text-slate-800 my-1">
+                      {respiratorioReportStats.prevYearResp} pac. <span className="text-xs font-bold text-slate-500">({respiratorioReportStats.prevYearPct}%)</span>
+                    </p>
+                    <span className={`text-[9px] font-bold ${Number(respiratorioReportStats.yoyGrowth) >= 0 ? 'text-cyan-700' : 'text-emerald-700'}`}>
+                      {Number(respiratorioReportStats.yoyGrowth) >= 0 ? '📈 Aumento de ' : '📉 Disminución de '}
+                      {Math.abs(Number(respiratorioReportStats.yoyGrowth))}% YoY
+                    </span>
+                  </div>
+                </div>
+
+                {/* Desglose Analítico 3 Columnas: Sexo, Subgrupos Clínicos, Centros de Salud APS */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 print-avoid-break">
+                  {/* Distribución por Sexo */}
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-start gap-3">
+                    <h4 className="font-black text-slate-700 uppercase text-[10px] border-b border-slate-200 pb-1.5 flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-cyan-600" /> Distribución por Sexo
+                    </h4>
+                    <div className="flex items-center justify-around gap-4 flex-1 pt-1">
+                      <div className="relative w-24 h-24 shrink-0">
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 110 110">
+                          <circle cx="55" cy="55" r="45" fill="none" stroke="#f1f5f9" strokeWidth="12" />
+                          <circle 
+                            cx="55" cy="55" r="45" fill="none" stroke="#06b6d4" strokeWidth="12" 
+                            strokeDasharray={`${(Number(respiratorioReportStats.hombresPct) / 100) * 282.74} 282.74`}
+                            strokeDashoffset="0"
+                            strokeLinecap="round"
+                          />
+                          <circle 
+                            cx="55" cy="55" r="45" fill="none" stroke="#ec4899" strokeWidth="12" 
+                            strokeDasharray={`${(Number(respiratorioReportStats.mujeresPct) / 100) * 282.74} 282.74`}
+                            strokeDashoffset={`-${(Number(respiratorioReportStats.hombresPct) / 100) * 282.74}`}
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                          <span className="text-[8px] font-bold text-slate-500 uppercase leading-none">Total</span>
+                          <span className="text-xs font-black text-slate-800 mt-0.5">{respiratorioReportStats.totalRespiratorio}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2 text-xs">
+                        <div className="flex items-center justify-between w-32 border-b border-slate-200 pb-1">
+                          <span className="text-cyan-700 font-bold flex items-center gap-1">
+                            <span className="w-2.5 h-2.5 rounded-full bg-cyan-500"></span> Hombres
+                          </span>
+                          <span className="font-extrabold text-slate-800">{respiratorioReportStats.hombres} ({respiratorioReportStats.hombresPct}%)</span>
+                        </div>
+                        <div className="flex items-center justify-between w-32">
+                          <span className="text-pink-700 font-bold flex items-center gap-1">
+                            <span className="w-2.5 h-2.5 rounded-full bg-pink-500"></span> Mujeres
+                          </span>
+                          <span className="font-extrabold text-slate-800">{respiratorioReportStats.mujeres} ({respiratorioReportStats.mujeresPct}%)</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Subgrupos Clínicos Respiratorios */}
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                    <h4 className="font-black text-slate-700 uppercase text-[10px] border-b border-slate-200 pb-1.5 flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5 text-cyan-600" /> Subgrupos Clínicos Respiratorios
+                    </h4>
+                    <div className="space-y-1.5 text-[10px]">
+                      {respiratorioReportStats.subgruposArr.map((sg, idx) => (
+                        <div key={idx} className="bg-white p-1.5 rounded border border-slate-200 space-y-1">
+                          <div className="flex justify-between items-center font-bold">
+                            <span className="text-slate-800 truncate pr-2 flex items-center gap-1">
+                              <span>{sg.icono}</span> <span className="truncate">{sg.nombre}</span>
+                            </span>
+                            <span className="text-cyan-800 shrink-0">{sg.count} ({sg.pct}%)</span>
+                          </div>
+                          <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: `${Math.max(Number(sg.pct), 3)}%`, backgroundColor: sg.color }}></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Centros de Salud APS de Origen (Top Centros CORMUMEL) */}
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                    <h4 className="font-black text-slate-700 uppercase text-[10px] border-b border-slate-200 pb-1.5 flex items-center gap-1.5">
+                      <Building2 className="w-3.5 h-3.5 text-cyan-600" /> Red APS Melipilla (Top Centros)
+                    </h4>
+                    <div className="space-y-1.5 text-[10px]">
+                      {respiratorioReportStats.centrosArr.slice(0, 5).map((c, idx) => (
+                        <div key={idx} className="flex justify-between items-center bg-white p-1.5 rounded border border-slate-200">
+                          <span className="text-slate-800 font-bold truncate pr-2 max-w-[140px]" title={c.nombre}>
+                            {c.nombre}
+                          </span>
+                          <span className="font-extrabold text-cyan-800 shrink-0">
+                            {c.count} pac. ({c.pct}%)
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Top 10 Diagnósticos Respiratorios y Ranking de Médicos */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 print-avoid-break">
+                  {/* Tabla Top 10 Diagnósticos */}
+                  <div className="col-span-2 bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                    <h4 className="font-black text-slate-700 uppercase text-[10px] border-b border-slate-200 pb-1.5 flex items-center gap-1.5">
+                      <Activity className="w-3.5 h-3.5 text-cyan-600" /> Top 10 Diagnósticos Respiratorios (CIE-10)
+                    </h4>
+                    <table className="w-full text-left text-[10px] border-collapse">
+                      <thead>
+                        <tr className="bg-slate-100 text-slate-700 font-bold">
+                          <th className="p-1.5 border border-slate-200 text-center w-16">CIE-10</th>
+                          <th className="p-1.5 border border-slate-200">Hipótesis Diagnóstica</th>
+                          <th className="p-1.5 border border-slate-200 text-center w-20">Casos</th>
+                          <th className="p-1.5 border border-slate-200 text-center w-20">% Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {respiratorioReportStats.topDiagnosticos.length > 0 ? (
+                          respiratorioReportStats.topDiagnosticos.map((d, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50">
+                              <td className="p-1.5 border border-slate-200 text-center font-black text-cyan-700">{d.code}</td>
+                              <td className="p-1.5 border border-slate-200 font-medium text-slate-800 truncate max-w-[200px]" title={d.name}>{d.name}</td>
+                              <td className="p-1.5 border border-slate-200 text-center font-bold text-slate-900">{d.count}</td>
+                              <td className="p-1.5 border border-slate-200 text-center font-black text-cyan-800">{d.pct}%</td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan="4" className="p-2 border border-slate-200 text-center text-slate-500">Sin diagnósticos respiratorios registrados.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Top Médicos */}
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                    <h4 className="font-black text-slate-700 uppercase text-[10px] border-b border-slate-200 pb-1.5 flex items-center gap-1.5">
+                      <Stethoscope className="w-3.5 h-3.5 text-cyan-600" /> Médicos con Mayor Atención
+                    </h4>
+                    <div className="space-y-1.5 text-[10px]">
+                      {respiratorioReportStats.topMedicos.length > 0 ? (
+                        respiratorioReportStats.topMedicos.map((m, idx) => (
+                          <div key={idx} className="flex justify-between items-center bg-white p-2 rounded border border-slate-200">
+                            <span className="text-slate-800 font-bold truncate pr-2 max-w-[130px]" title={m.nombre}>
+                              {idx + 1}. {m.nombre}
+                            </span>
+                            <span className="font-extrabold text-cyan-900 shrink-0">
+                              {m.count} ({m.pct}%)
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-[10px] text-slate-500 text-center py-4">Sin datos de médicos.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tabla de Detalle Clínico de Pacientes Respiratorios */}
+                <div className="print-avoid-break">
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 border-b border-slate-200 pb-1">
+                    Detalle Clínico de Vigilancia Respiratoria (Primeras 25 atenciones registradas)
+                  </h3>
+                  <table className="w-full text-left text-[10px] border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-700 font-bold">
+                        <th className="p-1.5 border border-slate-200">Fecha y Hora</th>
+                        <th className="p-1.5 border border-slate-200 text-center">Ficha/Correlativo</th>
+                        <th className="p-1.5 border border-slate-200 text-center">Edad / Sexo</th>
+                        <th className="p-1.5 border border-slate-200">Centro APS Origen</th>
+                        <th className="p-1.5 border border-slate-200">Diagnóstico Principal</th>
+                        <th className="p-1.5 border border-slate-200 text-center">CIE-10</th>
+                        <th className="p-1.5 border border-slate-200">Destino de Alta</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {respiratorioReportStats.listPacientes.length > 0 ? (
+                        respiratorioReportStats.listPacientes.slice(0, 25).map((p, idx) => {
+                          const d = p.tAdmision ? new Date(p.tAdmision) : null;
+                          const dateStr = d ? `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` : '-';
+                          const centroObj = encasillarCentroProvinciaMelipilla(p.establecimiento, p.comuna, p.lugarDerivacion);
+                          const isHosp = isHospitalDestino(p);
+
+                          return (
+                            <tr key={idx} className="hover:bg-slate-50">
+                              <td className="p-1.5 border border-slate-200 font-medium text-slate-800">{dateStr}</td>
+                              <td className="p-1.5 border border-slate-200 text-center font-bold text-slate-700">{p.correlativo || p.idPaciente || '-'}</td>
+                              <td className="p-1.5 border border-slate-200 text-center font-bold text-slate-600">
+                                {p.edad !== null && p.edad !== undefined && p.edad !== '' ? `${p.edad} a.` : '-'} / {p.sexo || '-'}
+                              </td>
+                              <td className="p-1.5 border border-slate-200 font-bold text-cyan-900 max-w-[120px] truncate" title={centroObj.centro}>
+                                {centroObj.centro}
+                              </td>
+                              <td className="p-1.5 border border-slate-200 font-medium text-slate-800 max-w-[150px] truncate" title={p.diagnosticoPrincipal}>
+                                {p.diagnosticoPrincipal || '-'}
+                              </td>
+                              <td className="p-1.5 border border-slate-200 text-center font-black text-cyan-700">
+                                {p.codigoDiagnostico || '-'}
+                              </td>
+                              <td className="p-1.5 border border-slate-200 font-bold max-w-[110px] truncate" title={p.destinoAlta || p.destino}>
+                                <span className={isHosp ? 'text-indigo-700 font-black' : 'text-slate-700'}>
+                                  {p.destinoAlta || p.destino || 'DOMICILIO'}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan="7" className="p-2 border border-slate-200 text-center text-slate-500">No se registraron atenciones respiratorias en el período.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                  {respiratorioReportStats.listPacientes.length > 25 && (
+                    <p className="text-[9px] text-slate-500 font-bold italic mt-1.5 text-right">
+                      * Mostrando las primeras 25 atenciones de un total de {respiratorioReportStats.listPacientes.length} registradas en el período.
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* HOJA 8: SUB-REPORTE RADAR PREDICTIVO (IA) */}
             {incluirRadar && (
-              <div className={`${(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados) ? 'print-page-break' : ''} space-y-6`}>
+              <div className={`${(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados || incluirRespiratorio) ? 'print-page-break' : ''} space-y-6`}>
                 {/* Cabecera del Documento Institucional */}
                 <div className="border-b-2 border-slate-900 pb-4 flex justify-between items-end">
                   <div className="flex items-center gap-4">
@@ -2487,7 +3009,7 @@ totalTriados,
             )}
 
             {/* SECCIÓN DE CIERRE Y CONTROL DE VALIDEZ GLOBAL (SOLO CUANDO SE INCLUYEN OTROS REPORTES) */}
-            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados || incluirRadar) && (
+            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados || incluirRespiratorio || incluirRadar) && (
               <div className="print-page-break print-avoid-break space-y-6 pt-6 border-t-2 border-slate-950">
                 {/* Header Cierre */}
                 <div className="flex justify-between items-center border-b border-slate-300 pb-3">
@@ -2524,6 +3046,14 @@ totalTriados,
                         <span className="text-slate-500 font-bold block">Traslados Hospitalarios:</span>
                         <span className="font-black text-indigo-700 text-sm">{trasladosReportStats.totalTraslados} pac. ({trasladosReportStats.pctTraslados}%)</span>
                       </div>
+                      <div>
+                        <span className="text-slate-500 font-bold block">Consultas Respiratorias:</span>
+                        <span className="font-black text-cyan-700 text-sm">{respiratorioReportStats.totalRespiratorio} pac. ({respiratorioReportStats.pctDemanda}%)</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 font-bold block">Carga Pediátrica Resp:</span>
+                        <span className="font-black text-cyan-800 text-sm">{respiratorioReportStats.pedTotal} pac. ({respiratorioReportStats.pctPed}%)</span>
+                      </div>
                     </div>
                   </div>
 
@@ -2532,7 +3062,7 @@ totalTriados,
             )}
 
             {/* BLOQUE GLOBAL DE CIERRE DE INFORME Y VALIDACIÓN DE DATOS */}
-            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados || incluirRadar) && (
+            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados || incluirRespiratorio || incluirRadar) && (
               <div className="print-avoid-break pt-8 border-t-2 border-slate-900 mt-8 space-y-6">
                 
                 {/* Cuadro de Tiempos y Operatividad */}

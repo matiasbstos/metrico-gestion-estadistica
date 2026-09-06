@@ -2454,6 +2454,7 @@ const DashboardContent = () => {
                 filtroFechaInicio={filtroFechaInicio} 
                 filtroFechaFin={filtroFechaFin} 
                 kpisBigQuery={kpisBigQuery}
+                onNavigateTab={setActiveTab}
               />
             )}
           </div>

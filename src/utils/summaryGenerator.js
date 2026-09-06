@@ -389,3 +389,54 @@ export const generateMultiDayBatchSummary = (datesList = [], pacs = [], turnos =
   };
 };
 
+export const generateRespiratorioSummary = (pacsResp, prevYearPacsResp, totalSAR) => {
+  if (!pacsResp || pacsResp.length === 0) {
+    return 'Durante el período consultado no se registraron admisiones clasificadas dentro del perfil de vigilancia epidemiológica respiratoria.';
+  }
+
+  const total = pacsResp.length;
+  const pctDemanda = totalSAR > 0 ? ((total / totalSAR) * 100).toFixed(1) : '0.0';
+
+  let ped0a4 = 0;
+  let ped5a9 = 0;
+  let pedTotal = 0;
+  let amTotal = 0;
+  let am80mas = 0;
+  let hospitalizados = 0;
+
+  pacsResp.forEach(p => {
+    const e = Number(p.edad);
+    if (!isNaN(e) && p.edad !== '' && p.edad !== null && p.edad !== undefined) {
+      if (e < 15) {
+        pedTotal++;
+        if (e >= 0 && e <= 4) ped0a4++;
+        else if (e >= 5 && e <= 9) ped5a9++;
+      } else if (e >= 60) {
+        amTotal++;
+        if (e >= 80) am80mas++;
+      }
+    }
+    const dest = String(p.destinoAlta || p.destino || p.lugarDerivacion || p.motivoAlta || p.tipoAlta || '').toLowerCase();
+    const obs = String(p.observacion || p.obs || '').toLowerCase();
+    const cat = String(p.categoria || p.triage || p.triageManchester || '').toLowerCase();
+    const isTrans = dest.includes('hosp') || dest.includes('urgenc') || dest.includes('emergenc') || dest.includes('ueh') || dest.includes('samu') || dest.includes('traslado') || dest.includes('deriv') ||
+                    obs.includes('hosp') || obs.includes('urgenc') || obs.includes('traslado') || cat === 'c1';
+    const isRoutine = (dest.includes('consultorio') || dest.includes('cesfam') || dest.includes('domicilio')) &&
+                      !(dest.includes('hosp') || dest.includes('urgenc') || dest.includes('emergenc') || dest.includes('ueh'));
+    if (isTrans && !isRoutine) hospitalizados++;
+  });
+
+  const pctPed = total > 0 ? ((pedTotal / total) * 100).toFixed(1) : '0.0';
+  const pctAM = total > 0 ? ((amTotal / total) * 100).toFixed(1) : '0.0';
+  const pctHosp = total > 0 ? ((hospitalizados / total) * 100).toFixed(1) : '0.0';
+
+  let yoyText = '';
+  if (prevYearPacsResp && prevYearPacsResp.length > 0) {
+    const prevTotal = prevYearPacsResp.length;
+    const growth = (((total - prevTotal) / prevTotal) * 100).toFixed(1);
+    yoyText = ` Respecto al período homólogo del año anterior (${prevTotal} pac.), se observa una variación interanual del ${Number(growth) >= 0 ? '+' : ''}${growth}%.`;
+  }
+
+  return `Durante el período consultado, el SAR Elsa Romo Aravena registró ${total} consultas por patologías respiratorias, representando el ${pctDemanda}% de la demanda asistencial global. La carga infantil (<15 años) concentró ${pedTotal} pacientes (${pctPed}%), con un predominio de ${ped0a4} lactantes/preescolares (0-4 años) y ${ped5a9} escolares tempranos (5-9 años). La población adulta mayor (60+ años) alcanzó ${amTotal} casos (${pctAM}%), con ${am80mas} pacientes octogenarios o mayores. Se gestionaron ${hospitalizados} derivaciones a hospital base y unidades de urgencia (tasa de derivación del ${pctHosp}%).${yoyText}`;
+};
+
