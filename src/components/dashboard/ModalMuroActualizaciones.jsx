@@ -14,6 +14,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.1.0',
+      version: 'v6.1.0',
+      fecha: '06 de Septiembre, 2026',
+      badge: 'REGLA CIERRE DE MES',
+      badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/20',
+      title: 'Atribución Continua en Cierre de Mes (Días 30/31) y Fecha Lógica Asistencial',
+      categoria: 'Turnos & Reglas de Negocio',
+      icon: Sparkles,
+      iconBg: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+      summary: 'Se ratificó y blindó la regla asistencial de cierre mensual: los turnos que abren en el último día del mes (días 30 o 31) y terminan a las 08:00 AM del día 1 consolidan todas sus admisiones en el mes que finaliza.',
+      instructivo: {
+        paraQueSirve: 'Evita la división artificial de turnos en el cambio de mes y garantiza que el equipo de guardia mantenga todas sus atenciones registradas en su fecha de inicio.',
+        quePuedesVer: 'Las atenciones ocurridas de madrugada el día 1 (00:00 a 07:59 hrs) se computan íntegramente en el turno del día 30/31 del mes previo. El día 1 muestra únicamente los turnos que abren a partir de las 08:00 o 17:00 hrs de ese nuevo mes.',
+        ejemploUso: 'Revisa el cierre de Agosto (31/08) e inicio de Septiembre (01/09): el turno nocturno de fin de mes se consolida completo en Agosto y el día 1 de Septiembre computa su propio turno sin solapamientos.'
+      },
+      changes: [
+        'Regla 6 Oficial en Protocolo: Atribución por fecha lógica en cruce de mes (AGENTS.md).',
+        'Consolidación en Histórico Mensual: Los días 30/31 agrupan la guardia completa hasta las 08:00 AM del día siguiente.',
+        'Compatibilidad Universal DST: Ajuste de rangos temporales inmunes a cambios de horario de verano/invierno.'
+      ]
+    },
+    {
       id: 'v6.0.9',
       version: 'v6.0.9',
       fecha: '06 de Septiembre, 2026',

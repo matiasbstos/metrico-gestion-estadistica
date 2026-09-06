@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.1.0',
+    version_tag: 'v6.1.0',
+    fecha_despliegue: '06 de Septiembre, 2026',
+    proposito_actualizacion: 'Consolidación de la Regla de Cierre Mensual y Atribución por Fecha Lógica Asistencial en Cruce de Mes (Días 30/31).',
+    medios_y_stack: [
+      'React 18.3 (helpers.js, CalendarioHistorico.jsx, ReportesModule.jsx)',
+      'Month-End Shift Crossover Attribution & DST-Safe Date Math Engine'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Regla 6 - Atribución Asistencial Continua en Cierre de Mes: Se certificó en helpers.js (obtenerTurnoDetallado) y CalendarioHistorico.jsx (getStrictStats) que todo turno nocturno iniciado el día 30 o 31 (17:00 a 08:00 o 20:00 a 08:00) consolida el 100% de sus pacientes (incluyendo las atenciones de madrugada 00:00 a 07:59 del día 1 del mes entrante) en el turno y mes que cerró (día 30/31). 2) Limpieza del Día 1 en Histórico Mensual: El día 1 del nuevo mes sólo registra y computa turnos que abren en dicho día (a partir de las 08:00 hrs en fin de semana o 17:00 hrs en semana hábil), eliminando fragmentaciones o sobreposiciones entre meses. 3) Compatibilidad Horaria DST Universal: Cálculo de rangos mediante constructor local Date sin dependencias de offsets fijos (-04:00), asegurando estabilidad ante cambios estacionales de huso horario.',
+      firestore_collections: ['pautas_turnos', 'turnos', 'pacientes_urgencia'],
+      query_optimization: 'Cálculo de tramos en memoria con complejidad O(N) y deduplicación estricta SSOT.'
+    },
+    modulos_afectados: ['helpers.js', 'CalendarioHistorico.jsx', 'ReportesModule.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', '.agents/AGENTS.md'],
+    detalles_tecnicos: [
+      'Incorporación formal de la Regla 6 en .agents/AGENTS.md.',
+      'Refactorización segura de getStrictStats en CalendarioHistorico.jsx.',
+      'Verificación de paridad mensual en cruces 31/08 -> 01/09.'
+    ]
+  },
+  {
     id: 'v6.0.9',
     version_tag: 'v6.0.9',
     fecha_despliegue: '06 de Septiembre, 2026',

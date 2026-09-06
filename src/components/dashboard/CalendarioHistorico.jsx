@@ -73,24 +73,22 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [], c
       return fallbackStats;
     }
     
-    let startMs, endMs;
-    const baseDateStr = t.fechaInicio;
-    const baseD = new Date(baseDateStr + 'T12:00:00');
-    const nextDate = new Date(baseDateStr + 'T12:00:00');
-    nextDate.setDate(nextDate.getDate() + 1);
-    const nextDateStr = nextDate.toISOString().split('T')[0];
+    const [y, m, d] = baseDateStr.split('-').map(Number);
+    const baseD = new Date(y, m - 1, d, 12, 0, 0);
+    const nextD = new Date(y, m - 1, d + 1, 12, 0, 0);
+    const [ny, nm, nd] = [nextD.getFullYear(), nextD.getMonth(), nextD.getDate()];
     
     if (t.horario.includes('17:00')) {
-      startMs = new Date(`${baseDateStr}T16:00:00-04:00`).getTime();
+      startMs = new Date(y, m - 1, d, 16, 0, 0).getTime();
       const isFriday = baseD.getDay() === 5;
-      const endHourStr = isFriday ? '08:00:00' : '09:00:00';
-      endMs = new Date(`${nextDateStr}T${endHourStr}-04:00`).getTime();
+      const endHour = isFriday ? 8 : 9;
+      endMs = new Date(ny, nm, nd, endHour, 0, 0).getTime();
     } else if (t.horario.includes('08:00 - 20:00')) {
-      startMs = new Date(`${baseDateStr}T08:00:00-04:00`).getTime();
-      endMs = new Date(`${baseDateStr}T20:00:00-04:00`).getTime();
+      startMs = new Date(y, m - 1, d, 8, 0, 0).getTime();
+      endMs = new Date(y, m - 1, d, 20, 0, 0).getTime();
     } else if (t.horario.includes('20:00 - 08:00')) {
-      startMs = new Date(`${baseDateStr}T20:00:00-04:00`).getTime();
-      endMs = new Date(`${nextDateStr}T08:00:00-04:00`).getTime();
+      startMs = new Date(y, m - 1, d, 20, 0, 0).getTime();
+      endMs = new Date(ny, nm, nd, 8, 0, 0).getTime();
     } else {
       return fallbackStats;
     }
