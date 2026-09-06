@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.0.5',
+    version_tag: 'v6.0.5',
+    fecha_despliegue: '06 de Septiembre, 2026',
+    proposito_actualizacion: 'Insignia Dinámica de Versión Oficial del Sistema en la Barra Lateral y Enlace Directo al Muro de Actualizaciones.',
+    medios_y_stack: [
+      'React 18.3 (Dashboard.jsx)',
+      'Dynamic Version Synchronization Hook & Reactive Badge Component'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Visibilidad Continua de la Versión del Sistema: Se integró una insignia destacada con la versión oficial (v6.0.5) directamente bajo el título "MÉTRICO Clínico Predictivo" en la barra lateral (tanto en modo expandido como colapsado) con indicador de estado en vivo (punto verde pulsante). 2) Acceso Rápido al Muro de Novedades: Al hacer clic sobre la insignia de versión, se abre de forma inmediata el modal con el registro histórico de versiones, cambios técnicos e instructivos de uso. 3) Sincronización Automática SSOT: La versión mostrada se obtiene de forma reactiva de la primera entrada del HISTORIAL_ARQUITECTURA_BASE.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Extracción O(1) de versión en memoria sin consultas adicionales a bases de datos.'
+    },
+    modulos_afectados: ['Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Insignia interactiva de versión con estilo glassmorphism y micro-animación hover.',
+      'Sincronización de badges de versión en el pie de la barra lateral (Megáfono de Actualizaciones).',
+      'Compatibilidad total con estado colapsado y responsive para dispositivos móviles.'
+    ]
+  },
+  {
     id: 'v6.0.4',
     version_tag: 'v6.0.4',
     fecha_despliegue: '06 de Septiembre, 2026',

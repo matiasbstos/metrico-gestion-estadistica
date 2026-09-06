@@ -36,11 +36,13 @@ import BarraProgresoCarga from './dashboard/BarraProgresoCarga';
 import BarraBusquedaGlobal from './dashboard/BarraBusquedaGlobal';
 import Radar from './dashboard/Radar';
 import PopUpSincronizacion from './dashboard/PopUpSincronizacion';
-import InformeArquitectura from './dashboard/InformeArquitectura';
+import InformeArquitectura, { HISTORIAL_ARQUITECTURA_BASE } from './dashboard/InformeArquitectura';
 import DevLogModule from './dashboard/DevLogModule';
 import FondoClinicoAnimado from './common/FondoClinicoAnimado';
 import { formatLocalDate } from '../utils/helpers';
 import { playIntegrityAlertChime, playLogoutChime } from '../utils/audioNotifications';
+
+const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.0.5';
 import Login from './Login';
 import { 
   Clock, Users, UserCheck, AlertTriangle, Activity, ArrowRight, 
@@ -1366,8 +1368,16 @@ const DashboardContent = () => {
         <div className="overflow-y-auto flex-1 min-h-0 custom-scrollbar pb-4">
           <div className={`p-4 flex flex-col gap-4 border-b border-card-custom/50 theme-transition ${sidebarCollapsed ? 'items-center' : ''}`}>
             {sidebarCollapsed ? (
-              <div className="flex flex-col items-center gap-3 w-full py-1">
+              <div className="flex flex-col items-center gap-2.5 w-full py-1">
                 <Activity className="w-7 h-7 accent-text-custom flex-shrink-0 animate-fade-in" />
+                <button
+                  type="button"
+                  onClick={() => setShowMuroModal(true)}
+                  className="text-[8px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 px-1.5 py-0.5 rounded-md border border-indigo-500/20 cursor-pointer transition-all hover:scale-105"
+                  title={`Versión oficial ${CURRENT_APP_VERSION}. Clic para ver novedades.`}
+                >
+                  {CURRENT_APP_VERSION}
+                </button>
                 <button 
                   onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                   className="p-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg border border-card-custom/40 transition-all text-secondary-custom hover:text-primary-custom cursor-pointer"
@@ -1383,6 +1393,18 @@ const DashboardContent = () => {
                   <div>
                     <h1 className="font-black text-base tracking-tight leading-none text-primary-custom">MÉTRICO</h1>
                     <p className="text-[9px] text-secondary-custom font-medium leading-none mt-1">Clínico Predictivo</p>
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse shrink-0"></span>
+                      <button 
+                        type="button"
+                        onClick={() => setShowMuroModal(true)}
+                        className="text-[8.5px] font-black tracking-wider px-1.5 py-0.5 rounded-md bg-indigo-500/10 hover:bg-indigo-500/25 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 cursor-pointer transition-all hover:scale-105 flex items-center gap-1 shadow-xs"
+                        title="Versión oficial del sistema. Clic para abrir el Muro de Actualizaciones."
+                      >
+                        <span>{CURRENT_APP_VERSION}</span>
+                        <span className="text-[7.5px] text-secondary-custom font-bold opacity-80 uppercase tracking-tighter">Oficial</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <button 
@@ -1832,7 +1854,7 @@ const DashboardContent = () => {
                   <span>Novedades</span>
                 </div>
                 <span className="text-[9px] font-black uppercase bg-emerald-600 text-white px-1.5 py-0.5 rounded-md animate-pulse">
-                  v3.1.0
+                  {CURRENT_APP_VERSION}
                 </span>
               </button>
             </div>
@@ -1847,7 +1869,7 @@ const DashboardContent = () => {
               </button>
               <button
                 onClick={() => setShowMuroModal(true)}
-                title="Actualizaciones (v3.1.0)"
+                title={`Actualizaciones (${CURRENT_APP_VERSION})`}
                 className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer"
               >
                 <Megaphone className="w-4 h-4" />

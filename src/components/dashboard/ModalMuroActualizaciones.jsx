@@ -14,6 +14,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.0.5',
+      version: 'v6.0.5',
+      fecha: '06 de Septiembre, 2026',
+      badge: 'VERSIÓN VISIBLE EN BARRA LATERAL',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Insignia de Versión Oficial del Sistema Visible en la Barra Lateral con Acceso Directo',
+      categoria: 'Panel Principal & Usabilidad',
+      icon: Sparkles,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se añadió la insignia con el número de versión oficial (v6.0.5) directamente debajo del logotipo "MÉTRICO Clínico Predictivo" en la barra lateral izquierda, acompañada de un punto verde de estado activo y acceso con un solo clic al Muro de Actualizaciones.',
+      instructivo: {
+        paraQueSirve: 'Permite certificar visualmente en todo momento qué versión del software está cargada en el navegador y acceder rápidamente al registro de cambios.',
+        quePuedesVer: 'En la esquina superior izquierda de la barra lateral, debajo de "Clínico Predictivo", aparece la insignia con la versión (ej. v6.0.5) y el estado en vivo. Al hacer clic sobre ella se despliega este mismo muro de actualizaciones.',
+        ejemploUso: 'Haz clic sobre el distintivo "v6.0.5 Oficial" en la barra lateral para revisar el historial completo de novedades y mejoras del sistema.'
+      },
+      changes: [
+        'Insignia de Versión en Cabecera: Distintivo visual interactivo con diseño cristal y micro-animación.',
+        'Enlace Rápido al Muro: Apertura inmediata del modal de novedades al pulsar la versión.',
+        'Soporte en Modo Colapsado: Insignia compacta adaptada cuando la barra lateral está contraída.'
+      ]
+    },
+    {
       id: 'v6.0.4',
       version: 'v6.0.4',
       fecha: '06 de Septiembre, 2026',
