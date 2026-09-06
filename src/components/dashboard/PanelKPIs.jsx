@@ -39,45 +39,49 @@ export default function PanelKPIs({
     };
   };
 
-  const renderKPICard = (title, value, growthMonth, growthYear, prefix = '', suffix = '', isClickable = false, onClick = null, isInverted = false) => {
+  const renderKPICard = (title, value, growthMonth, growthYear, prefix = '', suffix = '', isClickable = false, onClick = null, isInverted = false, isAnnual = false) => {
     const badgeMonth = getGrowthBadge(growthMonth, isInverted);
     const badgeYear = getGrowthBadge(growthYear, isInverted);
+
+    const valueTextClasses = isAnnual 
+      ? 'text-[30px] sm:text-[34px] md:text-4xl font-black tracking-tight leading-none' 
+      : 'text-3xl font-black';
 
     return (
       <div 
         onClick={isClickable ? onClick : undefined}
-        className={`bg-card-custom p-5 flex flex-col justify-between h-full min-h-[140px] relative theme-transition hover:z-30 hover:shadow-lg group ${isClickable ? 'cursor-pointer hover:border-indigo-500 hover:-translate-y-0.5' : ''}`}
+        className={`bg-card-custom p-4 sm:p-5 flex flex-col justify-between h-full min-h-[145px] relative theme-transition hover:z-30 hover:shadow-lg group ${isClickable ? 'cursor-pointer hover:border-indigo-500 hover:-translate-y-0.5' : ''}`}
       >
         {isClickable && (
           <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-secondary-custom/40 group-hover:text-indigo-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200" />
         )}
         <span className="text-[10px] font-bold text-secondary-custom tracking-wider uppercase opacity-80">{title}</span>
-        <div className="flex justify-between items-end mt-1 mb-2">
+        <div className={`flex justify-between items-end ${isAnnual ? 'my-2' : 'mt-1 mb-2'}`}>
             {suffix === '%' ? (
               <TooltipWrapper 
                 text={`Porcentaje de ${title}: ${value}% del volumen de pacientes analizados.`}
                 title={title}
                 position="top"
               >
-                <span className="text-3xl font-black text-primary-custom flex items-baseline cursor-help">
+                <span className={`${valueTextClasses} text-primary-custom flex items-baseline cursor-help`}>
                   {isLoading ? (
                     <span className="animate-pulse text-indigo-500/70">...</span>
                   ) : (
                     <>
                       {prefix}{value}
-                      <span className="text-sm font-bold ml-1 text-secondary-custom">{suffix}</span>
+                      <span className={`${isAnnual ? 'text-xs sm:text-sm' : 'text-sm'} font-bold ml-1 text-secondary-custom`}>{suffix}</span>
                     </>
                   )}
                 </span>
               </TooltipWrapper>
             ) : (
-              <span className="text-3xl font-black text-primary-custom flex items-baseline">
+              <span className={`${valueTextClasses} text-primary-custom flex items-baseline`}>
                 {isLoading ? (
                   <span className="animate-pulse text-indigo-500/70">...</span>
                 ) : (
                   <>
                     {prefix}{value}
-                    {suffix ? <span className="text-sm font-bold ml-1 text-secondary-custom">{suffix}</span> : null}
+                    {suffix ? <span className={`${isAnnual ? 'text-xs sm:text-sm' : 'text-sm'} font-bold ml-1 text-secondary-custom`}>{suffix}</span> : null}
                   </>
                 )}
               </span>
@@ -144,10 +148,14 @@ export default function PanelKPIs({
     const badgeMonth = getGrowthBadge(growthMonth, true);
     const badgeYear = getGrowthBadge(growthYear, true);
 
+    const valueTextClasses = isAnnual 
+      ? 'text-[30px] sm:text-[34px] md:text-4xl font-black tracking-tight leading-none' 
+      : 'text-3xl font-black';
+
     return (
       <div 
         onClick={onAltasClick}
-        className={`p-5 flex flex-col justify-between h-full min-h-[140px] relative theme-transition bg-card-custom border rounded-2xl cursor-pointer hover:z-30 hover:shadow-lg group hover:-translate-y-0.5 ${isAlert ? 'border-red-500 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 glow-red-alert hover:border-red-650' : 'border-card-custom hover:border-indigo-500'}`}
+        className={`p-4 sm:p-5 flex flex-col justify-between h-full min-h-[145px] relative theme-transition bg-card-custom border rounded-2xl cursor-pointer hover:z-30 hover:shadow-lg group hover:-translate-y-0.5 ${isAlert ? 'border-red-500 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 glow-red-alert hover:border-red-650' : 'border-card-custom hover:border-indigo-500'}`}
       >
          <ArrowUpRight className="absolute top-3 right-3 w-4 h-4 text-secondary-custom/40 group-hover:text-indigo-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200" />
          <div className="flex items-center gap-2 flex-wrap">
@@ -166,14 +174,14 @@ export default function PanelKPIs({
              </span>
            </TooltipWrapper>
          )}
-         <div className="flex justify-between items-end mt-1 mb-2">
+         <div className={`flex justify-between items-end ${isAnnual ? 'my-2' : 'mt-1 mb-2'}`}>
               <TooltipWrapper 
                 text={`Tasa de Altas Administrativas: ${pct.toFixed(1)}% del total de pacientes admitidos. Representa a ${typeof altas === 'number' ? altas.toLocaleString('es-CL') : altas} de ${typeof total === 'number' ? total.toLocaleString('es-CL') : total} pacientes.`}
                 title="Tasa de Altas Administrativas"
                 highlight="Meta institucional: Mantener por debajo del 5% del volumen total."
                 position="top"
               >
-                <span className={`text-3xl font-black cursor-help ${isAlert ? 'text-red-600 dark:text-red-400' : 'text-emerald-500'}`}>
+                <span className={`${valueTextClasses} cursor-help ${isAlert ? 'text-red-600 dark:text-red-400' : 'text-emerald-500'}`}>
                   {isLoading ? (
                     <span className="animate-pulse text-indigo-500/70">...</span>
                   ) : (
@@ -256,13 +264,13 @@ export default function PanelKPIs({
           </span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-          {renderKPICard('Pac. Admitidos (Total)', statsKPI.anual.pacientes.current, undefined, statsKPI.anual.pacientes?.growthYear, '', '', false, null, false)}
-          {renderKPICard('Pac. Atendidos (Total)', statsKPI.anual.atendidos.current, undefined, statsKPI.anual.atendidos?.growthYear, '', '', false, null, false)}
-          {renderKPICard('Rendimiento Global', statsKPI.anual.pacHora.current.toFixed(1), undefined, statsKPI.anual.pacHora?.growthYear, '', 'pac/h', false, null, false)}
-          {renderKPICard('Estadía Promedio Global', statsKPI.anual.estadia.current > 0 ? `${Math.round(statsKPI.anual.estadia.current)}` : '0', undefined, statsKPI.anual.estadia?.growthYear, '', 'min', false, null, true)}
+          {renderKPICard('Pac. Admitidos (Total)', statsKPI.anual.pacientes.current, undefined, statsKPI.anual.pacientes?.growthYear, '', '', false, null, false, true)}
+          {renderKPICard('Pac. Atendidos (Total)', statsKPI.anual.atendidos.current, undefined, statsKPI.anual.atendidos?.growthYear, '', '', false, null, false, true)}
+          {renderKPICard('Rendimiento Global', statsKPI.anual.pacHora.current.toFixed(1), undefined, statsKPI.anual.pacHora?.growthYear, '', 'pac/h', false, null, false, true)}
+          {renderKPICard('Estadía Promedio Global', statsKPI.anual.estadia.current > 0 ? `${Math.round(statsKPI.anual.estadia.current)}` : '0', undefined, statsKPI.anual.estadia?.growthYear, '', 'min', false, null, true, true)}
           {renderAltasAdminCard(true)}
-          {renderKPICard('Traslados Hosp. (YTD)', statsKPI.anual.traslados ? statsKPI.anual.traslados.current : 0, undefined, statsKPI.anual.traslados?.growthYear, '', 'pac', true, onTrasladosClick, false)}
-          {renderKPICard('Constat. Lesiones (YTD)', statsKPI.anual.constataciones ? statsKPI.anual.constataciones.current : 0, undefined, statsKPI.anual.constataciones?.growthYear, '', 'pac', true, onConstatacionesClick, false)}
+          {renderKPICard('Traslados Hosp. (YTD)', statsKPI.anual.traslados ? statsKPI.anual.traslados.current : 0, undefined, statsKPI.anual.traslados?.growthYear, '', 'pac', true, onTrasladosClick, false, true)}
+          {renderKPICard('Constat. Lesiones (YTD)', statsKPI.anual.constataciones ? statsKPI.anual.constataciones.current : 0, undefined, statsKPI.anual.constataciones?.growthYear, '', 'pac', true, onConstatacionesClick, false, true)}
         </div>
 
         {/* Récords Diarios / Turnos Individuales YTD */}

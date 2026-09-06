@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.0.8',
+    version_tag: 'v6.0.8',
+    fecha_despliegue: '06 de Septiembre, 2026',
+    proposito_actualizacion: 'Jerarquía Tipográfica Mejorada y Proporciones Equilibradas en las Láminas de KPIs Anuales (Global YTD).',
+    medios_y_stack: [
+      'React 18.3 (PanelKPIs.jsx)',
+      'Responsive Typography Scaling & Layout Integrity Engine'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Mayor Protagonismo Visual en Cifras Anuales: Se incrementó la escala tipográfica de los valores principales en las 7 láminas anuales (`text-[30px] sm:text-[34px] md:text-4xl font-black tracking-tight`), otorgando un mayor impacto visual sin comprometer la estructuración del espacio ni desbordar la lámina de Altas Administrativas (que contiene alertas, tasa porcentual, conteo de pacientes y comparativa interanual). 2) Balance y Coherencia Espacial: Se optimizó el espaciado vertical (`my-2`) y la proporción de sufijos (`text-xs sm:text-sm`) para garantizar legibilidad óptima en todas las resoluciones.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Ajuste 100% en capas de presentación CSS sin impacto en rendimiento ni consultas.'
+    },
+    modulos_afectados: ['PanelKPIs.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'Dashboard.jsx'],
+    detalles_tecnicos: [
+      'Parámetro reactivo `isAnnual` en `renderKPICard` y `renderAltasAdminCard`.',
+      'Escalado adaptativo de fuentes `text-[30px] sm:text-[34px] md:text-4xl`.',
+      'Preservación íntegra de la estructura en la tarjeta de Altas Admin.'
+    ]
+  },
+  {
     id: 'v6.0.7',
     version_tag: 'v6.0.7',
     fecha_despliegue: '06 de Septiembre, 2026',

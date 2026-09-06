@@ -14,6 +14,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.0.8',
+      version: 'v6.0.8',
+      fecha: '06 de Septiembre, 2026',
+      badge: 'JERARQUÍA VISUAL ANUAL',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Mayor Protagonismo y Tamaño en Cifras de las Láminas Anuales (YTD)',
+      categoria: 'Panel Principal & Usabilidad',
+      icon: Sparkles,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se incrementó el tamaño y peso visual de los números en las 7 láminas del apartado Global Anual, manteniendo una estructura limpia, aireada y perfectamente equilibrada, especialmente en la lámina de altas administrativas.',
+      instructivo: {
+        paraQueSirve: 'Facilita la lectura rápida de los totales anuales con cifras más destacadas y legibles a distancia.',
+        quePuedesVer: 'En la fila de láminas anuales, los números principales (Admitidos, Atendidos, Rendimiento, Estadía, Altas, Traslados y Constataciones) se aprecian con mayor tamaño y nitidez sin desbordar los componentes.',
+        ejemploUso: 'Compara las cifras del bloque Global Anual: ahora destacan con mayor presencia visual manteniendo alineación perfecta.'
+      },
+      changes: [
+        'Escala de Números Anuales: Aumento de tamaño y tipografía ultra-negra (`font-black`).',
+        'Lámina Altas Admin Equilibrada: Ajuste armónico de alertas, porcentajes y volumen de pacientes.',
+        'Diseño Responsivo: Adaptación dinámica del tamaño en pantallas estándar y monitores grandes.'
+      ]
+    },
+    {
       id: 'v6.0.7',
       version: 'v6.0.7',
       fecha: '06 de Septiembre, 2026',
