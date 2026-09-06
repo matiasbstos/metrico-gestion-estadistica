@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.0.2',
+      version: 'v6.0.2',
+      fecha: '06 de Septiembre, 2026',
+      badge: 'PROTAGONISMO DE TASA EN ALTAS ADMIN',
+      badgeColor: 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20',
+      title: 'Mayor Protagonismo Visual del Porcentaje en la Tarjeta de Altas Administrativas',
+      categoria: 'Panel Principal & KPIs',
+      icon: Activity,
+      iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+      summary: 'Se reestructuró la tarjeta de Altas Administrativas en el panel de KPIs (tanto en Global Anual como en Periodo Seleccionado) para darle máxima visibilidad al porcentaje sobre el total como métrica principal destacada en gran tamaño, ubicando el conteo de pacientes en el segundo plano inferior y manteniendo intactas las alertas por sobrepasar la meta del 5% y las comparativas con el año anterior.',
+      instructivo: {
+        paraQueSirve: 'Permite identificar de un vistazo el cumplimiento o desvío respecto a la meta institucional de altas administrativas (<5% del total de pacientes).',
+        quePuedesVer: 'En el Panel Principal (sección Global Anual y Periodo Seleccionado), la tarjeta de "Altas Admin" muestra en primer plano y con tamaño destacado el porcentaje (ej. 9.1%), seguido en la parte inferior por el recuadro con la cantidad absoluta de pacientes y la comparativa vs. año anterior.',
+        ejemploUso: 'Revisa de inmediato la tarjeta de Altas Admin para ver si el porcentaje se encuentra dentro del rango seguro o si se activa la alerta en rojo por superar el 5%.'
+      },
+      changes: [
+        'Porcentaje en Primer Plano: El porcentaje total se ubica como valor numérico principal en tipografía de alto impacto.',
+        'Cantidad en Segundo Plano: El número absoluto de altas se muestra en el recuadro inferior ("Cantidad: X pac.").',
+        'Consistencia en Alertas: Se conservan las advertencias visuales y parpadeos cuando la tasa excede el 5.0%.',
+        'Comparativas Históricas: Mantenimiento del comparativo versus año anterior y versus mes anterior.'
+      ]
+    },
+    {
       id: 'v6.0.1',
       version: 'v6.0.1',
       fecha: '05 de Septiembre, 2026',

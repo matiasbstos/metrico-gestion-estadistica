@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.0.2',
+    version_tag: 'v6.0.2',
+    fecha_despliegue: '06 de Septiembre, 2026',
+    proposito_actualizacion: 'Reestructuración y Protagonismo Visual del Porcentaje en la Tarjeta de Altas Administrativas (Global Anual y Periodo).',
+    medios_y_stack: [
+      'React 18.3 (PanelKPIs.jsx)',
+      'UI/UX Metric Hierarchy Refactoring Engine',
+      'Clinical Triage & Administrative Discharges KPI Dashboard'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Jerarquía Visual Centrada en Meta Institucional: Se reordenó la plantilla de Altas Administrativas para priorizar visualmente el porcentaje respecto al volumen total (tasa %) como métrica primaria (3xl font-black), ya que el estándar clínico-asistencial evalúa el umbral crítico (>5%). 2) Segundo Plano para la Cifra Absoluta: La cantidad total de altas administrativas pasa al contenedor inferior subordinado ("Cantidad: X pac.") manteniendo coherencia con las comparativas de crecimiento interanual (Vs Año Ant.) y alertas activas.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Renderizado instantáneo y dinámico del cálculo porcentual sin reprocesamientos adicionales.'
+    },
+    modulos_afectados: ['PanelKPIs.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Visualización destacada del porcentaje de altas administrativas como número principal.',
+      'Reubicación de la cifra de volumen absoluto de altas al contenedor de desglose secundario.',
+      'Mantenimiento integral de alertas por sobrepasar el 5% y comparativas interanuales YoY/MoM.'
+    ]
+  },
+  {
     id: 'v6.0.1',
     version_tag: 'v6.0.1',
     fecha_despliegue: '05 de Septiembre, 2026',

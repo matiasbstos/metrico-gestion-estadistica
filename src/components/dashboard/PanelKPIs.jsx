@@ -126,18 +126,19 @@ export default function PanelKPIs({
            </span>
          )}
          <div className="flex justify-between items-end mt-1 mb-2">
-              <span className={`text-3xl font-black ${isAlert ? 'text-red-600 dark:text-red-400' : 'text-red-500'}`}>
+              <span className={`text-3xl font-black ${isAlert ? 'text-red-600 dark:text-red-400' : 'text-emerald-500'}`}>
                 {isLoading ? (
                   <span className="animate-pulse text-indigo-500/70">...</span>
                 ) : (
-                  altas
+                  `${pct.toFixed(1)}%`
                 )}
               </span>
          </div>
          <div className="flex flex-col gap-1 mt-auto">
               <div className="flex justify-between items-center bg-black/5 dark:bg-white/5 px-2 py-1 rounded">
-                  <span className={`text-[10px] font-bold ${isAlert ? 'text-red-600 dark:text-red-400' : 'text-emerald-500'}`}>
-                    {isLoading ? '...' : `${pct.toFixed(1)}% del total`}
+                  <span className="text-[9px] font-bold text-secondary-custom">Cantidad</span>
+                  <span className={`text-[10px] font-bold ${isAlert ? 'text-red-600 dark:text-red-400' : 'text-primary-custom'}`}>
+                    {isLoading ? '...' : `${typeof altas === 'number' ? altas.toLocaleString('es-CL') : altas} pac.`}
                   </span>
               </div>
               {isLoading ? (
