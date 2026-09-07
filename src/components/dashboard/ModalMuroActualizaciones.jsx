@@ -14,6 +14,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.1.4',
+      version: 'v6.1.4',
+      fecha: '07 de Septiembre, 2026',
+      badge: 'FILTROS GLOBALES & RANGO TEMPORAL',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Opción de Selección Anual ("Año") en Barra de Filtros Globales',
+      categoria: 'Filtros Globales & Usabilidad',
+      icon: Calendar,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se incorporó el botón de acceso directo "Año" en el selector de rangos de fecha de la barra superior, permitiendo consultar el año completo de un solo clic con horario civil completo.',
+      instructivo: {
+        paraQueSirve: 'Permite analizar y filtrar instantáneamente la demanda, KPIs y estadísticas de todo el año en curso sin necesidad de digitar manualmente las fechas en los calendarios.',
+        quePuedesVer: 'Al hacer clic en "Año", los selectores se configuran automáticamente del 01 de enero al 31 de diciembre con horario 00:00 a 23:59 hrs.',
+        ejemploUso: 'En la barra superior del Explorador Global de Urgencias, haz clic en "Año" para visualizar el consolidado anual de toda la plataforma.'
+      },
+      changes: [
+        'Nuevo botón "Año" en la barra de presets de fecha junto a Hoy, Semana y Mes.',
+        'Ajuste automático de horario a formato civil completo (00:00 - 23:59 hrs).',
+        'Auto-detección del estado activo del preset cuando el rango seleccionado abarca el año completo.'
+      ]
+    },
+    {
       id: 'v6.1.3',
       version: 'v6.1.3',
       fecha: '06 de Septiembre, 2026',

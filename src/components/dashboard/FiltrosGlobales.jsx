@@ -145,8 +145,18 @@ export default function FiltrosGlobales({
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
+    const dStart = filtroFechaInicio ? filtroFechaInicio.split('-') : [];
+    const dEnd = filtroFechaFin ? filtroFechaFin.split('-') : [];
+
     if (filtroFechaInicio === today && filtroFechaFin === today) {
       setActivePreset('hoy');
+    } else if (
+      dStart.length === 3 && dEnd.length === 3 && 
+      dStart[0] === dEnd[0] && 
+      dStart[1] === '01' && dStart[2] === '01' && 
+      dEnd[1] === '12' && dEnd[2] === '31'
+    ) {
+      setActivePreset('ano');
     } else if (filtroFechaInicio === '2026-06-01' && filtroFechaFin === '2026-08-31') {
       setActivePreset('invierno_2026');
     } else if (filtroFechaInicio === '2025-06-01' && filtroFechaFin === '2025-08-31') {
@@ -342,6 +352,7 @@ export default function FiltrosGlobales({
               <button onClick={() => handlePreset('dia')} className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${activePreset === 'hoy' || activePreset === 'dia' ? 'accent-bg-custom text-white font-bold shadow-sm' : 'font-medium text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>Hoy</button>
               <button onClick={() => handlePreset('semana')} className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${activePreset === 'semana' ? 'accent-bg-custom text-white font-bold shadow-sm' : 'font-medium text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>Semana</button>
               <button onClick={() => handlePreset('mes')} className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${activePreset === 'mes' ? 'accent-bg-custom text-white font-bold shadow-sm' : 'font-medium text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>Mes</button>
+              <button onClick={() => handlePreset('ano')} className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${activePreset === 'ano' || activePreset === 'anio' ? 'accent-bg-custom text-white font-bold shadow-sm' : 'font-medium text-secondary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>Año</button>
               <div className="border-l border-card-custom/50 h-4 mx-1"></div>
               <select 
                 id="select-campana-preset"

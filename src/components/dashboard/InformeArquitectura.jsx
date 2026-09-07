@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.1.4',
+    version_tag: 'v6.1.4',
+    fecha_despliegue: '07 de Septiembre, 2026',
+    proposito_actualizacion: 'Incorporación del Preset Temporal Anual ("Año") en la Barra de Filtros Globales del Explorador de Urgencias.',
+    medios_y_stack: [
+      'React 18.3 (FiltrosGlobales.jsx, Dashboard.jsx)',
+      'Calendar Year Aggregation & Automated Date Preset Engine'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Preset Temporal de Año Calendario Completo: Se agregó el botón directo `Año` en la barra de presets de fecha de `FiltrosGlobales.jsx` junto a Hoy, Semana y Mes. Al accionarlo, el sistema computa automáticamente el rango anual completo (01 de enero al 31 de diciembre del año base de datos) con horario civil completo (00:00 a 23:59 hrs). 2) Detección Reactiva de Rango Anual: El estado activo del botón `Año` se sincroniza reactivamente cuando las fechas de inicio y fin coinciden con el 01/01 y 31/12 de un mismo año.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Cómputo O(1) de fechas extremas del año calendario y reactividad en memoria.'
+    },
+    modulos_afectados: ['FiltrosGlobales.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Añadido botón selector "Año" en la barra de presets de fecha en FiltrosGlobales.jsx.',
+      'Soporte de preset "ano", "anio" y "year" en la función applyDatePreset de Dashboard.jsx.',
+      'Auto-detección del preset anual en el useEffect de FiltrosGlobales.jsx.'
+    ]
+  },
+  {
     id: 'v6.1.3',
     version_tag: 'v6.1.3',
     fecha_despliegue: '06 de Septiembre, 2026',

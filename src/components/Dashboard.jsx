@@ -461,6 +461,11 @@ const DashboardContent = () => {
       endA = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 0);
       startB = new Date(baseDate.getFullYear(), baseDate.getMonth() - 1, 1);
       endB = new Date(baseDate.getFullYear(), baseDate.getMonth(), 0);
+    } else if (preset === 'ano' || preset === 'anio' || preset === 'year') {
+      startA = new Date(baseDate.getFullYear(), 0, 1);
+      endA = new Date(baseDate.getFullYear(), 11, 31);
+      startB = new Date(baseDate.getFullYear() - 1, 0, 1);
+      endB = new Date(baseDate.getFullYear() - 1, 11, 31);
     } else if (preset === 'semana') {
       const current = new Date(baseDate);
       const firstDay = new Date(current.setDate(current.getDate() - current.getDay() + 1));
@@ -528,7 +533,7 @@ const DashboardContent = () => {
       setHorarioPreset('civil');
     }
 
-    if (preset === 'mes' || preset === 'semana') {
+    if (preset === 'mes' || preset === 'semana' || preset === 'ano' || preset === 'anio' || preset === 'year') {
       setFiltroHoraInicio('00:00');
       setFiltroHoraFin('23:59');
       setHorarioPreset('civil');
