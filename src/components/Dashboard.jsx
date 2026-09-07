@@ -39,10 +39,10 @@ import PopUpSincronizacion from './dashboard/PopUpSincronizacion';
 import InformeArquitectura, { HISTORIAL_ARQUITECTURA_BASE } from './dashboard/InformeArquitectura';
 import DevLogModule from './dashboard/DevLogModule';
 import FondoClinicoAnimado from './common/FondoClinicoAnimado';
-import { formatLocalDate } from '../utils/helpers';
+import { formatLocalDate, calcularUltimoTurnoCompleto, resolverMaxTimestampGlobal } from '../utils/helpers';
 import { playIntegrityAlertChime, playLogoutChime } from '../utils/audioNotifications';
 
-const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.1.1';
+const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.1.6';
 import Login from './Login';
 import { 
   Clock, Users, UserCheck, AlertTriangle, Activity, ArrowRight, 
@@ -119,8 +119,28 @@ const DashboardContent = () => {
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
   const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
   
-  const [filtroFechaInicio, setFiltroFechaInicio] = useState('2026-08-12');
-  const [filtroFechaFin, setFiltroFechaFin] = useState('2026-08-13');
+  // Obtener el último turno completo guardado o computado por defecto (Regla 5)
+  const getInitialCompleteShift = () => {
+    try {
+      const saved = localStorage.getItem('metrico_ultimo_turno_completo');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.fechaInicio && parsed?.fechaFin) return parsed;
+      }
+    } catch (e) {}
+    // Fallback dinámico al último día cargado conocido
+    return {
+      fechaInicio: '2026-09-05',
+      fechaFin: '2026-09-05',
+      horaInicio: '08:00',
+      horaFin: '20:00',
+      preset: 'finde_dia'
+    };
+  };
+
+  const initialCompleteShift = getInitialCompleteShift();
+  const [filtroFechaInicio, setFiltroFechaInicio] = useState(initialCompleteShift.fechaInicio);
+  const [filtroFechaFin, setFiltroFechaFin] = useState(initialCompleteShift.fechaFin);
   const [modoComparativo, setModoComparativo] = useState(false);
   const [filtroFechaInicioB, setFiltroFechaInicioB] = useState('');
   const [filtroFechaFinB, setFiltroFechaFinB] = useState('');
@@ -143,9 +163,9 @@ const DashboardContent = () => {
 
   const [filtrosGlobales, setFiltrosGlobales] = useState({ sexo: 'TODOS', prevision: 'TODOS', edad: 'TODOS', establecimiento: 'TODOS' });
   const [tipoCorte, setTipoCorte] = useState('turno');
-  const [filtroHoraInicio, setFiltroHoraInicio] = useState('16:00');
-  const [filtroHoraFin, setFiltroHoraFin] = useState('09:00');
-  const [horarioPreset, setHorarioPreset] = useState('custom');
+  const [filtroHoraInicio, setFiltroHoraInicio] = useState(initialCompleteShift.horaInicio);
+  const [filtroHoraFin, setFiltroHoraFin] = useState(initialCompleteShift.horaFin);
+  const [horarioPreset, setHorarioPreset] = useState(initialCompleteShift.preset);
 
   const { user, userProfile, loading, syncStatus, syncProgress, setSyncStatus, setLoading, pacientesDB, allPacientesDB, turnosDB, triggerRefresh, lastSyncTime, syncToast, clearSyncToast } = useMetricoData(filtroFechaInicio, filtroFechaFin);
 
@@ -208,25 +228,7 @@ const DashboardContent = () => {
   }, [isGlobalAdmin, userPermissions]);
 
   const maxDateLabel = useMemo(() => {
-    let maxTime = 0;
-    if (pacientesDB && pacientesDB.length > 0) {
-      pacientesDB.forEach(p => {
-        if (p.tAdmision && p.tAdmision > maxTime) {
-          maxTime = p.tAdmision;
-        }
-      });
-    }
-    if (turnosDB && turnosDB.length > 0) {
-      turnosDB.forEach(t => {
-        if (t.fechaInicio) {
-          const parts = t.fechaInicio.split('-');
-          if (parts.length === 3) {
-            const tMs = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 23, 57, 0).getTime();
-            if (tMs > maxTime) maxTime = tMs;
-          }
-        }
-      });
-    }
+    const maxTime = resolverMaxTimestampGlobal(turnosDB, pacientesDB, allPacientesDB);
     if (maxTime === 0) return '';
     const d = new Date(maxTime);
     const day = String(d.getDate()).padStart(2, '0');
@@ -235,120 +237,53 @@ const DashboardContent = () => {
     const hours = String(d.getHours()).padStart(2, '0');
     const minutes = String(d.getMinutes()).padStart(2, '0');
     return `${day}/${month}/${year} ${hours}:${minutes}`;
-  }, [pacientesDB, turnosDB]);
+  }, [pacientesDB, allPacientesDB, turnosDB]);
+
   const pautasTurnosHook = usePautasTurnos();
 
-  // AUTO-DETECCIÓN INTELIGENTE DEL ÚLTIMO TURNO CLÍNICO COMPLETO AL INGRESAR A LA PÁGINA
-  const initialCompletedShiftSetRef = useRef(false);
+  // Bandera para rastrear si el usuario ha cambiado manualmente los filtros en esta sesión activa
+  const userHasManuallyFilteredRef = useRef(false);
 
+  // Cada vez que se despliegue una nueva versión del sistema, restablecer la bandera manual
+  // para que siempre abra estrictamente en el último turno clínico 100% completo de la base de datos
   useEffect(() => {
-    if (initialCompletedShiftSetRef.current) return;
-    const records = (allPacientesDB && allPacientesDB.length > 0) ? allPacientesDB : pacientesDB;
-    if (!records || records.length === 0) return;
-
-    let maxTime = 0;
-    records.forEach(p => {
-      if (p.tAdmision && p.tAdmision > maxTime) {
-        maxTime = p.tAdmision;
-      }
-    });
-
-    if (maxTime === 0) return;
-
-    const maxDate = new Date(maxTime);
-    const y = maxDate.getFullYear();
-    const m = maxDate.getMonth();
-    const d = maxDate.getDate();
-    const dayOfWeek = maxDate.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
-    const hours = maxDate.getHours();
-    const minutes = maxDate.getMinutes();
-    const timeDecimal = hours + minutes / 60;
-
-    const formatDateStr = (dateObj) => {
-      const yr = dateObj.getFullYear();
-      const mo = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const da = String(dateObj.getDate()).padStart(2, '0');
-      return `${yr}-${mo}-${da}`;
-    };
-
-    const getShiftObject = (startDateObj, endDateObj, hIni, hFin, preset) => ({
-      fechaInicio: formatDateStr(startDateObj),
-      fechaFin: formatDateStr(endDateObj),
-      horaInicio: hIni,
-      horaFin: hFin,
-      preset: preset
-    });
-
-    let detectedShift;
-
-    // Detección estricta del ÚLTIMO TURNO CLÍNICO 100% COMPLETO Y CERRADO
-    if (dayOfWeek === 0) {
-      // DOMINGO
-      if (hours >= 20) {
-        // A partir de las 20:00, el turno diurno del Domingo (08:00 a 20:00) ha cerrado 100% completo
-        detectedShift = getShiftObject(maxDate, maxDate, '08:00', '20:00', 'finde_dia');
-      } else if (hours >= 8) {
-        // Entre 08:00 y 19:59, el turno diurno está en curso; el último cerrado fue Sábado Noche (20:00 a 08:00)
-        const prevDate = new Date(y, m, d - 1);
-        detectedShift = getShiftObject(prevDate, maxDate, '20:00', '08:00', 'finde_noche');
-      } else {
-        // Madrugada de Domingo (00:00 a 07:59): Sábado Noche está en curso; el último cerrado fue Sábado Diurno (08:00 a 20:00)
-        const prevDate = new Date(y, m, d - 1);
-        detectedShift = getShiftObject(prevDate, prevDate, '08:00', '20:00', 'finde_dia');
-      }
-    } else if (dayOfWeek === 6) {
-      // SÁBADO
-      if (hours >= 20) {
-        // A partir de las 20:00, el turno diurno del Sábado (08:00 a 20:00) ha cerrado 100% completo
-        detectedShift = getShiftObject(maxDate, maxDate, '08:00', '20:00', 'finde_dia');
-      } else if (hours >= 8) {
-        // Entre 08:00 y 19:59, el turno diurno está en curso; el último cerrado fue Viernes Turno Largo (16:00 a 09:00)
-        const prevDate = new Date(y, m, d - 1);
-        detectedShift = getShiftObject(prevDate, maxDate, '16:00', '09:00', 'largo');
-      } else {
-        // Madrugada de Sábado (00:00 a 07:59): Viernes Turno Largo está en curso; el último cerrado fue Jueves Turno Largo
-        const prev2Date = new Date(y, m, d - 2);
-        const prevDate = new Date(y, m, d - 1);
-        detectedShift = getShiftObject(prev2Date, prevDate, '16:00', '09:00', 'largo');
-      }
-    } else if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-      // LUNES A VIERNES (Días hábiles)
-      if (hours >= 8) {
-        // Desde las 08:00 AM en adelante, el turno de la noche anterior ya cerró completamente
-        const prevDate = new Date(y, m, d - 1);
-        if (dayOfWeek === 1) {
-          // Lunes durante el día: el último turno cerrado fue Domingo Noche (20:00 a 08:00)
-          detectedShift = getShiftObject(prevDate, maxDate, '20:00', '08:00', 'finde_noche');
-        } else {
-          // Martes a Viernes durante el día: el último turno cerrado fue el Turno Largo de ayer
-          detectedShift = getShiftObject(prevDate, maxDate, '16:00', '09:00', 'largo');
-        }
-      } else {
-        // Madrugada día hábil (00:00 a 07:59): el turno de la noche anterior aún no cierra; tomar el anteayer
-        const prev2Date = new Date(y, m, d - 2);
-        const prevDate = new Date(y, m, d - 1);
-        if (dayOfWeek === 1) {
-          // Madrugada Lunes: Domingo Noche está en curso; el último cerrado fue Domingo Diurno (08:00 a 20:00)
-          detectedShift = getShiftObject(prevDate, prevDate, '08:00', '20:00', 'finde_dia');
-        } else if (dayOfWeek === 2) {
-          // Madrugada Martes: Lunes Largo está en curso; el último cerrado fue Domingo Noche (20:00 a 08:00)
-          detectedShift = getShiftObject(prev2Date, prevDate, '20:00', '08:00', 'finde_noche');
-        } else {
-          // Madrugada Mié-Vie: el último cerrado fue el Turno Largo de anteayer a ayer
-          detectedShift = getShiftObject(prev2Date, prevDate, '16:00', '09:00', 'largo');
-        }
-      }
+    const lastVersion = localStorage.getItem('metrico_app_version');
+    if (lastVersion !== CURRENT_APP_VERSION) {
+      localStorage.setItem('metrico_app_version', CURRENT_APP_VERSION);
+      userHasManuallyFilteredRef.current = false;
     }
+  }, []);
 
-    if (detectedShift) {
-      initialCompletedShiftSetRef.current = true;
+  // AUTO-DETECCIÓN INTELIGENTE Y ESTRICTA DEL ÚLTIMO TURNO CLÍNICO 100% COMPLETO Y CERRADO (REGLA 5)
+  useEffect(() => {
+    if (userHasManuallyFilteredRef.current) return;
+
+    const maxTime = resolverMaxTimestampGlobal(turnosDB, pacientesDB, allPacientesDB);
+    if (!maxTime) return;
+
+    const detectedShift = calcularUltimoTurnoCompleto(maxTime, pautasTurnosHook?.pautasDB);
+    if (!detectedShift) return;
+
+    try {
+      localStorage.setItem('metrico_ultimo_turno_completo', JSON.stringify(detectedShift));
+    } catch (e) {}
+
+    // Sincronizar reactivamente si los estados difieren del turno completo detectado
+    if (
+      filtroFechaInicio !== detectedShift.fechaInicio ||
+      filtroFechaFin !== detectedShift.fechaFin ||
+      filtroHoraInicio !== detectedShift.horaInicio ||
+      filtroHoraFin !== detectedShift.horaFin ||
+      horarioPreset !== detectedShift.preset
+    ) {
+      console.log("[REGLA 5 SSOT] Sincronizando período al último turno completo cerrado:", detectedShift);
       setFiltroFechaInicio(detectedShift.fechaInicio);
       setFiltroFechaFin(detectedShift.fechaFin);
       setFiltroHoraInicio(detectedShift.horaInicio);
       setFiltroHoraFin(detectedShift.horaFin);
       setHorarioPreset(detectedShift.preset);
     }
-  }, [pacientesDB, allPacientesDB]);
+  }, [pacientesDB, allPacientesDB, turnosDB, pautasTurnosHook?.pautasDB]);
 
   useEffect(() => {
     const loadSheetJS = () => {
@@ -442,16 +377,34 @@ const DashboardContent = () => {
     return `${h}h ${m}m`;
   };
 
-  const applyDatePreset = (preset) => {
-    let maxTime = 0;
-    if (pacientesDB && pacientesDB.length > 0) {
-      pacientesDB.forEach(p => {
-        if (p.tAdmision && p.tAdmision > maxTime) {
-          maxTime = p.tAdmision;
-        }
-      });
-    }
+  const handleSetFiltroFechaInicio = useCallback((val) => {
+    userHasManuallyFilteredRef.current = true;
+    setFiltroFechaInicio(val);
+  }, []);
 
+  const handleSetFiltroFechaFin = useCallback((val) => {
+    userHasManuallyFilteredRef.current = true;
+    setFiltroFechaFin(val);
+  }, []);
+
+  const handleSetFiltroHoraInicio = useCallback((val) => {
+    userHasManuallyFilteredRef.current = true;
+    setFiltroHoraInicio(val);
+  }, []);
+
+  const handleSetFiltroHoraFin = useCallback((val) => {
+    userHasManuallyFilteredRef.current = true;
+    setFiltroHoraFin(val);
+  }, []);
+
+  const handleSetHorarioPreset = useCallback((val) => {
+    userHasManuallyFilteredRef.current = true;
+    setHorarioPreset(val);
+  }, []);
+
+  const applyDatePreset = (preset) => {
+    userHasManuallyFilteredRef.current = true;
+    const maxTime = resolverMaxTimestampGlobal(turnosDB, pacientesDB, allPacientesDB);
     const baseDate = maxTime > 0 ? new Date(maxTime) : new Date();
     const formatDate = (d) => isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
     let startA, endA, startB, endB;
@@ -474,45 +427,13 @@ const DashboardContent = () => {
       startB = new Date(firstDay.getTime() - 7 * 24 * 60 * 60 * 1000);
       endB = new Date(lastDay.getTime() - 7 * 24 * 60 * 60 * 1000);
     } else if (preset === 'dia' || preset === 'hoy') {
-      const dayOfWeek = baseDate.getDay();
-      const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-      const maxDateStr = formatDate(baseDate);
-      if (!isWeekend) {
-        const prevDate = new Date(baseDate);
-        prevDate.setDate(prevDate.getDate() - 1);
-        setFiltroFechaInicio(formatDate(prevDate));
-        setFiltroFechaFin(maxDateStr);
-        setFiltroHoraInicio('16:00');
-        setFiltroHoraFin('09:00');
-        setHorarioPreset('largo');
-        return;
-      } else {
-        const hours = baseDate.getHours();
-        const minutes = baseDate.getMinutes();
-        const timeDecimal = hours + minutes / 60;
-
-        setFiltroFechaInicio(maxDateStr);
-        if (timeDecimal >= 8.0 && timeDecimal < 20.0) {
-          setFiltroFechaFin(maxDateStr);
-          setFiltroHoraInicio('08:00');
-          setFiltroHoraFin('20:00');
-          setHorarioPreset('finde_dia');
-        } else if (timeDecimal >= 20.0) {
-          // Finde Día completado hoy
-          setFiltroFechaFin(maxDateStr);
-          setFiltroHoraInicio('08:00');
-          setFiltroHoraFin('20:00');
-          setHorarioPreset('finde_dia');
-        } else {
-          // Madrugada Finde Noche
-          const prevDate = new Date(baseDate);
-          prevDate.setDate(prevDate.getDate() - 1);
-          setFiltroFechaInicio(formatDate(prevDate));
-          setFiltroFechaFin(maxDateStr);
-          setFiltroHoraInicio('20:00');
-          setFiltroHoraFin('08:00');
-          setHorarioPreset('finde_noche');
-        }
+      const completeShift = calcularUltimoTurnoCompleto(maxTime, pautasTurnosHook?.pautasDB);
+      if (completeShift) {
+        setFiltroFechaInicio(completeShift.fechaInicio);
+        setFiltroFechaFin(completeShift.fechaFin);
+        setFiltroHoraInicio(completeShift.horaInicio);
+        setFiltroHoraFin(completeShift.horaFin);
+        setHorarioPreset(completeShift.preset);
         return;
       }
     } else if (preset === 'invierno_2026') {
@@ -548,29 +469,20 @@ const DashboardContent = () => {
   };
 
   const handleClearFilters = () => {
-    let maxTime = 0;
-    if (pacientesDB && pacientesDB.length > 0) {
-      pacientesDB.forEach(p => {
-        if (p.tAdmision && p.tAdmision > maxTime) {
-          maxTime = p.tAdmision;
-        }
-      });
+    userHasManuallyFilteredRef.current = false;
+    const maxTime = resolverMaxTimestampGlobal(turnosDB, pacientesDB, allPacientesDB);
+    const completeShift = calcularUltimoTurnoCompleto(maxTime, pautasTurnosHook?.pautasDB);
+
+    if (completeShift) {
+      setFiltroFechaInicio(completeShift.fechaInicio);
+      setFiltroFechaFin(completeShift.fechaFin);
+      setFiltroHoraInicio(completeShift.horaInicio);
+      setFiltroHoraFin(completeShift.horaFin);
+      setHorarioPreset(completeShift.preset);
     }
-
-    const baseDate = maxTime > 0 ? new Date(maxTime) : new Date();
-    const maxDateStr = baseDate.toISOString().split('T')[0];
-    const prevDate = new Date(baseDate);
-    prevDate.setDate(prevDate.getDate() - 1);
-    const prevDateStr = prevDate.toISOString().split('T')[0];
-
-    setFiltroFechaInicio(prevDateStr);
-    setFiltroFechaFin(maxDateStr);
     setModoComparativo(false);
     setFiltroFechaInicioB('');
     setFiltroFechaFinB('');
-    setFiltroHoraInicio('16:00');
-    setFiltroHoraFin('09:00');
-    setHorarioPreset('largo');
     setFiltrosGlobales({ sexo: 'TODOS', prevision: 'TODOS', edad: 'TODOS', establecimiento: 'TODOS' });
   };
 
@@ -2105,15 +2017,15 @@ const DashboardContent = () => {
               <div className={`sticky top-[61px] md:top-0 z-40 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-md shadow-md border-b border-card-custom/20 -mx-4 md:-mx-8 px-4 md:px-8 transition-all duration-300 ${isScrolled ? 'py-2' : 'pb-4 pt-3'}`}>
                 <FiltrosGlobales 
                   modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
-                  filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={setFiltroFechaInicio}
-                  filtroFechaFin={filtroFechaFin} setFiltroFechaFin={setFiltroFechaFin}
+                  filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={handleSetFiltroFechaInicio}
+                  filtroFechaFin={filtroFechaFin} setFiltroFechaFin={handleSetFiltroFechaFin}
                   filtroFechaInicioB={filtroFechaInicioB} setFiltroFechaInicioB={setFiltroFechaInicioB}
                   filtroFechaFinB={filtroFechaFinB} setFiltroFechaFinB={setFiltroFechaFinB}
                   applyDatePreset={applyDatePreset}
                   tipoCorte={tipoCorte} setTipoCorte={setTipoCorte}
-                  filtroHoraInicio={filtroHoraInicio} setFiltroHoraInicio={setFiltroHoraInicio}
-                  filtroHoraFin={filtroHoraFin} setFiltroHoraFin={setFiltroHoraFin}
-                  horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
+                  filtroHoraInicio={filtroHoraInicio} setFiltroHoraInicio={handleSetFiltroHoraInicio}
+                  filtroHoraFin={filtroHoraFin} setFiltroHoraFin={handleSetFiltroHoraFin}
+                  horarioPreset={horarioPreset} setHorarioPreset={handleSetHorarioPreset}
                   maxDateLabel={maxDateLabel}
                   onClearFilters={handleClearFilters}
                   isScrolled={isScrolled}
@@ -2302,15 +2214,15 @@ const DashboardContent = () => {
             {/* SECTOR DE FILTROS Y CONTROL DE CONTEXTO */}
             <FiltrosGlobales 
               modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
-              filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={setFiltroFechaInicio}
-              filtroFechaFin={filtroFechaFin} setFiltroFechaFin={setFiltroFechaFin}
+              filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={handleSetFiltroFechaInicio}
+              filtroFechaFin={filtroFechaFin} setFiltroFechaFin={handleSetFiltroFechaFin}
               filtroFechaInicioB={filtroFechaInicioB} setFiltroFechaInicioB={setFiltroFechaInicioB}
               filtroFechaFinB={filtroFechaFinB} setFiltroFechaFinB={setFiltroFechaFinB}
               applyDatePreset={applyDatePreset}
               tipoCorte={tipoCorte} setTipoCorte={setTipoCorte}
-              filtroHoraInicio={filtroHoraInicio} setFiltroHoraInicio={setFiltroHoraInicio}
-              filtroHoraFin={filtroHoraFin} setFiltroHoraFin={setFiltroHoraFin}
-              horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
+              filtroHoraInicio={filtroHoraInicio} setFiltroHoraInicio={handleSetFiltroHoraInicio}
+              filtroHoraFin={filtroHoraFin} setFiltroHoraFin={handleSetFiltroHoraFin}
+              horarioPreset={horarioPreset} setHorarioPreset={handleSetHorarioPreset}
               maxDateLabel={maxDateLabel}
               onClearFilters={handleClearFilters}
               onSync={triggerRefresh}

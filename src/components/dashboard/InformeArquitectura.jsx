@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.1.6',
+    version_tag: 'v6.1.6',
+    fecha_despliegue: '07 de Septiembre, 2026',
+    proposito_actualizacion: 'Cumplimiento Estricto de la Regla 5: Auto-Detección y Carga Dinámica Obligatoria del Último Turno Clínico 100% Completo y Cerrado en Actualizaciones.',
+    medios_y_stack: [
+      'React 18.3 (Dashboard.jsx, helpers.js, FiltrosGlobales.jsx)',
+      'Multi-source Timestamp Resolver (turnosDB + pacientesDB + allPacientesDB)',
+      'Strict Shift Boundary & Closure Engine (Regla 5 SSOT)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Eliminación Definitiva de Fechas Estáticas / Hardcoded: Se erradicó la inicialización estática de fechas (`2026-08-12` a `2026-08-13`) que provocaba que la aplicación retrocediera a agosto tras cada actualización de código o refresco de pantalla. 2) Resolución Multivariable del Timestamp Global: Se implementó `resolverMaxTimestampGlobal` que audita en memoria `turnosDB`, `allPacientesDB` y `pacientesDB` para determinar el punto de corte real más reciente de la base de datos (e.g. 05/09/2026 a las 23:57 hrs). 3) Cómputo Universal de Turno Cerrado (`calcularUltimoTurnoCompleto`): Evaluación estricta de cierres según tipo de día (fines de semana: diurno cerrado a las 20:00 hrs con corte nocturno en curso; días hábiles: nocturno cerrado a las 08:00/09:00 hrs). 4) Reset Automático por Versión: Cada nuevo despliegue invalida cualquier filtro temporal obsoleto y sincroniza obligatoriamente al último turno completo real, cargando sus pacientes y KPIs sin intervención manual.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'pautas_turnos'],
+      query_optimization: 'Cómputo en memoria O(N_turnos + N_pacientes) y carga bajo demanda sincronizada.'
+    },
+    modulos_afectados: ['Dashboard.jsx', 'helpers.js', 'FiltrosGlobales.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Implementación de `calcularUltimoTurnoCompleto` y `resolverMaxTimestampGlobal` en `src/utils/helpers.js`.',
+      'Inicialización dinámica de `filtroFechaInicio`, `filtroFechaFin`, `filtroHoraInicio`, `filtroHoraFin` y `horarioPreset` vía `getInitialCompleteShift()`.',
+      'Auto-reseteo de selección manual al detectar nueva versión (`metrico_app_version !== CURRENT_APP_VERSION`).',
+      'Actualización de `applyDatePreset` y `handleClearFilters` para sincronizar con el último turno completo auditado.'
+    ]
+  },
+  {
     id: 'v6.1.5',
     version_tag: 'v6.1.5',
     fecha_despliegue: '07 de Septiembre, 2026',

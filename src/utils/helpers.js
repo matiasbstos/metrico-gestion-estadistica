@@ -480,3 +480,131 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
     }
   };
 };
+
+/**
+ * Resuelve el timestamp máximo registrado en el sistema evaluando tanto turnos como pacientes.
+ */
+export const resolverMaxTimestampGlobal = (turnosDB = [], pacientesDB = [], allPacientesDB = []) => {
+  let maxTime = 0;
+  const records = (allPacientesDB && allPacientesDB.length > 0) ? allPacientesDB : (pacientesDB || []);
+  if (records && records.length > 0) {
+    records.forEach(p => {
+      if (p.tAdmision && p.tAdmision > maxTime) {
+        maxTime = p.tAdmision;
+      }
+    });
+  }
+
+  if (turnosDB && turnosDB.length > 0) {
+    turnosDB.forEach(t => {
+      if (t.fechaInicio) {
+        const parts = t.fechaInicio.split('-');
+        if (parts.length === 3) {
+          const y = parseInt(parts[0]);
+          const m = parseInt(parts[1]);
+          const d = parseInt(parts[2]);
+          const isNight = (String(t.horario).includes('20:00') || String(t.horario).includes('Noche') || String(t.horario).includes('17:00') || String(t.horario).includes('Largo'));
+          const h = isNight ? 23 : 20;
+          const min = isNight ? 57 : 0;
+          const tMs = new Date(y, m - 1, d, h, min, 0).getTime();
+          if (tMs > maxTime) maxTime = tMs;
+        }
+      }
+    });
+  }
+  return maxTime;
+};
+
+/**
+ * Implementación estricta de la Regla 5 de Integridad:
+ * Auto-Detección Estricta del Último Turno Clínico 100% Completo y Cerrado.
+ */
+export const calcularUltimoTurnoCompleto = (maxTime, pautasDB = null) => {
+  if (!maxTime) return null;
+  const maxDate = new Date(maxTime);
+  if (isNaN(maxDate.getTime())) return null;
+
+  const y = maxDate.getFullYear();
+  const m = maxDate.getMonth();
+  const d = maxDate.getDate();
+  const hours = maxDate.getHours();
+
+  const isWeekendOrHoliday = (dateObj) => {
+    const day = dateObj.getDay();
+    if (day === 0 || day === 6) return true;
+    const yr = dateObj.getFullYear();
+    const mo = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const da = String(dateObj.getDate()).padStart(2, '0');
+    const iso = `${yr}-${mo}-${da}`;
+    return CHILE_HOLIDAYS_OFFICIAL.has(iso) || Boolean(pautasDB?.[`${yr}-${mo}`]?.[iso]?.festivo);
+  };
+
+  const isWeekend = isWeekendOrHoliday(maxDate);
+
+  const formatDateStr = (dateObj) => {
+    const yr = dateObj.getFullYear();
+    const mo = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const da = String(dateObj.getDate()).padStart(2, '0');
+    return `${yr}-${mo}-${da}`;
+  };
+
+  const getShiftObject = (startDateObj, endDateObj, hIni, hFin, preset) => ({
+    fechaInicio: formatDateStr(startDateObj),
+    fechaFin: formatDateStr(endDateObj),
+    horaInicio: hIni,
+    horaFin: hFin,
+    preset: preset
+  });
+
+  if (isWeekend) {
+    if (hours >= 20) {
+      // Turno diurno de hoy (08:00 a 20:00) ha cerrado 100% completo
+      return getShiftObject(maxDate, maxDate, '08:00', '20:00', 'finde_dia');
+    } else if (hours >= 8) {
+      // Turno diurno en curso; último cerrado fue la noche anterior
+      const prevDate = new Date(y, m, d - 1);
+      const isPrevWknd = isWeekendOrHoliday(prevDate);
+      return getShiftObject(
+        prevDate, 
+        maxDate, 
+        isPrevWknd ? '20:00' : '16:00', 
+        isPrevWknd ? '08:00' : '09:00', 
+        isPrevWknd ? 'finde_noche' : 'largo'
+      );
+    } else {
+      // Madrugada fin de semana (00:00 a 07:59): turno noche en curso
+      const prevDate = new Date(y, m, d - 1);
+      const isPrevWknd = isWeekendOrHoliday(prevDate);
+      if (isPrevWknd) {
+        return getShiftObject(prevDate, prevDate, '08:00', '20:00', 'finde_dia');
+      } else {
+        const prev2Date = new Date(y, m, d - 2);
+        return getShiftObject(prev2Date, prevDate, '16:00', '09:00', 'largo');
+      }
+    }
+  } else {
+    // Día hábil (Lunes a Viernes no festivo)
+    if (hours >= 8) {
+      // Turno nocturno de anoche cerró a las 08:00 o 09:00 AM
+      const prevDate = new Date(y, m, d - 1);
+      const isPrevWknd = isWeekendOrHoliday(prevDate);
+      return getShiftObject(
+        prevDate, 
+        maxDate, 
+        isPrevWknd ? '20:00' : '16:00', 
+        isPrevWknd ? '08:00' : '09:00', 
+        isPrevWknd ? 'finde_noche' : 'largo'
+      );
+    } else {
+      // Madrugada día hábil (00:00 a 07:59): turno nocturno de anoche aún no cierra
+      const prevDate = new Date(y, m, d - 1);
+      const prev2Date = new Date(y, m, d - 2);
+      const isPrevWknd = isWeekendOrHoliday(prevDate);
+      if (isPrevWknd) {
+        return getShiftObject(prevDate, prevDate, '08:00', '20:00', 'finde_dia');
+      } else {
+        return getShiftObject(prev2Date, prevDate, '16:00', '09:00', 'largo');
+      }
+    }
+  }
+};

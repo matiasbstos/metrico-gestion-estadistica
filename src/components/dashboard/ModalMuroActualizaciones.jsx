@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.1.6',
+      version: 'v6.1.6',
+      fecha: '07 de Septiembre, 2026',
+      badge: 'INTEGRIDAD DE DATOS & REGLA 5 SSOT',
+      badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20',
+      title: 'Auto-Selección Forzada al Último Turno Completo en Actualizaciones',
+      categoria: 'Integridad Asistencial & SSOT',
+      icon: Clock,
+      iconBg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+      summary: 'Se eliminó la selección fija de fechas pasadas y se implementó un motor que garantiza que ante cualquier actualización o recarga, la plataforma muestre estrictamente el último turno clínico 100% completo y cerrado de la base de datos.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que al ingresar a la plataforma o tras actualizarse el código, el sistema nunca muestre fechas antiguas o desfasadas (como el 12 de agosto), sino el último turno asistencial completo con todos sus datos y KPIs al 100%.',
+        quePuedesVer: '1) Selección automática del último turno clínico 100% cerrado (discriminando turnos nocturnos parciales o en curso). 2) Carga inmediata de todos los pacientes, tiempos de espera y métricas reales asociadas a ese turno. 3) Reseteo inteligente de fechas tras cada actualización de versión.',
+        ejemploUso: 'Al ingresar a MÉTRICO o presionar el botón "Limpiar Filtros", el sistema te posicionará directamente en el último turno completado de forma 100% automática.'
+      },
+      changes: [
+        'Erradicación total de fechas fijas/estáticas en el estado inicial de la plataforma.',
+        'Motor de detección dinámica de turno cerrado evaluando turnos y pacientes en tiempo real.',
+        'Sincronización obligatoria al último turno completo en cada despliegue de versión.',
+        'Actualización de presets temporales ("Hoy", "Limpiar") para sincronizar con el turno cerrado más reciente.'
+      ]
+    },
+    {
       id: 'v6.1.5',
       version: 'v6.1.5',
       fecha: '07 de Septiembre, 2026',
