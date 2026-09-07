@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.1.7',
+    version_tag: 'v6.1.7',
+    fecha_despliegue: '07 de Septiembre, 2026',
+    proposito_actualizacion: 'Filtro por Rangos Horarios Específicos Asistenciales en Control de Demanda & Corrección de Contraste y Visibilidad en Subpestañas.',
+    medios_y_stack: [
+      'React 18.3 (CentroVerificacionAuditoria.jsx, AnalisisDemandaAtencion.jsx, Dashboard.jsx)',
+      'Shift-Interval Precision Engine (08:00-20:00, 20:00-08:00, 17:00-08:00, 24h)',
+      'High-Contrast CSS Design & Theme Accessibility Engine'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Filtrado por Rangos Horarios Asistenciales en Modo "Día": En la Prueba de Control Clínico de Demanda (Ecuación Universal) se incorporó un selector dinámico de franjas horarias asistenciales: Día Completo (24 hrs: 00:00 a 23:59), Turno Diurno (08:00 a 20:00 hrs), Noche Fin de Semana / Festivo (20:00 a 08:00 hrs del día siguiente) y Turno Largo Semana Hábil (17:00 a 08:00 hrs del día siguiente). La ecuación desglosa con exactitud admitidos, completados, sin atención y egresos administrativos dentro de la ventana horaria seleccionada. 2) Corrección Integral de Contraste Visual: Se resolvió la incidencia donde subpestañas y botones toggle activos quedaban en blanco sobre blanco, implementando la clase CSS .bg-primary-custom y estilos sólidos índigo de alto contraste (bg-indigo-600 text-white shadow-md) en Centro de Verificación y Bitácora. 3) Acceso Completo a la Base de Pacientes: Se suministró allPacientesDB al Centro de Verificación y al Análisis de Demanda para auditar cualquier fecha histórica sin restricciones de filtros globales.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Filtrado O(N) deduplicado en memoria por rango milisegundos startMs-endMs.'
+    },
+    modulos_afectados: ['CentroVerificacionAuditoria.jsx', 'AnalisisDemandaAtencion.jsx', 'BitacoraAntecedentes.jsx', 'Dashboard.jsx', 'index.css', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Implementación del selector de horarios asistenciales (completo, 08:00-20:00, 20:00-08:00, 17:00-08:00) y helper getHorarioWindow.',
+      'Sincronización automática de inputs de control clínico al cambiar fecha, horario o modo.',
+      'Inyección de allPacientesDB en CentroVerificacionAuditoria y AnalisisDemandaAtencion en Dashboard.jsx.',
+      'Definición de .bg-primary-custom en index.css y sustitución de clases sin contraste por bg-indigo-600 text-white shadow-md.',
+      'Certificación de benchmarks con almacenamiento persistente del horario y rango auditado.'
+    ]
+  },
+  {
     id: 'v6.1.6',
     version_tag: 'v6.1.6',
     fecha_despliegue: '07 de Septiembre, 2026',

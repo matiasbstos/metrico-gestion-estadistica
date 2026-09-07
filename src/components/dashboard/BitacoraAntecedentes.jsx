@@ -634,7 +634,7 @@ export default function BitacoraAntecedentes({
                     onClick={() => setFormModo('rango')}
                     className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       formModo === 'rango'
-                        ? 'bg-primary-custom text-white shadow-sm'
+                        ? 'bg-indigo-600 text-white shadow-md'
                         : 'text-secondary-custom hover:text-primary-custom'
                     }`}
                   >
@@ -646,7 +646,7 @@ export default function BitacoraAntecedentes({
                     onClick={() => setFormModo('mes')}
                     className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       formModo === 'mes'
-                        ? 'bg-primary-custom text-white shadow-sm'
+                        ? 'bg-indigo-600 text-white shadow-md'
                         : 'text-secondary-custom hover:text-primary-custom'
                     }`}
                   >
@@ -658,7 +658,7 @@ export default function BitacoraAntecedentes({
                     onClick={() => setFormModo('dia')}
                     className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       formModo === 'dia'
-                        ? 'bg-primary-custom text-white shadow-sm'
+                        ? 'bg-indigo-600 text-white shadow-md'
                         : 'text-secondary-custom hover:text-primary-custom'
                     }`}
                   >

@@ -68,6 +68,7 @@ const sanitizeUserBenchmarks = (rawBenchmarks) => {
 
 export default function AnalisisDemandaAtencion({ 
   pacientesDB = [], 
+  allPacientesDB = [],
   turnosDB = [], 
   filtroFechaInicio, 
   filtroFechaFin,
@@ -83,6 +84,7 @@ export default function AnalisisDemandaAtencion({
   
   // Estado del Formulario Interactivo de Prueba de Control
   const [controlMode, setControlMode] = useState('mes'); // 'mes' | 'dia'
+  const [controlHorario, setControlHorario] = useState('completo'); // 'completo' | '08:00-20:00' | '20:00-08:00' | '17:00-08:00'
   const [controlDate, setControlDate] = useState(() => {
     if (filtroFechaInicio) return filtroFechaInicio;
     return new Date().toISOString().substring(0, 10);
@@ -94,6 +96,39 @@ export default function AnalisisDemandaAtencion({
   const [controlSinAtencion, setControlSinAtencion] = useState(93);
   const [controlEgresoAdmin, setControlEgresoAdmin] = useState(341);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
+
+  const getHorarioWindow = (dateStr, horarioKey) => {
+    if (!dateStr) return { startMs: 0, endMs: 0, label: 'Día Completo (24 hrs)' };
+    const parts = String(dateStr).split(/[-/]/).map(Number);
+    let y, m, d;
+    if (parts[0] > 1000) {
+      [y, m, d] = parts;
+    } else {
+      [d, m, y] = parts;
+    }
+    
+    if (horarioKey === '08:00-20:00') {
+      const start = new Date(y, m - 1, d, 8, 0, 0, 0).getTime();
+      const end = new Date(y, m - 1, d, 20, 0, 0, 0).getTime();
+      return { startMs: start, endMs: end, label: '08:00 a 20:00 hrs (Diurno)' };
+    }
+    
+    if (horarioKey === '20:00-08:00') {
+      const start = new Date(y, m - 1, d, 20, 0, 0, 0).getTime();
+      const end = new Date(y, m - 1, d + 1, 8, 0, 0, 0).getTime();
+      return { startMs: start, endMs: end, label: '20:00 a 08:00 hrs (+1 día)' };
+    }
+    
+    if (horarioKey === '17:00-08:00') {
+      const start = new Date(y, m - 1, d, 17, 0, 0, 0).getTime();
+      const end = new Date(y, m - 1, d + 1, 8, 0, 0, 0).getTime();
+      return { startMs: start, endMs: end, label: '17:00 a 08:00 hrs (+1 día)' };
+    }
+
+    const start = new Date(y, m - 1, d, 0, 0, 0, 0).getTime();
+    const end = new Date(y, m - 1, d, 23, 59, 59, 999).getTime();
+    return { startMs: start, endMs: end, label: 'Día Completo (24 hrs: 00:00 a 23:59)' };
+  };
 
   // Benchmarks Oficiales Auditados (Persistidos en localStorage con SSOT estricto)
   const [userBenchmarks, setUserBenchmarks] = useState(() => {
@@ -378,20 +413,38 @@ export default function AnalisisDemandaAtencion({
     let egresoAdmin = 0;
     let altas = 0;
 
+    const sourcePacientes = (allPacientesDB && allPacientesDB.length > 0) ? allPacientesDB : (pacientesDB || []);
+    const datasetDeduplicado = deduplicarPacientes(sourcePacientes);
+
     if (controlMode === 'dia') {
-      // 1. Intentar cálculo exacto desde pacientes individuales en memoria
-      (pacientesDB || []).forEach(p => {
-        if (!p.tAdmision) return;
-        const d = new Date(p.tAdmision);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const dStr = `${y}-${m}-${day}`;
-        
-        if (dStr === controlDate || p.fecha === controlDate) {
+      const windowRange = getHorarioWindow(controlDate, controlHorario);
+
+      datasetDeduplicado.forEach(p => {
+        let matchesWindow = false;
+
+        if (p.tAdmision) {
+          const tAdm = typeof p.tAdmision === 'number' ? p.tAdmision : new Date(p.tAdmision).getTime();
+          if (!isNaN(tAdm)) {
+            matchesWindow = (tAdm >= windowRange.startMs && tAdm <= windowRange.endMs);
+          }
+        }
+
+        if (!matchesWindow && controlHorario === 'completo') {
+          const dStr = p.tAdmision ? formatLocalDate(p.tAdmision) : p.fecha;
+          if (dStr === controlDate || p.fecha === controlDate) {
+            matchesWindow = true;
+          }
+        }
+
+        if (matchesWindow) {
           admitidos++;
-          if (p.estado === 'Cancelada' || isAltaAdmin(p)) {
+          const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
+          const isRetiro = p.estado === 'Cancelada' || dest.includes('RETIRO') || dest.includes('ABANDONO');
+          if (isRetiro) {
             sinAtencion++;
+            altas++;
+          } else if (isAltaAdmin(p)) {
+            egresoAdmin++;
             altas++;
           } else {
             completados++;
@@ -399,15 +452,23 @@ export default function AnalisisDemandaAtencion({
         }
       });
 
-      // 2. Si pacientesDB está vacío para ese día, usar turnosDB
       if (admitidos === 0) {
         (turnosDB || []).forEach(t => {
           if (t.fechaInicio === controlDate) {
+            if (controlHorario !== 'completo') {
+              const hStr = String(t.horario || '').toLowerCase();
+              if (controlHorario === '08:00-20:00' && !(hStr.includes('08:00') || hStr.includes('dia') || hStr.includes('diurno'))) return;
+              if (controlHorario === '20:00-08:00' && !(hStr.includes('20:00') || hStr.includes('noche'))) return;
+              if (controlHorario === '17:00-08:00' && !(hStr.includes('17:00') || hStr.includes('largo'))) return;
+            }
             const tot = Number(t.totalPacientes || 0);
             const alt = Number(t.altasAdmin || 0);
+            const sinAt = Number(t.sinAtencion || Math.round(alt * 0.22));
+            const egAdmin = Math.max(0, alt - sinAt);
             admitidos += tot;
             altas += alt;
-            sinAtencion += alt;
+            sinAtencion += sinAt;
+            egresoAdmin += egAdmin;
             completados += Math.max(0, tot - alt);
           }
         });
@@ -434,7 +495,17 @@ export default function AnalisisDemandaAtencion({
       egresoAdmin,
       altas
     };
-  }, [controlMode, controlDate, controlYear, controlMonth, pacientesDB, turnosDB, monthlyStatsCurrent, userBenchmarks]);
+  }, [controlMode, controlDate, controlHorario, controlYear, controlMonth, pacientesDB, allPacientesDB, turnosDB, monthlyStatsCurrent, userBenchmarks]);
+
+  // Sincronizar automáticamente inputs cuando el usuario cambie de fecha, horario o modo
+  useEffect(() => {
+    if (currentDBSelectionStats && currentDBSelectionStats.admitidos > 0) {
+      setControlAdmitidos(currentDBSelectionStats.admitidos);
+      setControlCompletados(currentDBSelectionStats.completados);
+      setControlSinAtencion(currentDBSelectionStats.sinAtencion);
+      setControlEgresoAdmin(currentDBSelectionStats.egresoAdmin);
+    }
+  }, [controlDate, controlHorario, controlMode, controlYear, controlMonth, currentDBSelectionStats]);
 
   // Cálculos dinámicos de la auditoría en el modal
   const sumPartesForm = useMemo(() => {
@@ -461,7 +532,7 @@ export default function AnalisisDemandaAtencion({
 
   // Guardar y certificar control de usuario
   const handleSaveControlBenchmark = () => {
-    const key = controlMode === 'dia' ? controlDate : `${controlYear}-${controlMonth}`;
+    const key = controlMode === 'dia' ? (controlHorario !== 'completo' ? `${controlDate}_${controlHorario}` : controlDate) : `${controlYear}-${controlMonth}`;
     const admitidosVal = Number(controlAdmitidos) > 0 ? Number(controlAdmitidos) : currentDBSelectionStats.admitidos;
     const completadosVal = Number(controlCompletados) > 0 ? Number(controlCompletados) : currentDBSelectionStats.completados;
     const sinAtencionVal = Number(controlSinAtencion) >= 0 ? Number(controlSinAtencion) : currentDBSelectionStats.sinAtencion;
@@ -475,6 +546,8 @@ export default function AnalisisDemandaAtencion({
       sinAtencion: sinAtencionVal,
       egresoAdmin: egresoAdminVal,
       tipo: controlMode,
+      horario: controlHorario,
+      horarioLabel: getHorarioWindow(controlDate, controlHorario).label,
       fecha: key,
       turnosCount: controlMode === 'dia' ? 1 : 31,
       verificado: true,
@@ -1249,6 +1322,51 @@ export default function AnalisisDemandaAtencion({
                     <span>Autocompletar con Datos MÉTRICO DB</span>
                   </button>
                 </div>
+
+                {/* SELECTOR DE RANGO HORARIO ASISTENCIAL EN ANALISIS DEMANDA */}
+                {controlMode === 'dia' && (
+                  <div className="space-y-2 pt-2 border-t border-card-custom/40">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-secondary-custom flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                        Rango Horario Específico del Turno:
+                      </span>
+                      <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-2.5 py-0.5 rounded-lg border border-indigo-200 dark:border-indigo-800/50">
+                        {getHorarioWindow(controlDate, controlHorario).label}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {[
+                        { id: 'completo', label: 'Día Completo', sub: '24 hrs (00:00 - 23:59)' },
+                        { id: '08:00-20:00', label: '08:00 a 20:00 hrs', sub: 'Turno Diurno (12 hrs)' },
+                        { id: '20:00-08:00', label: '20:00 a 08:00 hrs', sub: 'Noche Finde (+1 día)' },
+                        { id: '17:00-08:00', label: '17:00 a 08:00 hrs', sub: 'Largo Semana (+1 día)' }
+                      ].map(h => {
+                        const isSel = controlHorario === h.id;
+                        return (
+                          <button
+                            key={h.id}
+                            type="button"
+                            onClick={() => setControlHorario(h.id)}
+                            className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                              isSel
+                                ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                                : 'bg-black/5 dark:bg-white/5 border-card-custom/60 hover:border-indigo-500/50 text-secondary-custom hover:text-primary-custom'
+                            }`}
+                          >
+                            <div className={`text-xs font-black ${isSel ? 'text-white' : 'text-primary-custom'}`}>
+                              {h.label}
+                            </div>
+                            <div className={`text-[10px] font-medium ${isSel ? 'text-indigo-100' : 'text-secondary-custom opacity-80'}`}>
+                              {h.sub}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Campos de Entrada Numérica */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-1">

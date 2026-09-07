@@ -229,6 +229,10 @@
 .accent-bg-custom {
   background-color: var(--accent-color) !important;
 }
+.bg-primary-custom {
+  background-color: var(--accent-color, #4f46e5) !important;
+  color: #ffffff !important;
+}
 .accent-text-custom {
   color: var(--accent-color) !important;
 }

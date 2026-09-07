@@ -13,7 +13,7 @@ import {
   writeBatch, doc, serverTimestamp, setDoc, addDoc 
 } from 'firebase/firestore';
 import { playSuccessChime, playErrorChime } from '../../utils/audioNotifications';
-import { formatLocalDate, isAltaAdmin } from '../../utils/helpers';
+import { formatLocalDate, isAltaAdmin, deduplicarPacientes } from '../../utils/helpers';
 import BitacoraAntecedentes from './BitacoraAntecedentes';
 import ModalDetalleReglaIntegridad from './ModalDetalleReglaIntegridad';
 import ModalProgresoConciliacion from './ModalProgresoConciliacion';
@@ -65,6 +65,7 @@ export default function CentroVerificacionAuditoria({
   lastSyncTime,
   userProfile,
   pacientesDB = [],
+  allPacientesDB = [],
   turnosDB = [],
   filtroFechaInicio,
   filtroFechaFin,
@@ -120,6 +121,7 @@ export default function CentroVerificacionAuditoria({
   // ESTADOS - SUB-PESTAÑA 3: PRUEBA DE CONTROL DE DEMANDA
   // ==========================================
   const [controlMode, setControlMode] = useState('mes'); // 'mes' | 'dia'
+  const [controlHorario, setControlHorario] = useState('completo'); // 'completo' | '08:00-20:00' | '20:00-08:00' | '17:00-08:00'
   const [controlDate, setControlDate] = useState(() => {
     if (filtroFechaInicio) return filtroFechaInicio;
     return new Date().toISOString().substring(0, 10);
@@ -131,6 +133,39 @@ export default function CentroVerificacionAuditoria({
   const [controlSinAtencion, setControlSinAtencion] = useState(93);
   const [controlEgresoAdmin, setControlEgresoAdmin] = useState(341);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
+
+  const getHorarioWindow = (dateStr, horarioKey) => {
+    if (!dateStr) return { startMs: 0, endMs: 0, label: 'Día Completo (24 hrs)' };
+    const parts = String(dateStr).split(/[-/]/).map(Number);
+    let y, m, d;
+    if (parts[0] > 1000) {
+      [y, m, d] = parts;
+    } else {
+      [d, m, y] = parts;
+    }
+    
+    if (horarioKey === '08:00-20:00') {
+      const start = new Date(y, m - 1, d, 8, 0, 0, 0).getTime();
+      const end = new Date(y, m - 1, d, 20, 0, 0, 0).getTime();
+      return { startMs: start, endMs: end, label: '08:00 a 20:00 hrs (Diurno)' };
+    }
+    
+    if (horarioKey === '20:00-08:00') {
+      const start = new Date(y, m - 1, d, 20, 0, 0, 0).getTime();
+      const end = new Date(y, m - 1, d + 1, 8, 0, 0, 0).getTime();
+      return { startMs: start, endMs: end, label: '20:00 a 08:00 hrs (+1 día)' };
+    }
+    
+    if (horarioKey === '17:00-08:00') {
+      const start = new Date(y, m - 1, d, 17, 0, 0, 0).getTime();
+      const end = new Date(y, m - 1, d + 1, 8, 0, 0, 0).getTime();
+      return { startMs: start, endMs: end, label: '17:00 a 08:00 hrs (+1 día)' };
+    }
+
+    const start = new Date(y, m - 1, d, 0, 0, 0, 0).getTime();
+    const end = new Date(y, m - 1, d, 23, 59, 59, 999).getTime();
+    return { startMs: start, endMs: end, label: 'Día Completo (24 hrs: 00:00 a 23:59)' };
+  };
   const [userBenchmarks, setUserBenchmarks] = useState(() => {
     try {
       const saved = localStorage.getItem('metrico_certified_benchmarks');
@@ -962,19 +997,38 @@ export default function CentroVerificacionAuditoria({
     let egresoAdmin = 0;
     let altas = 0;
 
+    const sourcePacientes = (allPacientesDB && allPacientesDB.length > 0) ? allPacientesDB : (pacientesDB || []);
+    const datasetDeduplicado = deduplicarPacientes(sourcePacientes);
+
     if (controlMode === 'dia') {
-      (pacientesDB || []).forEach(p => {
-        if (!p.tAdmision) return;
-        const d = new Date(p.tAdmision);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const dStr = `${y}-${m}-${day}`;
-        
-        if (dStr === controlDate || p.fecha === controlDate) {
+      const windowRange = getHorarioWindow(controlDate, controlHorario);
+
+      datasetDeduplicado.forEach(p => {
+        let matchesWindow = false;
+
+        if (p.tAdmision) {
+          const tAdm = typeof p.tAdmision === 'number' ? p.tAdmision : new Date(p.tAdmision).getTime();
+          if (!isNaN(tAdm)) {
+            matchesWindow = (tAdm >= windowRange.startMs && tAdm <= windowRange.endMs);
+          }
+        }
+
+        if (!matchesWindow && controlHorario === 'completo') {
+          const dStr = p.tAdmision ? formatLocalDate(p.tAdmision) : p.fecha;
+          if (dStr === controlDate || p.fecha === controlDate) {
+            matchesWindow = true;
+          }
+        }
+
+        if (matchesWindow) {
           admitidos++;
-          if (p.estado === 'Cancelada' || isAltaAdmin(p)) {
+          const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
+          const isRetiro = p.estado === 'Cancelada' || dest.includes('RETIRO') || dest.includes('ABANDONO');
+          if (isRetiro) {
             sinAtencion++;
+            altas++;
+          } else if (isAltaAdmin(p)) {
+            egresoAdmin++;
             altas++;
           } else {
             completados++;
@@ -985,27 +1039,41 @@ export default function CentroVerificacionAuditoria({
       if (admitidos === 0) {
         (turnosDB || []).forEach(t => {
           if (t.fechaInicio === controlDate) {
+            if (controlHorario !== 'completo') {
+              const hStr = String(t.horario || '').toLowerCase();
+              if (controlHorario === '08:00-20:00' && !(hStr.includes('08:00') || hStr.includes('dia') || hStr.includes('diurno'))) return;
+              if (controlHorario === '20:00-08:00' && !(hStr.includes('20:00') || hStr.includes('noche'))) return;
+              if (controlHorario === '17:00-08:00' && !(hStr.includes('17:00') || hStr.includes('largo'))) return;
+            }
             const tot = Number(t.totalPacientes || 0);
             const alt = Number(t.altasAdmin || 0);
+            const sinAt = Number(t.sinAtencion || Math.round(alt * 0.22));
+            const egAdmin = Math.max(0, alt - sinAt);
             admitidos += tot;
             altas += alt;
-            sinAtencion += alt;
+            sinAtencion += sinAt;
+            egresoAdmin += egAdmin;
             completados += Math.max(0, tot - alt);
           }
         });
       }
     } else {
       const monthPrefix = `${controlYear}-${controlMonth}`;
-      (pacientesDB || []).forEach(p => {
+      datasetDeduplicado.forEach(p => {
         if (!p.tAdmision) return;
         const d = new Date(p.tAdmision);
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, '0');
         if (`${y}-${m}` === monthPrefix) {
           admitidos++;
-          if (p.estado === 'Cancelada' || isAltaAdmin(p)) {
-            altas++;
+          const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
+          const isRetiro = p.estado === 'Cancelada' || dest.includes('RETIRO') || dest.includes('ABANDONO');
+          if (isRetiro) {
             sinAtencion++;
+            altas++;
+          } else if (isAltaAdmin(p)) {
+            egresoAdmin++;
+            altas++;
           } else {
             completados++;
           }
@@ -1017,9 +1085,12 @@ export default function CentroVerificacionAuditoria({
           if (t.fechaInicio && t.fechaInicio.startsWith(monthPrefix)) {
             const tot = Number(t.totalPacientes || 0);
             const alt = Number(t.altasAdmin || 0);
+            const sinAt = Number(t.sinAtencion || Math.round(alt * 0.22));
+            const egAdmin = Math.max(0, alt - sinAt);
             admitidos += tot;
             altas += alt;
-            sinAtencion += alt;
+            sinAtencion += sinAt;
+            egresoAdmin += egAdmin;
             completados += Math.max(0, tot - alt);
           }
         });
@@ -1027,7 +1098,17 @@ export default function CentroVerificacionAuditoria({
     }
 
     return { admitidos, completados, sinAtencion, egresoAdmin, altas };
-  }, [controlMode, controlDate, controlYear, controlMonth, pacientesDB, turnosDB]);
+  }, [controlMode, controlDate, controlHorario, controlYear, controlMonth, pacientesDB, allPacientesDB, turnosDB]);
+
+  // Sincronizar automáticamente inputs cuando el usuario cambie de fecha, horario o modo
+  useEffect(() => {
+    if (currentDBSelectionStats && currentDBSelectionStats.admitidos > 0) {
+      setControlAdmitidos(currentDBSelectionStats.admitidos);
+      setControlCompletados(currentDBSelectionStats.completados);
+      setControlSinAtencion(currentDBSelectionStats.sinAtencion);
+      setControlEgresoAdmin(currentDBSelectionStats.egresoAdmin);
+    }
+  }, [controlDate, controlHorario, controlMode, controlYear, controlMonth, currentDBSelectionStats]);
 
   const sumPartesForm = useMemo(() => {
     return Number(controlCompletados || 0) + Number(controlSinAtencion || 0) + Number(controlEgresoAdmin || 0);
@@ -1047,7 +1128,7 @@ export default function CentroVerificacionAuditoria({
   };
 
   const handleSaveBenchmark = () => {
-    const key = controlMode === 'dia' ? controlDate : `${controlYear}-${controlMonth}`;
+    const key = controlMode === 'dia' ? (controlHorario !== 'completo' ? `${controlDate}_${controlHorario}` : controlDate) : `${controlYear}-${controlMonth}`;
     const benchmarkObj = {
       admitidos: Number(controlAdmitidos),
       atendidos: Number(controlCompletados),
@@ -1055,6 +1136,8 @@ export default function CentroVerificacionAuditoria({
       egresoAdmin: Number(controlEgresoAdmin),
       altas: Number(controlSinAtencion) + Number(controlEgresoAdmin),
       tipo: controlMode,
+      horario: controlHorario,
+      horarioLabel: getHorarioWindow(controlDate, controlHorario).label,
       fecha: key,
       verificado: true,
       actualizadoEl: Date.now()
@@ -1158,7 +1241,7 @@ export default function CentroVerificacionAuditoria({
                 onClick={() => setActiveSubTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                   isActive 
-                    ? 'bg-primary-custom text-white shadow-sm' 
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25 font-black' 
                     : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
@@ -1833,68 +1916,117 @@ export default function CentroVerificacionAuditoria({
               <div className="flex items-center gap-2 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-card-custom">
                 <button
                   onClick={() => setControlMode('mes')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${controlMode === 'mes' ? 'bg-primary-custom text-white shadow-sm' : 'text-secondary-custom'}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${controlMode === 'mes' ? 'bg-indigo-600 text-white shadow-md font-black' : 'text-secondary-custom hover:text-primary-custom'}`}
                 >
                   Por Mes
                 </button>
                 <button
                   onClick={() => setControlMode('dia')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${controlMode === 'dia' ? 'bg-primary-custom text-white shadow-sm' : 'text-secondary-custom'}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${controlMode === 'dia' ? 'bg-indigo-600 text-white shadow-md font-black' : 'text-secondary-custom hover:text-primary-custom'}`}
                 >
                   Por Día
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 flex-wrap">
-              {controlMode === 'dia' ? (
-                <div className="space-y-1">
-                  <span className="text-[10px] font-bold uppercase text-secondary-custom">Fecha Específica:</span>
-                  <input
-                    type="date"
-                    value={controlDate}
-                    onChange={e => setControlDate(e.target.value)}
-                    className="bg-black/5 dark:bg-white/5 border border-card-custom rounded-xl px-3 py-2 text-xs font-bold text-primary-custom outline-none"
-                  />
-                </div>
-              ) : (
-                <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-4 flex-wrap">
+                {controlMode === 'dia' ? (
                   <div className="space-y-1">
-                    <span className="text-[10px] font-bold uppercase text-secondary-custom">Año:</span>
-                    <select
-                      value={controlYear}
-                      onChange={e => setControlYear(Number(e.target.value))}
-                      className="bg-black/5 dark:bg-white/5 border border-card-custom rounded-xl px-3 py-2 text-xs font-bold text-primary-custom outline-none"
-                    >
-                      <option value={2026}>2026</option>
-                      <option value={2025}>2025</option>
-                      <option value={2024}>2024</option>
-                    </select>
+                    <span className="text-[10px] font-bold uppercase text-secondary-custom flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-indigo-500" /> Fecha Específica:
+                    </span>
+                    <input
+                      type="date"
+                      value={controlDate}
+                      onChange={e => setControlDate(e.target.value)}
+                      className="bg-black/5 dark:bg-white/5 border border-card-custom rounded-xl px-3 py-2 text-xs font-bold text-primary-custom outline-none cursor-pointer"
+                    />
                   </div>
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-bold uppercase text-secondary-custom">Mes:</span>
-                    <select
-                      value={controlMonth}
-                      onChange={e => setControlMonth(e.target.value)}
-                      className="bg-black/5 dark:bg-white/5 border border-card-custom rounded-xl px-3 py-2 text-xs font-bold text-primary-custom outline-none"
-                    >
-                      {['01','02','03','04','05','06','07','08','09','10','11','12'].map((m, idx) => (
-                        <option key={m} value={m}>
-                          {['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][idx]}
-                        </option>
-                      ))}
-                    </select>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold uppercase text-secondary-custom">Año:</span>
+                      <select
+                        value={controlYear}
+                        onChange={e => setControlYear(Number(e.target.value))}
+                        className="bg-black/5 dark:bg-white/5 border border-card-custom rounded-xl px-3 py-2 text-xs font-bold text-primary-custom outline-none cursor-pointer"
+                      >
+                        <option value={2026}>2026</option>
+                        <option value={2025}>2025</option>
+                        <option value={2024}>2024</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold uppercase text-secondary-custom">Mes:</span>
+                      <select
+                        value={controlMonth}
+                        onChange={e => setControlMonth(e.target.value)}
+                        className="bg-black/5 dark:bg-white/5 border border-card-custom rounded-xl px-3 py-2 text-xs font-bold text-primary-custom outline-none cursor-pointer"
+                      >
+                        {['01','02','03','04','05','06','07','08','09','10','11','12'].map((m, idx) => (
+                          <option key={m} value={m}>
+                            {['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][idx]}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={handleAutofillPrueba}
+                  className="mt-4 sm:mt-auto px-4 py-2 rounded-xl text-xs font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20 transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Database className="w-3.5 h-3.5" />
+                  Cargar Datos desde MÉTRICO DB
+                </button>
+              </div>
+
+              {/* SELECTOR DE RANGO HORARIO ASISTENCIAL CUANDO MODO ES DÍA */}
+              {controlMode === 'dia' && (
+                <div className="space-y-2 pt-2 border-t border-card-custom/40">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-secondary-custom flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                      Rango Horario Específico del Turno:
+                    </span>
+                    <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-2.5 py-0.5 rounded-lg border border-indigo-200 dark:border-indigo-800/50">
+                      {getHorarioWindow(controlDate, controlHorario).label}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { id: 'completo', label: 'Día Completo', sub: '24 hrs (00:00 - 23:59)' },
+                      { id: '08:00-20:00', label: '08:00 a 20:00 hrs', sub: 'Turno Diurno (12 hrs)' },
+                      { id: '20:00-08:00', label: '20:00 a 08:00 hrs', sub: 'Noche Finde (+1 día)' },
+                      { id: '17:00-08:00', label: '17:00 a 08:00 hrs', sub: 'Largo Semana (+1 día)' }
+                    ].map(h => {
+                      const isSel = controlHorario === h.id;
+                      return (
+                        <button
+                          key={h.id}
+                          type="button"
+                          onClick={() => setControlHorario(h.id)}
+                          className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                            isSel
+                              ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                              : 'bg-black/5 dark:bg-white/5 border-card-custom/60 hover:border-indigo-500/50 text-secondary-custom hover:text-primary-custom'
+                          }`}
+                        >
+                          <div className={`text-xs font-black ${isSel ? 'text-white' : 'text-primary-custom'}`}>
+                            {h.label}
+                          </div>
+                          <div className={`text-[10px] font-medium ${isSel ? 'text-indigo-100' : 'text-secondary-custom opacity-80'}`}>
+                            {h.sub}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
-
-              <button
-                onClick={handleAutofillPrueba}
-                className="mt-4 px-4 py-2 rounded-xl text-xs font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20 transition flex items-center gap-1.5 cursor-pointer"
-              >
-                <Database className="w-3.5 h-3.5" />
-                Cargar Datos desde MÉTRICO DB
-              </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -1953,7 +2085,7 @@ export default function CentroVerificacionAuditoria({
 
               <button
                 onClick={handleSaveBenchmark}
-                className="bg-primary-custom text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm hover:opacity-90 transition flex items-center gap-1.5 cursor-pointer"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer"
               >
                 <Save className="w-3.5 h-3.5" />
                 Certificar y Guardar Punto

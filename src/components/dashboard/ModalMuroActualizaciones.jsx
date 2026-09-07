@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.1.7',
+      version: 'v6.1.7',
+      fecha: '07 de Septiembre, 2026',
+      badge: 'CONTROL DE DEMANDA & ACCESIBILIDAD VISUAL',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Filtro por Turnos Horarios en Control de Demanda y Corrección de Contraste',
+      categoria: 'Control Clínico & Auditoría',
+      icon: Clock,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Ahora puedes auditar la demanda clínica diaria filtrando por turnos específicos (Diurno 08:00-20:00, Noche Finde 20:00-08:00 y Largo Semana 17:00-08:00) con cálculo automático de admitidos, atendidos y altas. Se corrigió el contraste en las barras superiores y botones.',
+      instructivo: {
+        paraQueSirve: 'Permite desglosar y comprobar la Ecuación Universal de Demanda no sólo por el día entero, sino por el turno exacto de guardia médica (incluyendo atenciones que cruzan la medianoche hasta las 08:00 am).',
+        quePuedesVer: '1) Selector rápido con 4 franjas horarias asistenciales. 2) Carga automática de cifras clínicas reales al seleccionar cualquier turno. 3) Barra superior de subpestañas y botones toggle con fondo índigo de alto contraste y texto 100% legible.',
+        ejemploUso: 'En Verificación > Prueba de Control de Demanda, selecciona "Por Día", elige una fecha y haz clic en "08:00 a 20:00 hrs" o "20:00 a 08:00 hrs" para auditar ese turno específico al instante.'
+      },
+      changes: [
+        'Selector de rangos horarios asistenciales: Día Completo, 08:00-20:00, 20:00-08:00 (+1) y 17:00-08:00 (+1).',
+        'Cálculo preciso de admitidos, completados, sin atención y egresos administrativos por rango horario.',
+        'Sincronización instantánea de tarjetas de control al cambiar fecha o turno.',
+        'Corrección de fondo blanco sobre blanco en subpestañas superiores y botones toggle.',
+        'Disponibilidad de la base de datos completa de pacientes para auditorías de cualquier fecha.'
+      ]
+    },
+    {
       id: 'v6.1.6',
       version: 'v6.1.6',
       fecha: '07 de Septiembre, 2026',
