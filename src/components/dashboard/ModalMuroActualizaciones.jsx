@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.1.5',
+      version: 'v6.1.5',
+      fecha: '07 de Septiembre, 2026',
+      badge: 'VISUALIZACIÓN & EXPERIENCIA DE USUARIO',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Vista Ampliada Full-Screen y Desaturación de Etiquetas en Gráficos',
+      categoria: 'Gráficos Dinámicos & UX',
+      icon: Maximize2,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'La ventana de análisis de tendencias ahora ocupa el 100% de la pantalla (de lado a lado y de arriba a abajo) y oculta automáticamente las etiquetas sobrecargadas en periodos largos para que las curvas se aprecien con máxima claridad.',
+      instructivo: {
+        paraQueSirve: 'Permite inspeccionar curvas de demanda anuales, mensuales y de tiempos a pantalla completa con máxima resolución sin que los números se amontonen o tapen el gráfico.',
+        quePuedesVer: '1) Modal ampliado de extremo a extremo (99% de ancho y 98% de alto). 2) Curvas limpias y fluidas sin colisión de textos. 3) Fechas en el eje X espaciadas automáticamente. 4) Valores exactos disponibles pasando el mouse sobre cualquier punto o barra.',
+        ejemploUso: 'Haz clic en el icono de expandir en cualquier gráfico de tendencias para abrir la vista completa de pantalla completa.'
+      },
+      changes: [
+        'Ventana modal expandida de lado a lado y de arriba a abajo en todo tipo de pantallas.',
+        'Ocultación inteligente de etiquetas numéricas superpuestas en periodos de más de 35 días.',
+        'Espaciado e inclinación dinámica de fechas en el eje horizontal para evitar traslapes.',
+        'Mayor área vertical y horizontal para todas las pestañas de análisis.'
+      ]
+    },
+    {
       id: 'v6.1.4',
       version: 'v6.1.4',
       fecha: '07 de Septiembre, 2026',

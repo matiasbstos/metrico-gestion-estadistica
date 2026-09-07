@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.1.5',
+    version_tag: 'v6.1.5',
+    fecha_despliegue: '07 de Septiembre, 2026',
+    proposito_actualizacion: 'Ampliación Full-Screen Borde a Borde (Edge-to-Edge) y Desaturación Inteligente de Etiquetas en Vista Ampliada de Gráfico Dinámico.',
+    medios_y_stack: [
+      'React 18.3 (GraficoDinamico.jsx)',
+      'Recharts Dynamic Tick & Label Density Controller',
+      'Full Viewport Responsive Edge-to-Edge Layout (99vw x 98vh)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Maximización de Espacio Visual Edge-to-Edge: La ventana modal de análisis de tendencias (`GraficoDinamico.jsx`) se rediseñó para aprovechar el 99% del ancho (`99vw`) y 98% del alto (`98vh`) del viewport con padding perimetral mínimo (`p-1 sm:p-2`), permitiendo expandir horizontal y verticalmente las series temporales y curvas de demanda sin compresión visual. 2) Supresión Inteligente de Saturación Numérica (De-crowding): En rangos temporales extensos (semanas, meses o año completo donde `chartData.length > 35`), el sistema oculta automáticamente las etiquetas flotantes individuales (`<LabelList>`) que colisionaban entre sí, conservando la visualización limpia de la curva y reservando la lectura numérica detallada para el Tooltip interactivo al posar el cursor o seleccionar un punto.',
+      firestore_collections: ['pacientes_urgencia'],
+      query_optimization: 'Cálculo dinámico de intervalo de ticks XAxis O(1) y render condicional de etiquetas según densidad del dataset.'
+    },
+    modulos_afectados: ['GraficoDinamico.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Ampliación del modal de análisis de tendencias a w-[99vw] h-[98vh] con reducción de márgenes perimetrales.',
+      'Condicionamiento de <LabelList> en curvas de volumen total y altas administrativas para datasets con longitud <= 35.',
+      'Cálculo adaptativo de intervalo angular e inclinación en XAxis para evitar solapamiento de fechas en vistas anuales y mensuales.',
+      'Optimización de la altura del contenedor interno de gráficos (flex-1) para máximo aprovechamiento vertical.'
+    ]
+  },
+  {
     id: 'v6.1.4',
     version_tag: 'v6.1.4',
     fecha_despliegue: '07 de Septiembre, 2026',

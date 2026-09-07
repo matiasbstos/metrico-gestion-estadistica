@@ -413,17 +413,48 @@ export default function GraficoDinamico({
                                 </linearGradient>
                               </defs>
                               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
-                              <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} tickMargin={10} tick={{ fill: 'var(--text-secondary)' }} />
+                              <XAxis 
+                                dataKey="name" 
+                                fontSize={chartData.length > 50 ? 9 : 10} 
+                                axisLine={false} 
+                                tickLine={false} 
+                                tickMargin={8} 
+                                angle={chartData.length > 20 ? -35 : 0}
+                                textAnchor={chartData.length > 20 ? 'end' : 'middle'}
+                                height={chartData.length > 20 ? 40 : 25}
+                                interval={chartData.length > 80 ? Math.ceil(chartData.length / 20) : (chartData.length > 30 ? 'preserveStartEnd' : 0)}
+                                tick={{ fill: 'var(--text-secondary)' }} 
+                              />
                               <YAxis fontSize={10} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)' }} />
                               <Tooltip content={<CustomTooltip />} />
                               <Legend wrapperStyle={{fontSize: '11px'}} />
-                              {opFilters.includes('totalPacientes') && <Area type="monotone" dataKey="totalPacientes" name="Volumen Total" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorVolumen)" dot={{ r: 4, fill: '#3b82f6' }} />}
+                              {opFilters.includes('totalPacientes') && (
+                                <Area 
+                                  type="monotone" 
+                                  dataKey="totalPacientes" 
+                                  name="Volumen Total" 
+                                  stroke="#3b82f6" 
+                                  strokeWidth={chartData.length > 60 ? 2 : 3} 
+                                  fillOpacity={1} 
+                                  fill="url(#colorVolumen)" 
+                                  dot={chartData.length > 50 ? false : { r: 3, fill: '#3b82f6' }} 
+                                />
+                              )}
                               {opFilters.includes('c1') && <Bar dataKey="c1" name="C1" stackId="triage" fill={COLORS.c1} maxBarSize={55} />}
                               {opFilters.includes('c2') && <Bar dataKey="c2" name="C2" stackId="triage" fill={COLORS.c2} maxBarSize={55} />}
                               {opFilters.includes('c3') && <Bar dataKey="c3" name="C3" stackId="triage" fill={COLORS.c3} maxBarSize={55} />}
                               {opFilters.includes('c4') && <Bar dataKey="c4" name="C4" stackId="triage" fill={COLORS.c4} maxBarSize={55} />}
                               {opFilters.includes('c5') && <Bar dataKey="c5" name="C5" stackId="triage" fill={COLORS.c5} maxBarSize={55} radius={[4,4,0,0]} />}
-                              {opFilters.includes('altasAdmin') && <Line type="monotone" dataKey="altasAdmin" name="Altas Admin" stroke="#ef4444" strokeWidth={2.5} dot={{r: 5, fill: '#ef4444'}} />}
+                              {opFilters.includes('altasAdmin') && (
+                                <Line 
+                                  type="monotone" 
+                                  dataKey="altasAdmin" 
+                                  name="Altas Admin" 
+                                  stroke="#ef4444" 
+                                  strokeWidth={2} 
+                                  dot={chartData.length > 50 ? false : {r: 4, fill: '#ef4444'}} 
+                                />
+                              )}
                             </ComposedChart>
                           </ResponsiveContainer>
                         </div>
@@ -649,19 +680,19 @@ export default function GraficoDinamico({
 
       {/* MODAL PANTALLA COMPLETA / GRÁFICO EXPANDIDO CON CONTROLES REPLICADOS Y ALTO CONTRASTE */}
       {isExpanded && createPortal(
-        <div className="fixed inset-0 z-[9999] bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-3 md:p-6 animate-fade-in">
-          <div className="bg-card-custom border border-card-custom w-full max-w-7xl h-[92vh] rounded-[2rem] p-6 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] flex flex-col justify-between theme-transition relative overflow-hidden">
+        <div className="fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-1 sm:p-2 animate-fade-in">
+          <div className="bg-card-custom border border-card-custom w-[99vw] h-[98vh] max-w-none rounded-2xl md:rounded-3xl p-3 md:p-4 shadow-2xl flex flex-col justify-between theme-transition relative overflow-hidden">
             
             {/* Cabecera Modal */}
             <div>
-              <div className="flex justify-between items-start border-b border-card-custom pb-3 mb-3">
+              <div className="flex justify-between items-start border-b border-card-custom pb-2 mb-2">
                 <div>
                   <h3 className="text-lg font-black text-primary-custom tracking-tight flex items-center gap-2">
                     <Maximize2 className="w-5 h-5 text-indigo-500" />
                     Análisis de Tendencias - Vista Ampliada & Escala Dinámica
                   </h3>
                   <p className="text-xs text-secondary-custom font-semibold mt-0.5">
-                    Navega por todos los análisis y alterna opciones de visualización sin salir de esta vista.
+                    Navega por todos los análisis y alterna opciones de visualización con escala ampliada de extremo a extremo.
                   </p>
                 </div>
                 <button 
@@ -681,26 +712,39 @@ export default function GraficoDinamico({
             </div>
 
             {/* Contenido Gráfico Expandido con Fondo Limpio de Alto Contraste */}
-            <div className="flex-1 w-full min-h-0 bg-white dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 my-2 relative overflow-hidden flex flex-col justify-center shadow-inner">
+            <div className="flex-1 w-full min-h-0 bg-white dark:bg-slate-900/70 p-2 md:p-4 rounded-xl md:rounded-2xl border border-slate-200 dark:border-slate-800 my-1 md:my-2 relative overflow-hidden flex flex-col justify-center shadow-inner">
               
               {/* TAB 1: OPERACIONAL (EXPANDIDO) */}
               {activeTab === 'operacional' && (
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                  <ComposedChart data={chartData} margin={{ top: 25, right: 30, left: 0, bottom: 20 }}>
+                  <ComposedChart data={chartData} margin={{ top: 20, right: 25, left: -10, bottom: chartData.length > 20 ? 25 : 10 }}>
                     <defs>
                       <linearGradient id="colorVolumenExpanded" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.18}/>
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.20}/>
                         <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.25)" />
-                    <XAxis dataKey="name" fontSize={11} axisLine={false} tickLine={false} tickMargin={10} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
+                    <XAxis 
+                      dataKey="name" 
+                      fontSize={chartData.length > 50 ? 9 : 11} 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tickMargin={8} 
+                      angle={chartData.length > 20 ? -35 : 0}
+                      textAnchor={chartData.length > 20 ? 'end' : 'middle'}
+                      height={chartData.length > 20 ? 45 : 30}
+                      interval={chartData.length > 80 ? Math.ceil(chartData.length / 25) : (chartData.length > 30 ? 'preserveStartEnd' : 0)}
+                      tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} 
+                    />
                     <YAxis fontSize={11} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} domain={['auto', 'auto']} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', paddingTop: '10px' }} />
+                    <Legend wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', paddingTop: '6px' }} />
                     {opFilters.includes('totalPacientes') && (
-                      <Area type="monotone" dataKey="totalPacientes" name="Volumen Total" stroke="#3b82f6" strokeWidth={3.5} fillOpacity={1} fill="url(#colorVolumenExpanded)">
-                        <LabelList dataKey="totalPacientes" position="top" style={{ fill: '#3b82f6', fontSize: '11px', fontWeight: 'bold' }} />
+                      <Area type="monotone" dataKey="totalPacientes" name="Volumen Total" stroke="#3b82f6" strokeWidth={chartData.length > 60 ? 2 : 3} fillOpacity={1} fill="url(#colorVolumenExpanded)">
+                        {chartData.length <= 35 && (
+                          <LabelList dataKey="totalPacientes" position="top" style={{ fill: '#3b82f6', fontSize: '11px', fontWeight: 'bold' }} />
+                        )}
                       </Area>
                     )}
                     {opFilters.includes('c1') && <Bar dataKey="c1" name="C1" stackId="triage" fill={COLORS.c1} />}
@@ -709,8 +753,10 @@ export default function GraficoDinamico({
                     {opFilters.includes('c4') && <Bar dataKey="c4" name="C4" stackId="triage" fill={COLORS.c4} />}
                     {opFilters.includes('c5') && <Bar dataKey="c5" name="C5" stackId="triage" fill={COLORS.c5} radius={[4,4,0,0]} />}
                     {opFilters.includes('altasAdmin') && (
-                      <Line type="monotone" dataKey="altasAdmin" name="Altas Admin" stroke="#ef4444" strokeWidth={3} dot={{r: 6}}>
-                        <LabelList dataKey="altasAdmin" position="top" style={{ fill: '#ef4444', fontSize: '10px', fontWeight: 'bold' }} />
+                      <Line type="monotone" dataKey="altasAdmin" name="Altas Admin" stroke="#ef4444" strokeWidth={2.5} dot={{r: chartData.length > 60 ? 2 : 5}}>
+                        {chartData.length <= 35 && (
+                          <LabelList dataKey="altasAdmin" position="top" style={{ fill: '#ef4444', fontSize: '10px', fontWeight: 'bold' }} />
+                        )}
                       </Line>
                     )}
                   </ComposedChart>
@@ -720,16 +766,27 @@ export default function GraficoDinamico({
               {/* TAB 2: TIEMPOS DE ATENCIÓN (EXPANDIDO) */}
               {activeTab === 'tiempos' && (
                 <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                  <LineChart data={tiemposGranularity === 'hora' ? hourlyTimesData : chartData} margin={{ top: 25, right: 30, left: 0, bottom: 20 }}>
+                  <LineChart data={tiemposGranularity === 'hora' ? hourlyTimesData : chartData} margin={{ top: 20, right: 25, left: -10, bottom: (tiemposGranularity === 'hora' ? 24 : chartData.length) > 20 ? 25 : 10 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.25)" />
-                    <XAxis dataKey="name" fontSize={11} axisLine={false} tickLine={false} tickMargin={10} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} />
+                    <XAxis 
+                      dataKey="name" 
+                      fontSize={chartData.length > 50 ? 9 : 11} 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tickMargin={8} 
+                      angle={(tiemposGranularity === 'hora' ? 24 : chartData.length) > 20 ? -35 : 0}
+                      textAnchor={(tiemposGranularity === 'hora' ? 24 : chartData.length) > 20 ? 'end' : 'middle'}
+                      height={(tiemposGranularity === 'hora' ? 24 : chartData.length) > 20 ? 45 : 30}
+                      interval={chartData.length > 80 ? Math.ceil(chartData.length / 25) : (chartData.length > 30 ? 'preserveStartEnd' : 0)}
+                      tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} 
+                    />
                     <YAxis fontSize={11} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-primary)', fontWeight: 'bold' }} domain={['auto', 'auto']} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Legend wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', paddingTop: '10px' }} />
-                    {timeFilters.includes('tiempoCatAna') && <Line type="monotone" dataKey="tiempoCatAna" name="Espera Médico" stroke="#ec4899" strokeWidth={3.5} dot={{r: 5}} />}
-                    {timeFilters.includes('tiempoAdmCat') && <Line type="monotone" dataKey="tiempoAdmCat" name="Espera Triaje" stroke="#8b5cf6" strokeWidth={3.5} dot={{r: 5}} />}
-                    {timeFilters.includes('tiempoAnaAlt') && <Line type="monotone" dataKey="tiempoAnaAlt" name="Tiempo Box" stroke="#14b8a6" strokeWidth={2.5} strokeDasharray="5 5" dot={{r: 4}} />}
-                    {timeFilters.includes('tiempoAdmAlt') && <Line type="monotone" dataKey="tiempoAdmAlt" name="Estadía Total" stroke="#6366f1" strokeWidth={2.5} strokeDasharray="5 5" dot={{r: 4}} />}
+                    <Legend wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', paddingTop: '6px' }} />
+                    {timeFilters.includes('tiempoCatAna') && <Line type="monotone" dataKey="tiempoCatAna" name="Espera Médico" stroke="#ec4899" strokeWidth={3} dot={{r: 4}} />}
+                    {timeFilters.includes('tiempoAdmCat') && <Line type="monotone" dataKey="tiempoAdmCat" name="Espera Triaje" stroke="#8b5cf6" strokeWidth={3} dot={{r: 4}} />}
+                    {timeFilters.includes('tiempoAnaAlt') && <Line type="monotone" dataKey="tiempoAnaAlt" name="Tiempo Box" stroke="#14b8a6" strokeWidth={2.5} strokeDasharray="5 5" dot={{r: 3}} />}
+                    {timeFilters.includes('tiempoAdmAlt') && <Line type="monotone" dataKey="tiempoAdmAlt" name="Estadía Total" stroke="#6366f1" strokeWidth={2.5} strokeDasharray="5 5" dot={{r: 3}} />}
                   </LineChart>
                 </ResponsiveContainer>
               )}
