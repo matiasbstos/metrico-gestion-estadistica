@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.2.1',
+    version_tag: 'v6.2.1',
+    fecha_despliegue: '08 de Septiembre, 2026',
+    proposito_actualizacion: 'Refactorización de Rendimiento de Turnos enfocada 100% en Equipos de Triage y Flujo de Admisión con ComposedChart de Doble Eje y Alias Visuales.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisComparativoTriple.jsx, Dashboard.jsx)',
+      'Recharts ComposedChart (Bar + Line con Doble Eje Y Izquierdo y Derecho)',
+      'Pautas de Turnos Engine (resolverEquipoTurno y pautasDB)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Evaluación Pura de Equipos de Triage: Se erradicaron las métricas de médicos activos y atenciones/médico en el módulo de Rendimiento de Turnos, concentrando la evaluación en los 3 KPIs esenciales de desempeño del equipo de guardia: Volumen Total Ingresado, Latencia Promedio a Triage (tCat1 - tAdmision con delta invertido de eficiencia) y Criterio de Alta Complejidad % C1+C2+C3. 2) Visualización Integral de Sobrecarga con ComposedChart: Se combinaron barras de volumen C1-C5 (Eje Y izquierdo en pacientes) con líneas continuas de latencia promedio por categoría (Eje Y derecho en minutos), permitiendo identificar si un equipo colapsa sus tiempos de atención ante un alto flujo de pacientes C3 o C4. 3) Alias Visuales Gerenciales: Se integró soporte para etiquetado visual editable de los periodos ("Turno Equipo 1", "Turno Equipo 2", etc.) con auto-detección mediante la rotativa oficial de pautas.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Cómputo instantáneo O(N) con desglose por categoría y doble agregación paralela de volumen y latencia.'
+    },
+    modulos_afectados: ['AnalisisComparativoTriple.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Refactorización completa de AnalisisComparativoTriple.jsx: eliminación de médicosSet y pacPorMedico.',
+      'Incorporación de los 3 KPIs de cabecera: Volumen Total, Latencia Promedio a Triage y % Alta Complejidad (C1+C2+C3) con indicadores de variación comparativa.',
+      'Sustitución de BarChart por ComposedChart con doble eje Y (pacientes e/y minutos) y tooltip enriquecido.',
+      'Inyección de pautasDB desde Dashboard.jsx y soporte de alias visuales interactivos.',
+      'Despliegue verificado en producción Firebase Hosting con versión v6.2.1.'
+    ]
+  },
+  {
     id: 'v6.2.0',
     version_tag: 'v6.2.0',
     fecha_despliegue: '08 de Septiembre, 2026',

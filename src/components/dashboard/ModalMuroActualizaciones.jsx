@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.2.1',
+      version: 'v6.2.1',
+      fecha: '08 de Septiembre, 2026',
+      badge: 'EVALUACIÓN PURA DE EQUIPOS DE TRIAGE & COMPOSEDCHART',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Refactorización de Rendimiento de Turnos Enfocada 100% en Equipos de Triage y Flujo',
+      categoria: 'Gestión Asistencial & Rendimiento',
+      icon: Gauge,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se desarticularon las métricas médicas del módulo de Rendimiento de Turnos para enfocarlo 100% en la eficiencia de los Equipos de Guardia (1, 2 y 3) en admisión y triage, incorporando KPIs de latencia, % de alta complejidad y un gráfico ComposedChart con doble eje Y.',
+      instructivo: {
+        paraQueSirve: 'Permite a jefaturas y coordinadores clínicos evaluar el desempeño puro de los equipos de admisión y categorización (triage) sin interferencia de tiempos médicos, detectando cuellos de botella y sobrecargas en pacientes C3 y C4.',
+        quePuedesVer: '1) Tres KPIs Maestros de Equipo: Volumen Total Ingresado, Latencia Promedio a Triage (con indicador invertido donde menor espera es verde) y Criterio de Alta Complejidad % (C1+C2+C3). 2) Gráfico ComposedChart con Doble Eje Y: Barras de volumen de pacientes por nivel de triaje (Eje Y Izq.) combinadas con líneas continuas de tiempo de espera promedio en minutos (Eje Y Der. ⏱️). 3) Alias Visuales Editables: Permite asignar nombres directos como "Turno Equipo 1", "Turno Equipo 2" o personalizados a cada periodo para presentaciones gerenciales.',
+        ejemploUso: 'Ingresa al módulo "Rendimiento de Turnos" desde la barra lateral. Selecciona tres jornadas para comparar los equipos de turno. Verás en las tarjetas los KPIs de equipo y en el gráfico inferior podrás corroborar si ante un mayor volumen de C3 o C4 la línea de latencia en minutos se dispara.'
+      },
+      changes: [
+        'Eliminación de métricas de médicos activos y atenciones/médico en AnalisisComparativoTriple.jsx.',
+        'Implementación de los 3 KPIs de equipo: Volumen Total, Tiempo Promedio a Triage y % Alta Complejidad (C1+C2+C3).',
+        'Conversión del gráfico a ComposedChart de Recharts con doble eje Y (Volumen e/y Latencia en minutos).',
+        'Soporte para alias visuales interactivos de equipos con auto-detección mediante la rotativa oficial de pautas.',
+        'Inyección de pautasDB desde Dashboard.jsx y actualización de versión a v6.2.1.'
+      ]
+    },
+    {
       id: 'v6.2.0',
       version: 'v6.2.0',
       fecha: '08 de Septiembre, 2026',

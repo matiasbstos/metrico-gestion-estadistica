@@ -41,6 +41,10 @@
       b) **Egreso Administrativo (`isEgresoAdministrativo`)**: Todo paciente cuyo estado o destino corresponda a cancelación de ventanilla, anulación administrativa, duplicado o trámite administrativo, que no sea un retiro voluntario. Nunca deben sumarse indiscriminadamente a los retiros sin atención.
       c) **Completado (Atención Médica Efectiva)**: Todo paciente con atención completada, finalizada o comenzada/en curso. Queda estrictamente prohibido degradar un paciente con estado `Completa`, `Completado`, `Comenzada`, `Atendida` o en curso a alta administrativa simplemente porque el nombre del médico figure no registrado nominalmente. Todo paciente que ingresó a box y no registra cancelación administrativa ni retiro voluntario es considerado atención clínica efectiva.
     - **Orden y Nomenclatura en la Interfaz (UI)**: Toda tarjeta, input o matriz de auditoría debe presentar los 4 campos en el orden idéntico a Rayen: 1. Total Pacientes (Admitidos), 2. Completados (Atención Médica), 3. Egreso Administrativo, 4. Alta sin Atención Médica, evitando cualquier confusión al ingresar o corroborar datos.
+12. **Evaluación de Rendimiento de Equipos de Guardia (Flujo de Admisión y Triage)**:
+    - El módulo de Rendimiento de Turnos y los análisis comparativos de guardia deben enfocar su evaluación exclusivamente en el desempeño operativo de los Equipos de Guardia (Turnos 1, 2, 3 y 4) en el flujo de admisión y categorización clínica (Triage), suprimiendo métricas de médicos activos o atenciones por médico para evitar sesgos diagnósticos individuales.
+    - Los 3 KPIs canónicos de equipo son obligatorios: 1) Volumen Total Ingresado, 2) Latencia Promedio a Triage (con delta invertido de rapidez) y 3) Criterio de Alta Complejidad % (C1+C2+C3).
+    - La correlación de sobrecarga se evalúa mediante ComposedChart con doble eje Y (Volumen en Eje Y Izquierdo e/y Latencia en minutos por categoría en Eje Y Derecho).
 
 ---
 
