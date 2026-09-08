@@ -37,10 +37,24 @@
 
 ---
 
-## 🚀 Secuencia Obligatoria de 4 Pasos antes de Finalizar:
-1. **Consolidado Continuo & Informe de Arquitectura**: 
-   - Registrar la nueva versión y sus detalles técnicos en la Línea de Timeline de `src/components/dashboard/InformeArquitectura.jsx`.
-   - **Mantenimiento del Consolidado Continuo**: En caso de modificar o agregar variables, algoritmos, reglas de desduplicación, esquemas de turno, estilos o reportes, se DEBEN actualizar y enriquecer obligatoriamente las secciones correspondientes del Consolidado Maestro (**Fórmulas y Análisis**, **Horarios de Turno**, **Manual de Identidad Visual** y **Catálogo de Reportes**), manteniendo la documentación viva 100% acumulativa y retroalimentada.
-2. **Muro de Novedades del Sitio**: Registrar la actualización explicativa para los usuarios en `src/components/dashboard/ModalMuroActualizaciones.jsx`.
-3. **Control de Versiones GitHub**: Compilar la aplicación (`npm run build`), realizar `git add`, `git commit` con mensaje semántico y `git push origin main`.
-4. **Despliegue a Producción Firebase**: Ejecutar el comando de despliegue a Firebase Hosting (`npx --yes firebase-tools deploy --only hosting`) y confirmar su disponibilidad pública en `https://metrico-dashboard-2026.web.app`.
+## 🚀 Protocolo Oficial y Obligatorio de Despliegue ante Cualquier Cambio, Modificación o Nueva Función:
+Al pedir cualquier cambio, modificación o agregar una nueva función, el proceso para realizar el despliegue es estrictamente el siguiente:
+
+1. **Subir la versión a GitHub**:
+   - Validar y compilar la aplicación sin fallos (`npm run build`).
+   - Sincronizar en Git con mensaje semántico (`git add`, `git commit` y `git push origin main`).
+
+2. **De GitHub, subirlo al Muro de Actualizaciones**:
+   - Registrar la nueva versión y sus detalles técnicos en el historial de arquitectura / muro de versiones (`src/components/dashboard/InformeArquitectura.jsx`).
+
+3. **Dentro del mismo sitio, dejarlo en el Apartado de Novedades**:
+   - Registrar la actualización explicativa para los usuarios clínicos y administrativos en el Muro de Novedades e Instructivos (`src/components/dashboard/ModalMuroActualizaciones.jsx`), detallando su propósito, qué pueden ver, ejemplo de uso y lista de cambios.
+
+4. **Con eso, actualizar la versión del sitio bajo el apartado de "MÉTRICO Clínico Predictivo"**:
+   - La insignia oficial visible en la barra lateral directamente bajo el título "MÉTRICO Clínico Predictivo" (`CURRENT_APP_VERSION` en `Dashboard.jsx`) se actualiza automáticamente con la versión registrada.
+   - Ejecutar el comando de despliegue a Firebase Hosting (`npx --yes firebase-tools deploy --only hosting`) y confirmar su disponibilidad pública en `https://metrico-dashboard-2026.web.app`.
+
+### ⚖️ Norma de Parámetros y Reglas del Sitio y del Agente:
+Si cualquier modificación o nueva función genera algún cambio o un nuevo parámetro dentro de las reglas del sitio:
+- **En el Sitio**: Se debe dejar estipulado obligatoriamente en las secciones correspondientes del Consolidado Maestro de `src/components/dashboard/InformeArquitectura.jsx` (**Fórmulas y Análisis**, **Horarios de Turno**, **Manual de Identidad Visual** o **Catálogo de Reportes**), manteniendo la documentación viva 100% acumulativa.
+- **En el Agente**: Se debe dejar estipulado obligatoriamente en este archivo de reglas (`.agents/AGENTS.md`) para que opere como norma activa, inviolable y vinculante para todos los agentes y sesiones futuras.

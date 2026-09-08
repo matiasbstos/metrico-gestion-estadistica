@@ -3721,33 +3721,44 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs font-medium">
-              <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl space-y-1">
-                <strong className="text-emerald-600 dark:text-emerald-400 block text-sm font-black">Paso 1: Consolidado & Arquitectura</strong>
+              <div className="p-4 bg-sky-500/10 border border-sky-500/30 rounded-2xl space-y-1">
+                <strong className="text-sky-600 dark:text-sky-400 block text-sm font-black">1. Subir la versión a GitHub</strong>
                 <p className="text-secondary-custom">
-                  Actualizar la versión y enriquecer de forma continua el Consolidado Maestro (<code className="font-mono text-emerald-500">InformeArquitectura.jsx</code>).
+                  Validar compilación con <code className="font-mono text-sky-500">npm run build</code>, realizar <code className="font-mono text-sky-500">git commit</code> con mensaje semántico y push a <code className="font-mono text-sky-500">main</code>.
+                </p>
+              </div>
+
+              <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl space-y-1">
+                <strong className="text-emerald-600 dark:text-emerald-400 block text-sm font-black">2. Muro de Actualizaciones</strong>
+                <p className="text-secondary-custom">
+                  De GitHub, registrar la nueva versión y detalles técnicos en el historial de arquitectura (<code className="font-mono text-emerald-500">InformeArquitectura.jsx</code>).
                 </p>
               </div>
 
               <div className="p-4 bg-indigo-500/10 border border-indigo-500/30 rounded-2xl space-y-1">
-                <strong className="text-indigo-600 dark:text-indigo-400 block text-sm font-black">Paso 2: Muro de Novedades</strong>
+                <strong className="text-indigo-600 dark:text-indigo-400 block text-sm font-black">3. Apartado de Novedades</strong>
                 <p className="text-secondary-custom">
-                  Registrar las novedades e instructivos de uso en el sitio (<code className="font-mono text-indigo-500">ModalMuroActualizaciones.jsx</code>).
-                </p>
-              </div>
-
-              <div className="p-4 bg-sky-500/10 border border-sky-500/30 rounded-2xl space-y-1">
-                <strong className="text-sky-600 dark:text-sky-400 block text-sm font-black">Paso 3: Versionamiento GitHub</strong>
-                <p className="text-secondary-custom">
-                  Ejecutar <code className="font-mono text-sky-500">npm run build</code>, realizar <code className="font-mono text-sky-500">git commit</code> y push a la rama <code className="font-mono text-sky-500">main</code>.
+                  Dentro del mismo sitio, registrar la explicación de uso en el Muro de Novedades interactivo (<code className="font-mono text-indigo-500">ModalMuroActualizaciones.jsx</code>).
                 </p>
               </div>
 
               <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-2xl space-y-1">
-                <strong className="text-purple-600 dark:text-purple-400 block text-sm font-black">Paso 4: Firebase Hosting Deploy</strong>
+                <strong className="text-purple-600 dark:text-purple-400 block text-sm font-black">4. Versión Clínico Predictivo</strong>
                 <p className="text-secondary-custom">
-                  Desplegar a producción (<code className="font-mono text-purple-500">firebase deploy</code>) y confirmar en <code className="font-mono text-purple-500">metrico-dashboard-2026.web.app</code>.
+                  Actualizar la insignia oficial bajo el apartado "MÉTRICO Clínico Predictivo" en la barra lateral y desplegar a Firebase Hosting (<code className="font-mono text-purple-500">deploy --only hosting</code>).
                 </p>
               </div>
+            </div>
+
+            {/* NORMA DE PARÁMETROS Y REGLAS */}
+            <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-xs space-y-1.5 font-medium">
+              <span className="text-xs font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider flex items-center gap-1.5">
+                <ShieldAlert className="w-4 h-4 text-amber-500" />
+                Norma Mandatoria de Reglas y Parámetros Clínicos
+              </span>
+              <p className="text-secondary-custom leading-relaxed">
+                Si cualquier modificación o nueva función genera algún cambio o nuevo parámetro dentro de las reglas del sitio, debe quedar estipulada tanto en el <strong>Consolidado Maestro del sitio</strong> (<code className="font-mono text-amber-600">InformeArquitectura.jsx</code>) como en las directrices de auditoría e integridad del <strong>agente de IA</strong> (<code className="font-mono text-amber-600">AGENTS.md</code>) como norma permanente e inviolable.
+              </p>
             </div>
 
           </div>
