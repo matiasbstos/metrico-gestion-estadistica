@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   TrendingUp, TrendingDown, Users, Calendar, BarChart2, Activity, ArrowUpRight, ArrowDownRight,
   Sparkles, FileSpreadsheet, Download, RefreshCw, Filter, CheckCircle2, ShieldAlert, Info,

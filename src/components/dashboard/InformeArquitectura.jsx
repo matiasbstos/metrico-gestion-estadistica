@@ -30,7 +30,8 @@ export const HISTORIAL_ARQUITECTURA_BASE = [
       'Sincronización automática de inputs de control clínico al cambiar fecha, horario o modo.',
       'Inyección de allPacientesDB en CentroVerificacionAuditoria y AnalisisDemandaAtencion en Dashboard.jsx.',
       'Definición de .bg-primary-custom en index.css y sustitución de clases sin contraste por bg-indigo-600 text-white shadow-md.',
-      'Certificación de benchmarks con almacenamiento persistente del horario y rango auditado.'
+      'Certificación de benchmarks con almacenamiento persistente del horario y rango auditado.',
+      'Importación explícita del hook useEffect en AnalisisDemandaAtencion.jsx para erradicar el ReferenceError en tiempo de ejecución.'
     ]
   },
   {
