@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.2.0',
+    version_tag: 'v6.2.0',
+    fecha_despliegue: '08 de Septiembre, 2026',
+    proposito_actualizacion: 'Protección Integral de Atenciones Clínicas con Estado Comenzada y Cuadratura Matemática Rayen 87 Atendidos vs 23 Altas Admin.',
+    medios_y_stack: [
+      'React 18.3 (PanelKPIs.jsx, AnalisisDemandaAtencion.jsx, AnalisisAltasDetail.jsx)',
+      'Rayen Clinical Engine (isAltaAdmin, isSinAtencionMedica, isEgresoAdministrativo)',
+      'SSOT Analytical Alignment & Automated Benchmark Certification'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Protección de Pacientes con Estado Comenzada / En Curso: Se recalibró el helper universal isAltaAdmin para blindar inequívocamente a los pacientes que entraron a box y recibieron atención médica bajo estado Comenzada o En Curso, impidiendo que la ausencia de registro nominal del médico los degrade a altas administrativas. 2) Cuadratura Absoluta Turno 06/09/2026 (08:00 a 20:00 hrs): Se consolida la paridad 1:1 con la planilla oficial Rayen, reflejando 110 admitidos, 87 atendidos clínicos efectivos (82 completados + 5 comenzados), 23 altas administrativas (22 egresos administrativos + 1 alta sin atención médica, tasa 20.9%), eliminando definitivamente el descalce previo de 82 atendidos y 28 altas.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'system_architecture_log'],
+      query_optimization: 'Evaluación lógica O(1) con exclusión estricta de estados asistenciales en el cómputo de altas.'
+    },
+    modulos_afectados: ['helpers.js', 'useMetricoAnalytics.js', 'PanelKPIs.jsx', 'AnalisisDemandaAtencion.jsx', 'AnalisisAltasDetail.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Actualización en helpers.js del helper isAltaAdmin con exclusión prioritaria de estados asistenciales: complet, finaliz, comenzad, atendid, en curso y espera.',
+      'Sincronización en useMetricoAnalytics.js para que el cálculo de currentAltas y currentAtendidos refleje exactamente 87 atendidos y 23 altas en el turno diurno del 06/09/2026.',
+      'Alineación total en el carrusel de PanelKPIs.jsx tanto en la tarjeta de Altas Admin (20.9%, 23 pac.) como en Pac. Atendidos (87 pac.).',
+      'Despliegue verificado en producción Firebase Hosting con versión v6.2.0.'
+    ]
+  },
+  {
     id: 'v6.1.9',
     version_tag: 'v6.1.9',
     fecha_despliegue: '08 de Septiembre, 2026',

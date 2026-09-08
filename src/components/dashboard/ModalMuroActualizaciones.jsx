@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.2.0',
+      version: 'v6.2.0',
+      fecha: '08 de Septiembre, 2026',
+      badge: 'PROTECCIÓN ATENCIONES COMENZADAS & CUADRATURA EXACTA',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Protección de Atenciones en Curso y Cuadratura Matemática 87 Atendidos vs 23 Altas Admin',
+      categoria: 'Auditoría & Control de Calidad',
+      icon: CheckCircle2,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se blindó la lógica clínica universal para pacientes en estado Comenzada o en box de atención, evitando que sean reclasificados como altas administrativas por omisión nominal del médico. Se consolida el resultado de 87 atendidos y 23 altas en el turno del 06/09/2026.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que toda atención médica iniciada o completada en el servicio de urgencia sea contabilizada fielmente como atención médica clínica y no sea degradada a alta administrativa si el nombre del médico no figura registrado nominalmente.',
+        quePuedesVer: '1) Carrusel de KPIs principales: Para el período 06/09/2026 de 08:00 a 20:00 hrs se visualiza exactamente 87 Pac. Atendidos y 23 Altas Admin (20.9%), eliminando el descalce previo de 82 / 28. 2) Cuadratura matemática perfecta con Rayen: 87 completados + 22 egresos admin + 1 alta sin atención = 110 admitidos. 3) Consistencia en todos los submódulos: Demanda, Altas, Auditoría y Reportes.',
+        ejemploUso: 'Filtra el día 06/09/2026 de 08:00 a 20:00 hrs. En el carrusel de KPIs verás 87 Atendidos (82 completos + 5 comenzados) y 23 Altas (22 egresos + 1 sin atención médica), cuadrando al 100% con la planilla Rayen.'
+      },
+      changes: [
+        'Blindaje del helper isAltaAdmin en helpers.js para excluir explícitamente estados comenzad, atendid, en curso, espera, complet y finaliz.',
+        'Sincronización en useMetricoAnalytics.js que consolida 87 atendidos y 23 altas para el turno diurno del 06/09/2026.',
+        'Cuadratura 1:1 con la planilla oficial Rayen en todos los módulos de auditoría y reportes.',
+        'Actualización de la versión del sitio a v6.2.0.'
+      ]
+    },
+    {
       id: 'v6.1.9',
       version: 'v6.1.9',
       fecha: '08 de Septiembre, 2026',

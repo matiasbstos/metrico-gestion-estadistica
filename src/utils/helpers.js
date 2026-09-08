@@ -259,11 +259,25 @@ export const isAltaAdmin = (p) => {
   if (isSinAtencionMedica(p) || isEgresoAdministrativo(p)) return true;
   
   const est = String(p.estado || '').toLowerCase().trim();
-  if (est.includes('complet') || est.includes('finaliz')) return false;
+  if (
+    est.includes('complet') || 
+    est.includes('finaliz') || 
+    est.includes('comenzad') || 
+    est.includes('atendid') || 
+    est.includes('en curso') || 
+    est.includes('espera')
+  ) {
+    return false;
+  }
 
   const med = String(p.medico || p.profesional || p.medico_tratante || '').trim().toUpperCase();
   const invalidMeds = ['NO REGISTRADO', 'NO REGISTRADA', 'SIN ESPECIFICAR', 'SIN REGISTRO', 'NO ASIGNADO', 'S/R', 'NO ESPECIFICADO', 'SIN MEDICO', 'SIN MÉDICO', 'S/M', '-', 'N/A', 'UNDEFINED', 'NULL', ''];
-  return invalidMeds.includes(med);
+  
+  if (invalidMeds.includes(med)) {
+    return !est || est.includes('cancel') || est.includes('egreso') || est.includes('retiro') || est.includes('alta');
+  }
+
+  return false;
 };
 
 export const formatLocalDate = (timestamp) => {
