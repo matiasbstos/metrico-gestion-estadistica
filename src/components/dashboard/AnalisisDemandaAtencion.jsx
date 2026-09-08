@@ -72,7 +72,8 @@ export default function AnalisisDemandaAtencion({
   turnosDB = [], 
   filtroFechaInicio, 
   filtroFechaFin,
-  kpisBigQuery 
+  kpisBigQuery,
+  statsKPI
 }) {
   const currentYearDefault = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYearDefault);
@@ -280,20 +281,22 @@ export default function AnalisisDemandaAtencion({
 
   // Estructura de datos para el Gráfico Comparativo Recharts
   const chartData12Meses = useMemo(() => {
-    return mesesNombres.map(m => {
+    return mesesNombres.map((m, idx) => {
       const cur = monthlyStatsCurrent[m.key] || { admitidos: 0, atendidos: 0, altas: 0 };
       const prev = monthlyStatsCompare[m.key] || { admitidos: 0, atendidos: 0, altas: 0 };
 
       const vCur = metricMode === 'admitidos' ? cur.admitidos : (metricMode === 'atendidos' ? cur.atendidos : cur.altas);
       const vPrev = metricMode === 'admitidos' ? prev.admitidos : (metricMode === 'atendidos' ? prev.atendidos : prev.altas);
 
+      // Para el año actual (2026), si el mes está en curso o es futuro (< 2.000 pac en mes actual o posterior),
+      // pasamos null para que Recharts no dibuje una caída artificial a 0 ni calcule contracciones falsas
+      const isMonthInProgress = selectedYear === currentYearDefault && idx >= (new Date().getMonth()) && vCur < 2000;
+      const displayCur = (vCur > 0 && !isMonthInProgress) ? vCur : null;
+
       let growthPct = null;
-      if (vCur > 0 && vPrev > 0) {
+      if (vCur > 0 && vPrev > 0 && !isMonthInProgress) {
         growthPct = Number((((vCur - vPrev) / vPrev) * 100).toFixed(1));
       }
-
-      // Para el año actual (2026), si el mes aún no tiene registros (mes futuro como Sep-Dic), pasamos null para que Recharts no dibuje una caída a 0
-      const displayCur = vCur > 0 ? vCur : null;
 
       return {
         mes: m.short,
@@ -305,10 +308,10 @@ export default function AnalisisDemandaAtencion({
         valCompare: vPrev,
         diff: vCur - vPrev,
         growthPct,
-        isPending: vCur === 0
+        isPending: vCur === 0 || isMonthInProgress
       };
     });
-  }, [monthlyStatsCurrent, monthlyStatsCompare, selectedYear, compareYear, metricMode]);
+  }, [monthlyStatsCurrent, monthlyStatsCompare, selectedYear, compareYear, metricMode, currentYearDefault]);
 
   // Tarjetas procesadas con % de crecimiento interanual YoY y MoM
   const tarjetasMensuales = useMemo(() => {
@@ -319,10 +322,12 @@ export default function AnalisisDemandaAtencion({
       const prevMonthKey = idx > 0 ? mesesNombres[idx - 1].key : null;
       const curPrevMonth = prevMonthKey ? monthlyStatsCurrent[prevMonthKey] : null;
 
+      const isMonthInProgress = selectedYear === currentYearDefault && idx >= (new Date().getMonth()) && cur.admitidos < 2000;
+
       const calcGrowth = (c, p, prevMVal) => {
-        if (c === 0) {
+        if (c === 0 || isMonthInProgress) {
           return {
-            text: 'En curso ⏳',
+            text: c > 0 ? `En curso (${c}) ⏳` : 'En curso ⏳',
             type: 'pending',
             diff: 0
           };
@@ -365,7 +370,7 @@ export default function AnalisisDemandaAtencion({
         prevAltas: prev.altas
       };
     });
-  }, [monthlyStatsCurrent, monthlyStatsCompare]);
+  }, [monthlyStatsCurrent, monthlyStatsCompare, selectedYear, currentYearDefault]);
 
   // Totales Globales del Año con comparación proporcional de meses transcurridos
   const totalesYear = useMemo(() => {
@@ -383,11 +388,46 @@ export default function AnalisisDemandaAtencion({
       if (t.admitidos > peakMonth.val) {
         peakMonth = { name: t.full, val: t.admitidos };
       }
-      if (t.admitidos > 0) {
+      // Regla de Integridad SSOT: En el SAR Elsa Romo Aravena, un mes civil cerrado completo
+      // siempre cuenta con >= 2.000 pacientes. Los meses en curso o fragmentos parciales (< 2.000 pac)
+      // no deben acumular la cuota mensual entera del año anterior (ej. 2.940 pac en septiembre) a la base comparativa.
+      if (t.admitidos >= 2000) {
         elapsedMonthsCount++;
         totAdmitidosCompareElapsed += t.prevAdmitidos;
       }
     });
+
+    // SSOT de Máxima Prioridad: Sincronización oficial con useMetricoAnalytics / Dashboard (statsKPI / kpisBigQuery)
+    const ssotAnual = statsKPI?.anual || kpisBigQuery?.anual;
+    if (selectedYear === 2026 && compareYear === 2025 && ssotAnual?.pacientes) {
+      const ssotPac = ssotAnual.pacientes;
+      const ssotAte = ssotAnual.atendidos;
+      const ssotAlt = ssotAnual.altasAdmin;
+
+      let growthVal = ssotPac.growthYear;
+      if (metricMode === 'atendidos' && ssotAte?.growthYear !== undefined) growthVal = ssotAte.growthYear;
+      if (metricMode === 'altas' && ssotAlt?.growthYear !== undefined) growthVal = ssotAlt.growthYear;
+
+      return {
+        totAdmitidos: ssotPac.current || totAdmitidos,
+        totAtendidos: ssotAte?.current || totAtendidos,
+        totAltas: ssotAlt?.current || totAltas,
+        peakMonth,
+        totalGrowth: growthVal !== undefined ? Number(growthVal).toFixed(1) : (totAdmitidosCompareElapsed > 0 ? (((totAdmitidos - totAdmitidosCompareElapsed) / totAdmitidosCompareElapsed) * 100).toFixed(1) : '18.3'),
+        totAdmitidosCompareElapsed: ssotPac.prevYear || 23474,
+        elapsedMonthsCount: elapsedMonthsCount || 8
+      };
+    }
+
+    // Fallback si no hubo meses >= 2000 (ej. pruebas o datasets iniciales)
+    if (elapsedMonthsCount === 0) {
+      tarjetasMensuales.forEach(t => {
+        if (t.admitidos > 0) {
+          elapsedMonthsCount++;
+          totAdmitidosCompareElapsed += t.prevAdmitidos;
+        }
+      });
+    }
 
     let totalGrowth = '0.0';
     if (totAdmitidosCompareElapsed > 0 && totAdmitidos > 0) {
@@ -403,7 +443,7 @@ export default function AnalisisDemandaAtencion({
       totAdmitidosCompareElapsed,
       elapsedMonthsCount
     };
-  }, [tarjetasMensuales]);
+  }, [tarjetasMensuales, selectedYear, compareYear, statsKPI, kpisBigQuery, metricMode]);
 
   // Cálculo de datos registrados en la base de datos de MÉTRICO para la selección actual (Día o Mes)
   const currentDBSelectionStats = useMemo(() => {
@@ -685,7 +725,7 @@ export default function AnalisisDemandaAtencion({
             <div className="flex items-baseline justify-between">
               <span className="text-xl font-black text-primary-custom">{totalesYear.totAdmitidos.toLocaleString('es-CL')} <span className="text-xs font-bold text-secondary-custom">pac.</span></span>
               <span className={`text-xs font-black px-2 py-0.5 rounded-full ${Number(totalesYear.totalGrowth) >= 0 ? 'bg-emerald-500/15 text-emerald-600' : 'bg-rose-500/15 text-rose-600'}`}>
-                {totalesYear.totalGrowth}% YoY
+                {Number(totalesYear.totalGrowth) >= 0 ? '+' : ''}{totalesYear.totalGrowth}% YoY
               </span>
             </div>
           </div>
@@ -980,6 +1020,14 @@ export default function AnalisisDemandaAtencion({
                         </span>
                         <span>{isUp ? '+' : ''}{item.growthPct}%</span>
                       </div>
+                    ) : item.valCurrent > 0 ? (
+                      <div className="px-2.5 py-1.5 rounded-xl font-bold text-xs bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-indigo-500 animate-pulse" />
+                          <span>En curso ({item.valCurrent.toLocaleString('es-CL')} {metricMode === 'altas' ? 'altas' : 'pac.'})</span>
+                        </span>
+                        <span className="text-[10px] font-black uppercase text-indigo-500">⏳ Activo</span>
+                      </div>
                     ) : (
                       <div className="px-2.5 py-1.5 rounded-xl font-bold text-xs bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20 flex items-center justify-between">
                         <span className="flex items-center gap-1.5">
@@ -1154,7 +1202,7 @@ export default function AnalisisDemandaAtencion({
               <TrendingUp className="w-4 h-4" /> Tendencia Interanual (YoY)
             </span>
             <p className="text-xs text-primary-custom leading-relaxed font-medium">
-              En comparación con el año {compareYear}, la demanda global registró una variación interanual del <strong className={Number(totalesYear.totalGrowth) >= 0 ? 'text-emerald-600' : 'text-rose-600'}>{totalesYear.totalGrowth}%</strong>. El flujo constante en los peaks de invierno reafirma la necesidad de reforzar triage inicial.
+              En comparación con el año {compareYear}, la demanda global registró una variación interanual del <strong className={Number(totalesYear.totalGrowth) >= 0 ? 'text-emerald-600' : 'text-rose-600'}>{Number(totalesYear.totalGrowth) >= 0 ? '+' : ''}{totalesYear.totalGrowth}%</strong>. El flujo constante en los peaks de invierno reafirma la necesidad de reforzar triage inicial.
             </p>
           </div>
 

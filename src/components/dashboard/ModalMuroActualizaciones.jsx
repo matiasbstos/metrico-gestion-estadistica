@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.1.8',
+      version: 'v6.1.8',
+      fecha: '07 de Septiembre, 2026',
+      badge: 'SSOT INTEGRIDAD & ANÁLISIS DE DEMANDA',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Conciliación SSOT del Crecimiento Interanual (YoY) y Meses Activos',
+      categoria: 'Integridad Asistencial & SSOT',
+      icon: TrendingUp,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se unificó el porcentaje de crecimiento anual acumulado de admisiones (+18.3% YoY) entre el resumen superior de KPIs y el módulo de Análisis de Demanda. Además, los meses en curso (como Septiembre) ahora muestran su avance en tiempo real sin falsas contracciones.',
+      instructivo: {
+        paraQueSirve: 'Garantiza coherencia analítica absoluta en toda la plataforma: la cifra interanual de pacientes acumulados coincide al 100% entre todas las vistas y reportes, respetando la línea base 2025 y protegiendo los meses que aún no cierran.',
+        quePuedesVer: '1) Insignia "+18.3% YoY Acumulado (2026)" unificada en la cabecera de Crecimiento Interanual. 2) Tarjeta de Septiembre con distintivo "En curso (709 pac.) ⏳ Activo" en lugar de un indicador alarmante de contracción. 3) Gráfico de 12 meses continuo sin caídas artificiales a cero.',
+        ejemploUso: 'En Demanda > Crecimiento Interanual Mes a Mes, observa cómo el acumulado YoY coincide exactamente con los indicadores superiores (+18.3% YoY).'
+      },
+      changes: [
+        'Sincronización de totalesYear con el objeto SSOT statsKPI.anual proveniente de useMetricoAnalytics.',
+        'Eliminación de la discrepancia (+18.3% vs +5.1%) al comparar proporcionalmente los meses transcurridos.',
+        'Distintivo institucional "En curso (pac.) ⏳ Activo" para meses en proceso con datos parciales.',
+        'Supresión de contracciones ficticias y caídas a cero en el gráfico comparativo Recharts.'
+      ]
+    },
+    {
       id: 'v6.1.7',
       version: 'v6.1.7',
       fecha: '07 de Septiembre, 2026',

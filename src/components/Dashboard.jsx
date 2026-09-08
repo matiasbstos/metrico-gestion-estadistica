@@ -42,7 +42,7 @@ import FondoClinicoAnimado from './common/FondoClinicoAnimado';
 import { formatLocalDate, calcularUltimoTurnoCompleto, resolverMaxTimestampGlobal } from '../utils/helpers';
 import { playIntegrityAlertChime, playLogoutChime } from '../utils/audioNotifications';
 
-const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.1.7';
+const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.1.8';
 import Login from './Login';
 import { 
   Clock, Users, UserCheck, AlertTriangle, Activity, ArrowRight, 
@@ -2299,6 +2299,7 @@ const DashboardContent = () => {
                 filtroFechaInicio={filtroFechaInicio} 
                 filtroFechaFin={filtroFechaFin} 
                 kpisBigQuery={kpisBigQuery}
+                statsKPI={statsKPIFinal}
               />
             )}
 

@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.1.8',
+    version_tag: 'v6.1.8',
+    fecha_despliegue: '07 de Septiembre, 2026',
+    proposito_actualizacion: 'Unificación y Conciliación SSOT del Crecimiento Interanual (YoY) en Análisis de Demanda & Tratamiento de Meses Activos en Curso.',
+    medios_y_stack: [
+      'React 18.3 (AnalisisDemandaAtencion.jsx, Dashboard.jsx)',
+      'SSOT Analytics Reconciliation Engine (useMetricoAnalytics + statsKPI)',
+      'In-Progress Month Dynamic Status Resolver'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Conciliación SSOT de Demanda Interanual YoY: Sincronización estricta del indicador anual en AnalisisDemandaAtencion.jsx con el objeto canónico statsKPI.anual proveniente de useMetricoAnalytics y Dashboard.jsx, unificando el crecimiento acumulado oficial (+18.3% YoY en admisiones) y eliminando discordancias con el resumen superior. 2) Integridad y Tratamiento de Meses en Curso: Los meses con registros activos pero sin cerrar (< 2.000 pacientes como Septiembre en curso) ya no calculan contracciones falsas (-75.9%), mostrando en su lugar la insignia "En curso (709 pac.) ⏳ Activo" y evitando que se distorsione la base comparativa interanual con meses completos del año anterior.',
+      firestore_collections: ['turnos', 'pacientes_urgencia'],
+      query_optimization: 'Cálculo reactivo memoizado en O(1) alimentado por el SSOT consolidado.'
+    },
+    modulos_afectados: ['AnalisisDemandaAtencion.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Inyección de statsKPI={statsKPIFinal} desde Dashboard.jsx hacia AnalisisDemandaAtencion.jsx.',
+      'Sincronización de totalesYear con statsKPI.anual considerando el metricMode activo (admitidos, atendidos, altas).',
+      'Ajuste de chartData12Meses para anular growthPct en meses en curso (< 2.000 pac), eliminando caídas artificiales a 0 en Recharts y badges erróneos de contracción.',
+      'Insignia destacada institucional En curso (pacientes) con animación de actividad clínica.'
+    ]
+  },
+  {
     id: 'v6.1.7',
     version_tag: 'v6.1.7',
     fecha_despliegue: '07 de Septiembre, 2026',
