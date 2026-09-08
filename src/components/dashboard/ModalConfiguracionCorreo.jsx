@@ -330,6 +330,8 @@ export default function ModalConfiguracionCorreo({
       return true;
     };
 
+    const datesMap = new Map();
+
     (combinedPacientes || []).forEach(p => {
       let fStr = p.fecha;
       if (!fStr && p.tAdmision) {
