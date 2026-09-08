@@ -1,5 +1,13 @@
 import { useMemo } from 'react';
-import { formatLocalDate, deduplicarPacientes, obtenerTurnoDetallado, CHILE_HOLIDAYS_OFFICIAL } from '../utils/helpers';
+import { 
+  formatLocalDate, 
+  deduplicarPacientes, 
+  obtenerTurnoDetallado, 
+  CHILE_HOLIDAYS_OFFICIAL,
+  isAltaAdmin as isAltaAdminHelper,
+  isSinAtencionMedica,
+  isEgresoAdministrativo
+} from '../utils/helpers';
 
 const AGE_RANGES = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80+'];
 
@@ -94,14 +102,8 @@ export const isConstatacionLesion = (p) => {
   return false;
 };
 
-export const isAltaAdmin = (p) => {
-  if (!p) return false;
-  if (p.flag_alta_administrativa !== undefined) return Boolean(p.flag_alta_administrativa);
-  if (p.estado === 'Cancelada' || p.destinoAlta === 'ALTA ADMINISTRATIVA' || p.destinoAlta === 'RETIRO SIN ATENCIÓN' || p.destinoAlta === 'RETIRO') return true;
-  const med = String(p.medico || p.profesional || p.medico_tratante || '').trim().toUpperCase();
-  const invalidMeds = ['NO REGISTRADO', 'NO REGISTRADA', 'SIN ESPECIFICAR', 'SIN REGISTRO', 'NO ASIGNADO', 'S/R', 'NO ESPECIFICADO', 'SIN MEDICO', 'SIN MÉDICO', 'S/M', '-', 'N/A', 'UNDEFINED', 'NULL', ''];
-  return p.estado !== 'Finalizada' && invalidMeds.includes(med);
-};
+export const isAltaAdmin = isAltaAdminHelper;
+export { isSinAtencionMedica, isEgresoAdministrativo };
 
 export const isTraslado = (p) => {
   if (!p) return false;

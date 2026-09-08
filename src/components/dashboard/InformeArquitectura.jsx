@@ -24,9 +24,10 @@ export const HISTORIAL_ARQUITECTURA_BASE = [
       firestore_collections: ['turnos', 'pacientes_urgencia', 'system_architecture_log'],
       query_optimization: 'Despacho O(1) con validación instantánea de balance por suma de partes.'
     },
-    modulos_afectados: ['CentroVerificacionAuditoria.jsx', 'AnalisisDemandaAtencion.jsx', 'GestionDatos.jsx', 'helpers.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    modulos_afectados: ['useMetricoAnalytics.js', 'PanelKPIs.jsx', 'CentroVerificacionAuditoria.jsx', 'AnalisisDemandaAtencion.jsx', 'GestionDatos.jsx', 'helpers.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
     detalles_tecnicos: [
-      'Exportación de isSinAtencionMedica e isEgresoAdministrativo en helpers.js.',
+      'Unificación de isAltaAdmin en useMetricoAnalytics.js con helpers.js, corrigiendo la tarjeta de Pac. Atendidos (87) y Altas Admin (23 pac. / 20.9%) en el carrusel de PanelKPIs.',
+      'Exportación de isSinAtencionMedica e isEgresoAdministrativo en helpers.js y useMetricoAnalytics.js.',
       'Blindaje de isAltaAdmin para preservar pacientes con estado Completa/Completado, evitando reclasificación por campo médico no nominal.',
       'Alineación de nombres y posiciones de tarjetas e inputs en CentroVerificacionAuditoria.jsx y AnalisisDemandaAtencion.jsx.',
       'Normalización de estados en el lector de carga masiva de GestionDatos.jsx para almacenar Egreso Administrativo y Alta sin Atención Médica con máxima fidelidad.'
