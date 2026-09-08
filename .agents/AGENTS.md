@@ -39,8 +39,28 @@
     - **Reglas de Clasificación Unívoca**:
       a) **Alta sin Atención Médica (`isSinAtencionMedica`)**: Todo paciente cuyo estado o destino indique expresamente retiro, fuga, abandono o alta sin atención médica.
       b) **Egreso Administrativo (`isEgresoAdministrativo`)**: Todo paciente cuyo estado o destino corresponda a cancelación de ventanilla, anulación administrativa, duplicado o trámite administrativo, que no sea un retiro voluntario. Nunca deben sumarse indiscriminadamente a los retiros sin atención.
-      c) **Completado (Atención Médica Efectiva)**: Todo paciente con atención completada/finalizada. Queda estrictamente prohibido degradar un paciente con estado `Completa` o `Completado` a alta administrativa simplemente porque el nombre del médico figure no registrado nominalmente.
+      c) **Completado (Atención Médica Efectiva)**: Todo paciente con atención completada, finalizada o comenzada/en curso. Queda estrictamente prohibido degradar un paciente con estado `Completa`, `Completado`, `Comenzada`, `Atendida` o en curso a alta administrativa simplemente porque el nombre del médico figure no registrado nominalmente. Todo paciente que ingresó a box y no registra cancelación administrativa ni retiro voluntario es considerado atención clínica efectiva.
     - **Orden y Nomenclatura en la Interfaz (UI)**: Toda tarjeta, input o matriz de auditoría debe presentar los 4 campos en el orden idéntico a Rayen: 1. Total Pacientes (Admitidos), 2. Completados (Atención Médica), 3. Egreso Administrativo, 4. Alta sin Atención Médica, evitando cualquier confusión al ingresar o corroborar datos.
+12. **Evaluación de Rendimiento de Equipos de Guardia (Flujo de Admisión y Triage)**:
+    - El módulo de Rendimiento de Turnos y los análisis comparativos de guardia deben enfocar su evaluación exclusivamente en el desempeño operativo de los Equipos de Guardia (Turnos 1, 2, 3 y 4) en el flujo de admisión y categorización clínica (Triage), suprimiendo métricas de médicos activos o atenciones por médico para evitar sesgos diagnósticos individuales.
+    - Los 3 KPIs canónicos de equipo son obligatorios: 1) Volumen Total Ingresado, 2) Latencia Promedio a Triage (con delta invertido de rapidez) y 3) Criterio de Alta Complejidad % (C1+C2+C3).
+    - La correlación de sobrecarga se evalúa mediante ComposedChart con doble eje Y (Volumen en Eje Y Izquierdo e/y Latencia en minutos por categoría en Eje Y Derecho).
+13. **Norma Oficial de Despacho de Informes por Correo y 7 Reportes PDF Adjuntos**:
+    - Todo despacho de informe asistencial por correo electrónico debe generarse utilizando estrictamente el motor **React Email** (`@react-email/components` y `@react-email/render`) con diseño inline seguro, fondo oscuro institucional (`#0f172a`), logotipo oficial en pill blanco (`cid:logo_sar`) y compatibilidad garantizada en clientes de escritorio y móviles.
+    - **Grilla de Demanda Fidedigna a MÉTRICO**: Las tarjetas superiores de demanda deben reflejar sin excepción la estructura canónica de "PERÍODO SELECCIONADO" para los 4 indicadores clave: 1) Pacientes Admitidos, 2) Pacientes Atendidos, 3) Altas Administrativas, y 4) Traslados Hospitalarios. Cada tarjeta debe incluir obligatoriamente:
+      a) Badge pill con el porcentaje de variación interanual (`% YoY`) respecto a 2025.
+      b) Desglose inferior con el volumen del período actual (cantidad de pacientes).
+      c) Desglose inferior con el volumen del año anterior (2025).
+    - **Generación y Adjunto Automático Obligatorio de los 7 Reportes Oficiales en PDF**:
+      Al cerrar y despachar el informe del turno terminado, el sistema debe generar de forma autónoma en memoria con `pdf-lib` y adjuntar directamente al correo los **7 reportes ejecutivos oficiales en formato Hoja Carta / PDF**:
+      1. *Reporte General Ejecutivo Asistencial* (Demanda, KPIs y Triage C1-C5)
+      2. *Subreporte Oficial de Altas Administrativas* (Egresos y deserciones de atención)
+      3. *Subreporte de Traumatología & Sospecha de Fractura* (Lesiones óseas, yesos y destino)
+      4. *Subreporte de Gestión de Enfermería & Triage* (Latencia Manchester y tiempos de categorización)
+      5. *Subreporte Oficial de Constataciones de Lesiones Z51.8* (Auditoría médico-legal y DAU)
+      6. *Subreporte de Traslados Hospitalarios a Urgencia UEH* (Derivaciones hospitalarias de red)
+      7. *Subreporte de Vigilancia Epidemiológica Respiratoria* (IRA, bronquitis y Campaña de Invierno)
+      Queda prohibido requerir descargas manuales para estos 7 informes en el flujo de despacho del turno cerrado.
 
 ---
 

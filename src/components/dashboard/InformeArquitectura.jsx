@@ -10,6 +10,31 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.2.2',
+    version_tag: 'v6.2.2',
+    fecha_despliegue: '08 de Septiembre, 2026',
+    proposito_actualizacion: 'Refactorización Integral del Motor de Correos con React Email, Tarjetas de Demanda con % YoY y Adjunto Automático de los 7 Reportes Oficiales en PDF.',
+    medios_y_stack: [
+      '@react-email/components y @react-email/render (InformeAsistencialEmail.js)',
+      'Cloud Functions Backend (enviarInformeCorreo en functions/index.js)',
+      'pdf-lib Engine (generarSieteReportesPdf y crearReporteIndividualPdf)',
+      'SMTP Gateway (datosgestionsaraera@gmail.com)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Renderizado Universal con React Email: Sustitución de cadenas HTML frágiles por componentes React Email estructurados con diseño inline sólido, garantizando legibilidad en Outlook, Gmail y Apple Mail. Cabecera institucional oscura (#0f172a) con logotipo en pill blanco (cid:logo_sar). 2) Fidelidad de KPIs de Demanda con % YoY: Implementación estricta de las 4 tarjetas maestras de demanda (Admitidos, Atendidos, Altas Administrativas y Traslados Hospitalarios) reflejando el % YoY vs año anterior 2025, desglose del volumen actual y volumen del año anterior. 3) Generación y Adjunto Automático de los 7 Reportes Oficiales en PDF: Despacho automático de los 7 PDFs oficiales generados en memoria con pdf-lib (1. Reporte General Ejecutivo, 2. Subreporte de Altas Administrativas, 3. Subreporte de Fracturas y Traumatología, 4. Subreporte de Enfermería y Triage, 5. Subreporte de Constataciones Z51.8, 6. Subreporte de Traslados UEH, 7. Subreporte de Vigilancia Epidemiológica Respiratoria).',
+      firestore_collections: ['mail', 'envios_correos', 'turnos', 'pacientes_urgencia', 'system_architecture_log'],
+      query_optimization: 'Generación directa en buffer de memoria de los 7 reportes PDF en tiempo constante sin bloqueo de E/S de disco.'
+    },
+    modulos_afectados: ['functions/index.js', 'functions/templates/InformeAsistencialEmail.js', 'ModalConfiguracionCorreo.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', '.agents/AGENTS.md'],
+    detalles_tecnicos: [
+      'Instalación de dependencias @react-email/components y @react-email/render en functions/package.json.',
+      'Construcción de la plantilla modular functions/templates/InformeAsistencialEmail.js con arquitectura de degradación segura.',
+      'Implementación de la suite generarSieteReportesPdf en functions/index.js para compilar los 7 PDFs oficiales en formato Hoja Carta.',
+      'Enriquecimiento del payload analítico en ModalConfiguracionCorreo.jsx con Top 10 CIE-10, distribución de CESFAM, demografía y comparativa YoY.',
+      'Actualización oficial del sistema a v6.2.2 en Dashboard.jsx e informes de arquitectura.'
+    ]
+  },
+  {
     id: 'v6.2.1',
     version_tag: 'v6.2.1',
     fecha_despliegue: '08 de Septiembre, 2026',

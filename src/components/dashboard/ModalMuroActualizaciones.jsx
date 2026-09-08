@@ -4,7 +4,7 @@ import {
   HelpCircle, BookOpen, Lightbulb, Eye, Mail, Volume2, Lock, Activity, ShieldCheck, Database, FileSpreadsheet, 
   BarChart3, LineChart, ArrowLeftRight, Send, Award, Users, TrendingUp, CheckCircle, Zap, UserCheck, Cloud, 
   ExternalLink, Search, Printer, FileText, RefreshCw, UploadCloud, Compass, Flame, Maximize2, Wind,
-  Building2, Stethoscope
+  Building2, Stethoscope, Gauge
 } from 'lucide-react';
 
 export default function ModalMuroActualizaciones({ isOpen, onClose }) {
@@ -13,6 +13,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const updatesList = [
+    {
+      id: 'v6.2.2',
+      version: 'v6.2.2',
+      fecha: '08 de Septiembre, 2026',
+      badge: 'MOTOR REACT EMAIL & 7 REPORTES PDF ADJUNTOS',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Refactorización del Motor de Correos con React Email y 7 Reportes Oficiales en PDF',
+      categoria: 'Comunicaciones & Reportabilidad',
+      icon: Mail,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se refactorizó integralmente el sistema de envío de correos ejecutivos asistenciales utilizando React Email para compatibilidad universal, grilla de KPIs con % YoY (volumen actual y año anterior 2025) y generación y adjunto automático de los 7 reportes ejecutivos en PDF.',
+      instructivo: {
+        paraQueSirve: 'Permite a la Dirección, Jefatura y Equipos Clínicos recibir en su correo un informe fidedigno y legible en cualquier cliente (Outlook, Gmail, Celular), con los 7 reportes PDF oficiales adjuntos listos para revisión y archivo sin descargas manuales.',
+        quePuedesVer: '1) Grilla de Demanda con % YoY: 4 tarjetas superiores con % de variación YoY vs 2025, volumen actual y volumen del año anterior para Admitidos, Atendidos, Altas y Traslados. 2) 7 Reportes PDF Adjuntos Oficiales: Reporte General Ejecutivo, Altas Administrativas, Fracturas y Destino, Enfermería y Triage, Constataciones Z51.8, Traslados Hospitalarios a UEH y Vigilancia Respiratoria. 3) Desglose Clínico Completo: Top 10 diagnósticos CIE-10, red de CESFAM de origen, pirámide demográfica y tiempos asistenciales.',
+        ejemploUso: 'En el Centro de Configuración de Correo ("Programados" o "Pruebas de Envío"), haz clic en "Disparar Envío de Prueba". El sistema despachará el correo vía SMTP con la nueva plantilla React Email y los 7 archivos PDF adjuntos generados automáticamente.'
+      },
+      changes: [
+        'Migración del cuerpo del correo a React Email (@react-email/components y @react-email/render).',
+        'Incorporación de las 4 tarjetas maestras de demanda con % YoY, volumen actual y volumen año anterior.',
+        'Generación y adjunto automático de los 7 reportes ejecutivos oficiales en formato PDF con membrete institucional.',
+        'Unificación analítica del payload con la Vista Maestra (SSOT) en BigQuery y enriquecimiento de diagnósticos y CESFAM.',
+        'Actualización de la versión del sitio a v6.2.2 en la barra lateral y documentación técnica.'
+      ]
+    },
     {
       id: 'v6.2.1',
       version: 'v6.2.1',
