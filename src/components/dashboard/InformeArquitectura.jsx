@@ -3278,6 +3278,34 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
                 </p>
               </div>
 
+              {/* FÓRMULA 5 */}
+              <div className="p-5 bg-slate-900/40 dark:bg-slate-950/40 rounded-2xl border border-emerald-500/20 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase tracking-wider text-emerald-400">Fórmula 1.5 — Crecimiento Interanual (YoY) Acumulado & SSOT</span>
+                  <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-bold">Porcentaje (%)</span>
+                </div>
+                <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 text-center font-mono text-emerald-400 font-bold text-sm">
+                  YoY (%) = [ ( Admisiones YTD - Línea Base 2025 Transcurrida ) / Línea Base 2025 Transcurrida ] × 100
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                  <strong>Procedimiento & Regla SSOT:</strong> Subordinado a <code className="text-emerald-300 font-mono">statsKPI.anual</code>. Compara proporcionalmente únicamente los meses cerrados completos (≥ 2.000 pac en el SAR). Los meses en curso (&lt; 2.000 pac como Septiembre en curso) no agregan la cuota entera del año anterior a la base, protegiendo el acumulado interanual real (+18.3% YoY).
+                </p>
+              </div>
+
+              {/* FÓRMULA 6 */}
+              <div className="p-5 bg-slate-900/40 dark:bg-slate-950/40 rounded-2xl border border-cyan-500/20 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase tracking-wider text-cyan-400">Fórmula 1.6 — Ecuación Universal de Demanda Asistencial</span>
+                  <span className="text-[10px] font-mono bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-full font-bold">Balance Absoluto (Pac)</span>
+                </div>
+                <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 text-center font-mono text-cyan-300 font-bold text-sm">
+                  Total Admitidos = Atenciones Completadas + Sin Atención (Fugas/Retiros) + Egresos Administrativos
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                  <strong>Procedimiento:</strong> Certificación cuantitativa de cuadratura aplicada en la Prueba de Control de Demanda. Opera tanto a nivel de Día Completo civil (24h) como por turnos horarios asistenciales específicos (08:00-20:00, 20:00-08:00, 17:00-08:00).
+                </p>
+              </div>
+
             </div>
 
             {/* DETECCIÓN DE CONSTATACIÓN DE LESIONES (MATRIZ C3 LEGAL / Z51.8) */}
