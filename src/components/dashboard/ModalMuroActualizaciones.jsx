@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.2.3',
+      version: 'v6.2.3',
+      fecha: '08 de Septiembre, 2026',
+      badge: 'BLINDAJE DE AUTO-DETECCIÓN & PURGA DE FECHAS FUTURAS',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Blindaje de Auto-Detección de Turnos y Purga de Fechas Futuras Anómalas',
+      categoria: 'Consistencia & Auditoría de Datos',
+      icon: ShieldCheck,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se reforzó el motor de detección asistencial (Regla 5 de Integridad) para asegurar que el despacho de correos se base estrictamente en turnos 100% cerrados con datos de pacientes completos, incorporando un filtro de seguridad temporal que descarta fechas futuras y resolviendo la interpretación invertida de fechas chilenas (como 11 de mayo interpretado como 5 de noviembre).',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la selección automática de turnos para el envío de informes diarios y pruebas se realice siempre sobre el último turno cerrado real del SAR (septiembre 2026), sin que anomalías de formato o fechas fuera de rango distorsionen el período a informar.',
+        quePuedesVer: '1) Selección Precisa del Último Turno Cerrado: El sistema selecciona únicamente turnos con cierre asistencial completo (12 hrs para diurno y 12/15 hrs para noche). 2) Consola de Pruebas y Diseño Saneadas: El asunto y la vista previa muestran el turno cerrado real de los datos activos de septiembre, sin registros anómalos de meses posteriores. 3) Purga Automática de Caché: Limpieza en segundo plano de cualquier dato residual previo en el navegador.',
+        ejemploUso: 'Al abrir el modal de Configuración de Correo en la pestaña "Diseño de Correos" o "Pruebas de Envío", verás reflejado el último turno asistencial completo auditado correspondiente a la fecha de corte real cargada en el SAR.'
+      },
+      changes: [
+        'Implementación de filtro de seguridad temporal contra fechas futuras en auditarUltimoTurnoCompleto y resolverMaxTimestampGlobal.',
+        'Sanitización de pacientes y fechas en ModalConfiguracionCorreo.jsx, excluyendo meses posteriores a septiembre 2026.',
+        'Filtro de turnos futuros en useMetricoData.js al sincronizar colecciones desde Firestore.',
+        'Efecto automático de purga en localStorage para eliminar referencias anómalas de fechas futuras.',
+        'Actualización oficial del sistema a v6.2.3 en la barra lateral institucional y bitácora técnica.'
+      ]
+    },
+    {
       id: 'v6.2.2',
       version: 'v6.2.2',
       fecha: '08 de Septiembre, 2026',

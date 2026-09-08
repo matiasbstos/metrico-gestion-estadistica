@@ -144,9 +144,19 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
       const turnosRef = collection(db, 'artifacts', appId, 'public', 'data', 'turnos');
       const qTurnos = query(turnosRef, where('fechaInicio', '>=', '2025-01-01'));
       const snapTurnos = await runWithTimeout(getDocs(qTurnos), 5000);
-      const turnosList = snapTurnos.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => {
-        return new Date(b.fechaInicio || 0) - new Date(a.fechaInicio || 0);
-      });
+      const turnosList = snapTurnos.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(t => {
+          if (!t.fechaInicio) return false;
+          const parts = t.fechaInicio.includes('-') ? t.fechaInicio.split('-') : t.fechaInicio.split('/');
+          const y = parts[0].length === 4 ? parseInt(parts[0]) : parseInt(parts[2]);
+          const m = parts[0].length === 4 ? parseInt(parts[1]) : parseInt(parts[1]);
+          if (y > 2026 || (y === 2026 && m > 9)) return false;
+          return true;
+        })
+        .sort((a, b) => {
+          return new Date(b.fechaInicio || 0) - new Date(a.fechaInicio || 0);
+        });
       setTurnosDB(turnosList);
       saveTurnosToIDB(turnosList);
 

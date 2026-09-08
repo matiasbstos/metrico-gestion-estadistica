@@ -327,8 +327,21 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
     return { exito: false, esTurnoCompleto: false, mensaje: 'Sin datos para auditar turnos.', turnoInfo: null };
   }
 
-  // Deduplicar y ordenar pacientes por timestamp descendente
-  const listPacs = deduplicarPacientes(pacientesDB).filter(p => p && p.tAdmision).sort((a, b) => b.tAdmision - a.tAdmision);
+  const ahoraMs = Date.now() + 3600000; // Margen de seguridad de 1 hora respecto a tiempo real
+  
+  // Deduplicar y ordenar pacientes por timestamp descendente, excluyendo fechas futuras anómalas
+  const listPacs = deduplicarPacientes(pacientesDB)
+    .filter(p => {
+      if (!p || !p.tAdmision) return false;
+      if (p.tAdmision > ahoraMs) return false; // Descartar fechas futuras a hoy
+      const d = new Date(p.tAdmision);
+      const y = d.getFullYear();
+      const m = d.getMonth(); // 0-indexed (8 = Septiembre)
+      // Techo de corte del sistema: no puede ser posterior a septiembre 2026 (mes 8)
+      if (y > 2026 || (y === 2026 && m > 8)) return false;
+      return true;
+    })
+    .sort((a, b) => b.tAdmision - a.tAdmision);
   if (listPacs.length === 0) {
     return { exito: false, esTurnoCompleto: false, mensaje: 'Sin admisiones validas.', turnoInfo: null };
   }
@@ -337,6 +350,10 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
   const shiftGroups = {};
   listPacs.forEach(p => {
     const det = obtenerTurnoDetallado(p.tAdmision);
+    // Doble verificación: no agrupar turnos con fechas futuras
+    const [dStr, mStr, yStr] = det.fechaTurno.split('/');
+    if (parseInt(yStr) > 2026 || (parseInt(yStr) === 2026 && parseInt(mStr) > 9)) return;
+
     const key = `${det.fechaTurno}_T${det.turnoNum}`;
     if (!shiftGroups[key]) {
       shiftGroups[key] = {
@@ -535,11 +552,17 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
  */
 export const resolverMaxTimestampGlobal = (turnosDB = [], pacientesDB = [], allPacientesDB = []) => {
   let maxTime = 0;
+  const ahoraMs = Date.now() + 3600000;
   const records = (allPacientesDB && allPacientesDB.length > 0) ? allPacientesDB : (pacientesDB || []);
   if (records && records.length > 0) {
     records.forEach(p => {
-      if (p.tAdmision && p.tAdmision > maxTime) {
-        maxTime = p.tAdmision;
+      if (p.tAdmision && p.tAdmision <= ahoraMs && p.tAdmision > maxTime) {
+        const d = new Date(p.tAdmision);
+        const y = d.getFullYear();
+        const m = d.getMonth();
+        if (y <= 2026 && !(y === 2026 && m > 8)) {
+          maxTime = p.tAdmision;
+        }
       }
     });
   }
@@ -547,16 +570,30 @@ export const resolverMaxTimestampGlobal = (turnosDB = [], pacientesDB = [], allP
   if (turnosDB && turnosDB.length > 0) {
     turnosDB.forEach(t => {
       if (t.fechaInicio) {
-        const parts = t.fechaInicio.split('-');
-        if (parts.length === 3) {
-          const y = parseInt(parts[0]);
-          const m = parseInt(parts[1]);
-          const d = parseInt(parts[2]);
+        let y, m, d;
+        if (t.fechaInicio.includes('-')) {
+          const parts = t.fechaInicio.split('-');
+          if (parts[0].length === 4) {
+            y = parseInt(parts[0]);
+            m = parseInt(parts[1]);
+            d = parseInt(parts[2]);
+          } else {
+            d = parseInt(parts[0]);
+            m = parseInt(parts[1]);
+            y = parseInt(parts[2]);
+          }
+        } else if (t.fechaInicio.includes('/')) {
+          const parts = t.fechaInicio.split('/');
+          d = parseInt(parts[0]);
+          m = parseInt(parts[1]);
+          y = parseInt(parts[2]);
+        }
+        if (y && m && d && y <= 2026 && !(y === 2026 && m > 9)) {
           const isNight = (String(t.horario).includes('20:00') || String(t.horario).includes('Noche') || String(t.horario).includes('17:00') || String(t.horario).includes('Largo'));
           const h = isNight ? 23 : 20;
           const min = isNight ? 57 : 0;
           const tMs = new Date(y, m - 1, d, h, min, 0).getTime();
-          if (tMs > maxTime) maxTime = tMs;
+          if (tMs <= ahoraMs && tMs > maxTime) maxTime = tMs;
         }
       }
     });

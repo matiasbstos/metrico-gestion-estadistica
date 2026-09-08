@@ -10,6 +10,31 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.2.3',
+    version_tag: 'v6.2.3',
+    fecha_despliegue: '08 de Septiembre, 2026',
+    proposito_actualizacion: 'Blindaje de Auto-Detección de Turnos Asistenciales Cerrados con Filtro Anti-Fechas Futuras y Corrección de Parseo de Fechas Chilenas.',
+    medios_y_stack: [
+      'React 18.3 (ModalConfiguracionCorreo.jsx, helpers.js, useMetricoData.js)',
+      'Motor de Auditoría Clínica Asistencial (auditarUltimoTurnoCompleto)',
+      'Date Sanitization & Parsing Engine',
+      'Protocolo de Integridad de Turnos Cerrados (Regla 5)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Cumplimiento Irrestricto de Regla 5 de Integridad Asistencial: Todo despacho de informe asistencial (tanto en vivo como de prueba) debe construirse exclusivamente a partir del último turno asistencial 100% cerrado y concluido (corte 20:00 hrs para diurno y 08:00 hrs para nocturno) con datos de pacientes completos, impidiendo que turnos parciales o en curso disparen reportes incompletos. 2) Filtro Anti-Fechas Futuras y Desambiguación Chilena: Se implementó un filtro de seguridad en auditarUltimoTurnoCompleto, resolverMaxTimestampGlobal, combinedPacientes y diasCompletosAuditados que descarta timestamps o fechas que superen el tiempo real o el mes de corte actual (Septiembre 2026), resolviendo la anomalía en que fechas chilenas en formato texto (como el 11 de Mayo "11/05/2026") eran interpretadas por constructores JavaScript nativos en formato estadounidense MM/DD como "5 de Noviembre", distorsionando la cúspide cronológica. 3) Purga de Caché de Navegador: Sanitización automática en localStorage para purgar turnos y admisiones con meses futuros heredados.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'system_architecture_log'],
+      query_optimization: 'Filtro en memoria O(1) que previene el agrupamiento y ordenamiento de registros fuera de rango temporal.'
+    },
+    modulos_afectados: ['helpers.js', 'ModalConfiguracionCorreo.jsx', 'useMetricoData.js', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'Dashboard.jsx'],
+    detalles_tecnicos: [
+      'Inclusión de guarda de seguridad temporal ahoraMs en auditarUltimoTurnoCompleto y resolverMaxTimestampGlobal en helpers.js.',
+      'Sanitización de combinedPacientes y diasCompletosAuditados en ModalConfiguracionCorreo.jsx contra meses futuros.',
+      'Filtro de turnos futuros en useMetricoData.js al sincronizar colecciones de Firestore.',
+      'Efecto de purga de seguridad en localStorage dentro de ModalConfiguracionCorreo.jsx.',
+      'Actualización oficial del sistema a v6.2.3 en Dashboard.jsx e informes de arquitectura.'
+    ]
+  },
+  {
     id: 'v6.2.2',
     version_tag: 'v6.2.2',
     fecha_despliegue: '08 de Septiembre, 2026',

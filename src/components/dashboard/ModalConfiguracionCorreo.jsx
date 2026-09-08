@@ -162,7 +162,30 @@ export default function ModalConfiguracionCorreo({
     } catch(e) {}
   }, [testLogs]);
 
-  // Combinar admisiones filtradas con el histórico en caché local
+  // Purga de seguridad en localStorage contra fechas futuras anómalas (ej. 05/11/2026)
+  useEffect(() => {
+    try {
+      const cfgStr = localStorage.getItem('metrico_config_correo');
+      if (cfgStr && (cfgStr.includes('11/2026') || cfgStr.includes('05/11') || cfgStr.includes('2026-11'))) {
+        const parsedCfg = JSON.parse(cfgStr);
+        delete parsedCfg.ultimoTurnoAuditado;
+        localStorage.setItem('metrico_config_correo', JSON.stringify(parsedCfg));
+      }
+      const cachedPacsStr = localStorage.getItem('metrico_cached_pacientes');
+      if (cachedPacsStr && (cachedPacsStr.includes('2026-11') || cachedPacsStr.includes('05/11/2026'))) {
+        const cachedArr = JSON.parse(cachedPacsStr);
+        const filtered = cachedArr.filter(p => {
+          if (!p) return false;
+          if (p.tAdmision && p.tAdmision > Date.now() + 3600000) return false;
+          if (p.fecha && p.fecha.includes('2026-11')) return false;
+          return true;
+        });
+        localStorage.setItem('metrico_cached_pacientes', JSON.stringify(filtered));
+      }
+    } catch(e) {}
+  }, []);
+
+  // Combinar admisiones filtradas con el histórico en caché local (con purga de fechas futuras)
   const combinedPacientes = useMemo(() => {
     let cached = [];
     try {
@@ -170,9 +193,16 @@ export default function ModalConfiguracionCorreo({
       if (c) cached = JSON.parse(c);
     } catch (e) {}
 
+    const ahoraMs = Date.now() + 3600000;
     const map = new Map();
     [...(pacientesDB || []), ...cached].forEach(p => {
       if (!p) return;
+      if (p.tAdmision && p.tAdmision > ahoraMs) return; // Excluir fechas futuras
+      if (p.fecha && (p.fecha.includes('2026-11') || p.fecha.includes('2026-12') || p.fecha.includes('2026-10'))) return;
+      if (p.tAdmision) {
+        const d = new Date(p.tAdmision);
+        if (d.getFullYear() > 2026 || (d.getFullYear() === 2026 && d.getMonth() > 8)) return;
+      }
       const id = p.id || p.docId || p.correlativo || p.rutPaciente || p.tAdmision;
       if (id && !map.has(id)) map.set(id, p);
     });
@@ -285,7 +315,20 @@ export default function ModalConfiguracionCorreo({
 
   // Detección Automática de Días Completos Auditados y Cola de Despacho
   const diasCompletosAuditados = useMemo(() => {
-    const datesMap = new Map();
+    const isValidHistoryDate = (f) => {
+      if (!f) return false;
+      const parts = f.includes('-') ? f.split('-') : f.split('/');
+      let y, m;
+      if (parts[0].length === 4) {
+        y = parseInt(parts[0]);
+        m = parseInt(parts[1]);
+      } else {
+        m = parseInt(parts[1]);
+        y = parseInt(parts[2]);
+      }
+      if (y > 2026 || (y === 2026 && m > 9)) return false;
+      return true;
+    };
 
     (combinedPacientes || []).forEach(p => {
       let fStr = p.fecha;
@@ -296,7 +339,7 @@ export default function ModalConfiguracionCorreo({
         const day = String(d.getDate()).padStart(2, '0');
         fStr = `${y}-${m}-${day}`;
       }
-      if (!fStr) return;
+      if (!fStr || !isValidHistoryDate(fStr)) return;
       if (!datesMap.has(fStr)) {
         datesMap.set(fStr, { fecha: fStr, pacientes: 0, altas: 0, atendidos: 0, turnos: 0 });
       }
@@ -308,7 +351,7 @@ export default function ModalConfiguracionCorreo({
 
     (turnosDB || []).forEach(t => {
       const fStr = t.fechaInicio;
-      if (!fStr) return;
+      if (!fStr || !isValidHistoryDate(fStr)) return;
       if (!datesMap.has(fStr)) {
         datesMap.set(fStr, { fecha: fStr, pacientes: 0, altas: 0, atendidos: 0, turnos: 0 });
       }
