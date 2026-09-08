@@ -9,8 +9,7 @@ import {
 import { 
   ComposedChart, BarChart, Line, Area, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
 } from 'recharts';
-import * as XLSX from 'xlsx';
-import { isAltaAdmin, deduplicarPacientes } from '../../utils/helpers';
+import { isAltaAdmin, deduplicarPacientes, isSinAtencionMedica, isEgresoAdministrativo } from '../../utils/helpers';
 
 // Línea Base Histórica Certificada SAR Elsa Romo Aravena (Reportes Oficiales Rayen 2025)
 // Evaluado en Mes Civil Completo (00:00 a 23:59 del último día) - Total 8 Meses YTD = 23.474 pac.
@@ -478,12 +477,10 @@ export default function AnalisisDemandaAtencion({
 
         if (matchesWindow) {
           admitidos++;
-          const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
-          const isRetiro = p.estado === 'Cancelada' || dest.includes('RETIRO') || dest.includes('ABANDONO');
-          if (isRetiro) {
+          if (isSinAtencionMedica(p)) {
             sinAtencion++;
             altas++;
-          } else if (isAltaAdmin(p)) {
+          } else if (isEgresoAdministrativo(p)) {
             egresoAdmin++;
             altas++;
           } else {
@@ -1448,20 +1445,6 @@ export default function AnalisisDemandaAtencion({
 
                   <div className="space-y-1">
                     <label className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider block">
-                      Alta sin Atención Médica
-                    </label>
-                    <input
-                      type="number"
-                      value={controlSinAtencion}
-                      onChange={e => setControlSinAtencion(parseInt(e.target.value) || 0)}
-                      className="w-full bg-input-custom border border-card-custom p-2.5 rounded-xl text-sm font-black text-primary-custom outline-none focus:border-amber-500"
-                      placeholder="Ej: 93"
-                    />
-                    <span className="text-[9px] text-secondary-custom font-medium block">Retiros por espera</span>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider block">
                       Egreso Administrativo
                     </label>
                     <input
@@ -1472,6 +1455,20 @@ export default function AnalisisDemandaAtencion({
                       placeholder="Ej: 341"
                     />
                     <span className="text-[9px] text-secondary-custom font-medium block">Trámites administrativos</span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider block">
+                      Alta sin Atención Médica
+                    </label>
+                    <input
+                      type="number"
+                      value={controlSinAtencion}
+                      onChange={e => setControlSinAtencion(parseInt(e.target.value) || 0)}
+                      className="w-full bg-input-custom border border-card-custom p-2.5 rounded-xl text-sm font-black text-primary-custom outline-none focus:border-amber-500"
+                      placeholder="Ej: 93"
+                    />
+                    <span className="text-[9px] text-secondary-custom font-medium block">Retiros por espera / abandono</span>
                   </div>
                 </div>
 
@@ -1554,15 +1551,6 @@ export default function AnalisisDemandaAtencion({
                               <td className="p-3 text-center">{renderStatus(diffAtendidos)}</td>
                             </tr>
                             <tr>
-                              <td className="p-3 font-bold">Alta sin Atención Médica</td>
-                              <td className="p-3 text-center font-black text-amber-600">{controlSinAtencion.toLocaleString('es-CL')} pac.</td>
-                              <td className="p-3 text-center font-black text-amber-600">{dbSinAtencion.toLocaleString('es-CL')} pac.</td>
-                              <td className={`p-3 text-center font-bold ${diffSinAtencion === 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                                {diffSinAtencion > 0 ? `+${diffSinAtencion}` : diffSinAtencion}
-                              </td>
-                              <td className="p-3 text-center">{renderStatus(diffSinAtencion)}</td>
-                            </tr>
-                            <tr>
                               <td className="p-3 font-bold">Egreso Administrativo</td>
                               <td className="p-3 text-center font-black text-amber-600">{controlEgresoAdmin.toLocaleString('es-CL')} pac.</td>
                               <td className="p-3 text-center font-black text-amber-600">{dbEgresoAdmin.toLocaleString('es-CL')} pac.</td>
@@ -1570,6 +1558,15 @@ export default function AnalisisDemandaAtencion({
                                 {diffEgresoAdmin > 0 ? `+${diffEgresoAdmin}` : diffEgresoAdmin}
                               </td>
                               <td className="p-3 text-center">{renderStatus(diffEgresoAdmin)}</td>
+                            </tr>
+                            <tr>
+                              <td className="p-3 font-bold">Alta sin Atención Médica</td>
+                              <td className="p-3 text-center font-black text-amber-600">{controlSinAtencion.toLocaleString('es-CL')} pac.</td>
+                              <td className="p-3 text-center font-black text-amber-600">{dbSinAtencion.toLocaleString('es-CL')} pac.</td>
+                              <td className={`p-3 text-center font-bold ${diffSinAtencion === 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                {diffSinAtencion > 0 ? `+${diffSinAtencion}` : diffSinAtencion}
+                              </td>
+                              <td className="p-3 text-center">{renderStatus(diffSinAtencion)}</td>
                             </tr>
                             <tr className="bg-indigo-50/40 dark:bg-indigo-950/20 font-black">
                               <td className="p-3 text-indigo-700 dark:text-indigo-300">Altas Admin Totales</td>

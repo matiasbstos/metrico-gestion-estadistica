@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.1.9',
+    version_tag: 'v6.1.9',
+    fecha_despliegue: '08 de Septiembre, 2026',
+    proposito_actualizacion: 'Paridad Oficial de Estados Rayen (Completado, Egreso Admin, Alta sin Atención) y Calibración de la Prueba de Control de Demanda.',
+    medios_y_stack: [
+      'React 18.3 (CentroVerificacionAuditoria.jsx, AnalisisDemandaAtencion.jsx, GestionDatos.jsx)',
+      'Rayen Official Clinical Status Engine (isSinAtencionMedica, isEgresoAdministrativo)',
+      'Demanda Universal Audit & UI Alignment System'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Paridad 1:1 con Reporte Oficial Rayen: Se calibró la clasificación de admisiones desarticulando la ambigüedad entre Egresos Administrativos y Altas sin Atención Médica. Los 22 egresos administrativos y 1 alta sin atención del 06/09/2026 (08:00-20:00) ya no se agrupan erróneamente en retiros (23) ni los pacientes completados con médico no registrado nominalmente se restan como altas (5), cuadrando exactamente los 87 completados, 22 egresos admin y 1 alta sin atención sobre 110 admitidos. 2) Reordenamiento y Terminología Idéntica: En la Prueba de Control de Demanda se renombraron y ordenaron los 4 campos exactamente como en la planilla oficial de Rayen (1. Total Pacientes Admitidos, 2. Completados Atención Médica, 3. Egreso Administrativo, 4. Alta sin Atención Médica), eliminando toda confusión al ingresar o corroborar datos.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'system_architecture_log'],
+      query_optimization: 'Despacho O(1) con validación instantánea de balance por suma de partes.'
+    },
+    modulos_afectados: ['CentroVerificacionAuditoria.jsx', 'AnalisisDemandaAtencion.jsx', 'GestionDatos.jsx', 'helpers.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Exportación de isSinAtencionMedica e isEgresoAdministrativo en helpers.js.',
+      'Blindaje de isAltaAdmin para preservar pacientes con estado Completa/Completado, evitando reclasificación por campo médico no nominal.',
+      'Alineación de nombres y posiciones de tarjetas e inputs en CentroVerificacionAuditoria.jsx y AnalisisDemandaAtencion.jsx.',
+      'Normalización de estados en el lector de carga masiva de GestionDatos.jsx para almacenar Egreso Administrativo y Alta sin Atención Médica con máxima fidelidad.'
+    ]
+  },
+  {
     id: 'v6.1.8',
     version_tag: 'v6.1.8',
     fecha_despliegue: '07 de Septiembre, 2026',
@@ -3295,14 +3318,14 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
               {/* FÓRMULA 6 */}
               <div className="p-5 bg-slate-900/40 dark:bg-slate-950/40 rounded-2xl border border-cyan-500/20 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black uppercase tracking-wider text-cyan-400">Fórmula 1.6 — Ecuación Universal de Demanda Asistencial</span>
+                  <span className="text-xs font-black uppercase tracking-wider text-cyan-400">Fórmula 1.6 — Ecuación Universal de Demanda Asistencial (Paridad Rayen SSOT)</span>
                   <span className="text-[10px] font-mono bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-full font-bold">Balance Absoluto (Pac)</span>
                 </div>
                 <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 text-center font-mono text-cyan-300 font-bold text-sm">
-                  Total Admitidos = Atenciones Completadas + Sin Atención (Fugas/Retiros) + Egresos Administrativos
+                  Total Pacientes Admitidos = Completado (Atención Médica) + Egreso Administrativo + Alta sin Atención Médica
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                  <strong>Procedimiento:</strong> Certificación cuantitativa de cuadratura aplicada en la Prueba de Control de Demanda. Opera tanto a nivel de Día Completo civil (24h) como por turnos horarios asistenciales específicos (08:00-20:00, 20:00-08:00, 17:00-08:00).
+                  <strong>Procedimiento & Paridad Rayen:</strong> Certificación cuantitativa 1:1 con la planilla oficial de Rayen (ej: 87 completados + 22 egresos admin + 1 alta sin atención = 110 admitidos el 06/09/2026). Desambigua estrictamente con los helpers <code className="text-cyan-300 font-mono">isSinAtencionMedica</code> e <code className="text-cyan-300 font-mono">isEgresoAdministrativo</code>, impidiendo agrupar cancelaciones en retiros o degradar atenciones efectivas.
                 </p>
               </div>
 

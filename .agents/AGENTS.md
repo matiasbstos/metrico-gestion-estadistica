@@ -30,10 +30,17 @@
      b) **Turno Diurno**: `08:00 a 20:00 hrs` (12 horas).
      c) **Turno Noche Fin de Semana / Festivo**: `20:00 a 08:00 hrs` del día siguiente (12 horas con cruce de medianoche).
      d) **Turno Largo Semana Hábil**: `17:00 a 08:00 hrs` del día siguiente (15 horas con cruce de medianoche).
-   - Los pacientes admitidos y egresados deben resolverse por el timestamp exacto de admisión y atención dentro de la ventana horaria calculada, garantizando exactitud matemática.
 10. **Garantía de Alto Contraste, Visibilidad y Accesibilidad UI**:
     - Queda estrictamente prohibido el renderizado de botones activos, pestañas o subpestañas con estilos transparentes, fondos blancos sobre fondos claros o texto ilegible (blanco sobre blanco).
     - Todo selector o elemento de navegación activo debe utilizar estilos sólidos contrastantes institucionales (como `.bg-primary-custom`, o `bg-indigo-600 text-white font-black shadow-md`), asegurando visibilidad óptima tanto en modo Claro como en modo Oscuro.
+11. **Paridad Oficial de Estados Rayen y Desambiguación de Egresos Administrativos vs. Altas sin Atención Médica**:
+    - La Ecuación Universal y los controles de demanda deben reflejar de forma estricta y desglosada la terminología oficial de la planilla Rayen (*"Pacientes Admitidos por Rango de Fecha y Hora"*):
+      $$\text{Total Pacientes Admitidos} = \text{Completado (Atención Médica)} + \text{Egreso Administrativo} + \text{Alta sin Atención Médica}$$
+    - **Reglas de Clasificación Unívoca**:
+      a) **Alta sin Atención Médica (`isSinAtencionMedica`)**: Todo paciente cuyo estado o destino indique expresamente retiro, fuga, abandono o alta sin atención médica.
+      b) **Egreso Administrativo (`isEgresoAdministrativo`)**: Todo paciente cuyo estado o destino corresponda a cancelación de ventanilla, anulación administrativa, duplicado o trámite administrativo, que no sea un retiro voluntario. Nunca deben sumarse indiscriminadamente a los retiros sin atención.
+      c) **Completado (Atención Médica Efectiva)**: Todo paciente con atención completada/finalizada. Queda estrictamente prohibido degradar un paciente con estado `Completa` o `Completado` a alta administrativa simplemente porque el nombre del médico figure no registrado nominalmente.
+    - **Orden y Nomenclatura en la Interfaz (UI)**: Toda tarjeta, input o matriz de auditoría debe presentar los 4 campos en el orden idéntico a Rayen: 1. Total Pacientes (Admitidos), 2. Completados (Atención Médica), 3. Egreso Administrativo, 4. Alta sin Atención Médica, evitando cualquier confusión al ingresar o corroborar datos.
 
 ---
 

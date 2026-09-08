@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.1.9',
+      version: 'v6.1.9',
+      fecha: '08 de Septiembre, 2026',
+      badge: 'PARIDAD OFICIAL RAYEN & AUDITORÍA DE ESTADOS',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Paridad Total con Planilla Rayen y Calibración de la Prueba de Control de Demanda',
+      categoria: 'Auditoría & Control de Calidad',
+      icon: ShieldCheck,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se calibró la clasificación de estados clínicos para asegurar 100% de paridad con la planilla oficial de Rayen (Completado, Egreso Administrativo y Alta sin Atención Médica), eliminando la confusión al corroborar datos y resolviendo el descalce en el turno del 06/09/2026 (08:00 a 20:00 hrs).',
+      instructivo: {
+        paraQueSirve: 'Permite auditar y verificar turnos asistenciales ingresando exactamente los mismos 4 números que entrega la planilla consolidada de Rayen ("Pacientes Admitidos por Rango de Fecha y Hora"), sin conversiones mentales ni confusiones de nomenclatura.',
+        quePuedesVer: '1) Cuatro tarjetas ordenadas idénticamente al consolidado Rayen: 1. Total Pacientes (Admitidos), 2. Completados (Atención Médica), 3. Egreso Administrativo, 4. Alta sin Atención Médica. 2) Cuadre exacto en el turno del 06/09/2026 diurno: 87 completados, 22 egresos admin y 1 alta sin atención sobre 110 admitidos. 3) Ecuación Universal certificada con balance perfecto.',
+        ejemploUso: 'En Centro de Verificación > Prueba de Control de Demanda, selecciona el 06/09/2026 con la franja "08:00 a 20:00 hrs" y haz clic en "Cargar Datos desde MÉTRICO DB". Verás los valores exactos de Rayen: 110 admitidos, 87 completados, 22 egresos administrativos y 1 alta sin atención, con ecuación cuadrada.'
+      },
+      changes: [
+        'Desambiguación estricta entre Egreso Administrativo (22) y Alta sin Atención Médica (1), corrigiendo la agrupación errónea previa (23).',
+        'Preservación de pacientes completados: 87 atenciones efectivas confirmadas, sin restar pacientes por omisión nominal de médico.',
+        'Alineación 1:1 de los 4 campos y tablas en Centro de Verificación y Análisis de Demanda con la planilla oficial Rayen.',
+        'Actualización del parser en Gestión de Datos para registrar fielmente los estados Egreso Administrativo y Alta sin Atención Médica.'
+      ]
+    },
+    {
       id: 'v6.1.8',
       version: 'v6.1.8',
       fecha: '07 de Septiembre, 2026',

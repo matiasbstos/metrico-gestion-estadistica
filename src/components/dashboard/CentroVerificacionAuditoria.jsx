@@ -12,8 +12,7 @@ import {
   collection, query, orderBy, onSnapshot, limit, getDocs, 
   writeBatch, doc, serverTimestamp, setDoc, addDoc 
 } from 'firebase/firestore';
-import { playSuccessChime, playErrorChime } from '../../utils/audioNotifications';
-import { formatLocalDate, isAltaAdmin, deduplicarPacientes } from '../../utils/helpers';
+import { formatLocalDate, isAltaAdmin, deduplicarPacientes, isSinAtencionMedica, isEgresoAdministrativo } from '../../utils/helpers';
 import BitacoraAntecedentes from './BitacoraAntecedentes';
 import ModalDetalleReglaIntegridad from './ModalDetalleReglaIntegridad';
 import ModalProgresoConciliacion from './ModalProgresoConciliacion';
@@ -1022,12 +1021,10 @@ export default function CentroVerificacionAuditoria({
 
         if (matchesWindow) {
           admitidos++;
-          const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
-          const isRetiro = p.estado === 'Cancelada' || dest.includes('RETIRO') || dest.includes('ABANDONO');
-          if (isRetiro) {
+          if (isSinAtencionMedica(p)) {
             sinAtencion++;
             altas++;
-          } else if (isAltaAdmin(p)) {
+          } else if (isEgresoAdministrativo(p)) {
             egresoAdmin++;
             altas++;
           } else {
@@ -1066,12 +1063,10 @@ export default function CentroVerificacionAuditoria({
         const m = String(d.getMonth() + 1).padStart(2, '0');
         if (`${y}-${m}` === monthPrefix) {
           admitidos++;
-          const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
-          const isRetiro = p.estado === 'Cancelada' || dest.includes('RETIRO') || dest.includes('ABANDONO');
-          if (isRetiro) {
+          if (isSinAtencionMedica(p)) {
             sinAtencion++;
             altas++;
-          } else if (isAltaAdmin(p)) {
+          } else if (isEgresoAdministrativo(p)) {
             egresoAdmin++;
             altas++;
           } else {
@@ -2031,7 +2026,7 @@ export default function CentroVerificacionAuditoria({
 
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div className="bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-card-custom/40 space-y-1">
-                <span className="text-[10px] font-bold uppercase text-secondary-custom">1. Total Admitidos</span>
+                <span className="text-[10px] font-bold uppercase text-secondary-custom">1. Total Pacientes (Admitidos)</span>
                 <input 
                   type="number"
                   value={controlAdmitidos}
@@ -2040,7 +2035,7 @@ export default function CentroVerificacionAuditoria({
                 />
               </div>
               <div className="bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-card-custom/40 space-y-1">
-                <span className="text-[10px] font-bold uppercase text-secondary-custom">2. Atendidos Efectivos</span>
+                <span className="text-[10px] font-bold uppercase text-secondary-custom">2. Completados (Atención Médica)</span>
                 <input 
                   type="number"
                   value={controlCompletados}
@@ -2049,20 +2044,20 @@ export default function CentroVerificacionAuditoria({
                 />
               </div>
               <div className="bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-card-custom/40 space-y-1">
-                <span className="text-[10px] font-bold uppercase text-secondary-custom">3. Retiro Sin Atención</span>
-                <input 
-                  type="number"
-                  value={controlSinAtencion}
-                  onChange={e => setControlSinAtencion(Number(e.target.value))}
-                  className="w-full bg-white dark:bg-slate-900 border border-card-custom rounded-lg px-3 py-1.5 text-sm font-black text-primary-custom outline-none"
-                />
-              </div>
-              <div className="bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-card-custom/40 space-y-1">
-                <span className="text-[10px] font-bold uppercase text-secondary-custom">4. Alta Administrativa</span>
+                <span className="text-[10px] font-bold uppercase text-secondary-custom">3. Egreso Administrativo</span>
                 <input 
                   type="number"
                   value={controlEgresoAdmin}
                   onChange={e => setControlEgresoAdmin(Number(e.target.value))}
+                  className="w-full bg-white dark:bg-slate-900 border border-card-custom rounded-lg px-3 py-1.5 text-sm font-black text-primary-custom outline-none"
+                />
+              </div>
+              <div className="bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-card-custom/40 space-y-1">
+                <span className="text-[10px] font-bold uppercase text-secondary-custom">4. Alta sin Atención Médica</span>
+                <input 
+                  type="number"
+                  value={controlSinAtencion}
+                  onChange={e => setControlSinAtencion(Number(e.target.value))}
                   className="w-full bg-white dark:bg-slate-900 border border-card-custom rounded-lg px-3 py-1.5 text-sm font-black text-primary-custom outline-none"
                 />
               </div>

@@ -220,15 +220,50 @@ export const obtenerTurnoDetallado = (timestamp, pautasDB = null) => {
   };
 };
 
+export const isSinAtencionMedica = (p) => {
+  if (!p) return false;
+  const est = String(p.estado || '').toLowerCase().trim();
+  const dest = String(p.destinoAlta || p.destino || '').toLowerCase().trim();
+  return est.includes('sin atenc') || 
+         est.includes('sin atención') || 
+         dest.includes('retiro') || 
+         dest.includes('abandono') || 
+         dest.includes('fuga') || 
+         dest.includes('sin atenc') ||
+         dest.includes('sin atención');
+};
+
+export const isEgresoAdministrativo = (p) => {
+  if (!p) return false;
+  if (isSinAtencionMedica(p)) return false;
+  const est = String(p.estado || '').toLowerCase().trim();
+  const dest = String(p.destinoAlta || p.destino || '').toLowerCase().trim();
+  const motivo = String(p.motivoCancelacion || p.motivo || '').toLowerCase().trim();
+  return est.includes('egreso admin') || 
+         est.includes('alta admin') || 
+         est.includes('cancelad') || 
+         est.includes('administrativ') ||
+         dest.includes('egreso admin') || 
+         dest.includes('alta admin') || 
+         dest.includes('administrativ') ||
+         motivo.includes('admin') ||
+         motivo.includes('error') ||
+         motivo.includes('duplicad');
+};
+
 export const isAltaAdmin = (p) => {
   if (!p) return false;
   if (p.flag_alta_administrativa !== undefined && p.flag_alta_administrativa !== null) {
     return Boolean(p.flag_alta_administrativa);
   }
-  if (p.estado === 'Cancelada' || p.destinoAlta === 'ALTA ADMINISTRATIVA' || p.destinoAlta === 'RETIRO SIN ATENCIÓN' || p.destinoAlta === 'RETIRO') return true;
+  if (isSinAtencionMedica(p) || isEgresoAdministrativo(p)) return true;
+  
+  const est = String(p.estado || '').toLowerCase().trim();
+  if (est.includes('complet') || est.includes('finaliz')) return false;
+
   const med = String(p.medico || p.profesional || p.medico_tratante || '').trim().toUpperCase();
   const invalidMeds = ['NO REGISTRADO', 'NO REGISTRADA', 'SIN ESPECIFICAR', 'SIN REGISTRO', 'NO ASIGNADO', 'S/R', 'NO ESPECIFICADO', 'SIN MEDICO', 'SIN MÉDICO', 'S/M', '-', 'N/A', 'UNDEFINED', 'NULL', ''];
-  return p.estado !== 'Finalizada' && invalidMeds.includes(med);
+  return invalidMeds.includes(med);
 };
 
 export const formatLocalDate = (timestamp) => {

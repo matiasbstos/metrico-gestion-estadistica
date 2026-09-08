@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Database, UploadCloud, FileSpreadsheet, CheckCircle, CheckCircle2, Save, X, Calendar, AlertTriangle, Loader2, BookOpen, ArrowRight, Zap, Trash2, Search, Eye, RefreshCw, BarChart3 } from 'lucide-react';
 import { collection, doc, writeBatch, serverTimestamp, onSnapshot, getDocs } from 'firebase/firestore';
-import { formatLocalDate } from '../../utils/helpers';
+import { formatLocalDate, isAltaAdmin } from '../../utils/helpers';
 import { playSuccessChime, playErrorChime } from '../../utils/audioNotifications';
 
 const runWithTimeout = (promise, ms) => {
@@ -684,10 +684,15 @@ export default function GestionDatos({
 
           const rowStrLower = row.map(c => String(c || '').toLowerCase()).join(' ');
 
-          let estado = safeGet(iEst);
-          if (estado.toLowerCase().includes('cancelad') || rowStrLower.includes('cancelad')) {
-            estado = 'Cancelada';
-          } else if (estado.toLowerCase().includes('complet') || rowStrLower.includes('complet')) {
+          let estadoRaw = safeGet(iEst);
+          let estadoLower = estadoRaw.toLowerCase();
+
+          let estado = estadoRaw || 'Completa';
+          if (estadoLower.includes('sin atenc') || estadoLower.includes('sin atención') || estadoLower.includes('retiro') || estadoLower.includes('abandono') || estadoLower.includes('fuga')) {
+            estado = 'Alta sin Atención Médica';
+          } else if (estadoLower.includes('egreso admin') || estadoLower.includes('alta admin') || estadoLower.includes('cancelad') || estadoLower.includes('administrativ') || rowStrLower.includes('cancelad')) {
+            estado = 'Egreso Administrativo';
+          } else if (estadoLower.includes('complet') || rowStrLower.includes('complet')) {
             estado = 'Completa';
           }
 
@@ -849,7 +854,7 @@ export default function GestionDatos({
             const tObj = turnosMap[key];
             tObj.registros.push(p);
             tObj.totalPacientes++;
-            if (p.estado === 'Cancelada') tObj.altasAdmin++;
+            if (p.estado === 'Cancelada' || p.estado === 'Egreso Administrativo' || p.estado === 'Alta sin Atención Médica' || isAltaAdmin(p)) tObj.altasAdmin++;
             if (tObj[p.categoria] !== undefined) tObj[p.categoria]++;
             if (isTraslado(p)) tObj.trasladosCount++;
             if (isConstatacion(p)) tObj.constatacionesCount++;
