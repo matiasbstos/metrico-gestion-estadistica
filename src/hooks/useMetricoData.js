@@ -167,18 +167,25 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
         const startMs = new Date(y1, m1 - 1, d1 - 1, 0, 0, 0).getTime();
         const endMs = new Date(y2, m2 - 1, d2 + 1, 23, 59, 59).getTime();
 
-        const pacientesRef = collection(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia');
-        const qRange = query(
-          pacientesRef, 
-          where('tAdmision', '>=', startMs), 
-          where('tAdmision', '<=', endMs)
-        );
-        const snapPacs = await runWithTimeout(getDocs(qRange), 6000);
+        const diffDays = (endMs - startMs) / (1000 * 60 * 60 * 24);
+        const hasSufficientDataInMemory = globalPacientesMapRef.current.size >= 5000;
 
-        snapPacs.docs.forEach(d => {
-          const p = { id: d.id, ...d.data() };
-          globalPacientesMapRef.current.set(d.id, p);
-        });
+        // Si es un rango muy amplio (> 60 días) y ya contamos con base histórica en memoria,
+        // evitamos una descarga masiva de 26.000 docs que congele el navegador y la red.
+        if (!hasSufficientDataInMemory || diffDays <= 60) {
+          const pacientesRef = collection(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia');
+          const qRange = query(
+            pacientesRef, 
+            where('tAdmision', '>=', startMs), 
+            where('tAdmision', '<=', endMs)
+          );
+          const snapPacs = await runWithTimeout(getDocs(qRange), 6000);
+
+          snapPacs.docs.forEach(d => {
+            const p = { id: d.id, ...d.data() };
+            globalPacientesMapRef.current.set(d.id, p);
+          });
+        }
       }
 
       const arr = Array.from(globalPacientesMapRef.current.values()).sort((a, b) => b.tAdmision - a.tAdmision);

@@ -10,6 +10,32 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.2.4',
+    version_tag: 'v6.2.4',
+    fecha_despliegue: '10 de Septiembre, 2026',
+    proposito_actualizacion: 'Feedback Visual Inmediato de Carga Superior, Optimización Algorítmica O(1) de Turnos y Erradicación de Congelamiento en Consultas Anuales y Subreportes.',
+    medios_y_stack: [
+      'React 18 Concurrent Deferred Scheduling (isFiltering + setTimeout/Scheduler)',
+      'BarraProgresoCarga (Beam luminoso superior continuo)',
+      'useMetricoAnalytics.js (Indexación de turnos cruzados con Hash Map O(1))',
+      'AnalisisTraslados.jsx (Memoización de métricas de guardia y reducción de O(N^2))',
+      'useMetricoData.js (Guarda de escalabilidad en forceDeepSync para rangos > 60 días)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Feedback Visual Universal Inmediato: Al pulsar cualquier preset ("Año", "Mes", "Semana", "Día", o rangos manuales) en cualquier subreporte o módulo, el hilo principal activa de forma síncrona isFiltering=true, cediendo un tick (16ms) al navegador para pintar el haz luminoso de BarraProgresoCarga antes de que el motor inicie cualquier cálculo analítico masivo. 2) Optimización Algorítmica de Enlace Turno-Paciente O(1): Se reemplazó el filtro lineal iterativo O(N) que recorría 26.500 registros para cada uno de los más de 800 turnos nocturnos en rangos anuales por una unión directa en O(1) basada en el diccionario pacsByDateStr (fecha de inicio y fecha de cierre +1 día), reduciendo de 21.000.000 a ~100.000 operaciones y eliminando por completo el mensaje "Page Unresponsive" de Chrome. 3) Memoización Agrupada en Subreporte de Traslados: Se optimizó el cálculo de top10TurnosTraslados y maxTrasladosTurno en AnalisisTraslados.jsx centralizando la extracción de traslados en una sola pasada memoizada (memoDet). 4) Protección de Red en Deep Sync: Se condicionó la recarga forzada de Firestore para que rangos mayores a 60 días utilicen la base local desduplicada en memoria si ya existen pacientes cargados.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'system_architecture_log'],
+      query_optimization: 'Indexación O(1) por Hash Map pacsByDateStr en turnosFiltrados y supresión de llamadas redundantes en componentes analíticos de alta densidad.'
+    },
+    modulos_afectados: ['Dashboard.jsx', 'BarraProgresoCarga.jsx', 'useMetricoAnalytics.js', 'AnalisisTraslados.jsx', 'useMetricoData.js', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Diferimiento del estado de filtros en handleSetFiltroFechaInicio, handleSetFiltroFechaFin, applyDatePreset y handleClearFilters para garantizar renderizado inmediato del haz luminoso superior.',
+      'Sustitución de pacientesFiltrados.filter lineal por pacsByDateStr.get(curr) + pacsByDateStr.get(next) en turnos spansMidnight de useMetricoAnalytics.js.',
+      'Memoización local con Map en el cálculo de demanda de traslados por turno en AnalisisTraslados.jsx.',
+      'Incorporación de guarda en useMetricoData.js para evitar bloqueos por descargas masivas de 26.500 docs en rangos amplios.',
+      'Actualización oficial del sistema a v6.2.4 en Dashboard.jsx e informes institucionales.'
+    ]
+  },
+  {
     id: 'v6.2.3',
     version_tag: 'v6.2.3',
     fecha_despliegue: '08 de Septiembre, 2026',

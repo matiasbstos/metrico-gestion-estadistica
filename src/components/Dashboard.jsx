@@ -42,7 +42,7 @@ import FondoClinicoAnimado from './common/FondoClinicoAnimado';
 import { formatLocalDate, calcularUltimoTurnoCompleto, resolverMaxTimestampGlobal } from '../utils/helpers';
 import { playIntegrityAlertChime, playLogoutChime } from '../utils/audioNotifications';
 
-const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.2.2';
+const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.2.4';
 import Login from './Login';
 import { 
   Clock, Users, UserCheck, AlertTriangle, Activity, ArrowRight, 
@@ -379,111 +379,142 @@ const DashboardContent = () => {
 
   const handleSetFiltroFechaInicio = useCallback((val) => {
     userHasManuallyFilteredRef.current = true;
-    setFiltroFechaInicio(val);
+    setIsFiltering(true);
+    setTimeout(() => {
+      setFiltroFechaInicio(val);
+      setTimeout(() => setIsFiltering(false), 250);
+    }, 16);
   }, []);
 
   const handleSetFiltroFechaFin = useCallback((val) => {
     userHasManuallyFilteredRef.current = true;
-    setFiltroFechaFin(val);
+    setIsFiltering(true);
+    setTimeout(() => {
+      setFiltroFechaFin(val);
+      setTimeout(() => setIsFiltering(false), 250);
+    }, 16);
   }, []);
 
   const handleSetFiltroHoraInicio = useCallback((val) => {
     userHasManuallyFilteredRef.current = true;
-    setFiltroHoraInicio(val);
+    setIsFiltering(true);
+    setTimeout(() => {
+      setFiltroHoraInicio(val);
+      setTimeout(() => setIsFiltering(false), 200);
+    }, 16);
   }, []);
 
   const handleSetFiltroHoraFin = useCallback((val) => {
     userHasManuallyFilteredRef.current = true;
-    setFiltroHoraFin(val);
+    setIsFiltering(true);
+    setTimeout(() => {
+      setFiltroHoraFin(val);
+      setTimeout(() => setIsFiltering(false), 200);
+    }, 16);
   }, []);
 
   const handleSetHorarioPreset = useCallback((val) => {
     userHasManuallyFilteredRef.current = true;
-    setHorarioPreset(val);
+    setIsFiltering(true);
+    setTimeout(() => {
+      setHorarioPreset(val);
+      setTimeout(() => setIsFiltering(false), 200);
+    }, 16);
   }, []);
 
   const applyDatePreset = (preset) => {
     userHasManuallyFilteredRef.current = true;
-    const maxTime = resolverMaxTimestampGlobal(turnosDB, pacientesDB, allPacientesDB);
-    const baseDate = maxTime > 0 ? new Date(maxTime) : new Date();
-    const formatDate = (d) => isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
-    let startA, endA, startB, endB;
+    setIsFiltering(true);
 
-    if (preset === 'mes') {
-      startA = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
-      endA = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 0);
-      startB = new Date(baseDate.getFullYear(), baseDate.getMonth() - 1, 1);
-      endB = new Date(baseDate.getFullYear(), baseDate.getMonth(), 0);
-    } else if (preset === 'ano' || preset === 'anio' || preset === 'year') {
-      startA = new Date(baseDate.getFullYear(), 0, 1);
-      endA = new Date(baseDate.getFullYear(), 11, 31);
-      startB = new Date(baseDate.getFullYear() - 1, 0, 1);
-      endB = new Date(baseDate.getFullYear() - 1, 11, 31);
-    } else if (preset === 'semana') {
-      const current = new Date(baseDate);
-      const firstDay = new Date(current.setDate(current.getDate() - current.getDay() + 1));
-      const lastDay = new Date(current.setDate(current.getDate() - current.getDay() + 7));
-      startA = firstDay; endA = lastDay;
-      startB = new Date(firstDay.getTime() - 7 * 24 * 60 * 60 * 1000);
-      endB = new Date(lastDay.getTime() - 7 * 24 * 60 * 60 * 1000);
-    } else if (preset === 'dia' || preset === 'hoy') {
+    // Ceder el control al navegador para pintar inmediatamente la barra de carga superior
+    setTimeout(() => {
+      const maxTime = resolverMaxTimestampGlobal(turnosDB, pacientesDB, allPacientesDB);
+      const baseDate = maxTime > 0 ? new Date(maxTime) : new Date();
+      const formatDate = (d) => isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0];
+      let startA, endA, startB, endB;
+
+      if (preset === 'mes') {
+        startA = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1);
+        endA = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 0);
+        startB = new Date(baseDate.getFullYear(), baseDate.getMonth() - 1, 1);
+        endB = new Date(baseDate.getFullYear(), baseDate.getMonth(), 0);
+      } else if (preset === 'ano' || preset === 'anio' || preset === 'year') {
+        startA = new Date(baseDate.getFullYear(), 0, 1);
+        endA = new Date(baseDate.getFullYear(), 11, 31);
+        startB = new Date(baseDate.getFullYear() - 1, 0, 1);
+        endB = new Date(baseDate.getFullYear() - 1, 11, 31);
+      } else if (preset === 'semana') {
+        const current = new Date(baseDate);
+        const firstDay = new Date(current.setDate(current.getDate() - current.getDay() + 1));
+        const lastDay = new Date(current.setDate(current.getDate() - current.getDay() + 7));
+        startA = firstDay; endA = lastDay;
+        startB = new Date(firstDay.getTime() - 7 * 24 * 60 * 60 * 1000);
+        endB = new Date(lastDay.getTime() - 7 * 24 * 60 * 60 * 1000);
+      } else if (preset === 'dia' || preset === 'hoy') {
+        const completeShift = calcularUltimoTurnoCompleto(maxTime, pautasTurnosHook?.pautasDB);
+        if (completeShift) {
+          setFiltroFechaInicio(completeShift.fechaInicio);
+          setFiltroFechaFin(completeShift.fechaFin);
+          setFiltroHoraInicio(completeShift.horaInicio);
+          setFiltroHoraFin(completeShift.horaFin);
+          setHorarioPreset(completeShift.preset);
+          setTimeout(() => setIsFiltering(false), 200);
+          return;
+        }
+      } else if (preset === 'invierno_2026') {
+        startA = new Date(2026, 5, 1);
+        endA = new Date(2026, 8, 0);
+        startB = new Date(2025, 5, 1);
+        endB = new Date(2025, 8, 0);
+        setFiltroHoraInicio('00:00');
+        setFiltroHoraFin('23:59');
+        setHorarioPreset('civil');
+      } else if (preset === 'invierno_2025') {
+        startA = new Date(2025, 5, 1);
+        endA = new Date(2025, 8, 0);
+        startB = new Date(2024, 5, 1);
+        endB = new Date(2024, 8, 0);
+        setFiltroHoraInicio('00:00');
+        setFiltroHoraFin('23:59');
+        setHorarioPreset('civil');
+      }
+
+      if (preset === 'mes' || preset === 'semana' || preset === 'ano' || preset === 'anio' || preset === 'year') {
+        setFiltroHoraInicio('00:00');
+        setFiltroHoraFin('23:59');
+        setHorarioPreset('civil');
+      }
+
+      setFiltroFechaInicio(formatDate(startA));
+      setFiltroFechaFin(formatDate(endA));
+      if(modoComparativo) {
+        setFiltroFechaInicioB(formatDate(startB));
+        setFiltroFechaFinB(formatDate(endB));
+      }
+      setTimeout(() => setIsFiltering(false), 300);
+    }, 16);
+  };
+
+  const handleClearFilters = () => {
+    userHasManuallyFilteredRef.current = false;
+    setIsFiltering(true);
+    setTimeout(() => {
+      const maxTime = resolverMaxTimestampGlobal(turnosDB, pacientesDB, allPacientesDB);
       const completeShift = calcularUltimoTurnoCompleto(maxTime, pautasTurnosHook?.pautasDB);
+
       if (completeShift) {
         setFiltroFechaInicio(completeShift.fechaInicio);
         setFiltroFechaFin(completeShift.fechaFin);
         setFiltroHoraInicio(completeShift.horaInicio);
         setFiltroHoraFin(completeShift.horaFin);
         setHorarioPreset(completeShift.preset);
-        return;
       }
-    } else if (preset === 'invierno_2026') {
-      startA = new Date(2026, 5, 1);
-      endA = new Date(2026, 8, 0);
-      startB = new Date(2025, 5, 1);
-      endB = new Date(2025, 8, 0);
-      setFiltroHoraInicio('00:00');
-      setFiltroHoraFin('23:59');
-      setHorarioPreset('civil');
-    } else if (preset === 'invierno_2025') {
-      startA = new Date(2025, 5, 1);
-      endA = new Date(2025, 8, 0);
-      startB = new Date(2024, 5, 1);
-      endB = new Date(2024, 8, 0);
-      setFiltroHoraInicio('00:00');
-      setFiltroHoraFin('23:59');
-      setHorarioPreset('civil');
-    }
-
-    if (preset === 'mes' || preset === 'semana' || preset === 'ano' || preset === 'anio' || preset === 'year') {
-      setFiltroHoraInicio('00:00');
-      setFiltroHoraFin('23:59');
-      setHorarioPreset('civil');
-    }
-
-    setFiltroFechaInicio(formatDate(startA));
-    setFiltroFechaFin(formatDate(endA));
-    if(modoComparativo) {
-      setFiltroFechaInicioB(formatDate(startB));
-      setFiltroFechaFinB(formatDate(endB));
-    }
-  };
-
-  const handleClearFilters = () => {
-    userHasManuallyFilteredRef.current = false;
-    const maxTime = resolverMaxTimestampGlobal(turnosDB, pacientesDB, allPacientesDB);
-    const completeShift = calcularUltimoTurnoCompleto(maxTime, pautasTurnosHook?.pautasDB);
-
-    if (completeShift) {
-      setFiltroFechaInicio(completeShift.fechaInicio);
-      setFiltroFechaFin(completeShift.fechaFin);
-      setFiltroHoraInicio(completeShift.horaInicio);
-      setFiltroHoraFin(completeShift.horaFin);
-      setHorarioPreset(completeShift.preset);
-    }
-    setModoComparativo(false);
-    setFiltroFechaInicioB('');
-    setFiltroFechaFinB('');
-    setFiltrosGlobales({ sexo: 'TODOS', prevision: 'TODOS', edad: 'TODOS', establecimiento: 'TODOS' });
+      setModoComparativo(false);
+      setFiltroFechaInicioB('');
+      setFiltroFechaFinB('');
+      setFiltrosGlobales({ sexo: 'TODOS', prevision: 'TODOS', edad: 'TODOS', establecimiento: 'TODOS' });
+      setTimeout(() => setIsFiltering(false), 250);
+    }, 16);
   };
 
   const [kpisBigQuery, setKpisBigQuery] = useState(null);
@@ -1238,9 +1269,9 @@ const DashboardContent = () => {
         modoComparativo={modoComparativo} 
         setModoComparativo={setModoComparativo}
         filtroFechaInicio={filtroFechaInicio} 
-        setFiltroFechaInicio={setFiltroFechaInicio}
+        setFiltroFechaInicio={handleSetFiltroFechaInicio}
         filtroFechaFin={filtroFechaFin} 
-        setFiltroFechaFin={setFiltroFechaFin}
+        setFiltroFechaFin={handleSetFiltroFechaFin}
         filtroFechaInicioB={filtroFechaInicioB} 
         setFiltroFechaInicioB={setFiltroFechaInicioB}
         filtroFechaFinB={filtroFechaFinB} 
@@ -1249,11 +1280,11 @@ const DashboardContent = () => {
         tipoCorte={tipoCorte} 
         setTipoCorte={setTipoCorte}
         filtroHoraInicio={filtroHoraInicio} 
-        setFiltroHoraInicio={setFiltroHoraInicio}
+        setFiltroHoraInicio={handleSetFiltroHoraInicio}
         filtroHoraFin={filtroHoraFin} 
-        setFiltroHoraFin={setFiltroHoraFin}
+        setFiltroHoraFin={handleSetFiltroHoraFin}
         horarioPreset={horarioPreset} 
-        setHorarioPreset={setHorarioPreset}
+        setHorarioPreset={handleSetHorarioPreset}
         maxDateLabel={maxDateLabel}
         handleClearFilters={handleClearFilters}
         syncStatus={syncStatus}
@@ -2154,15 +2185,15 @@ const DashboardContent = () => {
             turnosDB={turnosDB} 
             pautasDB={pautasTurnosHook?.pautasDB}
             modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
-            filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={setFiltroFechaInicio}
-            filtroFechaFin={filtroFechaFin} setFiltroFechaFin={setFiltroFechaFin}
+            filtroFechaInicio={filtroFechaInicio} setFiltroFechaInicio={handleSetFiltroFechaInicio}
+            filtroFechaFin={filtroFechaFin} setFiltroFechaFin={handleSetFiltroFechaFin}
             filtroFechaInicioB={filtroFechaInicioB} setFiltroFechaInicioB={setFiltroFechaInicioB}
             filtroFechaFinB={filtroFechaFinB} setFiltroFechaFinB={setFiltroFechaFinB}
             applyDatePreset={applyDatePreset}
             tipoCorte={tipoCorte} setTipoCorte={setTipoCorte}
-            filtroHoraInicio={filtroHoraInicio} setFiltroHoraInicio={setFiltroHoraInicio}
-            filtroHoraFin={filtroHoraFin} setFiltroHoraFin={setFiltroHoraFin}
-            horarioPreset={horarioPreset} setHorarioPreset={setHorarioPreset}
+            filtroHoraInicio={filtroHoraInicio} setFiltroHoraInicio={handleSetFiltroHoraInicio}
+            filtroHoraFin={filtroHoraFin} setFiltroHoraFin={handleSetFiltroHoraFin}
+            horarioPreset={horarioPreset} setHorarioPreset={handleSetHorarioPreset}
             maxDateLabel={maxDateLabel}
             handleClearFilters={handleClearFilters}
             kpisBigQuery={kpisBigQuery}
@@ -2188,8 +2219,8 @@ const DashboardContent = () => {
             pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB} 
             turnosDB={turnosDB} 
             pautasDB={pautasTurnosHook?.pautasDB}
-            setFiltroFechaInicio={setFiltroFechaInicio}
-            setFiltroFechaFin={setFiltroFechaFin}
+            setFiltroFechaInicio={handleSetFiltroFechaInicio}
+            setFiltroFechaFin={handleSetFiltroFechaFin}
             setActiveTab={setActiveTab}
           />
         )}
@@ -2390,8 +2421,8 @@ const DashboardContent = () => {
             setSyncStatus={setSyncStatus} 
             showNotif={showNotif} 
             setActiveTab={setActiveTab} 
-            setFiltroFechaInicio={setFiltroFechaInicio} 
-            setFiltroFechaFin={setFiltroFechaFin} 
+            setFiltroFechaInicio={handleSetFiltroFechaInicio} 
+            setFiltroFechaFin={handleSetFiltroFechaFin} 
             centroActivo={centroActivo}
             pautasTurnosHook={pautasTurnosHook}
             pacientesDB={pacientesDB}

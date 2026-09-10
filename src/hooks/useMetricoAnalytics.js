@@ -308,7 +308,24 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
         pacs = pacsByDateStr.get(t.fechaInicio);
       }
       if (!pacs && !isNaN(tStart) && !isNaN(tEnd)) {
-        pacs = pacientesFiltrados.filter(p => p.tAdmision && p.tAdmision >= tStart && p.tAdmision < tEnd);
+        let candidatePacs = [];
+        if (t.fechaInicio && pacsByDateStr.has(t.fechaInicio)) {
+          candidatePacs = candidatePacs.concat(pacsByDateStr.get(t.fechaInicio));
+        }
+        if (spansMidnight) {
+          const [yN, mN, dN] = (t.fechaFin || t.fechaInicio).split('-').map(Number);
+          const nextDate = new Date(yN, mN - 1, dN);
+          if (startDay === endDay) nextDate.setDate(nextDate.getDate() + 1);
+          const nextDayStr = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}-${String(nextDate.getDate()).padStart(2, '0')}`;
+          if (pacsByDateStr.has(nextDayStr)) {
+            candidatePacs = candidatePacs.concat(pacsByDateStr.get(nextDayStr));
+          }
+        }
+        if (candidatePacs.length > 0) {
+          pacs = candidatePacs.filter(p => p.tAdmision && p.tAdmision >= tStart && p.tAdmision < tEnd);
+        } else {
+          pacs = pacientesFiltrados.filter(p => p.tAdmision && p.tAdmision >= tStart && p.tAdmision < tEnd);
+        }
       }
       if (!pacs) {
         pacs = [];

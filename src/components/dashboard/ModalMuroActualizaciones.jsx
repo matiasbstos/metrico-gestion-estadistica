@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.2.4',
+      version: 'v6.2.4',
+      fecha: '10 de Septiembre, 2026',
+      badge: 'FEEDBACK DE CARGA INMEDIATA & FLUIDEZ ANUAL (SIN CONGELAMIENTO)',
+      badgeColor: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-300 border-cyan-500/20',
+      title: 'Feedback Visual Inmediato y Erradicación de Congelamiento en Rangos Anuales y Subreportes',
+      categoria: 'Rendimiento & Experiencia de Usuario',
+      icon: Zap,
+      iconBg: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
+      summary: 'Se implementó una respuesta visual inmediata mediante la barra de carga superior activa en cualquier cambio de filtro (años, meses, semanas o subreportes) y se optimizó el motor analítico de turnos de O(N) a O(1), eliminando por completo el bloqueo del navegador ("Page Unresponsive") al consultar tramos masivos de datos.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que el usuario siempre tenga confirmación instantánea de que el sistema está trabajando al cambiar fechas o presionar presets temporales, evitando que la pestaña se quede congelada o muestre alertas de lentitud al analizar años completos.',
+        quePuedesVer: '1) Barra de Carga Superior Inmediata: Al pulsar los botones "Año", "Mes", "Semana", "Día" o cualquier selector de fecha/hora en Traslados, Demanda o Subreportes, un haz luminoso animado viaja continuamente en el borde superior indicando actividad. 2) Fluidez Absoluta en Tramos Anuales: Al presionar "Año" en el subreporte de Traslados o en cualquier otro módulo, el cálculo de los 26.500 pacientes se procesa en milisegundos sin congelar la pantalla. 3) Memoización de Guardias y Traslados: Las tarjetas de turnos con mayor cantidad de traslados y gráficos de guardia responden de forma ágil y sincronizada.',
+        ejemploUso: 'Ingresa a "Traslados Hospitalarios" o a la pantalla de "Demanda", haz clic en el botón "Año" de la barra superior: observarás inmediatamente la barra luminosa de carga y en una fracción de segundo todos los gráficos y KPIs anuales quedarán calculados sin demoras ni interrupciones.'
+      },
+      changes: [
+        'Diferimiento y programación de estado con isFiltering=true síncrono para renderizado prioritario de BarraProgresoCarga.',
+        'Optimización algorítmica O(1) de vinculación entre turnos nocturnos y pacientes usando tablas hash de fecha en useMetricoAnalytics.',
+        'Memoización agrupada con Map en AnalisisTraslados.jsx para erradicar recorridos O(N^2) redundantes.',
+        'Guarda de seguridad en useMetricoData para prevenir descargas masivas de 26.500 registros si ya residen en memoria.',
+        'Actualización oficial a v6.2.4 en la insignia superior izquierda y el muro de versiones del sistema.'
+      ]
+    },
+    {
       id: 'v6.2.3',
       version: 'v6.2.3',
       fecha: '08 de Septiembre, 2026',

@@ -325,45 +325,18 @@ export default function AnalisisTraslados({
     };
   }, [pacientesDB, localFechaInicio, pautasDB]);
 
-  // Turno Récord dentro del Período Seleccionado (con jornada completa unificada)
-  const maxTrasladosTurno = useMemo(() => {
-    const counts = {};
-    const details = {};
-    const patientMap = {};
-
-    pacientesTraslados.forEach(p => {
-      if (!p.tAdmision) return;
-      const det = obtenerTurnoDetallado(p.tAdmision, pautasDB);
-      const key = `${det.fechaTurno} - ${det.equipo} • ${det.tipo} (${det.horario})`;
-      counts[key] = (counts[key] || 0) + 1;
-      details[key] = det;
-      if (!patientMap[key]) patientMap[key] = [];
-      patientMap[key].push(p);
-    });
-
-    let maxKey = null;
-    let maxCount = 0;
-    Object.entries(counts).forEach(([key, count]) => {
-      if (count > maxCount) {
-        maxCount = count;
-        maxKey = key;
-      }
-    });
-
-    return {
-      count: maxCount,
-      det: maxKey ? details[maxKey] : null,
-      pacientes: maxKey ? patientMap[maxKey] : []
-    };
-  }, [pacientesTraslados, pautasDB]);
-
-  // Ranking Top 10 de Días y Turnos con mayor cantidad de traslados (Datos Reales de Pacientes)
-  const top10TurnosTraslados = useMemo(() => {
+  // Resumen unificado de turnos de traslados O(N) una sola vez con memoización
+  const turnosTrasladosData = useMemo(() => {
     const map = {};
+    const memoDet = new Map();
 
     pacientesTraslados.forEach(p => {
       if (!p.tAdmision) return;
-      const det = obtenerTurnoDetallado(p.tAdmision, pautasDB);
+      let det = memoDet.get(p.tAdmision);
+      if (!det) {
+        det = obtenerTurnoDetallado(p.tAdmision, pautasDB);
+        memoDet.set(p.tAdmision, det);
+      }
       const key = `${det.fechaTurno} - ${det.equipo} • ${det.tipo} (${det.horario})`;
       if (!map[key]) {
         map[key] = { key, count: 0, det, pacientes: [] };
@@ -372,10 +345,21 @@ export default function AnalisisTraslados({
       map[key].pacientes.push(p);
     });
 
-    return Object.values(map)
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
+    const list = Object.values(map).sort((a, b) => b.count - a.count);
+    const top = list[0] || null;
+
+    return {
+      ranking: list.slice(0, 10),
+      maxTurno: {
+        count: top ? top.count : 0,
+        det: top ? top.det : null,
+        pacientes: top ? top.pacientes : []
+      }
+    };
   }, [pacientesTraslados, pautasDB]);
+
+  const maxTrasladosTurno = turnosTrasladosData.maxTurno;
+  const top10TurnosTraslados = turnosTrasladosData.ranking;
 
   const promedioDiarioTraslados = useMemo(() => {
     if (dailyDataA.length === 0) return 0;
