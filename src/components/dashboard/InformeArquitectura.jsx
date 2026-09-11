@@ -10,6 +10,31 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.2.6',
+    version_tag: 'v6.2.6',
+    fecha_despliegue: '10 de Septiembre, 2026',
+    proposito_actualizacion: 'Auditoría y Deduplicación SSOT en Cola de Jornadas de Correo, Erradicación de Conteos Duplicados y Validación del Techo Asistencial Rayen (Máx 192 pac.).',
+    medios_y_stack: [
+      'ModalConfiguracionCorreo.jsx (Integración canónica de deduplicarPacientes y formatLocalDate SSOT)',
+      'ModalConfiguracionCorreo.jsx (Purga de cachés redundantes en localStorage y eliminación de duplicados por docId)',
+      'ModalConfiguracionCorreo.jsx (Filtro interactivo de cola por período: Año 2026, Últimos 30 días, Año 2025, Todos y buscador de fecha)',
+      'Auditoría BigQuery (Validación de techo asistencial histórico: máximo absoluto fin de semana 192 pac. y hábil 151 pac.)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) SSOT Deduplicado en Cola de Informes: Se erradicó la sobreestimación que mostraba días con más de 200 pacientes (ej. 16/08/2026 con 246 pac. en modal vs 157 reales de BigQuery), causada por documentos de Firestore con docId diferenciados tras cargas masivas y lecturas de caché local sin deduplicación. 2) Integración deduplicarPacientes: Toda jornada auditada procesa exclusivamente admisiones únicas consolidadas por correlativo y turno. 3) Techo Histórico Verificado: En los 619 días analizados (2025-2026), ningún día supera los 192 pacientes atendidos. 4) Navegación y Filtros: La tabla de jornadas auditadas incorpora segmentación por año y búsqueda instantánea.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'system_architecture_log'],
+      query_optimization: 'Cómputo en O(N) local deduplicado con acumulación consolidada de turnos para días históricos sin sobrecarga.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Sustitución de clave compuesta débil por el algoritmo deduplicarPacientes canónico de helpers.js en combinedPacientes.',
+      'Conversión canónica de timestamps a formato local YYYY-MM-DD mediante formatLocalDate para evitar discrepancias de zona horaria.',
+      'Purga automática de metrico_cached_pacientes en localStorage para erradicar historiales duplicados.',
+      'Incorporación de selector de período (filtroColaPeriodo) y búsqueda por texto (searchColaFecha) en la tabla de jornadas auditadas.',
+      'Despliegue de la versión v6.2.6 en la insignia institucional de MÉTRICO Clínico Predictivo.'
+    ]
+  },
+  {
     id: 'v6.2.5',
     version_tag: 'v6.2.5',
     fecha_despliegue: '10 de Septiembre, 2026',

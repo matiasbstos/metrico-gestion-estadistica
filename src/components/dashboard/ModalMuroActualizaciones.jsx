@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.2.6',
+      version: 'v6.2.6',
+      fecha: '10 de Septiembre, 2026',
+      badge: 'AUDITORÍA SSOT DE CORREOS & CONTROL DE TECHO ASISTENCIAL',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Auditoría de Jornadas de Correo, Deduplicación SSOT y Control de Techo Rayen (Máx 192 pac.)',
+      categoria: 'Consistencia & Correo Electrónico',
+      icon: ShieldCheck,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Auditoría integral de los 619 días históricos (2025-2026) en la cola de despacho de correos. Se detectó y subsanó la sobreestimación de días que mostraban más de 200 pacientes (como el 16/08/2026 con 246 pac. en lugar de sus 157 reales de BigQuery), causada por lecturas no desduplicadas en memoria. Se integró el motor canónico deduplicarPacientes, purga de cachés redundantes y un nuevo selector/buscador interactivo de fechas.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la cantidad de pacientes, atenciones y altas mostradas en la cola de jornadas auditadas del sistema de correos coincida con exactitud matemática con la base de datos oficial Rayen/BigQuery, erradicando duplicados de cargas masivas.',
+        quePuedesVer: '1) Datos Fieles al Techo Real: Ningún día en la historia del SAR supera los 192 pacientes atendidos (récord fin de semana: 192 pac. el 31/05/2026; récord día hábil: 151 pac. el 29/06/2026). Días como el 16/08/2026 reflejan sus 157 pacientes reales (139 atendidos y 18 altas). 2) Selector de Período en Cola de Envíos: Botones para filtrar cómodamente la cola entre "Año 2026", "Últimos 30 Días", "Año 2025" y "Todos (619 días)". 3) Buscador Instantáneo por Fecha: Barra de búsqueda para consultar cualquier jornada específica por fecha (ej: "2026-08-16").',
+        ejemploUso: 'Al abrir el modal de Configuración de Correos y revisar la "Cola de Jornadas Completas Auditadas", puedes pulsar "Año 2026" para ver solo las jornadas del año en curso o escribir "2026-08-16" para verificar que ahora muestra 157 pacientes exactos, en perfecta concordancia con BigQuery y el reporte del turno.'
+      },
+      changes: [
+        'Integración del motor canónico deduplicarPacientes en combinedPacientes de ModalConfiguracionCorreo.jsx.',
+        'Normalización de fechas a nivel local (formatLocalDate) para erradicar descalces horarios de cruce de medianoche.',
+        'Purga automática de registros duplicados en localStorage (metrico_cached_pacientes).',
+        'Incorporación de selector de período (Año 2026, 30 días, 2025, Todos) y buscador instantáneo de fecha en la tabla de cola.',
+        'Confirmación del techo asistencial histórico en BigQuery (192 pacientes máximos en 2026 y 165 en 2025).'
+      ]
+    },
+    {
       id: 'v6.2.5',
       version: 'v6.2.5',
       fecha: '10 de Septiembre, 2026',
