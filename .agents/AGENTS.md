@@ -52,10 +52,17 @@
     - La correlación de sobrecarga se evalúa mediante ComposedChart con doble eje Y (Volumen en Eje Y Izquierdo e/y Latencia en minutos por categoría en Eje Y Derecho).
 13. **Norma Oficial de Despacho de Informes por Correo y 7 Reportes PDF Adjuntos**:
     - Todo despacho de informe asistencial por correo electrónico debe generarse utilizando estrictamente el motor **React Email** (`@react-email/components` y `@react-email/render`) con diseño inline seguro, fondo oscuro institucional (`#0f172a`), logotipo oficial en pill blanco (`cid:logo_sar`) y compatibilidad garantizada en clientes de escritorio y móviles.
-    - **Grilla de Demanda Fidedigna a MÉTRICO**: Las tarjetas superiores de demanda deben reflejar sin excepción la estructura canónica de "PERÍODO SELECCIONADO" para los 4 indicadores clave: 1) Pacientes Admitidos, 2) Pacientes Atendidos, 3) Altas Administrativas, y 4) Traslados Hospitalarios. Cada tarjeta debe incluir obligatoriamente:
-      a) Badge pill con el porcentaje de variación interanual (`% YoY`) respecto a 2025.
-      b) Desglose inferior con el volumen del período actual (cantidad de pacientes).
-      c) Desglose inferior con el volumen del año anterior (2025).
+    - **Grilla de Demanda y Estructura en 9 Láminas Fidedigna al Previsualizador de Diseño**:
+      El cuerpo visual del correo debe reflejar fielmente la estructura de láminas definida en el previsualizador institucional de MÉTRICO:
+      1) **5 Recuadros Superiores**: Total Admitidos, Atenciones Médicas, Altas Administrativas, Rendimiento / Hora (pac/hr) y Estadía Total Promedio con comparativa YoY.
+      2) **Desglose de los 3 Tramos de Espera & Constataciones Z51.8**: Tiempos de Admisión-Triage, Triage-Box y Box-Alta con comparativa, junto al recuadro destacado de Constataciones médico-legales.
+      3) **Distribución Oficial de Triage C1 a C5**: Proporciones con barras de color institucionales y variaciones YoY.
+      4) **Rendimiento Clínico por Profesional Médico en Turno**: Tabla con médicos tratantes, atenciones, pac/hr y % de aporte al turno.
+      5) **Top 10 Diagnósticos CIE-10**: Mapeo completo con código CIE-10, diagnóstico patológico, casos, % y tendencia, con soporte de llaves duales (`codigo/cie10`, `nombre/diagnostico`, `count/cantidad`, `pct/porcentaje`) erradicando valores en blanco o "Sin registro".
+      6) **Centros de Origen & Demografía**: Centros base acumulado (CESFAM Florencia, Boris Soler, Elgueta, etc.) con llaves duales (`centro/nombre/name`), distribución por sexo, ratio demográfico y grupos etarios.
+      7) **Apartado Exclusivo: Traslados Hospitalarios UEH**: Derivaciones con comparativa YoY y ficha clínica de sospecha diagnóstica y hospital receptor.
+      8) **Bitácora de Seguridad**: Fracturas & traumatología y vigilancia respiratoria.
+      9) **Informes Oficiales Adjuntos**: Caja resumen de los 7 reportes formales en Hoja Carta / PDF.
     - **Generación y Adjunto Automático Obligatorio de los 7 Reportes Oficiales en PDF**:
       Al cerrar y despachar el informe del turno terminado, el sistema debe generar de forma autónoma en memoria con `pdf-lib` y adjuntar directamente al correo los **7 reportes ejecutivos oficiales en formato Hoja Carta / PDF**:
       1. *Reporte General Ejecutivo Asistencial* (Demanda, KPIs y Triage C1-C5)

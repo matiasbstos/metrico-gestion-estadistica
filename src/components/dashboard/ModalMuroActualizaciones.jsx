@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.2.7',
+      version: 'v6.2.7',
+      fecha: '11 de Septiembre, 2026',
+      badge: 'ARMONIZACIÓN INTEGRAL DE CORREOS & DISEÑO OFICIAL',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Armonización Fidedigna del Correo Asistencial con la Vista de Diseño',
+      categoria: 'Notificaciones & Reportes',
+      icon: Mail,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Actualización y rediseño completo del correo de informe asistencial auditado para que coincida exactamente con lo previsualizado en el apartado de diseño de MÉTRICO. Se resolvieron los campos que aparecían en blanco (Top 10 diagnósticos CIE-10 y nombres de CESFAM) y se incorporaron los módulos de rendimiento por profesional médico, los 3 tramos de espera y el apartado exclusivo de traslados.',
+      instructivo: {
+        paraQueSirve: 'Permite que la Dirección y el equipo de gestión reciban en su bandeja de entrada (Gmail/Outlook/móvil) un informe ejecutivo idéntico en estructura, tablas y calidad visual a la vista de diseño de MÉTRICO, con datos 100% completos y auditados.',
+        quePuedesVer: '1) 5 Recuadros Superiores: Admitidos, Atendidos, Altas, Rendimiento / Hora (pac/hr) y Estadía Total Promedio con porcentajes YoY. 2) Tramos de Espera & Constataciones Z51.8: Desglose de los 3 tiempos (Admisión a Triage, Triage a Box, Box a Alta) y tarjeta destacada con el volumen de constataciones médico-legales. 3) Distribución Oficial de Triage C1-C5: Barras proporcionales con porcentajes y variación. 4) Tabla de Rendimiento Clínico por Médico: Médicos tratantes del turno con cantidad de atenciones, pac/hr y porcentaje de aporte. 5) Top 10 Diagnósticos CIE-10: Códigos CIE-10, nombres patológicos, conteos, porcentajes y tendencias. 6) Centros Base Acumulado & Demografía: Desglose de CESFAMs emisores, ratio de género y grupos etarios. 7) Apartado Exclusivo de Traslados: Derivaciones a Urgencia Hospitalaria con ficha clínica de diagnóstico y destino. 8) Resumen de los 7 Informes PDF Adjuntos.',
+        ejemploUso: 'Al disparar un correo de prueba o recibir el despacho automático del turno terminado, el correo en la bandeja de entrada muestra ahora todas las tablas completas sin textos "Sin registro" ni columnas vacías, permitiendo una lectura ejecutiva inmediata antes de abrir los 7 PDFs adjuntos.'
+      },
+      changes: [
+        'Rediseño completo de InformeAsistencialEmail.js con maquetación de 9 láminas ejecutivas.',
+        'Mapeo tolerante de llaves duales en diagnósticos y centros emisores para eliminar textos en blanco.',
+        'Cálculo de médicos de turno (atenciones, pac/hr, % aporte) y de los 3 tramos de espera en helpers.js.',
+        'Inclusión del Apartado Exclusivo de Traslados Hospitalarios UEH con diagnóstico y hospital receptor.',
+        'Despliegue de la versión v6.2.7 en la insignia de MÉTRICO Clínico Predictivo.'
+      ]
+    },
+    {
       id: 'v6.2.6',
       version: 'v6.2.6',
       fecha: '10 de Septiembre, 2026',

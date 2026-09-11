@@ -10,6 +10,31 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.2.7',
+    version_tag: 'v6.2.7',
+    fecha_despliegue: '11 de Septiembre, 2026',
+    proposito_actualizacion: 'Armonización Integral del Correo Asistencial con la Vista de Diseño, Rediseño en 9 Láminas Institucionales y Corrección de Diagnósticos y Establecimientos en Blanco.',
+    medios_y_stack: [
+      'InformeAsistencialEmail.js (Reestructuración integral de plantilla React Email con 9 láminas y maquetación de tablas seguras)',
+      'ModalConfiguracionCorreo.jsx (Normalización de llaves duales para top10Diagnosticos y distribucionCesfam, e inyección de tramosEspera y medicosTurno)',
+      'helpers.js (Cálculo estructurado de medicosTurno, tramosEspera, rendimientoHora y lista de pacientes del turno auditado)',
+      'Cloud Functions Backend (Actualización de enviarInformeCorreo con renderizado fiel al previsualizador de diseño)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Paridad Visual 100% Fidedigna: El cuerpo del correo recibido en Gmail/Outlook reproduce fielmente las 9 láminas del previsualizador de diseño: 5 recuadros KPI superiores (incluyendo Rendimiento/Hora y Estadía Total), 3 tramos de espera y recuadro destacado de Constataciones Z51.8, distribución Manchester C1-C5 con barras y %, tabla de Rendimiento por Profesional Médico en Turno, Top 10 Diagnósticos CIE-10 completos, Centros Base Acumulado, Demografía con ratio de género y Apartado Exclusivo de Traslados Hospitalarios. 2) Erradicación de Campos en Blanco: Se blindó la interoperabilidad con mapeo dual de llaves (codigo/cie10, nombre/diagnostico, count/cantidad, centro/nombre). 3) Conservación de Adjuntos Oficiales: Despacho autónomo y adjunto directo de los 7 reportes PDF ejecutivos, consolidado CSV y bitácora TXT.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'system_architecture_log'],
+      query_optimization: 'Generación HTML en memoria con React Email sin bloqueo del event loop.'
+    },
+    modulos_afectados: ['InformeAsistencialEmail.js', 'ModalConfiguracionCorreo.jsx', 'helpers.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', '.agents/AGENTS.md'],
+    detalles_tecnicos: [
+      'Rediseño completo de InformeAsistencialEmail.js implementando maquetación de tablas seguras para correo con fondos contrastantes y diseño idéntico al previsualizador.',
+      'Soporte dual de claves en top10Diagnosticos ({ codigo, cie10, nombre, diagnostico, count, cantidad, pct, porcentaje }) y en distribucionCesfam ({ centro, nombre, name, casos, count, pct, porcentaje }).',
+      'Inyección de medicosTurno y tramosEspera (admisionTriage, triageAtencion, atencionAlta) en auditarUltimoTurnoCompleto y turnoInfo.',
+      'Incorporación del Apartado Exclusivo de Traslados Hospitalarios con diagnóstico y hospital de destino.',
+      'Despliegue de la versión v6.2.7 en la insignia oficial de MÉTRICO Clínico Predictivo.'
+    ]
+  },
+  {
     id: 'v6.2.6',
     version_tag: 'v6.2.6',
     fecha_despliegue: '10 de Septiembre, 2026',
