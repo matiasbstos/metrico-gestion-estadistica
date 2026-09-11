@@ -280,6 +280,54 @@ export const isAltaAdmin = (p) => {
   return false;
 };
 
+export const isTraslado = (p) => {
+  if (!p) return false;
+  if (p.flag_traslado_hospitalario !== undefined && p.flag_traslado_hospitalario !== null) return Boolean(p.flag_traslado_hospitalario);
+  const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
+  const obs = String(p.observacion || p.obs || '').toUpperCase();
+  const cat = String(p.categoria || p.triage || '').toUpperCase();
+  const isTrans = dest.includes('HOSP') || dest.includes('URGENC') || dest.includes('EMERGENC') || dest.includes('UEH') || dest.includes('SAMU') ||
+                  obs.includes('HOSP') || obs.includes('URGENC') || obs.includes('EMERGENC') || obs.includes('UEH') || obs.includes('SAMU') ||
+                  cat === 'C1';
+  const isRoutine = (dest.includes('CONSULTORIO') || dest.includes('CESFAM') || dest.includes('DOMICILIO')) &&
+                    !(dest.includes('HOSP') || dest.includes('URGENC') || dest.includes('EMERGENC') || dest.includes('UEH'));
+  return isTrans && !isRoutine;
+};
+
+export const isFractura = (p) => {
+  if (!p) return false;
+  if (p.flag_fractura !== undefined && p.flag_fractura !== null) return Boolean(p.flag_fractura);
+  const cod = String(p.codigoDiagnostico || p.cie10 || p.codigo || '').toUpperCase();
+  const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
+  return /^(S02|S12|S22|S32|S42|S52|S62|S72|S82|S92|T02|T08|T10|T12)/.test(cod) ||
+         /FRACTURA|\bFX\b|TRAUMATISM/.test(diag);
+};
+
+export const isConstatacionLesion = (p) => {
+  if (!p) return false;
+  if (p.flag_constatacion_z518 !== undefined && p.flag_constatacion_z518 !== null) return Boolean(p.flag_constatacion_z518);
+  const cat = String(p.categoria || p.triage || '').toLowerCase();
+  if (cat === 'c3_z518') return true;
+  const cod = String(p.codigoDiagnostico || p.cie10 || p.codigo || '').toUpperCase();
+  const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
+  const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
+  const obs = String(p.observacion || p.obs || '').toUpperCase();
+
+  if (cod.includes('Z51.8') || cod.includes('Z518') || cod.includes('Z04') || cod.includes('Z65') || cod.includes('Z02.7')) return true;
+  if (diag.includes('CONSTATAC') || diag.includes('CIRCUNSTANCIAS LEGALES') || diag.includes('LEGAL')) return true;
+
+  const keywordsPolice = ['CARABINERO', 'PDI', 'COMISARIA', 'COMISARÍA', 'POLICIA', 'POLICÍA', 'POLICIAL', 'DETENIDO', 'CUSTODIA', 'FISCALIA', 'FISCALÍA'];
+  return keywordsPolice.some(k => dest.includes(k) || obs.includes(k));
+};
+
+export const isRespiratorio = (p) => {
+  if (!p) return false;
+  const cod = String(p.codigoDiagnostico || p.cie10 || p.codigo || '').toUpperCase();
+  const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
+  if (/^J[0-9]{2}/.test(cod)) return true;
+  return /RESPIRAT|BRONQUIT|FARINGIT|NEUMON|ASMA|GRIPE|INFLUENZA|CORIZA|RINOFARING|LARINGIT|COVID|SARS/.test(diag);
+};
+
 export const formatLocalDate = (timestamp) => {
   if (!timestamp) return '';
   const d = new Date(timestamp);
@@ -430,6 +478,7 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
   let fracturasCount = 0;
   let constatacionesCount = 0;
   let trasladosCount = 0;
+  let respiratoriosCount = 0;
 
   let sumCatMins = 0, countCat = 0;
   let sumEstadiaMins = 0, countEstadia = 0;
@@ -438,20 +487,12 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
   const medMap = {};
 
   pacsTurno.forEach(p => {
-    const diag = String(p.diagnosticoPrincipal || p.codigoDiagnostico || p.diagnostico || '').toLowerCase();
-    const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
+    if (isFractura(p)) fracturasCount++;
+    if (isConstatacionLesion(p)) constatacionesCount++;
+    if (isTraslado(p)) trasladosCount++;
+    if (isRespiratorio(p)) respiratoriosCount++;
+
     const cat = String(p.categoria || p.triage || '').toUpperCase();
-
-    if (diag.includes('fractura') || diag.includes('fx')) fracturasCount++;
-    if (diag.includes('z51.8') || diag.includes('z518') || diag.includes('constatacion') || diag.includes('lesiones')) constatacionesCount++;
-    
-    // Regla de Traslado a Urgencia Hospitalaria / Secundaria
-    const isConsultorioOAmb = dest.includes('consultorio') || dest.includes('cesfam') || dest.includes('domicilio');
-    const hasHospitalOUrgencia = dest.includes('hosp') || dest.includes('urgenc') || dest.includes('emergenc') || dest.includes('ueh');
-    if (!isConsultorioOAmb && (hasHospitalOUrgencia || dest.includes('samu') || cat.includes('C1'))) {
-      trasladosCount++;
-    }
-
     if (cat.includes('C1')) triage.c1++;
     else if (cat.includes('C2')) triage.c2++;
     else if (cat.includes('C3')) triage.c3++;
@@ -575,6 +616,7 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
       fracturasCount,
       constatacionesCount,
       trasladosCount,
+      respiratoriosCount,
       triage,
       medicosTurno,
       tramosEspera,
@@ -598,10 +640,19 @@ export const auditarIntegridadTurnoCorreo = (turnoInfo) => {
   let altasAdmin = Number(turnoInfo.altasAdmin || 0);
   let atendidos = Number(turnoInfo.atendidos || 0);
 
-  // Si se dispone del listado de pacientes del turno, recalcular con isAltaAdmin estricto
+  let fracturasCount = Number(turnoInfo.fracturasCount ?? (turnoInfo.fracturas ?? 0));
+  let constatacionesCount = Number(turnoInfo.constatacionesCount ?? (turnoInfo.constataciones ?? 0));
+  let trasladosCount = Number(turnoInfo.trasladosCount ?? (turnoInfo.traslados ?? 0));
+  let respiratoriosCount = Number(turnoInfo.respiratoriosCount ?? (turnoInfo.respiratorios ?? 0));
+
+  // Si se dispone del listado de pacientes del turno, recalcular con los motores canónicos SSOT
   if (Array.isArray(turnoInfo.pacientes) && turnoInfo.pacientes.length > 0) {
     altasAdmin = turnoInfo.pacientes.filter(p => isAltaAdmin(p) || p.estado === 'Cancelada').length;
     atendidos = Math.max(0, turnoInfo.pacientes.length - altasAdmin);
+    fracturasCount = turnoInfo.pacientes.filter(isFractura).length;
+    constatacionesCount = turnoInfo.pacientes.filter(isConstatacionLesion).length;
+    trasladosCount = turnoInfo.pacientes.filter(isTraslado).length;
+    respiratoriosCount = turnoInfo.pacientes.filter(isRespiratorio).length;
   } else if (totalAdmitidos > 0 && (atendidos + altasAdmin !== totalAdmitidos)) {
     // Si la suma no cuadra con el total admitido
     if (altasAdmin > 0 && atendidos === totalAdmitidos) {
@@ -625,9 +676,10 @@ export const auditarIntegridadTurnoCorreo = (turnoInfo) => {
     totalAdmitidos,
     atendidos,
     altasAdmin,
-    fracturasCount: Number(turnoInfo.fracturasCount ?? (turnoInfo.fracturas ?? 0)),
-    constatacionesCount: Number(turnoInfo.constatacionesCount ?? (turnoInfo.constataciones ?? 0)),
-    trasladosCount: Number(turnoInfo.trasladosCount ?? (turnoInfo.traslados ?? 0)),
+    fracturasCount,
+    constatacionesCount,
+    trasladosCount,
+    respiratoriosCount,
     trasladoDetalle,
     auditadoPreVuelo: true,
     fechaAuditoriaPreVuelo: new Date().toISOString()
