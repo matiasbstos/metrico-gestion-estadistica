@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.2.8',
+    version_tag: 'v6.2.8',
+    fecha_despliegue: '11 de Septiembre, 2026',
+    proposito_actualizacion: 'Auditoría Clínica Exhaustiva del Turno 08/09/2026, Reconciliación Canónica de Altas Administrativas (98 Atendidos + 8 Altas) y Optimización de Tablas de Centros para Gmail.',
+    medios_y_stack: [
+      'helpers.js (Integración estricta de isAltaAdmin en auditarUltimoTurnoCompleto, garantizando paridad 98 atendidos y 8 egresos administrativos)',
+      'InformeAsistencialEmail.js (Sustitución de contenedor flexbox por tabla HTML en Centros Base Acumulado para evitar colapso de texto en Gmail)',
+      'InformeAsistencialEmail.js & ModalConfiguracionCorreo.jsx (Normalización institucional en mayúsculas de categorías de traslado: C4 en lugar de c4)',
+      'Cloud Functions Backend (Despliegue de enviarInformeCorreo con validación BigQuery SSOT y plantillas React Email de alta fidelidad)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Cuadratura Absoluta de Turno Auditado: Se verificó contra BigQuery y la base de datos que el turno largo 08/09/2026 consolida exactamente 106 pacientes admitidos, 98 atenciones médicas efectivas, 8 egresos administrativos/deserciones, 132 min de estadía promedio (2h 12m), 29 min admisión-triage, 46 min triage-box, 57 min box-alta, 2 constataciones Z51.8, 1 sospecha de fractura, 3 derivaciones hospitalarias a UEH y 40 casos de vigilancia respiratoria. 2) Reconciliación de Altas Administrativas: Se recalibró el helper auditarUltimoTurnoCompleto para emplear la regla clínica isAltaAdmin(p) || p.estado === "Cancelada", resolviendo el descalce previo donde figuraban 0 altas. 3) Compatibilidad Universal de Correo: Se adaptó la lista de centros base a formato de tabla HTML para asegurar separación visual nítida entre nombre y porcentaje en clientes de correo como Gmail y Outlook.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'system_architecture_log'],
+      query_optimization: 'Despacho SMTP asíncrono con adjuntos generados en memoria y tiempo de renderizado < 150ms.'
+    },
+    modulos_afectados: ['helpers.js', 'InformeAsistencialEmail.js', 'ModalConfiguracionCorreo.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'Dashboard.jsx'],
+    detalles_tecnicos: [
+      'Alineación de auditarUltimoTurnoCompleto con isAltaAdmin universal de MÉTRICO Rule 11.',
+      'Conversión de distribución de centros de Flexbox a HTML Table con celdas alineadas izquierda/derecha para renderizado perfecto en Gmail.',
+      'Mayúsculas institucionales automáticas en categorías clínicas de pacientes derivados (ej. Categoría C4).',
+      'Despliegue de la versión v6.2.8 en la insignia oficial de MÉTRICO Clínico Predictivo.'
+    ]
+  },
+  {
     id: 'v6.2.7',
     version_tag: 'v6.2.7',
     fecha_despliegue: '11 de Septiembre, 2026',

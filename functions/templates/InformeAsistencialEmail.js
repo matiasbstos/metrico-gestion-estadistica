@@ -617,12 +617,16 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                   )
                 ),
                 React.createElement('div', { style: { backgroundColor: '#ffffff', borderRadius: '8px', padding: '6px', border: '1px solid #f3e8ff' } },
-                  cesfams.map((c, i) => (
-                    React.createElement('div', { key: i, style: { display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: i === cesfams.length - 1 ? 'none' : '1px solid #f1f5f9', fontSize: '10px' } },
-                      React.createElement('span', { style: { fontWeight: '700', color: '#1e293b' } }, c.nombre),
-                      React.createElement('span', { style: { fontWeight: '900', color: '#6b21a8' } }, `${c.pct}%`)
+                  React.createElement('table', { width: '100%', style: { borderCollapse: 'collapse', fontSize: '10px' } },
+                    React.createElement('tbody', null,
+                      cesfams.map((c, i) => (
+                        React.createElement('tr', { key: i, style: { borderBottom: i === cesfams.length - 1 ? 'none' : '1px solid #f1f5f9' } },
+                          React.createElement('td', { style: { padding: '5px 0', fontWeight: '700', color: '#1e293b', textAlign: 'left' } }, c.nombre),
+                          React.createElement('td', { style: { padding: '5px 0', fontWeight: '900', color: '#6b21a8', textAlign: 'right', whiteSpace: 'nowrap' } }, `${c.pct}%`)
+                        )
+                      ))
                     )
-                  ))
+                  )
                 )
               )
             ),
@@ -692,7 +696,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                     ),
                     React.createElement(Column, { style: { textAlign: 'right' } },
                       React.createElement('span', { style: { fontSize: '8px', fontWeight: '900', backgroundColor: '#fef3c7', color: '#b45309', padding: '2px 5px', borderRadius: '4px' } },
-                        `Categoría ${trasladoDetalle.categoria || 'C2'}`
+                        `Categoría ${String(trasladoDetalle.categoria || 'C2').toUpperCase()}`
                       )
                     )
                   ),

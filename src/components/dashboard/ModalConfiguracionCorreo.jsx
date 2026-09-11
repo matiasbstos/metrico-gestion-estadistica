@@ -279,7 +279,7 @@ export default function ModalConfiguracionCorreo({
     });
     const primerTraslado = pacsTraslados[0] || null;
     const trasladoDetalle = primerTraslado ? {
-      categoria: primerTraslado.categoria || primerTraslado.triage || 'C2',
+      categoria: String(primerTraslado.categoria || primerTraslado.triage || 'C2').toUpperCase(),
       diagnostico: primerTraslado.diagnosticoPrincipal || primerTraslado.diagnostico || 'Patología quirúrgica / segundo nivel',
       destino: 'Hospital San José de Melipilla (Urgencia UEH)'
     } : {

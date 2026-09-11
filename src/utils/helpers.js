@@ -424,8 +424,8 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
 
   const pacsTurno = verifiedShift.pacientes;
   const totalAdmitidos = pacsTurno.length;
-  const altasAdmin = pacsTurno.filter(p => p.estado === 'Cancelada').length;
-  const atendidos = totalAdmitidos - altasAdmin;
+  const altasAdmin = pacsTurno.filter(p => isAltaAdmin(p) || p.estado === 'Cancelada').length;
+  const atendidos = Math.max(0, totalAdmitidos - altasAdmin);
 
   let fracturasCount = 0;
   let constatacionesCount = 0;
@@ -497,8 +497,8 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
   }
 
   const prevTotalAdmitidos = prevYearGroup ? prevYearGroup.pacientes.length : Math.max(1, Math.round(totalAdmitidos * 0.9));
-  const prevAtendidos = prevYearGroup ? prevYearGroup.pacientes.filter(p => p.estado !== 'Cancelada').length : Math.max(1, Math.round(atendidos * 0.9));
-  const prevAltasAdmin = prevYearGroup ? prevYearGroup.pacientes.filter(p => p.estado === 'Cancelada').length : Math.max(0, altasAdmin + 1);
+  const prevAtendidos = prevYearGroup ? prevYearGroup.pacientes.filter(p => p.estado !== 'Cancelada' && !isAltaAdmin(p)).length : Math.max(1, Math.round(atendidos * 0.9));
+  const prevAltasAdmin = prevYearGroup ? prevYearGroup.pacientes.filter(p => p.estado === 'Cancelada' || isAltaAdmin(p)).length : Math.max(0, altasAdmin + 1);
   const prevTiempoCat = 18;
   const prevEstadia = '1h 52m';
 

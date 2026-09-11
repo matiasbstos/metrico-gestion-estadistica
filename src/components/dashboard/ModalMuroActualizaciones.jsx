@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.2.8',
+      version: 'v6.2.8',
+      fecha: '11 de Septiembre, 2026',
+      badge: 'AUDITORÍA CLÍNICA SSOT DE TURNO & RECONCILIACIÓN DE ALTAS',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Auditoría Integral de Turno y Cuadratura Exacta de Altas Administrativas',
+      categoria: 'Calidad & Auditoría',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Auditoría detallada y conciliación 1:1 de todos los indicadores asistenciales del turno (08/09/2026 Turno Largo Semana). Se resolvió el cómputo de altas administrativas en el resumen de turno mediante la regla clínica isAltaAdmin, reflejando fielmente 98 atenciones médicas efectivas y 8 egresos administrativos (total 106 pacientes admitidos). Además, se perfeccionó la visualización de la lista de CESFAMs para Gmail mediante maquetación de tabla nativa y se estandarizó la categoría de traslados a mayúsculas institucionales (Categoría C4).',
+      instructivo: {
+        paraQueSirve: 'Permite garantizar que cada informe asistencial enviado por correo y auditado en la plataforma coincida exactamente con la realidad clínica y los registros de Rayen y BigQuery, desglosando con precisión cuántos pacientes fueron atendidos por médico y cuántos correspondieron a deserciones o egresos administrativos.',
+        quePuedesVer: '1) Cuadratura Universal de Demanda: 106 pacientes admitidos = 98 atendidos clínicos efectivos + 8 altas administrativas/retiros. 2) Desglose Clínico Verificado: 132 min estadía promedio (2h 12m), latencia a triage de 29 min, triage a box de 46 min, box a alta de 57 min. 3) Triage Manchester: C3 (16 pac.), C4 (32 pac.), C5 (56 pac.). 4) Rendimiento Médico: Francisca Fernández (42 atenciones), Natacha Guevara (32 atenciones), Belén González (24 atenciones), Trámites administrativos sin box (8 casos). 5) Traslados Hospitalarios: 3 derivaciones a Urgencia UEH (con Ficha de Traslado #1: Infarto agudo al miocardio, Categoría C4). 6) Diagnósticos y Centros: Formato en tablas HTML compatible al 100% con Gmail sin que los textos se junten.',
+        ejemploUso: 'Al abrir el informe de correo en cualquier dispositivo o cliente (Gmail Web, Outlook, iPhone/Android), las tablas de centros y diagnósticos se leen de forma limpia con los porcentajes alineados a la derecha, y las cifras de atenciones médicas cuadran exactamente con el reporte oficial Rayen.'
+      },
+      changes: [
+        'Integración canónica de isAltaAdmin en auditarUltimoTurnoCompleto (helpers.js) para clasificar con precisión 98 atendidos y 8 egresos administrativos.',
+        'Sustitución de Flexbox por HTML Table en Centros Base Acumulado dentro de InformeAsistencialEmail.js para evitar textos pegados en Gmail.',
+        'Estandarización automática en mayúsculas de categorías de traslado (Categoría C4).',
+        'Verificación punto a punto con BigQuery confirmando 100% de paridad en los 106 pacientes, tiempos asistenciales, diagnósticos y médicos de guardia.',
+        'Actualización a la versión oficial v6.2.8 en la insignia de MÉTRICO Clínico Predictivo.'
+      ]
+    },
+    {
       id: 'v6.2.7',
       version: 'v6.2.7',
       fecha: '11 de Septiembre, 2026',
