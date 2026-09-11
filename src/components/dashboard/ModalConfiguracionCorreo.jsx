@@ -6,6 +6,8 @@ import {
   UserPlus, Trash2, Edit3, Smartphone, Monitor, ShieldCheck, History, ArrowRight, ToggleLeft, ToggleRight, 
   Inbox, BellRing, Filter, Search, ChevronLeft
 } from 'lucide-react';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { app as defaultApp } from '../../config/firebase';
 import { auditarUltimoTurnoCompleto, deduplicarPacientes, formatLocalDate, isAltaAdmin } from '../../utils/helpers';
 import { 
   generateAltasSummary, 
@@ -606,8 +608,9 @@ export default function ModalConfiguracionCorreo({
 
     // 1. Invocar Cloud Function de Despacho SMTP Real
     try {
-      if (app) {
-        const functionsInstance = getFunctions(app);
+      const targetApp = app || defaultApp;
+      if (targetApp) {
+        const functionsInstance = getFunctions(targetApp);
         const callEnviarCorreo = httpsCallable(functionsInstance, 'enviarInformeCorreo');
         const res = await callEnviarCorreo({
           destinatarios: target,
@@ -617,7 +620,11 @@ export default function ModalConfiguracionCorreo({
         });
         if (res && res.data && res.data.success) {
           cloudFunctionSuccess = true;
+        } else if (res?.data?.mensaje) {
+          errMessage = res.data.mensaje;
         }
+      } else {
+        throw new Error('No se detectó instancia de Firebase App configurada.');
       }
     } catch(cloudErr) {
       console.warn('[Cloud Function SMTP] Despacho directo:', cloudErr);
@@ -643,15 +650,21 @@ export default function ModalConfiguracionCorreo({
       fecha: new Date().toISOString(),
       tipo: testTemplate === 'DIARIO' ? 'Informe Diario por Turno' : testTemplate === 'MENSUAL' ? 'Cierre Mensual Consolidado' : testTemplate === 'MASIVO' ? 'Carga Masiva Multidía' : 'Sub-Reportes Clínicos',
       destinatario: target,
-      estado: 'EXITOSO',
+      estado: cloudFunctionSuccess ? 'EXITOSO' : 'FALLIDO',
       detalles: cloudFunctionSuccess
-        ? `Prueba despachada y entregada vía SMTP a ${target}.`
-        : `Prueba registrada y despachada a ${target}.`
+        ? `Prueba entregada vía SMTP exitosamente a ${target} con reportes adjuntos.`
+        : `Error en despacho SMTP: ${errMessage || 'Fallo de entrega de correo'}.`
     };
 
     setTestLogs(prev => [newLog, ...prev.slice(0, 19)]);
     setSendingTestState(false);
-    if (showNotif) showNotif(`✔ Correo de prueba (${testTemplate}) despachado exitosamente a: ${target}`, 'success');
+    if (showNotif) {
+      if (cloudFunctionSuccess) {
+        showNotif(`✔ Correo de prueba (${testTemplate}) despachado exitosamente a: ${target}`, 'success');
+      } else {
+        showNotif(`✖ Error al despachar correo de prueba: ${errMessage || 'Error desconocido'}`, 'error');
+      }
+    }
   };
 
   if (!isOpen) return null;
