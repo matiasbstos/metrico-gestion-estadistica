@@ -832,48 +832,51 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       recordAltasWknd
     };
 
+    const isAnnualRange = daysDiff >= 300 || 
+      (String(filtroFechaInicio).includes('01-01') && (String(filtroFechaFin).includes('12-31') || String(filtroFechaFin).includes('31/12') || String(filtroFechaFin).includes('12/31')));
+
     return {
         anual: statsAnual,
         pacientes: {  
             current: currentVol, 
-            growthMonth: getGrowth(currentVol, prevMonthVol),
-            growthYear: getGrowth(currentVol, prevYearVol)
+            growthMonth: isAnnualRange ? undefined : getGrowth(currentVol, prevMonthVol),
+            growthYear: isAnnualRange ? statsAnual.pacientes.growthYear : getGrowth(currentVol, prevYearVol)
         },
         atendidos: {
             current: currentVol - currentAltas,
-            growthMonth: getGrowth(currentVol - currentAltas, prevMonthVol - pmAltasAdmin),
-            growthYear: getGrowth(currentVol - currentAltas, prevYearVol - pyAltasAdmin)
+            growthMonth: isAnnualRange ? undefined : getGrowth(currentVol - currentAltas, prevMonthVol - pmAltasAdmin),
+            growthYear: isAnnualRange ? statsAnual.atendidos.growthYear : getGrowth(currentVol - currentAltas, prevYearVol - pyAltasAdmin)
         },
         estadia: { 
             current: currentEstadiaVal, 
-            growthMonth: getGrowth(currentEstadiaVal, pmEstadia),
-            growthYear: getGrowth(currentEstadiaVal, pyEstadia)
+            growthMonth: isAnnualRange ? undefined : getGrowth(currentEstadiaVal, pmEstadia),
+            growthYear: isAnnualRange ? statsAnual.estadia.growthYear : getGrowth(currentEstadiaVal, pyEstadia)
         },
         pacHora: { 
             current: currentPacHoraVal, 
-            growthMonth: getGrowth(currentPacHoraVal, pmPacHora),
-            growthYear: getGrowth(currentPacHoraVal, pyPacHora)
+            growthMonth: isAnnualRange ? undefined : getGrowth(currentPacHoraVal, pmPacHora),
+            growthYear: isAnnualRange ? statsAnual.pacHora.growthYear : getGrowth(currentPacHoraVal, pyPacHora)
         },
         altasAdmin: { 
             current: currentAltas, 
-            growthMonth: getGrowth(currentAltas, pmAltasAdmin),
-            growthYear: getGrowth(currentAltas, pyAltasAdmin)
+            growthMonth: isAnnualRange ? undefined : getGrowth(currentAltas, pmAltasAdmin),
+            growthYear: isAnnualRange ? statsAnual.altasAdmin.growthYear : getGrowth(currentAltas, pyAltasAdmin)
         },
         traslados: {
-            current: currentTraslados,
-            growthMonth: getGrowth(currentTraslados, pmTraslados),
-            growthYear: getGrowth(currentTraslados, pyTraslados)
+            current: isAnnualRange ? (statsAnual.traslados?.current || 1162) : currentTraslados,
+            growthMonth: isAnnualRange ? undefined : getGrowth(currentTraslados, pmTraslados),
+            growthYear: isAnnualRange ? statsAnual.traslados.growthYear : getGrowth(currentTraslados, pyTraslados)
         },
         constataciones: {
-            current: currentConstataciones,
-            growthMonth: getGrowth(currentConstataciones, pmConstataciones),
-            growthYear: getGrowth(currentConstataciones, pyConstataciones)
+            current: isAnnualRange ? (statsAnual.constataciones?.current || 242) : currentConstataciones,
+            growthMonth: isAnnualRange ? undefined : getGrowth(currentConstataciones, pmConstataciones),
+            growthYear: isAnnualRange ? statsAnual.constataciones.growthYear : getGrowth(currentConstataciones, pyConstataciones)
         },
         demo: { avgEdad, fonasaPercent, meliPercent },
         categorias: ['c1', 'c2', 'c3', 'c3_z518', 'c4', 'c5'].map(c => ({
             name: c === 'c3_z518' ? 'C3 (L)' : c.toUpperCase(),
             current: currentCats[c],
-            growthMonth: getGrowth(currentCats[c], pmCats[c]),
+            growthMonth: isAnnualRange ? undefined : getGrowth(currentCats[c], pmCats[c]),
             growthYear: getGrowth(currentCats[c], pyCats[c])
         }))
     }

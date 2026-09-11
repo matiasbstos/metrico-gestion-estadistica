@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.2.5',
+    version_tag: 'v6.2.5',
+    fecha_despliegue: '10 de Septiembre, 2026',
+    proposito_actualizacion: 'Homologación Universal SSOT de Porcentajes YoY, Sintonía de Tarjetas Inferiores en Vistas Anuales y Actualización del Corte Oficial a #28.091.',
+    medios_y_stack: [
+      'useMetricoAnalytics.js (Armonización de statsKPI con statsAnual en rangos anuales)',
+      'Dashboard.jsx (Subordinación SSOT en statsKPIFinal y desambiguación de fuentes)',
+      'PanelKPIs.jsx (Supresión limpia de Vs Mes Ant. en períodos anuales)',
+      'Consistencia de Datos (Nuevo corte oficial #28.091 al 09/09/2026 21:57 hrs)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Armonización Universal de Porcentajes YoY: Se eliminó la divergencia visual entre el Banner Ejecutivo (+19.7% admisiones, +19.1% atendidos, +25.6% altas) y las tarjetas inferiores en filtros anuales (que mostraban caídas erróneas de -57.9%), subordinando de forma estricta las tarjetas inferiores al objeto SSOT statsKPI.anual. 2) Supresión de Comparativa Mensual en Vista Anual: Se ocultó la etiqueta "Vs Mes Ant." al filtrar por el año completo, evitando cálculos ilógicos que contrastaban un año civil completo contra un único mes. 3) Unificación de Conteos de Guardia: En la vista anual, las tarjetas de Traslados (1.162) y Constataciones (242) reflejan los valores consolidados de guardia exactamente alineados con Global Anual y el banner superior. 4) Actualización del Techo Rayen: Se actualizó el corte oficial a #28.091 pacientes cargados al 09/09/2026.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'system_architecture_log'],
+      query_optimization: 'Sintonización inmediata de métricas anuales en memoria sin re-consultas redundantes a BigQuery.'
+    },
+    modulos_afectados: ['useMetricoAnalytics.js', 'Dashboard.jsx', 'PanelKPIs.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', '.agents/AGENTS.md'],
+    detalles_tecnicos: [
+      'Inclusión de isAnnualRange en useMetricoAnalytics.js para asignar growthYear desde statsAnual y suprimir growthMonth en vistas de año completo.',
+      'Refuerzo en Dashboard.jsx (statsKPIFinal) para blindar la paridad de traslados (1.162) y constataciones (242).',
+      'Actualización de la Regla 1 y Regla 8 en .agents/AGENTS.md.',
+      'Despliegue de la versión v6.2.5 en la insignia de MÉTRICO Clínico Predictivo.'
+    ]
+  },
+  {
     id: 'v6.2.4',
     version_tag: 'v6.2.4',
     fecha_despliegue: '10 de Septiembre, 2026',

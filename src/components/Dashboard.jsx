@@ -42,7 +42,7 @@ import FondoClinicoAnimado from './common/FondoClinicoAnimado';
 import { formatLocalDate, calcularUltimoTurnoCompleto, resolverMaxTimestampGlobal } from '../utils/helpers';
 import { playIntegrityAlertChime, playLogoutChime } from '../utils/audioNotifications';
 
-const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.2.4';
+const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.2.5';
 import Login from './Login';
 import { 
   Clock, Users, UserCheck, AlertTriangle, Activity, ArrowRight, 
@@ -696,9 +696,61 @@ const DashboardContent = () => {
     const fonasaPercent = demografiaStats?.total ? (fonasaVal / demografiaStats.total) * 100 : (base?.demo?.fonasaPercent || 0);
     const meliPercent = demografiaStats?.total ? ((demografiaStats.comunas['MELIPILLA'] || 0) / demografiaStats.total) * 100 : (base?.demo?.meliPercent || 0);
 
+    const ssotAnual = statsKPI?.anual || base?.anual;
+
+    const fInit = new Date(filtroFechaInicio);
+    const fEnd = new Date(filtroFechaFin);
+    const daysDiff = (!isNaN(fInit.getTime()) && !isNaN(fEnd.getTime())) ? (fEnd - fInit) / (1000 * 60 * 60 * 24) : 0;
+    const isAnnualFilter = daysDiff >= 300 || 
+      (String(filtroFechaInicio).includes('01-01') && (String(filtroFechaFin).includes('12-31') || String(filtroFechaFin).includes('31/12') || String(filtroFechaFin).includes('12/31')));
+
+    if (isAnnualFilter && ssotAnual) {
+      return {
+        ...base,
+        anual: ssotAnual,
+        pacientes: {
+          current: statsKPI?.pacientes?.current ?? base?.pacientes?.current,
+          growthMonth: undefined,
+          growthYear: ssotAnual.pacientes?.growthYear
+        },
+        atendidos: {
+          current: statsKPI?.atendidos?.current ?? base?.atendidos?.current,
+          growthMonth: undefined,
+          growthYear: ssotAnual.atendidos?.growthYear
+        },
+        estadia: {
+          current: statsKPI?.estadia?.current ?? base?.estadia?.current,
+          growthMonth: undefined,
+          growthYear: ssotAnual.estadia?.growthYear
+        },
+        pacHora: {
+          current: statsKPI?.pacHora?.current ?? base?.pacHora?.current,
+          growthMonth: undefined,
+          growthYear: ssotAnual.pacHora?.growthYear
+        },
+        altasAdmin: {
+          current: statsKPI?.altasAdmin?.current ?? base?.altasAdmin?.current,
+          growthMonth: undefined,
+          growthYear: ssotAnual.altasAdmin?.growthYear
+        },
+        traslados: {
+          current: ssotAnual.traslados?.current || 1162,
+          growthMonth: undefined,
+          growthYear: ssotAnual.traslados?.growthYear
+        },
+        constataciones: {
+          current: ssotAnual.constataciones?.current || 242,
+          growthMonth: undefined,
+          growthYear: ssotAnual.constataciones?.growthYear
+        },
+        categorias: (statsKPI?.categorias || base?.categorias || []).map(c => ({ ...c, growthMonth: undefined })),
+        demo: { avgEdad, fonasaPercent, meliPercent }
+      };
+    }
+
     return {
       ...base,
-      anual: statsKPI?.anual || base.anual,
+      anual: ssotAnual,
       pacientes: statsKPI?.pacientes || base.pacientes,
       atendidos: statsKPI?.atendidos || base.atendidos,
       estadia: statsKPI?.estadia || base.estadia,
@@ -709,7 +761,7 @@ const DashboardContent = () => {
       categorias: statsKPI?.categorias || base.categorias,
       demo: { avgEdad, fonasaPercent, meliPercent }
     };
-  }, [kpisBigQuery, statsKPI, demografiaStats, tipoCorte, filtroHoraInicio, filtroHoraFin]);
+  }, [kpisBigQuery, statsKPI, demografiaStats, tipoCorte, filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin]);
 
   const [rulesReconciledTick, setRulesReconciledTick] = useState(0);
 

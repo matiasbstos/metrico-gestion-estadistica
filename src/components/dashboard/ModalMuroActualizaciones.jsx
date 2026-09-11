@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.2.5',
+      version: 'v6.2.5',
+      fecha: '10 de Septiembre, 2026',
+      badge: 'SINTONÍA UNIVERSAL SSOT & HOMOLOGACIÓN YoY ANUAL',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Homologación de Porcentajes YoY y Sintonía Universal de Tarjetas de Período',
+      categoria: 'Consistencia & Auditoría de Datos',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se armonizaron al 100% las comparativas de las 9 tarjetas inferiores con el Banner Ejecutivo de Período y el bloque Global Anual en vistas anuales, garantizando que el crecimiento interanual (+19.7% en admisiones, +19.1% en atendidos, +25.6% en altas, +11.8% en traslados) sea idéntico en toda la interfaz y eliminando caídas artificiales erróneas (-57.9%).',
+      instructivo: {
+        paraQueSirve: 'Elimina cualquier discrepancia o contradicción numérica entre las tarjetas superiores e inferiores del panel de control al analizar períodos anuales, asegurando que todos los indicadores hablen exactamente en la misma sintonía estadística según la Línea Base Oficial SAR.',
+        quePuedesVer: '1) Sintonía Absoluta de Porcentajes YoY: En la vista de año completo (botón "Año"), las tarjetas inferiores de Pacientes (+19.7%), Atendidos (+19.1%), Altas (+25.6%), Traslados (+11.8%) y Rendimiento (+19.7%) muestran el porcentaje interanual exacto y consistente con el Banner Ejecutivo superior. 2) Supresión de Comparativa Mensual en Vista Anual: Se retiró la etiqueta "Vs Mes Ant." al tener seleccionado el año completo, evitando cálculos incongruentes de un año contra un solo mes. 3) Unificación de Conteos de Guardia: Las tarjetas de Traslados (1.162) y Constataciones (242) reflejan fielmente las cifras consolidadas de guardia. 4) Nuevo Techo de Datos: Incorporación del corte oficial con 28.091 atenciones cargadas hasta el 09/09/2026.',
+        ejemploUso: 'Al seleccionar el botón "Año" en el Explorador Global, verás que tanto el bloque superior de Global Anual como el Banner de Período y las 9 tarjetas de desglose muestran exactamente +19.7% en admisiones, +19.1% en atenciones efectivas y +25.6% en altas administrativas, sin porcentajes negativos distorsionados.'
+      },
+      changes: [
+        'Subordinación canónica de statsKPI a statsAnual en useMetricoAnalytics.js para períodos anuales.',
+        'Armonización en statsKPIFinal (Dashboard.jsx) para blindar la paridad de traslados (1.162) y constataciones (242).',
+        'Supresión limpia de la etiqueta Vs Mes Ant. en PanelKPIs.jsx para vistas de año completo.',
+        'Actualización del correlativo máximo oficial en AGENTS.md (#28.091 al 09/09/2026 21:57 hrs).',
+        'Registro y despliegue oficial de la versión v6.2.5 en MÉTRICO Clínico Predictivo.'
+      ]
+    },
+    {
       id: 'v6.2.4',
       version: 'v6.2.4',
       fecha: '10 de Septiembre, 2026',

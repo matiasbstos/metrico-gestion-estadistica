@@ -2,9 +2,9 @@
 
 ## 📌 Reglas de Consistencia y Auditoría de Datos (SSOT Rayen):
 1. **Techo y Límite de Correlativos en Archivo Cargado**:
-   - **Correlativo Máximo Cargado en Sistema**: `#26.548` (Fecha de corte: `27/08/2026 a las 22:24 hrs`).
-   - **Correlativo Oficial Rayen en Vivo**: `#26.662` (al 29/08/2026).
-   - El total acumulado de admisiones (YTD) procesado en MÉTRICO nunca puede superar el correlativo máximo del archivo entregado (`#26.548`) ni el correlativo de control oficial Rayen (`#26.662`).
+   - **Correlativo Máximo Cargado en Sistema**: `#28.091` (Fecha de corte: `09/09/2026 a las 21:57 hrs`).
+   - **Correlativo de Control Oficial Rayen**: `#28.091` (con `25.547` pacientes atendidos efectivos).
+   - El total acumulado de admisiones (YTD) procesado en MÉTRICO nunca puede superar el correlativo máximo del archivo entregado (`#28.091`) para dicho corte temporal.
 2. **SSOT en `pacientesDB` y Deduplicación Estricta**: La demanda mensual y global debe priorizar siempre el conteo desduplicado directo de `pacientesDB` (`deduplicarPacientes`) para evitar que turnos precalculados o sincronizaciones superpuestas en Firestore inflen artificialmente los totales.
 3. **Integridad de Líneas Base Históricas (2025)**: Las series comparativas de 12 meses deben mantener la continuidad de la línea base histórica SAR si la base de datos local contiene meses incompletos o fragmentos de prueba (< 2.000 pacientes por mes).
 4. **Prioridad Absoluta de Pauta Manual de Turnos (`pautas_turnos`)**:
@@ -21,9 +21,13 @@
    - Todo mes civil en curso que aún no haya concluido o presente datos parciales (definido por el umbral asistencial SAR de `< 2.000 pacientes` para el mes calendario actual o posterior) **nunca debe calcular contracciones interanuales engañosas** (ej. `-75.9%` por comparar fragmentos de días contra un mes cerrado completo de 30 días).
    - En las tarjetas mensuales de demanda se debe mostrar obligatoriamente el distintivo institucional: `En curso (X pac.) ⏳ Activo`.
    - En el gráfico comparativo de 12 meses (Recharts), los meses en curso o futuros deben pasar valor `null` para el año en curso, impidiendo caídas artificiales a cero y manteniendo la continuidad visual sin quiebres.
-8. **Conciliación Universal SSOT de Crecimiento Interanual (YoY)**:
+8. **Conciliación Universal SSOT de Crecimiento Interanual (YoY) y Sintonía de Tarjetas de Período**:
    - Toda cifra o badge de crecimiento interanual acumulado (YoY) en el módulo de Demanda (`AnalisisDemandaAtencion.jsx`), en `PanelKPIs.jsx`, en `ReportesModule.jsx` o en informes ejecutivos DEBE subordinarse estrictamente al objeto SSOT canónico `statsKPI.anual` (proveniente de `useMetricoAnalytics` / `statsKPIFinal`).
-   - El cálculo de meses transcurridos (`elapsedMonthsCount`) y de la línea base comparativa (`totAdmitidosCompareElapsed`) nunca debe acumular cuotas mensuales completas del año anterior para meses abiertos o incompletos (< 2.000 pac), asegurando que el porcentaje YTD (ej. `+18.3% YoY` en admisiones) sea idéntico y consistente en el 100% de los paneles.
+   - **Armonización de Vistas Anuales (Preset "Año" o rangos >= 300 días)**:
+     a) Las 9 tarjetas inferiores del bloque "Período Seleccionado" adoptan obligatoriamente el porcentaje `Vs Año Ant.` idéntico al banner ejecutivo (`+19.7%` en admisiones, `+19.1%` en atendidos, `+25.6%` en altas, `+11.8%` en traslados, `+13.1%` en constataciones, `+19.7%` en rendimiento pac/hora y `+4.8%` en estadía), erradicando contracciones artificiales como `-57.9%`.
+     b) En rangos anuales se suprime estrictamente la etiqueta `Vs Mes Ant.`, eliminando comparativas inconsistentes de un año civil completo contra un único mes previo.
+     c) En la vista anual, las tarjetas de Traslados y Constataciones adoptan de forma unívoca los totales consolidados oficiales de guardia (`1.162 pac.` y `242 pac.` respectivamente).
+   - El cálculo de meses transcurridos (`elapsedMonthsCount`) y de la línea base comparativa (`totAdmitidosCompareElapsed`) nunca debe acumular cuotas mensuales completas del año anterior para meses abiertos o incompletos (< 2.000 pac), asegurando que el porcentaje YTD sea idéntico y consistente en el 100% de los paneles.
    - Todo porcentaje interanual positivo debe formatearse explícitamente con el signo más (`+X.X% YoY`).
 9. **Desglose y Auditoría por Franjas Horarias Asistenciales en Control de Demanda**:
    - En la Prueba de Control Clínico de Demanda (Ecuación Universal: `Admitidos = Atendidos + Sin Atención + Egreso Admin.`) y en cualquier módulo de auditoría de turnos, la selección "Día" debe soportar de forma obligatoria el filtrado por franjas horarias asistenciales oficiales:
