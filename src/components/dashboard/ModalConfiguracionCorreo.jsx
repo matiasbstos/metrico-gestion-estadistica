@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app as defaultApp } from '../../config/firebase';
-import { auditarUltimoTurnoCompleto, deduplicarPacientes, formatLocalDate, isAltaAdmin } from '../../utils/helpers';
+import { auditarUltimoTurnoCompleto, deduplicarPacientes, formatLocalDate, isAltaAdmin, auditarIntegridadTurnoCorreo } from '../../utils/helpers';
 import { 
   generateAltasSummary, 
   generateFracturasSummary, 
@@ -322,11 +322,14 @@ export default function ModalConfiguracionCorreo({
       distribucionCesfam,
       distribucionDemografia,
       trasladoDetalle,
-      fracturasCount: baseTurno.fracturasCount || baseTurno.fracturas || 2,
-      constatacionesCount: baseTurno.constatacionesCount || baseTurno.constataciones || 2,
-      trasladosCount: baseTurno.trasladosCount || baseTurno.traslados || 1,
+      fracturasCount: Number(baseTurno.fracturasCount ?? (baseTurno.fracturas ?? 0)),
+      constatacionesCount: Number(baseTurno.constatacionesCount ?? (baseTurno.constataciones ?? 0)),
+      trasladosCount: pacsTraslados.length > 0 ? pacsTraslados.length : Number(baseTurno.trasladosCount ?? (baseTurno.traslados ?? 0)),
       respiratoriosCount: Math.round(baseTurno.totalAdmitidos * 0.38)
     };
+
+    const auditCheck = auditarIntegridadTurnoCorreo(assembledTurno);
+    return auditCheck.turnoInfo || assembledTurno;
   }, [auditResult, combinedPacientes]);
 
   // Detección Automática de Días Completos Auditados y Cola de Despacho (Motor Deduplicado SSOT)

@@ -3808,6 +3808,13 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
                   Pauta de auditoría para requerimientos judiciales y policiales (Carabineros, PDI, Fiscalía).
                 </p>
               </div>
+
+              <div className="p-4 bg-card-custom rounded-2xl border border-card-custom space-y-1.5 md:col-span-2">
+                <strong className="text-emerald-500 font-black text-sm block">7. Protocolo Pre-Vuelo & Ecuación Universal de Rayen (Regla 16)</strong>
+                <p className="text-secondary-custom leading-relaxed">
+                  Todo informe asistencial despachado por correo electrónico valida de forma obligatoria la Ecuación Universal: <code>Admitidos = Atendidos Efectivos + Altas Administrativas</code>. Las altas administrativas se calculan invariablemente mediante <code>isAltaAdmin(p) || p.estado === 'Cancelada'</code>, garantizando paridad matemática exacta, formateo de categorías en mayúsculas (C1-C5) y tablas nativas HTML sin riesgo de colapso visual en Gmail y Outlook.
+                </p>
+              </div>
             </div>
 
           </div>

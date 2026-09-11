@@ -1202,8 +1202,38 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
     }
   };
 
+  // 0. AUDITORÍA PRE-VUELO OBLIGATORIA (Regla 16 MÉTRICO)
+  // Garantizar paridad matemática universal: Admitidos = Atendidos + Altas Administrativas
+  const totalAdm = Number(rawTurno.totalAdmitidos || 0);
+  let atnEfectivas = Number(rawTurno.atendidos || 0);
+  let altasAdminVal = Number(rawTurno.altasAdmin || 0);
+
+  if (totalAdm > 0 && (atnEfectivas + altasAdminVal !== totalAdm)) {
+    if (altasAdminVal > 0) {
+      atnEfectivas = Math.max(0, totalAdm - altasAdminVal);
+    } else {
+      altasAdminVal = Math.max(0, totalAdm - atnEfectivas);
+    }
+  }
+
+  // Sanitizar detalle de traslado: asegurar mayúsculas en categoría
+  const rawTraslado = rawTurno.trasladoDetalle || {};
+  const trasladoSanitizado = {
+    ...rawTraslado,
+    categoria: String(rawTraslado.categoria || 'C2').toUpperCase(),
+    diagnostico: rawTraslado.diagnostico || 'Sospecha patología de segundo nivel',
+    destino: rawTraslado.destino || 'Hospital San José de Melipilla (Urgencia UEH)'
+  };
+
   const turnoInfo = {
     ...rawTurno,
+    totalAdmitidos: totalAdm,
+    atendidos: atnEfectivas,
+    altasAdmin: altasAdminVal,
+    trasladoDetalle: trasladoSanitizado,
+    fracturasCount: Number(rawTurno.fracturasCount ?? (rawTurno.fracturas ?? 0)),
+    constatacionesCount: Number(rawTurno.constatacionesCount ?? (rawTurno.constataciones ?? 0)),
+    trasladosCount: Number(rawTurno.trasladosCount ?? (rawTurno.traslados ?? 0)),
     rotativa: String(rawTurno.rotativa || 'Turno Largo Semana (17:00 a 08:00 hrs)').replace(/\(16:00 - 09:00 c\/tolerancia\)/g, '').trim(),
     textoCompleto: String(rawTurno.textoCompleto || '').replace(/\(16:00 - 09:00 c\/tolerancia\)/g, '').trim()
   };

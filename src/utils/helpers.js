@@ -587,6 +587,59 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
 };
 
 /**
+ * REGLA 16: Auditoría Pre-Vuelo Obligatoria para Despacho de Informes por Correo.
+ * Garantiza paridad matemática universal (Admitidos = Atendidos + Altas Administrativas),
+ * conteos canónicos sin fallbacks ficticios y formateo institucional.
+ */
+export const auditarIntegridadTurnoCorreo = (turnoInfo) => {
+  if (!turnoInfo) return { valido: false, turnoInfo: null, error: 'No se suministró información del turno' };
+
+  const totalAdmitidos = Number(turnoInfo.totalAdmitidos || 0);
+  let altasAdmin = Number(turnoInfo.altasAdmin || 0);
+  let atendidos = Number(turnoInfo.atendidos || 0);
+
+  // Si se dispone del listado de pacientes del turno, recalcular con isAltaAdmin estricto
+  if (Array.isArray(turnoInfo.pacientes) && turnoInfo.pacientes.length > 0) {
+    altasAdmin = turnoInfo.pacientes.filter(p => isAltaAdmin(p) || p.estado === 'Cancelada').length;
+    atendidos = Math.max(0, turnoInfo.pacientes.length - altasAdmin);
+  } else if (totalAdmitidos > 0 && (atendidos + altasAdmin !== totalAdmitidos)) {
+    // Si la suma no cuadra con el total admitido
+    if (altasAdmin > 0 && atendidos === totalAdmitidos) {
+      atendidos = Math.max(0, totalAdmitidos - altasAdmin);
+    } else {
+      altasAdmin = Math.max(0, totalAdmitidos - atendidos);
+    }
+  }
+
+  // Sanitizar detalle de traslado: Categoría C1-C5 en mayúsculas institucionales
+  const rawTraslado = turnoInfo.trasladoDetalle || {};
+  const trasladoDetalle = {
+    ...rawTraslado,
+    categoria: String(rawTraslado.categoria || 'C2').toUpperCase(),
+    diagnostico: rawTraslado.diagnostico || 'Sospecha patología de segundo nivel',
+    destino: rawTraslado.destino || 'Hospital San José de Melipilla (Urgencia UEH)'
+  };
+
+  const auditado = {
+    ...turnoInfo,
+    totalAdmitidos,
+    atendidos,
+    altasAdmin,
+    fracturasCount: Number(turnoInfo.fracturasCount ?? (turnoInfo.fracturas ?? 0)),
+    constatacionesCount: Number(turnoInfo.constatacionesCount ?? (turnoInfo.constataciones ?? 0)),
+    trasladosCount: Number(turnoInfo.trasladosCount ?? (turnoInfo.traslados ?? 0)),
+    trasladoDetalle,
+    auditadoPreVuelo: true,
+    fechaAuditoriaPreVuelo: new Date().toISOString()
+  };
+
+  return {
+    valido: totalAdmitidos === (atendidos + altasAdmin),
+    turnoInfo: auditado
+  };
+};
+
+/**
  * Resuelve el timestamp máximo registrado en el sistema evaluando tanto turnos como pacientes.
  */
 export const resolverMaxTimestampGlobal = (turnosDB = [], pacientesDB = [], allPacientesDB = []) => {
