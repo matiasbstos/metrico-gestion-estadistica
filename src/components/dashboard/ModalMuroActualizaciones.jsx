@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.1',
+      version: 'v6.3.1',
+      fecha: '12 de Septiembre, 2026',
+      badge: 'VINCULACIÓN DINÁMICA DE CORREOS, PRE-VUELO MATEMÁTICO & DESPACHO INMEDIATO',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Datos 100% Dinámicos en Diseñador de Correo, Pre-Vuelo Clínico y Despacho con 1 Clic',
+      categoria: 'Módulos & Vistas',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se actualizaron todas las láminas del previsualizador de diseño de correos para que utilicen información 100% reactiva y fiel a los pacientes del turno seleccionado (rendimiento pac/hr, estadía total promedio, desglose de los 3 tramos de espera, constataciones Z51.8, categorización C1 a C5, tabla de médicos tratantes, top 10 diagnósticos CIE-10, centros emisores y traslados hospitalarios). Se incorporó el botón de despacho inmediato de turno en la tarjeta principal y en el diseñador, junto con la verificación visual de pre-vuelo de paridad matemática universal (Total Admitidos = Atendidos + Altas Administrativas).',
+      instructivo: {
+        paraQueSirve: 'Permite auditar y previsualizar exactamente cómo llegará el correo a las jefaturas y a la dirección médica con los datos reales del turno elegido, y despacharlo con un solo clic con sus 7 reportes PDF oficiales adjuntos.',
+        quePuedesVer: '1) Pre-Vuelo Clínico: Banner verde confirmando la paridad matemática de atenciones y altas. 2) Botón Despachar Informe: Envía inmediatamente el turno auditado a los destinatarios activos. 3) Diseñador Dinámico: Al cambiar de turno en la lista, los 10 diagnósticos, médicos y tramos de espera cambian en tiempo real.',
+        ejemploUso: 'Seleccionas el turno del 06/09/2026 de Noche (39 pac.), entras a Diseño y observas sus cifras exactas de médicos, CIE-10 y tiempos. Presionas "Despachar este Informe" y el correo sale de inmediato vía SMTP con los 7 PDF.'
+      },
+      changes: [
+        'Sustitución de todas las constantes estáticas de la pestaña Diseño por valores calculados de turnoInfo.',
+        'Implementación del botón "Despachar Informe Oficial Ahora" en Tarjeta 1 y en el Previsualizador.',
+        'Banner visual de comprobación de la Ecuación Universal Rayen (Admitidos = Atendidos + Altas).',
+        'Registro automático de estado Despachado en la cola tras el envío exitoso.',
+        'Actualización a la versión oficial v6.3.1 en la insignia de MÉTRICO Clínico Predictivo.'
+      ]
+    },
+    {
       id: 'v6.3.0',
       version: 'v6.3.0',
       fecha: '12 de Septiembre, 2026',

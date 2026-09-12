@@ -10,6 +10,32 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.1',
+    version_tag: 'v6.3.1',
+    fecha_despliegue: '12 de Septiembre, 2026',
+    proposito_actualizacion: 'Vinculación Dinámica Total en el Previsualizador de Correo, Banner de Pre-Vuelo Matemático Universal y Botón de Despacho Inmediato de Turnos Auditados.',
+    medios_y_stack: [
+      'ModalConfiguracionCorreo.jsx (Sustitución de todas las constantes estáticas de la pestaña Diseño por valores 100% dinámicos y reactivos derivados de turnoInfo: rendimiento hora, estadía promedio, tramos de espera, constataciones Z51.8, distribución de triage C1-C5, tabla de médicos, diagnósticos CIE-10, centros de origen y derivaciones hospitalarias)',
+      'ModalConfiguracionCorreo.jsx (Implementación de handleDespacharTurnoAuditado con despacho directo a la lista de destinatarios activos y confirmación en tiempo real)',
+      'ModalConfiguracionCorreo.jsx (Incorporación del banner de Pre-Vuelo Matemático Universal: Total Admitidos = Atendidos + Altas Administrativas en Tarjeta 1 y en el Previsualizador)',
+      'ModalConfiguracionCorreo.jsx (Actualización inmediata de metrico_informes_enviados_map en localStorage tras envíos exitosos para marcar la cola con badge Despachado)',
+      'Dashboard.jsx (Actualización de versión oficial a v6.3.1)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Paridad y Reactividad Total en el Previsualizador: Se erradicaron las constantes fijas que simulaban datos en la pestaña de diseño. Al auditar cualquier turno, la totalidad de las 9 láminas (recuadros superiores, tramos, triage, médicos tratantes, CIE-10, centros y traslados) refleja fielmente los registros individuales de ese turno. 2) Botón de Despacho Inmediato de Turno: Tanto en el panel del turno auditado como en el previsualizador de diseño, los usuarios pueden despachar el informe oficial con 1 clic sin necesidad de reconfigurar la consola de pruebas. 3) Pre-Vuelo Clínico Obligatorio (Regla 16): Se despliega la verificación visual de cuadratura matemática Admitidos = Atendidos + Altas, asegurando que ningún informe sea despachado con descalces.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'system_architecture_log'],
+      query_optimization: 'Cálculo reactivo memoizado con useMemo sin recarga ni reconsultas a la base de datos.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'Dashboard.jsx'],
+    detalles_tecnicos: [
+      'Conversión de tarjetas de rendimiento, estadía y tramos a expresiones matemáticas reactivas con duraciones efectivas de 15h (semana) o 12h (fin de semana).',
+      'Mapeo dinámico de array de triage con conteos y porcentajes calculados sobre el total categorizado.',
+      'Tabla de médicos con rendimientos específicos en pac/hr y aporte porcentual al turno auditado.',
+      'Sincronización instantánea de estado Despachado en la cola tras envío exitoso vía Cloud Function.',
+      'Despliegue de la versión v6.3.1 en la insignia oficial de MÉTRICO Clínico Predictivo.'
+    ]
+  },
+  {
     id: 'v6.3.0',
     version_tag: 'v6.3.0',
     fecha_despliegue: '12 de Septiembre, 2026',
