@@ -163,7 +163,7 @@ const isShiftInWindowRange = (t, windowRange) => {
   let spansMidnight = false;
 
   if (horarioStr.includes('16:00') || horarioStr.includes('17:00') || horarioStr.includes('largo')) {
-    startH = '16:00'; endH = '09:00'; spansMidnight = true;
+    startH = '16:00'; endH = '12:00'; spansMidnight = true;
   } else if (horarioStr.includes('20:00') || horarioStr.includes('noche')) {
     startH = '20:00'; endH = '08:00'; spansMidnight = true;
   } else if (horarioStr.includes('08:00') || horarioStr.includes('dia') || horarioStr.includes('día')) {
@@ -287,7 +287,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       let spansMidnight = false;
 
       if (horarioStr.includes('16:00') || horarioStr.includes('17:00') || horarioStr.includes('largo')) {
-        startH = '16:00'; endH = '09:00'; spansMidnight = true;
+        startH = '16:00'; endH = '12:00'; spansMidnight = true;
       } else if (horarioStr.includes('20:00') || horarioStr.includes('noche')) {
         startH = '20:00'; endH = '08:00'; spansMidnight = true;
       } else if (horarioStr.includes('08:00') || horarioStr.includes('dia') || horarioStr.includes('día')) {

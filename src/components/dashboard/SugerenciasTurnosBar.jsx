@@ -149,9 +149,9 @@ export default function SugerenciasTurnosBar({
           title: 'Turno Largo Semana',
           equipo: eqLargo,
           rangeLabel: '17:00 a 08:00 hrs (+1d)',
-          ruleText: `Oficial 17:00 - 08:00 hrs${eqLargo ? ` (${eqLargo})` : ''} — Sistema aplica 16:00 - 09:00 AM internamente`,
+          ruleText: `Oficial 17:00 - 08:00 hrs${eqLargo ? ` (${eqLargo})` : ''} — Ventana asistencial y estadía hasta las 12:00 PM (+1d)`,
           horaInicio: '16:00',
-          horaFin: '09:00',
+          horaFin: '12:00',
           preset: 'largo',
           icon: Moon,
           badgeColor: 'from-indigo-500/20 to-sky-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30'

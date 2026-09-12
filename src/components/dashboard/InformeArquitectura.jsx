@@ -10,6 +10,34 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.3',
+    version_tag: 'v6.3.3',
+    fecha_despliegue: '12 de Septiembre, 2026',
+    proposito_actualizacion: 'Ampliación Asistencial y de Estadía hasta las 12:00 PM (Mediodía) para Turnos Largos de Semana Hábil, Captura de Pacientes de las 08:00 AM y Blindaje de Métricas.',
+    medios_y_stack: [
+      'helpers.js (Calibración de calcularUltimoTurnoCompleto: en días hábiles el turno largo de anoche se considera cerrado al 100% con todas sus altas médicas a partir de las 12:00 PM, estableciendo hFin en 12:00)',
+      'helpers.js (Ampliación del umbral superior maxHours <= 13 en auditarUltimoTurnoCompleto y auditarIntegridadTurnoCorreo para capturar altas y egresos médicos hasta el mediodía)',
+      'useMetricoAnalytics.js (Extensión de endH = 12:00 en isShiftInWindowRange y turnosPorFecha para abarcar la estadía de pacientes que ingresan a las 08:00 AM)',
+      'FiltrosGlobales.jsx (Actualización del preset largo a 16:00 - 12:00 PM y documentación interactiva del criterio de estadía)',
+      'SugerenciasTurnosBar.jsx (Configuración de horaFin en 12:00 para la sugerencia de Turno Largo de Semana con regla institucional visible)',
+      'ModalConfiguracionCorreo.jsx (Soporte de ventana de estadía hasta las 12:00 PM en turnosAuditadosCola y tabla oficial)',
+      'Dashboard.jsx (Actualización de versión oficial a v6.3.3)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Realidad Asistencial de Pacientes de las 08:00 AM: Todo paciente que ingresa a las 08:00 AM en punto (o durante el cambio de guardia) permanece en box, observación y tratamiento médico durante la mañana, sobrepasando el corte previo de las 09:00 AM. Por tanto, el rango asistencial y de estadía se extiende hasta las 12:00 PM (mediodía). 2) Consolidación Integral de Estadía: Se erradica el truncamiento de tiempos de permanencia, garantizando que el 100% de las altas médicas y tiempos en box de la mañana se atribuyan al turno nocturno saliente. 3) Cierre Oficial de Turno Hábil: Todo corte previo a las 12:00 PM en día de semana se reconoce como turno con estadías activas en curso.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'system_architecture_log'],
+      query_optimization: 'Extensión de índices temporales O(1) hasta las 12:00 PM sin consultas redundantes.'
+    },
+    modulos_afectados: ['helpers.js', 'useMetricoAnalytics.js', 'FiltrosGlobales.jsx', 'SugerenciasTurnosBar.jsx', 'ModalConfiguracionCorreo.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'Dashboard.jsx'],
+    detalles_tecnicos: [
+      'Ampliación de ventana endH a 12:00 en emparejamiento de turnos de useMetricoAnalytics.js.',
+      'Soporte de timestamps con maxHours hasta las 13 hrs en helpers.js para validación de turnos completos.',
+      'Sincronización reactiva del preset largo en FiltrosGlobales y SugerenciasTurnosBar.',
+      'Documentación viva en Consolidado de Arquitectura y Reglas del Agente (.agents/AGENTS.md).',
+      'Despliegue de la versión v6.3.3 en la insignia oficial de MÉTRICO Clínico Predictivo.'
+    ]
+  },
+  {
     id: 'v6.3.2',
     version_tag: 'v6.3.2',
     fecha_despliegue: '12 de Septiembre, 2026',

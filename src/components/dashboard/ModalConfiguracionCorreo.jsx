@@ -350,8 +350,8 @@ export default function ModalConfiguracionCorreo({
         let isCompleto = false;
         if (item.pacientesList && item.pacientesList.length > 0) {
           if (isNightShift) {
-            // Cruce de medianoche, >= 9 horas de span, admisiones de madrugada/cierre (05:00 a 10:00 hrs) y volumen representativo
-            isCompleto = isDifferentDay && timeSpanHours >= 9 && (maxHours >= 5 && maxHours <= 10) && item.pacientes >= 20;
+            // Cruce de medianoche, >= 9 horas de span, admisiones de madrugada y altas/estadía matutina (05:00 a 13:00 hrs) y volumen representativo
+            isCompleto = isDifferentDay && timeSpanHours >= 9 && (maxHours >= 5 && maxHours <= 13) && item.pacientes >= 20;
           } else {
             // Turno día: >= 9 horas de span y corte a las 19:00 hrs o posterior con volumen representativo
             isCompleto = timeSpanHours >= 9 && maxHours >= 19 && item.pacientes >= 25;
@@ -1649,7 +1649,7 @@ export default function ModalConfiguracionCorreo({
                             {modoVistaCola === 'TURNOS' && (
                               <td className="p-3.5 font-mono text-xs text-secondary-custom">
                                 {d.horario}
-                                {isLargo && <span className="block text-[9px] text-secondary-custom/70">16:00 a 09:00 AM</span>}
+                                {isLargo && <span className="block text-[9px] text-secondary-custom/70">Estadía hasta 12:00 PM</span>}
                               </td>
                             )}
 

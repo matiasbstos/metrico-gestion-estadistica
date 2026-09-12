@@ -80,11 +80,11 @@ function EncasillamientoInfoBadge({ horarioPreset }) {
               <span className="font-bold text-indigo-300">17:00 a 08:00 hrs</span>
             </div>
             <div className="flex items-center justify-between bg-indigo-500/15 px-2 py-1 rounded-lg border border-indigo-500/30">
-              <span className="text-slate-300">Encasillamiento Interno:</span>
-              <span className="font-mono font-bold text-emerald-400">16:00 a 09:00 AM</span>
+              <span className="text-slate-300">Encasillamiento & Estadía:</span>
+              <span className="font-mono font-bold text-emerald-400">16:00 a 12:00 PM</span>
             </div>
             <p className="text-[10px] text-slate-400 mt-2 pt-1 border-t border-white/5">
-              💡 <strong>¿Por qué 16:00 a 09:00 AM?</strong> Se aplica un margen extendido (+1 hora antes y después) para capturar el 100% de las admisiones del Turno Largo de Semana.
+              💡 <strong>¿Por qué 16:00 a 12:00 PM?</strong> Pacientes admitidos a las 08:00 AM en punto permanecen en box y observación médica, sobrepasando las 09:00 AM y completando su estadía y alta hasta el mediodía.
             </p>
           </div>
         </div>
@@ -193,7 +193,7 @@ export default function FiltrosGlobales({
       setFiltroHoraFin('23:59');
     } else if (presetKey === 'largo') {
       setFiltroHoraInicio('16:00');
-      setFiltroHoraFin('09:00');
+      setFiltroHoraFin('12:00');
       if (filtroFechaInicio && (!filtroFechaFin || filtroFechaFin <= filtroFechaInicio)) {
         setFiltroFechaFin(getNextDateStr(filtroFechaInicio));
       }

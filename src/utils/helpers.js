@@ -443,8 +443,8 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
     
     let isComplete = false;
     if (isNightShift) {
-      // Un turno noche completo DEBE extenderse al día siguiente Y tener admisiones entre las 05:30 AM y 10:00 AM
-      isComplete = isDifferentDay && timeSpanHours >= 9 && (maxHours >= 5 && maxHours <= 10);
+      // Un turno noche/largo completo DEBE extenderse al día siguiente Y sus registros de cierre/estadía matutina abarcar entre las 05:00 AM y las 12:00/13:00 hrs
+      isComplete = isDifferentDay && timeSpanHours >= 9 && (maxHours >= 5 && maxHours <= 13);
     } else {
       // Turno día completo (08:00 a 20:00)
       isComplete = timeSpanHours >= 9 && maxHours >= 19;
@@ -680,7 +680,7 @@ export const auditarIntegridadTurnoCorreo = (turnoInfo) => {
     const isDifferentDay = Boolean(maxDate && minDate && (maxDate.getDate() !== minDate.getDate() || maxDate.getMonth() !== minDate.getMonth()));
 
     if (isNightShift) {
-      esTurnoCompleto = isDifferentDay && timeSpanHours >= 9 && (maxHours >= 5 && maxHours <= 10) && turnoInfo.pacientes.length >= 20;
+      esTurnoCompleto = isDifferentDay && timeSpanHours >= 9 && (maxHours >= 5 && maxHours <= 13) && turnoInfo.pacientes.length >= 20;
     } else {
       esTurnoCompleto = timeSpanHours >= 9 && maxHours >= 19 && turnoInfo.pacientes.length >= 25;
     }
@@ -839,27 +839,30 @@ export const calcularUltimoTurnoCompleto = (maxTime, pautasDB = null) => {
       }
     }
   } else {
-    // Día hábil (Lunes a Viernes no festivo)
-    if (hours >= 8) {
-      // Turno nocturno de anoche cerró a las 08:00 o 09:00 AM
+    // Día hábil (Lunes a Viernes no festivo):
+    // Pacientes que ingresan a las 08:00 AM en punto permanecen en box, observación y atención médica,
+    // sobrepasando las 09:00 AM y completando su estadía y alta hasta el mediodía (12:00 PM).
+    // Por ende, el turno sólo se considera 100% cerrado con todas sus altas efectivas a partir de las 12:00 PM.
+    if (hours >= 12) {
       const prevDate = new Date(y, m, d - 1);
       const isPrevWknd = isWeekendOrHoliday(prevDate);
       return getShiftObject(
         prevDate, 
         maxDate, 
         isPrevWknd ? '20:00' : '16:00', 
-        isPrevWknd ? '08:00' : '09:00', 
+        isPrevWknd ? '08:00' : '12:00', 
         isPrevWknd ? 'finde_noche' : 'largo'
       );
     } else {
-      // Madrugada día hábil (00:00 a 07:59): turno nocturno de anoche aún no cierra
+      // Madrugada y mañana hábil (00:00 a 11:59): los pacientes de las 08:00 AM aún están en box/estadía.
+      // El turno nocturno sigue activo en atención médica; el último turno 100% concluido es el anterior.
       const prevDate = new Date(y, m, d - 1);
       const prev2Date = new Date(y, m, d - 2);
       const isPrevWknd = isWeekendOrHoliday(prevDate);
       if (isPrevWknd) {
         return getShiftObject(prevDate, prevDate, '08:00', '20:00', 'finde_dia');
       } else {
-        return getShiftObject(prev2Date, prevDate, '16:00', '09:00', 'largo');
+        return getShiftObject(prev2Date, prevDate, '16:00', '12:00', 'largo');
       }
     }
   }

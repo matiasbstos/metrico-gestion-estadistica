@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.3',
+      version: 'v6.3.3',
+      fecha: '12 de Septiembre, 2026',
+      badge: 'AMPLIACIÓN ASISTENCIAL HASTA LAS 12:00 PM & CAPTURA INTEGRAL DE ESTADÍA',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Extensión de Ventana Asistencial y Estadía hasta las 12:00 PM en Turnos de Semana',
+      categoria: 'Módulos & Vistas',
+      icon: Clock,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se calibró el motor de análisis y filtrado de turnos de semana hábil para reconocer la realidad asistencial de los pacientes que ingresan a las 08:00 AM en punto. Debido a que su permanencia en box, observación y tratamiento sobrepasa el corte anterior de las 09:00 AM, la ventana superior de búsqueda y consolidación de estadías se amplió formalmente hasta las 12:00 PM (mediodía). Con esto, el 100% de las altas médicas y tiempos de permanencia matutinos se integran sin cortes en el turno nocturno saliente, y ningún turno se declara cerrado hasta haber completado su ciclo al mediodía.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la estadía promedio y el recuento de pacientes atendidos reflejen exactamente la permanencia de quienes ingresaron a primera hora de la mañana, evitando que sus altas queden huérfanas o truncadas.',
+        quePuedesVer: '1) Preset "Turno Largo Semana": Ahora fija automáticamente la ventana desde las 16:00 hrs hasta las 12:00 PM del día siguiente. 2) Asistente de Turnos: Muestra la regla oficial con estadía extendida hasta las 12:00 PM. 3) Tiempos de Box y Alta: Estadía exacta calculada sobre todos los pacientes que egresaron en la mañana.',
+        ejemploUso: 'Un paciente admitido a las 08:00 AM que recibe atención y es dado de alta a las 10:45 AM ahora queda 100% contabilizado en el turno con sus 165 minutos de estadía real, sin quedar excluido.'
+      },
+      changes: [
+        'Extensión del rango superior de búsqueda asistencial y estadía a las 12:00 PM en días hábiles.',
+        'Calibración de calcularUltimoTurnoCompleto para considerar cerrado el turno de semana a partir de las 12:00 PM.',
+        'Ampliación del umbral de verificación en helpers.js a maxHours <= 13.',
+        'Actualización del preset y tooltip en FiltrosGlobales y SugerenciasTurnosBar.',
+        'Despliegue de la versión v6.3.3 en la insignia oficial de MÉTRICO Clínico Predictivo.'
+      ]
+    },
+    {
       id: 'v6.3.2',
       version: 'v6.3.2',
       fecha: '12 de Septiembre, 2026',
