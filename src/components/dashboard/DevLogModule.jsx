@@ -8,6 +8,227 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-4',
+    fecha: '2026-09-12',
+    titulo: 'Protocolo Institucional de 5 Pasos & Regularización Histórica de Bitácora',
+    tipo: 'Arquitectura & UX',
+    version_tag: 'v6.3.4',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Riesgo de desalineación entre el código desplegado, la versión del sitio, las novedades a usuarios y el historial de ingeniería.',
+    logica: 'Norma institucional obligatoria: todo cambio debe pasar invariablemente por GitHub, Hosting Firebase, tag de versión, muro de novedades y bitácora.',
+    solucion: 'Blindaje normativo de 5 fases activas y regularización retroactiva completa de la bitácora desde agosto hasta septiembre.',
+    fullPost: `En un proyecto de analítica predictiva de salud pública como MÉTRICO, la consistencia entre lo que está programado, lo que está publicado y lo que conocen los usuarios es un imperativo ético y técnico. No basta con resolver un problema en el código; el cambio debe ser trazable, reproducible y transparente para toda la institución.
+
+Establecimos como regla institucional inviolable el Protocolo Obligatorio de 5 Fases:
+1. Subida y sincronización limpia a GitHub.
+2. Despliegue en producción en Firebase Hosting.
+3. Actualización de la versión semántica visible en la barra lateral del sitio.
+4. Registro explicativo para el personal clínico en el Muro de Novedades e Instructivos.
+5. Actualización permanente y regularización retroactiva de la Bitácora de Desarrollo.
+
+Aprovechamos de saldar una deuda pendiente con nuestra propia bitácora: regularizamos e incorporamos de forma retroactiva los 10 grandes hitos de ingeniería desarrollados entre el 15 de agosto y el 12 de septiembre de 2026 (paridad Rayen, React Email con 7 PDFs, optimización O(1), cruce de meses, pautas manuales y la ventana ampliada a las 12:00 PM).
+
+Un sistema de clase mundial exige disciplina de clase mundial. Seguimos construyendo.`
+  },
+  {
+    id: 'devlog-v6-3-3',
+    fecha: '2026-09-12',
+    titulo: 'Extensión Asistencial hasta las 12:00 PM: Captura Integral de Estadía Matutina',
+    tipo: 'Arquitectura & UX',
+    version_tag: 'v6.3.3',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Pacientes admitidos a las 08:00 AM en días hábiles quedaban con su estadía truncada por el corte rígido a las 09:00 AM.',
+    logica: 'La entrega de guardia de semana y desocupación de boxes de pacientes matutinos concluye formalmente hacia el mediodía (12:00 PM).',
+    solucion: 'Ampliación transversal del rango superior de búsqueda y consolidación de estadía hasta las 12:00 PM en todos los KPIs.',
+    fullPost: `En la urgencia asistencial del SAR, los turnos no se cortan como si fueran un interruptor de luz. Si un paciente con dolor torácico o dificultad respiratoria cruza la ventanilla a las 07:55 o 08:00 AM, el equipo de guardia saliente no lo deja a mitad de atención; inicia el triage, lo ingresa a box, administra medicación y completa su observación médica.
+
+Habíamos calibrado previamente una ventana de tolerancia hasta las 09:00 AM para capturar admisiones rezagadas. Sin embargo, al auditar los registros clínicos reales, descubrimos que las altas médicas de los pacientes que ingresaron a las 08:00 AM en punto ocurrían frecuentemente a las 10:30 AM o incluso cerca del mediodía. Un corte a las 09:00 AM truncaba su tiempo de permanencia o dejaba sus altas desvinculadas de la guardia que los atendió.
+
+Decidimos alinear la arquitectura matemática con la práctica médica real: extendimos el rango superior de búsqueda asistencial y consolidación de estadías hasta las 12:00 PM (mediodía) para todos los turnos de semana hábil. Ahora, el 100% de las altas médicas y tiempos en box matutinos se atribuyen íntegramente a la guardia de origen, erradicando descalces en la estadía promedio y garantizando que ningún turno se considere cerrado hasta que haya concluido su ciclo clínico.
+
+Datos fieles al pulso real del box de urgencias. Seguimos construyendo.`
+  },
+  {
+    id: 'devlog-v6-3-2',
+    fecha: '2026-09-12',
+    titulo: 'Detección Estricta de Turno Clínico 100% Cerrado y Blindaje Anti-Despacho Prematuro',
+    tipo: 'Seguridad Asistencial',
+    version_tag: 'v6.3.2',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Riesgo de emitir reportes asistenciales preliminares a partir de cargas con turnos nocturnos abiertos (ej. 13 pacientes a las 21:57 hrs).',
+    logica: 'Evaluación matemática de amplitud horaria (>= 9 horas), cruce de medianoche y registros de cierre para validar completitud.',
+    solucion: 'Auto-selección obligatoria del último turno 100% concluido, badge ⏳ En Curso (Parcial) y advertencia de seguridad pre-envío.',
+    fullPost: `Despachar un informe oficial a la dirección médica con datos preliminares de un turno que todavía está a mitad de camino destruye la credibilidad estadística. Si la última planilla de Rayen se cortó a las 21:57 hrs con apenas 13 admisiones, ese turno no puede figurar como el balance definitivo de la noche.
+
+Fortalecimos el motor de auditoría clínica para imponer un criterio de cierre inviolable (Regla 5 SSOT): el sistema analiza el span horario entre la primera y última admisión (exigiendo un mínimo de 9 horas continuas) y verifica que existan atenciones matutinas que certifiquen el cierre de la guardia.
+
+Si el turno más reciente no cumple con este estándar, el sistema lo etiqueta visualmente en la cola como "⏳ En Curso (Parcial)" y retrocede automáticamente al turno previo que cuente con su carga 100% cerrada. Además, si algún operador intenta forzar el despacho de un turno abierto, el sistema despliega una barrera de confirmación de seguridad clínica.
+
+Cero reportes prematuros, máxima certeza directiva. Seguimos construyendo.`
+  },
+  {
+    id: 'devlog-v6-3-1',
+    fecha: '2026-09-12',
+    titulo: 'Previsualizador Dinámico Total y Banner de Pre-Vuelo Clínico Universal',
+    tipo: 'Paridad de Datos',
+    version_tag: 'v6.3.1',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'La pestaña de diseño de correos mantenía constantes fijas descalzadas de la realidad del turno auditado.',
+    logica: 'Vinculación 100% reactiva de las 9 láminas de diseño a partir de los registros individuales del turno en memoria.',
+    solucion: 'Previsualizador fiel, banner de cuadratura universal (Admitidos = Atendidos + Altas) y botón de despacho inmediato con 1 clic.',
+    fullPost: `El previsualizador de un informe directivo debe ser un espejo exacto de lo que llegará a la bandeja de entrada, no una maqueta con datos simulados. Teníamos el diseñador visual funcionando, pero algunas constantes de tiempos y diagnósticos no reaccionaban cuando el usuario auditaba un turno diferente en la tabla.
+
+Reescribimos la capa de datos de la pestaña de diseño para conectarla directamente a las variables calculadas de turnoInfo. Ahora, al seleccionar cualquier turno del historial, las 9 láminas (recuadros superiores, tramos de espera, categorización C1-C5, tabla de médicos tratantes, top 10 diagnósticos CIE-10, centros base y traslados UEH) se recalculan en milisegundos con los registros reales de ese equipo.
+
+Junto a esto, integramos un banner superior de comprobación de pre-vuelo matemático que valida visualmente la ecuación universal de Rayen (Total Admitidos = Atendidos + Altas Administrativas) y habilitamos un botón de despacho directo para enviar el informe con 1 clic sin pasos intermedios.
+
+Lo que ves en pantalla es exactamente lo que reciben las jefaturas. Seguimos construyendo.`
+  },
+  {
+    id: 'devlog-v6-3-0',
+    fecha: '2026-09-12',
+    titulo: 'Desagregación Estricta por Turnos de Guardia Asistenciales Oficiales',
+    tipo: 'Nueva Feature',
+    version_tag: 'v6.3.0',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Los fines de semana colapsaban 149 pacientes en un día civil ciego, distorsionando el rendimiento real de los turnos diurnos y nocturnos.',
+    logica: 'Separación estricta de jornadas en Fin de Semana Día (08:00 a 20:00) y Fin de Semana Noche (20:00 a 08:00) con filtros multidimensionales.',
+    solucion: 'Cola de despacho desagregada por turnos de guardia con capacidad de auditar y previsualizar cualquier fecha del historial.',
+    fullPost: `En el SAR, los fines de semana no son un bloque de 24 horas continuo operado por un solo equipo. El sábado y domingo operan dos turnos clínicos totalmente independientes: la guardia diurna de 08:00 a 20:00 hrs y la guardia nocturna de 20:00 a 08:00 AM del día siguiente.
+
+Al auditar la cola de despacho de correos, descubrimos que agrupar por fecha civil provocaba que el Domingo 06/09/2026 mostrara una fila única de 149 pacientes, mezclando las 110 atenciones del turno día con las 39 del turno noche. Esto impedía evaluar el rendimiento específico de cada equipo y obligaba a enviar correos consolidados engañosos.
+
+Reestructuramos completamente la cola en ModalConfiguracionCorreo: creamos el motor turnosAuditadosCola que segrega cada jornada en sus turnos oficiales SAR, asociando a cada uno su equipo de guardia (Turno 1, 2, 3 o 4) según la pauta institucional. Dotamos la interfaz de filtros por mes, semana, input de fecha exacta y buscador en tiempo real, permitiendo previsualizar y auditar cualquier turno histórico con un clic.
+
+Cada equipo de guardia evaluado con el rigor que merece su esfuerzo. Seguimos construyendo.`
+  },
+  {
+    id: 'devlog-v6-2-8',
+    fecha: '2026-09-11',
+    titulo: 'Automatización de los 7 Reportes Ejecutivos Oficiales en Hoja Carta / PDF',
+    tipo: 'Nueva Feature',
+    version_tag: 'v6.2.8',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Jefaturas y dirección requerían 7 informes separados que antes debían compilarse y descargarse manualmente.',
+    logica: 'Integración del motor pdf-lib en memoria para ensamblar los 7 documentos oficiales Hoja Carta y adjuntarlos de forma autónoma vía SMTP.',
+    solucion: 'Despacho automatizado del informe React Email con los 7 PDF oficiales adjuntos en un solo proceso.',
+    fullPost: `El cierre de un turno de urgencia exige respaldos formales para múltiples estamentos: epidemiología necesita la vigilancia respiratoria, la jefatura médica requiere el balance general y las altas administrativas, y el área legal audita las constataciones de lesiones Z51.8. Descargar 7 PDFs uno por uno al terminar una guardia de 15 horas era una carga inaceptable.
+
+Construimos un pipeline de generación documental en memoria utilizando pdf-lib. Al momento de cerrar y despachar el informe asistencial del turno terminado, el sistema compila de forma autónoma y simultánea los 7 reportes oficiales en formato Hoja Carta institucional:
+1. Reporte General Ejecutivo Asistencial
+2. Subreporte de Altas Administrativas y Deserciones
+3. Subreporte de Traumatología & Sospecha de Fractura
+4. Subreporte de Gestión de Enfermería & Triage Manchester
+5. Subreporte Oficial de Constataciones Z51.8
+6. Subreporte de Traslados Hospitalarios UEH
+7. Subreporte de Vigilancia Epidemiológica Respiratoria
+
+El informe principal se maqueta en React Email con fondo corporativo oscuro y se envía por SMTP adjuntando los 7 documentos listos para impresión y firma directiva.
+
+Automatización de alto impacto para la gestión de salud pública. Seguimos construyendo.`
+  },
+  {
+    id: 'devlog-v6-2-0',
+    fecha: '2026-09-10',
+    titulo: 'Mapeo Universal CIE-10 y Erradicación de Registros Diagnósticos Vacíos',
+    tipo: 'Paridad de Datos',
+    version_tag: 'v6.2.0',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Diagnósticos con nomenclaturas dispares o valores en blanco en los tableros de morbilidad y reportes.',
+    logica: 'Normalización de esquemas de llaves duales (codigo/cie10, nombre/diagnostico) y tablas nativas HTML para visualización móvil.',
+    solucion: 'Mapeo completo del Top 10 diagnósticos con certeza nosológica y compatibilidad garantizada en todos los clientes de correo.',
+    fullPost: `Un reporte epidemiológico que despliega filas con "Sin registro" o descripciones incompletas en la patología principal resta seriedad técnica a la gestión clínica. En los archivos de urgencia, los diagnósticos CIE-10 viajan bajo múltiples nombres de campo según el módulo de exportación de Rayen.
+
+Implementamos un resolvedor nosológico universal con soporte de llaves duales (codigo/cie10, nombre/diagnostico, count/cantidad) que normaliza cada patología registrada contra el estándar CIE-10 oficial chileno.
+
+Además, adaptamos la maquetación del Top 10 diagnósticos y de la distribución de centros base a tablas HTML nativas con ancho 100%, erradicando problemas de solapamiento de texto en dispositivos móviles y clientes de correo como Outlook o Gmail.
+
+Información epidemiológica nítida y universalmente compatible. Seguimos construyendo.`
+  },
+  {
+    id: 'devlog-v6-0-0',
+    fecha: '2026-09-08',
+    titulo: 'Control Oficial de Techo Asistencial Rayen al Correlativo #28.091',
+    tipo: 'Paridad de Datos',
+    version_tag: 'v6.0.0',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Sincronizaciones superpuestas en Firestore inflaban artificialmente los totales anuales por encima del archivo oficial entregado.',
+    logica: 'Fijación de techo asistencial inviolable en el correlativo #28.091 con 25.547 atenciones médicas efectivas deduplicadas.',
+    solucion: 'SSOT inalterable en pacientesDB con validación matemática de demandas mensuales y acumuladas YTD.',
+    fullPost: `La regla de oro de MÉTRICO es que ningún cálculo analítico puede superar el techo oficial del sistema de registro clínico de origen. Si la planilla maestra entregada por Rayen llega hasta el correlativo #28.091 al corte del 09/09/2026, ninguna sincronización en la nube ni turnos precalculados pueden arrojar una cifra superior.
+
+Establecimos el protocolo de Techo y Límite de Correlativos (Regla 1 SSOT Rayen): fijamos el correlativo máximo oficial en #28.091, certificando exactamente 25.547 atenciones médicas efectivas completadas.
+
+Blindamos el motor deduplicarPacientes para que actúe como único juez de demanda global, asegurando que las series acumuladas YTD y las comparativas de 12 meses mantengan paridad matemática milimétrica contra la auditoría de control de BigQuery.
+
+Rigor de auditoría inexpugnable. Seguimos construyendo.`
+  },
+  {
+    id: 'devlog-v5-5-0',
+    fecha: '2026-09-01',
+    titulo: 'Atribución Continua por Fecha Lógica Asistencial en Cruce de Mes',
+    tipo: 'Arquitectura & UX',
+    version_tag: 'v5.5.0',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'La medianoche entre el día 30/31 y el día 1 fragmentaba la guardia nocturna entre dos meses calendario distintos.',
+    logica: 'Toda atención médica de una guardia iniciada el último día del mes pertenece íntegramente al mes que concluye.',
+    solucion: 'Atribución por fecha lógica asistencial, protegiendo la integridad del equipo de guardia sin quiebres administrativos.',
+    fullPost: `El calendario civil cambia a las 00:00 hrs del día 1, pero la guardia médica que entró a las 20:00 hrs del día 31 sigue siendo el mismo equipo asistencial hasta las 08:00 AM del día siguiente. Si el sistema divide los pacientes de la madrugada al mes entrante, el equipo saliente pierde la mitad de sus atenciones y el informe mensual de cierre queda incompleto.
+
+Implementamos el principio de Atribución Continua por Fecha Lógica Asistencial (Regla 6 SSOT): todo turno nocturno iniciado el último día del mes consolida el 100% de sus pacientes (incluyendo las admisiones de 00:00 a 07:59 del día 1) en el mes que cierra.
+
+El nuevo mes solo comienza a contabilizar turnos que abren a partir de las 08:00 AM en adelante. De esta forma, las cifras mensuales concilian con exactitud y los profesionales de guardia reciben el reconocimiento íntegro de su jornada.
+
+Lógica asistencial por encima de los límites de calendario. Seguimos construyendo.`
+  },
+  {
+    id: 'devlog-v5-0-0',
+    fecha: '2026-08-25',
+    titulo: 'Complejidad Algorítmica O(1) en Emparejamiento de Turnos Masivos',
+    tipo: 'Arquitectura & UX',
+    version_tag: 'v5.0.0',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Lentitud y advertencias de congelamiento en el navegador al analizar más de 25.000 pacientes en rangos anuales.',
+    logica: 'Sustitución de barridos lineales iterativos O(N) por indexación hash de fechas en tiempo constante O(1).',
+    solucion: 'Respuesta analítica instantánea y renderizado fluido aún bajo cargas masivas de datos históricos.',
+    fullPost: `Analizar más de 26.500 pacientes con cientos de turnos cruzados en memoria puede saturar cualquier aplicación web si se utilizan bucles lineales iterativos. Al seleccionar el preset "Año" o rangos mayores a 300 días, la pantalla sufría micro-congelamientos y advertencias de script no responsivo.
+
+Rediseñamos el pipeline analítico en useMetricoAnalytics: creamos un índice hash de pacientes agrupados por fecha (pacsByDateStr). En lugar de iterar toda la base de datos para cada turno, el emparejamiento de pacientes y turnos cruzados de medianoche se resuelve en tiempo constante O(1).
+
+Adicionalmente, incorporamos una barra de progreso con haz luminoso de carga diferida al siguiente tick del navegador (setTimeout), garantizando que el usuario perciba reactividad visual inmediata sin bloqueos en el hilo principal de JavaScript.
+
+Rendimiento instantáneo sin importar el volumen de datos. Seguimos construyendo.`
+  },
+  {
+    id: 'devlog-v4-5-0',
+    fecha: '2026-08-20',
+    titulo: 'Prioridad Absoluta de Pautas Manuales de Turno sobre Firestore',
+    tipo: 'Seguridad Asistencial',
+    version_tag: 'v4.5.0',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Desajustes entre la rotativa algorítmica matemática y la asignación real de profesionales en turnos de reemplazo.',
+    logica: 'Subordinación prioritaria de la resolución de guardias (resolverEquipoTurno) a la colección pautas_turnos guardada en Firestore.',
+    solucion: 'Fidelidad absoluta a las planillas de turnos oficiales aprobadas por la coordinación asistencial.',
+    fullPost: `Las rotativas teóricas de 4 equipos funcionan muy bien en un modelo ideal, pero en la práctica asistencial de un servicio de urgencias ocurren reemplazos, licencias médicas y ajustes de guardia coordinados por la jefatura asistencial. Si el software insiste en su cálculo matemático ciego sobre la pauta real, los datos dejan de coincidir con la realidad de la posta.
+
+Establecimos la Prioridad Absoluta de Pautas de Guardia (Regla 4 SSOT): el motor resolverEquipoTurno consulta en primer lugar la colección pautas_turnos sincronizada en Firestore. Si la coordinación médica guardó una asignación manual para una fecha y franja horaria específica, esa pauta tiene prioridad 1 indiscutible sobre cualquier fórmula predictiva.
+
+Solo si una fecha no registra pauta manual en la nube, el sistema recurre a la rotativa algorítmica de contingencia.
+
+Flexibilidad con trazabilidad oficial en la nube. Seguimos construyendo.`
+  },
+  {
     id: 'devlog-v3-8-5',
     fecha: '2026-08-15',
     titulo: 'Alineación Total de Alertas de Integridad & Ruido Visual Cero',

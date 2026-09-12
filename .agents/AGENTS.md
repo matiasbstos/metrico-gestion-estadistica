@@ -11,7 +11,9 @@
    - Toda resolución de equipos asistenciales (`resolverEquipoTurno` y `usePautasTurnos`) debe subordinarse con prioridad 1 a la pauta guardada por el usuario en Firestore (`pautas_turnos`).
    - Las franjas de fin de semana (`08:00 - 20:00` y `20:00 - 08:00`) deben discriminarse con exactitud antes que cualquier búsqueda genérica de texto, impidiendo que la presencia del término `'fin de semana'` sea confundida con el turno hábil de semana (`17:00 - 08:00`).
 5. **Auto-Detección Estricta del Último Turno Clínico 100% Completo y Cerrado**:
-   - La selección inicial por defecto del período al abrir la plataforma (`Dashboard.jsx`) y en la auditoría de despacho de correos (`ModalConfiguracionCorreo.jsx` y `auditarUltimoTurnoCompleto`) debe apuntar siempre al **último turno asistencial cerrado al 100%** (corte a las 20:00 hrs para diurnos y a las 08:00 hrs del día siguiente para nocturnos) con datos de pacientes completos.
+   - La selección inicial por defecto del período al abrir la plataforma (`Dashboard.jsx`) y en la auditoría de despacho de correos (`ModalConfiguracionCorreo.jsx` y `auditarUltimoTurnoCompleto`) debe apuntar siempre al **último turno asistencial cerrado al 100%** con datos de pacientes completos.
+   - **Fines de Semana y Festivos**: Corte formal a las 20:00 hrs para turnos diurnos y a las 08:00 hrs del día siguiente para turnos nocturnos.
+   - **Días Hábiles (Turno Largo de Semana)**: Debido a que los pacientes que ingresan a las 08:00 AM en punto (o durante el cambio de guardia) permanecen en box, observación médica y tratamiento, sobrepasando las 09:00 AM, la **ventana asistencial y rango superior de búsqueda de estadía se extiende obligatoriamente hasta las 12:00 PM (mediodía)** del día siguiente. Todo corte de datos de día hábil previo a las 12:00 PM se considera con atenciones y estadías en curso, seleccionando el sistema el turno cerrado anterior.
    - Turnos nocturnos en curso o con fragmentos parciales de datos (ej. corte a las 21:57 hrs con 13 pacientes) nunca deben ser auto-seleccionados como turno completo por defecto; el sistema seleccionará el turno previo ya concluido (ej. Sábado Diurno 08:00 a 20:00 con 97 pacientes).
    - **Filtro Anti-Fechas Futuras y Desambiguación de Formato de Fecha**: Ningún registro, paciente o turno con timestamp o fecha posterior al tiempo real actual o al mes de corte activo (Septiembre 2026) puede ser auto-seleccionado por el sistema. Las fechas en formato texto chileno (ej. 11 de Mayo `11/05/2026`) deben ser blindadas contra inversiones a formato estadounidense (`05/11` Noviembre), impidiendo que registros anómalos o futuros se posicionen en la cima cronológica.
 6. **Atribución Continua por Fecha Lógica Asistencial en Cruce de Mes (Cierre Mensual 30/31)**:
@@ -34,7 +36,7 @@
      a) **Día Completo (24 hrs)**: `00:00 a 23:59 hrs` del día civil.
      b) **Turno Diurno**: `08:00 a 20:00 hrs` (12 horas).
      c) **Turno Noche Fin de Semana / Festivo**: `20:00 a 08:00 hrs` del día siguiente (12 horas con cruce de medianoche).
-     d) **Turno Largo Semana Hábil**: `17:00 a 08:00 hrs` del día siguiente (15 horas con cruce de medianoche).
+     d) **Turno Largo Semana Hábil**: `17:00 a 08:00 hrs` del día siguiente (con ventana ampliada de búsqueda asistencial y estadía de `16:00 hrs` a `12:00 PM` para capturar la permanencia y altas de pacientes admitidos a las 08:00 AM).
 10. **Garantía de Alto Contraste, Visibilidad y Accesibilidad UI**:
     - Queda estrictamente prohibido el renderizado de botones activos, pestañas o subpestañas con estilos transparentes, fondos blancos sobre fondos claros o texto ilegible (blanco sobre blanco).
     - Todo selector o elemento de navegación activo debe utilizar estilos sólidos contrastantes institucionales (como `.bg-primary-custom`, o `bg-indigo-600 text-white font-black shadow-md`), asegurando visibilidad óptima tanto en modo Claro como en modo Oscuro.
@@ -77,25 +79,65 @@
     - **Indicador Visual Inmediato Universal**: Ante cualquier cambio de filtro temporal (presets "Año", "Mes", "Semana", "Día", o fechas y horas manuales) en la pantalla principal o en cualquier subreporte (Traslados, Demanda, Fracturas, Respiratorio, etc.), el sistema DEBE activar inmediatamente el estado de carga (`isFiltering = true` / `BarraProgresoCarga`), difiriendo los cálculos analíticos pesados al siguiente tick del navegador (`setTimeout(..., 16)`). Queda prohibido bloquear el hilo principal de JavaScript antes de que el usuario vea el haz luminoso de actividad.
     - **Complejidad Algorítmica Máxima O(1) en Agrupación de Turnos y Pacientes**: En `useMetricoAnalytics` y en cualquier módulo de análisis masivo, la vinculación entre turnos y pacientes nunca debe utilizar filtros lineales $O(N)$ repetitivos para cientos de turnos. Los turnos nocturnos o cruzados deben resolverse en $O(1)$ concatenando los índices hash por fecha (`pacsByDateStr`), previniendo alertas de *"Page Unresponsive"* y garantizando fluidez instantánea aún con más de 26.500 pacientes cargados.
     - **Protección de Red en Rangos Extensos**: Las consultas o sincronizaciones profundas sobre rangos mayores a 60 días no deben disparar descargas masivas de documentos si la base ya se encuentra inicializada en memoria, preservando la cuota y la reactividad de la interfaz.
+15. **Auditoría y Deduplicación SSOT en Cola de Despacho de Informes (`ModalConfiguracionCorreo.jsx`)**:
+    - Todo conteo diario o acumulado en la cola de jornadas auditadas (`diasCompletosAuditados`) y en los envíos de correo debe alimentarse única y exclusivamente de `deduplicarPacientes(pacientesDB)` y la normalización de fechas `formatLocalDate(p.tAdmision)`.
+    - Queda estrictamente prohibido combinar cachés sin deduplicar (`metrico_cached_pacientes`) o recurrir a deduplicaciones débiles por ID de documento de Firestore (`p.id`), impidiendo que cargas masivas superpuestas inflen artificialmente las atenciones diarias.
+    - **Techo Oficial de Demanda Asistencial SAR**: En toda la serie histórica auditada (2025–2026), el récord absoluto asistencial es de **192 pacientes en fin de semana** (31/05/2026) y de **151 pacientes en día hábil** (29/06/2026). Ningún día civil puede superar los 200 pacientes atendidos en condiciones normales de operación del SAR.
+16. **Protocolo y Auditoría Pre-Vuelo Obligatoria para Despacho de Informes por Correo**:
+    - **Paridad Matemática Universal de Rayen**: Todo informe asistencial despachado por correo electrónico (sea diario por turno, cierre mensual o prueba de envío) DEBE validar y cumplir estrictamente la ecuación universal:
+      $$\text{Total Pacientes Admitidos} = \text{Atenciones Médicas Efectivas (Completadas)} + \text{Altas Administrativas (Egresos y Deserciones)}$$
+    - **Clasificación Estricta mediante `isAltaAdmin(p)`**: Las altas administrativas deben calcularse invariablemente con el predicado institucional `isAltaAdmin(p) || p.estado === 'Cancelada'`. Queda terminantemente prohibido evaluar únicamente `p.estado === 'Cancelada'`, lo cual ocultaría los egresos administrativos y deserciones voluntarias de ventanilla.
+    - **Conciliación Unívoca de Métricas Asistenciales**:
+      a) **Traslados Hospitalarios**: El contador de traslados en la tarjeta superior y en el Apartado Exclusivo debe provenir unívocamente del conteo efectivo de pacientes derivados (`trasladosCount`). Si un paciente de traslado es presentado en la ficha (#1), su categoría debe formatearse obligatoriamente en mayúsculas institucionales (`Categoría C1-C5`).
+      b) **Médicos en Turno**: La sumatoria de atenciones por médico en la tabla de rendimiento más los trámites administrativos sin asignación médica (`No Registrado`) DEBE coincidir con el 100% de los pacientes admitidos del turno.
+      c) **Triage Manchester**: La sumatoria de pacientes en C1, C2, C3, C4, C5 más ingresos directos sin categorización debe coincidir con el total de admitidos.
+      d) **Tiempos Asistenciales**: La suma de los 3 tramos (Admisión-Triage + Triage-Box + Box-Alta) debe guardar consistencia matemática con la estadía total promedio.
+      e) **Diagnósticos y Centros**: Toda lista o tabla en el cuerpo del correo debe maquetarse exclusivamente mediante tablas HTML nativas (`<table width="100%">`), con nombres a la izquierda y porcentajes a la derecha, garantizando compatibilidad absoluta en clientes de correo (Gmail, Outlook, móvil) sin colapso de texto por limitaciones de flexbox.
+    - **Auditoría Pre-Vuelo Automática (Pre-Flight Check)**:
+      Tanto en el frontend (`ModalConfiguracionCorreo.jsx` vía `auditarIntegridadTurnoCorreo`) como en el backend Cloud Function (`enviarInformeCorreo` en `functions/index.js`), el sistema debe ejecutar una rutina de validación de integridad previa al despacho. Si detecta cualquier discrepancia entre admitidos, atendidos y altas, el sistema reconcilia automáticamente las variables con base en los registros clínicos individuales antes de ensamblar el HTML y despachar el correo.
+    - **Obligación del Agente ante Consultas o Pruebas de Despacho**:
+      Ante cualquier solicitud de verificación, auditoría o prueba de envío de correos, el agente DEBE realizar un cruce explícito de datos (Shadow Testing / SSOT check) contrastando cada cifra del informe (admitidos, atendidos, altas, triage, médicos, tiempos y derivaciones) contra la base de datos o BigQuery, reportando la conciliación punto a punto al usuario antes de dar por cerrada la tarea.
+17. **Desagregación Estricta por Turnos Asistenciales Oficiales en la Cola de Despacho (`ModalConfiguracionCorreo.jsx`)**:
+    - **Estructura Operativa Obligatoria de Turnos SAR**:
+      a) **Fines de Semana (Sábado y Domingo) & Festivos Oficiales**: La jornada civil se divide invariablemente en **dos turnos clínicos independientes**:
+         1. *Fin de Semana Día* / *Festivo Diurno*: `08:00 a 20:00 hrs` (12 horas). Despacho programado a las 20:30 hrs.
+         2. *Fin de Semana Noche* / *Festivo Nocturno*: `20:00 a 08:00 hrs` del día siguiente (12 horas con cruce de medianoche). Despacho programado a las 08:30 hrs del día siguiente.
+         Queda terminantemente prohibido consolidar o colapsar las atenciones de ambos turnos en una única fila de día civil (ej. agrupar 110 pac. diurnos y 39 pac. nocturnos en 149 pac. el Domingo 06/09/2026).
+       b) **Días Hábiles (Lunes a Viernes no festivo)**: Se opera con **un único turno asistencial**:
+          * *Turno Largo Semana*: franja oficial de admisión `17:00 a 08:00 hrs`, aplicando internamente la ventana de tolerancia asistencial y rango de estadía SAR de `16:00 hrs` a `12:00 PM` del día siguiente para capturar admisiones en fila previa, entrega de guardia y el 100% de las altas y estadías de pacientes ingresados a las 08:00 AM.
+    - **Filtros Multidimensionales Requeridos en la Cola de Despacho**:
+      La interfaz de la cola debe proporcionar 5 controles interactivos simultáneos:
+      1) *Filtro por Mes*: Selector dinámico con todos los meses disponibles en la serie temporal.
+      2) *Filtro por Semana*: Selector por semanas del mes (Semana 1: 1-7, Semana 2: 8-14, Semana 3: 15-21, Semana 4: 22-28, Semana 5: 29-31, o Últimos 7 días).
+      3) *Selector / Digitación de Fecha Exacta*: Campo nativo `<input type="date">` que permite elegir o digitar directamente cualquier fecha civil o asistencial.
+      4) *Búsqueda de Texto Reactiva*: Búsqueda instantánea por fecha, equipo (`Turno 1-4`), tipo o franja horaria.
+      5) *Toggle de Modalidad*: Botón conmutador entre *Vista por Turnos Asistenciales (Oficial SAR)* y *Consolidado por Día Civil (24h)*.
+    - **Auditoría y Previsualización Individual de Turnos**:
+      Cada fila de la tabla de turnos debe incluir un botón de acción ("Auditar / Previsualizar") que inyecta ese turno específico en el estado del modal, permitiendo inspeccionar sus diagnósticos CIE-10, médicos de turno, tiempos de espera y enviar correos de prueba de cualquier turno histórico.
 
 ---
 
-## 🚀 Protocolo Oficial y Obligatorio de Despliegue ante Cualquier Cambio, Modificación o Nueva Función:
-Al pedir cualquier cambio, modificación o agregar una nueva función, el proceso para realizar el despliegue es estrictamente el siguiente:
+## 🚀 Protocolo Institucional y Obligatorio de Despliegue, Novedades & Bitácora de Desarrollo:
+Esta norma es **inviolable, permanente y activa en todas las sesiones** (independientemente de si el usuario inicia un nuevo chat o lo continúa, o si el entorno se reinicia o cierra). Ante **cualquier nuevo elemento, modificación, corrección o actualización del sitio**, el proceso obligatorio a ejecutar es estrictamente el siguiente:
 
 1. **Subir la versión a GitHub**:
    - Validar y compilar la aplicación sin fallos (`npm run build`).
    - Sincronizar en Git con mensaje semántico (`git add`, `git commit` y `git push origin main`).
 
-2. **De GitHub, subirlo al Muro de Actualizaciones**:
-   - Registrar la nueva versión y sus detalles técnicos en el historial de arquitectura / muro de versiones (`src/components/dashboard/InformeArquitectura.jsx`).
+2. **Hacer el despliegue en Firebase Hosting**:
+   - Ejecutar el comando oficial (`npx --yes firebase-tools deploy --only hosting`).
+   - Verificar y confirmar su disponibilidad pública en `https://metrico-dashboard-2026.web.app`.
 
-3. **Dentro del mismo sitio, dejarlo en el Apartado de Novedades**:
-   - Registrar la actualización explicativa para los usuarios clínicos y administrativos en el Muro de Novedades e Instructivos (`src/components/dashboard/ModalMuroActualizaciones.jsx`), detallando su propósito, qué pueden ver, ejemplo de uso y lista de cambios.
+3. **Actualizar la versión en la que va a quedar**:
+   - Incrementar la versión oficial semántica (ej. `v6.3.4`).
+   - Sincronizar `CURRENT_APP_VERSION` en `src/components/Dashboard.jsx`, en el historial de arquitectura (`src/components/dashboard/InformeArquitectura.jsx`) y verificar que la insignia oficial visible en la barra lateral bajo *"MÉTRICO Clínico Predictivo"* refleje el nuevo tag.
 
-4. **Con eso, actualizar la versión del sitio bajo el apartado de "MÉTRICO Clínico Predictivo"**:
-   - La insignia oficial visible en la barra lateral directamente bajo el título "MÉTRICO Clínico Predictivo" (`CURRENT_APP_VERSION` en `Dashboard.jsx`) se actualiza automáticamente con la versión registrada.
-   - Ejecutar el comando de despliegue a Firebase Hosting (`npx --yes firebase-tools deploy --only hosting`) y confirmar su disponibilidad pública en `https://metrico-dashboard-2026.web.app`.
+4. **Registrarlo dentro del Apartado de Novedades del Sitio**:
+   - Incorporar la tarjeta informativa en el Muro de Novedades e Instructivos (`src/components/dashboard/ModalMuroActualizaciones.jsx`), detallando de forma comprensible para el personal clínico: propósito, para qué sirve, qué puedes ver, ejemplo práctico de uso y lista de cambios técnicos.
+
+5. **Rellenar y Mantener al Día la Bitácora de Desarrollo (`DevLogModule.jsx`)**:
+   - Toda actualización o hito significativo debe quedar registrado en `DEVLOG_POSTS_INITIAL` de `src/components/dashboard/DevLogModule.jsx` con su fecha real, título profesional, versión, problema técnico detectado, lógica aplicada, solución implementada y relato reflexivo `fullPost` de ingeniería.
+   - **Regla de Regularización Retroactiva**: Si en algún momento una versión o actualización no fue registrada oportunamente en la bitácora, el agente o desarrollador DEBE incorporarla de forma retroactiva con base en la fecha e hito que corresponda, garantizando que el historial nunca quede congelado u obsoleto.
 
 ### ⚖️ Norma de Parámetros y Reglas del Sitio y del Agente:
 Si cualquier modificación o nueva función genera algún cambio o un nuevo parámetro dentro de las reglas del sitio:

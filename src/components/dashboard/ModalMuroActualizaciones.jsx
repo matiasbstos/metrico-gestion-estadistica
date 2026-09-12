@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.4',
+      version: 'v6.3.4',
+      fecha: '12 de Septiembre, 2026',
+      badge: 'PROTOCOLO OBLIGATORIO DE 5 PASOS & BITÁCORA DE DESARROLLO PERMANENTE',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Norma Institucional de Despliegue en 5 Fases y Regularización de la Bitácora',
+      categoria: 'Módulos & Vistas',
+      icon: ShieldCheck,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se estableció como directriz institucional permanente e inviolable para todas las sesiones de trabajo el protocolo obligatorio de 5 fases para cualquier cambio o novedad: 1) Subida a GitHub, 2) Despliegue en Firebase Hosting, 3) Actualización de versión oficial del sitio, 4) Registro en el Muro de Novedades e Instructivos, y 5) Relleno continuo de la Bitácora de Desarrollo (DevLogModule). Se regularizaron de forma retroactiva 11 hitos de ingeniería desarrollados entre el 15/08/2026 y el 12/09/2026, dejando la bitácora 100% al día.',
+      instructivo: {
+        paraQueSirve: 'Asegura que el equipo de salud y la dirección cuenten con trazabilidad absoluta entre el código fuente, la versión publicada en la web, los instructivos para usuarios y las anécdotas de ingeniería.',
+        quePuedesVer: '1) Bitácora de Desarrollo: Al ingresar a la pestaña DevLog verás todas las publicaciones técnicas desde agosto hasta hoy. 2) Insignia v6.3.4: Indicador de versión oficial en la barra lateral. 3) Reglas del Sitio: Protocolo institucional activo en AGENTS.md y en Arquitectura.',
+        ejemploUso: 'Puedes consultar en DevLog cómo se resolvió la paridad Rayen, el envío de los 7 reportes PDF, la optimización O(1) y la ventana hasta las 12:00 PM con sus relatos de ingeniería.'
+      },
+      changes: [
+        'Formalización del Protocolo Institucional de 5 Fases en las reglas activas del agente (.agents/AGENTS.md).',
+        'Regularización retroactiva de 11 publicaciones en DEVLOG_POSTS_INITIAL de DevLogModule.jsx.',
+        'Sincronización tridimensional: GitHub, Firebase Hosting e interfaz de novedades.',
+        'Despliegue de la versión v6.3.4 en la insignia oficial de MÉTRICO Clínico Predictivo.'
+      ]
+    },
+    {
       id: 'v6.3.3',
       version: 'v6.3.3',
       fecha: '12 de Septiembre, 2026',

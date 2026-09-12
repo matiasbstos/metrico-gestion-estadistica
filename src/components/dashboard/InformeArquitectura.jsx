@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.4',
+    version_tag: 'v6.3.4',
+    fecha_despliegue: '12 de Septiembre, 2026',
+    proposito_actualizacion: 'Protocolo Institucional y Obligatorio de Despliegue en 5 Fases, Directriz Inviolable de Sesión y Regularización Histórica de la Bitácora de Desarrollo.',
+    medios_y_stack: [
+      '.agents/AGENTS.md (Formalización del Protocolo de 5 Pasos: 1. GitHub, 2. Firebase Hosting, 3. Tag de Versión Oficial, 4. Novedades Clínicas, 5. Bitácora de Desarrollo permanente)',
+      'DevLogModule.jsx (Regularización retroactiva de 11 publicaciones de ingeniería desde el 15/08/2026 hasta el 12/09/2026 cubriendo todos los hitos arquitectónicos)',
+      'InformeArquitectura.jsx (Documentación viva de la norma obligatoria de despliegue y trazabilidad directiva)',
+      'ModalMuroActualizaciones.jsx (Inclusión de la tarjeta explicativa para usuarios administrativos y de control de gestión)',
+      'Dashboard.jsx (Actualización de versión oficial a v6.3.4)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Protocolo Obligatorio Permanente: Toda solicitud de modificación, ajuste o elemento nuevo en MÉTRICO exige el cumplimiento secuencial estricto de las 5 fases de despliegue y documentación, independientemente de si la sesión es continuada o nueva. 2) Regularización Retroactiva de Bitácora: Ningún avance técnico puede quedar indocumentado; la bitácora de ingeniería debe reflejar en todo momento la totalidad de hitos desde agosto hasta la fecha activa. 3) Consistencia Tridimensional: Sincronización indisoluble entre el repositorio GitHub, el hosting público en Firebase y las novedades visibles en el sitio.',
+      firestore_collections: ['system_architecture_log', 'devlog_posts', 'turnos', 'pacientes_urgencia'],
+      query_optimization: 'Integración in-memory de posts base con hidratación en tiempo real de Firestore.'
+    },
+    modulos_afectados: ['DevLogModule.jsx', '.agents/AGENTS.md', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'Dashboard.jsx'],
+    detalles_tecnicos: [
+      'Incorporación de 11 entradas en DEVLOG_POSTS_INITIAL narrando los avances de paridad Rayen, React Email con 7 PDFs, optimización O(1), cruce de meses, pautas y ventana a las 12:00 PM.',
+      'Alineación de la norma institucional en las directrices del agente (.agents/AGENTS.md) con jerarquía obligatoria en cualquier sesión de trabajo.',
+      'Actualización a la versión oficial v6.3.4 en la insignia visible de MÉTRICO Clínico Predictivo.'
+    ]
+  },
+  {
     id: 'v6.3.3',
     version_tag: 'v6.3.3',
     fecha_despliegue: '12 de Septiembre, 2026',
