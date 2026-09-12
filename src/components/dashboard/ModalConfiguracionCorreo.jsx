@@ -18,6 +18,7 @@ import {
   generateMonthlyConsolidatedSummary,
   generateMultiDayBatchSummary
 } from '../../utils/summaryGenerator';
+import { HISTORIAL_ARQUITECTURA_BASE } from './InformeArquitectura';
 import FiltrosGlobales from './FiltrosGlobales';
 
 export default function ModalConfiguracionCorreo({ 
@@ -426,11 +427,15 @@ export default function ModalConfiguracionCorreo({
       .map((item, idx) => {
         let horarioProyectado = 'Día siguiente 08:30 AM';
         if (modoCargaMasiva === 'RAFAGA_MISMO_DIA') {
-          const baseHour = 9;
-          const totalMins = idx * Number(intervaloMinutos || 20);
-          const h = baseHour + Math.floor(totalMins / 60);
+          const now = new Date();
+          const currentHour = now.getHours();
+          const currentMinute = now.getMinutes();
+          const startBaseMinutes = (currentHour < 9) ? (9 * 60) : (currentHour * 60 + currentMinute + 5);
+          const totalMins = startBaseMinutes + (idx * Number(intervaloMinutos || 20));
+          const h = Math.floor(totalMins / 60) % 24;
           const m = totalMins % 60;
-          horarioProyectado = `Hoy ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} hrs (Escalonado)`;
+          const dayLabel = Math.floor(totalMins / (24 * 60)) > 0 ? 'Mañana' : 'Hoy';
+          horarioProyectado = `${dayLabel} ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} hrs (Escalonado)`;
         } else if (modoCargaMasiva === 'CONSOLIDADO_MULTIDIA') {
           horarioProyectado = 'Consolidado Único (Hoy 20:30 hrs)';
         } else if (modoCargaMasiva === 'DESPACHO_ACELERADO') {
@@ -2207,7 +2212,7 @@ export default function ModalConfiguracionCorreo({
       <footer className="p-4 bg-slate-900 border-t border-card-custom/80 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0 shadow-xl">
         <div className="flex items-center gap-3">
           <span className="text-xs font-black text-slate-300">
-            MÉTRICO v5.5.0 • SAR Elsa Romo Aravena
+            MÉTRICO {HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.2.8'} • SAR Elsa Romo Aravena
           </span>
           <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 font-mono">
             {destinatariosList.filter(d => d.activo).length} Destinatarios Activos
