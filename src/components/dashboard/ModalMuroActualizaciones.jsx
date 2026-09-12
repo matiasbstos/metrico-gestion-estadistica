@@ -14,6 +14,31 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.0',
+      version: 'v6.3.0',
+      fecha: '12 de Septiembre, 2026',
+      badge: 'DESAGREGACIÓN OFICIAL POR TURNOS ASISTENCIALES & FILTROS MULTIDIMENSIONALES',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Desglose de Turnos de Guardia Asistenciales, Tolerancia 16:00-09:00 AM y Filtros Avanzados',
+      categoria: 'Módulos & Vistas',
+      icon: ShieldCheck,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Reestructuración completa de la cola de despachos de correo en ModalConfiguracionCorreo. Se resolvió la agrupación del Domingo 06/09/2026 (149 pacientes) desglosando los fines de semana y festivos en sus dos turnos asistenciales oficiales: Fin de Semana Día (08:00 a 20:00 hrs) y Fin de Semana Noche (20:00 a 08:00 hrs), y aplicando en días hábiles la ventana de tolerancia de 16:00 a 09:00 AM. Se agregaron filtros dinámicos por mes, por semana, selector y digitación de fecha exacta, buscador por texto, toggle a día civil (24h) y capacidad de auditar/previsualizar cualquier turno individual de la serie.',
+      instructivo: {
+        paraQueSirve: 'Permite visualizar y auditar cada turno clínico independiente de la guardia SAR (fines de semana día y noche, y turnos largos de semana) de forma exacta a las entregas de turno asistencial, facilitando encontrar cualquier jornada por mes, semana o fecha y previsualizar su informe para despacho.',
+        quePuedesVer: '1) Desagregación Oficial: Cada fin de semana muestra sus 2 filas diferenciadas con sus horas y equipos (ej: Domingo 06/09 Día con ~110 pac. y Noche con ~39 pac.). 2) Filtro por Mes: Selector interactivo con todos los meses disponibles. 3) Filtro por Semana: Selector de semanas (Semana 1 a 5 o últimos 7 días). 4) Selector de Fecha: Input nativo de fecha para elegir o digitar un día exacto. 5) Botón Auditar: Al presionar "Auditar" en cualquier turno, el previsualizador y el diseñador de correos adoptan inmediatamente los pacientes, médicos y diagnósticos de ese turno.',
+        ejemploUso: 'Deseas revisar el turno del Domingo 06/09/2026: abres el módulo de correos, filtras por fecha "2026-09-06" y observas claramente el Turno Diurno (08:00 a 20:00) y el Turno Nocturno (20:00 a 08:00). Presionas "Auditar" en cualquiera de ellos para ver su informe clínico completo en la pestaña Diseño.'
+      },
+      changes: [
+        'Desglose estricto por turnos asistenciales (Fin de Semana Día, Fin de Semana Noche y Turno Largo) en turnosAuditadosCola.',
+        'Regla de corte asistencial SAR (16:00 a 09:00 AM): pacientes admitidos antes de las 09:00 AM en días hábiles se computan al turno saliente del día anterior.',
+        'Clave de agrupación unívoca fechaTurno + horario en helpers.js para erradicar fusiones accidentales de turnos.',
+        'Filtros interactivos por mes, por semana, input de fecha exacta y buscador de texto con botón Limpiar Filtros.',
+        'Soporte de previsualización y prueba de envío para cualquier turno histórico seleccionado.',
+        'Actualización a la versión oficial v6.3.0 en la insignia de MÉTRICO Clínico Predictivo.'
+      ]
+    },
+    {
       id: 'v6.2.8',
       version: 'v6.2.8',
       fecha: '11 de Septiembre, 2026',

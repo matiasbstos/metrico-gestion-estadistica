@@ -155,8 +155,13 @@ export const obtenerTurnoDetallado = (timestamp, pautasDB = null) => {
   let tipo = 'Turno de Semana';
   let horario = '17:00 a 08:00 hrs';
 
-  if (hours < 8) {
-    // Madrugada (00:00 a 07:59): pertenece a la guardia que inició el día anterior
+  // Regla de corte asistencial SAR (16:00 a 09:00 hrs):
+  // - En días hábiles (no 24h), las admisiones antes de las 09:00 AM (hours < 9) pertenecen a la guardia que inició el día anterior.
+  // - En fines de semana y festivos (24h), el corte para el diurno es a las 08:00 AM (hours < 8), abriendo de 08:00 a 20:00.
+  const isPreviousShift = is24hToday ? (hours < 8) : (hours < 9);
+
+  if (isPreviousShift) {
+    // Madrugada / Mañana de entrega de guardia: pertenece a la guardia que inició el día anterior
     logicalDate.setDate(logicalDate.getDate() - 1);
     if (is24hPrev) {
       turnoNum = 3;
@@ -167,19 +172,13 @@ export const obtenerTurnoDetallado = (timestamp, pautasDB = null) => {
       tipo = 'Turno Largo Semana';
       horario = '17:00 a 08:00 hrs';
     }
-  } else if (hours >= 8 && hours < 20) {
-    // Franja Diurna (08:00 a 19:59)
-    if (is24hToday) {
-      turnoNum = 1;
-      tipo = isFestivoToday ? 'Festivo Diurno' : 'Fin de Semana Día';
-      horario = '08:00 a 20:00 hrs';
-    } else {
-      turnoNum = 2;
-      tipo = 'Turno Largo Semana';
-      horario = '17:00 a 08:00 hrs';
-    }
+  } else if (hours >= 8 && hours < 20 && is24hToday) {
+    // Franja Diurna de Fin de Semana o Festivo (08:00 a 20:00 hrs)
+    turnoNum = 1;
+    tipo = isFestivoToday ? 'Festivo Diurno' : 'Fin de Semana Día';
+    horario = '08:00 a 20:00 hrs';
   } else {
-    // Franja Nocturna (20:00 a 23:59)
+    // Franja Nocturna de Fin de Semana (20:00 a 08:00) o Turno Largo de Semana (17:00 a 08:00 / 16:00 a 09:00)
     if (is24hToday) {
       turnoNum = 3;
       tipo = isFestivoToday ? 'Festivo Nocturno' : 'Fin de Semana Noche';
@@ -370,7 +369,7 @@ export const deduplicarPacientes = (pacientes) => {
   return Array.from(map.values());
 };
 
-export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
+export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], pautasDB = null) => {
   if (!pacientesDB || pacientesDB.length === 0) {
     return { exito: false, esTurnoCompleto: false, mensaje: 'Sin datos para auditar turnos.', turnoInfo: null };
   }
@@ -394,15 +393,15 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = []) => {
     return { exito: false, esTurnoCompleto: false, mensaje: 'Sin admisiones validas.', turnoInfo: null };
   }
 
-  // Agrupar pacientes por (fechaTurno + turnoNum)
+  // Agrupar pacientes por (fechaTurno + horario) para desambiguar diurno vs nocturno
   const shiftGroups = {};
   listPacs.forEach(p => {
-    const det = obtenerTurnoDetallado(p.tAdmision);
+    const det = obtenerTurnoDetallado(p.tAdmision, pautasDB);
     // Doble verificación: no agrupar turnos con fechas futuras
     const [dStr, mStr, yStr] = det.fechaTurno.split('/');
     if (parseInt(yStr) > 2026 || (parseInt(yStr) === 2026 && parseInt(mStr) > 9)) return;
 
-    const key = `${det.fechaTurno}_T${det.turnoNum}`;
+    const key = `${det.fechaTurno}_${det.horario}`;
     if (!shiftGroups[key]) {
       shiftGroups[key] = {
         key,

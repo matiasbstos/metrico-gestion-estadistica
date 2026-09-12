@@ -10,6 +10,31 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.0',
+    version_tag: 'v6.3.0',
+    fecha_despliegue: '12 de Septiembre, 2026',
+    proposito_actualizacion: 'Desagregación Estricta por Turnos de Guardia Asistenciales Oficiales en la Cola de Despacho de Correos, Ventana de Tolerancia 16:00 a 09:00 AM, Filtros Multidimensionales por Mes, Semana y Fecha Exacta, y Previsualización Individual de Turnos.',
+    medios_y_stack: [
+      'ModalConfiguracionCorreo.jsx (Nueva cola turnosAuditadosCola desagregada por turnos oficiales con discriminación de Finde Día 08-20h, Finde Noche 20-08h y Turno Largo 16-09h)',
+      'ModalConfiguracionCorreo.jsx (Barra de filtros multidimensionales: selector por mes, selector por semana, selector/input de fecha exacta, buscador reactivo y toggle Turnos vs Día Civil)',
+      'helpers.js (Calibración de obtenerTurnoDetallado con ventana de corte 16:00 a 09:00 AM y clave de agrupación unívoca fechaTurno + horario en auditarUltimoTurnoCompleto)',
+      'Dashboard.jsx (Inyección directa de pautasDB desde pautasTurnosHook hacia ModalConfiguracionCorreo)',
+      '.agents/AGENTS.md (Incorporación formal de la Regla 17 de Desagregación Estricta por Turnos Asistenciales)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Desagregación Oficial de Fines de Semana: Se resolvió la agrupación que mostraba 149 pacientes el Domingo 06/09/2026. Los fines de semana y festivos ahora desglosan obligatoriamente sus dos turnos clínicos independientes: Fin de Semana Día (08:00 a 20:00 hrs) y Fin de Semana Noche (20:00 a 08:00 hrs del día siguiente), eliminando colisiones por identificador de equipo. 2) Ventana de Tolerancia Asistencial 16:00 a 09:00 AM: En días hábiles, las atenciones antes de las 09:00 AM se atribuyen al turno saliente del día anterior y a partir de las 16:00 hrs al nuevo turno largo. 3) Filtrado Multidimensional y Selección Individual: La cola soporta filtros por mes, semana, selector/digitación de fecha exacta y buscador, permitiendo seleccionar cualquier turno del historial para previsualizarlo y auditarlo en tiempo real.',
+      firestore_collections: ['pautas_turnos', 'turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'system_architecture_log'],
+      query_optimization: 'Agrupación O(N) desduplicada en memoria con claves compuestas por fecha y horario sin descargas redundantes.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'helpers.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', '.agents/AGENTS.md'],
+    detalles_tecnicos: [
+      'Implementación de turnosAuditadosCola que genera filas por turno clínico independiente con estado de envío, badges de color de equipo y horario proyectado.',
+      'Soporte de previsualización dinámica: al presionar "Auditar" en cualquier turno de la lista, turnoInfo se recalcula en tiempo real con los pacientes, triage, médicos y CIE-10 de ese turno.',
+      'Adición de selector por mes dinámico, selector de tramos semanales, input type="date" para digitación directa y toggle a vista de día civil (24h).',
+      'Despliegue de la versión v6.3.0 en la insignia oficial de MÉTRICO Clínico Predictivo.'
+    ]
+  },
+  {
     id: 'v6.2.8',
     version_tag: 'v6.2.8',
     fecha_despliegue: '11 de Septiembre, 2026',

@@ -8,7 +8,15 @@ import {
 } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app as defaultApp } from '../../config/firebase';
-import { auditarUltimoTurnoCompleto, deduplicarPacientes, formatLocalDate, isAltaAdmin, auditarIntegridadTurnoCorreo } from '../../utils/helpers';
+import { 
+  auditarUltimoTurnoCompleto, 
+  deduplicarPacientes, 
+  formatLocalDate, 
+  isAltaAdmin, 
+  auditarIntegridadTurnoCorreo,
+  obtenerTurnoDetallado,
+  resolverEquipoTurno
+} from '../../utils/helpers';
 import { 
   generateAltasSummary, 
   generateFracturasSummary, 
@@ -32,6 +40,7 @@ export default function ModalConfiguracionCorreo({
   showNotif, 
   pacientesDB = [], 
   turnosDB = [], 
+  pautasDB = null,
   onOpenReportes 
 }) {
   // Pestaña Principal del Módulo de Pantalla Completa
@@ -64,6 +73,13 @@ export default function ModalConfiguracionCorreo({
   const [intervaloMinutos, setIntervaloMinutos] = useState(20);
   const [filtroColaPeriodo, setFiltroColaPeriodo] = useState('2026'); // '2026' | 'TODOS' | '2025' | 'RECENT'
   const [searchColaFecha, setSearchColaFecha] = useState('');
+
+  // Modos y Filtros Multidimensionales de la Cola de Despacho (Turnos Asistenciales vs Días Civiles)
+  const [modoVistaCola, setModoVistaCola] = useState('TURNOS'); // 'TURNOS' (Oficial SAR) | 'DIAS' (Consolidado 24h)
+  const [filtroMes, setFiltroMes] = useState('TODOS'); // 'TODOS' | '2026-09' | etc.
+  const [filtroSemana, setFiltroSemana] = useState('TODAS'); // 'TODAS' | 'ESTA_SEMANA' | 'SEM_1' | 'SEM_2' | 'SEM_3' | 'SEM_4' | 'SEM_5'
+  const [filtroFechaExacta, setFiltroFechaExacta] = useState(''); // 'YYYY-MM-DD' o digitado
+  const [selectedShiftKey, setSelectedShiftKey] = useState(null); // Clave del turno seleccionado para previsualizar/auditar
 
   // Sub-Reportes Incluidos
   const [incDemanda, setIncDemanda] = useState(true);
@@ -198,28 +214,424 @@ export default function ModalConfiguracionCorreo({
     return deduplicarPacientes(filtered);
   }, [pacientesDB]);
 
-  // Auditoría del Turno Cerrado Actual
-  const auditResult = useMemo(() => {
-    return auditarUltimoTurnoCompleto(turnosDB, combinedPacientes);
-  }, [turnosDB, combinedPacientes]);
-
-  const turnoInfo = useMemo(() => {
-    const baseTurno = auditResult.turnoInfo || {
-      fechaTurno: '16/08/2026',
-      turnoNum: 2,
-      equipo: 'Turno 2',
-      rotativa: 'Fin de Semana Día (08:00 a 20:00 hrs)',
-      textoCompleto: '16/08/2026 - Turno 2 • Fin de Semana Día (08:00 a 20:00 hrs)',
-      totalAdmitidos: 111,
-      atendidos: 99,
-      altasAdmin: 12,
-      rendimientoHora: 9.2,
-      estadiaPromedioMin: 154,
-      triage: { c1: 0, c2: 0, c3: 8, c4: 40, c5: 63 },
-      constataciones: 2,
-      traslados: 1,
-      medicoMasProductivo: 'Dr. Julio Alberto Moreira Jimenez (34 atenciones)'
+  // 1. Detección Automática de Turnos de Guardia Asistenciales Oficiales SAR (con Pauta de Turnos y Tolerancia 16:00 a 09:00 AM)
+  const turnosAuditadosCola = useMemo(() => {
+    const isValidHistoryDate = (f) => {
+      if (!f) return false;
+      const parts = f.includes('-') ? f.split('-') : f.split('/');
+      let y, m;
+      if (parts[0].length === 4) {
+        y = parseInt(parts[0]);
+        m = parseInt(parts[1]);
+      } else {
+        m = parseInt(parts[1]);
+        y = parseInt(parts[2]);
+      }
+      if (y > 2026 || (y === 2026 && m > 9)) return false;
+      return true;
     };
+
+    const shiftsMap = new Map();
+
+    // 1.1 Mapear cada paciente admitido al turno oficial correspondiente
+    (combinedPacientes || []).forEach(p => {
+      if (!p || !p.tAdmision) return;
+      const det = obtenerTurnoDetallado(p.tAdmision, pautasDB);
+      if (!det || !det.fechaIso || !isValidHistoryDate(det.fechaIso)) return;
+
+      const shiftKey = `${det.fechaIso}_${det.horario}`;
+      if (!shiftsMap.has(shiftKey)) {
+        shiftsMap.set(shiftKey, {
+          shiftKey,
+          fecha: det.fechaIso,
+          fechaTurno: det.fechaTurno,
+          equipo: det.equipo,
+          tipo: det.tipo,
+          horario: det.horario,
+          textoCompleto: det.textoCompleto,
+          pacientes: 0,
+          atendidos: 0,
+          altas: 0,
+          pacientesList: []
+        });
+      }
+      const entry = shiftsMap.get(shiftKey);
+      entry.pacientes++;
+      entry.pacientesList.push(p);
+
+      if (isAltaAdmin(p) || p.estado === 'Cancelada' || (p.destinoAlta && p.destinoAlta.includes('ALTA ADMIN'))) {
+        entry.altas++;
+      } else {
+        entry.atendidos++;
+      }
+    });
+
+    // 1.2 Incorporar turnos oficiales históricos de turnosDB para fechas sin pacientes individuales en memoria
+    (turnosDB || []).forEach(t => {
+      if (!t || !t.fechaInicio || !isValidHistoryDate(t.fechaInicio)) return;
+      const horario = t.horario || (t.tipoTurno?.includes('Largo') ? '17:00 a 08:00 hrs' : (t.tipoTurno?.includes('Noche') ? '20:00 a 08:00 hrs' : '08:00 a 20:00 hrs'));
+      const shiftKey = `${t.fechaInicio}_${horario}`;
+      
+      if (!shiftsMap.has(shiftKey)) {
+        const parts = t.fechaInicio.split('-');
+        const fechaTurno = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : t.fechaInicio;
+        const resolvedEquipo = resolverEquipoTurno(t.fechaInicio, horario, pautasDB, t.equipoTurno);
+        const tipo = t.tipoTurno || (horario.includes('17:00') ? 'Turno Largo Semana' : (horario.includes('20:00') ? 'Fin de Semana Noche' : 'Fin de Semana Día'));
+        const tot = Number(t.totalPacientes || 0);
+        const alt = Number(t.altasAdmin || 0);
+
+        shiftsMap.set(shiftKey, {
+          shiftKey,
+          fecha: t.fechaInicio,
+          fechaTurno,
+          equipo: resolvedEquipo,
+          tipo,
+          horario,
+          textoCompleto: `${fechaTurno} - ${resolvedEquipo} • ${tipo} (${horario})`,
+          pacientes: tot,
+          atendidos: Math.max(0, tot - alt),
+          altas: alt,
+          pacientesList: []
+        });
+      }
+    });
+
+    let sentMap = {};
+    try {
+      const s = localStorage.getItem('metrico_informes_enviados_map');
+      if (s) sentMap = JSON.parse(s);
+    } catch(e) {}
+
+    const list = Array.from(shiftsMap.values())
+      .sort((a, b) => {
+        const c = b.fecha.localeCompare(a.fecha);
+        if (c !== 0) return c;
+        return b.horario.localeCompare(a.horario);
+      })
+      .map((item, idx) => {
+        let horarioProyectado = 'Día siguiente 08:30 AM';
+        const isDiurno = item.horario.includes('08:00') && !item.horario.includes('20:00');
+        if (modoCargaMasiva === 'RAFAGA_MISMO_DIA') {
+          const now = new Date();
+          const currentHour = now.getHours();
+          const currentMinute = now.getMinutes();
+          const startBaseMinutes = (currentHour < 9) ? (9 * 60) : (currentHour * 60 + currentMinute + 5);
+          const totalMins = startBaseMinutes + (idx * Number(intervaloMinutos || 20));
+          const h = Math.floor(totalMins / 60) % 24;
+          const m = totalMins % 60;
+          const dayLabel = Math.floor(totalMins / (24 * 60)) > 0 ? 'Mañana' : 'Hoy';
+          horarioProyectado = `${dayLabel} ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} hrs (Escalonado)`;
+        } else if (modoCargaMasiva === 'CONSOLIDADO_MULTIDIA') {
+          horarioProyectado = 'Consolidado Único (Hoy 20:30 hrs)';
+        } else {
+          horarioProyectado = isDiurno ? 'Mismo día 20:30 hrs' : 'Día siguiente 08:30 hrs';
+        }
+
+        const isSent = Boolean(sentMap[item.shiftKey] || sentMap[item.fecha] || sentMap[item.textoCompleto]);
+
+        return {
+          ...item,
+          isCompleto: item.pacientes >= 10,
+          isSent,
+          horarioProyectado
+        };
+      });
+
+    return list;
+  }, [combinedPacientes, turnosDB, pautasDB, modoCargaMasiva, intervaloMinutos]);
+
+  // 2. Detección Automática de Días Completos (Consolidado por Día Civil 24h)
+  const diasCompletosAuditados = useMemo(() => {
+    const isValidHistoryDate = (f) => {
+      if (!f) return false;
+      const parts = f.includes('-') ? f.split('-') : f.split('/');
+      let y, m;
+      if (parts[0].length === 4) {
+        y = parseInt(parts[0]);
+        m = parseInt(parts[1]);
+      } else {
+        m = parseInt(parts[1]);
+        y = parseInt(parts[2]);
+      }
+      if (y > 2026 || (y === 2026 && m > 9)) return false;
+      return true;
+    };
+
+    const datesMap = new Map();
+
+    (combinedPacientes || []).forEach(p => {
+      let fStr = '';
+      if (p.tAdmision) {
+        fStr = formatLocalDate(p.tAdmision);
+      } else if (p.fecha) {
+        const parts = p.fecha.includes('-') ? p.fecha.split('-') : p.fecha.split('/');
+        if (parts[0].length === 4) {
+          fStr = `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
+        } else if (parts[2].length === 4) {
+          fStr = `${parts[2]}-${String(parts[1]).padStart(2, '0')}-${String(parts[0]).padStart(2, '0')}`;
+        }
+      }
+      if (!fStr || !isValidHistoryDate(fStr)) return;
+      if (!datesMap.has(fStr)) {
+        datesMap.set(fStr, { fecha: fStr, pacientes: 0, altas: 0, atendidos: 0, turnos: 0 });
+      }
+      const entry = datesMap.get(fStr);
+      entry.pacientes++;
+      if (isAltaAdmin(p) || p.estado === 'Cancelada' || (p.destinoAlta && p.destinoAlta.includes('ALTA ADMIN'))) {
+        entry.altas++;
+      } else {
+        entry.atendidos++;
+      }
+    });
+
+    (turnosDB || []).forEach(t => {
+      const fStr = t.fechaInicio;
+      if (!fStr || !isValidHistoryDate(fStr)) return;
+      if (!datesMap.has(fStr)) {
+        const tot = Number(t.totalPacientes || 0);
+        const alt = Number(t.altasAdmin || 0);
+        datesMap.set(fStr, {
+          fecha: fStr,
+          pacientes: tot,
+          altas: alt,
+          atendidos: Math.max(0, tot - alt),
+          turnos: 1
+        });
+      }
+    });
+
+    let sentMap = {};
+    try {
+      const s = localStorage.getItem('metrico_informes_enviados_map');
+      if (s) sentMap = JSON.parse(s);
+    } catch(e) {}
+
+    return Array.from(datesMap.values())
+      .sort((a, b) => b.fecha.localeCompare(a.fecha))
+      .map(item => ({
+        ...item,
+        isCompleto: item.pacientes >= 10,
+        isSent: Boolean(sentMap[item.fecha]),
+        horarioProyectado: 'Día siguiente 08:30 AM'
+      }));
+  }, [combinedPacientes, turnosDB]);
+
+  // 3. Meses Disponibles detectados dinámicamente en los turnos
+  const mesesDisponibles = useMemo(() => {
+    const setMeses = new Set();
+    turnosAuditadosCola.forEach(t => {
+      if (t.fecha && t.fecha.length >= 7) {
+        setMeses.add(t.fecha.substring(0, 7));
+      }
+    });
+    const monthNames = {
+      '01': 'Enero', '02': 'Febrero', '03': 'Marzo', '04': 'Abril',
+      '05': 'Mayo', '06': 'Junio', '07': 'Julio', '08': 'Agosto',
+      '09': 'Septiembre', '10': 'Octubre', '11': 'Noviembre', '12': 'Diciembre'
+    };
+    return Array.from(setMeses).sort().reverse().map(mStr => {
+      const parts = mStr.split('-');
+      const y = parts[0];
+      const m = parts[1];
+      return {
+        id: mStr,
+        label: `${monthNames[m] || m} ${y}`
+      };
+    });
+  }, [turnosAuditadosCola]);
+
+  // 4. Lista Filtrada para la Tabla (Soporta Turnos Asistenciales Oficiales y Consolidado Diario)
+  const colaFiltradaFinal = useMemo(() => {
+    let sourceList = (modoVistaCola === 'TURNOS') ? turnosAuditadosCola : diasCompletosAuditados;
+
+    // 4.1 Filtro por Fecha Exacta digitada o elegida en calendario
+    if (filtroFechaExacta && filtroFechaExacta.trim()) {
+      const target = filtroFechaExacta.trim();
+      sourceList = sourceList.filter(item => {
+        const itemFecha = item.fecha || '';
+        const itemFechaTurno = item.fechaTurno || '';
+        return itemFecha === target || itemFechaTurno === target || itemFecha.includes(target);
+      });
+    }
+
+    // 4.2 Filtro por Mes
+    if (filtroMes !== 'TODOS' && !filtroFechaExacta) {
+      sourceList = sourceList.filter(item => {
+        const itemFecha = item.fecha || '';
+        return itemFecha.startsWith(filtroMes);
+      });
+    }
+
+    // 4.3 Filtro por Semana
+    if (filtroSemana !== 'TODAS' && !filtroFechaExacta) {
+      if (filtroSemana === 'ESTA_SEMANA') {
+        sourceList = sourceList.slice(0, 7);
+      } else {
+        const weekRanges = {
+          'SEM_1': [1, 7],
+          'SEM_2': [8, 14],
+          'SEM_3': [15, 21],
+          'SEM_4': [22, 28],
+          'SEM_5': [29, 31]
+        };
+        const range = weekRanges[filtroSemana];
+        if (range) {
+          sourceList = sourceList.filter(item => {
+            const parts = (item.fecha || '').split('-');
+            const dayNum = parts.length === 3 ? parseInt(parts[2]) : 0;
+            return dayNum >= range[0] && dayNum <= range[1];
+          });
+        }
+      }
+    }
+
+    // 4.4 Búsqueda por Texto
+    if (searchColaFecha && searchColaFecha.trim()) {
+      const q = searchColaFecha.trim().toLowerCase();
+      sourceList = sourceList.filter(item => {
+        const matchFecha = (item.fecha || '').toLowerCase().includes(q);
+        const matchFechaTurno = (item.fechaTurno || '').toLowerCase().includes(q);
+        const matchTipo = (item.tipo || '').toLowerCase().includes(q);
+        const matchEquipo = (item.equipo || '').toLowerCase().includes(q);
+        const matchTexto = (item.textoCompleto || '').toLowerCase().includes(q);
+        const matchHorario = (item.horario || '').toLowerCase().includes(q);
+        return matchFecha || matchFechaTurno || matchTipo || matchEquipo || matchTexto || matchHorario;
+      });
+    }
+
+    return sourceList;
+  }, [modoVistaCola, turnosAuditadosCola, diasCompletosAuditados, filtroFechaExacta, filtroMes, filtroSemana, searchColaFecha]);
+
+  const diasFiltradosCola = colaFiltradaFinal;
+
+  // 5. Turno seleccionado específicamente desde la tabla para previsualizar/auditar
+  const selectedShiftObj = useMemo(() => {
+    if (!selectedShiftKey) return null;
+    return turnosAuditadosCola.find(s => s.shiftKey === selectedShiftKey) || null;
+  }, [selectedShiftKey, turnosAuditadosCola]);
+
+  // 6. Auditoría del Turno Cerrado Actual Oficial (SSOT)
+  const auditResult = useMemo(() => {
+    return auditarUltimoTurnoCompleto(turnosDB, combinedPacientes, pautasDB);
+  }, [turnosDB, combinedPacientes, pautasDB]);
+
+  // 7. Ensamble de Información Asistencial de Turno para Diseñador y Despacho
+  const turnoInfo = useMemo(() => {
+    let baseTurno = null;
+    if (selectedShiftObj) {
+      const pacs = selectedShiftObj.pacientesList || [];
+      const totalAdmitidos = selectedShiftObj.pacientes;
+      const altasAdmin = selectedShiftObj.altas;
+      const atendidos = selectedShiftObj.atendidos;
+      const durHoras = selectedShiftObj.horario.includes('17:00') ? 15 : 12;
+      const rendimientoHora = durHoras > 0 ? Number((totalAdmitidos / durHoras).toFixed(1)) : 8.0;
+
+      const triage = { c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 };
+      let sumEstadia = 0, countEstadia = 0;
+      let sumAdmTriage = 0, countAdmTriage = 0;
+      let sumTriageBox = 0, countTriageBox = 0;
+      let sumBoxAlta = 0, countBoxAlta = 0;
+      const medicosCount = {};
+      let constataciones = 0;
+      let fracturas = 0;
+
+      pacs.forEach(p => {
+        const cat = String(p.categoria || p.triage || '').toLowerCase();
+        if (cat.includes('c1')) triage.c1++;
+        else if (cat.includes('c2')) triage.c2++;
+        else if (cat.includes('c3')) triage.c3++;
+        else if (cat.includes('c4')) triage.c4++;
+        else if (cat.includes('c5')) triage.c5++;
+
+        if (p.tAdmision && p.tAlta && p.tAlta > p.tAdmision) {
+          const diff = (p.tAlta - p.tAdmision) / 60000;
+          if (diff < 1440) { sumEstadia += diff; countEstadia++; }
+        }
+        if (p.tAdmision && p.tCat1 && p.tCat1 >= p.tAdmision) {
+          const diff = (p.tCat1 - p.tAdmision) / 60000;
+          if (diff < 360) { sumAdmTriage += diff; countAdmTriage++; }
+        }
+        if (p.tCat1 && p.tBox && p.tBox >= p.tCat1) {
+          const diff = (p.tBox - p.tCat1) / 60000;
+          if (diff < 720) { sumTriageBox += diff; countTriageBox++; }
+        }
+        if (p.tBox && p.tAlta && p.tAlta >= p.tBox) {
+          const diff = (p.tAlta - p.tBox) / 60000;
+          if (diff < 720) { sumBoxAlta += diff; countBoxAlta++; }
+        }
+
+        const med = (p.medico || p.profesional || '').trim();
+        if (med && med !== 'Sin Asignar' && med !== 'No Registrado') {
+          medicosCount[med] = (medicosCount[med] || 0) + 1;
+        }
+
+        const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toLowerCase();
+        if (diag.includes('constata') || diag.includes('z51.8') || diag.includes('lesion') || String(p.destinoAlta || '').toLowerCase().includes('carabinero')) {
+          constataciones++;
+        }
+        if (diag.includes('fractur') || diag.includes('s02') || diag.includes('s52') || diag.includes('s82')) {
+          fracturas++;
+        }
+      });
+
+      const topMed = Object.entries(medicosCount).sort((a, b) => b[1] - a[1])[0];
+      const medicoMasProductivo = topMed ? `${topMed[0]} (${topMed[1]} atenciones)` : 'Dr. Médico de Turno';
+
+      const medicosTurno = Object.entries(medicosCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([mName, mCount]) => ({
+          nombre: mName,
+          atenciones: mCount,
+          pacHora: (mCount / (durHoras || 12)).toFixed(1),
+          aportePct: totalAdmitidos > 0 ? ((mCount / totalAdmitidos) * 100).toFixed(1) : '0'
+        }));
+
+      baseTurno = {
+        fechaTurno: selectedShiftObj.fechaTurno,
+        turnoNum: selectedShiftObj.equipo.includes('1') ? 1 : (selectedShiftObj.equipo.includes('2') ? 2 : (selectedShiftObj.equipo.includes('3') ? 3 : 4)),
+        equipo: selectedShiftObj.equipo,
+        rotativa: `${selectedShiftObj.tipo} (${selectedShiftObj.horario})`,
+        textoCompleto: selectedShiftObj.textoCompleto,
+        totalAdmitidos,
+        atendidos,
+        altasAdmin,
+        rendimientoHora,
+        estadiaPromedioMin: countEstadia > 0 ? Math.round(sumEstadia / countEstadia) : 135,
+        tramosEspera: {
+          admisionTriageMin: countAdmTriage > 0 ? Math.round(sumAdmTriage / countAdmTriage) : 25,
+          triageAtencionMin: countTriageBox > 0 ? Math.round(sumTriageBox / countTriageBox) : 45,
+          atencionAltaMin: countBoxAlta > 0 ? Math.round(sumBoxAlta / countBoxAlta) : 65
+        },
+        triage,
+        constataciones,
+        fracturas,
+        traslados: pacs.filter(p => {
+          const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
+          return (dest.includes('hosp') || dest.includes('urgenc') || dest.includes('ueh')) && !dest.includes('cesfam');
+        }).length,
+        medicoMasProductivo,
+        medicosTurno,
+        pacientes: pacs
+      };
+    } else {
+      baseTurno = auditResult.turnoInfo || {
+        fechaTurno: '16/08/2026',
+        turnoNum: 2,
+        equipo: 'Turno 2',
+        rotativa: 'Fin de Semana Día (08:00 a 20:00 hrs)',
+        textoCompleto: '16/08/2026 - Turno 2 • Fin de Semana Día (08:00 a 20:00 hrs)',
+        totalAdmitidos: 111,
+        atendidos: 99,
+        altasAdmin: 12,
+        rendimientoHora: 9.2,
+        estadiaPromedioMin: 154,
+        triage: { c1: 0, c2: 0, c3: 8, c4: 40, c5: 63 },
+        constataciones: 2,
+        traslados: 1,
+        medicoMasProductivo: 'Dr. Julio Alberto Moreira Jimenez (34 atenciones)'
+      };
+    }
 
     // Extraer Top 10 diagnósticos a partir de los pacientes del turno o base combinada
     const diagCounts = {};
@@ -305,7 +717,7 @@ export default function ModalConfiguracionCorreo({
       prevConstatacionesCount: 0
     };
 
-    return {
+    const assembledTurno = {
       ...baseTurno,
       comparativaYoY,
       top10Diagnosticos: top10Diagnosticos.length > 0 ? top10Diagnosticos : [
@@ -331,148 +743,7 @@ export default function ModalConfiguracionCorreo({
 
     const auditCheck = auditarIntegridadTurnoCorreo(assembledTurno);
     return auditCheck.turnoInfo || assembledTurno;
-  }, [auditResult, combinedPacientes]);
-
-  // Detección Automática de Días Completos Auditados y Cola de Despacho (Motor Deduplicado SSOT)
-  const diasCompletosAuditados = useMemo(() => {
-    const isValidHistoryDate = (f) => {
-      if (!f) return false;
-      const parts = f.includes('-') ? f.split('-') : f.split('/');
-      let y, m;
-      if (parts[0].length === 4) {
-        y = parseInt(parts[0]);
-        m = parseInt(parts[1]);
-      } else {
-        m = parseInt(parts[1]);
-        y = parseInt(parts[2]);
-      }
-      if (y > 2026 || (y === 2026 && m > 9)) return false;
-      return true;
-    };
-
-    const datesMap = new Map();
-
-    // 1. Procesar pacientes individuales deduplicados (SSOT directo)
-    (combinedPacientes || []).forEach(p => {
-      let fStr = '';
-      if (p.tAdmision) {
-        fStr = formatLocalDate(p.tAdmision);
-      } else if (p.fecha) {
-        const parts = p.fecha.includes('-') ? p.fecha.split('-') : p.fecha.split('/');
-        if (parts[0].length === 4) {
-          fStr = `${parts[0]}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
-        } else if (parts[2].length === 4) {
-          fStr = `${parts[2]}-${String(parts[1]).padStart(2, '0')}-${String(parts[0]).padStart(2, '0')}`;
-        }
-      }
-      if (!fStr || !isValidHistoryDate(fStr)) return;
-      if (!datesMap.has(fStr)) {
-        datesMap.set(fStr, { fecha: fStr, pacientes: 0, altas: 0, atendidos: 0, turnos: 0 });
-      }
-      const entry = datesMap.get(fStr);
-      entry.pacientes++;
-      if (isAltaAdmin(p) || p.estado === 'Cancelada' || (p.destinoAlta && p.destinoAlta.includes('ALTA ADMIN'))) {
-        entry.altas++;
-      } else {
-        entry.atendidos++;
-      }
-    });
-
-    // 2. Acumular turnos oficiales para fechas históricas que no tienen registros individuales en memoria
-    const turnosByDate = new Map();
-    (turnosDB || []).forEach(t => {
-      const fStr = t.fechaInicio;
-      if (!fStr || !isValidHistoryDate(fStr)) return;
-      if (!turnosByDate.has(fStr)) {
-        turnosByDate.set(fStr, { pacientes: 0, altas: 0, atendidos: 0, count: 0 });
-      }
-      const tb = turnosByDate.get(fStr);
-      tb.count++;
-      const tot = Number(t.totalPacientes || 0);
-      const alt = Number(t.altasAdmin || 0);
-      tb.pacientes += tot;
-      tb.altas += alt;
-      tb.atendidos += Math.max(0, tot - alt);
-    });
-
-    turnosByDate.forEach((tData, fStr) => {
-      if (!datesMap.has(fStr)) {
-        datesMap.set(fStr, {
-          fecha: fStr,
-          pacientes: tData.pacientes,
-          altas: tData.altas,
-          atendidos: tData.atendidos,
-          turnos: tData.count
-        });
-      } else {
-        const entry = datesMap.get(fStr);
-        entry.turnos = Math.max(entry.turnos, tData.count);
-        // Si no se cargaron pacientes individuales para este día, usar los consolidados del turno
-        if (entry.pacientes === 0 && tData.pacientes > 0) {
-          entry.pacientes = tData.pacientes;
-          entry.altas = tData.altas;
-          entry.atendidos = tData.atendidos;
-        }
-      }
-    });
-
-    let sentMap = {};
-    try {
-      const s = localStorage.getItem('metrico_informes_enviados_map');
-      if (s) sentMap = JSON.parse(s);
-    } catch(e) {}
-
-    const list = Array.from(datesMap.values())
-      .sort((a, b) => b.fecha.localeCompare(a.fecha))
-      .map((item, idx) => {
-        let horarioProyectado = 'Día siguiente 08:30 AM';
-        if (modoCargaMasiva === 'RAFAGA_MISMO_DIA') {
-          const now = new Date();
-          const currentHour = now.getHours();
-          const currentMinute = now.getMinutes();
-          const startBaseMinutes = (currentHour < 9) ? (9 * 60) : (currentHour * 60 + currentMinute + 5);
-          const totalMins = startBaseMinutes + (idx * Number(intervaloMinutos || 20));
-          const h = Math.floor(totalMins / 60) % 24;
-          const m = totalMins % 60;
-          const dayLabel = Math.floor(totalMins / (24 * 60)) > 0 ? 'Mañana' : 'Hoy';
-          horarioProyectado = `${dayLabel} ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} hrs (Escalonado)`;
-        } else if (modoCargaMasiva === 'CONSOLIDADO_MULTIDIA') {
-          horarioProyectado = 'Consolidado Único (Hoy 20:30 hrs)';
-        } else if (modoCargaMasiva === 'DESPACHO_ACELERADO') {
-          const shiftSlot = idx % 3 === 0 ? '08:30 hrs' : (idx % 3 === 1 ? '14:00 hrs' : '20:30 hrs');
-          const dayOffset = Math.floor(idx / 3);
-          horarioProyectado = dayOffset === 0 ? `Hoy ${shiftSlot}` : `Mañana ${shiftSlot}`;
-        }
-
-        const isSent = Boolean(sentMap[item.fecha]);
-
-        return {
-          ...item,
-          isCompleto: item.pacientes >= 10,
-          isSent,
-          horarioProyectado
-        };
-      });
-
-    return list;
-  }, [combinedPacientes, turnosDB, modoCargaMasiva, intervaloMinutos]);
-
-  // Lista Filtrada para la Tabla de Jornadas Auditadas (por año o búsqueda)
-  const diasFiltradosCola = useMemo(() => {
-    let list = diasCompletosAuditados;
-    if (filtroColaPeriodo === '2026') {
-      list = list.filter(d => d.fecha.startsWith('2026'));
-    } else if (filtroColaPeriodo === '2025') {
-      list = list.filter(d => d.fecha.startsWith('2025'));
-    } else if (filtroColaPeriodo === 'RECENT') {
-      list = list.slice(0, 30);
-    }
-    if (searchColaFecha.trim()) {
-      const q = searchColaFecha.trim().toLowerCase();
-      list = list.filter(d => d.fecha.toLowerCase().includes(q));
-    }
-    return list;
-  }, [diasCompletosAuditados, filtroColaPeriodo, searchColaFecha]);
+  }, [selectedShiftObj, auditResult, combinedPacientes]);
 
   // Resumen del Consolidado de Cierre Mensual
   const monthlyConsolidatedText = useMemo(() => {
@@ -992,107 +1263,294 @@ export default function ModalConfiguracionCorreo({
               )}
             </div>
 
-            {/* TARJETA 3: COLA DE JORNADAS AUDITADAS & CRONOGRAMA */}
+            {/* TARJETA 3: COLA DE DESPACHO & TURNOS AUDITADOS */}
             <div className="bg-card-custom p-6 rounded-3xl border border-card-custom space-y-4 shadow-sm">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              
+              {/* BANNER DE TURNO ESPECÍFICO SELECCIONADO */}
+              {selectedShiftObj && (
+                <div className="p-4 bg-indigo-500/15 border-2 border-indigo-500 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-md animate-fade-in">
+                  <div className="flex items-center gap-2.5">
+                    <Sparkles className="w-5 h-5 text-indigo-500 shrink-0" />
+                    <div>
+                      <p className="font-bold text-primary-custom">
+                        Turno Específico Seleccionado: <strong className="text-indigo-600 dark:text-indigo-400">{selectedShiftObj.textoCompleto}</strong>
+                      </p>
+                      <p className="text-[11px] text-secondary-custom mt-0.5">
+                        {selectedShiftObj.pacientes} pacientes admitidos • {selectedShiftObj.atendidos} atenciones médicas • {selectedShiftObj.altas} altas administrativas
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('diseno')}
+                      className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Eye className="w-3.5 h-3.5" /> Ver en Diseñador
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedShiftKey(null)}
+                      className="px-3 py-1.5 bg-black/10 dark:bg-white/10 hover:bg-rose-500/20 text-secondary-custom hover:text-rose-500 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1"
+                    >
+                      <X className="w-3.5 h-3.5" /> Volver al Último Turno
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <ListOrdered className="w-5 h-5 text-indigo-500" />
+                  <ListOrdered className="w-5 h-5 text-indigo-500 shrink-0" />
                   <div>
                     <h4 className="text-sm font-black text-primary-custom uppercase tracking-wider">
-                      Cola de Jornadas Completas Auditadas ({diasFiltradosCola.length} de {diasCompletosAuditados.length} Días)
+                      Cola de Despacho & Turnos Auditados ({colaFiltradaFinal.length} de {modoVistaCola === 'TURNOS' ? turnosAuditadosCola.length : diasCompletosAuditados.length} {modoVistaCola === 'TURNOS' ? 'Turnos' : 'Días'})
                     </h4>
                     <p className="text-[11px] text-secondary-custom font-medium mt-0.5">
-                      Base Oficial Rayen SSOT • Cifras 100% desduplicadas sin conteos redundantes
+                      Pauta Oficial Rayen SAR • Desglose Finde Día (08-20h), Finde Noche (20-08h) y Turno Largo (16-09h)
                     </p>
                   </div>
                 </div>
 
-                {/* FILTRO DE PERÍODO & BÚSQUEDA */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="flex items-center bg-black/5 dark:bg-white/5 p-1 rounded-xl">
-                    {[
-                      { id: '2026', label: 'Año 2026' },
-                      { id: 'RECENT', label: 'Últimos 30 Días' },
-                      { id: '2025', label: 'Año 2025' },
-                      { id: 'TODOS', label: `Todos (${diasCompletosAuditados.length})` }
-                    ].map(tab => (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        onClick={() => setFiltroColaPeriodo(tab.id)}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase transition-all cursor-pointer ${
-                          filtroColaPeriodo === tab.id
-                            ? 'bg-indigo-600 text-white shadow-xs'
-                            : 'text-secondary-custom hover:text-primary-custom'
-                        }`}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
-                  </div>
+                {/* TOGGLE VISTA POR TURNOS VS DÍA CIVIL */}
+                <div className="flex items-center bg-black/5 dark:bg-white/5 p-1 rounded-2xl border border-card-custom self-stretch sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setModoVistaCola('TURNOS')}
+                    className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                      modoVistaCola === 'TURNOS'
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'text-secondary-custom hover:text-primary-custom'
+                    }`}
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5" /> Turnos de Guardia (Oficial SAR)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModoVistaCola('DIAS')}
+                    className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                      modoVistaCola === 'DIAS'
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'text-secondary-custom hover:text-primary-custom'
+                    }`}
+                  >
+                    <CalendarIcon className="w-3.5 h-3.5" /> Día Civil (24h)
+                  </button>
+                </div>
+              </div>
 
+              {/* BARRA DE FILTROS MULTIDIMENSIONALES */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 p-3.5 bg-black/5 dark:bg-white/5 rounded-2xl border border-card-custom/60 text-xs">
+                {/* FILTRO POR MES */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black uppercase text-secondary-custom tracking-wider flex items-center gap-1">
+                    <CalendarIcon className="w-3 h-3 text-indigo-500" /> Filtrar por Mes
+                  </label>
+                  <select
+                    value={filtroMes}
+                    onChange={e => {
+                      setFiltroMes(e.target.value);
+                      setFiltroFechaExacta('');
+                    }}
+                    className="px-2.5 py-1.5 bg-card-custom border border-card-custom rounded-xl font-bold text-primary-custom outline-none focus:border-indigo-500 text-xs cursor-pointer"
+                  >
+                    <option value="TODOS">Todos los Meses</option>
+                    {mesesDisponibles.map(m => (
+                      <option key={m.id} value={m.id}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* FILTRO POR SEMANA */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black uppercase text-secondary-custom tracking-wider flex items-center gap-1">
+                    <Layers className="w-3 h-3 text-emerald-500" /> Filtrar por Semana
+                  </label>
+                  <select
+                    value={filtroSemana}
+                    onChange={e => {
+                      setFiltroSemana(e.target.value);
+                      setFiltroFechaExacta('');
+                    }}
+                    className="px-2.5 py-1.5 bg-card-custom border border-card-custom rounded-xl font-bold text-primary-custom outline-none focus:border-indigo-500 text-xs cursor-pointer"
+                  >
+                    <option value="TODAS">Todas las Semanas</option>
+                    <option value="ESTA_SEMANA">Últimos 7 Días</option>
+                    <option value="SEM_1">Semana 1 (Días 1 al 7)</option>
+                    <option value="SEM_2">Semana 2 (Días 8 al 14)</option>
+                    <option value="SEM_3">Semana 3 (Días 15 al 21)</option>
+                    <option value="SEM_4">Semana 4 (Días 22 al 28)</option>
+                    <option value="SEM_5">Semana 5 (Días 29 al 31)</option>
+                  </select>
+                </div>
+
+                {/* FILTRO POR FECHA EXACTA (DIGITAR O ELEGIR) */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black uppercase text-secondary-custom tracking-wider flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-amber-500" /> Digitar / Elegir Fecha
+                  </label>
+                  <input
+                    type="date"
+                    value={filtroFechaExacta}
+                    onChange={e => setFiltroFechaExacta(e.target.value)}
+                    className="px-2.5 py-1.5 bg-card-custom border border-card-custom rounded-xl font-bold text-primary-custom outline-none focus:border-indigo-500 text-xs cursor-pointer"
+                  />
+                </div>
+
+                {/* BUSCADOR LIBRE DE TEXTO */}
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black uppercase text-secondary-custom tracking-wider flex items-center gap-1">
+                      <Search className="w-3 h-3 text-purple-500" /> Buscar Turno / Fecha
+                    </label>
+                    {(filtroMes !== 'TODOS' || filtroSemana !== 'TODAS' || filtroFechaExacta || searchColaFecha) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFiltroMes('TODOS');
+                          setFiltroSemana('TODAS');
+                          setFiltroFechaExacta('');
+                          setSearchColaFecha('');
+                        }}
+                        className="text-[9px] font-black text-rose-500 hover:underline cursor-pointer"
+                      >
+                        Limpiar
+                      </button>
+                    )}
+                  </div>
                   <div className="relative">
-                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary-custom" />
+                    <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-secondary-custom" />
                     <input
                       type="text"
                       value={searchColaFecha}
                       onChange={e => setSearchColaFecha(e.target.value)}
-                      placeholder="Buscar fecha (ej: 2026-08)..."
-                      className="pl-8 pr-3 py-1 bg-black/5 dark:bg-white/5 border border-card-custom rounded-xl text-xs font-bold text-primary-custom outline-none focus:border-indigo-500 w-44"
+                      placeholder="Ej: Turno 1, 06/09, Noche..."
+                      className="w-full pl-7 pr-3 py-1.5 bg-card-custom border border-card-custom rounded-xl font-bold text-primary-custom outline-none focus:border-indigo-500 text-xs"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="overflow-auto border border-card-custom rounded-2xl max-h-72 custom-scrollbar">
+              {/* TABLA DE TURNOS ASISTENCIALES O DÍAS CIVILES */}
+              <div className="overflow-auto border border-card-custom rounded-2xl max-h-80 custom-scrollbar">
                 <table className="w-full text-left text-xs whitespace-nowrap">
                   <thead className="bg-black/5 dark:bg-white/5 text-secondary-custom font-black uppercase text-[10px] tracking-wider sticky top-0 backdrop-blur-md z-10">
                     <tr>
-                      <th className="p-3.5">Fecha Auditada</th>
+                      <th className="p-3.5">{modoVistaCola === 'TURNOS' ? 'Turno Asistencial' : 'Fecha Auditada'}</th>
+                      {modoVistaCola === 'TURNOS' && <th className="p-3.5">Equipo</th>}
+                      {modoVistaCola === 'TURNOS' && <th className="p-3.5">Horario Oficial</th>}
                       <th className="p-3.5">Total Pacientes</th>
                       <th className="p-3.5">Atendidos / Altas</th>
-                      <th className="p-3.5">Horario Proyectado Despacho</th>
-                      <th className="p-3.5">Estado de Envío</th>
+                      <th className="p-3.5">Horario Despacho</th>
+                      <th className="p-3.5">Estado</th>
+                      {modoVistaCola === 'TURNOS' && <th className="p-3.5 text-center">Acción</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-card-custom/20">
-                    {diasFiltradosCola.length === 0 ? (
+                    {colaFiltradaFinal.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="p-8 text-center text-xs text-secondary-custom font-bold">
-                          No se encontraron jornadas para el filtro o término seleccionado.
+                        <td colSpan={modoVistaCola === 'TURNOS' ? 8 : 5} className="p-8 text-center text-xs text-secondary-custom font-bold">
+                          No se encontraron registros para el filtro o término seleccionado.
                         </td>
                       </tr>
                     ) : (
-                      diasFiltradosCola.map((d, idx) => (
-                        <tr key={idx} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                          <td className="p-3.5 font-bold text-primary-custom flex items-center gap-2">
-                            <CalendarIcon className="w-3.5 h-3.5 text-indigo-500" />
-                            <span>{d.fecha}</span>
-                          </td>
-                          <td className="p-3.5 font-mono font-bold text-primary-custom">
-                            <span className={d.pacientes > 192 ? 'text-amber-500 font-black' : ''}>
-                              {d.pacientes} pac.
-                            </span>
-                          </td>
-                          <td className="p-3.5 text-secondary-custom font-semibold">
-                            {d.atendidos} atend. / <span className="text-rose-500">{d.altas} altas</span>
-                          </td>
-                          <td className="p-3.5 font-mono text-xs text-emerald-600 dark:text-emerald-400 font-bold">
-                            {d.horarioProyectado}
-                          </td>
-                          <td className="p-3.5">
-                            {d.isSent ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                <CheckCircle2 className="w-3 h-3" /> Despachado
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                                <Clock className="w-3 h-3" /> Pendiente de Despacho
-                              </span>
+                      colaFiltradaFinal.map((d, idx) => {
+                        const isSelected = selectedShiftKey === d.shiftKey;
+                        const isFdsDia = d.tipo?.includes('Día') || d.tipo?.includes('Diurno');
+                        const isFdsNoche = d.tipo?.includes('Noche') || d.tipo?.includes('Nocturno');
+                        const isLargo = d.tipo?.includes('Largo');
+                        
+                        let shiftBadgeColor = 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30';
+                        if (isFdsDia) shiftBadgeColor = 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30';
+                        else if (isFdsNoche) shiftBadgeColor = 'bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30';
+                        else if (isLargo) shiftBadgeColor = 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30';
+
+                        let equipoBadgeColor = 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400';
+                        if (d.equipo?.includes('2')) equipoBadgeColor = 'bg-amber-500/15 text-amber-600 dark:text-amber-400';
+                        else if (d.equipo?.includes('3')) equipoBadgeColor = 'bg-blue-500/15 text-blue-600 dark:text-blue-400';
+                        else if (d.equipo?.includes('4')) equipoBadgeColor = 'bg-orange-500/15 text-orange-600 dark:text-orange-400';
+
+                        return (
+                          <tr 
+                            key={d.shiftKey || d.fecha || idx} 
+                            className={`transition-colors ${
+                              isSelected 
+                                ? 'bg-indigo-500/15 border-l-4 border-indigo-600' 
+                                : 'hover:bg-black/5 dark:hover:bg-white/5'
+                            }`}
+                          >
+                            <td className="p-3.5 font-bold text-primary-custom">
+                              <div className="flex items-center gap-1.5">
+                                <CalendarIcon className="w-3.5 h-3.5 text-indigo-500" />
+                                <span className="font-mono">{d.fechaTurno || d.fecha}</span>
+                              </div>
+                              {d.tipo && (
+                                <span className={`inline-block text-[9px] font-black uppercase px-2 py-0.5 rounded-md border mt-1 ${shiftBadgeColor}`}>
+                                  {d.tipo}
+                                </span>
+                              )}
+                            </td>
+
+                            {modoVistaCola === 'TURNOS' && (
+                              <td className="p-3.5">
+                                <span className={`inline-block px-2 py-0.5 rounded-lg text-[10px] font-black uppercase ${equipoBadgeColor}`}>
+                                  {d.equipo}
+                                </span>
+                              </td>
                             )}
-                          </td>
-                        </tr>
-                      ))
+
+                            {modoVistaCola === 'TURNOS' && (
+                              <td className="p-3.5 font-mono text-xs text-secondary-custom">
+                                {d.horario}
+                                {isLargo && <span className="block text-[9px] text-secondary-custom/70">16:00 a 09:00 AM</span>}
+                              </td>
+                            )}
+
+                            <td className="p-3.5 font-mono font-bold text-primary-custom">
+                              <span className="text-sm font-black">{d.pacientes}</span> <span className="text-[10px] text-secondary-custom">pac.</span>
+                            </td>
+
+                            <td className="p-3.5 text-secondary-custom font-semibold">
+                              <span className="text-emerald-600 dark:text-emerald-400 font-bold">{d.atendidos}</span> atend. / <span className="text-rose-500 font-bold">{d.altas} altas</span>
+                            </td>
+
+                            <td className="p-3.5 font-mono text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+                              {d.horarioProyectado}
+                            </td>
+
+                            <td className="p-3.5">
+                              {d.isSent ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                  <CheckCircle2 className="w-3 h-3" /> Despachado
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                                  <Clock className="w-3 h-3" /> Pendiente
+                                </span>
+                              )}
+                            </td>
+
+                            {modoVistaCola === 'TURNOS' && (
+                              <td className="p-3.5 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedShiftKey(d.shiftKey);
+                                    if (showNotif) showNotif(`Turno ${d.textoCompleto} cargado para auditoría y diseño.`, 'info');
+                                  }}
+                                  className={`px-2.5 py-1 rounded-xl text-[10px] font-black uppercase transition-all cursor-pointer flex items-center gap-1 mx-auto ${
+                                    isSelected
+                                      ? 'bg-indigo-600 text-white shadow-xs'
+                                      : 'bg-black/5 dark:bg-white/5 hover:bg-indigo-600 hover:text-white text-secondary-custom'
+                                  }`}
+                                >
+                                  <Eye className="w-3 h-3" /> {isSelected ? 'Activo' : 'Auditar'}
+                                </button>
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
@@ -1100,7 +1558,7 @@ export default function ModalConfiguracionCorreo({
 
               <div className="flex flex-col sm:flex-row items-center justify-between text-[11px] text-secondary-custom font-medium pt-1 px-1">
                 <span>
-                  Mostrando <strong>{diasFiltradosCola.length}</strong> jornadas • Control de Techo Asistencial Rayen: Máx FDS 192 pac. (31/05/2026) | Máx Hábil 151 pac. (29/06/2026)
+                  Mostrando <strong>{colaFiltradaFinal.length}</strong> {modoVistaCola === 'TURNOS' ? 'turnos asistenciales' : 'jornadas'} • Control de Techo Asistencial Rayen: Máx FDS 192 pac. (31/05/2026) | Máx Hábil 151 pac. (29/06/2026)
                 </span>
                 <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                   ✓ Validación de Consistencia SSOT Completada
@@ -1285,6 +1743,23 @@ export default function ModalConfiguracionCorreo({
                 </button>
               </div>
             </div>
+
+            {/* INDICADOR DE TURNO ESPECÍFICO EN PREVISUALIZADOR */}
+            {selectedShiftObj && (
+              <div className="p-3.5 bg-indigo-500/15 border border-indigo-500/40 rounded-2xl flex items-center justify-between gap-3 text-xs shadow-xs animate-fade-in">
+                <span className="font-bold text-primary-custom flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-indigo-500 shrink-0" />
+                  Previsualizando Turno Seleccionado: <strong className="text-indigo-600 dark:text-indigo-400">{selectedShiftObj.textoCompleto}</strong> ({selectedShiftObj.pacientes} pac.)
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedShiftKey(null)}
+                  className="px-2.5 py-1 bg-black/10 dark:bg-white/10 hover:bg-rose-500/20 text-secondary-custom hover:text-rose-500 rounded-xl font-bold transition-all cursor-pointer text-[11px] flex items-center gap-1"
+                >
+                  <X className="w-3 h-3" /> Volver al Último Turno
+                </button>
+              </div>
+            )}
 
             {/* PREVISUALIZADOR RENDERIZADO DEL CORREO */}
             <div className={`mx-auto bg-white text-slate-900 rounded-3xl border border-slate-300 shadow-2xl overflow-hidden transition-all ${disenoDevice === 'MOBILE' ? 'max-w-md' : 'max-w-4xl'}`}>

@@ -42,7 +42,7 @@ import FondoClinicoAnimado from './common/FondoClinicoAnimado';
 import { formatLocalDate, calcularUltimoTurnoCompleto, resolverMaxTimestampGlobal } from '../utils/helpers';
 import { playIntegrityAlertChime, playLogoutChime } from '../utils/audioNotifications';
 
-const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.2.7';
+const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.3.0';
 import Login from './Login';
 import { 
   Clock, Users, UserCheck, AlertTriangle, Activity, ArrowRight, 
@@ -1318,6 +1318,7 @@ const DashboardContent = () => {
         showNotif={showNotif} 
         pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB} 
         turnosDB={turnosDB} 
+        pautasDB={pautasTurnosHook?.pautasDB}
         modoComparativo={modoComparativo} 
         setModoComparativo={setModoComparativo}
         filtroFechaInicio={filtroFechaInicio} 
