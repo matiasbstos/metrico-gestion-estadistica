@@ -10,6 +10,33 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.2',
+    version_tag: 'v6.3.2',
+    fecha_despliegue: '12 de Septiembre, 2026',
+    proposito_actualizacion: 'Blindaje y Detección Estricta de Turnos Clínicos Completos y Cerrados antes de Generar Métricas y Despachar Informes de Correo.',
+    medios_y_stack: [
+      'helpers.js (Integración de cómputo matemático riguroso de completitud en auditarIntegridadTurnoCorreo evaluando span horario >= 9h, cruce de día y corte matutino/vespertino)',
+      'ModalConfiguracionCorreo.jsx (Cálculo de minTimestamp y maxTimestamp en turnosAuditadosCola con discriminación de turnos 100% cerrados vs turnos en curso)',
+      'ModalConfiguracionCorreo.jsx (Insignia visual de seguridad ⏳ En Curso (Parcial) en la tabla de turnos de la cola de despacho)',
+      'ModalConfiguracionCorreo.jsx (Bloqueo y advertencia confirmatoria reforzada en handleDespacharTurnoAuditado si se intenta despachar un turno que no ha concluido)',
+      'ModalConfiguracionCorreo.jsx (Indicador de Turno 100% Cerrado vs ⏳ En Curso en la cabecera del previsualizador interactivo)',
+      'Dashboard.jsx (Actualización de versión oficial a v6.3.2)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Cumplimiento Irrestricto de Regla 5 SSOT: Ningún informe clínico puede generarse a partir de un turno parcial o en curso (ej. cortes con 13 pacientes a las 21:57 hrs). El motor selecciona invariablemente el último turno cerrado al 100% (corte a las 20:00 hrs para diurnos y a las 08:00/09:00 hrs del día siguiente para nocturnos). 2) Salvaguarda en la Cola de Despacho: Todo turno en la cola evalúa la amplitud horaria entre el primer y último paciente. Si no cumple la ventana completa, se clasifica como ⏳ En Curso (Parcial). 3) Confirmación de Seguridad Pre-Envío: Si un usuario selecciona forzar el envío de un turno parcial, el sistema despliega un diálogo de confirmación explícito indicando el estado incompleto.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'system_architecture_log'],
+      query_optimization: 'Verificación en memoria O(1) con timestamps mínimos y máximos por turno sin impacto en rendimiento.'
+    },
+    modulos_afectados: ['helpers.js', 'ModalConfiguracionCorreo.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'Dashboard.jsx'],
+    detalles_tecnicos: [
+      'Cálculo de timeSpanHours, isDifferentDay y maxHours en cada grupo de turnos de la cola de correos.',
+      'Propagación de la propiedad esTurnoCompleto a turnoInfo y verificación en auditarIntegridadTurnoCorreo.',
+      'Incorporación del badge visual ⏳ En Curso (Parcial) con alerta hover en la columna Estado.',
+      'Alerta de confirmación clínica en handleDespacharTurnoAuditado para impedir envíos involuntarios de turnos abiertos.',
+      'Despliegue de la versión v6.3.2 en la insignia institucional de la barra lateral.'
+    ]
+  },
+  {
     id: 'v6.3.1',
     version_tag: 'v6.3.1',
     fecha_despliegue: '12 de Septiembre, 2026',

@@ -661,6 +661,31 @@ export const auditarIntegridadTurnoCorreo = (turnoInfo) => {
     }
   }
 
+  // Verificación rigurosa de turno 100% cerrado y concluido (Regla 5 SSOT Rayen)
+  let esTurnoCompleto = turnoInfo.esTurnoCompleto !== undefined ? Boolean(turnoInfo.esTurnoCompleto) : true;
+  if (Array.isArray(turnoInfo.pacientes) && turnoInfo.pacientes.length > 0) {
+    let minT = Infinity;
+    let maxT = 0;
+    turnoInfo.pacientes.forEach(p => {
+      if (p.tAdmision) {
+        if (p.tAdmision < minT) minT = p.tAdmision;
+        if (p.tAdmision > maxT) maxT = p.tAdmision;
+      }
+    });
+    const timeSpanHours = (maxT > 0 && minT < Infinity) ? (maxT - minT) / (1000 * 60 * 60) : 0;
+    const maxDate = maxT > 0 ? new Date(maxT) : null;
+    const minDate = minT < Infinity ? new Date(minT) : null;
+    const maxHours = maxDate ? maxDate.getHours() : 0;
+    const isNightShift = (turnoInfo.tipo || '').includes('Noche') || (turnoInfo.tipo || '').includes('Largo') || (turnoInfo.rotativa || '').includes('Noche') || (turnoInfo.rotativa || '').includes('Largo');
+    const isDifferentDay = Boolean(maxDate && minDate && (maxDate.getDate() !== minDate.getDate() || maxDate.getMonth() !== minDate.getMonth()));
+
+    if (isNightShift) {
+      esTurnoCompleto = isDifferentDay && timeSpanHours >= 9 && (maxHours >= 5 && maxHours <= 10) && turnoInfo.pacientes.length >= 20;
+    } else {
+      esTurnoCompleto = timeSpanHours >= 9 && maxHours >= 19 && turnoInfo.pacientes.length >= 25;
+    }
+  }
+
   // Sanitizar detalle de traslado: Categoría C1-C5 en mayúsculas institucionales
   const rawTraslado = turnoInfo.trasladoDetalle || {};
   const trasladoDetalle = {
@@ -680,12 +705,14 @@ export const auditarIntegridadTurnoCorreo = (turnoInfo) => {
     trasladosCount,
     respiratoriosCount,
     trasladoDetalle,
+    esTurnoCompleto,
     auditadoPreVuelo: true,
     fechaAuditoriaPreVuelo: new Date().toISOString()
   };
 
   return {
     valido: totalAdmitidos === (atendidos + altasAdmin),
+    esTurnoCompleto,
     turnoInfo: auditado
   };
 };

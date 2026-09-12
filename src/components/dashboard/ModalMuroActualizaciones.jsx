@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.2',
+      version: 'v6.3.2',
+      fecha: '12 de Septiembre, 2026',
+      badge: 'DETECCIÓN ESTRICTA DE TURNOS COMPLETOS & PROTECCIÓN DE DESPACHO',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Detección Estricta de Turno Completo (100% Cerrado) antes de Generar Métricas y Envíos',
+      categoria: 'Módulos & Vistas',
+      icon: ShieldCheck,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se implementó la verificación obligatoria de completitud clínica en todo el sistema. El motor de auditoría y la cola de correos analizan la amplitud horaria, el cruce de medianoche y las admisiones de cierre para garantizar que ningún turno incompleto o en curso (ej. cortes a mitad de noche con 13 pacientes) genere métricas prematuras ni se despache por error. Los turnos abiertos se identifican claramente con el distintivo "⏳ En Curso (Parcial)" y cuentan con barreras de confirmación de seguridad.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la dirección médica y las jefaturas solo reciban informes de turnos cuyos pacientes y procesos asistenciales hayan concluido en su totalidad (100% cerrados).',
+        quePuedesVer: '1) Distintivo "⏳ En Curso (Parcial)": Identifica turnos que aún no finalizan su ventana horaria de atención. 2) Distintivo "Turno 100% Cerrado": Confirma que el turno abarcó toda su jornada y cuenta con sus pacientes completos. 3) Alerta de Seguridad: Si intentas despachar un turno abierto, el sistema te advertirá explícitamente.',
+        ejemploUso: 'Si cargas una planilla cortada a las 21:57 con 13 pacientes, el sistema no la selecciona por defecto para despacho; automáticamente selecciona el turno anterior ya concluido. Y si la buscas en la lista, verás la insignia ámbar "⏳ En Curso (Parcial)".'
+      },
+      changes: [
+        'Cálculo matemático riguroso de completitud en la cola de turnos (span >= 9h, corte matutino/vespertino).',
+        'Insignia institucional "⏳ En Curso (Parcial)" en la tabla de turnos de la cola.',
+        'Badge de verificación "Turno 100% Cerrado" en la barra de diseño y previsualización.',
+        'Confirmación reforzada en el botón de despacho para prevenir envíos de turnos en desarrollo.',
+        'Actualización a la versión v6.3.2 en la insignia oficial de MÉTRICO Clínico Predictivo.'
+      ]
+    },
+    {
       id: 'v6.3.1',
       version: 'v6.3.1',
       fecha: '12 de Septiembre, 2026',

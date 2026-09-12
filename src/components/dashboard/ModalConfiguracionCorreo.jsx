@@ -252,12 +252,18 @@ export default function ModalConfiguracionCorreo({
           pacientes: 0,
           atendidos: 0,
           altas: 0,
-          pacientesList: []
+          pacientesList: [],
+          minTimestamp: Infinity,
+          maxTimestamp: 0
         });
       }
       const entry = shiftsMap.get(shiftKey);
       entry.pacientes++;
       entry.pacientesList.push(p);
+      if (p.tAdmision) {
+        if (p.tAdmision < entry.minTimestamp) entry.minTimestamp = p.tAdmision;
+        if (p.tAdmision > entry.maxTimestamp) entry.maxTimestamp = p.tAdmision;
+      }
 
       if (isAltaAdmin(p) || p.estado === 'Cancelada' || (p.destinoAlta && p.destinoAlta.includes('ALTA ADMIN'))) {
         entry.altas++;
@@ -291,7 +297,9 @@ export default function ModalConfiguracionCorreo({
           pacientes: tot,
           atendidos: Math.max(0, tot - alt),
           altas: alt,
-          pacientesList: []
+          pacientesList: [],
+          minTimestamp: 0,
+          maxTimestamp: 0
         });
       }
     });
@@ -329,9 +337,34 @@ export default function ModalConfiguracionCorreo({
 
         const isSent = Boolean(sentMap[item.shiftKey] || sentMap[item.fecha] || sentMap[item.textoCompleto]);
 
+        // Cómputo matemático riguroso de turno completo cerrado (Regla 5 SSOT Rayen)
+        const timeSpanHours = (item.maxTimestamp > 0 && item.minTimestamp < Infinity)
+          ? (item.maxTimestamp - item.minTimestamp) / (1000 * 60 * 60)
+          : 0;
+        const maxDate = item.maxTimestamp > 0 ? new Date(item.maxTimestamp) : null;
+        const minDate = item.minTimestamp < Infinity ? new Date(item.minTimestamp) : null;
+        const maxHours = maxDate ? maxDate.getHours() : 0;
+        const isNightShift = item.tipo?.includes('Noche') || item.tipo?.includes('Largo');
+        const isDifferentDay = Boolean(maxDate && minDate && (maxDate.getDate() !== minDate.getDate() || maxDate.getMonth() !== minDate.getMonth()));
+
+        let isCompleto = false;
+        if (item.pacientesList && item.pacientesList.length > 0) {
+          if (isNightShift) {
+            // Cruce de medianoche, >= 9 horas de span, admisiones de madrugada/cierre (05:00 a 10:00 hrs) y volumen representativo
+            isCompleto = isDifferentDay && timeSpanHours >= 9 && (maxHours >= 5 && maxHours <= 10) && item.pacientes >= 20;
+          } else {
+            // Turno día: >= 9 horas de span y corte a las 19:00 hrs o posterior con volumen representativo
+            isCompleto = timeSpanHours >= 9 && maxHours >= 19 && item.pacientes >= 25;
+          }
+        } else {
+          // Turnos históricos consolidados en turnosDB
+          isCompleto = item.pacientes >= 20;
+        }
+
         return {
           ...item,
-          isCompleto: item.pacientes >= 10,
+          isCompleto,
+          esTurnoCompleto: isCompleto,
           isSent,
           horarioProyectado
         };
@@ -613,12 +646,14 @@ export default function ModalConfiguracionCorreo({
         }).length,
         medicoMasProductivo,
         medicosTurno,
+        esTurnoCompleto: selectedShiftObj.isCompleto !== undefined ? selectedShiftObj.isCompleto : true,
         pacientes: pacs
       };
     } else {
       const baseAudit = auditResult.turnoInfo;
       baseTurno = baseAudit ? {
         shiftKey: baseAudit.shiftKey || `${baseAudit.fechaTurno}_${baseAudit.rotativa}`,
+        esTurnoCompleto: auditResult.esTurnoCompleto !== undefined ? auditResult.esTurnoCompleto : true,
         ...baseAudit
       } : {
         shiftKey: '16/08/2026_08:00 a 20:00 hrs',
@@ -989,6 +1024,12 @@ export default function ModalConfiguracionCorreo({
     if (!target) {
       if (showNotif) showNotif('No hay destinatarios activos configurados en la lista de correos.', 'error');
       return;
+    }
+
+    if (turnoInfo.esTurnoCompleto === false) {
+      if (!window.confirm(`⚠️ ADVERTENCIA DE INTEGRIDAD CLÍNICA (Regla 5 SSOT Rayen):\n\nEl turno seleccionado (${turnoInfo.textoCompleto}) figura como "EN CURSO / PARCIAL" con ${turnoInfo.totalAdmitidos} pacientes.\n\nPor protocolo oficial, el despacho asistencial requiere que el turno esté 100% cerrado y concluido.\n\n¿Deseas forzar el envío de prueba para este turno parcial de todas formas?`)) {
+        return;
+      }
     }
 
     if (!window.confirm(`¿Confirmas el despacho inmediato del informe oficial para el siguiente turno auditado?\n\n${turnoInfo.textoCompleto}\n\nDestinatarios: ${target}\n(Incluye los 7 reportes PDF oficiales Hoja Carta)`)) {
@@ -1625,13 +1666,17 @@ export default function ModalConfiguracionCorreo({
                             </td>
 
                             <td className="p-3.5">
-                              {d.isSent ? (
+                              {!d.isCompleto ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30" title="Turno aún en curso o con admisiones parciales. No cerrado al 100%.">
+                                  <AlertCircle className="w-3 h-3" /> ⏳ En Curso (Parcial)
+                                </span>
+                              ) : d.isSent ? (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                                   <CheckCircle2 className="w-3 h-3" /> Despachado
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                                  <Clock className="w-3 h-3" /> Pendiente
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
+                                  <Clock className="w-3 h-3" /> Listo para Despacho
                                 </span>
                               )}
                             </td>
@@ -1856,6 +1901,15 @@ export default function ModalConfiguracionCorreo({
                 <Sparkles className="w-4 h-4 text-indigo-500 shrink-0" />
                 <span>
                   {selectedShiftObj ? 'Previsualizando Turno Seleccionado:' : 'Turno Clínico Activo:'} <strong className="text-indigo-600 dark:text-indigo-400">{turnoInfo.textoCompleto}</strong> ({turnoInfo.totalAdmitidos} pac.) • <span className="text-emerald-600 dark:text-emerald-400 font-black">✔ Cuadratura: {turnoInfo.totalAdmitidos} = {turnoInfo.atendidos} + {turnoInfo.altasAdmin}</span>
+                  {turnoInfo.esTurnoCompleto ? (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 ml-2">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Turno 100% Cerrado
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 ml-2">
+                      <AlertCircle className="w-3 h-3 text-amber-500" /> ⏳ En Curso (Parcial)
+                    </span>
+                  )}
                 </span>
               </span>
               <div className="flex items-center gap-2">
