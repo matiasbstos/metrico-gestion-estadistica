@@ -3597,7 +3597,7 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
                   Estadía Promedio = Σ ( Timestamp Egreso - Timestamp Admisión ) / Total Pacientes Atendidos
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                  <strong>Procedimiento:</strong> Excluye cancelaciones de admisión en ventanilla y computa el tiempo transcurrido desde la inscripción del correlativo en sistema hasta el alta médica o traslado hospitalario.
+                  <strong>Procedimiento & Regla Universal de Semana (Ventana 12:00 PM):</strong> Excluye cancelaciones de admisión en ventanilla y computa el tiempo transcurrido desde la inscripción del correlativo en sistema hasta el alta médica o traslado hospitalario. En días hábiles, la ventana superior se extiende obligatoriamente hasta las <strong>12:00 PM (mediodía)</strong> del día siguiente para capturar íntegramente la estadía de los pacientes ingresados a las 08:00 AM en punto, erradicando truncamientos o exclusión de altas matutinas en todos los KPIs del sistema.
                 </p>
               </div>
 
@@ -3727,8 +3727,8 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
                 </div>
 
                 <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-xs font-medium text-emerald-800 dark:text-emerald-200">
-                  <strong>Encasillamiento Asistencial (+1h/-1h):</strong><br />
-                  Se extiende desde las <strong>16:00 hrs hasta las 09:00 AM</strong> del día siguiente (15 horas efectivas) para capturar admisiones en fila previa y retards del cambio de guardia.
+                  <strong>Encasillamiento Asistencial & Estadía Extendida (16:00 a 12:00 PM):</strong><br />
+                  Se extiende desde las <strong>16:00 hrs hasta las 12:00 PM</strong> del día siguiente para capturar admisiones en fila previa, entrega de guardia matutina y la totalidad de la permanencia en box y altas médicas de los pacientes que ingresan a las 08:00 AM.
                 </div>
               </div>
 
