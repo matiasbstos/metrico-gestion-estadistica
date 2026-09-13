@@ -896,14 +896,21 @@ const generarSieteReportesPdf = async (turnoInfo) => {
   const totalRespiratorios = Number(turnoInfo.respiratoriosCount || Math.round(totalAdmitidos * 0.38));
 
   const yoy = turnoInfo.comparativaYoY || {
-    pctAdmitidosYoY: '+18.3%',
-    prevTotalAdmitidos: 94,
-    pctAtendidosYoY: '+17.6%',
-    prevAtendidos: 86,
-    pctAltasYoY: '+25.1%',
-    prevAltasAdmin: 8,
+    pctAdmitidosYoY: '+19.7%',
+    ytdAdmitidos: '28.091',
+    prevTotalAdmitidos: '23.474',
+    pctAtendidosYoY: '+19.1%',
+    ytdAtendidos: '25.547',
+    atendidosCobPct: '91.0%',
+    prevAtendidos: '21.448',
+    pctAltasYoY: '+25.6%',
+    ytdAltas: '2.544',
+    altasPct: '9.0%',
+    prevAltasAdmin: '2.026',
     pctTrasladosYoY: '+11.8%',
-    prevTrasladosCount: 2
+    ytdTraslados: '1.162',
+    trasladosTasa: '4.1%',
+    prevTrasladosCount: '1.039'
   };
 
   const triage = turnoInfo.triage || { c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 };

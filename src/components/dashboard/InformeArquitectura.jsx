@@ -10,6 +10,32 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.12',
+    version_tag: 'v6.3.12',
+    fecha: '13 de Septiembre, 2026',
+    fecha_despliegue: '13 de Septiembre, 2026',
+    proposito_actualizacion: 'Conciliación Universal SSOT de Cifras, Sincronización Matemática de Tiempos de Espera, Cobertura Manchester y Desacople de Trámites Administrativos en Informes de Correo.',
+    medios_y_stack: [
+      'helpers.js (Sincronización estricta de la sumatoria de los 3 tramos de espera con estadiaPromedioMin, erradicando descalces de minutos; reclasificación de admisiones no asignadas como trámites administrativos fuera del rol médico clínico)',
+      'ModalConfiguracionCorreo.jsx (Adición de Sin Categorizar / Ingreso Directo en Triage Manchester para cuadrar 100% de admitidos; cálculo dinámico de centros de salud y demografía desde pacsTurno; unificación de tendencias epidemiológicas diferenciadas CIE-10; actualización de pie de página a SISTEMA RAYEN URGENCIAS / SSOT OFICIAL)',
+      'InformeAsistencialEmail.js (Reconciliación de tarjetas YoY con techo canónico #28.091 y 25.547 atendidos conforme a Reglas 1 y 8; soporte de trámites administrativos en tabla médica con guión en rendimiento y conteo fidedigno de médicos clínicos)',
+      'functions/index.js (Armonización de valores por defecto de comparativaYoY con la verdad canónica SSOT de Rayen)',
+      'Dashboard.jsx (Actualización oficial a versión v6.3.12 en producción)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Techo Inviolable de Correlativos (#28.091) y YoY Canónico: Eliminación de cifras de prueba infladas (28.257) y sintonización de tarjetas YTD con statsKPI.anual (+19.7% admitidos, +19.1% atendidos, +25.6% altas, +11.8% traslados). 2) Consistencia Matemática de Esperas: estadiaPromedioMin = admisionTriageMin + triageAtencionMin + atencionAltaMin. 3) Cierre Manchester: Suma de categorías C1-C5 más no categorizados es igual al 100% de admitidos. 4) Separación Médicos Clínicos vs Trámites Admin.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Cálculo reactivo en memoria de demografía y centros sin lecturas adicionales de base de datos.'
+    },
+    modulos_afectados: ['helpers.js', 'ModalConfiguracionCorreo.jsx', 'InformeAsistencialEmail.js', 'functions/index.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Cuadratura 100% exacta de tiempos de estadía y desglose de tramos asistenciales.',
+      'Suma Manchester cerrada con pacientes categorizados y de acceso directo.',
+      'Contador de médicos clínicos puro (excluyendo trámites de ventanilla).',
+      'Sincronización de versión v6.3.12 en todo el ecosistema de MÉTRICO.'
+    ]
+  },
+  {
     id: 'v6.3.11',
     version_tag: 'v6.3.11',
     fecha: '13 de Septiembre, 2026',

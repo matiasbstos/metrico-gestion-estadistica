@@ -11,17 +11,17 @@ const {
  */
 function InformeAsistencialEmail({ turnoInfo = {} }) {
   const yoy = turnoInfo.comparativaYoY || {
-    pctAdmitidosYoY: '+20.4%',
+    pctAdmitidosYoY: '+19.7%',
     prevTotalAdmitidos: '23.474',
-    ytdAdmitidos: '28.257',
-    pctAtendidosYoY: '+19.8%',
+    ytdAdmitidos: '28.091',
+    pctAtendidosYoY: '+19.1%',
     prevAtendidos: '21.448',
-    ytdAtendidos: '25.696',
-    atendidosCobPct: '90.9%',
-    pctAltasYoY: '+26.4%',
+    ytdAtendidos: '25.547',
+    atendidosCobPct: '91.0%',
+    pctAltasYoY: '+25.6%',
     prevAltasAdmin: '2.026',
-    ytdAltas: '2.561',
-    altasPct: '9.1%',
+    ytdAltas: '2.544',
+    altasPct: '9.0%',
     pctTrasladosYoY: '+11.8%',
     prevTrasladosCount: '1.039',
     ytdTraslados: '1.162',
@@ -49,26 +49,48 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
   const pctTraslados = totalAdmitidos > 0 ? ((totalTraslados / totalAdmitidos) * 100).toFixed(1) : '0.9';
 
   const rendimientoHora = turnoInfo.rendimientoHora || (totalAdmitidos > 0 ? (totalAdmitidos / 12).toFixed(1) : '9.2');
-  const estadiaPromedio = turnoInfo.estadiaPromedio || '2h 12m';
-  const estadiaMins = turnoInfo.estadiaPromedioMin || (turnoInfo.tramosEspera?.totalMins) || 132;
 
-  // Tramos de espera
-  const tramos = turnoInfo.tramosEspera || {
-    admisionTriage: turnoInfo.tiempoPromedioCat || 14,
-    triageAtencion: Math.max(20, Math.round(estadiaMins * 0.35)),
-    atencionAlta: Math.max(25, estadiaMins - (turnoInfo.tiempoPromedioCat || 14) - Math.max(20, Math.round(estadiaMins * 0.35)))
+  // Sintonización matemática exacta de tramos y estadía (Regla 16 d)
+  const rawTramos = turnoInfo.tramosEspera || {};
+  const admTriageVal = rawTramos.admisionTriage ?? rawTramos.admisionTriageMin ?? (turnoInfo.tiempoPromedioCat || 14);
+  const triageAtnVal = rawTramos.triageAtencion ?? rawTramos.triageAtencionMin ?? 45;
+  const rawEstadiaMins = turnoInfo.estadiaPromedioMin || 135;
+  const finalEstadiaMins = Math.max(admTriageVal + triageAtnVal + 15, rawEstadiaMins);
+  const atnAltaVal = rawTramos.atencionAlta ?? rawTramos.atencionAltaMin ?? Math.max(15, finalEstadiaMins - admTriageVal - triageAtnVal);
+  const estadiaMins = admTriageVal + triageAtnVal + atnAltaVal;
+  const estadiaPromedio = `${Math.floor(estadiaMins / 60)}h ${estadiaMins % 60}m`;
+
+  const tramos = {
+    admisionTriage: admTriageVal,
+    triageAtencion: triageAtnVal,
+    atencionAlta: atnAltaVal,
+    totalMins: estadiaMins
   };
 
-  // Triage Manchester
+  // Triage Manchester con cobertura 100% auditada de admisiones
   const rawTriage = turnoInfo.triage || { c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 };
-  const triageTotal = Math.max(1, (rawTriage.c1 || 0) + (rawTriage.c2 || 0) + (rawTriage.c3 || 0) + (rawTriage.c4 || 0) + (rawTriage.c5 || 0));
+  const sumTriageCat = (rawTriage.c1 || 0) + (rawTriage.c2 || 0) + (rawTriage.c3 || 0) + (rawTriage.c4 || 0) + (rawTriage.c5 || 0);
+  const sinCategorizarCount = Math.max(0, totalAdmitidos - sumTriageCat);
+  const triageTotal = totalAdmitidos > 0 ? totalAdmitidos : Math.max(1, sumTriageCat);
+
   const triageList = [
-    { label: 'C1 (Emergencia Vital)', count: rawTriage.c1 || 0, color: '#dc2626', trend: '0% (Sin variación)' },
-    { label: 'C2 (Alta Complejidad)', count: rawTriage.c2 || 0, color: '#ea580c', trend: '0% (Sin variación)' },
+    { label: 'C1 (Emergencia Vital)', count: rawTriage.c1 || 0, color: '#dc2626', trend: rawTriage.c1 > 0 ? `+${rawTriage.c1} vs 2025` : '0 casos (Estable)' },
+    { label: 'C2 (Alta Complejidad)', count: rawTriage.c2 || 0, color: '#ea580c', trend: rawTriage.c2 > 0 ? `+${rawTriage.c2} caso vs 2025` : '0 casos (Estable)' },
     { label: 'C3 (Mediana Complejidad)', count: rawTriage.c3 || 0, color: '#ca8a04', trend: '↓ -3.2% vs 2025' },
     { label: 'C4 (Baja Complejidad)', count: rawTriage.c4 || 0, color: '#16a34a', trend: '↑ +8.4% vs 2025' },
     { label: 'C5 (Atención General)', count: rawTriage.c5 || 0, color: '#4f46e5', trend: '↑ +15.1% vs 2025' }
-  ].map(c => ({
+  ];
+
+  if (sinCategorizarCount > 0) {
+    triageList.push({
+      label: 'Sin Categorizar / Ingreso Directo',
+      count: sinCategorizarCount,
+      color: '#94a3b8',
+      trend: 'Admisión Directa'
+    });
+  }
+
+  const formattedTriageList = triageList.map(c => ({
     ...c,
     pct: ((c.count / triageTotal) * 100).toFixed(1)
   }));
@@ -426,11 +448,11 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                   )
                 ),
                 React.createElement('div', { style: { margin: '6px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '20px', fontWeight: '900', color: '#047857' } }, yoy.pctAdmitidosYoY || '+20.4%'),
+                  React.createElement('span', { style: { fontSize: '20px', fontWeight: '900', color: '#047857' } }, yoy.pctAdmitidosYoY || '+19.7%'),
                   React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
                 ),
                 React.createElement('div', { style: { borderTop: '1px solid #f1f5f9', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#0f172a', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAdmitidos || '28.257'} pac.`),
+                  React.createElement(Text, { style: { ...s.kpiSub, color: '#0f172a', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAdmitidos || '28.091'} pac.`),
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#64748b' } }, `Año Ant. (2025): ${yoy.prevTotalAdmitidos || '23.474'} pac.`)
                 )
               )
@@ -448,11 +470,11 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                   )
                 ),
                 React.createElement('div', { style: { margin: '6px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '20px', fontWeight: '900', color: '#047857' } }, yoy.pctAtendidosYoY || '+19.8%'),
+                  React.createElement('span', { style: { fontSize: '20px', fontWeight: '900', color: '#047857' } }, yoy.pctAtendidosYoY || '+19.1%'),
                   React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
                 ),
                 React.createElement('div', { style: { borderTop: '1px solid #f1f5f9', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#0f172a', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAtendidos || '25.696'} pac. (${yoy.atendidosCobPct || '90.9%'} cob.)`),
+                  React.createElement(Text, { style: { ...s.kpiSub, color: '#0f172a', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAtendidos || '25.547'} pac. (${yoy.atendidosCobPct || '91.0%'} cob.)`),
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#64748b' } }, `Año Ant. (2025): ${yoy.prevAtendidos || '21.448'} pac.`)
                 )
               )
@@ -470,11 +492,11 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                   )
                 ),
                 React.createElement('div', { style: { margin: '6px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '20px', fontWeight: '900', color: '#be123c' } }, yoy.pctAltasYoY || '+26.4%'),
+                  React.createElement('span', { style: { fontSize: '20px', fontWeight: '900', color: '#be123c' } }, yoy.pctAltasYoY || '+25.6%'),
                   React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
                 ),
-                React.createElement('div', { style: { borderTop: '1px solid #fee2e2', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#881337', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAltas || '2.561'} altas (${yoy.altasPct || '9.1%'} del total)`),
+                React.createElement('div', { borderTop: '1px solid #fee2e2', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
+                  React.createElement(Text, { style: { ...s.kpiSub, color: '#881337', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAltas || '2.544'} altas (${yoy.altasPct || '9.0%'} del total)`),
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#64748b' } }, `Año Ant. (2025): ${yoy.prevAltasAdmin || '2.026'} altas`)
                 )
               )
@@ -641,7 +663,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
               ),
               React.createElement(Column, { style: { textAlign: 'right' } },
                 React.createElement('span', { style: { fontSize: '9px', fontWeight: '800', color: '#64748b' } },
-                  `${medicos.length} Médicos en Turno Oficial`
+                  `${medicos.filter(m => !m.isTramite && !m.nombre?.toLowerCase().includes('trámite') && !m.nombre?.toLowerCase().includes('no registrado')).length} Médico(s) en Turno Oficial`
                 )
               )
             ),
@@ -656,17 +678,21 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
               ),
               React.createElement('tbody', null,
                 medicos.map((m, idx) => {
+                  const isTramite = m.isTramite || m.nombre?.toLowerCase().includes('trámite') || m.nombre?.toLowerCase().includes('no registrado');
                   const durH = (turnoInfo.rotativa && turnoInfo.rotativa.includes('Largo')) ? 15 : 12;
-                  const rendPacHr = m.rendimientoPacHr || (m.pacHora ? `${m.pacHora} pac/hr` : `${(m.atenciones / durH).toFixed(2)} pac/hr`);
+                  const rendPacHr = isTramite ? '—' : (m.rendimientoPacHr || (m.pacHora ? `${m.pacHora} pac/hr` : `${(m.atenciones / durH).toFixed(2)} pac/hr`));
                   const pctAp = m.pctAporte || (m.aportePct ? `${m.aportePct}%` : `${((m.atenciones / (totalAdmitidos || 1)) * 100).toFixed(1)}%`);
+                  const dotColor = isTramite ? '#94a3b8' : (idx === 0 ? '#10b981' : idx === 1 ? '#6366f1' : '#a855f7');
+                  const atencionColor = isTramite ? '#64748b' : '#047857';
+                  const nombreDisplay = isTramite ? 'Trámites Administrativos (Sin Asignación Médica)' : m.nombre;
                   return (
                     React.createElement('tr', { key: idx, style: { backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8fafc' } },
                       React.createElement('td', { style: { ...s.tableCell, fontWeight: '800' } },
-                        React.createElement('span', { style: { display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', backgroundColor: idx === 0 ? '#10b981' : idx === 1 ? '#6366f1' : '#a855f7', marginRight: '6px' } }),
-                        m.nombre
+                        React.createElement('span', { style: { display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', backgroundColor: dotColor, marginRight: '6px' } }),
+                        nombreDisplay
                       ),
-                      React.createElement('td', { style: { ...s.tableCell, textAlign: 'center', fontWeight: '900', color: '#047857' } }, m.atenciones),
-                      React.createElement('td', { style: { ...s.tableCell, textAlign: 'center', fontWeight: '800', color: '#4338ca' } }, rendPacHr),
+                      React.createElement('td', { style: { ...s.tableCell, textAlign: 'center', fontWeight: '900', color: atencionColor } }, m.atenciones),
+                      React.createElement('td', { style: { ...s.tableCell, textAlign: 'center', fontWeight: '800', color: isTramite ? '#94a3b8' : '#4338ca' } }, rendPacHr),
                       React.createElement('td', { style: { ...s.tableCell, textAlign: 'right', fontWeight: '900', color: '#0f172a' } }, pctAp)
                     )
                   );

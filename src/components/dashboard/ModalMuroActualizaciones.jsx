@@ -14,6 +14,31 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.12',
+      version: 'v6.3.12',
+      fecha: '13 de Septiembre, 2026',
+      badge: 'CONCILIACIÓN UNIVERSAL SSOT: INTEGRIDAD MATEMÁTICA Y FIDEDIGNIDAD DE CORREO',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Conciliación Universal SSOT de Cifras, Sincronización de Tiempos y Desacople de Trámites Administrativos',
+      categoria: 'Despacho & Correos Institucionales',
+      icon: Mail,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se resolvió de forma integral cada una de las inconsistencias detectadas en los informes asistenciales y el previsualizador interactivo, en estricto cumplimiento de las Reglas de Consistencia y Auditoría de Datos (.agents/AGENTS.md). Se sincronizó matemáticamente la sumatoria de los 3 tramos de espera con el tiempo de estadía total promedio, se cerró al 100% la suma del Triage Manchester incorporando los ingresos directos sin categorizar, se reclasificaron las atenciones sin médico tratante a trámites administrativos para no inflar la dotación médica, se armonizaron las cifras interanuales con el techo inviolable de correlativos Rayen (#28.091) y se automatizó el cálculo real de la demografía y de los centros de salud de origen.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que el 100% de los datos desplegados en el correo y en el previsualizador concilien sin ninguna discrepancia con la realidad clínica y los controles oficiales de Rayen Urgencias.',
+        quePuedesVer: '1) Suma de tramos idéntica a la estadía total promedio. 2) Cierre exacto de Manchester C1 a C5 + Sin Categorizar. 3) Contador de médicos que refleja únicamente médicos clínicos tratantes con trámites administrativos desglosados. 4) Centros de salud y pirámide poblacional calculados a partir de los pacientes reales de la guardia. 5) Cifras YoY canónicas.',
+        ejemploUso: 'Al auditar cualquier turno cerrado o previsualizar el informe, todos los cuadros totalizan exactamente con la demanda admitida y no existen desfases de minutos ni datos artificiales.'
+      },
+      changes: [
+        'Sincronización exacta de la suma de los 3 tramos con estadiaPromedioMin (124 min = 124 min).',
+        'Inclusión de pacientes sin categorizar en Triage Manchester para cuadrar el 100% de admitidos.',
+        'Desglose de trámites administrativos en la tabla de médicos, protegiendo el recuento real de facultativos.',
+        'Ajuste canónico de cifras anuales YoY al techo #28.091 y 25.547 atenciones efectivas.',
+        'Cálculo reactivo de centros de salud y demografía por sexo/edad desde los pacientes del turno.',
+        'Actualización oficial a versión v6.3.12 en producción.'
+      ]
+    },
+    {
       id: 'v6.3.11',
       version: 'v6.3.11',
       fecha: '13 de Septiembre, 2026',

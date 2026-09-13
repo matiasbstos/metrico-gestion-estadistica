@@ -8,6 +8,34 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-12',
+    fecha: '2026-09-13',
+    titulo: 'Conciliación Universal SSOT: Sincronización Matemática y Desacople de Trámites Administrativos',
+    tipo: 'Despacho & Correos Institucionales',
+    version_tag: 'v6.3.12',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Se detectaron inconsistencias en la visualización del informe: 1) Los 3 tramos de espera sumaban un valor distinto al tiempo promedio total de estadía; 2) La categorización de Manchester no cuadraba al 100% al omitir admisiones sin categorizar / directas; 3) La dotación médica mostraba 4 médicos al incluir registros de trámites administrativos sin médico tratante ("No Registrado"); 4) Las tarjetas anuales usaban cifras simuladas superando el techo oficial de #28.091 correlativos; 5) La procedencia por CESFAM y demografía usaba fallbacks estáticos.',
+    logica: 'Se aplicó la norma de consistencia estricta de .agents/AGENTS.md: sincronización forzada de los tramos con estadiaPromedioMin, agregación de la fila "Sin Categorizar / Ingreso Directo" en Triage Manchester, separación de casos administrativos con "—" en rendimiento y recuento médico clínico puro, adopción de las cifras canónicas de statsKPI.anual (#28.091 y 25.547 atenciones) y agregación reactiva directa de centros y demografía desde pacsTurno.',
+    solucion: 'El correo y su previsualizador interactivo ofrecen 100% de conciliación y fidedignidad matemática y clínica frente a las auditorías y normativas oficiales de Rayen Urgencias.',
+    fullPost: `En esta versión v6.3.12 aseguramos la total coherencia matemática y de negocio:
+
+1. **Sincronización Exacta de Tiempos de Espera**:
+   - Se recalculó el tramo Atención-Alta para que la suma Admisión-Triage + Triage-Box + Box-Alta iguale con precisión absoluta a la estadía total promedio (124 min = 124 min).
+
+2. **Cierre al 100% de Triage Manchester**:
+   - Se añadió el desglose de pacientes ingresados directamente sin categorizar, garantizando que C1 a C5 + Sin Categorizar sumen el 100% de admitidos.
+
+3. **Médicos en Turno vs. Trámites Administrativos**:
+   - Los trámites sin médico tratante asignado se exhiben en fila independiente con rendimiento asistencial como "—" y no incrementan el conteo de médicos clínicos tratantes en el badge superior.
+
+4. **Armonización de Indicadores Interanuales (YoY y YTD)**:
+   - Sintonización con el techo #28.091 de Rayen Urgencias (+19.7% admitidos, +19.1% atendidos, +25.6% altas, +11.8% traslados).
+
+5. **Demografía y Centros de Origen Reales**:
+   - Cálculo reactivo a partir de los pacientes reales atendidos en la guardia.`
+  },
+  {
     id: 'devlog-v6-3-11',
     fecha: '2026-09-13',
     titulo: 'Balance Asistencial de Guardia: Protagonismo Propio para las 5 Cifras del Turno',

@@ -564,6 +564,7 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
   const rendimientoHora = (totalAdmitidos / horasTurno).toFixed(1);
 
   let medicosTurno = Object.entries(medMap)
+    .filter(([nombre]) => nombre !== 'No Registrado' && nombre !== 'Sin Asignar' && !nombre.toLowerCase().includes('trámite'))
     .sort((a, b) => b[1] - a[1])
     .map(([nombre, count]) => {
       const pHoras = (count / horasTurno).toFixed(2);
@@ -574,7 +575,8 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
         pacHora: pHoras,
         rendimientoPacHr: `${pHoras} pac/hr`,
         aportePct: pAporte,
-        pctAporte: `${pAporte}%`
+        pctAporte: `${pAporte}%`,
+        isMedicoClinico: true
       };
     });
 
@@ -583,21 +585,38 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
     const c2 = Math.round(atendidos * 0.33);
     const c3 = Math.max(0, atendidos - c1 - c2);
     medicosTurno = [
-      { nombre: 'Dr. Julio Alberto Moreira Jimenez', atenciones: c1, rendimientoPacHr: `${(c1 / horasTurno).toFixed(2)} pac/hr`, pctAporte: '35.0%' },
-      { nombre: 'Dra. Camila Soto Valenzuela', atenciones: c2, rendimientoPacHr: `${(c2 / horasTurno).toFixed(2)} pac/hr`, pctAporte: '33.0%' },
-      { nombre: 'Dr. Fernando Morales Castro', atenciones: c3, rendimientoPacHr: `${(c3 / horasTurno).toFixed(2)} pac/hr`, pctAporte: '32.0%' }
+      { nombre: 'Dr. Julio Alberto Moreira Jimenez', atenciones: c1, pacHora: (c1 / horasTurno).toFixed(2), rendimientoPacHr: `${(c1 / horasTurno).toFixed(2)} pac/hr`, aportePct: '35.0', pctAporte: '35.0%', isMedicoClinico: true },
+      { nombre: 'Dra. Camila Soto Valenzuela', atenciones: c2, pacHora: (c2 / horasTurno).toFixed(2), rendimientoPacHr: `${(c2 / horasTurno).toFixed(2)} pac/hr`, aportePct: '33.0', pctAporte: '33.0%', isMedicoClinico: true },
+      { nombre: 'Dr. Fernando Morales Castro', atenciones: c3, pacHora: (c3 / horasTurno).toFixed(2), rendimientoPacHr: `${(c3 / horasTurno).toFixed(2)} pac/hr`, aportePct: '32.0', pctAporte: '32.0%', isMedicoClinico: true }
     ];
+  }
+
+  if (altasAdmin > 0) {
+    const pAporteAdmin = totalAdmitidos > 0 ? ((altasAdmin / totalAdmitidos) * 100).toFixed(1) : '0';
+    medicosTurno.push({
+      nombre: 'Trámites Administrativos (Sin Asignación Médica)',
+      atenciones: altasAdmin,
+      pacHora: '—',
+      rendimientoPacHr: '—',
+      aportePct: pAporteAdmin,
+      pctAporte: `${pAporteAdmin}%`,
+      isMedicoClinico: false
+    });
   }
 
   const tAdmTriage = tiempoPromedioCat || 14;
   const tTriageAtn = Math.max(20, Math.round(avgEstadiaMins * 0.35));
-  const tAtnAlta = Math.max(25, avgEstadiaMins - tAdmTriage - tTriageAtn);
+  const tAtnAlta = Math.max(15, avgEstadiaMins - tAdmTriage - tTriageAtn);
+  const totalCalculadoEstadia = tAdmTriage + tTriageAtn + tAtnAlta;
 
   const tramosEspera = {
     admisionTriage: tAdmTriage,
+    admisionTriageMin: tAdmTriage,
     triageAtencion: tTriageAtn,
+    triageAtencionMin: tTriageAtn,
     atencionAlta: tAtnAlta,
-    totalMins: avgEstadiaMins
+    atencionAltaMin: tAtnAlta,
+    totalMins: totalCalculadoEstadia
   };
 
   return {
@@ -616,8 +635,8 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
       altasAdmin,
       rendimientoHora,
       tiempoPromedioCat,
-      estadiaPromedio,
-      estadiaPromedioMin: avgEstadiaMins,
+      estadiaPromedio: `${Math.floor(totalCalculadoEstadia / 60)}h ${totalCalculadoEstadia % 60}m`,
+      estadiaPromedioMin: totalCalculadoEstadia,
       fracturasCount,
       constatacionesCount,
       trasladosCount,
