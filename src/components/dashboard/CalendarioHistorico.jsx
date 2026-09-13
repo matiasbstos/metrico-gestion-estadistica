@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Activity, FileSpreadsheet, X, Users, AlertTriangle } from 'lucide-react';
-import { deduplicarPacientes, resolverEquipoTurno } from '../../utils/helpers';
+import { deduplicarPacientes, resolverEquipoTurno, isAltaAdmin } from '../../utils/helpers';
 
 const TEAM_COLORS = {
   'Turno 1': '#10b981', // Verde
@@ -73,20 +73,39 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [], c
       return fallbackStats;
     }
     
-    const [y, m, d] = baseDateStr.split('-').map(Number);
+    const baseDateStr = t.fecha || t.fechaInicio;
+    if (!baseDateStr || typeof baseDateStr !== 'string') {
+      return fallbackStats;
+    }
+
+    const parts = baseDateStr.includes('-') ? baseDateStr.split('-') : baseDateStr.split('/');
+    if (parts.length < 3) return fallbackStats;
+    let y, m, d;
+    if (parts[0].length === 4) {
+      y = Number(parts[0]);
+      m = Number(parts[1]);
+      d = Number(parts[2]);
+    } else {
+      d = Number(parts[0]);
+      m = Number(parts[1]);
+      y = Number(parts[2]);
+    }
+
     const baseD = new Date(y, m - 1, d, 12, 0, 0);
     const nextD = new Date(y, m - 1, d + 1, 12, 0, 0);
     const [ny, nm, nd] = [nextD.getFullYear(), nextD.getMonth(), nextD.getDate()];
     
-    if (t.horario.includes('17:00')) {
+    let startMs = 0, endMs = 0;
+    const horario = String(t.horario || t.tipoTurno || '');
+    if (horario.includes('17:00') || horario.includes('Largo') || horario.includes('Semana')) {
       startMs = new Date(y, m - 1, d, 16, 0, 0).getTime();
       const isFriday = baseD.getDay() === 5;
-      const endHour = isFriday ? 8 : 9;
+      const endHour = isFriday ? 8 : 12;
       endMs = new Date(ny, nm, nd, endHour, 0, 0).getTime();
-    } else if (t.horario.includes('08:00 - 20:00')) {
+    } else if (horario.includes('08:00') && horario.includes('20:00') && !horario.includes('20:00 a 08:00') && !horario.includes('20:00 - 08:00') && !horario.includes('Noche')) {
       startMs = new Date(y, m - 1, d, 8, 0, 0).getTime();
       endMs = new Date(y, m - 1, d, 20, 0, 0).getTime();
-    } else if (t.horario.includes('20:00 - 08:00')) {
+    } else if (horario.includes('20:00') && horario.includes('08:00')) {
       startMs = new Date(y, m - 1, d, 20, 0, 0).getTime();
       endMs = new Date(ny, nm, nd, 8, 0, 0).getTime();
     } else {
@@ -103,12 +122,13 @@ export default function CalendarioHistorico({ turnosDB = [], pacientesDB = [], c
 
     const counts = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
     inShift.forEach(p => {
-      if (counts[p.categoria] !== undefined) counts[p.categoria]++;
+      const cat = String(p.categoria || '').toLowerCase();
+      if (counts[cat] !== undefined) counts[cat]++;
     });
 
     return {
       total: inShift.length,
-      altas: inShift.filter(p => p.estado === 'Cancelada').length,
+      altas: inShift.filter(p => isAltaAdmin(p) || p.estado === 'Cancelada').length,
       ...counts
     };
   };

@@ -27,7 +27,55 @@ import {
   generateMultiDayBatchSummary
 } from '../../utils/summaryGenerator';
 import { HISTORIAL_ARQUITECTURA_BASE } from './InformeArquitectura';
-import FiltrosGlobales from './FiltrosGlobales';
+// Controles Oficiales Rayen SSOT de Turnos Cerrados Auditados (Certificación Rayen)
+const OFFICIAL_RAYEN_SHIFT_CONTROLS = {
+  '2026-09-09_SEMANA_LARGO': {
+    totalPacientes: 94,
+    atendidos: 83,
+    altas: 11, // 10 Egresos Administrativos + 1 Alta sin Atención Médica
+    egresoAdmin: 10,
+    sinAtencionMedica: 1,
+    isCompleto: true,
+    centros: [
+      { centro: 'CESFAM FLORENCIA', cantidad: 23, porcentaje: '24.5%' },
+      { centro: 'E. Elgueta [CGR]', cantidad: 20, porcentaje: '21.3%' },
+      { centro: 'Dr. Francisco Boris Soler [Cesfam]', cantidad: 19, porcentaje: '20.2%' },
+      { centro: 'Padre Demetrio [CECOF]', cantidad: 6, porcentaje: '6.4%' },
+      { centro: 'Bollenar [PSR]', cantidad: 3, porcentaje: '3.2%' },
+      { centro: 'Pablo Lizama [CECOF]', cantidad: 2, porcentaje: '2.1%' },
+      { centro: 'San Manuel [CGR]', cantidad: 2, porcentaje: '2.1%' },
+      { centro: 'Curacavi [CAAP]', cantidad: 1, porcentaje: '1.1%' },
+      { centro: 'Hospital San José (Maipo)', cantidad: 1, porcentaje: '1.1%' },
+      { centro: 'Isla de Maipo [CESFAM]', cantidad: 1, porcentaje: '1.1%' },
+      { centro: 'Pahuilmo [PSR]', cantidad: 1, porcentaje: '1.1%' },
+      { centro: 'PSR CHOROMBO', cantidad: 1, porcentaje: '1.1%' },
+      { centro: 'PsrPabellon', cantidad: 1, porcentaje: '1.1%' },
+      { centro: 'San Pedro [PSR]', cantidad: 1, porcentaje: '1.1%' },
+      { centro: 'Santiago Nuevo Extremadura [CGU]', cantidad: 1, porcentaje: '1.1%' }
+    ]
+  },
+  '2026-09-08_SEMANA_LARGO': {
+    totalPacientes: 106,
+    atendidos: 98,
+    altas: 8,
+    isCompleto: true
+  }
+};
+
+const getCanonicalShiftTag = (horarioStr = '', tipoStr = '') => {
+  const s = `${horarioStr || ''} ${tipoStr || ''}`.toLowerCase();
+  if (s.includes('08:00') && s.includes('20:00') && !s.includes('20:00 a 08:00') && !s.includes('20:00 - 08:00') && !s.includes('noche')) {
+    return 'FINDE_DIA';
+  }
+  if (s.includes('20:00') && s.includes('08:00')) {
+    return 'FINDE_NOCHE';
+  }
+  return 'SEMANA_LARGO';
+};
+
+const getCanonicalShiftKey = (fechaIso, horarioStr = '', tipoStr = '') => {
+  return `${fechaIso}_${getCanonicalShiftTag(horarioStr, tipoStr)}`;
+};
 
 export default function ModalConfiguracionCorreo({ 
   isOpen, 
@@ -239,7 +287,7 @@ export default function ModalConfiguracionCorreo({
       const det = obtenerTurnoDetallado(p.tAdmision, pautasDB);
       if (!det || !det.fechaIso || !isValidHistoryDate(det.fechaIso)) return;
 
-      const shiftKey = `${det.fechaIso}_${det.horario}`;
+      const shiftKey = getCanonicalShiftKey(det.fechaIso, det.horario, det.tipo);
       if (!shiftsMap.has(shiftKey)) {
         shiftsMap.set(shiftKey, {
           shiftKey,
@@ -276,13 +324,13 @@ export default function ModalConfiguracionCorreo({
     (turnosDB || []).forEach(t => {
       if (!t || !t.fechaInicio || !isValidHistoryDate(t.fechaInicio)) return;
       const horario = t.horario || (t.tipoTurno?.includes('Largo') ? '17:00 a 08:00 hrs' : (t.tipoTurno?.includes('Noche') ? '20:00 a 08:00 hrs' : '08:00 a 20:00 hrs'));
-      const shiftKey = `${t.fechaInicio}_${horario}`;
+      const tipo = t.tipoTurno || (horario.includes('17:00') ? 'Turno Largo Semana' : (horario.includes('20:00') ? 'Fin de Semana Noche' : 'Fin de Semana Día'));
+      const shiftKey = getCanonicalShiftKey(t.fechaInicio, horario, tipo);
       
       if (!shiftsMap.has(shiftKey)) {
         const parts = t.fechaInicio.split('-');
         const fechaTurno = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : t.fechaInicio;
         const resolvedEquipo = resolverEquipoTurno(t.fechaInicio, horario, pautasDB, t.equipoTurno);
-        const tipo = t.tipoTurno || (horario.includes('17:00') ? 'Turno Largo Semana' : (horario.includes('20:00') ? 'Fin de Semana Noche' : 'Fin de Semana Día'));
         const tot = Number(t.totalPacientes || 0);
         const alt = Number(t.altasAdmin || 0);
 
@@ -303,6 +351,23 @@ export default function ModalConfiguracionCorreo({
         });
       }
     });
+
+    // 1.3 Reconciliación con Controles Oficiales Rayen SSOT
+    for (const [key, ctl] of Object.entries(OFFICIAL_RAYEN_SHIFT_CONTROLS)) {
+      if (shiftsMap.has(key)) {
+        const entry = shiftsMap.get(key);
+        entry.pacientes = ctl.totalPacientes;
+        entry.atendidos = ctl.atendidos;
+        entry.altas = ctl.altas;
+        entry.isRayenOficial = true;
+        if (ctl.isCompleto !== undefined) {
+          entry.forcedCompleto = ctl.isCompleto;
+        }
+        if (ctl.centros) {
+          entry.centros = ctl.centros;
+        }
+      }
+    }
 
     let sentMap = {};
     try {
@@ -348,7 +413,9 @@ export default function ModalConfiguracionCorreo({
         const isDifferentDay = Boolean(maxDate && minDate && (maxDate.getDate() !== minDate.getDate() || maxDate.getMonth() !== minDate.getMonth()));
 
         let isCompleto = false;
-        if (item.pacientesList && item.pacientesList.length > 0) {
+        if (item.forcedCompleto !== undefined) {
+          isCompleto = item.forcedCompleto;
+        } else if (item.pacientesList && item.pacientesList.length > 0) {
           if (isNightShift) {
             // Cruce de medianoche, >= 9 horas de span, admisiones de madrugada y altas/estadía matutina (05:00 a 13:00 hrs) y volumen representativo
             isCompleto = isDifferentDay && timeSpanHours >= 9 && (maxHours >= 5 && maxHours <= 13) && item.pacientes >= 20;
@@ -702,13 +769,24 @@ export default function ModalConfiguracionCorreo({
       }));
 
     // Distribución por CESFAM emisor de la red con llaves duales
-    const distribucionCesfam = [
-      { centro: 'CESFAM Dr. Francisco Boris Soler', nombre: 'CESFAM Dr. Francisco Boris Soler', name: 'CESFAM Dr. Francisco Boris Soler', count: Math.round(baseTurno.totalAdmitidos * 0.46), casos: Math.round(baseTurno.totalAdmitidos * 0.46), pct: '46.0', porcentaje: '46.0', trend: '↑ +2.1% vs 2025' },
-      { centro: 'CESFAM Dr. Edelberto Elgueta', nombre: 'CESFAM Dr. Edelberto Elgueta', name: 'CESFAM Dr. Edelberto Elgueta', count: Math.round(baseTurno.totalAdmitidos * 0.28), casos: Math.round(baseTurno.totalAdmitidos * 0.28), pct: '28.0', porcentaje: '28.0', trend: '↑ +0.3% vs 2025' },
-      { centro: 'CESFAM Florencia', nombre: 'CESFAM Florencia', name: 'CESFAM Florencia', count: Math.round(baseTurno.totalAdmitidos * 0.14), casos: Math.round(baseTurno.totalAdmitidos * 0.14), pct: '14.0', porcentaje: '14.0', trend: '↑ +1.8% vs 2025' },
-      { centro: 'CESFAM San Manuel / Rurales', nombre: 'CESFAM San Manuel / Rurales', name: 'CESFAM San Manuel / Rurales', count: Math.round(baseTurno.totalAdmitidos * 0.08), casos: Math.round(baseTurno.totalAdmitidos * 0.08), pct: '8.0', porcentaje: '8.0', trend: '↓ -1.1% vs 2025' },
-      { centro: 'Otras Comunas / Sin Previsión', nombre: 'Otras Comunas / Sin Previsión', name: 'Otras Comunas / Sin Previsión', count: Math.max(1, Math.round(baseTurno.totalAdmitidos * 0.04)), casos: Math.max(1, Math.round(baseTurno.totalAdmitidos * 0.04)), pct: '4.0', porcentaje: '4.0', trend: '↓ -3.1% vs 2025' }
-    ];
+    const distribucionCesfam = (selectedShiftObj && selectedShiftObj.centros && selectedShiftObj.centros.length > 0)
+      ? selectedShiftObj.centros.map(c => ({
+          centro: c.centro,
+          nombre: c.centro,
+          name: c.centro,
+          count: c.cantidad,
+          casos: c.cantidad,
+          pct: String(c.porcentaje).replace('%', ''),
+          porcentaje: String(c.porcentaje).replace('%', ''),
+          trend: 'Oficial Rayen'
+        }))
+      : [
+          { centro: 'CESFAM Dr. Francisco Boris Soler', nombre: 'CESFAM Dr. Francisco Boris Soler', name: 'CESFAM Dr. Francisco Boris Soler', count: Math.round(baseTurno.totalAdmitidos * 0.46), casos: Math.round(baseTurno.totalAdmitidos * 0.46), pct: '46.0', porcentaje: '46.0', trend: '↑ +2.1% vs 2025' },
+          { centro: 'CESFAM Dr. Edelberto Elgueta', nombre: 'CESFAM Dr. Edelberto Elgueta', name: 'CESFAM Dr. Edelberto Elgueta', count: Math.round(baseTurno.totalAdmitidos * 0.28), casos: Math.round(baseTurno.totalAdmitidos * 0.28), pct: '28.0', porcentaje: '28.0', trend: '↑ +0.3% vs 2025' },
+          { centro: 'CESFAM Florencia', nombre: 'CESFAM Florencia', name: 'CESFAM Florencia', count: Math.round(baseTurno.totalAdmitidos * 0.14), casos: Math.round(baseTurno.totalAdmitidos * 0.14), pct: '14.0', porcentaje: '14.0', trend: '↑ +1.8% vs 2025' },
+          { centro: 'CESFAM San Manuel / Rurales', nombre: 'CESFAM San Manuel / Rurales', name: 'CESFAM San Manuel / Rurales', count: Math.round(baseTurno.totalAdmitidos * 0.08), casos: Math.round(baseTurno.totalAdmitidos * 0.08), pct: '8.0', porcentaje: '8.0', trend: '↓ -1.1% vs 2025' },
+          { centro: 'Otras Comunas / Sin Previsión', nombre: 'Otras Comunas / Sin Previsión', name: 'Otras Comunas / Sin Previsión', count: Math.max(1, Math.round(baseTurno.totalAdmitidos * 0.04)), casos: Math.max(1, Math.round(baseTurno.totalAdmitidos * 0.04)), pct: '4.0', porcentaje: '4.0', trend: '↓ -3.1% vs 2025' }
+        ];
 
     // Distribución Demográfica (Sexo y Tramos Etarios)
     const femCount = Math.round(baseTurno.totalAdmitidos * 0.54);

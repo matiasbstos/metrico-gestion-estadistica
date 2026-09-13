@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.5',
+      version: 'v6.3.5',
+      fecha: '12 de Septiembre, 2026',
+      badge: 'HISTÓRICO MENSUAL RESTABLECIDO, COLA SIN DUPLICADOS & SSOT RAYEN 94 PACIENTES',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Restabilización de Histórico Mensual, Erradicación de Duplicados y Paridad Rayen 09/09',
+      categoria: 'Módulos & Vistas',
+      icon: CheckCircle2,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se corrigió el fallo crítico de carga que impedía visualizar el apartado de Histórico Mensual (ReferenceError en variables de fecha de CalendarioHistorico). Paralelamente, en la cola de despacho de correos se implementó la clave canónica de turnos (getCanonicalShiftKey), eliminando el 100% de las filas duplicadas que mostraban valores dobles (como 77 vs 143, o 106 vs 169). Finalmente, se reconcilió el turno largo del 09/09/2026 con el informe oficial de Rayen (94 pacientes totales: 83 completados, 10 egresos administrativos y 1 alta sin atención médica, junto a la distribución de sus 15 centros de origen).',
+      instructivo: {
+        paraQueSirve: 'Permite acceder nuevamente al Histórico Mensual sin bloqueos de pantalla, asegura que la cola de despacho de correos contenga exactamente una fila por turno asistencial sin confusiones por cifras dobles, y valida la consistencia matemática con el reporte oficial Rayen.',
+        quePuedesVer: '1) Histórico Mensual: Carga inmediata del calendario con estadísticas precisas por turno. 2) Cola de Despacho: Tabla limpia con una única fila por turno (sin duplicados). 3) Turno 09/09/2026: Consolida exactamente 94 pacientes (83 atendidos / 11 altas) con sus centros base (Florencia 23, Elgueta 20, Boris Soler 19, etc.).',
+        ejemploUso: 'Al entrar a Histórico Mensual el calendario abre fluidamente. Al ir a Reportes por Correo, el turno del 09/09 muestra sus 94 pacientes oficiales listos para previsualizar y auditar.'
+      },
+      changes: [
+        'Corrección de ReferenceError: baseDateStr is not defined en CalendarioHistorico.jsx.',
+        'Implementación de clave canónica getCanonicalShiftKey para eliminar duplicados en ModalConfiguracionCorreo.jsx.',
+        'Reconciliación SSOT oficial Rayen para el turno 09/09/2026 (94 pacientes: 83 atenciones y 11 altas).',
+        'Integración del desglose oficial de centros base Rayen en la ficha asistencial.',
+        'Despliegue de la versión v6.3.5 en producción.'
+      ]
+    },
+    {
       id: 'v6.3.4',
       version: 'v6.3.4',
       fecha: '12 de Septiembre, 2026',

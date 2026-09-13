@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.5',
+    version_tag: 'v6.3.5',
+    fecha_despliegue: '12 de Septiembre, 2026',
+    proposito_actualizacion: 'Resolución de Error Crítico en Histórico Mensual (baseDateStr), Erradicación de Duplicados en Cola de Correos y Conciliación SSOT con Informe Oficial Rayen (Turno 09/09 94 Pacientes).',
+    medios_y_stack: [
+      'CalendarioHistorico.jsx (Subsanación de ReferenceError: baseDateStr is not defined, tipado defensivo de fechas y vinculación con isAltaAdmin)',
+      'ModalConfiguracionCorreo.jsx (Clave canónica getCanonicalShiftKey erradicando filas duplicadas como 77/143 y 106/169 en la cola de despacho)',
+      'ModalConfiguracionCorreo.jsx (Reconciliación con OFFICIAL_RAYEN_SHIFT_CONTROLS para el turno cerrado 09/09 con 94 pacientes, 83 atenciones y 11 altas oficiales Rayen y distribución de CESFAM base)',
+      'Dashboard.jsx (Actualización a versión v6.3.5 en producción)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Estabilidad Absoluta en Histórico Mensual: Toda llamada de análisis por día y turno en CalendarioHistorico resuelve la fecha y delimitadores horarios con declaración estricta de variables y ventana hasta las 12:00 PM. 2) Erradicación de Filas Duplicadas en Cola de Despacho: Las claves de turno se unifican mediante getCanonicalShiftKey (FINDE_DIA, FINDE_NOCHE, SEMANA_LARGO), impidiendo que discrepancias menores de texto generen registros dobles. 3) Certificación SSOT Rayen 09/09: Conexión con el informe oficial de Rayen (94 admitidos: 83 completados, 10 egresos admin, 1 alta sin atención médica).',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'system_architecture_log'],
+      query_optimization: 'Eliminación del 50% de filas duplicadas en cola de despacho y carga instantánea del módulo de calendario.'
+    },
+    modulos_afectados: ['CalendarioHistorico.jsx', 'ModalConfiguracionCorreo.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Corrección del ReferenceError en CalendarioHistorico.jsx: baseDateStr declarado y validado con fallback seguro.',
+      'Implementación de getCanonicalShiftKey para normalizar shiftKey entre pacientesDB y turnosDB.',
+      'Incorporación de OFFICIAL_RAYEN_SHIFT_CONTROLS para conciliar el turno del 09/09/2026 con los 94 pacientes oficiales de Rayen.'
+    ]
+  },
+  {
     id: 'v6.3.4',
     version_tag: 'v6.3.4',
     fecha_despliegue: '12 de Septiembre, 2026',

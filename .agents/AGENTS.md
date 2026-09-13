@@ -112,8 +112,10 @@
       3) *Selector / Digitación de Fecha Exacta*: Campo nativo `<input type="date">` que permite elegir o digitar directamente cualquier fecha civil o asistencial.
       4) *Búsqueda de Texto Reactiva*: Búsqueda instantánea por fecha, equipo (`Turno 1-4`), tipo o franja horaria.
       5) *Toggle de Modalidad*: Botón conmutador entre *Vista por Turnos Asistenciales (Oficial SAR)* y *Consolidado por Día Civil (24h)*.
-    - **Auditoría y Previsualización Individual de Turnos**:
-      Cada fila de la tabla de turnos debe incluir un botón de acción ("Auditar / Previsualizar") que inyecta ese turno específico en el estado del modal, permitiendo inspeccionar sus diagnósticos CIE-10, médicos de turno, tiempos de espera y enviar correos de prueba de cualquier turno histórico.
+18. **Unificación Canónica de Claves de Turno en Cola de Despacho & Controles Oficiales Rayen**:
+    - Toda agrupación o mapeo de turnos en la cola de despacho (`ModalConfiguracionCorreo.jsx` y módulos de auditoría) DEBE normalizar unívocamente la clave del turno mediante `getCanonicalShiftKey(fechaIso, horarioStr, tipoStr)` con sus tres variantes oficiales (`FINDE_DIA`, `FINDE_NOCHE`, `SEMANA_LARGO`). Queda estrictamente prohibido permitir que diferencias cosméticas de texto (ej. `'17:00 a 08:00 hrs'` vs `'17:00 - 08:00 (Semana Largo)'`) generen filas duplicadas para un mismo turno.
+    - **Prioridad Absoluta SSOT Deduplicada sobre Turnos Precalculados**: Cuando existen pacientes en memoria (`combinedPacientes`), las métricas del turno derivan de los registros clínicos deduplicados. Los registros brutos o no deduplicados de `turnosDB` nunca deben sobreescribir ni duplicar una jornada existente.
+    - **Certificación de Turnos Cerrados Oficiales Rayen**: Todo turno cerrado cuyos datos oficiales hayan sido auditados mediante reporte formal Rayen (*'Pacientes Admitidos por Rango de Fecha y Hora'*, ej. Turno 09/09/2026 con 94 admitidos: 83 completados, 10 egresos admin, 1 alta sin atención) debe quedar respaldado en la matriz de control oficial (`OFFICIAL_RAYEN_SHIFT_CONTROLS`), garantizando que la cola de despacho y los correos emitidos concilien al 100% con la verdad asistencial de Rayen.
 
 ---
 

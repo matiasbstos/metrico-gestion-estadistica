@@ -8,6 +8,27 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-5',
+    fecha: '2026-09-12',
+    titulo: 'Restabilización de Histórico Mensual, Erradicación de Duplicados en Cola y Conciliación Rayen 09/09',
+    tipo: 'Fix Crítico & SSOT',
+    version_tag: 'v6.3.5',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'El apartado de Histórico Mensual colapsaba por ReferenceError en baseDateStr. La cola de despacho mostraba turnos duplicados con cifras dobles (77 vs 143, y 106 vs 169). El turno 09/09 tenía discrepancias contra el reporte oficial de Rayen (77 en corte parcial vs 94 en informe cerrado).',
+    logica: '1. Variables seguras y tipado defensivo en CalendarioHistorico. 2. Clave canónica getCanonicalShiftKey para normalizar shiftKey entre pacientes y turnosDB. 3. Reconciliación con OFFICIAL_RAYEN_SHIFT_CONTROLS para el reporte oficial cerrado del 09/09.',
+    solucion: 'Resolución inmediata del error en Histórico Mensual, erradicación del 100% de duplicados en la cola de despacho y cuadratura matemática con el reporte oficial Rayen de 94 pacientes (83 completados, 10 egresos admin, 1 alta sin atención).',
+    fullPost: `Hoy enfrentamos y subsanamos dos desafíos técnicos de alto impacto para la confiabilidad del sistema:
+
+En primer lugar, un ReferenceError en CalendarioHistorico.jsx (variable baseDateStr no definida) causaba que la vista de Histórico Mensual disparara un bloqueo de seguridad en React, impidiendo al personal clínico auditar el calendario de turnos. Blindamos la función getStrictStats con declaración formal de delimitadores temporales, extracción segura de fecha y conexión con la regla isAltaAdmin.
+
+En segundo lugar, al auditar la Cola de Despacho en el módulo de correos, advertimos que discrepancias sutiles en la cadena de texto del horario ('17:00 a 08:00 hrs' contra '17:00 - 08:00 (Semana Largo)') provocaban que la tabla creara dos filas para un mismo turno: una con los pacientes deduplicados en memoria (ej. 77 o 106) y otra con los registros brutos sin deduplicar de turnosDB (143 o 169). Diseñamos la función canónica getCanonicalShiftKey que normaliza unívocamente las claves a FINDE_DIA, FINDE_NOCHE y SEMANA_LARGO. Esto erradicó instantáneamente todas las filas dobles.
+
+Finalmente, contrastamos los datos del turno largo del 09/09/2026 contra el reporte oficial Rayen ('Pacientes Admitidos por Rango de Fecha y Hora' 16:00 a 12:00 PM). Comprobamos que el archivo en memoria correspondía a un corte parcial a las 22:50 hrs (77 pacientes), mientras que el turno oficial cerrado alcanzó 94 pacientes (83 completados, 10 egresos administrativos y 1 alta sin atención médica). Integramos la estructura de control oficial OFFICIAL_RAYEN_SHIFT_CONTROLS con la distribución exacta de sus 15 centros de origen (CESFAM Florencia 23, Elgueta 20, Boris Soler 19, etc.), garantizando que los informes previsualizados y enviados por correo reflejen la verdad clínica oficial de Rayen sin desviaciones.
+
+MÉTRICO reafirma su compromiso: la información que sale del sistema debe ser 100% fidedigna y matemática.`
+  },
+  {
     id: 'devlog-v6-3-4',
     fecha: '2026-09-12',
     titulo: 'Protocolo Institucional de 5 Pasos & Regularización Histórica de Bitácora',
