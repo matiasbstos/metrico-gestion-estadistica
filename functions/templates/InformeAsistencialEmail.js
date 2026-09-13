@@ -655,17 +655,22 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                 )
               ),
               React.createElement('tbody', null,
-                medicos.map((m, idx) => (
-                  React.createElement('tr', { key: idx, style: { backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8fafc' } },
-                    React.createElement('td', { style: { ...s.tableCell, fontWeight: '800' } },
-                      React.createElement('span', { style: { display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', backgroundColor: idx === 0 ? '#10b981' : idx === 1 ? '#6366f1' : '#a855f7', marginRight: '6px' } }),
-                      m.nombre
-                    ),
-                    React.createElement('td', { style: { ...s.tableCell, textAlign: 'center', fontWeight: '900', color: '#047857' } }, m.atenciones),
-                    React.createElement('td', { style: { ...s.tableCell, textAlign: 'center', fontWeight: '800', color: '#4338ca' } }, m.rendimientoPacHr),
-                    React.createElement('td', { style: { ...s.tableCell, textAlign: 'right', fontWeight: '900', color: '#0f172a' } }, m.pctAporte)
-                  )
-                ))
+                medicos.map((m, idx) => {
+                  const durH = (turnoInfo.rotativa && turnoInfo.rotativa.includes('Largo')) ? 15 : 12;
+                  const rendPacHr = m.rendimientoPacHr || (m.pacHora ? `${m.pacHora} pac/hr` : `${(m.atenciones / durH).toFixed(2)} pac/hr`);
+                  const pctAp = m.pctAporte || (m.aportePct ? `${m.aportePct}%` : `${((m.atenciones / (totalAdmitidos || 1)) * 100).toFixed(1)}%`);
+                  return (
+                    React.createElement('tr', { key: idx, style: { backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8fafc' } },
+                      React.createElement('td', { style: { ...s.tableCell, fontWeight: '800' } },
+                        React.createElement('span', { style: { display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', backgroundColor: idx === 0 ? '#10b981' : idx === 1 ? '#6366f1' : '#a855f7', marginRight: '6px' } }),
+                        m.nombre
+                      ),
+                      React.createElement('td', { style: { ...s.tableCell, textAlign: 'center', fontWeight: '900', color: '#047857' } }, m.atenciones),
+                      React.createElement('td', { style: { ...s.tableCell, textAlign: 'center', fontWeight: '800', color: '#4338ca' } }, rendPacHr),
+                      React.createElement('td', { style: { ...s.tableCell, textAlign: 'right', fontWeight: '900', color: '#0f172a' } }, pctAp)
+                    )
+                  );
+                })
               )
             )
           ),

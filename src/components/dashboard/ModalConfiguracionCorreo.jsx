@@ -731,12 +731,18 @@ export default function ModalConfiguracionCorreo({
       const medicosTurno = Object.entries(medicosCount)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5)
-        .map(([mName, mCount]) => ({
-          nombre: mName,
-          atenciones: mCount,
-          pacHora: (mCount / (durHoras || 12)).toFixed(1),
-          aportePct: totalAdmitidos > 0 ? ((mCount / totalAdmitidos) * 100).toFixed(1) : '0'
-        }));
+        .map(([mName, mCount]) => {
+          const pHoras = (mCount / (durHoras || 15)).toFixed(1);
+          const pAporte = totalAdmitidos > 0 ? ((mCount / totalAdmitidos) * 100).toFixed(1) : '0';
+          return {
+            nombre: mName,
+            atenciones: mCount,
+            pacHora: pHoras,
+            rendimientoPacHr: `${pHoras} pac/hr`,
+            aportePct: pAporte,
+            pctAporte: `${pAporte}%`
+          };
+        });
 
       const trasladosCount = pacs.filter(p => {
         const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
@@ -2568,6 +2574,13 @@ export default function ModalConfiguracionCorreo({
                             {(turnoInfo.medicosTurno && turnoInfo.medicosTurno.length > 0) ? (
                               turnoInfo.medicosTurno.map((m, idx) => {
                                 const colors = ['bg-emerald-500', 'bg-indigo-500', 'bg-purple-500', 'bg-amber-500', 'bg-sky-500'];
+                                const durHoras = (turnoInfo.rotativa && turnoInfo.rotativa.includes('Largo')) ? 15 : 12;
+                                const pacHoraVal = m.pacHora !== undefined && m.pacHora !== null && m.pacHora !== '' 
+                                  ? m.pacHora 
+                                  : (m.rendimientoPacHr ? String(m.rendimientoPacHr).replace(' pac/hr', '') : (m.atenciones / durHoras).toFixed(1));
+                                const aportePctVal = m.aportePct !== undefined && m.aportePct !== null && m.aportePct !== ''
+                                  ? m.aportePct
+                                  : (m.pctAporte ? String(m.pctAporte).replace('%', '') : (turnoInfo.totalAdmitidos > 0 ? ((m.atenciones / turnoInfo.totalAdmitidos) * 100).toFixed(1) : '0'));
                                 return (
                                   <tr key={idx} className="hover:bg-slate-50">
                                     <td className="p-2.5 font-bold text-slate-900 flex items-center gap-2">
@@ -2575,8 +2588,8 @@ export default function ModalConfiguracionCorreo({
                                       {m.nombre}
                                     </td>
                                     <td className="p-2.5 text-center font-mono font-bold text-emerald-600">{m.atenciones}</td>
-                                    <td className="p-2.5 text-center font-mono font-bold">{m.pacHora} pac/hr</td>
-                                    <td className="p-2.5 text-right font-bold text-slate-700">{m.aportePct}%</td>
+                                    <td className="p-2.5 text-center font-mono font-bold text-indigo-600">{pacHoraVal} pac/hr</td>
+                                    <td className="p-2.5 text-right font-bold text-slate-700">{aportePctVal}%</td>
                                   </tr>
                                 );
                               })

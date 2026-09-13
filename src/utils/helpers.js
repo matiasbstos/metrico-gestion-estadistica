@@ -565,12 +565,18 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
 
   let medicosTurno = Object.entries(medMap)
     .sort((a, b) => b[1] - a[1])
-    .map(([nombre, count]) => ({
-      nombre,
-      atenciones: count,
-      rendimientoPacHr: `${(count / horasTurno).toFixed(2)} pac/hr`,
-      pctAporte: atendidos > 0 ? `${((count / atendidos) * 100).toFixed(1)}%` : '0%'
-    }));
+    .map(([nombre, count]) => {
+      const pHoras = (count / horasTurno).toFixed(2);
+      const pAporte = totalAdmitidos > 0 ? ((count / totalAdmitidos) * 100).toFixed(1) : '0';
+      return {
+        nombre,
+        atenciones: count,
+        pacHora: pHoras,
+        rendimientoPacHr: `${pHoras} pac/hr`,
+        aportePct: pAporte,
+        pctAporte: `${pAporte}%`
+      };
+    });
 
   if (medicosTurno.length === 0) {
     const c1 = Math.round(atendidos * 0.35);
