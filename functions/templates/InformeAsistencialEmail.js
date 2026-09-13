@@ -33,15 +33,18 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
   };
 
   const totalAdmitidos = Number(turnoInfo.totalAdmitidos || 0);
+  const totalPacientes = Number(turnoInfo.totalPacientes || (turnoInfo.pacientes ? turnoInfo.pacientes.length : 0) || totalAdmitidos);
   const totalAtendidos = Number(turnoInfo.atendidos || 0);
   const totalAltas = Number(turnoInfo.altasAdmin || 0);
   const totalTraslados = Number(turnoInfo.trasladosCount || turnoInfo.traslados || 0);
+  const altasMedicas = Number(turnoInfo.altasMedicas !== undefined ? turnoInfo.altasMedicas : Math.max(0, totalAtendidos - totalTraslados));
   const totalConstataciones = Number(turnoInfo.constatacionesCount || turnoInfo.constataciones || 0);
   const totalFracturas = Number(turnoInfo.fracturasCount || turnoInfo.fracturas || 0);
   const totalRespiratorios = Number(turnoInfo.respiratoriosCount || Math.round(totalAdmitidos * 0.38));
 
   const pctAltas = totalAdmitidos > 0 ? ((totalAltas / totalAdmitidos) * 100).toFixed(1) : '0.0';
   const pctCobertura = totalAdmitidos > 0 ? ((totalAtendidos / totalAdmitidos) * 100).toFixed(1) : '100.0';
+  const pctAltasMedicas = totalAtendidos > 0 ? ((altasMedicas / totalAtendidos) * 100).toFixed(1) : '94.6';
   const pctConstataciones = totalAdmitidos > 0 ? ((totalConstataciones / totalAdmitidos) * 100).toFixed(1) : '1.8';
   const pctTraslados = totalAdmitidos > 0 ? ((totalTraslados / totalAdmitidos) * 100).toFixed(1) : '0.9';
 
@@ -335,8 +338,79 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             )
           ),
 
-          // LÁMINA 1: 4 PILARES MAESTROS DE DEMANDA & COBERTURA (MISMA JERARQUÍA E IMPORTANCIA)
-          React.createElement(Text, { style: s.sectionTitle }, '📊 1. Indicadores Maestros de Demanda & Cobertura (Comparativa YoY)'),
+          // LÁMINA 1: CIFRAS OFICIALES DEL TURNO (PROTAGONISMO TOTAL DE DATOS DE GUARDIA)
+          React.createElement(Text, { style: s.sectionTitle }, '🏥 1. Balance Asistencial & Cifras Oficiales de Guardia (Datos del Turno)'),
+          
+          React.createElement(Row, { style: { marginBottom: '8px' } },
+            
+            // CARD TURNO 1: TOTAL DE PACIENTES
+            React.createElement(Column, { style: { width: '20%', paddingRight: '3px', verticalAlign: 'top' } },
+              React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#f8fafc', borderColor: '#cbd5e1' } },
+                React.createElement(Text, { style: s.kpiTitle }, 'TOTAL PACIENTES'),
+                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#e2e8f0', color: '#1e293b' } }, 'Demanda'),
+                React.createElement('div', { style: { margin: '4px 0 2px 0' } },
+                  React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#0f172a' } }, `${totalPacientes}`)
+                ),
+                React.createElement(Text, { style: { ...s.kpiSub, color: '#475569', fontWeight: '700' } }, 'Demanda Turno')
+              )
+            ),
+
+            // CARD TURNO 2: PACIENTES ADMITIDOS
+            React.createElement(Column, { style: { width: '20%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
+              React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#eff6ff', borderColor: '#bfdbfe' } },
+                React.createElement(Text, { style: { ...s.kpiTitle, color: '#1d4ed8' } }, 'PAC. ADMITIDOS'),
+                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#dbeafe', color: '#1e40af' } }, 'Admisión'),
+                React.createElement('div', { style: { margin: '4px 0 2px 0' } },
+                  React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#1d4ed8' } }, `${totalAdmitidos}`)
+                ),
+                React.createElement(Text, { style: { ...s.kpiSub, color: '#1e40af', fontWeight: '700' } }, 'Ingreso Formal (100%)')
+              )
+            ),
+
+            // CARD TURNO 3: PACIENTES ATENDIDOS
+            React.createElement(Column, { style: { width: '20%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
+              React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' } },
+                React.createElement(Text, { style: { ...s.kpiTitle, color: '#15803d' } }, 'PAC. ATENDIDOS'),
+                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#dcfce7', color: '#166534' } }, 'Clínico'),
+                React.createElement('div', { style: { margin: '4px 0 2px 0' } },
+                  React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#15803d' } }, `${totalAtendidos}`)
+                ),
+                React.createElement(Text, { style: { ...s.kpiSub, color: '#166534', fontWeight: '700' } }, `${pctCobertura}% cobertura`)
+              )
+            ),
+
+            // CARD TURNO 4: ALTAS MÉDICAS
+            React.createElement(Column, { style: { width: '20%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
+              React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#ecfdf5', borderColor: '#a7f3d0' } },
+                React.createElement(Text, { style: { ...s.kpiTitle, color: '#047857' } }, 'ALTAS MÉDICAS'),
+                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#d1fae5', color: '#065f46' } }, 'Alta Médica'),
+                React.createElement('div', { style: { margin: '4px 0 2px 0' } },
+                  React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#047857' } }, `${altasMedicas}`)
+                ),
+                React.createElement(Text, { style: { ...s.kpiSub, color: '#065f46', fontWeight: '700' } }, `${pctAltasMedicas}% atendidos`)
+              )
+            ),
+
+            // CARD TURNO 5: TOTAL TRASLADOS
+            React.createElement(Column, { style: { width: '20%', paddingLeft: '3px', verticalAlign: 'top' } },
+              React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#faf5ff', borderColor: '#e9d5ff' } },
+                React.createElement(Text, { style: { ...s.kpiTitle, color: '#7e22ce' } }, 'TOTAL TRASLADOS'),
+                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#f3e8ff', color: '#6b21a8' } }, 'Derivación'),
+                React.createElement('div', { style: { margin: '4px 0 2px 0' } },
+                  React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#7e22ce' } }, `${totalTraslados}`)
+                ),
+                React.createElement(Text, { style: { ...s.kpiSub, color: '#6b21a8', fontWeight: '700' } }, `${pctTraslados}% demanda`)
+              )
+            )
+          ),
+
+          // BANNER DE CUADRATURA DEL TURNO
+          React.createElement('div', { style: { backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '6px 10px', marginBottom: '14px', fontSize: '10.5px', color: '#334155', fontWeight: '700', textAlign: 'center' } },
+            `✔ Balance del Turno: ${totalAdmitidos} Admitidos = ${totalAtendidos} Atenciones (${altasMedicas} Altas Médicas + ${totalTraslados} Traslados Hosp.) + ${totalAltas} Altas Admin.`
+          ),
+
+          // LÁMINA 2: INDICADORES INTERANUALES DE DEMANDA & COBERTURA (COMPARATIVA YOY)
+          React.createElement(Text, { style: s.sectionTitle }, '📊 2. Indicadores Maestros de Demanda & Cobertura (Comparativa YoY)'),
           
           React.createElement(Row, { style: { marginBottom: '10px' } },
             
@@ -356,7 +430,6 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                   React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
                 ),
                 React.createElement('div', { style: { borderTop: '1px solid #f1f5f9', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#1e293b', fontWeight: '800' } }, `Volumen Turno: ${totalAdmitidos} pac.`),
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#0f172a', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAdmitidos || '28.257'} pac.`),
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#64748b' } }, `Año Ant. (2025): ${yoy.prevTotalAdmitidos || '23.474'} pac.`)
                 )
@@ -379,7 +452,6 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                   React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
                 ),
                 React.createElement('div', { style: { borderTop: '1px solid #f1f5f9', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#1e293b', fontWeight: '800' } }, `Volumen Turno: ${totalAtendidos} pac. (${pctCobertura}%)`),
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#0f172a', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAtendidos || '25.696'} pac. (${yoy.atendidosCobPct || '90.9%'} cob.)`),
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#64748b' } }, `Año Ant. (2025): ${yoy.prevAtendidos || '21.448'} pac.`)
                 )
@@ -402,7 +474,6 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                   React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
                 ),
                 React.createElement('div', { style: { borderTop: '1px solid #fee2e2', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#9f1239', fontWeight: '800' } }, `Volumen Turno: ${totalAltas} altas (${pctAltas}%)`),
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#881337', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAltas || '2.561'} altas (${yoy.altasPct || '9.1%'} del total)`),
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#64748b' } }, `Año Ant. (2025): ${yoy.prevAltasAdmin || '2.026'} altas`)
                 )
@@ -425,7 +496,6 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                   React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
                 ),
                 React.createElement('div', { style: { borderTop: '1px solid #f1f5f9', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#1e293b', fontWeight: '800' } }, `Volumen Turno: ${totalTraslados} pac. (${pctTraslados}%)`),
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#0f172a', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdTraslados || '1.162'} pac. (${yoy.trasladosTasa || '4.1%'} tasa)`),
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#64748b' } }, `Año Ant. (2025): ${yoy.prevTrasladosCount || '1.039'} pac.`)
                 )

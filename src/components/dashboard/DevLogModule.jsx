@@ -8,6 +8,30 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-11',
+    fecha: '2026-09-13',
+    titulo: 'Balance Asistencial de Guardia: Protagonismo Propio para las 5 Cifras del Turno',
+    tipo: 'Despacho & Correos Institucionales',
+    version_tag: 'v6.3.11',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Al priorizar los porcentajes de crecimiento anual en las tarjetas principales del correo, las cifras propiamente del turno (volumen de la guardia) quedaban relegadas a un tamaño pequeño en el pie de cada tarjeta, restándoles protagonismo clínico operativo.',
+    logica: 'Se estructuró una división limpia en dos láminas complementarias: la Lámina 1 expone en 5 tarjetas grandes las métricas oficiales del turno (Total Pacientes, Admitidos, Atendidos, Altas Médicas y Traslados), mientras que la Lámina 2 conserva con idéntica fuerza analítica las 4 tarjetas maestras de comparativa interanual acumulada (YoY).',
+    solucion: 'Las jefaturas y la Dirección pueden evaluar de un vistazo tanto la operación directa de la guardia como la evolución epidemiológica interanual, cumpliendo con la ecuación universal y cuadratura asistencial.',
+    fullPost: `En esta versión v6.3.11 optimizamos la estructura visual del correo asistencial:
+
+1. **Lámina 1 - Balance Asistencial de Guardia (Datos del Turno)**:
+   - **Total de Pacientes**: Volumen total registrado en la jornada.
+   - **Total de Pacientes Admitidos**: Ingresos formales con correlativo Rayen.
+   - **Total de Pacientes Atendidos**: Atenciones médicas efectivas completadas en box.
+   - **Total de Altas Médicas**: Egresos clínicos con alta médica indicativa (atendidos menos traslados).
+   - **Total de Traslados**: Derivaciones a segundo nivel (Hospital UEH).
+   - **Banner de Cuadratura**: Total Admitidos = Atendidos (Altas Médicas + Traslados) + Altas Administrativas.
+
+2. **Lámina 2 - Comparativa Interanual YoY (Demanda & Cobertura)**:
+   - Mantiene las 4 tarjetas destacadas con sus porcentajes oficiales (+20.4%, +19.8%, +26.4%, +11.8%) y volúmenes acumulados YTD.`
+  },
+  {
     id: 'devlog-v6-3-10',
     fecha: '2026-09-13',
     titulo: 'Hotfix de Estabilidad: Normalización de Glifos en Modal de Configuración de Correo',

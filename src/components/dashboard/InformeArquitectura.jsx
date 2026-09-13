@@ -10,6 +10,32 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.11',
+    version_tag: 'v6.3.11',
+    fecha: '13 de Septiembre, 2026',
+    fecha_despliegue: '13 de Septiembre, 2026',
+    proposito_actualizacion: 'Separación Estructural y Protagonismo Exclusivo para las Cifras Oficiales del Turno (Total Pacientes, Admitidos, Atendidos, Altas Médicas y Traslados) en el Correo Asistencial.',
+    medios_y_stack: [
+      'InformeAsistencialEmail.js (Integración de Lámina 1 dedicada exclusivamente al Balance Asistencial de Guardia con 5 tarjetas destacadas para Total de Pacientes, Pacientes Admitidos, Pacientes Atendidos, Altas Médicas y Total Traslados con tipografía prominente)',
+      'InformeAsistencialEmail.js (Reubicación armónica de los 4 Pilares Maestros YoY en Lámina 2 para mantener su protagonismo analítico sin solapar ni subordinar las cifras del turno)',
+      'ModalConfiguracionCorreo.jsx (Actualización del previsualizador interactivo con la grilla de 5 tarjetas del balance clínico de guardia y cálculo unívoco de altas médicas)',
+      'helpers.js (Incorporación de altasMedicas y totalPacientes en el objeto auditado de auditarIntegridadTurnoCorreo)',
+      'functions/index.js (Soporte de altasMedicas y totalPacientes en ensamble de turnoInfo para renderizado React Email)',
+      'Dashboard.jsx (Actualización oficial a versión v6.3.11 en producción)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Cifras Oficiales del Turno en Primer Plano: Se evita la minimización de las cifras de guardia separando con máxima jerarquía los 5 datos clave del turno: Total de Pacientes, Admitidos, Atendidos, Altas Médicas y Traslados. 2) Cuadratura Universal de Guardia: Total Admitidos = Total Atendidos (Altas Médicas + Traslados Hosp.) + Altas Administrativas.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Despliegue ágil con renderizado homogéneo en 5 columnas inline seguras en clientes de correo.'
+    },
+    modulos_afectados: ['InformeAsistencialEmail.js', 'ModalConfiguracionCorreo.jsx', 'helpers.js', 'functions/index.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Lámina 1: 5 tarjetas de guardia con conteos brutos, badges de estado y porcentajes de cobertura clínica.',
+      'Lámina 2: 4 tarjetas de comparativa interanual acumulada (YoY) con volúmenes YTD y comparativa 2025.',
+      'Sincronización de versión v6.3.11 en todo el ecosistema de MÉTRICO.'
+    ]
+  },
+  {
     id: 'v6.3.10',
     version_tag: 'v6.3.10',
     fecha: '13 de Septiembre, 2026',

@@ -695,11 +695,16 @@ export const auditarIntegridadTurnoCorreo = (turnoInfo) => {
     destino: rawTraslado.destino || 'Hospital San José de Melipilla (Urgencia UEH)'
   };
 
+  const altasMedicas = Number(turnoInfo.altasMedicas ?? Math.max(0, atendidos - trasladosCount));
+  const totalPacientes = Number(turnoInfo.totalPacientes || totalAdmitidos);
+
   const auditado = {
     ...turnoInfo,
+    totalPacientes,
     totalAdmitidos,
     atendidos,
     altasAdmin,
+    altasMedicas,
     fracturasCount,
     constatacionesCount,
     trasladosCount,

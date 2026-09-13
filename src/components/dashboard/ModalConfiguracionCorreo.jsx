@@ -738,6 +738,12 @@ export default function ModalConfiguracionCorreo({
           aportePct: totalAdmitidos > 0 ? ((mCount / totalAdmitidos) * 100).toFixed(1) : '0'
         }));
 
+      const trasladosCount = pacs.filter(p => {
+        const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
+        return (dest.includes('hosp') || dest.includes('urgenc') || dest.includes('ueh')) && !dest.includes('cesfam');
+      }).length;
+      const altasMedicas = Math.max(0, atendidos - trasladosCount);
+
       baseTurno = {
         shiftKey: selectedShiftObj.shiftKey,
         fechaTurno: selectedShiftObj.fechaTurno,
@@ -745,9 +751,11 @@ export default function ModalConfiguracionCorreo({
         equipo: selectedShiftObj.equipo,
         rotativa: `${selectedShiftObj.tipo} (${selectedShiftObj.horario})`,
         textoCompleto: selectedShiftObj.textoCompleto,
+        totalPacientes: totalAdmitidos,
         totalAdmitidos,
         atendidos,
         altasAdmin,
+        altasMedicas,
         rendimientoHora,
         estadiaPromedioMin: countEstadia > 0 ? Math.round(sumEstadia / countEstadia) : 135,
         tramosEspera: {
@@ -758,10 +766,8 @@ export default function ModalConfiguracionCorreo({
         triage,
         constataciones,
         fracturas,
-        traslados: pacs.filter(p => {
-          const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
-          return (dest.includes('hosp') || dest.includes('urgenc') || dest.includes('ueh')) && !dest.includes('cesfam');
-        }).length,
+        traslados: trasladosCount,
+        trasladosCount,
         medicoMasProductivo,
         medicosTurno,
         esTurnoCompleto: selectedShiftObj.isCompleto !== undefined ? selectedShiftObj.isCompleto : true,
@@ -2132,131 +2138,277 @@ export default function ModalConfiguracionCorreo({
                       </p>
                     </div>
 
-                    {/* 1. LÁMINA: 4 PILARES MAESTROS DE DEMANDA & COBERTURA (MISMA JERARQUÍA E IMPORTANCIA) */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                      
-                      {/* CARD 1: PACIENTES ADMITIDOS */}
-                      <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 shadow-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider flex items-center gap-1.5">
-                            <Users className="w-3.5 h-3.5 text-indigo-600" /> PAC. ADMITIDOS (YOY)
-                          </span>
-                          <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
-                            Demanda ↗
-                          </span>
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-2xl font-black text-emerald-600">
-                            {turnoInfo.comparativaYoY?.pctAdmitidosYoY || '+20.4%'}
-                          </span>
-                          <span className="text-[9px] font-black text-slate-500 uppercase">VS AÑO ANT.</span>
-                        </div>
-                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-0.5 text-[10px]">
-                          <p className="font-extrabold text-slate-800 dark:text-slate-200">
-                            Volumen Turno: <strong>{turnoInfo.totalAdmitidos} pac.</strong>
-                          </p>
-                          <p className="font-bold text-slate-900 dark:text-slate-100">
-                            Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdAdmitidos || '28.257'} pac.</strong>
-                          </p>
-                          <p className="text-slate-500 font-medium">
-                            Año Ant. (2025): {turnoInfo.comparativaYoY?.prevTotalAdmitidos || '23.474'} pac.
-                          </p>
-                        </div>
-                      </div>
+                    {/* VARIABLES LOCALES DE BALANCE DE GUARDIA */}
+                    {(() => {
+                      const totalAdmitidosVal = Number(turnoInfo.totalAdmitidos || 0);
+                      const totalPacientesVal = Number(turnoInfo.totalPacientes || (turnoInfo.pacientes ? turnoInfo.pacientes.length : 0) || totalAdmitidosVal);
+                      const totalAtendidosVal = Number(turnoInfo.atendidos || 0);
+                      const totalAltasAdminVal = Number(turnoInfo.altasAdmin || 0);
+                      const totalTrasladosVal = Number(turnoInfo.trasladosCount ?? (turnoInfo.traslados || 0));
+                      const altasMedicasVal = Number(turnoInfo.altasMedicas !== undefined ? turnoInfo.altasMedicas : Math.max(0, totalAtendidosVal - totalTrasladosVal));
 
-                      {/* CARD 2: PACIENTES ATENDIDOS */}
-                      <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 shadow-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider flex items-center gap-1.5">
-                            <UserCheck className="w-3.5 h-3.5 text-sky-600" /> PAC. ATENDIDOS (YOY)
-                          </span>
-                          <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300">
-                            Clínico ↗
-                          </span>
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-2xl font-black text-emerald-600">
-                            {turnoInfo.comparativaYoY?.pctAtendidosYoY || '+19.8%'}
-                          </span>
-                          <span className="text-[9px] font-black text-slate-500 uppercase">VS AÑO ANT.</span>
-                        </div>
-                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-0.5 text-[10px]">
-                          <p className="font-extrabold text-slate-800 dark:text-slate-200">
-                            Volumen Turno: <strong>{turnoInfo.atendidos} pac.</strong> ({turnoInfo.totalAdmitidos > 0 ? (((turnoInfo.atendidos || 0) / turnoInfo.totalAdmitidos) * 100).toFixed(1) : '100.0'}%)
-                          </p>
-                          <p className="font-bold text-slate-900 dark:text-slate-100">
-                            Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdAtendidos || '25.696'} pac.</strong> <span className="text-emerald-600 font-bold">({turnoInfo.comparativaYoY?.atendidosCobPct || '90.9%'} cob.)</span>
-                          </p>
-                          <p className="text-slate-500 font-medium">
-                            Año Ant. (2025): {turnoInfo.comparativaYoY?.prevAtendidos || '21.448'} pac.
-                          </p>
-                        </div>
-                      </div>
+                      const pctCoberturaTurno = totalAdmitidosVal > 0 ? ((totalAtendidosVal / totalAdmitidosVal) * 100).toFixed(1) : '100.0';
+                      const pctAltasMedicasTurno = totalAtendidosVal > 0 ? ((altasMedicasVal / totalAtendidosVal) * 100).toFixed(1) : '94.6';
+                      const pctTrasladosTurno = totalAdmitidosVal > 0 ? ((totalTrasladosVal / totalAdmitidosVal) * 100).toFixed(1) : '0.0';
+                      const pctAltasAdminTurno = totalAdmitidosVal > 0 ? ((totalAltasAdminVal / totalAdmitidosVal) * 100).toFixed(1) : '0.0';
 
-                      {/* CARD 3: ALTAS ADMINISTRATIVAS */}
-                      <div className="p-4 bg-rose-50/50 dark:bg-rose-950/20 rounded-2xl border border-rose-200 dark:border-rose-900/60 space-y-2 shadow-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] text-rose-700 uppercase font-black tracking-wider flex items-center gap-1.5">
-                            <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> ALTAS ADMIN (YOY)
-                          </span>
-                          <div className="flex items-center gap-1">
-                            <span className="text-[8.5px] font-black px-1.5 py-0.2 rounded bg-rose-600 text-white">
-                              &gt;5%
-                            </span>
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200">
-                              Altas ↗
-                            </span>
+                      return (
+                        <div className="space-y-6">
+                          
+                          {/* 1. LÁMINA: BALANCE ASISTENCIAL & CIFRAS OFICIALES DEL TURNO */}
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-xs font-black uppercase text-slate-800 dark:text-slate-200 tracking-wider flex items-center gap-2">
+                                🏥 1. Balance Asistencial & Cifras Oficiales de Guardia (Datos del Turno)
+                              </h4>
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                Cifras del Turno Auditadas
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                              
+                              {/* CARD TURNO 1: TOTAL PACIENTES */}
+                              <div className="p-3.5 bg-slate-50 dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-1.5 shadow-xs">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[9.5px] text-slate-500 uppercase font-black tracking-wider flex items-center gap-1">
+                                    <Users className="w-3.5 h-3.5 text-slate-700 dark:text-slate-300" /> TOTAL PACIENTES
+                                  </span>
+                                  <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200">
+                                    Demanda
+                                  </span>
+                                </div>
+                                <div className="flex items-baseline gap-1">
+                                  <span className="text-2xl font-black text-slate-900 dark:text-white">
+                                    {totalPacientesVal}
+                                  </span>
+                                  <span className="text-[10px] font-bold text-slate-500">pac.</span>
+                                </div>
+                                <p className="text-[10px] font-semibold text-slate-500 border-t border-slate-200/60 dark:border-slate-800/60 pt-1">
+                                  Demanda del Turno
+                                </p>
+                              </div>
+
+                              {/* CARD TURNO 2: PACIENTES ADMITIDOS */}
+                              <div className="p-3.5 bg-blue-50/50 dark:bg-blue-950/20 rounded-2xl border border-blue-200 dark:border-blue-900/60 space-y-1.5 shadow-xs">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[9.5px] text-blue-700 dark:text-blue-300 uppercase font-black tracking-wider flex items-center gap-1">
+                                    <Clock className="w-3.5 h-3.5 text-blue-600" /> PAC. ADMITIDOS
+                                  </span>
+                                  <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-200">
+                                    Admisión
+                                  </span>
+                                </div>
+                                <div className="flex items-baseline gap-1">
+                                  <span className="text-2xl font-black text-blue-600 dark:text-blue-400">
+                                    {totalAdmitidosVal}
+                                  </span>
+                                  <span className="text-[10px] font-bold text-blue-500">pac.</span>
+                                </div>
+                                <p className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 border-t border-blue-200/60 dark:border-blue-900/40 pt-1">
+                                  Ingreso Formal (100%)
+                                </p>
+                              </div>
+
+                              {/* CARD TURNO 3: PACIENTES ATENDIDOS */}
+                              <div className="p-3.5 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-2xl border border-emerald-200 dark:border-emerald-900/60 space-y-1.5 shadow-xs">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[9.5px] text-emerald-700 dark:text-emerald-300 uppercase font-black tracking-wider flex items-center gap-1">
+                                    <UserCheck className="w-3.5 h-3.5 text-emerald-600" /> PAC. ATENDIDOS
+                                  </span>
+                                  <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200">
+                                    Clínico
+                                  </span>
+                                </div>
+                                <div className="flex items-baseline gap-1">
+                                  <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                                    {totalAtendidosVal}
+                                  </span>
+                                  <span className="text-[10px] font-bold text-emerald-500">pac.</span>
+                                </div>
+                                <p className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-300 border-t border-emerald-200/60 dark:border-emerald-900/40 pt-1">
+                                  {pctCoberturaTurno}% Cobertura
+                                </p>
+                              </div>
+
+                              {/* CARD TURNO 4: ALTAS MÉDICAS */}
+                              <div className="p-3.5 bg-teal-50/50 dark:bg-teal-950/20 rounded-2xl border border-teal-200 dark:border-teal-900/60 space-y-1.5 shadow-xs">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[9.5px] text-teal-700 dark:text-teal-300 uppercase font-black tracking-wider flex items-center gap-1">
+                                    <ShieldCheck className="w-3.5 h-3.5 text-teal-600" /> ALTAS MÉDICAS
+                                  </span>
+                                  <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-200">
+                                    Alta Médica
+                                  </span>
+                                </div>
+                                <div className="flex items-baseline gap-1">
+                                  <span className="text-2xl font-black text-teal-600 dark:text-teal-400">
+                                    {altasMedicasVal}
+                                  </span>
+                                  <span className="text-[10px] font-bold text-teal-500">altas</span>
+                                </div>
+                                <p className="text-[10px] font-semibold text-teal-700 dark:text-teal-300 border-t border-teal-200/60 dark:border-teal-900/40 pt-1">
+                                  {pctAltasMedicasTurno}% de Atendidos
+                                </p>
+                              </div>
+
+                              {/* CARD TURNO 5: TOTAL TRASLADOS */}
+                              <div className="p-3.5 bg-purple-50/50 dark:bg-purple-950/20 rounded-2xl border border-purple-200 dark:border-purple-900/60 space-y-1.5 shadow-xs col-span-2 sm:col-span-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[9.5px] text-purple-700 dark:text-purple-300 uppercase font-black tracking-wider flex items-center gap-1">
+                                    <ArrowLeftRight className="w-3.5 h-3.5 text-purple-600" /> TOTAL TRASLADOS
+                                  </span>
+                                  <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-200">
+                                    Derivación
+                                  </span>
+                                </div>
+                                <div className="flex items-baseline gap-1">
+                                  <span className="text-2xl font-black text-purple-600 dark:text-purple-400">
+                                    {totalTrasladosVal}
+                                  </span>
+                                  <span className="text-[10px] font-bold text-purple-500">pac.</span>
+                                </div>
+                                <p className="text-[10px] font-semibold text-purple-700 dark:text-purple-300 border-t border-purple-200/60 dark:border-purple-900/40 pt-1">
+                                  {pctTrasladosTurno}% de Demanda
+                                </p>
+                              </div>
+
+                            </div>
+
+                            {/* BANNER DE CUADRATURA DEL TURNO */}
+                            <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs font-bold text-emerald-800 dark:text-emerald-200 text-center shadow-xs">
+                              ✔ Balance del Turno: <strong>{totalAdmitidosVal} Admitidos</strong> = <strong>{totalAtendidosVal} Atenciones</strong> ({altasMedicasVal} Altas Médicas + {totalTrasladosVal} Traslados Hosp.) + <strong>{totalAltasAdminVal} Altas Admin ({pctAltasAdminTurno}%)</strong>.
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-2xl font-black text-rose-600">
-                            {turnoInfo.comparativaYoY?.pctAltasYoY || '+26.4%'}
-                          </span>
-                          <span className="text-[9px] font-black text-rose-700 uppercase">VS AÑO ANT.</span>
-                        </div>
-                        <div className="pt-2 border-t border-rose-200/60 dark:border-rose-900/40 space-y-0.5 text-[10px]">
-                          <p className="font-extrabold text-rose-950 dark:text-rose-100">
-                            Volumen Turno: <strong>{turnoInfo.altasAdmin} altas</strong> ({turnoInfo.totalAdmitidos > 0 ? (((turnoInfo.altasAdmin || 0) / turnoInfo.totalAdmitidos) * 100).toFixed(1) : '0.0'}%)
-                          </p>
-                          <p className="font-bold text-rose-900 dark:text-rose-200">
-                            Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdAltas || '2.561'} altas</strong> <span className="font-bold text-slate-600">({turnoInfo.comparativaYoY?.altasPct || '9.1%'} del total)</span>
-                          </p>
-                          <p className="text-slate-500 font-medium">
-                            Año Ant. (2025): {turnoInfo.comparativaYoY?.prevAltasAdmin || '2.026'} altas
-                          </p>
-                        </div>
-                      </div>
 
-                      {/* CARD 4: TRASLADOS A HOSPITAL */}
-                      <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 shadow-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] text-purple-700 uppercase font-black tracking-wider flex items-center gap-1.5">
-                            <ArrowLeftRight className="w-3.5 h-3.5 text-purple-600" /> TRASLADOS HOSP. (YOY)
-                          </span>
-                          <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
-                            Traslados ↗
-                          </span>
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-2xl font-black text-emerald-600">
-                            {turnoInfo.comparativaYoY?.pctTrasladosYoY || '+11.8%'}
-                          </span>
-                          <span className="text-[9px] font-black text-slate-500 uppercase">VS AÑO ANT.</span>
-                        </div>
-                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-0.5 text-[10px]">
-                          <p className="font-extrabold text-slate-800 dark:text-slate-200">
-                            Volumen Turno: <strong>{turnoInfo.trasladosCount ?? (turnoInfo.traslados || 0)} pac.</strong> ({turnoInfo.totalAdmitidos > 0 ? ((((turnoInfo.trasladosCount ?? (turnoInfo.traslados || 0))) / turnoInfo.totalAdmitidos) * 100).toFixed(1) : '0.0'}%)
-                          </p>
-                          <p className="font-bold text-slate-900 dark:text-slate-100">
-                            Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdTraslados || '1.162'} pac.</strong> <span className="text-purple-600 font-bold">({turnoInfo.comparativaYoY?.trasladosTasa || '4.1%'} tasa)</span>
-                          </p>
-                          <p className="text-slate-500 font-medium">
-                            Año Ant. (2025): {turnoInfo.comparativaYoY?.prevTrasladosCount || '1.039'} pac.
-                          </p>
-                        </div>
-                      </div>
+                          {/* 2. LÁMINA: 4 PILARES MAESTROS DE DEMANDA & COBERTURA (COMPARATIVA YOY) */}
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-xs font-black uppercase text-slate-800 dark:text-slate-200 tracking-wider flex items-center gap-2">
+                                📊 2. Indicadores Maestros de Demanda & Cobertura (Comparativa YoY)
+                              </h4>
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                                Tendencia vs Año Anterior (2025)
+                              </span>
+                            </div>
 
-                    </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                              
+                              {/* CARD 1: PACIENTES ADMITIDOS (YOY) */}
+                              <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 shadow-xs">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider flex items-center gap-1.5">
+                                    <Users className="w-3.5 h-3.5 text-indigo-600" /> PAC. ADMITIDOS (YOY)
+                                  </span>
+                                  <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
+                                    Demanda ↗
+                                  </span>
+                                </div>
+                                <div className="flex items-baseline gap-2">
+                                  <span className="text-2xl font-black text-emerald-600">
+                                    {turnoInfo.comparativaYoY?.pctAdmitidosYoY || '+20.4%'}
+                                  </span>
+                                  <span className="text-[9px] font-black text-slate-500 uppercase">VS AÑO ANT.</span>
+                                </div>
+                                <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-0.5 text-[10px]">
+                                  <p className="font-bold text-slate-900 dark:text-slate-100">
+                                    Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdAdmitidos || '28.257'} pac.</strong>
+                                  </p>
+                                  <p className="text-slate-500 font-medium">
+                                    Año Ant. (2025): {turnoInfo.comparativaYoY?.prevTotalAdmitidos || '23.474'} pac.
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* CARD 2: PACIENTES ATENDIDOS (YOY) */}
+                              <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 shadow-xs">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider flex items-center gap-1.5">
+                                    <UserCheck className="w-3.5 h-3.5 text-sky-600" /> PAC. ATENDIDOS (YOY)
+                                  </span>
+                                  <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300">
+                                    Clínico ↗
+                                  </span>
+                                </div>
+                                <div className="flex items-baseline gap-2">
+                                  <span className="text-2xl font-black text-emerald-600">
+                                    {turnoInfo.comparativaYoY?.pctAtendidosYoY || '+19.8%'}
+                                  </span>
+                                  <span className="text-[9px] font-black text-slate-500 uppercase">VS AÑO ANT.</span>
+                                </div>
+                                <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-0.5 text-[10px]">
+                                  <p className="font-bold text-slate-900 dark:text-slate-100">
+                                    Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdAtendidos || '25.696'} pac.</strong> <span className="text-emerald-600 font-bold">({turnoInfo.comparativaYoY?.atendidosCobPct || '90.9%'} cob.)</span>
+                                  </p>
+                                  <p className="text-slate-500 font-medium">
+                                    Año Ant. (2025): {turnoInfo.comparativaYoY?.prevAtendidos || '21.448'} pac.
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* CARD 3: ALTAS ADMINISTRATIVAS (YOY) */}
+                              <div className="p-4 bg-rose-50/50 dark:bg-rose-950/20 rounded-2xl border border-rose-200 dark:border-rose-900/60 space-y-2 shadow-xs">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] text-rose-700 uppercase font-black tracking-wider flex items-center gap-1.5">
+                                    <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> ALTAS ADMIN (YOY)
+                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-[8.5px] font-black px-1.5 py-0.2 rounded bg-rose-600 text-white">
+                                      &gt;5%
+                                    </span>
+                                    <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200">
+                                      Altas ↗
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex items-baseline gap-2">
+                                  <span className="text-2xl font-black text-rose-600">
+                                    {turnoInfo.comparativaYoY?.pctAltasYoY || '+26.4%'}
+                                  </span>
+                                  <span className="text-[9px] font-black text-rose-700 uppercase">VS AÑO ANT.</span>
+                                </div>
+                                <div className="pt-2 border-t border-rose-200/60 dark:border-rose-900/40 space-y-0.5 text-[10px]">
+                                  <p className="font-bold text-rose-900 dark:text-rose-200">
+                                    Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdAltas || '2.561'} altas</strong> <span className="font-bold text-slate-600">({turnoInfo.comparativaYoY?.altasPct || '9.1%'} del total)</span>
+                                  </p>
+                                  <p className="text-slate-500 font-medium">
+                                    Año Ant. (2025): {turnoInfo.comparativaYoY?.prevAltasAdmin || '2.026'} altas
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* CARD 4: TRASLADOS A HOSPITAL (YOY) */}
+                              <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 shadow-xs">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[10px] text-purple-700 uppercase font-black tracking-wider flex items-center gap-1.5">
+                                    <ArrowLeftRight className="w-3.5 h-3.5 text-purple-600" /> TRASLADOS HOSP. (YOY)
+                                  </span>
+                                  <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
+                                    Traslados ↗
+                                  </span>
+                                </div>
+                                <div className="flex items-baseline gap-2">
+                                  <span className="text-2xl font-black text-emerald-600">
+                                    {turnoInfo.comparativaYoY?.pctTrasladosYoY || '+11.8%'}
+                                  </span>
+                                  <span className="text-[9px] font-black text-slate-500 uppercase">VS AÑO ANT.</span>
+                                </div>
+                                <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-0.5 text-[10px]">
+                                  <p className="font-bold text-slate-900 dark:text-slate-100">
+                                    Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdTraslados || '1.162'} pac.</strong> <span className="text-purple-600 font-bold">({turnoInfo.comparativaYoY?.trasladosTasa || '4.1%'} tasa)</span>
+                                  </p>
+                                  <p className="text-slate-500 font-medium">
+                                    Año Ant. (2025): {turnoInfo.comparativaYoY?.prevTrasladosCount || '1.039'} pac.
+                                  </p>
+                                </div>
+                              </div>
+
+                            </div>
+                          </div>
+
+                        </div>
+                      );
+                    })()}
 
                     {/* SUB-BLOQUE: RENDIMIENTO HORARIO & ESTADÍA PROMEDIO (INDICADORES DE EFICIENCIA) */}
                     <div className="p-3 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">

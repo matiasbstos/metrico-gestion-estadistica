@@ -1225,15 +1225,21 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
     destino: rawTraslado.destino || 'Hospital San José de Melipilla (Urgencia UEH)'
   };
 
+  const turnoTrasladosCount = Number(rawTurno.trasladosCount ?? (rawTurno.traslados ?? 0));
+  const turnoAltasMedicas = Number(rawTurno.altasMedicas !== undefined ? rawTurno.altasMedicas : Math.max(0, atnEfectivas - turnoTrasladosCount));
+  const turnoTotalPacientes = Number(rawTurno.totalPacientes || totalAdm);
+
   const turnoInfo = {
     ...rawTurno,
+    totalPacientes: turnoTotalPacientes,
     totalAdmitidos: totalAdm,
     atendidos: atnEfectivas,
     altasAdmin: altasAdminVal,
+    altasMedicas: turnoAltasMedicas,
     trasladoDetalle: trasladoSanitizado,
     fracturasCount: Number(rawTurno.fracturasCount ?? (rawTurno.fracturas ?? 0)),
     constatacionesCount: Number(rawTurno.constatacionesCount ?? (rawTurno.constataciones ?? 0)),
-    trasladosCount: Number(rawTurno.trasladosCount ?? (rawTurno.traslados ?? 0)),
+    trasladosCount: turnoTrasladosCount,
     rotativa: String(rawTurno.rotativa || 'Turno Largo Semana (17:00 a 08:00 hrs)').replace(/\(16:00 - 09:00 c\/tolerancia\)/g, '').trim(),
     textoCompleto: String(rawTurno.textoCompleto || '').replace(/\(16:00 - 09:00 c\/tolerancia\)/g, '').trim()
   };

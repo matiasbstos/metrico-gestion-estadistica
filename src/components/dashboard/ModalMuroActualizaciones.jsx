@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.11',
+      version: 'v6.3.11',
+      fecha: '13 de Septiembre, 2026',
+      badge: 'CORREO ASISTENCIAL: PROTAGONISMO SEPARADO PARA CIFRAS DEL TURNO & COMPARATIVA YOY',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Balance Asistencial de Guardia con Protagonismo Completo para los 5 Datos del Turno',
+      categoria: 'Despacho & Correos Institucionales',
+      icon: Mail,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se reorganizó la arquitectura del correo asistencial y del previsualizador interactivo para darle máxima jerarquía y visibilidad propia a las cifras efectivas del turno, sin que queden minimizadas respecto a las variaciones anuales. Se incorporó una primera lámina con 5 tarjetas destacadas (Total de Pacientes, Pacientes Admitidos, Pacientes Atendidos, Altas Médicas y Total Traslados), preservando a continuación con igual protagonismo las 4 tarjetas de comparativa interanual acumulada (YoY: Admitidos +20.4%, Atendidos +19.8%, Altas +26.4%, Traslados +11.8%).',
+      instructivo: {
+        paraQueSirve: 'Permite a las jefaturas y directivos identificar de inmediato cuántos pacientes llegaron, cuántos se admitieron, cuántos se atendieron, cuántas altas médicas se otorgaron y cuántos traslados se derivaron en la guardia recién concluida.',
+        quePuedesVer: '1) Lámina 1: 5 tarjetas grandes con las cifras del turno (Total Pacientes, Admitidos, Atendidos, Altas Médicas y Traslados). 2) Banner de Cuadratura: Fórmula exacta del turno con atenciones y altas administrativas. 3) Lámina 2: Las 4 tarjetas de crecimiento YoY y demanda YTD.',
+        ejemploUso: 'Al abrir el correo o la previsualización interactiva, las 5 cifras del turno aparecen en primer plano con tipografía grande y clara antes de la comparativa anual.'
+      },
+      changes: [
+        'Lámina 1 en InformeAsistencialEmail.js con 5 tarjetas exclusivas para el balance de guardia.',
+        'Cálculo y despliegue explícito de Altas Médicas (atendidos menos traslados).',
+        'Lámina 2 con las 4 tarjetas maestras de comparativa interanual YoY.',
+        'Actualización del previsualizador interactivo en ModalConfiguracionCorreo.jsx.',
+        'Actualización oficial a versión v6.3.11 en producción.'
+      ]
+    },
+    {
       id: 'v6.3.10',
       version: 'v6.3.10',
       fecha: '13 de Septiembre, 2026',
