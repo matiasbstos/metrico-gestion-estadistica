@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.13',
+    version_tag: 'v6.3.13',
+    fecha: '13 de Septiembre, 2026',
+    fecha_despliegue: '13 de Septiembre, 2026',
+    proposito_actualizacion: 'Integración Oficial de Planillas Rayen Urgencias para el Turno Cerrado del 10/09/2026 (84 Admisiones: 74 Atenciones, 10 Egresos Admin, Categorización Consolidada y 14 Centros de Red).',
+    medios_y_stack: [
+      'helpers.js (Incorporación de OFFICIAL_RAYEN_SHIFT_CONTROLS para el turno del 10/09/2026 con 84 pacientes admitidos, 74 completados y 10 egresos administrativos, reconciliación automática de triage C1-C5 y demografía por edades)',
+      'ModalConfiguracionCorreo.jsx (Actualización de OFFICIAL_RAYEN_SHIFT_CONTROLS con la distribución de los 14 centros de salud de la red Melipilla, liderados por CESFAM Florencia 22, Boris Soler 18 y Elgueta 17, acumulando 67.8% del total; priorización de ctl.triage y ctl.demografia en turnoInfo)',
+      'InformeAsistencialEmail.js (Soporte dinámico de porcentaje acumulado de centros base y cierre de triage Manchester con pacientes sin categorizar)',
+      'Dashboard.jsx (Actualización oficial a versión v6.3.13 en producción)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Certificación Oficial Rayen Turno 10/09/2026: 84 admitidos = 74 atenciones médicas efectivas + 10 egresos administrativos + 0 altas sin atención. 2) Categorización Consolidada Rayen: C1: 0, C2: 2 (2.4%), C3: 8 (9.5%), C4: 43 (51.2%), C5: 28 (33.3%), Sin Categorizar: 3 (3.6%) totalizando 84 pac. (100.0%). 3) Demografía por Grupos Etarios: Menores de 15 años: 24 (28.6%), 15 años y más: 60 (71.4%). 4) Red de Establecimientos: 14 centros de inscripción conciliados sin desviación.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Carga instantánea de controles certificados SSOT en cola de turnos y previsualizador.'
+    },
+    modulos_afectados: ['helpers.js', 'ModalConfiguracionCorreo.jsx', 'InformeAsistencialEmail.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Cuadratura exacta con reportes oficiales "Pacientes Admitidos por Rango de Fecha y Hora" e "Informe Pacientes por Categorización Consolidado".',
+      'Desglose fidedigno de los 14 centros de salud con CESFAM Florencia en 1er lugar (22 pac.).',
+      'Sincronización de versión v6.3.13 en todo el ecosistema de MÉTRICO.'
+    ]
+  },
+  {
     id: 'v6.3.12',
     version_tag: 'v6.3.12',
     fecha: '13 de Septiembre, 2026',

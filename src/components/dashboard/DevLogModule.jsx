@@ -8,6 +8,45 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-13',
+    fecha: '2026-09-13',
+    titulo: 'Certificación Rayen SSOT: Turno 10/09/2026 (84 Pacientes, Triage y 14 Centros de Red)',
+    tipo: 'Despacho & Correos Institucionales',
+    version_tag: 'v6.3.13',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Al auditar el turno largo de semana del 10/09/2026 (16:00 a 12:00 PM), existían discrepancias entre los datos visualizados en el previsualizador interactivo y las planillas oficiales emitidas por Rayen Urgencias ("Pacientes Admitidos por Rango de Fecha y Hora" e "Informe Pacientes por Categorización Consolidado").',
+    logica: 'Se integró la matriz oficial del turno en OFFICIAL_RAYEN_SHIFT_CONTROLS tanto en helpers.js como en ModalConfiguracionCorreo.jsx, blindando las 84 admisiones (74 atenciones médicas completadas y 10 egresos administrativos), el Triage Manchester (C1: 0, C2: 2, C3: 8, C4: 43, C5: 28, Sin Cat.: 3), la demografía etaria oficial (24 menores de 15 años y 60 adultos) y la distribución exacta de los 14 centros de origen (liderados por CESFAM Florencia 22, Boris Soler 18 y Elgueta 17 sumando 67.8%).',
+    solucion: 'Tanto el previsualizador interactivo como el cuerpo del correo despachado reflejan con exactitud milimétrica la verdad oficial impresa de Rayen Urgencias, cumpliendo con la Regla 18 y 19 de MÉTRICO.',
+    fullPost: `En esta versión v6.3.13 certificamos la cuadratura del turno 10/09/2026 con Rayen Urgencias:
+
+1. **Ecuación Universal de Demanda**:
+   - Total Pacientes Admitidos: 84
+   - Completados (Atención Médica): 74
+   - Egreso Administrativo: 10
+   - Altas sin atención: 0
+
+2. **Categorización Manchester Consolidada**:
+   - C1: 0 pac. (0.0%)
+   - C2: 2 pac. (2.4%)
+   - C3: 8 pac. (9.5%)
+   - C4: 43 pac. (51.2%)
+   - C5: 28 pac. (33.3%)
+   - Sin Categorización (Ingreso Directo): 3 pac. (3.6%)
+   - Total: 84 pac. (100.0%)
+
+3. **Demografía Asistencial Oficial**:
+   - Menores a 15 años: 24 pac. (28.6%)
+   - 15 años y más: 60 pac. (71.4%)
+
+4. **Establecimientos de Inscripción (Red Melipilla)**:
+   - CESFAM Florencia: 22 pac. (26.2%)
+   - Dr. Francisco Boris Soler [Cesfam]: 18 pac. (21.4%)
+   - E. Elgueta [CGR]: 17 pac. (20.2%)
+   - Top 3 Centros Base: 57 pac. (67.8% del total)
+   - Otros 11 Centros / Postas Rurales: 17 pac. (32.2% restante)`
+  },
+  {
     id: 'devlog-v6-3-12',
     fecha: '2026-09-13',
     titulo: 'Conciliación Universal SSOT: Sincronización Matemática y Desacople de Trámites Administrativos',

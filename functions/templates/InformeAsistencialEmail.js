@@ -70,8 +70,8 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
   // Triage Manchester con cobertura 100% auditada de admisiones
   const rawTriage = turnoInfo.triage || { c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 };
   const sumTriageCat = (rawTriage.c1 || 0) + (rawTriage.c2 || 0) + (rawTriage.c3 || 0) + (rawTriage.c4 || 0) + (rawTriage.c5 || 0);
-  const sinCategorizarCount = Math.max(0, totalAdmitidos - sumTriageCat);
-  const triageTotal = totalAdmitidos > 0 ? totalAdmitidos : Math.max(1, sumTriageCat);
+  const sinCategorizarCount = rawTriage.sinCategorizar !== undefined ? rawTriage.sinCategorizar : Math.max(0, totalAdmitidos - sumTriageCat);
+  const triageTotal = totalAdmitidos > 0 ? totalAdmitidos : Math.max(1, sumTriageCat + sinCategorizarCount);
 
   const triageList = [
     { label: 'C1 (Emergencia Vital)', count: rawTriage.c1 || 0, color: '#dc2626', trend: rawTriage.c1 > 0 ? `+${rawTriage.c1} vs 2025` : '0 casos (Estable)' },
@@ -136,8 +136,9 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
     { nombre: 'CESFAM Boris Soler', count: Math.round(totalAdmitidos * 0.234), pct: '23.4', trend: '↑ +2.1% vs 2025' },
     { nombre: 'CESFAM Elgueta', count: Math.round(totalAdmitidos * 0.27), pct: '27.0', trend: '↑ +0.3% vs 2025' },
     { nombre: 'CESFAM San Manuel / Rurales', count: Math.round(totalAdmitidos * 0.15), pct: '15.0', trend: '↓ -1.2% vs 2025' },
-    { nombre: 'Otros Centros / Población Flotante', count: Math.round(totalAdmitidos * 0.112), pct: '11.2', trend: '↓ -3.0% vs 2025' }
   ];
+
+  const top3Pct = cesfams.slice(0, 3).reduce((acc, c) => acc + Number(c.pct || 0), 0).toFixed(1);
 
   // Perfil demográfico
   const rawDemo = turnoInfo.distribucionDemografia || {};
@@ -752,7 +753,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                   'CENTROS BASE ACUMULADO'
                 ),
                 React.createElement('div', { style: { textAlign: 'center', marginBottom: '8px' } },
-                  React.createElement('span', { style: { fontSize: '26px', fontWeight: '900', color: '#6b21a8' } }, '73.9%'),
+                  React.createElement('span', { style: { fontSize: '26px', fontWeight: '900', color: '#6b21a8' } }, `${top3Pct}%`),
                   React.createElement('span', { style: { fontSize: '10px', fontWeight: '700', color: '#7e22ce', marginLeft: '4px' } }, 'del total'),
                   React.createElement('div', null,
                     React.createElement('span', { style: { fontSize: '8.5px', fontWeight: '800', backgroundColor: '#f3e8ff', color: '#6b21a8', padding: '2px 6px', borderRadius: '4px' } },

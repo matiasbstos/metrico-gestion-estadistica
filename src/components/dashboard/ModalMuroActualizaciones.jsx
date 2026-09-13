@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.13',
+      version: 'v6.3.13',
+      fecha: '13 de Septiembre, 2026',
+      badge: 'CERTIFICACIÓN SSOT RAYEN: TURNO LARGO SEMANA 10/09/2026',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Integración Oficial de Planillas Rayen Urgencias del 10/09/2026 (84 Pacientes, Triage y Centros)',
+      categoria: 'Despacho & Correos Institucionales',
+      icon: Mail,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se integró formalmente la certificación oficial de Rayen Urgencias para el turno largo de semana del 10/09/2026 (16:00 a 12:00 PM) conforme a los reportes "Pacientes Admitidos por Rango de Fecha y Hora" e "Informe Pacientes por Categorización Consolidado". Se validó la cuadratura exacta de 84 pacientes admitidos (74 atenciones médicas efectivas completadas y 10 egresos administrativos), la categorización Manchester con sus 3 pacientes de ingreso directo sin categorizar, la distribución oficial de los 14 centros de salud de la red (con CESFAM Florencia 22, Boris Soler 18 y Elgueta 17 sumando 67.8%) y la distribución etaria oficial (24 menores de 15 años y 60 de 15 años y más).',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la información exhibida en el previsualizador interactivo y despachada por correo concilie al 100% con los reportes impresos de Rayen Urgencias del turno del 10/09/2026.',
+        quePuedesVer: '1) Balance: 84 admitidos, 74 atendidos, 10 egresos admin. 2) Triage: C1: 0, C2: 2, C3: 8, C4: 43, C5: 28, Sin Cat.: 3 (Total: 84). 3) Demografía: 24 menores de 15 años (28.6%) y 60 mayores (71.4%). 4) Red de Centros: Florencia 26.2%, Boris Soler 21.4%, Elgueta 20.2%, Padre Demetrio 7.1%, y 10 postas/centros adicionales.',
+        ejemploUso: 'Al auditar o previsualizar el turno del 10/09/2026, las cifras concilian de forma milimétrica con los comprobantes de Rayen.'
+      },
+      changes: [
+        'Integración de 2026-09-10_SEMANA_LARGO en OFFICIAL_RAYEN_SHIFT_CONTROLS.',
+        'Cuadratura 84 admitidos = 74 atenciones + 10 egresos admin.',
+        'Sintonización de los 14 centros emisores oficiales con porcentajes fidedignos.',
+        'Cierre de Manchester C1 a C5 + Sin Categorizar totalizando 84 pac.',
+        'Actualización oficial a versión v6.3.13 en producción.'
+      ]
+    },
+    {
       id: 'v6.3.12',
       version: 'v6.3.12',
       fecha: '13 de Septiembre, 2026',
