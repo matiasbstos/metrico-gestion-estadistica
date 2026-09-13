@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.8',
+      version: 'v6.3.8',
+      fecha: '12 de Septiembre, 2026',
+      badge: 'COLA DE DESPACHO: TURNOS HISTÓRICOS CERRADOS Y RESOLUCIÓN DE FESTIVOS SSOT',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Resolución de Turnos Históricos en Curso y Erradicación de Registros Duplicados en Festivos',
+      categoria: 'Auditoría & Cola de Despacho',
+      icon: CheckCircle,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se resolvió la anomalía detectada en la Cola de Despacho & Turnos Auditados donde turnos de meses pasados (como el 16 y 17 de Julio de 2026) figuraban erróneamente en estado "En Curso (Parcial)". El nuevo algoritmo evalúa la fecha teórica de cierre del turno (20:30 hrs para turnos de día y 12:00 PM del día siguiente para turnos de noche o largo) respecto al corte global de los datos cargados: todo turno anterior con representatividad clínica (>= 10 pacientes) se califica de forma definitiva como "Listo para Despacho". Asimismo, en días festivos oficiales como el 16/07/2026 (Virgen del Carmen), se eliminó la colisión que creaba una tercera fila de día hábil ("Turno Largo Semana" de 110 pac) junto a los turnos oficiales de festivo (Festivo Diurno con 73 pac y Festivo Nocturno con 37 pac).',
+      instructivo: {
+        paraQueSirve: 'Permite auditar y despachar informes de cualquier mes histórico (ej. Julio, Agosto) sin bloqueos por falsos estados en curso, y garantiza que los días festivos muestren con exactitud su desglose oficial de guardia (Diurno 08-20h y Nocturno 20-08h).',
+        quePuedesVer: '1) Turnos Históricos Listos: Todos los turnos de meses previos con atención asistencial cerrada figuran con el badge azul "Listo para Despacho". 2) Eliminación de Duplicados en Festivos: El día 16/07/2026 y demás feriados muestran exclusivamente sus dos turnos de guardia legítimos (Festivo Diurno y Festivo Nocturno), sin duplicados de día hábil.',
+        ejemploUso: 'Al filtrar por el mes de Julio en la Cola de Despacho, el 17 de Julio y el 16 de Julio se presentan de forma clara y unívoca con sus totales exactos y listos para auditar o despachar.'
+      },
+      changes: [
+        'Cálculo temporal isPastShift en ModalConfiguracionCorreo.jsx que cierra turnos históricos pasados.',
+        'Preservación de la salvaguarda de "En Curso (Parcial)" exclusivamente para el corte activo del archivo cargado.',
+        'Filtrado estricto datesWithPatients para omitir turnos precalculados de día hábil en fechas festivas oficiales.',
+        'Actualización oficial a versión v6.3.8 en producción.'
+      ]
+    },
+    {
       id: 'v6.3.7',
       version: 'v6.3.7',
       fecha: '12 de Septiembre, 2026',

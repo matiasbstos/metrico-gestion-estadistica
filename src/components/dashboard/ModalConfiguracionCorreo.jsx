@@ -280,13 +280,19 @@ export default function ModalConfiguracionCorreo({
     };
 
     const shiftsMap = new Map();
+    const datesWithPatients = new Set();
+    let maxGlobalTimestamp = 0;
 
     // 1.1 Mapear cada paciente admitido al turno oficial correspondiente
     (combinedPacientes || []).forEach(p => {
       if (!p || !p.tAdmision) return;
+      if (p.tAdmision > maxGlobalTimestamp) {
+        maxGlobalTimestamp = p.tAdmision;
+      }
       const det = obtenerTurnoDetallado(p.tAdmision, pautasDB);
       if (!det || !det.fechaIso || !isValidHistoryDate(det.fechaIso)) return;
 
+      datesWithPatients.add(det.fechaIso);
       const shiftKey = getCanonicalShiftKey(det.fechaIso, det.horario, det.tipo);
       if (!shiftsMap.has(shiftKey)) {
         shiftsMap.set(shiftKey, {
@@ -320,12 +326,25 @@ export default function ModalConfiguracionCorreo({
       }
     });
 
-    // 1.2 Incorporar turnos oficiales históricos de turnosDB para fechas sin pacientes individuales en memoria
+    if (maxGlobalTimestamp === 0) maxGlobalTimestamp = Date.now();
+
+    // 1.2 Incorporar turnos oficiales históricos de turnosDB SOLO para fechas sin pacientes individuales en memoria
     (turnosDB || []).forEach(t => {
       if (!t || !t.fechaInicio || !isValidHistoryDate(t.fechaInicio)) return;
+      const rawDate = String(t.fechaInicio).trim();
+      let isoDate = rawDate;
+      if (rawDate.includes('/')) {
+        const parts = rawDate.split('/');
+        if (parts[2]?.length === 4) {
+          isoDate = `${parts[2]}-${String(parts[1]).padStart(2, '0')}-${String(parts[0]).padStart(2, '0')}`;
+        }
+      }
+      // SSOT Absoluta: Si ya procesamos pacientes para esta fecha, omitir turnosDB para evitar colisiones (ej. festivo diurno/nocturno vs semana largo)
+      if (datesWithPatients.has(isoDate) || datesWithPatients.has(rawDate)) return;
+
       const horario = t.horario || (t.tipoTurno?.includes('Largo') ? '17:00 a 08:00 hrs' : (t.tipoTurno?.includes('Noche') ? '20:00 a 08:00 hrs' : '08:00 a 20:00 hrs'));
       const tipo = t.tipoTurno || (horario.includes('17:00') ? 'Turno Largo Semana' : (horario.includes('20:00') ? 'Fin de Semana Noche' : 'Fin de Semana Día'));
-      const shiftKey = getCanonicalShiftKey(t.fechaInicio, horario, tipo);
+      const shiftKey = getCanonicalShiftKey(isoDate, horario, tipo);
       
       if (!shiftsMap.has(shiftKey)) {
         const parts = t.fechaInicio.split('-');
@@ -402,30 +421,55 @@ export default function ModalConfiguracionCorreo({
 
         const isSent = Boolean(sentMap[item.shiftKey] || sentMap[item.fecha] || sentMap[item.textoCompleto]);
 
-        // Cómputo matemático riguroso de turno completo cerrado (Regla 5 SSOT Rayen)
+        // Cómputo matemático de turno completo cerrado vs turno en curso (Regla 5 SSOT Rayen)
+        const isNightShift = item.tipo?.includes('Noche') || item.tipo?.includes('Largo');
+        const isDiurnoShift = !isNightShift;
+
+        // Momento teórico en el que concluye formalmente este turno asistencial:
+        // - Turno diurno (08:00 a 20:00 hrs): concluye formalmente a las 20:00 hrs del mismo día
+        // - Turno noche o largo (20:00 a 08:00 o 17:00 a 08:00): concluye formalmente a las 08:00 AM del día siguiente (con ventana de estadía hasta las 12:00 PM)
+        let turnoClosingMs = 0;
+        if (item.fecha && item.fecha.includes('-')) {
+          const parts = item.fecha.split('-').map(Number);
+          if (parts.length === 3) {
+            const [y, m, d] = parts;
+            if (isDiurnoShift) {
+              turnoClosingMs = new Date(y, m - 1, d, 20, 30, 0).getTime();
+            } else {
+              turnoClosingMs = new Date(y, m - 1, d + 1, 12, 0, 0).getTime();
+            }
+          }
+        }
+
+        // Un turno es histórico/pasado si su cierre formal ocurrió antes del corte temporal de los datos cargados
+        const isPastShift = turnoClosingMs > 0 && (turnoClosingMs <= maxGlobalTimestamp);
+
         const timeSpanHours = (item.maxTimestamp > 0 && item.minTimestamp < Infinity)
           ? (item.maxTimestamp - item.minTimestamp) / (1000 * 60 * 60)
           : 0;
         const maxDate = item.maxTimestamp > 0 ? new Date(item.maxTimestamp) : null;
         const minDate = item.minTimestamp < Infinity ? new Date(item.minTimestamp) : null;
         const maxHours = maxDate ? maxDate.getHours() : 0;
-        const isNightShift = item.tipo?.includes('Noche') || item.tipo?.includes('Largo');
         const isDifferentDay = Boolean(maxDate && minDate && (maxDate.getDate() !== minDate.getDate() || maxDate.getMonth() !== minDate.getMonth()));
 
         let isCompleto = false;
         if (item.forcedCompleto !== undefined) {
           isCompleto = item.forcedCompleto;
+        } else if (isPastShift) {
+          // TURNOS HISTÓRICOS Y PASADOS (ej. Julio, Agosto, días pasados de Septiembre):
+          // Ya concluyeron en el tiempo. Si tienen volumen clínico representativo (>= 10 pacientes), están 100% cerrados.
+          isCompleto = item.pacientes >= 10;
         } else if (item.pacientesList && item.pacientesList.length > 0) {
+          // TURNO ACTUAL O EN CORTE ACTIVO (coincide con la última fecha/hora de los datos cargados):
+          // Aplica salvaguarda estricta de turno en curso
           if (isNightShift) {
-            // Cruce de medianoche, >= 9 horas de span, admisiones de madrugada y altas/estadía matutina (05:00 a 13:00 hrs) y volumen representativo
             isCompleto = isDifferentDay && timeSpanHours >= 9 && (maxHours >= 5 && maxHours <= 13) && item.pacientes >= 20;
           } else {
-            // Turno día: >= 9 horas de span y corte a las 19:00 hrs o posterior con volumen representativo
             isCompleto = timeSpanHours >= 9 && maxHours >= 19 && item.pacientes >= 25;
           }
         } else {
           // Turnos históricos consolidados en turnosDB
-          isCompleto = item.pacientes >= 20;
+          isCompleto = item.pacientes >= 10;
         }
 
         return {
@@ -485,13 +529,20 @@ export default function ModalConfiguracionCorreo({
     });
 
     (turnosDB || []).forEach(t => {
-      const fStr = t.fechaInicio;
-      if (!fStr || !isValidHistoryDate(fStr)) return;
-      if (!datesMap.has(fStr)) {
+      const rawDate = String(t.fechaInicio || '').trim();
+      if (!rawDate || !isValidHistoryDate(rawDate)) return;
+      let isoDate = rawDate;
+      if (rawDate.includes('/')) {
+        const parts = rawDate.split('/');
+        if (parts[2]?.length === 4) {
+          isoDate = `${parts[2]}-${String(parts[1]).padStart(2, '0')}-${String(parts[0]).padStart(2, '0')}`;
+        }
+      }
+      if (!datesMap.has(isoDate) && !datesMap.has(rawDate)) {
         const tot = Number(t.totalPacientes || 0);
         const alt = Number(t.altasAdmin || 0);
-        datesMap.set(fStr, {
-          fecha: fStr,
+        datesMap.set(isoDate, {
+          fecha: isoDate,
           pacientes: tot,
           altas: alt,
           atendidos: Math.max(0, tot - alt),

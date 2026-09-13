@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.8',
+    version_tag: 'v6.3.8',
+    fecha: '12 de Septiembre, 2026',
+    fecha_despliegue: '12 de Septiembre, 2026',
+    proposito_actualizacion: 'Resolución de Turnos Históricos en Curso y Erradicación de Colisiones en Días Festivos de la Cola de Despacho Asistencial.',
+    medios_y_stack: [
+      'ModalConfiguracionCorreo.jsx (Implementación de isPastShift con cálculo del momento formal de término turnoClosingMs vs maxGlobalTimestamp, habilitando Listo para Despacho en turnos de meses concluidos como Julio y Agosto)',
+      'ModalConfiguracionCorreo.jsx (Filtrado estricto datesWithPatients.has(isoDate) para evitar colisión de turnosDB con pauta de festivos oficiales como el 16/07/2026)',
+      'Dashboard.jsx (Actualización oficial a versión v6.3.8 en producción)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Cierre Temporal de Turnos Pasados: Todo turno cuyo horario formal de cierre asistencial (20:30 hrs para diurnos y 12:00 PM del día siguiente para nocturnos/largos) sea anterior al corte temporal de los datos en memoria se considera formalmente concluido, pasando a estado Listo para Despacho si cuenta con volumen clínico representativo (>= 10 pacientes). 2) Supresión de Registros Huérfanos en Días Festivos: Cuando un día festivo oficial cuenta con pacientes clasificados en Festivo Diurno y Festivo Nocturno (ej. 16/07/2026 con 73 y 37 pacientes), se descartan de forma estricta registros duplicados precalculados de día hábil (Turno Largo Semana con 110 pac).',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Normalización canónica de fechas en O(1) con Set datesWithPatients impidiendo duplicados en la cola de despacho.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx', 'AGENTS.md'],
+    detalles_tecnicos: [
+      'Calibración de isPastShift en ModalConfiguracionCorreo.jsx para evaluar el término cronológico del turno respecto al corte de datos.',
+      'Protección bidireccional contra colisiones en turnosDB usando datesWithPatients normalizado (formato ISO y con barras).',
+      'Sincronización de versión v6.3.8 en todo el ecosistema de MÉTRICO.'
+    ]
+  },
+  {
     id: 'v6.3.7',
     version_tag: 'v6.3.7',
     fecha: '12 de Septiembre, 2026',

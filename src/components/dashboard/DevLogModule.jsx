@@ -8,6 +8,33 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-8',
+    fecha: '2026-09-12',
+    titulo: 'Resolución de Turnos Históricos en Curso y Erradicación de Registros Duplicados en Días Festivos',
+    tipo: 'Auditoría & Cola de Despacho',
+    version_tag: 'v6.3.8',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'En la Cola de Despacho & Turnos Auditados, turnos pasados pertenecientes a meses ya cerrados (como el 16 y 17 de Julio de 2026) figuraban anómalamente en estado "En Curso (Parcial)". Asimismo, en fechas festivas oficiales como el 16/07/2026 (Virgen del Carmen), se superponía una fila duplicada de día hábil ("Turno Largo Semana" de 110 pacientes) proveniente de turnosDB junto a los dos turnos legítimos de festivo (Diurno 73 pac y Nocturno 37 pac).',
+    logica: 'Se recalibró el cómputo de turno completo implementando isPastShift con la determinación del cierre asistencial teórico (20:30 hrs para turnos diurnos y 12:00 PM del día siguiente para nocturnos/largos) contrastado con el corte temporal de los datos (maxGlobalTimestamp). Para fechas que ya tienen pacientes individuales procesados, se descartan de plano los registros precalculados de turnosDB mediante datesWithPatients.',
+    solucion: 'Todo turno histórico cuyo término formal haya ocurrido antes del corte de datos cargados y posea representatividad clínica (>= 10 pacientes) pasa a estado "Listo para Despacho", reservando la salvaguarda de "En Curso (Parcial)" exclusivamente para el corte activo del archivo cargado. En días festivos, se erradicó la tercera fila fantasma de día hábil, presentando con absoluta exactitud los dos turnos de guardia oficiales.',
+    fullPost: `La gestión operativa de un servicio de urgencia SAR requiere que la cola de despacho de informes diferencie con precisión milimétrica entre un turno que está transcurriendo en tiempo real y turnos que concluyeron meses atrás.
+    
+Al revisar los registros de meses previos, observamos que ciertas jornadas (como el turno nocturno festivo del 16 de Julio de 2026 y turnos del 17 de Julio) figuraban con el distintivo amarillo "En Curso (Parcial)". La causa raíz radicaba en que el validador aplicaba la salvaguarda de turnos activos (que exige dispersión horaria superior a 9 horas y último paciente después de las 05:00 AM) de manera indiscriminada a toda la serie histórica, sin contrastar si la fecha del turno era cronológicamente anterior al corte temporal de los datos cargados.
+
+Paralelamente, detectamos que en el festivo del 16 de Julio de 2026 (Día de la Virgen del Carmen), la cola desplegaba tres filas conflictivas:
+1. Festivo Diurno (08:00 a 20:00 hrs): 73 pacientes
+2. Festivo Nocturno (20:00 a 08:00 hrs): 37 pacientes
+3. Turno Largo Semana (17:00 a 08:00 hrs): 110 pacientes (73 + 37)
+
+Esta tercera fila provenía de un registro precalculado heredado en la colección turnosDB que asumió erróneamente que el 16 de Julio era un día hábil común.
+
+En la versión v6.3.8 implementamos una solución integral:
+1. **Determinación Temporal de Término Asistencial (isPastShift)**: Calculamos el momento exacto en que concluye formalmente cada guardia (20:30 hrs para diurnos y 12:00 PM del día siguiente para nocturnos). Si este momento es anterior al corte temporal de los datos, el turno se reconoce como cerrado y concluido, pasando a "Listo para Despacho" si cuenta con volumen clínico representativo (>= 10 pacientes).
+2. **Prioridad Absoluta SSOT Deduplicada sobre turnosDB**: Se indexaron todas las fechas que poseen pacientes en memoria (datesWithPatients). Para estas fechas, se bloquea la inyección de registros precalculados de turnosDB, erradicando turnos duplicados de día hábil en fines de semana y festivos.
+3. **Preservación del Filtro Anti-Despacho Prematuro**: La salvaguarda de turno en curso se mantiene activa para el corte cronológico superior (ej. el turno activo al momento de exportar la planilla Rayen), impidiendo despachar reportes incompletos.`
+  },
+  {
     id: 'devlog-v6-3-7',
     fecha: '2026-09-12',
     titulo: 'Universalización Global de la Regla 19: Rectificación Previa en Reportes Ejecutivos y sus 8 Subreportes',
