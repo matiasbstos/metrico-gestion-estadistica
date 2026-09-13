@@ -8,6 +8,31 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-14',
+    titulo: 'Conciliación Estricta Reglas 11, 16 y 19: 74 Altas Médicas Directas (0 Traslados UEH)',
+    fecha: '2026-09-13',
+    version_tag: 'v6.3.14',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'El diseño del previsualizador mostraba 70 altas médicas y 4 traslados hospitalarios para el turno del 10/09/2026 debido a una estimación de tasa de derivación, cuando el reporte oficial de Rayen certifica 74 pacientes Completados sin traslados hospitalarios comprobados.',
+    logica: 'En cumplimiento estricto de las Reglas 11, 16 a) y 19 de AGENTS.md, el contador de traslados debe derivar unívocamente de registros certificados. Al no existir derivaciones a UEH en este turno, los 74 pacientes completados corresponden al 100% a Altas Médicas directas.',
+    solucion: 'Se ajustó OFFICIAL_RAYEN_SHIFT_CONTROLS con traslados: 0 y altasMedicas: 74, cuadrando el balance del turno a: 84 Admitidos = 74 Atenciones (74 Altas Médicas + 0 Traslados Hosp.) + 10 Altas Admin (11.9%). El Apartado Exclusivo de Traslados destaca la resolución 100% en nivel primario SAR.',
+    fullPost: `En esta versión v6.3.14 blindamos la integridad fidedigna del turno 10/09/2026:
+
+1. **Balance de Guardia Oficial**:
+   - Total Pacientes Admitidos: 84 pac.
+   - Pacientes Atendidos: 74 pac. (88.1% de Cobertura)
+   - Altas Médicas Directas: 74 altas (100.0% de los Atendidos)
+   - Total Traslados Hospitalarios: 0 pac. (0.0% de Demanda)
+   - Egresos Administrativos: 10 altas (11.9% de Demanda)
+
+2. **Banner de Cuadratura Universal**:
+   - 84 Admitidos = 74 Atenciones (74 Altas Médicas + 0 Traslados Hosp.) + 10 Altas Admin (11.9%).
+
+3. **Apartado Exclusivo Traslados**:
+   - Despliegue de tarjeta "Resolución en Nivel Primario SAR" reportando 0 derivaciones UEH y 100% altas a domicilio.`
+  },
+  {
     id: 'devlog-v6-3-13',
     fecha: '2026-09-13',
     titulo: 'Certificación Rayen SSOT: Turno 10/09/2026 (84 Pacientes, Triage y 14 Centros de Red)',

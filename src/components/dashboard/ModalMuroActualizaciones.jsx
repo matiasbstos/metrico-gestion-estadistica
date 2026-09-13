@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.14',
+      version: 'v6.3.14',
+      fecha: '13 de Septiembre, 2026',
+      badge: 'CERTIFICACIÓN FIDEDIGNA REGLAS 11, 16 Y 19: 74 ALTAS MÉDICAS DIRECTAS (0 TRASLADOS)',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Conciliación de 74 Altas Médicas Directas (0 Traslados UEH) y Despliegue de Resolución Primaria SAR',
+      categoria: 'Despacho & Correos Institucionales',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'En cumplimiento estricto de las Reglas 11, 16 a) y 19 de AGENTS.md, se eliminó la deducción automática de traslados para el turno del 10/09/2026 al certificar que los 74 pacientes completados en Rayen correspondieron en su totalidad a Altas Médicas directas (0 derivaciones hospitalarias a Urgencia UEH). El banner y las tarjetas ahora reflejan: 84 Admitidos = 74 Atenciones (74 Altas Médicas + 0 Traslados Hosp.) + 10 Altas Admin (11.9%), y el Apartado Exclusivo de Traslados destaca la resolución 100% en nivel primario SAR.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que no se simulen derivaciones hospitalarias inexistentes, reflejando que los 74 pacientes completados fueron dados de alta médica.',
+        quePuedesVer: '1) Tarjeta Altas Médicas: 74 altas (100.0% de atendidos). 2) Tarjeta Traslados: 0 pac. (0.0% de demanda). 3) Apartado Exclusivo: Resolución en Nivel Primario SAR.',
+        ejemploUso: 'Al seleccionar el turno 10/09/2026, la lámina 1 cuadra exactamente con los 74 pacientes completados de Rayen.'
+      },
+      changes: [
+        'Ajuste en OFFICIAL_RAYEN_SHIFT_CONTROLS: traslados: 0, altasMedicas: 74.',
+        'Cuadratura 84 Admitidos = 74 Atenciones (74 Altas Médicas + 0 Traslados) + 10 Altas Admin.',
+        'Tarjeta de resolución en nivel primario SAR en el previsualizador y en el motor de correo.',
+        'Actualización a versión v6.3.14 en producción.'
+      ]
+    },
+    {
       id: 'v6.3.13',
       version: 'v6.3.13',
       fecha: '13 de Septiembre, 2026',

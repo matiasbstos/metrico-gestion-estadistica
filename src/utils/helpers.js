@@ -380,6 +380,9 @@ export const OFFICIAL_RAYEN_SHIFT_CONTROLS = {
     altasAdmin: 10,
     egresoAdmin: 10,
     sinAtencionMedica: 0,
+    traslados: 0,
+    trasladosCount: 0,
+    altasMedicas: 74,
     isCompleto: true,
     triage: {
       c1: 0,
@@ -568,6 +571,7 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
     if (ctlOficial.totalPacientes !== undefined) totalAdmitidos = ctlOficial.totalPacientes;
     if (ctlOficial.atendidos !== undefined) atendidos = ctlOficial.atendidos;
     if (ctlOficial.altasAdmin !== undefined || ctlOficial.altas !== undefined) altasAdmin = ctlOficial.altasAdmin ?? ctlOficial.altas;
+    if (ctlOficial.trasladosCount !== undefined || ctlOficial.traslados !== undefined) trasladosCount = ctlOficial.trasladosCount ?? ctlOficial.traslados;
   }
 
   let fracturasCount = 0;
@@ -733,6 +737,7 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
       totalAdmitidos,
       atendidos,
       altasAdmin,
+      altasMedicas: ctlOficial?.altasMedicas !== undefined ? ctlOficial.altasMedicas : Math.max(0, atendidos - trasladosCount),
       rendimientoHora,
       tiempoPromedioCat,
       estadiaPromedio: `${Math.floor(totalCalculadoEstadia / 60)}h ${totalCalculadoEstadia % 60}m`,

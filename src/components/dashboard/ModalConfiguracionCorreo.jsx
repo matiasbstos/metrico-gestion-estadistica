@@ -38,6 +38,9 @@ const OFFICIAL_RAYEN_SHIFT_CONTROLS = {
     altasAdmin: 10,
     egresoAdmin: 10,
     sinAtencionMedica: 0,
+    traslados: 0,
+    trasladosCount: 0,
+    altasMedicas: 74,
     isCompleto: true,
     triage: {
       c1: 0,
@@ -442,6 +445,12 @@ export default function ModalConfiguracionCorreo({
         if (ctl.demografia) {
           entry.demografia = ctl.demografia;
         }
+        if (ctl.trasladosCount !== undefined || ctl.traslados !== undefined) {
+          entry.trasladosCount = ctl.trasladosCount ?? ctl.traslados;
+        }
+        if (ctl.altasMedicas !== undefined) {
+          entry.altasMedicas = ctl.altasMedicas;
+        }
       } else {
         const parts = key.split('_');
         const fIso = parts[0];
@@ -468,7 +477,9 @@ export default function ModalConfiguracionCorreo({
           forcedCompleto: ctl.isCompleto,
           centros: ctl.centros,
           triage: ctl.triage,
-          demografia: ctl.demografia
+          demografia: ctl.demografia,
+          trasladosCount: ctl.trasladosCount !== undefined ? ctl.trasladosCount : (ctl.traslados ?? 0),
+          altasMedicas: ctl.altasMedicas !== undefined ? ctl.altasMedicas : (ctl.atendidos - (ctl.traslados ?? 0))
         });
       }
     }
@@ -856,11 +867,15 @@ export default function ModalConfiguracionCorreo({
         });
       }
 
-      const trasladosCount = pacs.filter(p => {
-        const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
-        return (dest.includes('hosp') || dest.includes('urgenc') || dest.includes('ueh')) && !dest.includes('cesfam');
-      }).length;
-      const altasMedicas = Math.max(0, atendidos - trasladosCount);
+      const trasladosCount = selectedShiftObj.trasladosCount !== undefined
+        ? selectedShiftObj.trasladosCount
+        : pacs.filter(p => {
+            const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
+            return (dest.includes('hosp') || dest.includes('urgenc') || dest.includes('ueh')) && !dest.includes('cesfam');
+          }).length;
+      const altasMedicas = selectedShiftObj.altasMedicas !== undefined
+        ? selectedShiftObj.altasMedicas
+        : Math.max(0, atendidos - trasladosCount);
 
       const rawAvgEstadia = countEstadia > 0 ? Math.round(sumEstadia / countEstadia) : 135;
       const admTriageMin = countAdmTriage > 0 ? Math.round(sumAdmTriage / countAdmTriage) : 14;
@@ -1130,7 +1145,8 @@ export default function ModalConfiguracionCorreo({
       trasladoDetalle,
       fracturasCount: Number(baseTurno.fracturasCount ?? (baseTurno.fracturas ?? 0)),
       constatacionesCount: Number(baseTurno.constatacionesCount ?? (baseTurno.constataciones ?? 0)),
-      trasladosCount: pacsTraslados.length > 0 ? pacsTraslados.length : Number(baseTurno.trasladosCount ?? (baseTurno.traslados ?? 0)),
+      trasladosCount: baseTurno.trasladosCount !== undefined ? baseTurno.trasladosCount : (pacsTraslados.length > 0 ? pacsTraslados.length : Number(baseTurno.traslados ?? 0)),
+      altasMedicas: baseTurno.altasMedicas !== undefined ? baseTurno.altasMedicas : Math.max(0, baseTurno.atendidos - (baseTurno.trasladosCount ?? (baseTurno.traslados ?? 0))),
       respiratoriosCount: Math.round(baseTurno.totalAdmitidos * 0.38)
     };
 
@@ -2980,20 +2996,36 @@ export default function ModalConfiguracionCorreo({
                           </div>
                         </div>
 
-                        {/* TARJETA DESGLOSE PACIENTE #1 */}
-                        <div className="p-3 bg-white rounded-xl border border-indigo-200/80 shadow-2xs space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="font-black text-slate-900 text-[11px]">Paciente #1</span>
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200">
-                              Categoría {turnoInfo.trasladoDetalle?.categoria || 'C2'}
-                            </span>
+                        {/* TARJETA DESGLOSE PACIENTE #1 O RESOLUCIÓN 100% SAR */}
+                        {(turnoInfo.trasladosCount || 0) > 0 ? (
+                          <div className="p-3 bg-white rounded-xl border border-indigo-200/80 shadow-2xs space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-black text-slate-900 text-[11px]">Paciente #1</span>
+                              <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200">
+                                Categoría {turnoInfo.trasladoDetalle?.categoria || 'C2'}
+                              </span>
+                            </div>
+                            <p className="font-bold text-indigo-950 text-xs">{turnoInfo.trasladoDetalle?.diagnostico || 'Sospecha patología de urgencia / segundo nivel'}</p>
+                            <div className="text-[10px] text-slate-500 font-medium pt-1 border-t border-slate-100 flex items-center justify-between">
+                              <span>Destino: <strong className="text-slate-800">{turnoInfo.trasladoDetalle?.destino || 'Hospital San José de Melipilla (Urgencia UEH)'}</strong></span>
+                              <span className="font-bold text-indigo-600">Urgencia Quirúrgica</span>
+                            </div>
                           </div>
-                          <p className="font-bold text-indigo-950 text-xs">{turnoInfo.trasladoDetalle?.diagnostico || 'Sospecha patología de urgencia / segundo nivel'}</p>
-                          <div className="text-[10px] text-slate-500 font-medium pt-1 border-t border-slate-100 flex items-center justify-between">
-                            <span>Destino: <strong className="text-slate-800">{turnoInfo.trasladoDetalle?.destino || 'Hospital San José de Melipilla (Urgencia UEH)'}</strong></span>
-                            <span className="font-bold text-indigo-600">Urgencia Quirúrgica</span>
+                        ) : (
+                          <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200/80 shadow-2xs space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-black text-emerald-950 text-[11px]">Resolución en Nivel Primario SAR</span>
+                              <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                0 Derivaciones UEH
+                              </span>
+                            </div>
+                            <p className="font-bold text-emerald-900 text-xs">Sin requerimiento de traslados a Urgencia Hospitalaria en este turno.</p>
+                            <div className="text-[10px] text-emerald-700 font-medium pt-1 border-t border-emerald-200/60 flex items-center justify-between">
+                              <span>Desenlace: <strong className="text-emerald-950">100% Altas Médicas a Domicilio</strong></span>
+                              <span className="font-black text-emerald-700">Resolución Primaria</span>
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     </div>
 

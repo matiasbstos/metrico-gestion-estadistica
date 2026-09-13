@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.14',
+    version_tag: 'v6.3.14',
+    fecha: '13 de Septiembre, 2026',
+    fecha_despliegue: '13 de Septiembre, 2026',
+    proposito_actualizacion: 'Certificación Estricta Reglas 11, 16 y 19: Conciliación de 74 Altas Médicas Directas (0 Traslados UEH) y Despliegue de Resolución Primaria SAR.',
+    medios_y_stack: [
+      'helpers.js (Incorporación de traslados: 0, trasladosCount: 0 y altasMedicas: 74 en OFFICIAL_RAYEN_SHIFT_CONTROLS para el turno del 10/09/2026, garantizando paridad 100% con los 74 pacientes Completados de Rayen)',
+      'ModalConfiguracionCorreo.jsx (Propagación estricta de trasladosCount y altasMedicas en shiftsMap y baseTurno; despliegue de tarjeta institucional de Resolución en Nivel Primario SAR cuando trasladosCount === 0)',
+      'InformeAsistencialEmail.js (Soporte en React Email para turnos sin derivaciones hospitalarias, reflejando 74 altas médicas directas y 0 traslados)',
+      'Dashboard.jsx (Actualización a versión v6.3.14 en producción)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Cumplimiento inviolable de Reglas 11, 16 a) y 19 de AGENTS.md: Al certificar 74 pacientes completados en Rayen y 0 traslados hospitalarios efectivos, el 100% de las atenciones médicas corresponden a Altas Médicas directas. 2) Ecuación Universal del Turno: 84 Admitidos = 74 Atenciones (74 Altas Médicas + 0 Traslados Hosp.) + 10 Altas Admin (11.9%).',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Integración reactiva sin fallbacks simulados en previsualizador y motor SMTP.'
+    },
+    modulos_afectados: ['helpers.js', 'ModalConfiguracionCorreo.jsx', 'InformeAsistencialEmail.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Erradicación de suposiciones de traslados: se asignan 74 altas médicas (100.0% de los atendidos) y 0 traslados (0.0% de demanda).',
+      'Tarjeta de apartado exclusivo adaptada para reportar 0 derivaciones UEH y 100% resolución SAR.',
+      'Sincronización universal a versión v6.3.14.'
+    ]
+  },
+  {
     id: 'v6.3.13',
     version_tag: 'v6.3.13',
     fecha: '13 de Septiembre, 2026',
