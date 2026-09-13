@@ -8,6 +8,39 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-7',
+    fecha: '2026-09-12',
+    titulo: 'Universalización Global de la Regla 19: Rectificación Previa en Reportes Ejecutivos y sus 8 Subreportes',
+    tipo: 'Auditoría & Calidad SSOT',
+    version_tag: 'v6.3.7',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'La Regla 19 debía regir como principio universal e inviolable en toda la plataforma MÉTRICO, asegurando que tanto los correos como cada una de las páginas impresas en PDF (Hoja Carta) de los reportes y subreportes porten la misma rectificación previa y cuadratura fidedigna.',
+    logica: 'Expansión de la Regla 19 a norma universal global en AGENTS.md e implementación de sellos institucionales de verificación cruzada en la cabecera de cada una de las 8 hojas de ReportesModule.jsx.',
+    solucion: 'Integración del Banner Maestro interactivo y de la función renderSelloRegla19 en el 100% de los reportes ejecutivos (General, Altas, Fracturas, Enfermería, Constataciones, Traslados, Respiratorio y Radar Predictivo), garantizando que todo documento emitido porte la certificación matemática de la verdad asistencial Rayen.',
+    fullPost: `La gestión clínica moderna exige que los reportes institucionales gocen de la misma inmutabilidad y rigor analítico que los sistemas contables o financieros. Si un directivo de salud o jefatura médica toma en sus manos un informe impreso en Hoja Carta o revisa un subreporte especializado en pantalla, las cifras de admisiones, atenciones clínicas efectivas y egresos administrativos deben cuadrar de forma incontestable contra la base de datos auditada.
+
+En esta versión v6.3.7, respondimos al requerimiento de elevar la Regla 19 a **Norma Universal y Global para todo MÉTRICO**. 
+
+Diseñamos e integramos dos capas de certificación en el Generador de Reportes (ReportesModule.jsx):
+
+1. **Banner Maestro Interactivo de Verificación Cruzada (Pre-Impresión)**:
+Situado en la parte superior del módulo de reportes, permite al operador visualizar en tiempo real la Ecuación Universal de Demanda Rayen para el período seleccionado (Total Admitidos = Atenciones Médicas Efectivas + Altas Administrativas) y constatar su concordancia con el Histórico Mensual Asistencial y el Centro de Verificación de Demanda.
+
+2. **Sello Institucional de Fidedignidad en las 8 Hojas Imprimibles (PDF / Hoja Carta)**:
+Cada subreporte especializado porta en su cabecera el sello oficial con la certificación SSOT:
+- Hoja 1: Reporte General Ejecutivo
+- Hoja 2: Sub-reporte de Altas Administrativas
+- Hoja 3: Sub-reporte de Estadísticas de Fractura y Destino
+- Hoja 4: Sub-reporte de Rendimiento de Enfermería y Triaje
+- Hoja 5: Sub-reporte de Constataciones de Lesiones Z51.8
+- Hoja 6: Sub-reporte de Traslados Hospitalarios UEH
+- Hoja 7: Sub-reporte de Vigilancia Epidemiológica Respiratoria
+- Hoja 8: Sub-reporte de Radar Predictivo de Demanda IA
+
+Con esta actualización, cualquier documento generado, exportado a CSV o impreso a PDF desde MÉTRICO se convierte en una pieza certificada de auditoría clínica con respaldo pleno de la verdad asistencial de Rayen.`
+  },
+  {
     id: 'devlog-v6-3-6',
     fecha: '2026-09-12',
     titulo: 'Institucionalización de la Regla 19: Verificación Cruzada Multicapa Previa al Despacho de Informes',

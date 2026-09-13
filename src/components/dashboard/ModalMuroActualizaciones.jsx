@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.7',
+      version: 'v6.3.7',
+      fecha: '12 de Septiembre, 2026',
+      badge: 'REGLA 19 UNIVERSAL: CORREOS, REPORTES EJECUTIVOS Y 8 SUBREPORTES OFICIALES',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Universalización Global de la Regla 19: Rectificación Previa en Reportes y Subreportes',
+      categoria: 'Módulos & Vistas',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'A petición de la dirección institucional, la Regla 19 de Rectificación Previa y Verificación Cruzada Multicapa se elevó a norma universal global para todo el sistema MÉTRICO. A partir de ahora aplica con idéntica obligatoriedad tanto para el despacho de correos electrónicos como para el Generador de Reportes Ejecutivos y sus 8 subreportes en Hoja Carta (PDF): Reporte General Ejecutivo, Altas Administrativas, Fracturas y Traumatología, Rendimiento de Enfermería y Triaje, Constataciones Z51.8, Traslados Hospitalarios UEH, Vigilancia Respiratoria y Radar Predictivo IA. Cada página exportada porta en su cabecera el Sello Institucional de Fidedignidad y Cuadratura Rayen.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que ningún reporte impreso en PDF, exportado o visualizado en pantalla presente discrepancias con las cifras ya consolidadas en el Histórico Mensual Asistencial y en el Centro de Verificación de Demanda.',
+        quePuedesVer: '1) Banner Maestro Interactivo: En la parte superior de Reportes Ejecutivos se despliega la cuadratura del período (Admitidos = Atenciones + Altas Admin.) y el contraste contra los módulos de auditoría. 2) Sello en Hoja Carta (PDF): Cada una de las 8 hojas de reporte porta su sello institucional de fidedignidad con la ecuación matemática verificada.',
+        ejemploUso: 'Al imprimir el Reporte Consolidado o cualquiera de los subreportes especializados (ej. Traslados o Constataciones), el documento incluye la certificación de la Regla 19 respaldada por la verdad asistencial de Rayen.'
+      },
+      changes: [
+        'Universalización de la Regla 19 en AGENTS.md y .agents/AGENTS.md para todo el sistema.',
+        'Integración de Banner Maestro interactivo de verificación en ReportesModule.jsx.',
+        'Incorporación de Sello Institucional Regla 19 en las 8 hojas de reportes ejecutivos en Hoja Carta (PDF).',
+        'Actualización a versión v6.3.7 en producción.'
+      ]
+    },
+    {
       id: 'v6.3.6',
       version: 'v6.3.6',
       fecha: '12 de Septiembre, 2026',

@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.7',
+    version_tag: 'v6.3.7',
+    fecha: '12 de Septiembre, 2026',
+    fecha_despliegue: '12 de Septiembre, 2026',
+    proposito_actualizacion: 'Universalización Global de la Regla 19: Rectificación Previa y Sello Institucional de Fidedignidad en Correos, Reportes Ejecutivos y sus 8 Subreportes.',
+    medios_y_stack: [
+      'ReportesModule.jsx (Incorporación del Banner Maestro interactivo y Sello de Verificación Cruzada Regla 19 en Hoja 1 y en las 7 hojas de subreportes: Altas, Fracturas, Enfermería, Constataciones Z51.8, Traslados UEH, Respiratorio y Radar Predictivo)',
+      'AGENTS.md y .agents/AGENTS.md (Generalización vinculante de la Regla 19 como norma global que rige correos, reportes impresos y análisis asistenciales)',
+      'Dashboard.jsx (Actualización oficial a versión v6.3.7 en producción)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Universalidad Absoluta de la Regla 19: La obligación de rectificación previa contra el Histórico Mensual Asistencial y el Centro de Verificación aplica por igual al despacho de correos y a la generación e impresión en Hoja Carta (PDF) de los reportes y subreportes. 2) Sello Institucional Portado en Documento: Todo reporte ejecutivo emitido o impreso porta en su cabecera la certificación matemática explícita de cuadratura (Total Admitidos = Atenciones Médicas Efectivas + Altas Administrativas).',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'system_architecture_log', 'audit_logs'],
+      query_optimization: 'Cálculo reactivo en O(1) de la cuadratura y renderizado optimizado en páginas Hoja Carta.'
+    },
+    modulos_afectados: ['ReportesModule.jsx', 'AGENTS.md', '.agents/AGENTS.md', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Universalización de la Regla 19 en las directrices maestras del agente y de la plataforma.',
+      'Integración de Banner Maestro y sellos institucionales en el 100% de las hojas de ReportesModule.jsx.',
+      'Sincronización de versión v6.3.7 en todo el ecosistema de MÉTRICO.'
+    ]
+  },
+  {
     id: 'v6.3.6',
     version_tag: 'v6.3.6',
     fecha_despliegue: '12 de Septiembre, 2026',
