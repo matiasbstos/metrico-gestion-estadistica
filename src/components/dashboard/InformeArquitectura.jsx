@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.10',
+    version_tag: 'v6.3.10',
+    fecha: '13 de Septiembre, 2026',
+    fecha_despliegue: '13 de Septiembre, 2026',
+    proposito_actualizacion: 'Hotfix de Estabilidad en ModalConfiguracionCorreo: Corrección de Importación CheckCircle contra ReferenceError.',
+    medios_y_stack: [
+      'ModalConfiguracionCorreo.jsx (Incorporación explícita de CheckCircle en la importación de lucide-react para erradicar la excepción ReferenceError en la barra de cuadratura universal)',
+      'Dashboard.jsx (Actualización oficial a versión v6.3.10 en producción)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Blindaje de Renderizado en Correo: Se normaliza la importación de glifos en ModalConfiguracionCorreo.jsx, impidiendo caídas del árbol de componentes en el ErrorBoundary al renderizar la confirmación de cuadratura universal.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Cero interrupciones de ejecución en frontend y carga limpia garantizada.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Importación de CheckCircle y CheckCircle2 en cabecera de ModalConfiguracionCorreo.jsx.',
+      'Sincronización de versión v6.3.10 en todo el ecosistema de MÉTRICO.'
+    ]
+  },
+  {
     id: 'v6.3.9',
     version_tag: 'v6.3.9',
     fecha: '12 de Septiembre, 2026',

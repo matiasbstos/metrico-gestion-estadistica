@@ -14,6 +14,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.10',
+      version: 'v6.3.10',
+      fecha: '13 de Septiembre, 2026',
+      badge: 'HOTFIX DE ESTABILIDAD: CORRECCIÓN DE IMPORTACIÓN EN CORREO',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Normalización de Glifos en Modal de Configuración y Previsualización de Correos',
+      categoria: 'Despacho & Correos Institucionales',
+      icon: Mail,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se incorporó la importación explícita del ícono CheckCircle desde lucide-react en ModalConfiguracionCorreo.jsx, subsanando el fallo en tiempo de ejecución (ReferenceError) y restableciendo el renderizado continuo y fluido de la plataforma y del módulo de correos.',
+      instructivo: {
+        paraQueSirve: 'Garantiza la estabilidad total de la interfaz al abrir el modal de despacho y previsualizar los turnos auditados.',
+        quePuedesVer: 'Carga sin errores del panel y visualización correcta del distintivo de cuadratura universal con los 4 pilares de demanda.',
+        ejemploUso: 'Al acceder a la configuración de correo y ver el previsualizador del último turno cerrado, el indicador de cuadratura universal se despliega con su icono verde de validación.'
+      },
+      changes: [
+        'Importación de CheckCircle en ModalConfiguracionCorreo.jsx.',
+        'Prevención de ReferenceError en tiempo de ejecución.',
+        'Actualización oficial a versión v6.3.10 en producción.'
+      ]
+    },
+    {
       id: 'v6.3.9',
       version: 'v6.3.9',
       fecha: '12 de Septiembre, 2026',

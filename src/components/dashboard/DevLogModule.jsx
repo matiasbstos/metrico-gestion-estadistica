@@ -8,6 +8,22 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-10',
+    fecha: '2026-09-13',
+    titulo: 'Hotfix de Estabilidad: Normalización de Glifos en Modal de Configuración de Correo',
+    tipo: 'Despacho & Correos Institucionales',
+    version_tag: 'v6.3.10',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Se reportó una interrupción en tiempo de ejecución (ReferenceError: CheckCircle is not defined) al renderizar la confirmación de cuadratura universal en la vista de correos.',
+    logica: 'Se identificó que el componente ModalConfiguracionCorreo.jsx utilizaba CheckCircle en la barra de cuadratura universal pero sólo había importado CheckCircle2 desde lucide-react.',
+    solucion: 'Se incorporó CheckCircle en la lista de imports de lucide-react, restableciendo la carga limpia y fluida en todo el ecosistema de la plataforma.',
+    fullPost: `En esta entrega rápida v6.3.10 se resolvió una excepción de referencia no capturada:
+
+- **Corrección de Importación**: Se agregó explícitamente \`CheckCircle\` en \`ModalConfiguracionCorreo.jsx\`.
+- **Estabilidad**: El ErrorBoundary de React ya no se activa y la vista de correos con los 4 pilares de demanda funciona al 100%.`
+  },
+  {
     id: 'devlog-v6-3-9',
     fecha: '2026-09-12',
     titulo: 'Integración de los 4 Pilares Maestros de Demanda en Correo Asistencial y Supresión de los 7 PDFs Adjuntos',
