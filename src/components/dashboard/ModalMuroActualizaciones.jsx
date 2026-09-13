@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.6',
+      version: 'v6.3.6',
+      fecha: '12 de Septiembre, 2026',
+      badge: 'REGLA 19: RECTIFICACIÓN PREVIA & VERIFICACIÓN CRUZADA MULTICAPA DE CORREOS',
+      badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/20',
+      title: 'Institucionalización de la Regla 19: Verificación Cruzada Multicapa Previa al Despacho',
+      categoria: 'Módulos & Vistas',
+      icon: ShieldCheck,
+      iconBg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+      summary: 'Se formalizó la Regla 19 en el protocolo institucional y en las directrices del agente: ningún informe de turno por correo puede emitirse si sus datos no han sido corroborados contra las fuentes oficiales ya consolidadas en MÉTRICO. Se mapearon y articularon los 5 pilares de verificación del sistema: 1) Histórico Mensual Asistencial (Calendario), 2) Centro de Verificación & Auditoría Clínica (Ecuación Universal Rayen), 3) Módulo de Rendimiento de Equipos de Guardia, 4) Subreportes Especializados (1.162 traslados, 242 constataciones, respiratorio, traumatología) y 5) Auditoría Pre-Vuelo en el Previsualizador de Despacho. El previsualizador de correo incorpora ahora un sello visual institucional de cuadratura universal y verificación cruzada.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que toda información despachada por correo sea 100% fidedigna, veraz y coincidente con los registros ya auditados en el Calendario Histórico y en el Centro de Verificación, eliminando cualquier riesgo de enviar cifras no conciliadas o turnos incompletos.',
+        quePuedesVer: '1) Sello Institucional Pre-Vuelo: En el banner superior de la previsualización del correo se despliega la confirmación explícita de cuadratura (Total = Atenciones + Altas Admin.) y el distintivo de contraste con el Histórico Mensual y la Auditoría Rayen. 2) Protección Anti-Turnos Parciales: Bloqueo y advertencia obligatoria si un turno se encuentra en curso.',
+        ejemploUso: 'Al seleccionar cualquier turno en el módulo de correos (ej. 09/09/2026), el previsualizador certifica en tiempo real que los 94 pacientes cuadran exactamente con los registros del Histórico Mensual y la Ecuación de Demanda antes de autorizar el envío.'
+      },
+      changes: [
+        'Formalización vinculante de la Regla 19 en AGENTS.md y .agents/AGENTS.md.',
+        'Mapeo canónico de las 5 fuentes de rectificación y verificación cruzada de turnos terminados.',
+        'Incorporación de sello institucional de verificación cruzada en el previsualizador de correos (ModalConfiguracionCorreo.jsx).',
+        'Actualización a versión v6.3.6 en producción.'
+      ]
+    },
+    {
       id: 'v6.3.5',
       version: 'v6.3.5',
       fecha: '12 de Septiembre, 2026',

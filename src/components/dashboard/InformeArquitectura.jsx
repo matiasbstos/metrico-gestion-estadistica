@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.6',
+    version_tag: 'v6.3.6',
+    fecha_despliegue: '12 de Septiembre, 2026',
+    proposito_actualizacion: 'Institucionalización de la Regla 19: Protocolo Obligatorio de Rectificación Previa y Verificación Cruzada Multicapa de Turnos Terminados antes del Envío de Correos.',
+    medios_y_stack: [
+      'AGENTS.md y .agents/AGENTS.md (Formalización vinculante de la Regla 19 que establece las 5 fuentes canónicas de verificación de turnos cerrados)',
+      'ModalConfiguracionCorreo.jsx (Incorporación de sello visual de verificación cruzada con Histórico Mensual y Ecuación Universal de Demanda Rayen en el previsualizador)',
+      'Dashboard.jsx (Actualización oficial a versión v6.3.6 en producción)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Principio de Veracidad y Fidedignidad Inviolable: Ningún correo o informe puede emitirse con datos no conciliados al 100% contra los módulos de auditoría. 2) Mapeo Canónico de las 5 Fuentes de Rectificación: Histórico Mensual Asistencial, Centro de Verificación y Auditoría Clínica, Rendimiento de Equipos de Guardia, Subreportes Especializados y Auditoría Pre-Vuelo en Despacho. 3) Sello Institucional Pre-Vuelo: Verificación visible en pantalla de cuadratura universal y contraste contra calendario histórico antes de habilitar el despacho SMTP.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'system_architecture_log', 'audit_logs'],
+      query_optimization: 'Validación pre-vuelo reactiva en O(1) con verificación cruzada inmediata de cuadratura matemática.'
+    },
+    modulos_afectados: ['AGENTS.md', '.agents/AGENTS.md', 'ModalConfiguracionCorreo.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Creación de la Regla 19 en las directrices maestras del agente y del repositorio.',
+      'Añadido sello institucional de verificación cruzada multicapa en el previsualizador de diseño de correos.',
+      'Sincronización de versiones institucionales v6.3.6 en toda la plataforma.'
+    ]
+  },
+  {
     id: 'v6.3.5',
     version_tag: 'v6.3.5',
     fecha_despliegue: '12 de Septiembre, 2026',

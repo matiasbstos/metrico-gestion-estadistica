@@ -8,6 +8,38 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-6',
+    fecha: '2026-09-12',
+    titulo: 'Institucionalización de la Regla 19: Verificación Cruzada Multicapa Previa al Despacho de Informes',
+    tipo: 'Auditoría & Calidad SSOT',
+    version_tag: 'v6.3.6',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Necesidad de certificar que todo informe de turno o día despachado por correo sea 100% veraz, exacto e inmutable, contrastándolo previamente contra los módulos donde MÉTRICO ya corroboró y consolidó la información histórica y clínica.',
+    logica: 'Articulación de los 5 pilares de verificación del sistema (Histórico Mensual, Centro de Verificación, Rendimiento de Equipos, Subreportes Especializados y Pre-Vuelo en Despacho) y formalización de la Regla 19 en el protocolo institucional y del agente.',
+    solucion: 'Incorporación de la Regla 19 en AGENTS.md, integración del sello de verificación cruzada en el previsualizador de correo y blindaje del despacho contra turnos parciales o no conciliados.',
+    fullPost: `El correo electrónico generado por MÉTRICO es un instrumento oficial de gestión asistencial y toma de decisiones para jefaturas y directivos de la red de salud. Por ello, la información contenida no puede ser producto de cálculos aislados o estimaciones no contrastadas.
+
+Para dar una respuesta arquitectónica definitiva al requerimiento de veracidad absoluta, mapeamos y articulamos los 5 pilares de verificación donde MÉTRICO ya cuenta con información corroborada y certificada:
+
+1. **Histórico Mensual Asistencial (CalendarioHistorico.jsx)**:
+Es el primer punto de contraste cronológico. Mediante la función getStrictStats sobre pacientesDB deduplicados, este módulo audita día a día y turno por turno (Turno SAR vs Día Civil 24h) el desglose exacto de admisiones, atenciones médicas efectivas, altas administrativas y triage C1 a C5.
+
+2. **Centro de Verificación & Auditoría Clínica (CentroVerificacionAuditoria.jsx)**:
+Es el núcleo de validación matemática y analítica. Aquí reside la Prueba de Control Clínico de Demanda, basada en la Ecuación Universal Rayen (Total Admitidos = Atenciones Médicas + Egresos Administrativos + Altas sin Atención), con soporte para las 4 franjas horarias asistenciales (Día 24h, Fin de Semana Día 08-20, Fin de Semana Noche 20-08 y Turno Largo Semana 17-12) y contraste contra benchmarks históricos oficiales.
+
+3. **Módulo de Rendimiento de Equipos de Guardia (AnalisisEquiposTurno.jsx)**:
+Permite verificar operativamente qué equipo de guardia (Turnos 1 al 4) estuvo a cargo de la jornada, su volumen ingresado, su latencia promedio al triage y la proporción de alta complejidad (C1+C2+C3).
+
+4. **Módulos Especializados & Subreportes Oficiales**:
+En Análisis de Demanda, Traslados, Constataciones, Respiratorio y Traumatología residen las cifras de control de los 7 reportes PDF adjuntos (los 1.162 traslados a Urgencia Hospitalaria, las 242 constataciones de lesiones Z51.8, los casos IRA y las sospechas de fractura).
+
+5. **Auditoría Pre-Vuelo en la Cola de Despacho (ModalConfiguracionCorreo.jsx)**:
+Antes de que se dispare cualquier solicitud a la Cloud Function, el previsualizador contrasta las cifras contra los registros clínicos individuales y valida que el turno esté 100% cerrado.
+
+A partir de esta versión, en el previsualizador se despliega un Sello Institucional de Verificación Cruzada que confirma la cuadratura matemática y el contraste exitoso con el Histórico Mensual y el Control de Demanda Rayen, consolidando a MÉTRICO como un estándar de máxima confiabilidad analítica.`
+  },
+  {
     id: 'devlog-v6-3-5',
     fecha: '2026-09-12',
     titulo: 'Restabilización de Histórico Mensual, Erradicación de Duplicados en Cola y Conciliación Rayen 09/09',

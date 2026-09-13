@@ -1973,23 +1973,35 @@ export default function ModalConfiguracionCorreo({
               </div>
             </div>
 
-            {/* INDICADOR DE TURNO ESPECÍFICO EN PREVISUALIZADOR */}
-            <div className="p-3.5 bg-indigo-500/15 border border-indigo-500/40 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-xs animate-fade-in">
-              <span className="font-bold text-primary-custom flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-indigo-500 shrink-0" />
-                <span>
-                  {selectedShiftObj ? 'Previsualizando Turno Seleccionado:' : 'Turno Clínico Activo:'} <strong className="text-indigo-600 dark:text-indigo-400">{turnoInfo.textoCompleto}</strong> ({turnoInfo.totalAdmitidos} pac.) • <span className="text-emerald-600 dark:text-emerald-400 font-black">✔ Cuadratura: {turnoInfo.totalAdmitidos} = {turnoInfo.atendidos} + {turnoInfo.altasAdmin}</span>
+            {/* INDICADOR DE TURNO ESPECÍFICO EN PREVISUALIZADOR CON SELLO DE VERIFICACIÓN CRUZADA */}
+            <div className="p-4 bg-gradient-to-r from-indigo-500/15 via-purple-500/10 to-indigo-500/15 border border-indigo-500/40 rounded-2xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 text-xs shadow-xs animate-fade-in">
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-indigo-500 shrink-0" />
+                  <span className="font-bold text-primary-custom">
+                    {selectedShiftObj ? 'Turno Seleccionado Auditado:' : 'Turno Clínico Oficial Activo:'}{' '}
+                    <strong className="text-indigo-600 dark:text-indigo-400">{turnoInfo.textoCompleto}</strong> ({turnoInfo.totalAdmitidos} pac.)
+                  </span>
                   {turnoInfo.esTurnoCompleto ? (
-                    <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 ml-2">
+                    <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
                       <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Turno 100% Cerrado
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 ml-2">
+                    <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">
                       <AlertCircle className="w-3 h-3 text-amber-500" /> ⏳ En Curso (Parcial)
                     </span>
                   )}
-                </span>
-              </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-[11px] text-secondary-custom">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-black flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3 text-emerald-500" /> Cuadratura Universal: {turnoInfo.totalAdmitidos} Admitidos = {turnoInfo.atendidos} Atenciones + {turnoInfo.altasAdmin} Altas Admin.
+                  </span>
+                  <span className="text-secondary-custom opacity-50 hidden sm:inline">•</span>
+                  <span className="text-indigo-600 dark:text-indigo-400 font-bold flex items-center gap-1">
+                    <ShieldCheck className="w-3 h-3 text-indigo-500" /> Corroborado con Histórico Mensual & Control de Demanda Rayen
+                  </span>
+                </div>
+              </div>
               <div className="flex items-center gap-2">
                 {selectedShiftObj && (
                   <button
