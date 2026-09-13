@@ -4,7 +4,7 @@ import {
   FileText, AlertCircle, RefreshCw, Layers, Code, CheckSquare, Square, Cpu, Eye, UserCheck, 
   Activity, ArrowLeftRight, Hospital, FastForward, Play, ListOrdered, ChevronRight, Users, 
   UserPlus, Trash2, Edit3, Smartphone, Monitor, ShieldCheck, History, ArrowRight, ToggleLeft, ToggleRight, 
-  Inbox, BellRing, Filter, Search, ChevronLeft
+  Inbox, BellRing, Filter, Search, ChevronLeft, Zap, AlertTriangle
 } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app as defaultApp } from '../../config/firebase';
@@ -871,16 +871,23 @@ export default function ModalConfiguracionCorreo({
       destino: 'Hospital San José de Melipilla (Urgencia Quirúrgica)'
     };
 
-    // Comparativa YoY oficial vs 2025
+    // Comparativa YoY oficial vs 2025 (Valores Institucionales MÉTRICO)
     const comparativaYoY = {
-      pctAdmitidosYoY: '+18.3%',
-      prevTotalAdmitidos: Math.round(baseTurno.totalAdmitidos / 1.183) || 94,
-      pctAtendidosYoY: '+17.6%',
-      prevAtendidos: Math.round(baseTurno.atendidos / 1.176) || 86,
-      pctAltasYoY: '+25.1%',
-      prevAltasAdmin: Math.max(1, Math.round(baseTurno.altasAdmin / 1.251)) || 8,
+      pctAdmitidosYoY: '+20.4%',
+      prevTotalAdmitidos: '23.474',
+      ytdAdmitidos: '28.257',
+      pctAtendidosYoY: '+19.8%',
+      prevAtendidos: '21.448',
+      ytdAtendidos: '25.696',
+      atendidosCobPct: '90.9%',
+      pctAltasYoY: '+26.4%',
+      prevAltasAdmin: '2.026',
+      ytdAltas: '2.561',
+      altasPct: '9.1%',
       pctTrasladosYoY: '+11.8%',
-      prevTrasladosCount: 2,
+      prevTrasladosCount: '1.039',
+      ytdTraslados: '1.162',
+      trasladosTasa: '4.1%',
       prevTiempoCat: 18,
       prevEstadia: '1h 52m',
       prevFracturasCount: 0,
@@ -1161,7 +1168,7 @@ export default function ModalConfiguracionCorreo({
       }
     }
 
-    if (!window.confirm(`¿Confirmas el despacho inmediato del informe oficial para el siguiente turno auditado?\n\n${turnoInfo.textoCompleto}\n\nDestinatarios: ${target}\n(Incluye los 7 reportes PDF oficiales Hoja Carta)`)) {
+    if (!window.confirm(`¿Confirmas el despacho inmediato del informe oficial para el siguiente turno auditado?\n\n${turnoInfo.textoCompleto}\n\nDestinatarios: ${target}`)) {
       return;
     }
 
@@ -1205,7 +1212,7 @@ export default function ModalConfiguracionCorreo({
         tipo: `Informe Oficial de Turno (${turnoInfo.rotativa})`,
         destinatario: target,
         estado: 'EXITOSO',
-        detalles: `Despacho oficial entregado con los 7 reportes PDF adjuntos para ${turnoInfo.textoCompleto}.`
+        detalles: `Despacho oficial entregado para ${turnoInfo.textoCompleto}.`
       };
       setTestLogs(prev => [newLog, ...prev.slice(0, 19)]);
       if (showNotif) showNotif(`✔ Informe oficial de ${turnoInfo.textoCompleto} despachado exitosamente a: ${target}`, 'success');
@@ -1389,7 +1396,7 @@ export default function ModalConfiguracionCorreo({
                       </span>
                     </div>
                     <span className="text-[11px] text-secondary-custom font-medium block mt-0.5">
-                      Destinatarios configurados ({destinatariosList.filter(d => d.activo).length}): <strong>{activeEmailsString}</strong> • Incluye los 7 reportes PDF adjuntos
+                      Destinatarios configurados ({destinatariosList.filter(d => d.activo).length}): <strong>{activeEmailsString}</strong>
                     </span>
                   </div>
                 </div>
@@ -2125,63 +2132,152 @@ export default function ModalConfiguracionCorreo({
                       </p>
                     </div>
 
-                    {/* 1. LÁMINA: 5 RECUADROS SUPERIORES (INCLUYENDO ESPERA TOTAL Y CONSTATACIONES) */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                    {/* 1. LÁMINA: 4 PILARES MAESTROS DE DEMANDA & COBERTURA (MISMA JERARQUÍA E IMPORTANCIA) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                       
-                      {/* RECUADRO 1: ADMITIDOS */}
-                      <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-1 shadow-xs">
-                        <span className="text-[10px] text-slate-500 uppercase font-black block tracking-wider">Admitidos Totales</span>
-                        <span className="text-2xl font-black text-slate-900 block">{turnoInfo.totalAdmitidos}</span>
-                        <div className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                          <span>↑ +12.4%</span>
-                          <span className="text-[9px] font-medium text-slate-500">vs 2025</span>
+                      {/* CARD 1: PACIENTES ADMITIDOS */}
+                      <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 shadow-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider flex items-center gap-1.5">
+                            <Users className="w-3.5 h-3.5 text-indigo-600" /> PAC. ADMITIDOS (YOY)
+                          </span>
+                          <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
+                            Demanda ↗
+                          </span>
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-black text-emerald-600">
+                            {turnoInfo.comparativaYoY?.pctAdmitidosYoY || '+20.4%'}
+                          </span>
+                          <span className="text-[9px] font-black text-slate-500 uppercase">VS AÑO ANT.</span>
+                        </div>
+                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-0.5 text-[10px]">
+                          <p className="font-extrabold text-slate-800 dark:text-slate-200">
+                            Volumen Turno: <strong>{turnoInfo.totalAdmitidos} pac.</strong>
+                          </p>
+                          <p className="font-bold text-slate-900 dark:text-slate-100">
+                            Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdAdmitidos || '28.257'} pac.</strong>
+                          </p>
+                          <p className="text-slate-500 font-medium">
+                            Año Ant. (2025): {turnoInfo.comparativaYoY?.prevTotalAdmitidos || '23.474'} pac.
+                          </p>
                         </div>
                       </div>
 
-                      {/* RECUADRO 2: ATENDIDOS */}
-                      <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-1 shadow-xs">
-                        <span className="text-[10px] text-slate-500 uppercase font-black block tracking-wider">Atenciones Médicas</span>
-                        <span className="text-2xl font-black text-emerald-600 block">{turnoInfo.atendidos}</span>
-                        <div className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                          <span>↑ +14.2%</span>
-                          <span className="text-[9px] font-medium text-slate-500">vs 2025</span>
+                      {/* CARD 2: PACIENTES ATENDIDOS */}
+                      <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 shadow-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider flex items-center gap-1.5">
+                            <UserCheck className="w-3.5 h-3.5 text-sky-600" /> PAC. ATENDIDOS (YOY)
+                          </span>
+                          <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300">
+                            Clínico ↗
+                          </span>
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-black text-emerald-600">
+                            {turnoInfo.comparativaYoY?.pctAtendidosYoY || '+19.8%'}
+                          </span>
+                          <span className="text-[9px] font-black text-slate-500 uppercase">VS AÑO ANT.</span>
+                        </div>
+                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-0.5 text-[10px]">
+                          <p className="font-extrabold text-slate-800 dark:text-slate-200">
+                            Volumen Turno: <strong>{turnoInfo.atendidos} pac.</strong> ({turnoInfo.totalAdmitidos > 0 ? (((turnoInfo.atendidos || 0) / turnoInfo.totalAdmitidos) * 100).toFixed(1) : '100.0'}%)
+                          </p>
+                          <p className="font-bold text-slate-900 dark:text-slate-100">
+                            Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdAtendidos || '25.696'} pac.</strong> <span className="text-emerald-600 font-bold">({turnoInfo.comparativaYoY?.atendidosCobPct || '90.9%'} cob.)</span>
+                          </p>
+                          <p className="text-slate-500 font-medium">
+                            Año Ant. (2025): {turnoInfo.comparativaYoY?.prevAtendidos || '21.448'} pac.
+                          </p>
                         </div>
                       </div>
 
-                      {/* RECUADRO 3: ALTAS ADMIN */}
-                      <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-1 shadow-xs">
-                        <span className="text-[10px] text-slate-500 uppercase font-black block tracking-wider">Altas Administrativas</span>
-                        <span className="text-2xl font-black text-rose-600 block">{turnoInfo.altasAdmin}</span>
-                        <div className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                          <span>↓ -7.7%</span>
-                          <span className="text-[9px] font-medium text-slate-500">vs 2025</span>
+                      {/* CARD 3: ALTAS ADMINISTRATIVAS */}
+                      <div className="p-4 bg-rose-50/50 dark:bg-rose-950/20 rounded-2xl border border-rose-200 dark:border-rose-900/60 space-y-2 shadow-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-rose-700 uppercase font-black tracking-wider flex items-center gap-1.5">
+                            <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> ALTAS ADMIN (YOY)
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-[8.5px] font-black px-1.5 py-0.2 rounded bg-rose-600 text-white">
+                              &gt;5%
+                            </span>
+                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200">
+                              Altas ↗
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-black text-rose-600">
+                            {turnoInfo.comparativaYoY?.pctAltasYoY || '+26.4%'}
+                          </span>
+                          <span className="text-[9px] font-black text-rose-700 uppercase">VS AÑO ANT.</span>
+                        </div>
+                        <div className="pt-2 border-t border-rose-200/60 dark:border-rose-900/40 space-y-0.5 text-[10px]">
+                          <p className="font-extrabold text-rose-950 dark:text-rose-100">
+                            Volumen Turno: <strong>{turnoInfo.altasAdmin} altas</strong> ({turnoInfo.totalAdmitidos > 0 ? (((turnoInfo.altasAdmin || 0) / turnoInfo.totalAdmitidos) * 100).toFixed(1) : '0.0'}%)
+                          </p>
+                          <p className="font-bold text-rose-900 dark:text-rose-200">
+                            Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdAltas || '2.561'} altas</strong> <span className="font-bold text-slate-600">({turnoInfo.comparativaYoY?.altasPct || '9.1%'} del total)</span>
+                          </p>
+                          <p className="text-slate-500 font-medium">
+                            Año Ant. (2025): {turnoInfo.comparativaYoY?.prevAltasAdmin || '2.026'} altas
+                          </p>
                         </div>
                       </div>
 
-                      {/* RECUADRO 4: RENDIMIENTO / HORA */}
-                      <div className="p-3.5 bg-indigo-50/70 rounded-2xl border border-indigo-200 text-center space-y-1 shadow-xs">
-                        <span className="text-[10px] text-indigo-700 uppercase font-black block tracking-wider">Rendimiento / Hora</span>
-                        <span className="text-2xl font-black text-indigo-700 block">
-                          {turnoInfo.rendimientoHora || (turnoInfo.totalAdmitidos > 0 ? (turnoInfo.totalAdmitidos / 12).toFixed(1) : '8.5')} <span className="text-xs font-bold text-indigo-500">pac/hr</span>
+                      {/* CARD 4: TRASLADOS A HOSPITAL */}
+                      <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2 shadow-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-purple-700 uppercase font-black tracking-wider flex items-center gap-1.5">
+                            <ArrowLeftRight className="w-3.5 h-3.5 text-purple-600" /> TRASLADOS HOSP. (YOY)
+                          </span>
+                          <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
+                            Traslados ↗
+                          </span>
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-black text-emerald-600">
+                            {turnoInfo.comparativaYoY?.pctTrasladosYoY || '+11.8%'}
+                          </span>
+                          <span className="text-[9px] font-black text-slate-500 uppercase">VS AÑO ANT.</span>
+                        </div>
+                        <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-0.5 text-[10px]">
+                          <p className="font-extrabold text-slate-800 dark:text-slate-200">
+                            Volumen Turno: <strong>{turnoInfo.trasladosCount ?? (turnoInfo.traslados || 0)} pac.</strong> ({turnoInfo.totalAdmitidos > 0 ? ((((turnoInfo.trasladosCount ?? (turnoInfo.traslados || 0))) / turnoInfo.totalAdmitidos) * 100).toFixed(1) : '0.0'}%)
+                          </p>
+                          <p className="font-bold text-slate-900 dark:text-slate-100">
+                            Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdTraslados || '1.162'} pac.</strong> <span className="text-purple-600 font-bold">({turnoInfo.comparativaYoY?.trasladosTasa || '4.1%'} tasa)</span>
+                          </p>
+                          <p className="text-slate-500 font-medium">
+                            Año Ant. (2025): {turnoInfo.comparativaYoY?.prevTrasladosCount || '1.039'} pac.
+                          </p>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* SUB-BLOQUE: RENDIMIENTO HORARIO & ESTADÍA PROMEDIO (INDICADORES DE EFICIENCIA) */}
+                    <div className="p-3 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-2">
+                        <Zap className="w-4 h-4 text-indigo-600" />
+                        <span className="text-slate-600 dark:text-slate-400 font-bold">
+                          Rendimiento Clínico de Guardia: <strong className="text-indigo-600 dark:text-indigo-400 font-black">{turnoInfo.rendimientoHora || (turnoInfo.totalAdmitidos > 0 ? (turnoInfo.totalAdmitidos / 12).toFixed(1) : '8.5')} pac/hr</strong>
                         </span>
-                        <div className="inline-flex items-center gap-1 text-[10px] font-black text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-full border border-indigo-200">
-                          <span>↑ +9.5%</span>
-                          <span className="text-[9px] font-medium text-indigo-500">vs 2025</span>
-                        </div>
-                      </div>
-
-                      {/* RECUADRO 5: ESPERA TOTAL PROMEDIO */}
-                      <div className="p-3.5 bg-purple-50/70 rounded-2xl border border-purple-200 text-center space-y-1 shadow-xs">
-                        <span className="text-[10px] text-purple-700 uppercase font-black block tracking-wider">Estadía Total Promedio</span>
-                        <span className="text-2xl font-black text-purple-800 block">
-                          {Math.floor((turnoInfo.estadiaPromedioMin || 135) / 60)}h {(turnoInfo.estadiaPromedioMin || 135) % 60}m <span className="text-xs font-bold text-purple-600">({turnoInfo.estadiaPromedioMin || 135} min)</span>
+                        <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md">
+                          ↑ +9.5% vs 2025
                         </span>
-                        <div className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                          <span>↓ -4.2%</span>
-                          <span className="text-[9px] font-medium text-slate-500">vs 2025</span>
-                        </div>
                       </div>
-
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-purple-600" />
+                        <span className="text-slate-600 dark:text-slate-400 font-bold">
+                          Estadía Total Promedio: <strong className="text-purple-600 dark:text-purple-400 font-black">{Math.floor((turnoInfo.estadiaPromedioMin || 135) / 60)}h {(turnoInfo.estadiaPromedioMin || 135) % 60}m ({turnoInfo.estadiaPromedioMin || 135} min)</strong>
+                        </span>
+                        <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md">
+                          ↓ -4.2% vs 2025
+                        </span>
+                      </div>
                     </div>
 
                     {/* RECUADRO SUPERIOR DESTACADO: DESGLOSE DE TIEMPOS DE ESPERA & CONSTATACIONES */}
@@ -2513,60 +2609,7 @@ export default function ModalConfiguracionCorreo({
                       </div>
                     </div>
 
-                    {/* 7. TARJETA OFICIAL: DESCARGA DE REPORTES PDF Y CATÁLOGO */}
-                    <div className="p-5 bg-gradient-to-r from-indigo-50 via-white to-indigo-50 border-2 border-indigo-300 rounded-3xl text-indigo-950 space-y-3 shadow-sm">
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2.5 bg-indigo-600 text-white rounded-2xl shadow-sm">
-                            <FileText className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <h5 className="font-black text-sm text-indigo-950">Descarga de Informes Oficiales en PDF (Formato Carta Institucional)</h5>
-                            <p className="text-[11px] text-indigo-800 font-medium">
-                              Haz clic en el enlace o dirígete a <strong>Reportes</strong> para descargar el expediente completo con gráficos vectoriales de alta resolución.
-                            </p>
-                          </div>
-                        </div>
-
-                        {onOpenReportes && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              onClose();
-                              onOpenReportes();
-                            }}
-                            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0"
-                          >
-                            <FileText className="w-4 h-4" />
-                            <span>Descargar PDF en Reportes</span>
-                          </button>
-                        )}
-                      </div>
-
-                      {/* CATÁLOGO DE LOS 6 REPORTES PDF DISPONIBLES */}
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 pt-2 border-t border-indigo-200/80 text-[10px] font-bold text-indigo-900">
-                        <div className="p-2 bg-white/80 rounded-xl border border-indigo-200 text-center">
-                          📄 1. Demanda General
-                        </div>
-                        <div className="p-2 bg-white/80 rounded-xl border border-indigo-200 text-center">
-                          📄 2. Altas Admin
-                        </div>
-                        <div className="p-2 bg-white/80 rounded-xl border border-indigo-200 text-center">
-                          📄 3. Traumatología
-                        </div>
-                        <div className="p-2 bg-white/80 rounded-xl border border-indigo-200 text-center">
-                          📄 4. Enfermería
-                        </div>
-                        <div className="p-2 bg-white/80 rounded-xl border border-indigo-200 text-center">
-                          📄 5. Lesiones Z51.8
-                        </div>
-                        <div className="p-2 bg-white/80 rounded-xl border border-indigo-200 text-center">
-                          📄 6. Traslados SAMU
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 8. BLOQUE OFICIAL: PIE DE CERTIFICACIÓN Y CIERRE INSTITUCIONAL (IGUAL A SUB-REPORTES) */}
+                    {/* 7. BLOQUE OFICIAL: PIE DE CERTIFICACIÓN Y CIERRE INSTITUCIONAL (IGUAL A SUB-REPORTES) */}
                     <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] text-slate-700 space-y-1">
                       <p><strong>Sistema Emisor:</strong> Métrico - Dashboard de Gestión Estadística y Tiempos de Espera de Urgencia (SAR Arpillerista Elsa Romo Aravena).</p>
                       <p><strong>Usuario Certificante:</strong> {userProfile?.email || 'matias.bustos@cormumel.cl'}</p>

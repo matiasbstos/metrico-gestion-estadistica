@@ -10,6 +10,32 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.9',
+    version_tag: 'v6.3.9',
+    fecha: '12 de Septiembre, 2026',
+    fecha_despliegue: '12 de Septiembre, 2026',
+    proposito_actualizacion: 'Integración de los 4 Pilares Maestros de Demanda con Comparativa YoY en el Correo Asistencial y Supresión de Adjuntos de los 7 Reportes PDF.',
+    medios_y_stack: [
+      'InformeAsistencialEmail.js (Reestructuración de Lámina 1 con 4 tarjetas de igual jerarquía e importancia para Admitidos, Atendidos, Altas Admin y Traslados Hosp con porcentajes YoY oficiales y volúmenes YTD)',
+      'InformeAsistencialEmail.js (Supresión de Lámina 9 de reportes PDF adjuntos y actualización del banner de auditoría SSOT)',
+      'index.js (Cloud Function enviarInformeCorreo optimizada sin compilación en memoria ni adjunto de los 7 reportes PDF con pdf-lib)',
+      'ModalConfiguracionCorreo.jsx (Actualización de comparativaYoY oficial +20.4%, +19.8%, +26.4%, +11.8%, reestructuración de la previsualización interactiva con los 4 pilares y erradicación del bloque de 7 PDFs)',
+      'Dashboard.jsx (Actualización oficial a versión v6.3.9 en producción)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Cuatro Pilares Maestros en Correo: El informe asistencial prioriza con idéntico nivel de importancia visual los 4 indicadores canónicos de demanda y cobertura: Pacientes Admitidos (+20.4% YoY, YTD 28.257 pac), Pacientes Atendidos (+19.8% YoY, YTD 25.696 pac, 90.9% cob.), Altas Administrativas (+26.4% YoY, YTD 2.561 altas, 9.1% total) y Traslados a Hospital (+11.8% YoY, YTD 1.162 pac, 4.1% tasa). 2) Despacho Ligero y Seguro sin PDFs adjuntos: Se elimina la obligatoriedad de compilar y adjuntar los 7 reportes PDF en el correo de guardia, agilizando el despacho SMTP y reduciendo el peso del mensaje.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Despacho SMTP en tiempo mínimo sin latencia de renderizado de pdf-lib ni sobrecarga de red por adjuntos pesados.'
+    },
+    modulos_afectados: ['InformeAsistencialEmail.js', 'functions/index.js', 'ModalConfiguracionCorreo.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx', 'AGENTS.md'],
+    detalles_tecnicos: [
+      'Rediseño de Lámina 1 en React Email con grilla de 4 columnas y estilos visuales idénticos a las tarjetas maestras de demanda.',
+      'Inclusión de sub-bloque de eficiencia clínica para Rendimiento Horario (pac/hr) y Estadía Total Promedio (h y min).',
+      'Desactivación del pipeline de pdf-lib en Cloud Function enviarInformeCorreo manteniendo adjuntos CSV y TXT de bitácora.',
+      'Sincronización de versión v6.3.9 en todo el ecosistema de MÉTRICO.'
+    ]
+  },
+  {
     id: 'v6.3.8',
     version_tag: 'v6.3.8',
     fecha: '12 de Septiembre, 2026',

@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.9',
+      version: 'v6.3.9',
+      fecha: '12 de Septiembre, 2026',
+      badge: 'CORREO ASISTENCIAL: 4 PILARES YOY CON IGUAL JERARQUÍA & DESPACHO ÁGIL',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Integración de los 4 Pilares Maestros de Demanda en Correo y Supresión de los 7 PDFs Adjuntos',
+      categoria: 'Despacho & Correos Institucionales',
+      icon: Mail,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se actualizaron integralmente los correos asistenciales y el previsualizador interactivo para reflejar los 4 pilares fundamentales de demanda y cobertura con idéntica jerarquía e impacto visual: Pacientes Admitidos (+20.4% YoY), Pacientes Atendidos (+19.8% YoY), Altas Administrativas (+26.4% YoY) y Traslados a Hospital (+11.8% YoY), todos con sus volúmenes de guardia, volúmenes acumulados YTD y líneas base 2025. Asimismo, por directriz operativa, se suprimió la generación y adjunto obligatorio de los 7 reportes PDF en el correo, agilizando el despacho y concentrando la información clave directamente en el cuerpo del mensaje.',
+      instructivo: {
+        paraQueSirve: 'Permite a la Dirección Médica y a las Jefaturas recibir en su correo un informe clínico ejecutivo con los 4 indicadores clave de demanda al mismo nivel de importancia, con despacho inmediato y sin sobrecargar la bandeja con archivos PDF pesados.',
+        quePuedesVer: '1) Cuatro Tarjetas Maestras YoY: Admitidos, Atendidos, Altas y Traslados con sus porcentajes destacados e indicadores de cobertura. 2) Sub-bloque de Eficiencia: Rendimiento por hora (pac/hr) y estadía total promedio (h y min) integrados armónicamente. 3) Despacho Directo: Envío ligero que incluye bitácora TXT y consolidado CSV sin adjuntar los 7 PDFs.',
+        ejemploUso: 'Al previsualizar o recibir el informe diario por correo, las 4 tarjetas superiores destacan de inmediato los porcentajes oficiales de crecimiento y las cifras de control del turno.'
+      },
+      changes: [
+        'Rediseño de Lámina 1 en InformeAsistencialEmail.js con 4 tarjetas de demanda de igual jerarquía e importancia visual.',
+        'Actualización de comparativa interanual oficial (+20.4% Admitidos, +19.8% Atendidos, +26.4% Altas, +11.8% Traslados).',
+        'Supresión de la generación y adjunto de los 7 reportes PDF en Cloud Function enviarInformeCorreo y plantilla React Email.',
+        'Actualización de la previsualización interactiva de correos en ModalConfiguracionCorreo.jsx.',
+        'Actualización oficial a versión v6.3.9 en producción.'
+      ]
+    },
+    {
       id: 'v6.3.8',
       version: 'v6.3.8',
       fecha: '12 de Septiembre, 2026',

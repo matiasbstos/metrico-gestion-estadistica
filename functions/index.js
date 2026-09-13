@@ -1278,29 +1278,19 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
         <div style="background: #ffffff; border-radius: 14px; padding: 24px; max-width: 640px; margin: 0 auto; border: 1px solid #cbd5e1;">
           <h2 style="color: #0f172a; margin-top: 0;">SAR Elsa Romo Aravena • MÉTRICO</h2>
           <p><strong>Informe Asistencial Auditado:</strong> ${turnoInfo.textoCompleto}</p>
-          <p><strong>Total Pacientes Admitidos:</strong> ${turnoInfo.totalAdmitidos} (${yoy.pctAdmitidosYoY || '+18.3%'} YoY)</p>
-          <p><strong>Atenciones Médicas Efectivas:</strong> ${turnoInfo.atendidos} (${yoy.pctAtendidosYoY || '+17.6%'} YoY)</p>
-          <p><strong>Altas Administrativas:</strong> ${turnoInfo.altasAdmin} (${yoy.pctAltasYoY || '+25.1%'} YoY)</p>
+          <p><strong>Total Pacientes Admitidos:</strong> ${turnoInfo.totalAdmitidos} (${yoy.pctAdmitidosYoY || '+20.4%'} YoY)</p>
+          <p><strong>Atenciones Médicas Efectivas:</strong> ${turnoInfo.atendidos} (${yoy.pctAtendidosYoY || '+19.8%'} YoY)</p>
+          <p><strong>Altas Administrativas:</strong> ${turnoInfo.altasAdmin} (${yoy.pctAltasYoY || '+26.4%'} YoY)</p>
           <p><strong>Traslados Hospitalarios:</strong> ${turnoInfo.trasladosCount || 0} (${yoy.pctTrasladosYoY || '+11.8%'} YoY)</p>
-          <p style="margin-top: 20px; font-size: 12px; color: #64748b;">Se adjuntan los 7 reportes ejecutivos oficiales en formato PDF.</p>
         </div>
       </body>
       </html>
     `;
   }
 
-  console.log(`[SMTP Nodemailer] Generando los 7 reportes PDF oficiales y despachando correo a:`, emailsList);
+  console.log(`[SMTP Nodemailer] Despachando correo asistencial auditado a:`, emailsList);
 
   const safeFecha = String(turnoInfo.fechaTurno || '16-08-2026').replace(/\//g, '-');
-  
-  // 2. GENERACIÓN AUTOMÁTICA DE LOS 7 REPORTES OFICIALES EN PDF
-  let sietePdfs = [];
-  try {
-    sietePdfs = await generarSieteReportesPdf(turnoInfo);
-    console.log(`[PDF Generator SUCCESS] Generados exitosamente ${sietePdfs.length} reportes PDF oficiales para el turno.`);
-  } catch (pdfErr) {
-    console.warn('[PDF Generator Warning] Error generando los 7 reportes PDF con pdf-lib:', pdfErr.message);
-  }
 
   const csvData = `FECHA_TURNO,TURNO,EQUIPO,ROTATIVA,ADMITIDOS_TOTAL,ATENDIDOS,ALTAS_ADMINISTRATIVAS,C1_EMERGENCIA,C2_URGENCIA_ALTA,C3_URGENCIA_MEDIA,C4_BAJA_COMPLEJIDAD,C5_GENERAL,TOP_PROFESIONAL
 "${turnoInfo.fechaTurno}","Turno ${turnoInfo.turnoNum}","${turnoInfo.equipo || 'Turno 2'}","${turnoInfo.rotativa}",${turnoInfo.totalAdmitidos},${turnoInfo.atendidos},${turnoInfo.altasAdmin},${turnoInfo.triage?.c1 || 0},${turnoInfo.triage?.c2 || 0},${turnoInfo.triage?.c3 || 0},${turnoInfo.triage?.c4 || 0},${turnoInfo.triage?.c5 || 0},"${turnoInfo.medicoMasProductivo || 'No especificado'}"`;
@@ -1318,9 +1308,9 @@ VERIFICACIÓN: Control de Guía & Inspección de Duplicados OK (100% Auditado)
 --------------------------------------------------------------------
 1. MÉTRICAS CLAVE DEL TURNO
 --------------------------------------------------------------------
-- Pacientes Admitidos Totales: ${turnoInfo.totalAdmitidos} (${yoy.pctAdmitidosYoY || '+18.3%'} YoY)
-- Atenciones Médicas Efectivas: ${turnoInfo.atendidos} (${yoy.pctAtendidosYoY || '+17.6%'} YoY)
-- Altas Administrativas & Retiros: ${turnoInfo.altasAdmin} (${yoy.pctAltasYoY || '+25.1%'} YoY)
+- Pacientes Admitidos Totales: ${turnoInfo.totalAdmitidos} (${yoy.pctAdmitidosYoY || '+20.4%'} YoY)
+- Atenciones Médicas Efectivas: ${turnoInfo.atendidos} (${yoy.pctAtendidosYoY || '+19.8%'} YoY)
+- Altas Administrativas & Retiros: ${turnoInfo.altasAdmin} (${yoy.pctAltasYoY || '+26.4%'} YoY)
 - Traslados Hospitalarios (UEH): ${turnoInfo.trasladosCount || 0} (${yoy.pctTrasladosYoY || '+11.8%'} YoY)
 - Profesional Médicamente Más Productivo: ${turnoInfo.medicoMasProductivo || 'No especificado'}
 
@@ -1333,22 +1323,11 @@ VERIFICACIÓN: Control de Guía & Inspección de Duplicados OK (100% Auditado)
 - C4 (Baja Complejidad): ${turnoInfo.triage?.c4 || 0}
 - C5 (General / Consulta Externa): ${turnoInfo.triage?.c5 || 0}
 
---------------------------------------------------------------------
-3. CONSOLIDADO DE LOS 7 REPORTES OFICIALES ADJUNTOS EN PDF
---------------------------------------------------------------------
-1. Reporte General Ejecutivo Asistencial
-2. Subreporte de Altas Administrativas
-3. Subreporte de Fractura y Destino (Traumatología)
-4. Subreporte de Enfermería y Triage
-5. Subreporte de Constataciones de Lesiones (Z51.8)
-6. Subreporte de Traslados Hospitalarios a Urgencia (UEH)
-7. Subreporte de Vigilancia Epidemiológica Respiratoria
-
 ====================================================================
 MÉTRICO Clínico Predictivo • SAR Elsa Romo Aravena
 ====================================================================`;
 
-  // 3. ENSAMBLAJE DE ADJUNTOS (LOS 7 PDFS + CSV + TXT + LOGO)
+  // 3. ENSAMBLAJE DE ADJUNTOS (CSV + TXT + LOGO)
   const attachments = [
     {
       filename: `Reporte_Ejecutivo_Consolidado_${safeFecha}.csv`,
@@ -1361,17 +1340,6 @@ MÉTRICO Clínico Predictivo • SAR Elsa Romo Aravena
       contentType: 'text/plain'
     }
   ];
-
-  // Inyectar los 7 reportes PDF generados
-  if (sietePdfs && sietePdfs.length > 0) {
-    sietePdfs.forEach(pdfFile => {
-      attachments.unshift({
-        filename: pdfFile.filename,
-        content: pdfFile.content,
-        contentType: 'application/pdf'
-      });
-    });
-  }
 
   // Logo institucional para renderizado seguro en clientes de correo
   if (fs.existsSync(logoPath)) {

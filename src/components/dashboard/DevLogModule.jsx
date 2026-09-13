@@ -8,6 +8,34 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-9',
+    fecha: '2026-09-12',
+    titulo: 'Integración de los 4 Pilares Maestros de Demanda en Correo Asistencial y Supresión de los 7 PDFs Adjuntos',
+    tipo: 'Despacho & Correos Institucionales',
+    version_tag: 'v6.3.9',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'El correo asistencial de guardia presentaba los 7 reportes PDF adjuntos que sobrecargaban innecesariamente la bandeja de entrada y aumentaban el tiempo de procesamiento SMTP. Asimismo, los 4 indicadores fundamentales de demanda y cobertura (Admitidos, Atendidos, Altas Administrativas y Traslados a Hospital) no tenían la misma jerarquía e impacto visual que en el dashboard principal.',
+    logica: 'Se rediseñó la Lámina 1 de InformeAsistencialEmail.js y la previsualización interactiva de ModalConfiguracionCorreo.jsx con una grilla homogénea de 4 tarjetas maestras con idéntico nivel de importancia, incorporando las variaciones YoY oficiales (+20.4%, +19.8%, +26.4%, +11.8%), volúmenes del turno, volúmenes acumulados YTD y líneas base 2025. Se suprimió la compilación con pdf-lib y el adjunto de los 7 PDFs en Cloud Function enviarInformeCorreo, agilizando el despacho directo.',
+    solucion: 'Tanto la Dirección como las Jefaturas reciben en su correo un informe asistencial con los 4 pilares de demanda en primer plano con máxima legibilidad y jerarquía institucional, despachado en tiempo récord con sus adjuntos livianos (bitácora TXT y consolidado CSV).',
+    fullPost: `La comunicación ejecutiva en salud exige claridad visual inmediata y confiabilidad en los datos presentados.
+    
+En esta actualización v6.3.9 llevamos a cabo dos mejoras sustanciales en el sistema de despacho de correos asistenciales de MÉTRICO:
+
+1. **Cuatro Pilares Maestros de Demanda con Igual Jerarquía**:
+   Reemplazamos la grilla previa por un bloque homogéneo de 4 tarjetas maestras que reflejan con idéntico protagonismo:
+   - **Pacientes Admitidos (YoY)**: +20.4% vs año anterior, volumen del turno y volumen YTD (28.257 pac vs 23.474 pac en 2025).
+   - **Pacientes Atendidos (YoY)**: +19.8% vs año anterior, volumen del turno y volumen YTD (25.696 pac con 90.9% de cobertura clínica vs 21.448 pac en 2025).
+   - **Altas Administrativas (YoY)**: +26.4% vs año anterior, volumen del turno y volumen YTD (2.561 altas con 9.1% del total vs 2.026 altas en 2025).
+   - **Traslados a Hospital (YoY)**: +11.8% vs año anterior, volumen del turno y volumen YTD (1.162 pacientes derivados con 4.1% de tasa vs 1.039 pac en 2025).
+
+2. **Sub-bloque de Eficiencia Operacional Complementario**:
+   Inmediatamente debajo de los 4 pilares se despliegan en un banner horizontal los dos indicadores de flujo: Rendimiento Clínico de Guardia (pac/hr) y Estadía Total Promedio (horas y minutos con minutos promedio).
+
+3. **Supresión de los 7 PDFs Adjuntos para un Despacho Ágil**:
+   Se eliminó la generación en memoria y adjunto obligatorio de los 7 reportes PDF en el correo asistencial. El despacho ahora es instantáneo y liviano, incluyendo exclusivamente la bitácora TXT y el consolidado CSV para análisis, evitando saturar las casillas institucionales y garantizando una experiencia de lectura fluida en móviles y escritorios.`
+  },
+  {
     id: 'devlog-v6-3-8',
     fecha: '2026-09-12',
     titulo: 'Resolución de Turnos Históricos en Curso y Erradicación de Registros Duplicados en Días Festivos',

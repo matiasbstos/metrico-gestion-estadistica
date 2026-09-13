@@ -52,11 +52,11 @@
     - El módulo de Rendimiento de Turnos y los análisis comparativos de guardia deben enfocar su evaluación exclusivamente en el desempeño operativo de los Equipos de Guardia (Turnos 1, 2, 3 y 4) en el flujo de admisión y categorización clínica (Triage), suprimiendo métricas de médicos activos o atenciones por médico para evitar sesgos diagnósticos individuales.
     - Los 3 KPIs canónicos de equipo son obligatorios: 1) Volumen Total Ingresado, 2) Latencia Promedio a Triage (con delta invertido de rapidez) y 3) Criterio de Alta Complejidad % (C1+C2+C3).
     - La correlación de sobrecarga se evalúa mediante ComposedChart con doble eje Y (Volumen en Eje Y Izquierdo e/y Latencia en minutos por categoría en Eje Y Derecho).
-13. **Norma Oficial de Despacho de Informes por Correo y 7 Reportes PDF Adjuntos**:
+13. **Norma Oficial de Despacho de Informes por Correo: 4 Pilares Maestros de Demanda y Despacho Ágil sin PDFs Adjuntos**:
     - Todo despacho de informe asistencial por correo electrónico debe generarse utilizando estrictamente el motor **React Email** (`@react-email/components` y `@react-email/render`) con diseño inline seguro, fondo oscuro institucional (`#0f172a`), logotipo oficial en pill blanco (`cid:logo_sar`) y compatibilidad garantizada en clientes de escritorio y móviles.
-    - **Grilla de Demanda y Estructura en 9 Láminas Fidedigna al Previsualizador de Diseño**:
+    - **Grilla de Demanda y Estructura en 8 Láminas Fidedigna al Previsualizador de Diseño**:
       El cuerpo visual del correo debe reflejar fielmente la estructura de láminas definida en el previsualizador institucional de MÉTRICO:
-      1) **5 Recuadros Superiores**: Total Admitidos, Atenciones Médicas, Altas Administrativas, Rendimiento / Hora (pac/hr) y Estadía Total Promedio con comparativa YoY.
+      1) **4 Pilares Maestros de Demanda con Igual Jerarquía**: Pacientes Admitidos (+20.4% YoY, YTD 28.257 pac), Pacientes Atendidos (+19.8% YoY, YTD 25.696 pac), Altas Administrativas (+26.4% YoY, YTD 2.561 altas) y Traslados a Hospital (+11.8% YoY, YTD 1.162 pac), seguidos del sub-bloque de eficiencia (Rendimiento por Hora pac/hr y Estadía Total Promedio).
       2) **Desglose de los 3 Tramos de Espera & Constataciones Z51.8**: Tiempos de Admisión-Triage, Triage-Box y Box-Alta con comparativa, junto al recuadro destacado de Constataciones médico-legales.
       3) **Distribución Oficial de Triage C1 a C5**: Proporciones con barras de color institucionales y variaciones YoY.
       4) **Rendimiento Clínico por Profesional Médico en Turno**: Tabla con médicos tratantes, atenciones, pac/hr y % de aporte al turno.
@@ -64,17 +64,8 @@
       6) **Centros de Origen & Demografía**: Centros base acumulado (CESFAM Florencia, Boris Soler, Elgueta, etc.) con llaves duales (`centro/nombre/name`), distribución por sexo, ratio demográfico y grupos etarios.
       7) **Apartado Exclusivo: Traslados Hospitalarios UEH**: Derivaciones con comparativa YoY y ficha clínica de sospecha diagnóstica y hospital receptor.
       8) **Bitácora de Seguridad**: Fracturas & traumatología y vigilancia respiratoria.
-      9) **Informes Oficiales Adjuntos**: Caja resumen de los 7 reportes formales en Hoja Carta / PDF.
-    - **Generación y Adjunto Automático Obligatorio de los 7 Reportes Oficiales en PDF**:
-      Al cerrar y despachar el informe del turno terminado, el sistema debe generar de forma autónoma en memoria con `pdf-lib` y adjuntar directamente al correo los **7 reportes ejecutivos oficiales en formato Hoja Carta / PDF**:
-      1. *Reporte General Ejecutivo Asistencial* (Demanda, KPIs y Triage C1-C5)
-      2. *Subreporte Oficial de Altas Administrativas* (Egresos y deserciones de atención)
-      3. *Subreporte de Traumatología & Sospecha de Fractura* (Lesiones óseas, yesos y destino)
-      4. *Subreporte de Gestión de Enfermería & Triage* (Latencia Manchester y tiempos de categorización)
-      5. *Subreporte Oficial de Constataciones de Lesiones Z51.8* (Auditoría médico-legal y DAU)
-      6. *Subreporte de Traslados Hospitalarios a Urgencia UEH* (Derivaciones hospitalarias de red)
-      7. *Subreporte de Vigilancia Epidemiológica Respiratoria* (IRA, bronquitis y Campaña de Invierno)
-      Queda prohibido requerir descargas manuales para estos 7 informes en el flujo de despacho del turno cerrado.
+    - **Despacho Ligero sin Adjuntos de los 7 PDFs**:
+      Por directriz operativa oficial, el correo de guardia no incluye los 7 reportes PDF adjuntos para evitar saturar las bandejas de entrada institucionales y optimizar la entrega SMTP, enviando directamente en el mensaje los 4 pilares con su comparativa YoY e incluyendo como adjuntos livianos la bitácora asistencial en TXT y el consolidado CSV. Los 7 subreportes oficiales permanecen disponibles para consulta y descarga bajo demanda en el módulo de Reportes.
 14. **Feedback Visual de Carga Inmediata y Erradicación de Congelamiento en Rangos Amplios**:
     - **Indicador Visual Inmediato Universal**: Ante cualquier cambio de filtro temporal (presets "Año", "Mes", "Semana", "Día", o fechas y horas manuales) en la pantalla principal o en cualquier subreporte (Traslados, Demanda, Fracturas, Respiratorio, etc.), el sistema DEBE activar inmediatamente el estado de carga (`isFiltering = true` / `BarraProgresoCarga`), difiriendo los cálculos analíticos pesados al siguiente tick del navegador (`setTimeout(..., 16)`). Queda prohibido bloquear el hilo principal de JavaScript antes de que el usuario vea el haz luminoso de actividad.
     - **Complejidad Algorítmica Máxima O(1) en Agrupación de Turnos y Pacientes**: En `useMetricoAnalytics` y en cualquier módulo de análisis masivo, la vinculación entre turnos y pacientes nunca debe utilizar filtros lineales $O(N)$ repetitivos para cientos de turnos. Los turnos nocturnos o cruzados deben resolverse en $O(1)$ concatenando los índices hash por fecha (`pacsByDateStr`), previniendo alertas de *"Page Unresponsive"* y garantizando fluidez instantánea aún con más de 26.500 pacientes cargados.
