@@ -41,6 +41,7 @@ import DevLogModule from './dashboard/DevLogModule';
 import FondoClinicoAnimado from './common/FondoClinicoAnimado';
 import { formatLocalDate, calcularUltimoTurnoCompleto, resolverMaxTimestampGlobal } from '../utils/helpers';
 import Login from './Login';
+import { playIntegrityAlertChime, playLogoutChime } from '../utils/audioNotifications';
 
 import { 
   Clock, Users, UserCheck, AlertTriangle, Activity, ArrowRight, 
@@ -66,7 +67,7 @@ import { usePautasTurnos } from '../hooks/usePautasTurnos';
 import { COLORS, DOC_COLORS, AGE_RANGES, METRIC_LABELS } from '../config/constants';
 import { getNormalizedUserPermissions } from '../config/modules';
 
-const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.3.15';
+const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.3.16';
 
 // Colores Institucionales
 

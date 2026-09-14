@@ -8,6 +8,25 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-16',
+    titulo: 'Restauración de Módulo Audio: playLogoutChime y playIntegrityAlertChime',
+    fecha: '2026-09-14',
+    version_tag: 'v6.3.16',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Se produjo un ReferenceError en tiempo de ejecución indicando "playLogoutChime is not defined" al interactuar con el cierre de sesión o al inicializar componentes relacionados.',
+    logica: 'La importación de funciones acústicas de audioNotifications.js había quedado excluida en una optimización previa de imports en Dashboard.jsx.',
+    solucion: 'Se reincorporó la importación explícita de playIntegrityAlertChime y playLogoutChime en Dashboard.jsx y se certificó la estabilidad del entorno.',
+    fullPost: `En esta versión v6.3.16 se restituye la retroalimentación de audio:
+
+1. **Corrección**:
+   - Reincorporación de import { playIntegrityAlertChime, playLogoutChime } from '../utils/audioNotifications' en Dashboard.jsx.
+   - Eliminación del ReferenceError de consola.
+
+2. **Certificación**:
+   - Compilación y validación de componentes sin errores.`
+  },
+  {
     id: 'devlog-v6-3-15',
     titulo: 'Hotfix Crítico: Resolución de TDZ ReferenceError en Inicialización y Desbloqueo React',
     fecha: '2026-09-14',

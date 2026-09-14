@@ -14,6 +14,27 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.16',
+      version: 'v6.3.16',
+      fecha: '14 de Septiembre, 2026',
+      badge: 'ESTABILIZACIÓN AUDITIVA: RESTAURACIÓN DE AUDIO EN LOGOUT',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Restauración de Módulo de Retroalimentación de Audio en Cierre de Sesión',
+      categoria: 'Estabilidad & Core',
+      icon: ShieldCheck,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se restituyó la importación de playIntegrityAlertChime y playLogoutChime en Dashboard.jsx, garantizando la ejecución armoniosa del timbre acústico de logout y previniendo el error ReferenceError: playLogoutChime is not defined.',
+      instructivo: {
+        paraQueSirve: 'Garantiza el correcto funcionamiento de las funciones de audio en el panel de control y eventos de sesión.',
+        quePuedesVer: 'Cierre de sesión suave con tono armónico sin excepciones en consola.',
+        ejemploUso: 'Al cerrar sesión o navegar por el panel, la interacción ocurre sin interrupciones visuales ni bloqueos.'
+      },
+      changes: [
+        'Restauración de importación en Dashboard.jsx desde audioNotifications.js.',
+        'Sincronización a versión v6.3.16 en producción.'
+      ]
+    },
+    {
       id: 'v6.3.15',
       version: 'v6.3.15',
       fecha: '14 de Septiembre, 2026',

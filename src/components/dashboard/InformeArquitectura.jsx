@@ -10,6 +10,26 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.16',
+    version_tag: 'v6.3.16',
+    fecha: '14 de Septiembre, 2026',
+    fecha_despliegue: '14 de Septiembre, 2026',
+    proposito_actualizacion: 'Restauración de Módulo AudioNotifications en Dashboard: Corrección de ReferenceError en playLogoutChime.',
+    medios_y_stack: [
+      'Dashboard.jsx (Restauración de importación de playIntegrityAlertChime y playLogoutChime desde audioNotifications.js, eliminando la excepción ReferenceError: playLogoutChime is not defined en logout)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Garantía de retroalimentación acústica institucional en eventos de cierre de sesión y alertas de integridad asistencial sin excepciones no controladas.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Montaje de interfaz 100% libre de errores de referencia.'
+    },
+    modulos_afectados: ['Dashboard.jsx', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Importación explícita de playIntegrityAlertChime y playLogoutChime en Dashboard.jsx.',
+      'Sincronización universal a versión v6.3.16.'
+    ]
+  },
+  {
     id: 'v6.3.15',
     version_tag: 'v6.3.15',
     fecha: '14 de Septiembre, 2026',
