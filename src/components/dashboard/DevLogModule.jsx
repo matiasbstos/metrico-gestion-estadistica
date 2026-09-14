@@ -8,6 +8,27 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-15',
+    titulo: 'Hotfix Crítico: Resolución de TDZ ReferenceError en Inicialización y Desbloqueo React',
+    fecha: '2026-09-14',
+    version_tag: 'v6.3.15',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'Al cargar la aplicación en producción se presentaba un bloqueo por Error Boundary ("ReferenceError: Cannot access \'g\' before initialization") generado durante la ejecución de los hooks iniciales del previsualizador de correos.',
+    logica: 'En auditarUltimoTurnoCompleto dentro de helpers.js, la variable trasladosCount se utilizaba dentro de un bloque condicional ctlOficial antes de su declaración let trasladosCount = 0. En JavaScript ES6, las variables declaradas con let se encuentran en la Temporal Dead Zone (TDZ) hasta su inicialización, provocando una excepción fatal al minificar el código en producción.',
+    solucion: 'Se reubicaron las declaraciones de todos los contadores al inicio de la función antes del bloque ctlOficial, permitiendo la asignación y reconciliación sin incurrir en TDZ. Asimismo, se reordenaron las directivas de importación en Dashboard.jsx.',
+    fullPost: `En esta versión v6.3.15 resolvemos el incidente crítico de carga:
+
+1. **Causa Raíz Identificada**:
+   - En helpers.js, función auditarUltimoTurnoCompleto, la variable trasladosCount era asignada dentro de 'if (ctlOficial)' antes de su declaración let.
+   - Vite y Terser al ofuscar renombraron trasladosCount a 'g', disparando ReferenceError: Cannot access 'g' before initialization al montar ModalConfiguracionCorreo.
+
+2. **Resolución Implementada**:
+   - Declaración previa e inequívoca de contadores en el scope superior.
+   - Reconciliación con controles oficiales blindada.
+   - Corrección de orden en directivas import en Dashboard.jsx.`
+  },
+  {
     id: 'devlog-v6-3-14',
     titulo: 'Conciliación Estricta Reglas 11, 16 y 19: 74 Altas Médicas Directas (0 Traslados UEH)',
     fecha: '2026-09-13',

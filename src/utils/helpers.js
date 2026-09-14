@@ -562,22 +562,14 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
   let totalAdmitidos = pacsTurno.length;
   let altasAdmin = pacsTurno.filter(p => isAltaAdmin(p) || p.estado === 'Cancelada').length;
   let atendidos = Math.max(0, totalAdmitidos - altasAdmin);
-
-  // Contrastar con OFFICIAL_RAYEN_SHIFT_CONTROLS si existe control certificado para este turno
-  const shiftCanonicalKey = `${String(verifiedShift.fechaTurno || '').split('/').reverse().join('-')}_${(verifiedShift.horario || '').includes('17:00') ? 'SEMANA_LARGO' : ((verifiedShift.horario || '').includes('20:00') ? 'FINDE_NOCHE' : 'FINDE_DIA')}`;
-  const ctlOficial = OFFICIAL_RAYEN_SHIFT_CONTROLS[shiftCanonicalKey] || Object.values(OFFICIAL_RAYEN_SHIFT_CONTROLS).find(c => c.fechaTurno === verifiedShift.fechaTurno);
-
-  if (ctlOficial) {
-    if (ctlOficial.totalPacientes !== undefined) totalAdmitidos = ctlOficial.totalPacientes;
-    if (ctlOficial.atendidos !== undefined) atendidos = ctlOficial.atendidos;
-    if (ctlOficial.altasAdmin !== undefined || ctlOficial.altas !== undefined) altasAdmin = ctlOficial.altasAdmin ?? ctlOficial.altas;
-    if (ctlOficial.trasladosCount !== undefined || ctlOficial.traslados !== undefined) trasladosCount = ctlOficial.trasladosCount ?? ctlOficial.traslados;
-  }
-
   let fracturasCount = 0;
   let constatacionesCount = 0;
   let trasladosCount = 0;
   let respiratoriosCount = 0;
+
+  // Contrastar con OFFICIAL_RAYEN_SHIFT_CONTROLS si existe control certificado para este turno
+  const shiftCanonicalKey = `${String(verifiedShift.fechaTurno || '').split('/').reverse().join('-')}_${(verifiedShift.horario || '').includes('17:00') ? 'SEMANA_LARGO' : ((verifiedShift.horario || '').includes('20:00') ? 'FINDE_NOCHE' : 'FINDE_DIA')}`;
+  const ctlOficial = OFFICIAL_RAYEN_SHIFT_CONTROLS[shiftCanonicalKey] || Object.values(OFFICIAL_RAYEN_SHIFT_CONTROLS).find(c => c.fechaTurno === verifiedShift.fechaTurno);
 
   let sumCatMins = 0, countCat = 0;
   let sumEstadiaMins = 0, countEstadia = 0;
@@ -618,8 +610,13 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
     }
   });
 
-  if (ctlOficial && ctlOficial.triage) {
-    Object.assign(triage, ctlOficial.triage);
+  // Reconciliación con Control Oficial Certificado (Prioridad SSOT Rayen)
+  if (ctlOficial) {
+    if (ctlOficial.totalPacientes !== undefined) totalAdmitidos = ctlOficial.totalPacientes;
+    if (ctlOficial.atendidos !== undefined) atendidos = ctlOficial.atendidos;
+    if (ctlOficial.altasAdmin !== undefined || ctlOficial.altas !== undefined) altasAdmin = ctlOficial.altasAdmin ?? ctlOficial.altas;
+    if (ctlOficial.trasladosCount !== undefined || ctlOficial.traslados !== undefined) trasladosCount = ctlOficial.trasladosCount ?? ctlOficial.traslados;
+    if (ctlOficial.triage) Object.assign(triage, ctlOficial.triage);
   }
 
   const tiempoPromedioCat = countCat > 0 ? Math.round(sumCatMins / countCat) : 14;

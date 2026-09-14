@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.15',
+      version: 'v6.3.15',
+      fecha: '14 de Septiembre, 2026',
+      badge: 'HOTFIX CRÍTICO DE ESTABILIDAD: DESBLOQUEO DE RENDERIZADO Y REACTIVIDAD',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Resolución de ReferenceError en Inicialización de Variables y Optimización de Carga',
+      categoria: 'Estabilidad & Core',
+      icon: ShieldCheck,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se corrigió de raíz la anomalía en tiempo de ejecución (ReferenceError: Cannot access "g" before initialization) que bloqueaba el panel al montar la plataforma. La causa raíz radicaba en una declaración tardía de trasladosCount dentro de auditarUltimoTurnoCompleto sujeta al Temporal Dead Zone de ES6 al ser llamada de forma temprana por los hooks de previsualización de correo. Se reordenaron las variables al ámbito superior y se depuraron las directivas de importación en Dashboard.jsx.',
+      instructivo: {
+        paraQueSirve: 'Restaura la operatividad completa del panel principal eliminando el Error Boundary de React en la carga.',
+        quePuedesVer: 'Carga inmediata de todos los módulos asistenciales, gráficos, auditoría de turnos y previsualizador de correo sin excepciones.',
+        ejemploUso: 'Al ingresar o refrescar la página, el sistema inicia fluidamente en el último turno auditado sin bloqueos.'
+      },
+      changes: [
+        'Reordenamiento de variables de conteo en helpers.js previo al bloque condicional ctlOficial.',
+        'Eliminación del Temporal Dead Zone (TDZ) en trasladosCount.',
+        'Normalización de imports top-level en Dashboard.jsx.',
+        'Sincronización a versión v6.3.15 en todo el ecosistema MÉTRICO.'
+      ]
+    },
+    {
       id: 'v6.3.14',
       version: 'v6.3.14',
       fecha: '13 de Septiembre, 2026',

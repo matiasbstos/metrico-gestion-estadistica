@@ -40,10 +40,8 @@ import InformeArquitectura, { HISTORIAL_ARQUITECTURA_BASE } from './dashboard/In
 import DevLogModule from './dashboard/DevLogModule';
 import FondoClinicoAnimado from './common/FondoClinicoAnimado';
 import { formatLocalDate, calcularUltimoTurnoCompleto, resolverMaxTimestampGlobal } from '../utils/helpers';
-import { playIntegrityAlertChime, playLogoutChime } from '../utils/audioNotifications';
-
-const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.3.14';
 import Login from './Login';
+
 import { 
   Clock, Users, UserCheck, AlertTriangle, Activity, ArrowRight, 
   FileSpreadsheet, Database, BarChart2, Trash2, Edit, Edit2,
@@ -67,6 +65,8 @@ import { useMetricoProfesionales } from '../hooks/useMetricoProfesionales';
 import { usePautasTurnos } from '../hooks/usePautasTurnos';
 import { COLORS, DOC_COLORS, AGE_RANGES, METRIC_LABELS } from '../config/constants';
 import { getNormalizedUserPermissions } from '../config/modules';
+
+const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.3.15';
 
 // Colores Institucionales
 

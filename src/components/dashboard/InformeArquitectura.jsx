@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.15',
+    version_tag: 'v6.3.15',
+    fecha: '14 de Septiembre, 2026',
+    fecha_despliegue: '14 de Septiembre, 2026',
+    proposito_actualizacion: 'Hotfix de Estabilidad y Desbloqueo Crítico: Resolución de TDZ ReferenceError en auditarUltimoTurnoCompleto y Limpieza ESM en Dashboard.',
+    medios_y_stack: [
+      'helpers.js (Reordenamiento de variables de conteo: fracturasCount, constatacionesCount, trasladosCount y respiratoriosCount declaradas previo al bloque ctlOficial, eliminando el ReferenceError de inicialización en el bundle de producción)',
+      'Dashboard.jsx (Reordenamiento de imports ESM garantizando que todas las directivas de importación precedan a las constantes y componentes, actualizando la versión activa a v6.3.15)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Garantía de inicialización segura en helpers.js: los acumuladores clínicos de guardia se inicializan en el ámbito superior antes de cualquier consulta o reconciliación de controles oficiales. 2) Integridad y reactividad total en el montaje inicial de los hooks de correo y auditoría.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Eliminación del bloqueo de renderizado en cliente y restauración del ciclo de vida normal de React.'
+    },
+    modulos_afectados: ['helpers.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Corrección del Temporal Dead Zone (TDZ) en JavaScript ES6 para trasladosCount en auditarUltimoTurnoCompleto.',
+      'Aseguramiento de imports ESM top-level en Dashboard.jsx.',
+      'Sincronización universal a versión v6.3.15.'
+    ]
+  },
+  {
     id: 'v6.3.14',
     version_tag: 'v6.3.14',
     fecha: '13 de Septiembre, 2026',
