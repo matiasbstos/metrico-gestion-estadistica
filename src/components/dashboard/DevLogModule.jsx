@@ -8,6 +8,29 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-17',
+    titulo: 'Submódulo Curva de Demanda: Contraste Dual, Recharts Overlay y Análisis IA Gemini',
+    fecha: '2026-09-14',
+    version_tag: 'v6.3.17',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'La gestión de urgencias requería una herramienta de alta precisión para contrastar la demanda horaria y semanal de pacientes entre dos períodos asistenciales distintos, identificar corrimientos en los peaks de saturación y generar hipótesis operativas automáticas para la toma de decisiones.',
+    logica: 'Diseñamos e implementamos el submódulo "Curva de Demanda" en la sección Análisis Específicos. El motor consume la vista maestra SQL metrico_analytics.v_pacientes_urgencia_master en BigQuery y permite seleccionar dos ventanas de tiempo con presets automáticos. Superpone las dos series temporales en Recharts (área institucional vs línea punteada) y despacha un payload JSON a Gemini 1.5 Flash para obtener una síntesis ejecutiva en 2 párrafos.',
+    solucion: 'Se construyó AnalisisCurvaDemanda.jsx, el motor de análisis y fallback geminiCurvaDemanda.js, la Cloud Function obtenerCurvaDemandaMaster y su integración en el menú de navegación institucional.',
+    fullPost: `En esta versión v6.3.17 lanzamos el submódulo Curva de Demanda:
+
+1. **Selector Dual de Períodos**:
+   - Período Base vs Período de Contraste con presets ("Semana Anterior", "Mes Anterior", "Misma Semana Año Anterior").
+   - Conmutador de granularidad temporal entre Curva Horaria (24 hrs) y Ciclo Semanal (Lun - Dom).
+
+2. **KPIs Rápidos y Gráfico Overlay**:
+   - Tarjetas de Variación de Volumen Total (%), Desplazamiento de Hora Peak y Brecha de Tiempo de Espera en Peak.
+   - Gráfico Recharts ComposedChart superpuesto con área verde esmeralda y línea punteada histórica.
+
+3. **Motor de Comportamiento Operativo IA (Gemini 1.5 Flash)**:
+   - Diagnóstico automatizado en 2 párrafos identificando brechas horarias y formulando hipótesis operativas gerenciales.`
+  },
+  {
     id: 'devlog-v6-3-16',
     titulo: 'Restauración de Módulo Audio: playLogoutChime y playIntegrityAlertChime',
     fecha: '2026-09-14',

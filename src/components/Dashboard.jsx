@@ -26,6 +26,7 @@ import AnalisisEnfermeria from './dashboard/AnalisisEnfermeria';
 import AnalisisConstataciones from './dashboard/AnalisisConstataciones';
 import AnalisisTraslados from './dashboard/AnalisisTraslados';
 import AnalisisDemandaAtencion from './dashboard/AnalisisDemandaAtencion';
+import AnalisisCurvaDemanda from './dashboard/AnalisisCurvaDemanda';
 import AnalisisRespiratorio from './dashboard/AnalisisRespiratorio';
 import GestionUsuarios from './dashboard/GestionUsuarios';
 import ModalInactividad from './dashboard/ModalInactividad';
@@ -67,7 +68,7 @@ import { usePautasTurnos } from '../hooks/usePautasTurnos';
 import { COLORS, DOC_COLORS, AGE_RANGES, METRIC_LABELS } from '../config/constants';
 import { getNormalizedUserPermissions } from '../config/modules';
 
-const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.3.16';
+const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.3.17';
 
 // Colores Institucionales
 
@@ -316,6 +317,7 @@ const DashboardContent = () => {
       calendario: 'Histórico Mensual',
       profesionales: 'Rendimiento Clínico',
       perfil_paciente: 'Perfil del Paciente',
+      curva_demanda: 'Curva de Demanda & Contraste',
       altas: 'Altas Administrativas',
       fracturas: 'Estadísticas de Fractura',
       enfermeria: 'Rendimiento Enfermería',
@@ -1627,6 +1629,12 @@ const DashboardContent = () => {
                   <BarChart2 className="w-4 h-4 text-indigo-500 flex-shrink-0" />
                 </button>
                 <button 
+                  onClick={() => { setActiveTab('curva_demanda'); setSubTabEspecifico('curva_demanda'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                  title="Curva de Demanda & Contraste"
+                  className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'curva_demanda' ? 'bg-emerald-500/20 text-emerald-500 font-black border border-emerald-500/30' : 'bg-transparent text-secondary-custom hover:text-emerald-500 hover:bg-emerald-500/10'}`}>
+                  <Zap className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                </button>
+                <button 
                   onClick={() => { setActiveTab('constataciones'); setSubTabEspecifico('constataciones'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
                   title="Constatación de Lesiones"
                   className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'constataciones' ? 'bg-amber-500/20 text-amber-500 font-black border border-amber-500/30' : 'bg-transparent text-secondary-custom hover:text-amber-500 hover:bg-amber-500/10'}`}>
@@ -1667,7 +1675,7 @@ const DashboardContent = () => {
               <div className="space-y-1 w-full">
                 <button 
                   onClick={() => {
-                    if (!['especificos', 'demanda', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados', 'respiratorio'].includes(activeTab)) {
+                    if (!['especificos', 'demanda', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados', 'respiratorio', 'curva_demanda'].includes(activeTab)) {
                       setIsEspecificosOpen(true);
                     } else {
                       setIsEspecificosOpen(!isEspecificosOpen);
@@ -1675,7 +1683,7 @@ const DashboardContent = () => {
                     setActiveTab('demanda');
                     setSubTabEspecifico('demanda');
                   }}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 cursor-pointer ${['especificos', 'demanda', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados', 'respiratorio'].includes(activeTab) ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 cursor-pointer ${['especificos', 'demanda', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados', 'respiratorio', 'curva_demanda'].includes(activeTab) ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
                   <div className="flex items-center gap-3">
                     <Layers className="w-4 h-4" /> Análisis Específicos
                   </div>
@@ -1688,6 +1696,11 @@ const DashboardContent = () => {
                       onClick={() => { setActiveTab('demanda'); setSubTabEspecifico('demanda'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
                       className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'demanda' || (activeTab === 'especificos' && subTabEspecifico === 'demanda') ? 'bg-indigo-500/20 text-indigo-500 font-black border border-indigo-500/30' : 'text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10'}`}>
                       <BarChart2 className="w-3.5 h-3.5 text-indigo-400" /> Demanda de Atención
+                    </button>
+                    <button 
+                      onClick={() => { setActiveTab('curva_demanda'); setSubTabEspecifico('curva_demanda'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'curva_demanda' || (activeTab === 'especificos' && subTabEspecifico === 'curva_demanda') ? 'bg-emerald-500/20 text-emerald-500 font-black border border-emerald-500/30' : 'text-secondary-custom hover:text-emerald-500 hover:bg-emerald-500/10'}`}>
+                      <Zap className="w-3.5 h-3.5 text-emerald-500" /> Curva de Demanda
                     </button>
                     <button 
                       onClick={() => { setActiveTab('respiratorio'); setSubTabEspecifico('respiratorio'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
@@ -2332,6 +2345,13 @@ const DashboardContent = () => {
                 Demanda de Atención
               </button>
               <button
+                onClick={() => { setActiveTab('curva_demanda'); setSubTabEspecifico('curva_demanda'); }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'curva_demanda' || (activeTab === 'especificos' && subTabEspecifico === 'curva_demanda') ? 'bg-emerald-600 text-white shadow-sm' : 'text-secondary-custom hover:text-emerald-600 hover:bg-emerald-600/10'}`}
+              >
+                <Zap className="w-4 h-4 text-emerald-400" />
+                Curva de Demanda
+              </button>
+              <button
                 onClick={() => { setActiveTab('respiratorio'); setSubTabEspecifico('respiratorio'); }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeTab === 'respiratorio' || (activeTab === 'especificos' && subTabEspecifico === 'respiratorio') ? 'bg-cyan-600 text-white shadow-sm' : 'text-secondary-custom hover:text-cyan-600 hover:bg-cyan-600/10'}`}
               >
@@ -2386,6 +2406,17 @@ const DashboardContent = () => {
                 filtroFechaFin={filtroFechaFin} 
                 kpisBigQuery={kpisBigQuery}
                 statsKPI={statsKPIFinal}
+              />
+            )}
+
+            {(activeTab === 'curva_demanda' || (activeTab === 'especificos' && subTabEspecifico === 'curva_demanda')) && (
+              <AnalisisCurvaDemanda 
+                pacientesDB={pacientesDB} 
+                allPacientesDB={allPacientesDB}
+                turnosDB={turnosDB} 
+                filtroFechaInicio={filtroFechaInicio} 
+                filtroFechaFin={filtroFechaFin} 
+                kpisBigQuery={kpisBigQuery}
               />
             )}
 

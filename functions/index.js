@@ -1516,4 +1516,169 @@ El resultado es una mejora directa en la velocidad de consulta y la confianza de
   };
 });
 
+// SUBMÓDULO: Curva de Demanda Continua y Comparativa SSOT BigQuery
+exports.obtenerCurvaDemandaMaster = functions.https.onCall(async (dataReq, context) => {
+  const data = dataReq.data || dataReq || {};
+  const { periodoBase, periodoContraste } = data;
+
+  if (!periodoBase?.fechaInicio || !periodoBase?.fechaFin) {
+    throw new functions.https.HttpsError('invalid-argument', 'Faltan parámetros del periodoBase (fechaInicio, fechaFin).');
+  }
+
+  const parsePeriodIso = (p, defaultStartHour = '00:00', defaultEndHour = '23:59') => {
+    const sStr = String(p.fechaInicio || '').trim();
+    const eStr = String(p.fechaFin || '').trim();
+    const sh = p.horaInicio || defaultStartHour;
+    const eh = p.horaFin || defaultEndHour;
+    return {
+      start: `${sStr}T${sh}:00-04:00`,
+      end: `${eStr}T${eh}:59-04:00`
+    };
+  };
+
+  const baseRange = parsePeriodIso(periodoBase);
+  const contrasteRange = periodoContraste?.fechaInicio && periodoContraste?.fechaFin ? parsePeriodIso(periodoContraste) : null;
+
+  const fetchPeriodData = async (range) => {
+    if (!range) return null;
+
+    const sqlHourly = `
+      SELECT 
+        EXTRACT(HOUR FROM t_admision AT TIME ZONE 'America/Santiago') as hora,
+        COUNT(*) as cantidad,
+        COALESCE(AVG(tiempo_triaje_min), 0) as avg_espera_triaje,
+        COALESCE(AVG(estadia_total_min), 0) as avg_estadia
+      FROM \`metrico-dashboard-2026.metrico_analytics.v_pacientes_urgencia_master\`
+      WHERE t_admision >= TIMESTAMP(@inicio) AND t_admision <= TIMESTAMP(@fin)
+      GROUP BY hora
+      ORDER BY hora ASC
+    `;
+
+    const sqlDaily = `
+      SELECT 
+        EXTRACT(DAYOFWEEK FROM t_admision AT TIME ZONE 'America/Santiago') as dia_semana,
+        COUNT(*) as cantidad,
+        COALESCE(AVG(tiempo_triaje_min), 0) as avg_espera_triaje,
+        COALESCE(AVG(estadia_total_min), 0) as avg_estadia
+      FROM \`metrico-dashboard-2026.metrico_analytics.v_pacientes_urgencia_master\`
+      WHERE t_admision >= TIMESTAMP(@inicio) AND t_admision <= TIMESTAMP(@fin)
+      GROUP BY dia_semana
+      ORDER BY dia_semana ASC
+    `;
+
+    const sqlTopDiag = `
+      SELECT 
+        COALESCE(codigo_diagnostico_cie10, 'S/C') as codigo,
+        COALESCE(diagnostico_principal, 'SIN REGISTRO') as diagnostico,
+        COUNT(*) as total
+      FROM \`metrico-dashboard-2026.metrico_analytics.v_pacientes_urgencia_master\`
+      WHERE t_admision >= TIMESTAMP(@inicio) AND t_admision <= TIMESTAMP(@fin)
+        AND diagnostico_principal IS NOT NULL 
+        AND UPPER(TRIM(diagnostico_principal)) NOT IN ('SIN REGISTRO DIAGNÓSTICO', 'SIN REGISTRO', '-', '')
+      GROUP BY codigo, diagnostico
+      ORDER BY total DESC
+      LIMIT 5
+    `;
+
+    const params = { inicio: range.start, fin: range.end };
+
+    const [[hourlyRows], [dailyRows], [topDiagRows]] = await Promise.all([
+      bigquery.query({ query: sqlHourly, params }),
+      bigquery.query({ query: sqlDaily, params }),
+      bigquery.query({ query: sqlTopDiag, params })
+    ]);
+
+    const hourlyMap = {};
+    (hourlyRows || []).forEach(r => {
+      hourlyMap[r.hora] = {
+        cantidad: Number(r.cantidad || 0),
+        esperaTriaje: Math.round(Number(r.avg_espera_triaje || 0)),
+        estadia: Math.round(Number(r.avg_estadia || 0))
+      };
+    });
+
+    const hourlyCurve = Array(24).fill(0).map((_, i) => {
+      const hStr = String(i).padStart(2, '0');
+      const item = hourlyMap[i] || { cantidad: 0, esperaTriaje: 0, estadia: 0 };
+      return {
+        hora: i,
+        horaFiltro: hStr,
+        horaTooltip: `${hStr}:00 - ${hStr}:59`,
+        horaCorta: `${hStr}:00`,
+        atenciones: item.cantidad,
+        esperaTriaje: item.esperaTriaje,
+        estadia: item.estadia
+      };
+    });
+
+    const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const dailyMap = {};
+    (dailyRows || []).forEach(r => {
+      dailyMap[r.dia_semana] = {
+        cantidad: Number(r.cantidad || 0),
+        esperaTriaje: Math.round(Number(r.avg_espera_triaje || 0)),
+        estadia: Math.round(Number(r.avg_estadia || 0))
+      };
+    });
+
+    // BigQuery DAYOFWEEK: 1=Domingo, 2=Lunes ... 7=Sábado
+    const dailyCurve = [2, 3, 4, 5, 6, 7, 1].map(dNum => {
+      const item = dailyMap[dNum] || { cantidad: 0, esperaTriaje: 0, estadia: 0 };
+      return {
+        diaNum: dNum,
+        diaNombre: dayNames[dNum - 1],
+        diaCorto: dayNames[dNum - 1].substring(0, 3),
+        atenciones: item.cantidad,
+        esperaTriaje: item.esperaTriaje,
+        estadia: item.estadia
+      };
+    });
+
+    const totalPacientes = hourlyCurve.reduce((acc, h) => acc + h.atenciones, 0);
+
+    let peakHour = null;
+    let maxHourCount = -1;
+    hourlyCurve.forEach(h => {
+      if (h.atenciones > maxHourCount) {
+        maxHourCount = h.atenciones;
+        peakHour = h;
+      }
+    });
+
+    return {
+      totalPacientes,
+      peakHour: peakHour ? {
+        horaTooltip: peakHour.horaTooltip,
+        horaCorta: peakHour.horaCorta,
+        atenciones: peakHour.atenciones,
+        esperaTriaje: peakHour.esperaTriaje,
+        estadia: peakHour.estadia
+      } : null,
+      hourlyCurve,
+      dailyCurve,
+      topDiagnosticos: (topDiagRows || []).map(r => ({
+        codigo: r.codigo,
+        diagnostico: r.diagnostico,
+        total: Number(r.total || 0)
+      }))
+    };
+  };
+
+  try {
+    const [baseData, contrasteData] = await Promise.all([
+      fetchPeriodData(baseRange),
+      contrasteRange ? fetchPeriodData(contrasteRange) : Promise.resolve(null)
+    ]);
+
+    return {
+      success: true,
+      base: baseData,
+      contraste: contrasteData
+    };
+  } catch (err) {
+    console.error("Error al obtener curva de demanda de BigQuery:", err);
+    throw new functions.https.HttpsError('internal', `Error en BigQuery Curva Demanda: ${err.message}`);
+  }
+});
+
 

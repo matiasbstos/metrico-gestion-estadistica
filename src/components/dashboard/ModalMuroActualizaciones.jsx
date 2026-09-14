@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.17',
+      version: 'v6.3.17',
+      fecha: '14 de Septiembre, 2026',
+      badge: 'NUEVO SUBMÓDULO: CURVA DE DEMANDA & INTELIGENCIA IA GEMINI',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Lanzamiento de Curva de Demanda Continua, Contraste Dual e Hipótesis IA',
+      categoria: 'Análisis Específicos',
+      icon: Zap,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se integró formalmente el nuevo submódulo "Curva de Demanda" dentro de la sección "Análisis Específicos". Este panel permite comparar el flujo de admisiones entre un Período Base y un Período de Contraste con presets automáticos ("Semana Anterior", "Mes Anterior", "Misma Semana Año Anterior YoY"), visualización Recharts superpuesta con área institucional verde y línea de contraste punteada, y un motor de análisis de comportamiento operativo impulsado por Gemini 1.5 Flash que redacta diagnósticos gerenciales en 2 párrafos identificando brechas horarias e hipótesis operativas.',
+      instructivo: {
+        paraQueSirve: 'Permite a la jefatura comparar visual y cuantitativamente la demanda asistencial entre dos períodos clínicos y obtener una síntesis de saturación automática con IA.',
+        quePuedesVer: '1) Selector Dual con Presets y conmutador 24 Horas vs Semanal. 2) KPIs de Variación %, Hora Peak y Espera en Peak. 3) Gráfico Recharts Overlay. 4) Panel de Análisis Operativo con Gemini 1.5 Flash.',
+        ejemploUso: 'Selecciona "Esta Semana vs Semana Anterior" para contrastar de inmediato los peaks de demanda y leer el diagnóstico gerencial generado por la IA.'
+      },
+      changes: [
+        'Creación del componente AnalisisCurvaDemanda.jsx con Recharts ComposedChart overlay.',
+        'Implementación del motor cliente y fallback clínico experto geminiCurvaDemanda.js.',
+        'Creación de la Cloud Function obtenerCurvaDemandaMaster sobre la vista maestra de BigQuery.',
+        'Incorporación en el menú lateral bajo Análisis Específicos y barra superior de submódulos.'
+      ]
+    },
+    {
       id: 'v6.3.16',
       version: 'v6.3.16',
       fecha: '14 de Septiembre, 2026',

@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.17',
+    version_tag: 'v6.3.17',
+    fecha: '14 de Septiembre, 2026',
+    fecha_despliegue: '14 de Septiembre, 2026',
+    proposito_actualizacion: 'Lanzamiento del Submódulo "Curva de Demanda": Comparativa Dinámica Dual, Recharts Overlay y Análisis Generativo de Comportamiento con IA Gemini 1.5 Flash.',
+    medios_y_stack: [
+      'AnalisisCurvaDemanda.jsx (Nuevo submódulo de análisis específico con selector dual de períodos, presets automáticos, KPIs rápidos de deltas, conmutador de granularidad horaria 24h vs semanal Lun-Dom y panel de IA)',
+      'geminiCurvaDemanda.js (Motor de invocación a la API de Gemini 1.5 Flash con prompt de analista de operaciones clínicas y fallback determinista clínico experto)',
+      'functions/index.js (Incorporación de callable obtenerCurvaDemandaMaster sobre metrico_analytics.v_pacientes_urgencia_master en BigQuery)',
+      'Dashboard.jsx (Integración en menú lateral y barra de submódulos de Análisis Específicos, sincronización v6.3.17)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Comparativa estricta de flujo de pacientes entre Período Base y Período de Contraste con cálculo unívoco de deltas de volumen, picos de saturación horaria y tiempos de espera en peak. 2) Superposición visual Recharts con área verde institucional para la serie activa y línea discontinua para la referencia histórica. 3) Síntesis gerencial automatizada en 2 párrafos mediante IA Gemini.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Procesamiento distribuido con BigQuery Master View y fallback en memoria reactivo SSOT deduplicado.'
+    },
+    modulos_afectados: ['AnalisisCurvaDemanda.jsx', 'geminiCurvaDemanda.js', 'functions/index.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Visualización Recharts ComposedChart overlay con granularidad dual (24 horas / 7 días ciclo semanal).',
+      'Integración con Gemini 1.5 Flash API y timeout controlado.',
+      'Sincronización a versión v6.3.17 en todo el ecosistema de MÉTRICO.'
+    ]
+  },
+  {
     id: 'v6.3.16',
     version_tag: 'v6.3.16',
     fecha: '14 de Septiembre, 2026',
