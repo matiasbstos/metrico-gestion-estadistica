@@ -8,6 +8,28 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-18',
+    titulo: 'Resolución de Turnos Históricos en Curso, Modularización de Correo y Cierre de Festivos SSOT',
+    fecha: '2026-09-14',
+    version_tag: 'v6.3.18',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'En la Cola de Despacho & Turnos Auditados, turnos pasados de meses ya cerrados (como el 16 y 17 de Julio de 2026) figuraban erróneamente con el badge amarillo "En Curso (Parcial)". Adicionalmente, en fechas festivas oficiales como el 16/07/2026 (Virgen del Carmen) se superponía una fila duplicada de día hábil ("Turno Largo Semana" de 110 pacientes) sobre los dos turnos legítimos de festivo (Festivo Diurno 73 pac y Festivo Nocturno 37 pac).',
+    logica: 'Se implementó isPastShift determinando el momento de cierre formal del turno (20:30 hrs para turnos diurnos y 12:00 PM del día siguiente para nocturnos/largos) contrastado con el corte temporal de los datos cargados (maxGlobalTimestamp). Si el turno es cronológicamente anterior y cuenta con representatividad clínica (>= 10 pacientes), se califica automáticamente como "Listo para Despacho", reservando la condición de turno en curso exclusivamente para el corte superior activo. Asimismo, para fechas con pacientes individuales procesados se filtran de plano registros precalculados de turnosDB mediante datesWithPatients, y se modularizaron CuerpoPrevisualizacionCorreoDiario y buildTurnoInfoPayload.',
+    solucion: 'Todo turno histórico concluido figura con el badge azul "Listo para Despacho". En festivos oficiales se erradicó la fila fantasma de día hábil, presentando con exactitud los dos turnos de guardia, y se optimizó el previsualizador del correo para fluidez y estabilidad.',
+    fullPost: `En esta versión v6.3.18 consolidamos la precisión de la Cola de Despacho de Informes Asistenciales:
+
+1. **Resolución de Turnos Históricos Pasados**:
+   - Todo turno de meses concluidos (Julio, Agosto, Septiembre cerrado) cuyo cierre asistencial formal haya transcurrido antes del corte temporal de los datos pasa automáticamente a estado **Listo para Despacho**.
+   - Se elimina el falso bloqueo por "En Curso (Parcial)" en turnos antiguos, reservando dicha salvaguarda exclusivamente para el turno activo al momento del corte.
+
+2. **Erradicación de Duplicados en Días Festivos**:
+   - En feriados oficiales (ej. 16 de Julio de 2026), se eliminó la colisión que generaba una fila adicional de día hábil proveniente de registros precalculados. La cola presenta con absoluta exactitud los 2 turnos de guardia oficiales (Festivo Diurno y Festivo Nocturno).
+
+3. **Modularización de Componentes de Previsualización**:
+   - Se desacoplaron \`buildTurnoInfoPayload\` y \`CuerpoPrevisualizacionCorreoDiario\` como componentes modulares puros, optimizando el rendimiento de renderizado en el modal de despacho.`
+  },
+  {
     id: 'devlog-v6-3-17',
     titulo: 'Submódulo Curva de Demanda: Contraste Dual, Recharts Overlay y Análisis IA Gemini',
     fecha: '2026-09-14',

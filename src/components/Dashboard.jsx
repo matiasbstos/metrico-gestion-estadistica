@@ -68,7 +68,7 @@ import { usePautasTurnos } from '../hooks/usePautasTurnos';
 import { COLORS, DOC_COLORS, AGE_RANGES, METRIC_LABELS } from '../config/constants';
 import { getNormalizedUserPermissions } from '../config/modules';
 
-const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.3.17';
+const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.3.18';
 
 // Colores Institucionales
 

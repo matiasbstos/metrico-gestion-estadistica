@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.18',
+      version: 'v6.3.18',
+      fecha: '14 de Septiembre, 2026',
+      badge: 'COLA DE DESPACHO: RESOLUCIÓN DE TURNOS HISTÓRICOS & CIERRE SSOT',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Resolución de Turnos Históricos en Curso y Erradicación de Duplicados en Festivos',
+      categoria: 'Auditoría & Cola de Despacho',
+      icon: CheckCircle,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se resolvió la anomalía detectada en la Cola de Despacho donde turnos de meses pasados (como el 16 y 17 de Julio de 2026) figuraban erróneamente en estado "En Curso (Parcial)". El algoritmo evalúa el cierre teórico del turno (20:30 hrs para diurnos y 12:00 PM del día siguiente para nocturnos/largos) respecto al corte global de datos cargados: todo turno previo con volumen representativo (>= 10 pacientes) se califica como "Listo para Despacho". Asimismo, en feriados oficiales como el 16/07/2026 se erradicó la superposición de filas precalculadas de día hábil.',
+      instructivo: {
+        paraQueSirve: 'Permite auditar y despachar informes de meses históricos sin bloqueos por falsos estados en curso, garantizando que los festivos reflejen su desglose oficial de guardia.',
+        quePuedesVer: '1) Turnos Históricos Listos: Todos los turnos de meses previos cerrados figuran en estado "Listo para Despacho". 2) Sin Duplicados en Festivos: El día 16/07/2026 y demás feriados muestran exclusivamente sus dos turnos de guardia legítimos (Diurno y Nocturno).',
+        ejemploUso: 'Al seleccionar el mes de Julio en la Cola de Despacho, el 16 y 17 de Julio se presentan de forma clara y unívoca, listos para auditar o despachar.'
+      },
+      changes: [
+        'Cálculo temporal isPastShift en ModalConfiguracionCorreo.jsx que cierra turnos históricos pasados.',
+        'Preservación de la salvaguarda de "En Curso (Parcial)" exclusivamente para el corte activo.',
+        'Filtrado estricto datesWithPatients para omitir turnos precalculados de día hábil en fechas festivas oficiales.',
+        'Modularización de CuerpoPrevisualizacionCorreoDiario y buildTurnoInfoPayload.',
+        'Actualización oficial a versión v6.3.18 en producción.'
+      ]
+    },
+    {
       id: 'v6.3.17',
       version: 'v6.3.17',
       fecha: '14 de Septiembre, 2026',

@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.18',
+    version_tag: 'v6.3.18',
+    fecha: '14 de Septiembre, 2026',
+    fecha_despliegue: '14 de Septiembre, 2026',
+    proposito_actualizacion: 'Resolución de Turnos Históricos en Curso, Modularización de Previsualizador de Correo y Cierre de Jornadas Auditadas SSOT.',
+    medios_y_stack: [
+      'ModalConfiguracionCorreo.jsx (Implementación de isPastShift con cómputo del momento formal de término turnoClosingMs vs maxGlobalTimestamp, cerrando definitivamente turnos de meses concluidos como Julio y Agosto con representatividad clínica)',
+      'ModalConfiguracionCorreo.jsx (Supresión estricta de filas duplicadas de día hábil en días festivos oficiales mediante Set datesWithPatients)',
+      'ModalConfiguracionCorreo.jsx (Modularización de CuerpoPrevisualizacionCorreoDiario y buildTurnoInfoPayload para optimización de renderizado)',
+      'Dashboard.jsx (Actualización oficial a versión v6.3.18 en producción)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Cierre Temporal de Turnos Pasados: Todo turno cuyo horario formal de cierre asistencial (20:30 hrs para diurnos y 12:00 PM del día siguiente para nocturnos/largos) sea anterior al corte temporal de los datos en memoria se califica como formalmente concluido, pasando a estado Listo para Despacho si cuenta con volumen clínico representativo (>= 10 pacientes). 2) Eliminación de Duplicados en Festivos: En feriados oficiales como el 16/07/2026 se erradica la superposición de filas precalculadas de día hábil. 3) Preservación de la Salvaguarda Activa: La condición de turno en curso se reserva exclusivamente para el corte cronológico superior activo.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Normalización canónica y desduplicación reactiva SSOT en la cola de despacho de correos.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx', 'AGENTS.md'],
+    detalles_tecnicos: [
+      'Integración de isPastShift contrastando turnoClosingMs contra maxGlobalTimestamp en ModalConfiguracionCorreo.jsx.',
+      'Modularización de componentes de correo para eliminar warnings de re-renderizado.',
+      'Sincronización a versión v6.3.18 en todo el ecosistema de MÉTRICO.'
+    ]
+  },
+  {
     id: 'v6.3.17',
     version_tag: 'v6.3.17',
     fecha: '14 de Septiembre, 2026',
