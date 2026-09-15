@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.20',
+    version_tag: 'v6.3.20',
+    fecha: '15 de Septiembre, 2026',
+    fecha_despliegue: '15 de Septiembre, 2026',
+    proposito_actualizacion: 'Unificación Oficial de las 5 Tarjetas Asistenciales de Guardia en Correo y Previsualizador, Simetría al 20% y Banner Integrado.',
+    medios_y_stack: [
+      'ModalConfiguracionCorreo.jsx (Reemplazo de la cuadrícula superior por exactamente 5 tarjetas en orden oficial: Admitidos, Atendidos, Altas Admin, Traslados Hosp. y Constataciones)',
+      'InformeAsistencialEmail.js (Reestructuración de Lámina 1 a 5 columnas fijas de width: 20% con constataciones Z51.8 integradas para Outlook y Gmail)',
+      'InformeAsistencialEmail.js y ModalConfiguracionCorreo.jsx (Banner de balance de guardia unificado con altas médicas descontando traslados y constataciones médico-legales)',
+      'Dashboard.jsx (Actualización protocolar de CURRENT_APP_VERSION a v6.3.20 en producción)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Estructura Canónica de 5 Tarjetas de Guardia: La Lámina 1 se estandariza en 5 tarjetas cardinales: 1. Pacientes Admitidos, 2. Pacientes Atendidos, 3. Altas Administrativas, 4. Traslados a Hospital, 5. Constataciones Z51.8. 2) Supresión de redundancias: Se eliminan las tarjetas redundantes "Total Pacientes" y "Altas Médicas" como bloques superiores independientes, permaneciendo desglosadas en el banner de balance oficial. 3) Simetría de Email Client: Las 5 tarjetas ocupan columnas del 20% de ancho, garantizando estética fidedigna e idéntica en desktop y mobile.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Cálculo reactivo en O(1) de métricas de guardia y proporciones de demanda.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'InformeAsistencialEmail.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Cuadrícula responsiva grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 en previsualizador.',
+      '5 Columnas React Email al 20% en InformeAsistencialEmail.js.',
+      'Sintonización de subtítulos, badges y códigos CIE-10 Z51.8 en todas las tarjetas.'
+    ]
+  },
+  {
     id: 'v6.3.19',
     version_tag: 'v6.3.19',
     fecha: '15 de Septiembre, 2026',

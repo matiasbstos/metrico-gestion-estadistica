@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.20',
+      version: 'v6.3.20',
+      fecha: '15 de Septiembre, 2026',
+      badge: 'ESTANDARIZACIÓN: 5 TARJETAS OFICIALES DE GUARDIA',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Unificación Oficial de las 5 Tarjetas Asistenciales de Guardia en Correo y Previsualizador',
+      categoria: 'Auditoría & Despacho de Correos',
+      icon: Award,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Conforme a la directriz operativa de guardia, se simplificó y estandarizó la Lámina 1 a exactamente 5 tarjetas esenciales en orden asistencial estricto: 1. Pacientes Admitidos (Ingreso Formal 100%), 2. Pacientes Atendidos (Clínico y Cobertura %), 3. Altas Administrativas (% de Demanda), 4. Traslados a Hospital (Derivaciones UEH) y 5. Constataciones de Lesiones (Z51.8). Se suprimieron duplicidades visuales previas y se integraron las altas médicas al banner de balance del turno.',
+      instructivo: {
+        paraQueSirve: 'Estandariza la jerarquía visual de los datos de guardia tanto en el previsualizador interactivo de la plataforma como en los correos despachados a jefatura y dirección.',
+        quePuedesVer: '1) 5 Tarjetas Cardinales: Distribución simétrica al 20% con los 5 indicadores clave del turno (Admitidos, Atendidos, Altas Admin, Traslados Hosp. y Constataciones). 2) Banner de Balance Integral: Desglose completo de admitidos, atendidos (altas médicas + traslados) y altas administrativas con constataciones Z51.8.',
+        ejemploUso: 'Al entrar al diseñador de correo o recibir el reporte oficial por email, se aprecian las 5 tarjetas con proporciones limpias y sin redundancias numéricas.'
+      },
+      changes: [
+        'Estandarización de 5 tarjetas en Lámina 1: Admitidos, Atendidos, Altas Admin, Traslados Hosp. y Constataciones.',
+        'Eliminación de la redundancia superior de "Total Pacientes" y "Altas Médicas", manteniéndolas en el banner de cuadratura.',
+        'Plantilla React Email InformeAsistencialEmail.js adaptada a 5 columnas de ancho 20% uniforme.',
+        'Banner de cuadratura de guardia actualizado incorporando Constataciones Z51.8.',
+        'Sintonización de grid responsivo en ModalConfiguracionCorreo.jsx.'
+      ]
+    },
+    {
       id: 'v6.3.19',
       version: 'v6.3.19',
       fecha: '15 de Septiembre, 2026',

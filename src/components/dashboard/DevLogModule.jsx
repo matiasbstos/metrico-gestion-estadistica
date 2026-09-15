@@ -8,6 +8,31 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-20',
+    titulo: 'Unificación Oficial de las 5 Tarjetas Asistenciales de Guardia en Correo y Previsualizador',
+    fecha: '2026-09-15',
+    version_tag: 'v6.3.20',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'En la Lámina 1 de Cifras Oficiales del Turno, el diseño previo mantenía 6 tarjetas con cierta redundancia estructural: "Total Pacientes" (que repetía el valor de admitidos) y "Altas Médicas" (que junto con traslados desglosaban los atendidos), lo que ocupaba espacio horizontal y omitía la presencia directa de las Constataciones Z51.8 como tarjeta independiente de guardia.',
+    logica: 'Conforme a la instrucción operativa de guardia, se estandarizó la Lámina 1 a exactamente 5 tarjetas en orden secuencial estricto: 1) PAC. ADMITIDOS, 2) PAC. ATENDIDOS, 3) ALTAS ADMIN, 4) TRASLADOS HOSP. y 5) CONSTATACIONES. Se reconfiguró el grid responsivo del previsualizador (grid-cols-2 sm:grid-cols-3 lg:grid-cols-5) y la plantilla de React Email con 5 columnas fijas del 20% de ancho. El desglose de altas médicas se integró al banner de cuadratura universal: Admitidos = Atendidos (Altas Médicas + Traslados Hosp.) + Altas Admin • Constataciones Z51.8.',
+    solucion: 'Tanto el previsualizador interactivo como el correo HTML despachado presentan las 5 tarjetas de guardia con proporciones áureas (width 20%), sin redundancias numéricas y con cuadratura absoluta certificada.',
+    fullPost: `En esta versión v6.3.20 consolidamos la estructura definitiva de la Lámina 1 de Cifras Oficiales de Guardia:
+
+1. **Las 5 Tarjetas Oficiales de Guardia (Orden Asistencial Estricto)**:
+   - **Col 1: PAC. ADMITIDOS**: Admisión formal e ingreso Rayen (100%).
+   - **Col 2: PAC. ATENDIDOS**: Atención médica efectiva y porcentaje de cobertura clínica.
+   - **Col 3: ALTAS ADMIN**: Egresos administrativos y deserciones de ventanilla (% sobre demanda).
+   - **Col 4: TRASLADOS HOSP.**: Pacientes derivados a la Unidad de Emergencia Hospitalaria (UEH).
+   - **Col 5: CONSTATACIONES**: Atenciones médico-legales codificadas bajo CIE-10 Z51.8.
+
+2. **Banner de Cuadratura Universal**:
+   - \`✔ Balance del Turno: [Admitidos] Admitidos = [Atendidos] Atenciones ([Altas Médicas] Altas Médicas + [Traslados] Traslados Hosp.) + [Altas Admin] Altas Admin ([%]%) • [Constataciones] Constataciones Z51.8.\`
+
+3. **Arquitectura de Correo Simétrica (React Email & Outlook)**:
+   - Implementación de 5 columnas del 20% de ancho con espaciado óptimo (\`width: '20%'\`), garantizando visualización perfecta en clientes de correo de escritorio y dispositivos móviles.`
+  },
+  {
     id: 'devlog-v6-3-19',
     titulo: 'Reconciliación y Certificación Matemática Universal de Cifras de Correo con el Dashboard SSOT',
     fecha: '2026-09-15',
