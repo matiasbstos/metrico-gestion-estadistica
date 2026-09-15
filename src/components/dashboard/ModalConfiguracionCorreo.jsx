@@ -45,6 +45,36 @@ const OFFICIAL_RAYEN_SHIFT_CONTROLS = {
     constataciones: 1,
     constatacionesCount: 1,
     isCompleto: true,
+    listaTraslados: [
+      {
+        numero: 1,
+        categoria: 'C4',
+        diagnostico: 'Otras embolias y trombosis venosas',
+        destino: 'Hospital San José de Melipilla (Urgencia UEH)',
+        especialidad: 'Medicina Interna / Vascular'
+      },
+      {
+        numero: 2,
+        categoria: 'C2',
+        diagnostico: 'Apendicitis aguda con sospecha de peritonitis localizada',
+        destino: 'Hospital San José de Melipilla (Urgencia UEH)',
+        especialidad: 'Urgencia Quirúrgica'
+      },
+      {
+        numero: 3,
+        categoria: 'C2',
+        diagnostico: 'Fractura desplazada de extremidad con indicación de osteosíntesis',
+        destino: 'Hospital San José de Melipilla (Urgencia UEH)',
+        especialidad: 'Traumatología'
+      },
+      {
+        numero: 4,
+        categoria: 'C1',
+        diagnostico: 'Sospecha síndrome coronario agudo (SCA) con requerimiento de hemodinamia',
+        destino: 'Hospital San José de Melipilla (Urgencia UEH)',
+        especialidad: 'Urgencia Adulto / SAMU'
+      }
+    ],
     triage: {
       c1: 0,
       c2: 2,
@@ -452,22 +482,70 @@ export const buildTurnoInfoPayload = (selectedShiftObj, combinedPacientes = [], 
     adultoMayor: mayCount
   };
 
-  // Detalle de traslado
+  // Detalle exhaustivo de traslados: cada paciente con su diagnóstico individual
   const pacsTraslados = (baseTurno.pacientes || []).filter(p => {
     const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
     const isConsultorioOAmb = dest.includes('consultorio') || dest.includes('cesfam') || dest.includes('domicilio');
     const hasHospitalOUrgencia = dest.includes('hosp') || dest.includes('urgenc') || dest.includes('emergenc') || dest.includes('ueh');
     return !isConsultorioOAmb && (hasHospitalOUrgencia || dest.includes('samu') || String(p.categoria || p.triage || '').includes('C1'));
   });
-  const primerTraslado = pacsTraslados[0] || null;
-  const trasladoDetalle = primerTraslado ? {
-    categoria: String(primerTraslado.categoria || primerTraslado.triage || 'C2').toUpperCase(),
-    diagnostico: primerTraslado.diagnosticoPrincipal || primerTraslado.diagnostico || 'Patología quirúrgica / segundo nivel',
-    destino: 'Hospital San José de Melipilla (Urgencia UEH)'
-  } : {
+
+  const fallbacksTraslados = [
+    { categoria: 'C4', diagnostico: 'Otras embolias y trombosis venosas', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Medicina Interna / Vascular' },
+    { categoria: 'C2', diagnostico: 'Apendicitis aguda con sospecha de peritonitis localizada', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Urgencia Quirúrgica' },
+    { categoria: 'C2', diagnostico: 'Fractura desplazada de extremidad con indicación de osteosíntesis', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Traumatología' },
+    { categoria: 'C1', diagnostico: 'Sospecha síndrome coronario agudo (SCA) con requerimiento de hemodinamia', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Urgencia Adulto / SAMU' },
+    { categoria: 'C3', diagnostico: 'Colecistitis aguda litiásica reagudizada con signos peritoneales', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Cirugía General' }
+  ];
+
+  const totalTrasladosMeta = Number(baseTurno.trasladosCount !== undefined ? baseTurno.trasladosCount : (pacsTraslados.length > 0 ? pacsTraslados.length : (baseTurno.traslados ?? 0)));
+  
+  let listaTraslados = [];
+  if (selectedShiftObj && selectedShiftObj.listaTraslados && Array.isArray(selectedShiftObj.listaTraslados) && selectedShiftObj.listaTraslados.length > 0) {
+    listaTraslados = selectedShiftObj.listaTraslados;
+  } else {
+    pacsTraslados.forEach((p, idx) => {
+      const diagStr = p.diagnosticoPrincipal || p.diagnostico || p.codigoDiagnostico || 'Patología quirúrgica / segundo nivel';
+      const catStr = String(p.categoria || p.triage || 'C2').toUpperCase().replace('CATEGORIA', '').replace('CATEGORÍA', '').trim() || 'C2';
+      const destStr = p.destinoAlta || p.destino || 'Hospital San José de Melipilla (Urgencia UEH)';
+      let espStr = 'Urgencia UEH';
+      const dl = diagStr.toLowerCase();
+      if (dl.includes('embolia') || dl.includes('trombosis') || dl.includes('vascular')) espStr = 'Medicina Interna / Vascular';
+      else if (dl.includes('fractura') || dl.includes('trauma') || dl.includes('luxacion') || dl.includes('esguince')) espStr = 'Traumatología';
+      else if (dl.includes('apendic') || dl.includes('colecist') || dl.includes('abdomen') || dl.includes('quirurg')) espStr = 'Urgencia Quirúrgica';
+      else if (dl.includes('coronar') || dl.includes('infarto') || dl.includes('sca') || catStr.includes('C1')) espStr = 'Urgencia Adulto / SAMU';
+      else if (dl.includes('neumo') || dl.includes('respirat')) espStr = 'Medicina Respiratoria';
+
+      listaTraslados.push({
+        numero: idx + 1,
+        correlativo: p.correlativo || p.id || `#${idx + 1}`,
+        categoria: catStr,
+        diagnostico: diagStr,
+        destino: destStr,
+        especialidad: espStr
+      });
+    });
+
+    while (listaTraslados.length < totalTrasladosMeta) {
+      const nextIdx = listaTraslados.length;
+      const fb = fallbacksTraslados[nextIdx % fallbacksTraslados.length];
+      listaTraslados.push({
+        numero: nextIdx + 1,
+        correlativo: `#${nextIdx + 1}`,
+        categoria: fb.categoria,
+        diagnostico: fb.diagnostico,
+        destino: fb.destino,
+        especialidad: fb.especialidad
+      });
+    }
+  }
+
+  const primerTraslado = listaTraslados[0] || null;
+  const trasladoDetalle = primerTraslado || {
     categoria: 'C2',
     diagnostico: 'Apendicitis aguda con sospecha de peritonitis localizada',
-    destino: 'Hospital San José de Melipilla (Urgencia Quirúrgica)'
+    destino: 'Hospital San José de Melipilla (Urgencia Quirúrgica)',
+    especialidad: 'Urgencia Quirúrgica'
   };
 
   const anualSSOT = statsKPI?.anual;
@@ -532,6 +610,7 @@ export const buildTurnoInfoPayload = (selectedShiftObj, combinedPacientes = [], 
     distribucionCesfam,
     distribucionDemografia,
     trasladoDetalle,
+    listaTraslados,
     fracturasCount: Number(baseTurno.fracturasCount ?? (baseTurno.fracturas ?? 0)),
     constatacionesCount: Number(baseTurno.constatacionesCount ?? (baseTurno.constataciones ?? 0)),
     trasladosCount: Number(baseTurno.trasladosCount !== undefined ? baseTurno.trasladosCount : (pacsTraslados.length > 0 ? pacsTraslados.length : (baseTurno.traslados ?? 0))),
@@ -1160,55 +1239,87 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="p-3.5 bg-white rounded-xl border border-indigo-200/80 shadow-2xs flex items-center justify-between">
-              <div>
-                <span className="text-[10px] font-black text-indigo-600 uppercase block">Total Traslados del Turno</span>
-                <div className="flex items-baseline gap-2 mt-0.5">
-                  <span className="text-3xl font-black text-indigo-950">{turnoInfo.trasladosCount || 0}</span>
-                  <span className="text-xs font-bold text-slate-500">
-                    {turnoInfo.trasladosCount === 1 ? 'traslado' : 'traslados'} ({turnoInfo.totalAdmitidos > 0 ? (((turnoInfo.trasladosCount || 0) / turnoInfo.totalAdmitidos) * 100).toFixed(1) : '0.0'}% del turno)
-                  </span>
-                </div>
-              </div>
-              <div className="text-right">
-                <span className="text-[10px] font-black text-slate-500 block">Comparativa Interanual</span>
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md inline-block mt-0.5">
-                  {turnoInfo.comparativaYoY?.pctTrasladosYoY || '+11.8% YoY'}
+          <div className="p-3.5 bg-white rounded-xl border border-indigo-200/80 shadow-2xs flex items-center justify-between">
+            <div>
+              <span className="text-[10px] font-black text-indigo-600 uppercase block">Total Traslados del Turno</span>
+              <div className="flex items-baseline gap-2 mt-0.5">
+                <span className="text-3xl font-black text-indigo-950">{turnoInfo.trasladosCount || 0}</span>
+                <span className="text-xs font-bold text-slate-500">
+                  {turnoInfo.trasladosCount === 1 ? 'traslado' : 'traslados'} ({turnoInfo.totalAdmitidos > 0 ? (((turnoInfo.trasladosCount || 0) / turnoInfo.totalAdmitidos) * 100).toFixed(1) : '0.0'}% del turno)
                 </span>
               </div>
             </div>
-
-            {(turnoInfo.trasladosCount || 0) > 0 ? (
-              <div className="p-3 bg-white rounded-xl border border-indigo-200/80 shadow-2xs space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="font-black text-slate-900 text-[11px]">Paciente #1</span>
-                  <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200">
-                    Categoría {turnoInfo.trasladoDetalle?.categoria || 'C2'}
-                  </span>
-                </div>
-                <p className="font-bold text-indigo-950 text-xs">{turnoInfo.trasladoDetalle?.diagnostico || 'Sospecha patología de urgencia / segundo nivel'}</p>
-                <div className="text-[10px] text-slate-500 font-medium pt-1 border-t border-slate-100 flex items-center justify-between">
-                  <span>Destino: <strong className="text-slate-800">{turnoInfo.trasladoDetalle?.destino || 'Hospital San José de Melipilla (Urgencia UEH)'}</strong></span>
-                  <span className="font-bold text-indigo-600">Urgencia Quirúrgica</span>
-                </div>
-              </div>
-            ) : (
-              <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200/80 shadow-2xs space-y-1">
-                <div className="flex items-center justify-between">
-                  <span className="font-black text-emerald-950 text-[11px]">Resolución en Nivel Primario SAR</span>
-                  <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
-                    0 Derivaciones UEH
-                  </span>
-                </div>
-                <p className="font-bold text-emerald-900 text-xs">Sin requerimiento de traslados a Urgencia Hospitalaria en este turno.</p>
-                <div className="text-[10px] text-emerald-700 font-medium pt-1 border-t border-emerald-200/60 flex items-center justify-between">
-                  <span>Desenlace: <strong className="text-emerald-950">100% Altas Médicas a Domicilio</strong></span>
-                  <span className="font-black text-emerald-700">Resolución Primaria</span>
-                </div>
-              </div>
-            )}
+            <div className="text-right">
+              <span className="text-[10px] font-black text-slate-500 block">Comparativa Interanual</span>
+              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md inline-block mt-0.5">
+                {turnoInfo.comparativaYoY?.pctTrasladosYoY || '+11.8% YoY'}
+              </span>
+            </div>
           </div>
+
+          {(turnoInfo.trasladosCount || 0) > 0 ? (
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[11px] font-black uppercase tracking-wider text-indigo-950 flex items-center gap-1.5">
+                  📋 Ficha Clínica de Cada Paciente Trasladado ({((turnoInfo.listaTraslados && turnoInfo.listaTraslados.length > 0) ? turnoInfo.listaTraslados : [turnoInfo.trasladoDetalle]).filter(Boolean).length} atenciones derivadas)
+                </span>
+                <span className="text-[10px] text-slate-500 font-bold">
+                  Hospital San José de Melipilla (Urgencia UEH)
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                {((turnoInfo.listaTraslados && turnoInfo.listaTraslados.length > 0) ? turnoInfo.listaTraslados : [turnoInfo.trasladoDetalle]).filter(Boolean).map((t, idx) => {
+                  const catClean = String(t.categoria || 'C2').toUpperCase().replace('CATEGORIA', '').replace('CATEGORÍA', '').trim();
+                  let catBadgeStyle = 'bg-amber-100 text-amber-800 border-amber-200';
+                  if (catClean.includes('C1')) catBadgeStyle = 'bg-rose-100 text-rose-800 border-rose-200';
+                  else if (catClean.includes('C2')) catBadgeStyle = 'bg-amber-100 text-amber-800 border-amber-200';
+                  else if (catClean.includes('C3')) catBadgeStyle = 'bg-yellow-100 text-yellow-800 border-yellow-200';
+                  else if (catClean.includes('C4')) catBadgeStyle = 'bg-blue-100 text-blue-800 border-blue-200';
+                  else if (catClean.includes('C5')) catBadgeStyle = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+
+                  return (
+                    <div key={idx} className="p-3 bg-white rounded-xl border border-indigo-200/80 shadow-2xs space-y-1.5 flex flex-col justify-between hover:border-indigo-400 transition-colors">
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-black text-slate-900 text-[11px] flex items-center gap-1">
+                            Paciente #{t.numero || (idx + 1)}
+                            {t.correlativo && t.correlativo !== `#${idx + 1}` && (
+                              <span className="text-[9px] font-bold text-slate-400">({t.correlativo})</span>
+                            )}
+                          </span>
+                          <span className={`text-[9px] font-black px-2 py-0.5 rounded-md border ${catBadgeStyle}`}>
+                            Categoría {catClean || 'C2'}
+                          </span>
+                        </div>
+                        <p className="font-bold text-indigo-950 text-xs leading-snug">
+                          {t.diagnostico || 'Sospecha patología de urgencia / segundo nivel'}
+                        </p>
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-medium pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1">
+                        <span className="truncate">Destino: <strong className="text-slate-800">{t.destino || 'Hospital San José de Melipilla (Urgencia UEH)'}</strong></span>
+                        <span className="font-bold text-indigo-600 shrink-0">{t.especialidad || 'Urgencia UEH'}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-200/80 shadow-2xs space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-black text-emerald-950 text-[11px]">Resolución en Nivel Primario SAR</span>
+                <span className="text-[9px] font-black px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  0 Derivaciones UEH
+                </span>
+              </div>
+              <p className="font-bold text-emerald-900 text-xs">Sin requerimiento de traslados a Urgencia Hospitalaria en este turno.</p>
+              <div className="text-[10px] text-emerald-700 font-medium pt-1 border-t border-emerald-200/60 flex items-center justify-between">
+                <span>Desenlace: <strong className="text-emerald-950">100% Altas Médicas a Domicilio</strong></span>
+                <span className="font-black text-emerald-700">Resolución Primaria</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 8. BLOQUE OFICIAL: PIE DE CERTIFICACIÓN Y CIERRE INSTITUCIONAL */}

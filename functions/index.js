@@ -1232,6 +1232,17 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
     destino: rawTraslado.destino || 'Hospital San José de Melipilla (Urgencia UEH)'
   };
 
+  const listaTrasladosSanitizada = Array.isArray(rawTurno.listaTraslados) && rawTurno.listaTraslados.length > 0
+    ? rawTurno.listaTraslados.map((t, idx) => ({
+        numero: t.numero || (idx + 1),
+        correlativo: t.correlativo || `#${idx + 1}`,
+        categoria: String(t.categoria || 'C2').toUpperCase(),
+        diagnostico: t.diagnostico || 'Sospecha patología de segundo nivel',
+        destino: t.destino || 'Hospital San José de Melipilla (Urgencia UEH)',
+        especialidad: t.especialidad || 'Urgencia UEH'
+      }))
+    : (trasladoSanitizado.diagnostico ? [{ numero: 1, ...trasladoSanitizado }] : []);
+
   const turnoTrasladosCount = Number(rawTurno.trasladosCount ?? (rawTurno.traslados ?? 0));
   const turnoAltasMedicas = Math.max(0, atnEfectivas - turnoTrasladosCount);
   const turnoTotalPacientes = Number(rawTurno.totalPacientes || totalAdm);
@@ -1244,6 +1255,7 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
     altasAdmin: altasAdminVal,
     altasMedicas: turnoAltasMedicas,
     trasladoDetalle: trasladoSanitizado,
+    listaTraslados: listaTrasladosSanitizada,
     fracturasCount: Number(rawTurno.fracturasCount ?? (rawTurno.fracturas ?? 0)),
     constatacionesCount: Number(rawTurno.constatacionesCount ?? (rawTurno.constataciones ?? 0)),
     trasladosCount: turnoTrasladosCount,

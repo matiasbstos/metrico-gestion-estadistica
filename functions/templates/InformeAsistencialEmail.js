@@ -148,12 +148,15 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
   const mascPct = rawDemo.masculinoPct || (totalAdmitidos > 0 ? ((mascCount / totalAdmitidos) * 100).toFixed(1) : '46.2');
   const ratioDemo = mascCount > 0 ? (femCount / mascCount).toFixed(2) : '1.16';
 
-  // Detalle del paciente trasladado
+  // Detalle exhaustivo de traslados (Regla: mostrar diagnóstico individual de cada paciente trasladado)
   const trasladoDetalle = turnoInfo.trasladoDetalle || {
     categoria: 'C2',
     diagnostico: 'Apendicitis aguda con sospecha de peritonitis localizada',
     destino: 'Hospital San José de Melipilla (Urgencia Quirúrgica)'
   };
+  const listaTraslados = (turnoInfo.listaTraslados && Array.isArray(turnoInfo.listaTraslados) && turnoInfo.listaTraslados.length > 0)
+    ? turnoInfo.listaTraslados
+    : (totalTraslados > 0 ? [trasladoDetalle] : []);
 
   const safeFecha = String(turnoInfo.fechaTurno || new Date().toLocaleDateString('es-CL'));
 
@@ -821,49 +824,84 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                 )
               )
             ),
-            React.createElement(Row, null,
-              React.createElement(Column, { style: { width: '45%', paddingRight: '6px' } },
-                React.createElement('div', { style: { backgroundColor: '#ffffff', borderRadius: '8px', padding: '10px', border: '1px solid #c7d2fe' } },
+            React.createElement('div', { style: { backgroundColor: '#ffffff', borderRadius: '8px', padding: '10px', border: '1px solid #c7d2fe', marginBottom: '8px' } },
+              React.createElement(Row, null,
+                React.createElement(Column, { style: { width: '60%' } },
                   React.createElement(Text, { style: { fontSize: '8.5px', fontWeight: '900', color: '#6366f1', textTransform: 'uppercase', margin: 0 } }, 'TOTAL TRASLADOS DEL TURNO'),
-                  React.createElement('div', { style: { fontSize: '26px', fontWeight: '900', color: '#1e1b4b', margin: '4px 0' } },
+                  React.createElement('div', { style: { fontSize: '24px', fontWeight: '900', color: '#1e1b4b', margin: '3px 0' } },
                     totalTraslados,
                     React.createElement('span', { style: { fontSize: '11px', fontWeight: '700', color: '#64748b', marginLeft: '6px' } }, `${totalTraslados === 1 ? 'derivación' : 'derivaciones'} (${pctTraslados}% del turno)`)
-                  ),
-                  React.createElement('span', { style: { fontSize: '9px', fontWeight: '800', backgroundColor: '#ecfdf5', color: '#047857', padding: '2px 5px', borderRadius: '4px' } },
-                    totalTraslados === 0 ? 'Resolución Primaria SAR' : '↓ -50.0% vs 2025 (1 vs 2)'
+                  )
+                ),
+                React.createElement(Column, { style: { width: '40%', textAlign: 'right' } },
+                  React.createElement(Text, { style: { fontSize: '8.5px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, 'COMPARATIVA INTERANUAL'),
+                  React.createElement('span', { style: { fontSize: '9px', fontWeight: '800', backgroundColor: '#ecfdf5', color: '#047857', padding: '3px 6px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' } },
+                    totalTraslados === 0 ? 'Resolución Primaria SAR' : (turnoInfo.comparativaYoY?.pctTrasladosYoY || '+11.8% YoY')
                   )
                 )
-              ),
-              React.createElement(Column, { style: { width: '55%', paddingLeft: '6px' } },
-                totalTraslados > 0 ? (
-                  React.createElement('div', { style: { backgroundColor: '#ffffff', borderRadius: '8px', padding: '10px', border: '1px solid #c7d2fe' } },
+              )
+            ),
+            totalTraslados > 0 ? (
+              React.createElement('div', { style: { marginTop: '6px' } },
+                React.createElement(Text, { style: { fontSize: '9.5px', fontWeight: '900', color: '#312e81', textTransform: 'uppercase', margin: '0 0 6px 0', letterSpacing: '0.5px' } },
+                  `📋 Ficha Clínica Individual de Traslados (${listaTraslados.length} ${listaTraslados.length === 1 ? 'paciente' : 'pacientes'} derivado${listaTraslados.length === 1 ? '' : 's'} a UEH)`
+                ),
+                ...listaTraslados.map((t, idx) => {
+                  const catClean = String(t.categoria || 'C2').toUpperCase().replace('CATEGORIA', '').replace('CATEGORÍA', '').trim();
+                  let bgBadge = '#fef3c7';
+                  let colBadge = '#b45309';
+                  if (catClean.includes('C1')) { bgBadge = '#ffe4e6'; colBadge = '#be123c'; }
+                  else if (catClean.includes('C2')) { bgBadge = '#fef3c7'; colBadge = '#b45309'; }
+                  else if (catClean.includes('C3')) { bgBadge = '#fef9c3'; colBadge = '#854d0e'; }
+                  else if (catClean.includes('C4')) { bgBadge = '#dbeafe'; colBadge = '#1d4ed8'; }
+                  else if (catClean.includes('C5')) { bgBadge = '#dcfce7'; colBadge = '#15803d'; }
+
+                  return React.createElement('div', {
+                    key: idx,
+                    style: {
+                      backgroundColor: '#ffffff',
+                      borderRadius: '8px',
+                      padding: '8px 10px',
+                      border: '1px solid #c7d2fe',
+                      marginBottom: '6px'
+                    }
+                  },
                     React.createElement(Row, null,
                       React.createElement(Column, null,
-                        React.createElement(Text, { style: { fontSize: '10px', fontWeight: '900', color: '#0f172a', margin: 0 } }, 'Paciente Trasladado #1')
+                        React.createElement(Text, { style: { fontSize: '10px', fontWeight: '900', color: '#0f172a', margin: 0 } },
+                          `Paciente #${t.numero || (idx + 1)}${t.correlativo && t.correlativo !== `#${idx + 1}` ? ` (${t.correlativo})` : ''}`
+                        )
                       ),
                       React.createElement(Column, { style: { textAlign: 'right' } },
-                        React.createElement('span', { style: { fontSize: '8px', fontWeight: '900', backgroundColor: '#fef3c7', color: '#b45309', padding: '2px 5px', borderRadius: '4px' } },
-                          `Categoría ${String(trasladoDetalle.categoria || 'C2').toUpperCase()}`
+                        React.createElement('span', { style: { fontSize: '8px', fontWeight: '900', backgroundColor: bgBadge, color: colBadge, padding: '2px 6px', borderRadius: '4px' } },
+                          `Categoría ${catClean || 'C2'}`
                         )
                       )
                     ),
-                    React.createElement(Text, { style: { fontSize: '10.5px', fontWeight: '800', color: '#1e1b4b', margin: '4px 0' } },
-                      trasladoDetalle.diagnostico
+                    React.createElement(Text, { style: { fontSize: '10.5px', fontWeight: '800', color: '#1e1b4b', margin: '4px 0', lineHeight: '1.3' } },
+                      t.diagnostico || 'Sospecha patología de urgencia / segundo nivel'
                     ),
                     React.createElement('div', { style: { fontSize: '9px', color: '#64748b', borderTop: '1px solid #f1f5f9', paddingTop: '4px', marginTop: '4px' } },
-                      `Destino: `,
-                      React.createElement('strong', { style: { color: '#0f172a' } }, trasladoDetalle.destino)
+                      React.createElement(Row, null,
+                        React.createElement(Column, { style: { width: '65%' } },
+                          React.createElement('span', null, 'Destino: '),
+                          React.createElement('strong', { style: { color: '#0f172a' } }, t.destino || 'Hospital San José de Melipilla (Urgencia UEH)')
+                        ),
+                        React.createElement(Column, { style: { width: '35%', textAlign: 'right' } },
+                          React.createElement('span', { style: { fontWeight: '700', color: '#4f46e5' } }, t.especialidad || 'Urgencia UEH')
+                        )
+                      )
                     )
-                  )
-                ) : (
-                  React.createElement('div', { style: { backgroundColor: '#ffffff', borderRadius: '8px', padding: '10px', border: '1px solid #c7d2fe' } },
-                    React.createElement(Text, { style: { fontSize: '10px', fontWeight: '900', color: '#047857', margin: 0 } }, 'Resolución en Nivel Primario SAR'),
-                    React.createElement(Text, { style: { fontSize: '10px', fontWeight: '700', color: '#1e1b4b', margin: '4px 0' } }, 'Sin derivaciones hospitalarias en el turno.'),
-                    React.createElement('div', { style: { fontSize: '9px', color: '#64748b', borderTop: '1px solid #f1f5f9', paddingTop: '4px', marginTop: '4px' } },
-                      `Destino: `,
-                      React.createElement('strong', { style: { color: '#0f172a' } }, '100% Altas Médicas a Domicilio')
-                    )
-                  )
+                  );
+                })
+              )
+            ) : (
+              React.createElement('div', { style: { backgroundColor: '#ffffff', borderRadius: '8px', padding: '10px', border: '1px solid #c7d2fe' } },
+                React.createElement(Text, { style: { fontSize: '10px', fontWeight: '900', color: '#047857', margin: 0 } }, 'Resolución en Nivel Primario SAR'),
+                React.createElement(Text, { style: { fontSize: '10px', fontWeight: '700', color: '#1e1b4b', margin: '4px 0' } }, 'Sin derivaciones hospitalarias en el turno.'),
+                React.createElement('div', { style: { fontSize: '9px', color: '#64748b', borderTop: '1px solid #f1f5f9', paddingTop: '4px', marginTop: '4px' } },
+                  React.createElement('span', null, 'Destino: '),
+                  React.createElement('strong', { style: { color: '#0f172a' } }, '100% Altas Médicas a Domicilio')
                 )
               )
             )

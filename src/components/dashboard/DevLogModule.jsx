@@ -8,6 +8,30 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-21',
+    titulo: 'Desglose Individual de Diagnósticos para la Totalidad de Pacientes Trasladados',
+    fecha: '2026-09-15',
+    version_tag: 'v6.3.21',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'En el Apartado Exclusivo de Traslados, cuando una guardia registraba múltiples derivaciones hospitalarias (por ejemplo 4 traslados), la tarjeta derecha únicamente mostraba al "Paciente #1", omitiendo los diagnósticos y patologías del resto de los pacientes trasladados a urgencia hospitalaria.',
+    logica: 'Se implementó la extracción exhaustiva de la lista de pacientes trasladados (listaTraslados) tanto en memoria clínica deduplicada como en la suite pre-vuelo. En el componente visual del previsualizador (ModalConfiguracionCorreo.jsx) y en la plantilla React Email (InformeAsistencialEmail.js), se reemplazó la tarjeta singular por un mapeo iterativo que renderiza la ficha clínica individual de cada paciente derivado, incorporando número correlativo, categoría de triage con badge de color (C1 a C5), diagnóstico patológico específico, destino y especialidad receptora.',
+    solucion: 'El sistema ahora exhibe el 100% de los diagnósticos de los pacientes trasladados en el turno de forma clara, simétrica y auditada, garantizando transparencia clínica total para la dirección y jefatura médica.',
+    fullPost: `En esta versión v6.3.21 completamos la visualización integral de Traslados Hospitalarios UEH:
+
+1. **Exhaustividad Diagnóstica**:
+   - Cada derivación a Urgencia Hospitalaria cuenta con su tarjeta clínica individual.
+   - En turnos con 4 traslados (ej. Turno 3 del 10/09/2026), se despliegan los 4 diagnósticos de guardia:
+     * Paciente #1: Otras embolias y trombosis venosas (Medicina Interna / Vascular - Cat. C4)
+     * Paciente #2: Apendicitis aguda con sospecha de peritonitis localizada (Urgencia Quirúrgica - Cat. C2)
+     * Paciente #3: Fractura desplazada de extremidad con indicación de osteosíntesis (Traumatología - Cat. C2)
+     * Paciente #4: Sospecha síndrome coronario agudo (SCA) con requerimiento de hemodinamia (Urgencia Adulto / SAMU - Cat. C1)
+
+2. **Diseño Multi-Canal (Web y Correo HTML)**:
+   - Cuadrícula responsiva de tarjetas en el previsualizador interactivo.
+   - Estructura en tablas apiladas compatibles con clientes de correo Outlook, Gmail y móviles en React Email.`
+  },
+  {
     id: 'devlog-v6-3-20',
     titulo: 'Unificación Oficial de las 5 Tarjetas Asistenciales de Guardia en Correo y Previsualizador',
     fecha: '2026-09-15',

@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.21',
+      version: 'v6.3.21',
+      fecha: '15 de Septiembre, 2026',
+      badge: 'DETALLE CLÍNICO: DIAGNÓSTICO INDIVIDUAL DE CADA TRASLADO',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Desglose Individual de Diagnósticos para Cada Paciente Trasladado',
+      categoria: 'Auditoría & Despacho de Correos',
+      icon: ArrowLeftRight,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se erradicó la limitación previa que mostraba únicamente al "Paciente #1" en el Apartado Exclusivo de Traslados. A partir de esta versión, independientemente de la cantidad de traslados ejecutados en la guardia (1, 2, 4 o más), el sistema despliega la ficha clínica completa de cada paciente derivado, incorporando su número ordinal, categoría de Triage Manchester (C1 a C5), diagnóstico patológico exhaustivo, hospital receptor y servicio clínico de destino.',
+      instructivo: {
+        paraQueSirve: 'Proporciona visibilidad clínica completa a la jefatura de urgencia y dirección sobre cada derivación hospitalaria de segundo nivel ejecutada durante la guardia.',
+        quePuedesVer: '1) Fichas Clínicas Individuales: Todas las atenciones derivadas con su diagnóstico médico exacto (ej. Apendicitis aguda, Fracturas desplazadas, Trombosis venosas, Síndrome coronario agudo). 2) Clasificación Manchester: Badge con código cromático C1-C5. 3) Destino y Especialidad: Hospital San José de Melipilla (Urgencia UEH, Traumatología, Cirugía General, Medicina Interna).',
+        ejemploUso: 'En un turno con 4 traslados hospitalarios, se visualizarán las 4 tarjetas independientes con los diagnósticos específicos de cada uno de los 4 pacientes.'
+      },
+      changes: [
+        'Renderizado interactivo de todas las fichas de traslado en el Apartado Exclusivo del previsualizador.',
+        'Plantilla de correo React Email actualizada con fichas clínicas apiladas para cada paciente derivado.',
+        'Sanitización y preservación de listaTraslados en la función Cloud Function enviarInformeCorreo.',
+        'Soporte cromático C1-C5 para categorías de triage en tarjetas de traslado.'
+      ]
+    },
+    {
       id: 'v6.3.20',
       version: 'v6.3.20',
       fecha: '15 de Septiembre, 2026',

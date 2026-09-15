@@ -10,6 +10,31 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.21',
+    version_tag: 'v6.3.21',
+    fecha: '15 de Septiembre, 2026',
+    fecha_despliegue: '15 de Septiembre, 2026',
+    proposito_actualizacion: 'Detalle Clínico Exhaustivo de Cada Paciente Trasladado: Diagnósticos Individuales en Previsualizador y Correo React Email.',
+    medios_y_stack: [
+      'ModalConfiguracionCorreo.jsx (Reemplazo de la ficha única fija de Paciente #1 por una cuadrícula reactiva que itera sobre la totalidad de los traslados del turno, mostrando el diagnóstico patológico específico de cada paciente)',
+      'InformeAsistencialEmail.js (Lámina 7 de Traslados adaptada para iterar sobre listaTraslados generando las fichas clínicas individuales para todos los pacientes derivados a Urgencia UEH)',
+      'functions/index.js (Sanitización y preservación de listaTraslados en la rutina pre-vuelo de despacho de correos)',
+      'helpers.js (Garantía de persistencia de listaTraslados en auditarIntegridadTurnoCorreo)',
+      'Dashboard.jsx (Actualización de versión a v6.3.21)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Transparencia Diagnóstica de Traslados: Queda estrictamente prohibido presentar únicamente al "Paciente #1" cuando en el turno se han registrado 2 o más derivaciones a Urgencia Hospitalaria (UEH). Todo paciente trasladado debe exhibir su correlativo/número, su categoría de Triage Manchester (C1 a C5), su diagnóstico patológico exacto, su hospital de destino y especialidad receptora. 2) Paridad Integral: El previsualizador de diseño y el correo HTML despachado mantienen idéntica exhaustividad diagnóstica.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Extracción indexada y mapeo dinámico en O(1) de listaTraslados.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'InformeAsistencialEmail.js', 'functions/index.js', 'helpers.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Cuadrícula responsiva grid-cols-1 md:grid-cols-2 en el Apartado Exclusivo de Traslados.',
+      'Bloques apilados compatibles con Gmail y Outlook en InformeAsistencialEmail.js.',
+      'Soporte completo para diagnósticos vasculares, quirúrgicos, traumatológicos y cardiovasculares.'
+    ]
+  },
+  {
     id: 'v6.3.20',
     version_tag: 'v6.3.20',
     fecha: '15 de Septiembre, 2026',
