@@ -74,7 +74,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
       nombre: 'Invierno',
       icono: '❄️',
       focoClinico: 'Peak estacional respiratorio (SBO, neumonía, asma), frío extremo (<5°C), precipitaciones y rebote asistencial post-lluvia.',
-      alertaRiesgo: 'Sobrecarga en Triage C1-C3 por virus respiratorios, descompensación cardiovascular y caídas por humedad.'
+      alertaRiesgo: 'Sobrecarga en Triaje C1-C3 por virus respiratorios, descompensación cardiovascular y caídas por humedad.'
     },
     avgNormal: 85,
     reglaLluvia: { avgLluvia: 72, variacionPct: -15.3 },
@@ -428,7 +428,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
         if (reboteItem) {
           alertMsg += `Alerta de sobrecarga para el ${reboteItem.fecha_predicha} (${reboteItem.atenciones_estimadas} pacientes estimados) debido a: ${reboteItem.weatherReason}`;
         } else if (peakItem) {
-          alertMsg += `Peak semanal proyectado para el ${peakItem.fecha_predicha} con ${peakItem.atenciones_estimadas} pacientes en ${peakItem.esquemaTurno}. Se recomienda reforzar triage C1-C3 y stock de salbutamol/nebulizaciones.`;
+          alertMsg += `Peak semanal proyectado para el ${peakItem.fecha_predicha} con ${peakItem.atenciones_estimadas} pacientes en ${peakItem.esquemaTurno}. Se recomienda reforzar triaje C1-C3 y stock de salbutamol/nebulizaciones.`;
         }
         setAlertaCognitivaText(alertMsg);
       }
@@ -501,7 +501,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
     if (!peakDay) return alertaCognitivaText;
     // Si no hay alerta o la alerta menciona fechas pasadas obsoletas (como 07/08/2026 o 2026-08-07), regenerarla con las fechas futuras reales
     if (!alertaCognitivaText || alertaCognitivaText.includes('2026-08-07') || alertaCognitivaText.includes('07/08') || alertaCognitivaText.includes('2026-08-03')) {
-      return `⚠️ Alerta Operativa Preventiva SAR Elsa Romo [Estación Invierno ❄️]:\nSe prevé pico asistencial para el ${peakDay.fechaCompletaStr} con ${peakDay.atenciones_estimadas} atenciones esperadas en Melipilla.\nEl análisis multivariable muestra alzas históricas por heladas (<5°C: ${multivariableClimatico?.reglaHeladasFrio?.variacionPct || 18.5}%) y rebote post-lluvia (+${multivariableClimatico?.reglaPostLluvia?.variacionPct || 28.2}%), que sumado a bajas temperaturas (Calidad del aire: ${airQualitySimple?.label || 'Regular / Moderada'}) elevarán la demanda asistencial.\nSe recomienda reforzar dotación médica/enfermería en triage C1-C3 e insumos clínicos.`;
+      return `⚠️ Alerta Operativa Preventiva SAR Elsa Romo [Estación Invierno ❄️]:\nSe prevé pico asistencial para el ${peakDay.fechaCompletaStr} con ${peakDay.atenciones_estimadas} atenciones esperadas en Melipilla.\nEl análisis multivariable muestra alzas históricas por heladas (<5°C: ${multivariableClimatico?.reglaHeladasFrio?.variacionPct || 18.5}%) y rebote post-lluvia (+${multivariableClimatico?.reglaPostLluvia?.variacionPct || 28.2}%), que sumado a bajas temperaturas (Calidad del aire: ${airQualitySimple?.label || 'Regular / Moderada'}) elevarán la demanda asistencial.\nSe recomienda reforzar dotación médica/enfermería en triaje C1-C3 e insumos clínicos.`;
     }
     return alertaCognitivaText;
   }, [alertaCognitivaText, peakDay, multivariableClimatico, airQualitySimple]);
@@ -1219,7 +1219,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
                 <ShieldCheck className="w-4 h-4 text-indigo-600" /> Acciones Preparatorias Sugeridas para Urgencias
               </h3>
               <ul className="text-xs font-bold text-slate-800 dark:text-slate-100 space-y-1.5 list-disc list-inside">
-                <li>Reforzar dotación médica y de enfermería en turnos de triage (C1 - C3) durante el día de máxima demanda y rebote post-lluvia.</li>
+                <li>Reforzar dotación médica y de enfermería en turnos de triaje (C1 - C3) durante el día de máxima demanda y rebote post-lluvia.</li>
                 <li>Habilitar insumos de aerosolterapia, nebulizaciones y oxigenoterapia suplementaria para días con heladas matinales.</li>
                 <li>Agilizar la gestión de altas administrativas para mantener disponibilidad en boxes de observación durante el Turno Largo.</li>
                 <li>Mantener canal activo de coordinación con el Hospital San José de Melipilla para derivaciones en horarios de máxima demanda.</li>

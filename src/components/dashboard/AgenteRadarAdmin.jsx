@@ -78,7 +78,7 @@ export default function AgenteRadarAdmin({ app, peakDay, calidadAire, climaData,
     } catch (err) {
       console.warn("Respuesta local de contingencia del Agente Radar:", err.message);
       // Respuesta inteligente local
-      let localResp = `📋 **Recomendación Operativa del Agente Radar (SAR Elsa Romo):**\n\nRespecto a "*${textQuery}*":\n- **Plan Recomendado:** Incrementar triage inicial durante el peak asistencial proyectado de ${peakDay?.atenciones_estimadas || 128} pacientes.\n- **Insumos:** Disponer de stock ampliado en salbutamol, nebulizadores, aerocámaras infantiles y oxígeno suplementario.\n- **Derivaciones:** Mantener línea prioritaria abierta con el Hospital San José de Melipilla para casos C1 y C2 graves.`;
+      let localResp = `📋 **Recomendación Operativa del Agente Radar (SAR Elsa Romo):**\n\nRespecto a "*${textQuery}*":\n- **Plan Recomendado:** Incrementar triaje inicial durante el peak asistencial proyectado de ${peakDay?.atenciones_estimadas || 128} pacientes.\n- **Insumos:** Disponer de stock ampliado en salbutamol, nebulizadores, aerocámaras infantiles y oxígeno suplementario.\n- **Derivaciones:** Mantener línea prioritaria abierta con el Hospital San José de Melipilla para casos C1 y C2 graves.`;
 
       const agentMsg = {
         id: Date.now() + 1,

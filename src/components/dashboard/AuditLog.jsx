@@ -166,7 +166,7 @@ export default function AuditLog({
             id: pId,
             fecha: pFecha,
             valor: p.diagnosticoPrincipal || 'Atención en espera',
-            motivo: 'Sin categoría de triage asignada (sincat)'
+            motivo: 'Sin categoría de triaje asignada (sincat)'
           });
         }
       }
@@ -344,7 +344,7 @@ export default function AuditLog({
       {
         id: 7,
         nombre: '7. Trazabilidad Profesional (Enfermería / Médica)',
-        descripcion: 'Identificación de enfermero(a) en triage y médico responsable en anamnesis.',
+        descripcion: 'Identificación de enfermero(a) en triaje y médico responsable en anamnesis.',
         estado: (trazabilidadIncompleta <= totalPacientes * 0.05 || reconciledRules[7]) ? 'CONFORME' : 'ALERTA',
         fallos: reconciledRules[7] ? 0 : trazabilidadIncompleta,
         total: totalPacientes,

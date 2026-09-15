@@ -8,6 +8,33 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-22',
+    titulo: 'Estandarización Lingüística Institucional: Adopción Obligatoria de "Triaje" (con J) en Toda la Plataforma',
+    fecha: '2026-09-15',
+    version_tag: 'v6.3.22',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'En diversos módulos de la plataforma, correos de guardia y previsualizadores existía el uso de la voz anglosajona "Triage" (con g) en lugar de la palabra formal en español "Triaje" (con j), contraviniendo la pauta ortográfica institucional del SAR Arpillerista Elsa Romo Aravena.',
+    logica: 'Se realizó una auditoría y reemplazo sistemático de toda etiqueta, encabezado, alerta predictiva y texto visible en el sitio: 1) En el informe de guardia y previsualizador de correo se normalizaron los tramos a "1. Admisión a Triaje", "2. Triaje a Box" y "Distribución Oficial de Triaje (Categorización C1 a C5)". 2) En el Radar Predictivo y Agente IA se actualizaron las alertas a "Sobrecarga en Triaje C1-C3" y "reforzar triaje inicial". 3) En subreportes y auditoría se estandarizó "Área de Derivaciones y Triaje" y "triaje clínico". Se resguardaron estrictamente las variables de base de datos internas para garantizar cero regresiones.',
+    solucion: 'Todo texto, reporte formal, correo HTML y componente analítico de MÉTRICO refleja de forma unívoca y rigurosa la norma lingüística institucional: "Triaje" con J.',
+    fullPost: `En esta versión v6.3.22 consolidamos la regla de estilo y consistencia terminológica de MÉTRICO:
+
+1. **Normalización en Despacho de Correos e Informes Asistenciales**:
+   - Título oficial de Lámina 3: **Distribución Oficial de Triaje (Categorización C1 a C5)**.
+   - Desglose de tramos de espera:
+     * **1. Admisión a Triaje**
+     * **2. Triaje a Box**
+     * **3. Box a Alta**
+
+2. **Alineación en Alertas Predictivas y Paneles Analíticos**:
+   - Radar multivariable y Agente IA: *"reforzar triaje C1-C3"*, *"sobrecarga en triaje inicial"*.
+   - Subreportes ejecutivos: *"Área de Derivaciones y Triaje"*.
+   - Auditoría de Calidad: *"Sin categoría de triaje asignada"*, *"Trazabilidad de enfermería en triaje"*.
+
+3. **Garantía de Estabilidad Técnica**:
+   - Preservación íntegra de identificadores de esquema Rayen/Firestore (\`p.triage\`, \`rawTriage\`) para mantener compatibilidad matemática perfecta.`
+  },
+  {
     id: 'devlog-v6-3-21',
     titulo: 'Desglose Individual de Diagnósticos para la Totalidad de Pacientes Trasladados',
     fecha: '2026-09-15',

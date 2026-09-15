@@ -2455,7 +2455,7 @@ totalTriados,
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded border border-indigo-200">Área de Derivaciones y Triage</span>
+                    <span className="text-[10px] font-bold bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded border border-indigo-200">Área de Derivaciones y Triaje</span>
                     <p className="text-[11px] text-slate-600 font-bold mt-1.5">Periodo: {rangoFechasReales.texto}</p>
                   </div>
                 </div>
@@ -3000,7 +3000,7 @@ totalTriados,
                   </div>
                   <p className="text-xs text-rose-950 font-bold leading-relaxed whitespace-pre-line">
                     ⚠️ Alerta Operativa Preventiva SAR Elsa Romo Aravena:
-                    Se prevé una sobrecarga de demanda asistencial con riesgo de saturación en el periodo proyectado. La coincidencia con factores meteorológicos locales de Melipilla (bajas temperaturas / precipitaciones) y avisos de la red asistencial MINSAL sugiere un aumento potencial de consultas por infecciones respiratorias agudas y traumatismos. Se recomienda a la jefatura de urgencia coordinar refuerzo de personal médico y de enfermería en triage C1-C3.
+                    Se prevé una sobrecarga de demanda asistencial con riesgo de saturación en el periodo proyectado. La coincidencia con factores meteorológicos locales de Melipilla (bajas temperaturas / precipitaciones) y avisos de la red asistencial MINSAL sugiere un aumento potencial de consultas por infecciones respiratorias agudas y traumatismos. Se recomienda a la jefatura de urgencia coordinar refuerzo de personal médico y de enfermería en triaje C1-C3.
                   </p>
                   <p className="text-[9px] font-bold text-rose-700/80 pt-2 border-t border-rose-200">
                     Análisis generado dinámicamente por IA cruzando modelos de series temporales de BigQuery, datos de Open-Meteo y boletines oficiales del MINSAL Chile.

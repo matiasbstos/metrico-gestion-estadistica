@@ -701,7 +701,7 @@ export default function AnalisisEnfermeria({ pacientesFiltrados, pacientesDB, tu
                         {row.nombre === 'No Registrado' && (
                           <InfoTooltip 
                             title="¿Por qué 'No Registrado'?"
-                            text="Corresponde a admisiones sin categorizar, canceladas o de derivación inmediata que no requirieron triage clínico (y por ende no tienen profesional de enfermería asignado), o registros donde el campo del enfermero venía vacío en el archivo Excel original."
+                            text="Corresponde a admisiones sin categorizar, canceladas o de derivación inmediata que no requirieron triaje clínico (y por ende no tienen profesional de enfermería asignado), o registros donde el campo del enfermero venía vacío en el archivo Excel original."
                           />
                         )}
                       </div>

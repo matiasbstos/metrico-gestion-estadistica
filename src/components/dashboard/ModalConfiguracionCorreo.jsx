@@ -940,12 +940,12 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
             </div>
             <div className="grid grid-cols-3 gap-2 text-center text-xs">
               <div className="p-2 bg-white rounded-xl border border-purple-100 space-y-0.5">
-                <span className="text-[9px] font-black text-slate-500 uppercase block">1. Admisión a Triage</span>
+                <span className="text-[9px] font-black text-slate-500 uppercase block">1. Admisión a Triaje</span>
                 <span className="font-black text-slate-900 text-sm block">{turnoInfo.tramosEspera?.admisionTriageMin || 14} min</span>
                 <span className="text-[9px] font-bold text-emerald-700 block">↓ -2.5% vs 2025</span>
               </div>
               <div className="p-2 bg-white rounded-xl border border-purple-100 space-y-0.5">
-                <span className="text-[9px] font-black text-slate-500 uppercase block">2. Triage a Box</span>
+                <span className="text-[9px] font-black text-slate-500 uppercase block">2. Triaje a Box</span>
                 <span className="font-black text-indigo-700 text-sm block">{turnoInfo.tramosEspera?.triageAtencionMin || 45} min</span>
                 <span className="text-[9px] font-bold text-emerald-700 block">↓ -3.8% vs 2025</span>
               </div>
@@ -986,12 +986,12 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
           </div>
         </div>
 
-        {/* 3. LÁMINA: DISTRIBUCIÓN DEL TRIAGE */}
+        {/* 3. LÁMINA: DISTRIBUCIÓN DEL TRIAJE */}
         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 shadow-xs">
           <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
             <span className="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
               <Activity className="w-4 h-4 text-indigo-600" />
-              Distribución Oficial de Triage (Categorización C1 a C5)
+              Distribución Oficial de Triaje (Categorización C1 a C5)
             </span>
             <span className="text-[10px] font-black text-slate-500 bg-slate-200 px-2 py-0.5 rounded-md">
               100% Auditado

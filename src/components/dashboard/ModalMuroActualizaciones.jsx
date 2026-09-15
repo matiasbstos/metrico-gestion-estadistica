@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.22',
+      version: 'v6.3.22',
+      fecha: '15 de Septiembre, 2026',
+      badge: 'ESTANDARIZACIÓN INSTITUCIONAL: TRIAJE CON J',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Adopción Rigurosa y Oficial de "Triaje" (con J) en Todo MÉTRICO',
+      categoria: 'Auditoría & Identidad Asistencial',
+      icon: CheckCircle2,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Conforme a la norma institucional y lingüística del SAR Elsa Romo, se estandarizó en toda la plataforma, correos HTML, reportes PDF y paneles analíticos el uso estricto de "Triaje" (con \'j\') en reemplazo de la voz foránea "Triage". Esta normalización abarca títulos oficiales ("Distribución Oficial de Triaje C1 a C5"), tramos de espera ("1. Admisión a Triaje", "2. Triaje a Box"), alertas predictivas del Radar y descripciones de calidad clínica.',
+      instructivo: {
+        paraQueSirve: 'Garantiza coherencia ortográfica, institucional y formal con las pautas oficiales del Servicio de Salud y la Corporación Municipal.',
+        quePuedesVer: '1) Previsualizador y Correo Oficial: "1. Admisión a Triaje", "2. Triaje a Box" y "Distribución Oficial de Triaje (Categorización C1 a C5)". 2) Radar y Alertas IA: "Sobrecarga en Triaje C1-C3", "reforzar triaje inicial". 3) Subreportes y Paneles: "Área de Derivaciones y Triaje", "tiempo promedio de espera a triaje".',
+        ejemploUso: 'En cualquier sección o reporte del sistema, toda referencia a la categorización clínica de urgencia figura siempre escrita como "Triaje".'
+      },
+      changes: [
+        'Sustitución de "Triage" por "Triaje" en los tramos de espera de ModalConfiguracionCorreo.jsx e InformeAsistencialEmail.js.',
+        'Normalización del título de Lámina 3 a "Distribución Oficial de Triaje (Categorización C1 a C5)".',
+        'Ajuste en alertas predictivas del Radar y recomendaciones del Agente IA.',
+        'Actualización de descripciones normativas en AuditLog, AnalisisDemandaAtencion y ReportesModule.',
+        'Blindaje de variables de código para prevenir incompatibilidades con la base de datos.'
+      ]
+    },
+    {
       id: 'v6.3.21',
       version: 'v6.3.21',
       fecha: '15 de Septiembre, 2026',

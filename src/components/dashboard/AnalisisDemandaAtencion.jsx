@@ -1199,7 +1199,7 @@ export default function AnalisisDemandaAtencion({
               <TrendingUp className="w-4 h-4" /> Tendencia Interanual (YoY)
             </span>
             <p className="text-xs text-primary-custom leading-relaxed font-medium">
-              En comparación con el año {compareYear}, la demanda global registró una variación interanual del <strong className={Number(totalesYear.totalGrowth) >= 0 ? 'text-emerald-600' : 'text-rose-600'}>{Number(totalesYear.totalGrowth) >= 0 ? '+' : ''}{totalesYear.totalGrowth}%</strong>. El flujo constante en los peaks de invierno reafirma la necesidad de reforzar triage inicial.
+              En comparación con el año {compareYear}, la demanda global registró una variación interanual del <strong className={Number(totalesYear.totalGrowth) >= 0 ? 'text-emerald-600' : 'text-rose-600'}>{Number(totalesYear.totalGrowth) >= 0 ? '+' : ''}{totalesYear.totalGrowth}%</strong>. El flujo constante en los peaks de invierno reafirma la necesidad de reforzar triaje inicial.
             </p>
           </div>
 

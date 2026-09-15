@@ -567,12 +567,12 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                 ),
                 React.createElement(Row, { style: { marginTop: '8px' } },
                   React.createElement(Column, { style: { width: '33.3%', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', padding: '6px', border: '1px solid #ede9fe' } },
-                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, '1. ADM. A TRIAGE'),
+                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, '1. ADM. A TRIAJE'),
                     React.createElement(Text, { style: { fontSize: '14px', fontWeight: '900', color: '#0f172a', margin: '2px 0' } }, `${tramos.admisionTriage} min`),
                     React.createElement(Text, { style: { fontSize: '8px', fontWeight: '800', color: '#047857', margin: 0 } }, '↓ -2.5% vs 2025')
                   ),
                   React.createElement(Column, { style: { width: '33.3%', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', padding: '6px', border: '1px solid #ede9fe', marginLeft: '3px', marginRight: '3px' } },
-                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, '2. TRIAGE A BOX'),
+                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, '2. TRIAJE A BOX'),
                     React.createElement(Text, { style: { fontSize: '14px', fontWeight: '900', color: '#4338ca', margin: '2px 0' } }, `${tramos.triageAtencion} min`),
                     React.createElement(Text, { style: { fontSize: '8px', fontWeight: '800', color: '#047857', margin: 0 } }, '↓ -3.8% vs 2025')
                   ),
@@ -619,12 +619,12 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             )
           ),
 
-          // LÁMINA 3: DISTRIBUCIÓN OFICIAL DE TRIAGE (C1 A C5)
+          // LÁMINA 3: DISTRIBUCIÓN OFICIAL DE TRIAJE (C1 A C5)
           React.createElement('div', { style: { ...s.cardModule, marginBottom: '14px' } },
             React.createElement(Row, { style: { borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '8px' } },
               React.createElement(Column, null,
                 React.createElement(Text, { style: { fontSize: '11px', fontWeight: '900', color: '#0f172a', textTransform: 'uppercase', margin: 0 } },
-                  '🏥 2. Distribución Oficial de Triage (Categorización C1 a C5)'
+                  '🏥 2. Distribución Oficial de Triaje (Categorización C1 a C5)'
                 )
               ),
               React.createElement(Column, { style: { textAlign: 'right' } },

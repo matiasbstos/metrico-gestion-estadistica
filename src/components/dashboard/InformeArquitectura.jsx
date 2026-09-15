@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.22',
+    version_tag: 'v6.3.22',
+    fecha: '15 de Septiembre, 2026',
+    fecha_despliegue: '15 de Septiembre, 2026',
+    proposito_actualizacion: 'Estandarización Terminológica e Institucional: Adopción Rigurosa de "Triaje" (con J) en Toda la Interfaz, Previsualizador, Correo y Subreportes.',
+    medios_y_stack: [
+      'ModalConfiguracionCorreo.jsx (Normalización de etiquetas visibles: 1. Admisión a Triaje, 2. Triaje a Box y Distribución Oficial de Triaje C1 a C5)',
+      'InformeAsistencialEmail.js (Normalización de títulos y tramos en la plantilla React Email: 1. ADM. A TRIAJE, 2. TRIAJE A BOX y Distribución Oficial de Triaje)',
+      'Radar.jsx, ReportesModule.jsx, AnalisisDemandaAtencion.jsx, AnalisisComparativoTriple.jsx, AgenteRadarAdmin.jsx, AnalisisEnfermeria.jsx, AuditLog.jsx (Sustitución universal de "triage" por "triaje" en textos clínicos, alertas predictivas y descripciones normativas)',
+      'Dashboard.jsx (Actualización protocolar a v6.3.22)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Estandarización Lingüística Oficial ("Triaje con J"): Toda etiqueta, título, encabezado de correo, desglose de tramos de espera y alerta clínica visible al usuario debe emplear exclusivamente la palabra en español "Triaje" (con j), erradicando la voz foránea "Triage". 2) Integridad del Código: Las variables de programación, llaves de base de datos Firestore y atributos de objetos Rayen (p.triage, rawTriage, etc.) se preservan intactas para garantizar compatibilidad sin regresiones.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Normalización cosmética y semántica sin impacto en tiempos de ejecución.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'InformeAsistencialEmail.js', 'Radar.jsx', 'ReportesModule.jsx', 'AnalisisDemandaAtencion.jsx', 'AnalisisComparativoTriple.jsx', 'AgenteRadarAdmin.jsx', 'AnalisisEnfermeria.jsx', 'AuditLog.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx'],
+    detalles_tecnicos: [
+      'Normalización de los 3 tramos de espera en ModalConfiguracionCorreo.jsx y correo React Email.',
+      'Sustitución en alertas multivariables del Radar y Agente IA.',
+      'Alineación ortográfica total con el estándar asistencial SAR Elsa Romo Aravena.'
+    ]
+  },
+  {
     id: 'v6.3.21',
     version_tag: 'v6.3.21',
     fecha: '15 de Septiembre, 2026',

@@ -688,7 +688,7 @@ export default function AnalisisComparativoTriple({
               </span>
             </div>
             <p className="text-xs text-secondary-custom font-medium mt-1">
-              Barras agrupadas: volumen de pacientes clasificados (Eje Y Izq.). Líneas continuas: tiempo promedio de espera a triage en minutos (Eje Y Der. ⏱️), permitiendo identificar cuellos de botella en C3 y C4.
+              Barras agrupadas: volumen de pacientes clasificados (Eje Y Izq.). Líneas continuas: tiempo promedio de espera a triaje en minutos (Eje Y Der. ⏱️), permitiendo identificar cuellos de botella en C3 y C4.
             </p>
           </div>
 
