@@ -583,29 +583,8 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {/* CARD TURNO 1: TOTAL PACIENTES */}
-            <div className="p-3.5 bg-slate-50 dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-1.5 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[9.5px] text-slate-500 uppercase font-black tracking-wider flex items-center gap-1">
-                  <Users className="w-3.5 h-3.5 text-slate-700 dark:text-slate-300" /> TOTAL PACIENTES
-                </span>
-                <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200">
-                  Demanda
-                </span>
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-slate-900 dark:text-white">
-                  {totalPacientesVal}
-                </span>
-                <span className="text-[10px] font-bold text-slate-500">pac.</span>
-              </div>
-              <p className="text-[10px] font-semibold text-slate-500 border-t border-slate-200/60 dark:border-slate-800/60 pt-1">
-                Demanda del Turno
-              </p>
-            </div>
-
-            {/* CARD TURNO 2: PACIENTES ADMITIDOS */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {/* CARD 1: PACIENTES ADMITIDOS */}
             <div className="p-3.5 bg-blue-50/50 dark:bg-blue-950/20 rounded-2xl border border-blue-200 dark:border-blue-900/60 space-y-1.5 shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="text-[9.5px] text-blue-700 dark:text-blue-300 uppercase font-black tracking-wider flex items-center gap-1">
@@ -626,7 +605,7 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
               </p>
             </div>
 
-            {/* CARD TURNO 3: PACIENTES ATENDIDOS */}
+            {/* CARD 2: PACIENTES ATENDIDOS */}
             <div className="p-3.5 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-2xl border border-emerald-200 dark:border-emerald-900/60 space-y-1.5 shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="text-[9.5px] text-emerald-700 dark:text-emerald-300 uppercase font-black tracking-wider flex items-center gap-1">
@@ -647,28 +626,28 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
               </p>
             </div>
 
-            {/* CARD TURNO 4: ALTAS MÉDICAS */}
-            <div className="p-3.5 bg-teal-50/50 dark:bg-teal-950/20 rounded-2xl border border-teal-200 dark:border-teal-900/60 space-y-1.5 shadow-xs">
+            {/* CARD 3: ALTAS ADMINISTRATIVAS */}
+            <div className="p-3.5 bg-rose-50/50 dark:bg-rose-950/20 rounded-2xl border border-rose-200 dark:border-rose-900/60 space-y-1.5 shadow-xs">
               <div className="flex items-center justify-between">
-                <span className="text-[9.5px] text-teal-700 dark:text-teal-300 uppercase font-black tracking-wider flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-teal-600" /> ALTAS MÉDICAS
+                <span className="text-[9.5px] text-rose-700 dark:text-rose-300 uppercase font-black tracking-wider flex items-center gap-1">
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> ALTAS ADMIN
                 </span>
-                <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-200">
-                  Alta Médica
+                <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200">
+                  {pctAltasAdminTurno}%
                 </span>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-teal-600 dark:text-teal-400">
-                  {altasMedicasVal}
+                <span className="text-2xl font-black text-rose-600 dark:text-rose-400">
+                  {totalAltasAdminVal}
                 </span>
-                <span className="text-[10px] font-bold text-teal-500">altas</span>
+                <span className="text-[10px] font-bold text-rose-500">altas</span>
               </div>
-              <p className="text-[10px] font-semibold text-teal-700 dark:text-teal-300 border-t border-teal-200/60 dark:border-teal-900/40 pt-1">
-                {pctAltasMedicasTurno}% de Atendidos
+              <p className="text-[10px] font-semibold text-rose-700 dark:text-rose-300 border-t border-rose-200/60 dark:border-rose-900/40 pt-1">
+                {pctAltasAdminTurno}% de Demanda (Ventanilla)
               </p>
             </div>
 
-            {/* CARD TURNO 5: TOTAL TRASLADOS */}
+            {/* CARD 4: TRASLADOS A HOSPITAL */}
             <div className="p-3.5 bg-purple-50/50 dark:bg-purple-950/20 rounded-2xl border border-purple-200 dark:border-purple-900/60 space-y-1.5 shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="text-[9.5px] text-purple-700 dark:text-purple-300 uppercase font-black tracking-wider flex items-center gap-1">
@@ -689,31 +668,31 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
               </p>
             </div>
 
-            {/* CARD TURNO 6: ALTAS ADMINISTRATIVAS */}
-            <div className="p-3.5 bg-rose-50/50 dark:bg-rose-950/20 rounded-2xl border border-rose-200 dark:border-rose-900/60 space-y-1.5 shadow-xs">
+            {/* CARD 5: CONSTATACIONES */}
+            <div className="p-3.5 bg-amber-50/50 dark:bg-amber-950/20 rounded-2xl border border-amber-200 dark:border-amber-900/60 space-y-1.5 shadow-xs col-span-2 sm:col-span-1">
               <div className="flex items-center justify-between">
-                <span className="text-[9.5px] text-rose-700 dark:text-rose-300 uppercase font-black tracking-wider flex items-center gap-1">
-                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> ALTAS ADMIN
+                <span className="text-[9.5px] text-amber-700 dark:text-amber-300 uppercase font-black tracking-wider flex items-center gap-1">
+                  <ShieldAlert className="w-3.5 h-3.5 text-amber-600" /> CONSTATACIONES
                 </span>
-                <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200">
-                  {pctAltasAdminTurno}%
+                <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-200">
+                  Z51.8
                 </span>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-rose-600 dark:text-rose-400">
-                  {totalAltasAdminVal}
+                <span className="text-2xl font-black text-amber-700 dark:text-amber-400">
+                  {totalConstatacionesVal}
                 </span>
-                <span className="text-[10px] font-bold text-rose-500">altas</span>
+                <span className="text-[10px] font-bold text-amber-600">pac.</span>
               </div>
-              <p className="text-[10px] font-semibold text-rose-700 dark:text-rose-300 border-t border-rose-200/60 dark:border-rose-900/40 pt-1">
-                {pctAltasAdminTurno}% de Demanda (Ventanilla)
+              <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-300 border-t border-amber-200/60 dark:border-amber-900/40 pt-1">
+                {pctConstatacionesTurno}% de Demanda (Judicial)
               </p>
             </div>
           </div>
 
           {/* BANNER DE CUADRATURA DEL TURNO */}
           <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs font-bold text-emerald-800 dark:text-emerald-200 text-center shadow-xs">
-            ✔ Balance del Turno: <strong>{totalAdmitidosVal} Admitidos</strong> = <strong>{totalAtendidosVal} Atenciones</strong> ({altasMedicasVal} Altas Médicas + {totalTrasladosVal} Traslados Hosp.) + <strong>{totalAltasAdminVal} Altas Admin ({pctAltasAdminTurno}%)</strong>.
+            ✔ Balance del Turno: <strong>{totalAdmitidosVal} Admitidos</strong> = <strong>{totalAtendidosVal} Atenciones</strong> ({altasMedicasVal} Altas Médicas + {totalTrasladosVal} Traslados Hosp.) + <strong>{totalAltasAdminVal} Altas Admin ({pctAltasAdminTurno}%)</strong> • <strong>{totalConstatacionesVal} Constataciones Z51.8</strong>.
           </div>
         </div>
 

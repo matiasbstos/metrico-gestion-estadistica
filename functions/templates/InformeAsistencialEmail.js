@@ -366,20 +366,8 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
           
           React.createElement(Row, { style: { marginBottom: '8px' } },
             
-            // CARD TURNO 1: TOTAL DE PACIENTES
-            React.createElement(Column, { style: { width: '16.66%', paddingRight: '2px', verticalAlign: 'top' } },
-              React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#f8fafc', borderColor: '#cbd5e1' } },
-                React.createElement(Text, { style: s.kpiTitle }, 'TOTAL PACIENTES'),
-                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#e2e8f0', color: '#1e293b' } }, 'Demanda'),
-                React.createElement('div', { style: { margin: '4px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#0f172a' } }, `${totalPacientes}`)
-                ),
-                React.createElement(Text, { style: { ...s.kpiSub, color: '#475569', fontWeight: '700' } }, 'Demanda Turno')
-              )
-            ),
-
-            // CARD TURNO 2: PACIENTES ADMITIDOS
-            React.createElement(Column, { style: { width: '16.66%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
+            // CARD TURNO 1: PACIENTES ADMITIDOS
+            React.createElement(Column, { style: { width: '20%', paddingRight: '3px', verticalAlign: 'top' } },
               React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#eff6ff', borderColor: '#bfdbfe' } },
                 React.createElement(Text, { style: { ...s.kpiTitle, color: '#1d4ed8' } }, 'PAC. ADMITIDOS'),
                 React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#dbeafe', color: '#1e40af' } }, 'Admisión'),
@@ -390,8 +378,8 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
               )
             ),
 
-            // CARD TURNO 3: PACIENTES ATENDIDOS
-            React.createElement(Column, { style: { width: '16.66%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
+            // CARD TURNO 2: PACIENTES ATENDIDOS
+            React.createElement(Column, { style: { width: '20%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
               React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' } },
                 React.createElement(Text, { style: { ...s.kpiTitle, color: '#15803d' } }, 'PAC. ATENDIDOS'),
                 React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#dcfce7', color: '#166534' } }, 'Clínico'),
@@ -402,20 +390,20 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
               )
             ),
 
-            // CARD TURNO 4: ALTAS MÉDICAS
-            React.createElement(Column, { style: { width: '16.66%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
-              React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#ecfdf5', borderColor: '#a7f3d0' } },
-                React.createElement(Text, { style: { ...s.kpiTitle, color: '#047857' } }, 'ALTAS MÉDICAS'),
-                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#d1fae5', color: '#065f46' } }, 'Alta Médica'),
+            // CARD TURNO 3: ALTAS ADMINISTRATIVAS
+            React.createElement(Column, { style: { width: '20%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
+              React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#fff1f2', borderColor: '#fecdd3' } },
+                React.createElement(Text, { style: { ...s.kpiTitle, color: '#be123c' } }, 'ALTAS ADMIN'),
+                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#ffe4e6', color: '#be123c' } }, `${pctAltas}%`),
                 React.createElement('div', { style: { margin: '4px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#047857' } }, `${altasMedicas}`)
+                  React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#be123c' } }, `${totalAltas}`)
                 ),
-                React.createElement(Text, { style: { ...s.kpiSub, color: '#065f46', fontWeight: '700' } }, `${pctAltasMedicas}% atendidos`)
+                React.createElement(Text, { style: { ...s.kpiSub, color: '#881337', fontWeight: '700' } }, `${pctAltas}% demanda`)
               )
             ),
 
-            // CARD TURNO 5: TOTAL TRASLADOS
-            React.createElement(Column, { style: { width: '16.66%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
+            // CARD TURNO 4: TOTAL TRASLADOS
+            React.createElement(Column, { style: { width: '20%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
               React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#faf5ff', borderColor: '#e9d5ff' } },
                 React.createElement(Text, { style: { ...s.kpiTitle, color: '#7e22ce' } }, 'TRASLADOS HOSP.'),
                 React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#f3e8ff', color: '#6b21a8' } }, 'Derivación'),
@@ -426,22 +414,22 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
               )
             ),
 
-            // CARD TURNO 6: ALTAS ADMINISTRATIVAS
-            React.createElement(Column, { style: { width: '16.66%', paddingLeft: '2px', verticalAlign: 'top' } },
-              React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#fff1f2', borderColor: '#fecdd3' } },
-                React.createElement(Text, { style: { ...s.kpiTitle, color: '#be123c' } }, 'ALTAS ADMIN'),
-                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#ffe4e6', color: '#be123c' } }, `${pctAltas}%`),
+            // CARD TURNO 5: CONSTATACIONES
+            React.createElement(Column, { style: { width: '20%', paddingLeft: '3px', verticalAlign: 'top' } },
+              React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#fffbeb', borderColor: '#fde68a' } },
+                React.createElement(Text, { style: { ...s.kpiTitle, color: '#b45309' } }, 'CONSTATACIONES'),
+                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#fef3c7', color: '#92400e' } }, 'Z51.8'),
                 React.createElement('div', { style: { margin: '4px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#be123c' } }, `${totalAltas}`)
+                  React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#b45309' } }, `${totalConstataciones}`)
                 ),
-                React.createElement(Text, { style: { ...s.kpiSub, color: '#881337', fontWeight: '700' } }, `${pctAltas}% demanda`)
+                React.createElement(Text, { style: { ...s.kpiSub, color: '#92400e', fontWeight: '700' } }, `${pctConstataciones}% demanda`)
               )
             )
           ),
 
           // BANNER DE CUADRATURA DEL TURNO
           React.createElement('div', { style: { backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '6px 10px', marginBottom: '14px', fontSize: '10.5px', color: '#334155', fontWeight: '700', textAlign: 'center' } },
-            `✔ Balance del Turno: ${totalAdmitidos} Admitidos = ${totalAtendidos} Atenciones (${altasMedicas} Altas Médicas + ${totalTraslados} Traslados Hosp.) + ${totalAltas} Altas Admin.`
+            `✔ Balance del Turno: ${totalAdmitidos} Admitidos = ${totalAtendidos} Atenciones (${altasMedicas} Altas Médicas + ${totalTraslados} Traslados Hosp.) + ${totalAltas} Altas Admin • ${totalConstataciones} Constataciones Z51.8.`
           ),
 
           // LÁMINA 2: INDICADORES INTERANUALES DE DEMANDA & COBERTURA (COMPARATIVA YOY)
