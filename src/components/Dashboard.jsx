@@ -2308,7 +2308,7 @@ const DashboardContent = () => {
           />
         )}
 
-        {['especificos', 'demanda', 'respiratorio', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados'].includes(activeTab) && (
+        {['especificos', 'demanda', 'curva_demanda', 'respiratorio', 'altas', 'fracturas', 'enfermeria', 'constataciones', 'traslados'].includes(activeTab) && (
           <div className="space-y-6">
             {/* SECTOR DE FILTROS Y CONTROL DE CONTEXTO */}
             <FiltrosGlobales 

@@ -51,6 +51,40 @@ export default function AnalisisCurvaDemanda({
   const [copiado, setCopiado] = useState(false);
   const [loadingBq, setLoadingBq] = useState(false);
 
+  // Sincronizar automáticamente con el filtro global de fechas cuando cambie
+  useEffect(() => {
+    if (filtroFechaInicio && filtroFechaFin) {
+      setBaseInicio(filtroFechaInicio);
+      setBaseFin(filtroFechaFin);
+
+      const parseDate = (dStr) => {
+        const parts = String(dStr).split('-').map(Number);
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+      };
+      const toIsoStr = (d) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      };
+
+      try {
+        const bStart = parseDate(filtroFechaInicio);
+        const bEnd = parseDate(filtroFechaFin);
+        const diffMs = Math.abs(bEnd.getTime() - bStart.getTime());
+        const days = Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1;
+        const cStart = new Date(bStart);
+        cStart.setDate(cStart.getDate() - days);
+        const cEnd = new Date(bEnd);
+        cEnd.setDate(cEnd.getDate() - days);
+        setContrasteInicio(toIsoStr(cStart));
+        setContrasteFin(toIsoStr(cEnd));
+      } catch (e) {
+        // Silencioso
+      }
+    }
+  }, [filtroFechaInicio, filtroFechaFin]);
+
   // Pool de pacientes consolidados y desduplicados SSOT
   const pacientesPool = useMemo(() => {
     const raw = (allPacientesDB && allPacientesDB.length > 0) ? allPacientesDB : pacientesDB;
@@ -623,7 +657,7 @@ export default function AnalisisCurvaDemanda({
           </div>
         </div>
 
-        <div className="h-[380px] w-full">
+        <div className="h-[380px] min-h-[380px] w-full">
           {chartData && chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
               <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
