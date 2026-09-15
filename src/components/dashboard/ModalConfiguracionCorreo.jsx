@@ -553,11 +553,13 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
   const totalAltasAdminVal = Number(turnoInfo.altasAdmin || 0);
   const totalTrasladosVal = Number(turnoInfo.trasladosCount ?? (turnoInfo.traslados || 0));
   const altasMedicasVal = Math.max(0, totalAtendidosVal - totalTrasladosVal);
+  const totalConstatacionesVal = Number(turnoInfo.constatacionesCount ?? (turnoInfo.constataciones || 0));
 
   const pctCoberturaTurno = totalAdmitidosVal > 0 ? ((totalAtendidosVal / totalAdmitidosVal) * 100).toFixed(1) : '100.0';
   const pctAltasMedicasTurno = totalAtendidosVal > 0 ? ((altasMedicasVal / totalAtendidosVal) * 100).toFixed(1) : '94.6';
   const pctTrasladosTurno = totalAdmitidosVal > 0 ? ((totalTrasladosVal / totalAdmitidosVal) * 100).toFixed(1) : '0.0';
   const pctAltasAdminTurno = totalAdmitidosVal > 0 ? ((totalAltasAdminVal / totalAdmitidosVal) * 100).toFixed(1) : '0.0';
+  const pctConstatacionesTurno = totalAdmitidosVal > 0 ? ((totalConstatacionesVal / totalAdmitidosVal) * 100).toFixed(1) : '0.0';
 
   return (
     <div className="space-y-6 animate-fade-in">
