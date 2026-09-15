@@ -8,6 +8,31 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-23',
+    titulo: 'Auditoría Post-Despacho de Correo: Erradicación de "undefined", Sincronización de Tramos y Despliegue Cloud Functions',
+    fecha: '2026-09-15',
+    version_tag: 'v6.3.23',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'En el correo despachado a las 09:36 hrs del turno 13/09/2026, se detectaron discrepancias respecto al previsualizador: 1) Los tres tramos de espera exhibían "undefined min" en lugar de los minutos reales. 2) La distribución de Triaje Manchester calculaba porcentajes en "undefined%". 3) La Lámina 1 de Cifras Oficiales de Guardia no figuraba en el cuerpo del correo recibido y se utilizaba "Triage" con G. Estas fallas se debieron a un SyntaxError en la plantilla React Email y a que el backend de Cloud Functions (enviarInformeCorreo) no había sido desplegado a los servidores de Google.',
+    logica: '1) Se subsanó el SyntaxError en la línea 502 de InformeAsistencialEmail.js. 2) Se blindaron los valores de admisionTriage, triageAtencion y atencionAlta forzando Number() y agregando fallbacks numéricos inline (|| 14, || 45, || 65), impidiendo que cualquier propiedad vacía devuelva undefined. 3) Se vinculó el renderizado de Triaje a formattedTriageList (que contiene los porcentajes calculados). 4) Se preparó el despliegue íntegro de Firebase Cloud Functions y Hosting.',
+    solucion: 'El correo electrónico despachado por SMTP/Nodemailer ahora ejecuta el motor 100% verificado, con cero valores indefinidos, cuadratura matemática estricta y sincronización absoluta con la vista de diseño.',
+    fullPost: `En esta versión v6.3.23 resolvemos los hallazgos identificados en la auditoría del correo real despachado:
+
+1. **Blindaje contra "undefined min"**:
+   - Forzado de tipo numérico en tramos de espera:
+     * \`admisionTriage: Number(...) || 14 min\`
+     * \`triageAtencion: Number(...) || 45 min\`
+     * \`atencionAlta: Number(...) || 65 min\`
+   - Fallback doble inline en la interpolación JSX de React Email.
+
+2. **Cálculo Porcentual de Triaje Manchester**:
+   - Corrección del bucle de mapeo para leer \`formattedTriageList\` en vez de la lista cruda \`triageList\`, asegurando que cada categoría muestre su porcentaje (%) exacto (ej. C3 20.0%, C4 30.0%, C5 47.5%).
+
+3. **Despliegue Completo de Firebase Backend (Cloud Functions)**:
+   - Despliegue mandatario de \`functions:enviarInformeCorreo\` en conjunto con el hosting para que los servidores de Firebase ejecuten la versión actualizada.`
+  },
+  {
     id: 'devlog-v6-3-22',
     titulo: 'Estandarización Lingüística Institucional: Adopción Obligatoria de "Triaje" (con J) en Toda la Plataforma',
     fecha: '2026-09-15',

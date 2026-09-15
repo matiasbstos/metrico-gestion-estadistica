@@ -1289,7 +1289,11 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
     ? `Se procesaron <strong>${turnoInfo.constatacionesCount} constataciones de lesiones (Z51.8)</strong> (vs ${yoy.prevConstatacionesCount || 0} en 2025).`
     : `Sin constataciones de lesiones (Z51.8) en este turno (vs ${yoy.prevConstatacionesCount || 0} en 2025).`;
 
-  const trasladosTxt = (turnoInfo.trasladosCount || 0)  // 1. RENDERIZADO DEL CORREO MEDIANTE REACT EMAIL
+  const trasladosTxt = (turnoInfo.trasladosCount || 0) > 0
+    ? `Se gestionaron <strong>${turnoInfo.trasladosCount} derivaciones hospitalarias a Urgencia UEH</strong> coordinadas con SAMU.`
+    : `Sin derivaciones hospitalarias a Urgencia UEH en este turno.`;
+
+  // 1. RENDERIZADO DEL CORREO MEDIANTE REACT EMAIL
   let htmlContent = '';
   try {
     htmlContent = await render(React.createElement(InformeAsistencialEmail, { turnoInfo }));

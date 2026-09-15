@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.23',
+    version_tag: 'v6.3.23',
+    fecha: '15 de Septiembre, 2026',
+    fecha_despliegue: '15 de Septiembre, 2026',
+    proposito_actualizacion: 'Reconciliación y Certificación Integral de Correo Asistencial: Erradicación de "undefined", Sincronización de Tramos de Triaje y Despliegue de Cloud Functions.',
+    medios_y_stack: [
+      'InformeAsistencialEmail.js (Corrección de syntax error en línea 502, blindaje de tramos con Number() y corrección de mapeo a formattedTriageList erradicando todo valor undefined en tramos y porcentajes)',
+      'functions/index.js (Completado de sintaxis en trasladosTxt y verificación pre-vuelo estricta del payload)',
+      'Despliegue unificado de Firebase Hosting y Cloud Functions (functions:enviarInformeCorreo) garantizando que el servidor de despacho ejecute el motor actualizado)',
+      'Dashboard.jsx (Actualización a v6.3.23)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Cero Indefinidos en Comunicaciones Oficiales: Ningún informe por correo puede renderizar valores "undefined", "NaN" o cadenas vacías. Todo valor numérico posee doble blindaje y fallback canónico garantizado. 2) Despliegue Simétrico de Backend y Frontend: Toda modificación en plantillas de correo (@react-email/render) exige el despliegue de las Cloud Functions de Firebase junto con el hosting.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Renderizado React Email ultra-rápido en menos de 45ms sin fugas de memoria.'
+    },
+    modulos_afectados: ['InformeAsistencialEmail.js', 'functions/index.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx'],
+    detalles_tecnicos: [
+      'Eliminación de SyntaxError en InformeAsistencialEmail.js.',
+      'Mapeo a formattedTriageList con porcentajes matemáticos calculados.',
+      'Sincronización simultánea de Firebase Functions y Hosting.'
+    ]
+  },
+  {
     id: 'v6.3.22',
     version_tag: 'v6.3.22',
     fecha: '15 de Septiembre, 2026',

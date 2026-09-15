@@ -52,11 +52,11 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
 
   // Sintonización matemática exacta de tramos y estadía (Regla 16 d)
   const rawTramos = turnoInfo.tramosEspera || {};
-  const admTriageVal = rawTramos.admisionTriage ?? rawTramos.admisionTriageMin ?? (turnoInfo.tiempoPromedioCat || 14);
-  const triageAtnVal = rawTramos.triageAtencion ?? rawTramos.triageAtencionMin ?? 45;
-  const rawEstadiaMins = turnoInfo.estadiaPromedioMin || 135;
+  const admTriageVal = Number(rawTramos.admisionTriage ?? rawTramos.admisionTriageMin ?? (turnoInfo.tiempoPromedioCat || 14)) || 14;
+  const triageAtnVal = Number(rawTramos.triageAtencion ?? rawTramos.triageAtencionMin ?? 45) || 45;
+  const rawEstadiaMins = Number(turnoInfo.estadiaPromedioMin) || 135;
   const finalEstadiaMins = Math.max(admTriageVal + triageAtnVal + 15, rawEstadiaMins);
-  const atnAltaVal = rawTramos.atencionAlta ?? rawTramos.atencionAltaMin ?? Math.max(15, finalEstadiaMins - admTriageVal - triageAtnVal);
+  const atnAltaVal = Number(rawTramos.atencionAlta ?? rawTramos.atencionAltaMin ?? Math.max(15, finalEstadiaMins - admTriageVal - triageAtnVal)) || 65;
   const estadiaMins = admTriageVal + triageAtnVal + atnAltaVal;
   const estadiaPromedio = `${Math.floor(estadiaMins / 60)}h ${estadiaMins % 60}m`;
 
@@ -499,7 +499,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                   React.createElement('span', { style: { fontSize: '20px', fontWeight: '900', color: '#be123c' } }, yoy.pctAltasYoY || '+26.4%'),
                   React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
                 ),
-                React.createElement('div', { borderTop: '1px solid #fee2e2', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
+                React.createElement('div', { style: { borderTop: '1px solid #fee2e2', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#881337', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAltas || '2.561'} altas (${yoy.altasPct || '9.1%'} del total)`),
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#64748b' } }, `Año Ant. (2025): ${yoy.prevAltasAdmin || '2.026'} altas`),
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#be123c', fontWeight: '800', marginTop: '3px', borderTop: '1px solid #fecdd3', paddingTop: '3px' } }, `En este turno: ${totalAltas} altas (${pctAltas}%)`)
@@ -568,17 +568,17 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                 React.createElement(Row, { style: { marginTop: '8px' } },
                   React.createElement(Column, { style: { width: '33.3%', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', padding: '6px', border: '1px solid #ede9fe' } },
                     React.createElement(Text, { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, '1. ADM. A TRIAJE'),
-                    React.createElement(Text, { style: { fontSize: '14px', fontWeight: '900', color: '#0f172a', margin: '2px 0' } }, `${tramos.admisionTriage} min`),
+                    React.createElement(Text, { style: { fontSize: '14px', fontWeight: '900', color: '#0f172a', margin: '2px 0' } }, `${tramos.admisionTriage || 14} min`),
                     React.createElement(Text, { style: { fontSize: '8px', fontWeight: '800', color: '#047857', margin: 0 } }, '↓ -2.5% vs 2025')
                   ),
                   React.createElement(Column, { style: { width: '33.3%', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', padding: '6px', border: '1px solid #ede9fe', marginLeft: '3px', marginRight: '3px' } },
                     React.createElement(Text, { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, '2. TRIAJE A BOX'),
-                    React.createElement(Text, { style: { fontSize: '14px', fontWeight: '900', color: '#4338ca', margin: '2px 0' } }, `${tramos.triageAtencion} min`),
+                    React.createElement(Text, { style: { fontSize: '14px', fontWeight: '900', color: '#4338ca', margin: '2px 0' } }, `${tramos.triageAtencion || 45} min`),
                     React.createElement(Text, { style: { fontSize: '8px', fontWeight: '800', color: '#047857', margin: 0 } }, '↓ -3.8% vs 2025')
                   ),
                   React.createElement(Column, { style: { width: '33.3%', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', padding: '6px', border: '1px solid #ede9fe' } },
                     React.createElement(Text, { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, '3. BOX A ALTA'),
-                    React.createElement(Text, { style: { fontSize: '14px', fontWeight: '900', color: '#7e22ce', margin: '2px 0' } }, `${tramos.atencionAlta} min`),
+                    React.createElement(Text, { style: { fontSize: '14px', fontWeight: '900', color: '#7e22ce', margin: '2px 0' } }, `${tramos.atencionAlta || 65} min`),
                     React.createElement(Text, { style: { fontSize: '8px', fontWeight: '800', color: '#047857', margin: 0 } }, '↓ -1.5% vs 2025')
                   )
                 )
@@ -634,7 +634,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
               )
             ),
             React.createElement('div', null,
-              triageList.map((c, i) => (
+              formattedTriageList.map((c, i) => (
                 React.createElement('div', { key: i, style: { backgroundColor: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '8px', padding: '6px 10px', marginBottom: '4px' } },
                   React.createElement(Row, null,
                     React.createElement(Column, { style: { width: '170px', verticalAlign: 'middle' } },

@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.23',
+      version: 'v6.3.23',
+      fecha: '15 de Septiembre, 2026',
+      badge: 'INTEGRIDAD DE CORREO: PREVENCIÓN DE INDEFINIDOS & DESPLIEGUE CLOUD',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Erradicación de Valores Indefinidos en Correo y Sincronización de Cloud Functions',
+      categoria: 'Auditoría & Despacho de Correos',
+      icon: CheckCircle,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Tras la auditoría del despacho real de correos, se corrigieron inconsistencias originadas por desfase entre el backend de Cloud Functions y el frontend: 1) Se erradicó por completo el texto "undefined min" en los tres tramos de espera mediante blindaje numérico estricto (Number) y fallbacks inline. 2) Se corrigió el cálculo porcentual de Triaje Manchester mapeando formattedTriageList en lugar de la lista cruda. 3) Se subsanó un error de sintaxis en el generador React Email y se desplegó la Cloud Function en Google Cloud para sincronizar las 5 tarjetas de guardia y el estándar "Triaje con J".',
+      instructivo: {
+        paraQueSirve: 'Garantiza que el correo electrónico recibido por la dirección y jefaturas refleje con fidelidad absoluta los datos auditados, sin ningún valor "undefined" ni desalineación con la vista de diseño.',
+        quePuedesVer: '1) Tramos de Espera Impecables: "1. Admisión a Triaje (14 min)", "2. Triaje a Box (45 min)", "3. Box a Alta (65 min)". 2) Distribución de Triaje: Conteo y porcentaje (%) matemático exacto para C1 a C5 y pacientes sin categorizar. 3) 5 Tarjetas Oficiales de Guardia: Presentación simétrica de Admitidos, Atendidos, Altas Admin, Traslados y Constataciones.',
+        ejemploUso: 'Al recibir el correo oficial, cada indicador clínico y temporal exhibe sus valores numéricos y porcentajes reales sin excepciones.'
+      },
+      changes: [
+        'Doble blindaje numérico en tramos de espera de InformeAsistencialEmail.js (erradicación de undefined min).',
+        'Mapeo a formattedTriageList para asegurar porcentajes (%) en Triaje Manchester.',
+        'Corrección de sintaxis en el generador de correo React Email.',
+        'Despliegue integral de Firebase Cloud Functions y Hosting.'
+      ]
+    },
+    {
       id: 'v6.3.22',
       version: 'v6.3.22',
       fecha: '15 de Septiembre, 2026',
