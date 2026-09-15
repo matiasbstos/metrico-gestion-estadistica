@@ -367,7 +367,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
           React.createElement(Row, { style: { marginBottom: '8px' } },
             
             // CARD TURNO 1: TOTAL DE PACIENTES
-            React.createElement(Column, { style: { width: '20%', paddingRight: '3px', verticalAlign: 'top' } },
+            React.createElement(Column, { style: { width: '16.66%', paddingRight: '2px', verticalAlign: 'top' } },
               React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#f8fafc', borderColor: '#cbd5e1' } },
                 React.createElement(Text, { style: s.kpiTitle }, 'TOTAL PACIENTES'),
                 React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#e2e8f0', color: '#1e293b' } }, 'Demanda'),
@@ -379,7 +379,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             ),
 
             // CARD TURNO 2: PACIENTES ADMITIDOS
-            React.createElement(Column, { style: { width: '20%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
+            React.createElement(Column, { style: { width: '16.66%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
               React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#eff6ff', borderColor: '#bfdbfe' } },
                 React.createElement(Text, { style: { ...s.kpiTitle, color: '#1d4ed8' } }, 'PAC. ADMITIDOS'),
                 React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#dbeafe', color: '#1e40af' } }, 'Admisión'),
@@ -391,7 +391,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             ),
 
             // CARD TURNO 3: PACIENTES ATENDIDOS
-            React.createElement(Column, { style: { width: '20%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
+            React.createElement(Column, { style: { width: '16.66%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
               React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' } },
                 React.createElement(Text, { style: { ...s.kpiTitle, color: '#15803d' } }, 'PAC. ATENDIDOS'),
                 React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#dcfce7', color: '#166534' } }, 'Clínico'),
@@ -403,7 +403,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             ),
 
             // CARD TURNO 4: ALTAS MÉDICAS
-            React.createElement(Column, { style: { width: '20%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
+            React.createElement(Column, { style: { width: '16.66%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
               React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#ecfdf5', borderColor: '#a7f3d0' } },
                 React.createElement(Text, { style: { ...s.kpiTitle, color: '#047857' } }, 'ALTAS MÉDICAS'),
                 React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#d1fae5', color: '#065f46' } }, 'Alta Médica'),
@@ -415,14 +415,26 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             ),
 
             // CARD TURNO 5: TOTAL TRASLADOS
-            React.createElement(Column, { style: { width: '20%', paddingLeft: '3px', verticalAlign: 'top' } },
+            React.createElement(Column, { style: { width: '16.66%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
               React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#faf5ff', borderColor: '#e9d5ff' } },
-                React.createElement(Text, { style: { ...s.kpiTitle, color: '#7e22ce' } }, 'TOTAL TRASLADOS'),
+                React.createElement(Text, { style: { ...s.kpiTitle, color: '#7e22ce' } }, 'TRASLADOS HOSP.'),
                 React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#f3e8ff', color: '#6b21a8' } }, 'Derivación'),
                 React.createElement('div', { style: { margin: '4px 0 2px 0' } },
                   React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#7e22ce' } }, `${totalTraslados}`)
                 ),
                 React.createElement(Text, { style: { ...s.kpiSub, color: '#6b21a8', fontWeight: '700' } }, `${pctTraslados}% demanda`)
+              )
+            ),
+
+            // CARD TURNO 6: ALTAS ADMINISTRATIVAS
+            React.createElement(Column, { style: { width: '16.66%', paddingLeft: '2px', verticalAlign: 'top' } },
+              React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#fff1f2', borderColor: '#fecdd3' } },
+                React.createElement(Text, { style: { ...s.kpiTitle, color: '#be123c' } }, 'ALTAS ADMIN'),
+                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#ffe4e6', color: '#be123c' } }, `${pctAltas}%`),
+                React.createElement('div', { style: { margin: '4px 0 2px 0' } },
+                  React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#be123c' } }, `${totalAltas}`)
+                ),
+                React.createElement(Text, { style: { ...s.kpiSub, color: '#881337', fontWeight: '700' } }, `${pctAltas}% demanda`)
               )
             )
           ),
@@ -498,7 +510,8 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                 ),
                 React.createElement('div', { borderTop: '1px solid #fee2e2', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#881337', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAltas || '2.561'} altas (${yoy.altasPct || '9.1%'} del total)`),
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#64748b' } }, `Año Ant. (2025): ${yoy.prevAltasAdmin || '2.026'} altas`)
+                  React.createElement(Text, { style: { ...s.kpiSub, color: '#64748b' } }, `Año Ant. (2025): ${yoy.prevAltasAdmin || '2.026'} altas`),
+                  React.createElement(Text, { style: { ...s.kpiSub, color: '#be123c', fontWeight: '800', marginTop: '3px', borderTop: '1px solid #fecdd3', paddingTop: '3px' } }, `En este turno: ${totalAltas} altas (${pctAltas}%)`)
                 )
               )
             ),
