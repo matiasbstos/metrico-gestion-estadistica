@@ -4,7 +4,7 @@ import {
   FileText, AlertCircle, RefreshCw, Layers, Code, CheckSquare, Square, Cpu, Eye, UserCheck, 
   Activity, ArrowLeftRight, Hospital, FastForward, Play, ListOrdered, ChevronRight, Users, 
   UserPlus, Trash2, Edit3, Smartphone, Monitor, ShieldCheck, History, ArrowRight, ToggleLeft, ToggleRight, 
-  Inbox, BellRing, Filter, Search, ChevronLeft, Zap, AlertTriangle
+  Inbox, BellRing, Filter, Search, ChevronLeft, Zap, AlertTriangle, BarChart3
 } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app as defaultApp } from '../../config/firebase';
@@ -657,7 +657,7 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-black uppercase text-slate-800 dark:text-slate-200 tracking-wider flex items-center gap-2">
-              🏥 1. Balance Asistencial & Cifras Oficiales de Guardia (Datos del Turno)
+              <Hospital className="w-4 h-4 text-emerald-600 shrink-0" /> 1. Balance Asistencial & Cifras Oficiales de Guardia (Datos del Turno)
             </h4>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
               Cifras del Turno Auditadas
@@ -781,7 +781,7 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-black uppercase text-slate-800 dark:text-slate-200 tracking-wider flex items-center gap-2">
-              📊 2. Indicadores Maestros de Demanda & Cobertura (Comparativa YoY)
+              <BarChart3 className="w-4 h-4 text-indigo-600 shrink-0" /> 2. Indicadores Maestros de Demanda & Cobertura (Comparativa YoY)
             </h4>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
               Tendencia vs Año Anterior (2025)
@@ -1261,7 +1261,7 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
             <div className="space-y-2.5">
               <div className="flex items-center justify-between px-1">
                 <span className="text-[11px] font-black uppercase tracking-wider text-indigo-950 flex items-center gap-1.5">
-                  📋 Ficha Clínica de Cada Paciente Trasladado ({((turnoInfo.listaTraslados && turnoInfo.listaTraslados.length > 0) ? turnoInfo.listaTraslados : [turnoInfo.trasladoDetalle]).filter(Boolean).length} atenciones derivadas)
+                  <FileText className="w-3.5 h-3.5 text-indigo-600" /> Ficha Clínica de Cada Paciente Trasladado ({((turnoInfo.listaTraslados && turnoInfo.listaTraslados.length > 0) ? turnoInfo.listaTraslados : [turnoInfo.trasladoDetalle]).filter(Boolean).length} atenciones derivadas)
                 </span>
                 <span className="text-[10px] text-slate-500 font-bold">
                   Hospital San José de Melipilla (Urgencia UEH)

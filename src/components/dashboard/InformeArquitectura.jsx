@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.24',
+    version_tag: 'v6.3.24',
+    fecha: '15 de Septiembre, 2026',
+    fecha_despliegue: '15 de Septiembre, 2026',
+    proposito_actualizacion: 'Unificación y Paridad Total de Identidad Visual: Integración de Iconografía Lucide Oficial en Correos y Eliminación de Emojis Discordantes.',
+    medios_y_stack: [
+      'Generación y Alojamiento de Suite de 36 Iconos Vectoriales Lucide (public/icons/*.png y *.svg) con resolución Retina 64x64 y stroke institucional',
+      'InformeAsistencialEmail.js (Integración de renderIcon con enlace canónico a Firebase Hosting para compatibilidad 100% en Gmail/Outlook/Apple Mail, reemplazando emojis de WhatsApp/teléfono)',
+      'ModalConfiguracionCorreo.jsx (Sincronización visual en previsualizador con componentes Lucide Hospital, BarChart3, FileText)',
+      'Dashboard.jsx (Actualización a v6.3.24)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Identidad Visual Homogénea: Los correos asistenciales y la plataforma web comparten la misma suite iconográfica vectorial (Lucide), erradicando emojis casuales o discordantes. 2) Compatibilidad Universal en Clientes de Correo: Los iconos se sirven como imágenes PNG Retina desde Firebase Hosting con proxy de caché de alta velocidad.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Entrega de micro-iconos cacheados en CDN con peso menor a 2KB por icono.'
+    },
+    modulos_afectados: ['InformeAsistencialEmail.js', 'ModalConfiguracionCorreo.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx', 'public/icons/'],
+    detalles_tecnicos: [
+      'Suite de iconos Lucide generados con Puppeteer: Clock, UserCheck, AlertTriangle, ArrowLeftRight, ShieldAlert, Users, Zap, Activity, FileText, Bone, Lungs, Hospital.',
+      'Sustitución de emojis Unicode por micro-iconos con colores corporativos.',
+      'Paridad exacta entre la previsualización web y el correo recibido.'
+    ]
+  },
+  {
     id: 'v6.3.23',
     version_tag: 'v6.3.23',
     fecha: '15 de Septiembre, 2026',

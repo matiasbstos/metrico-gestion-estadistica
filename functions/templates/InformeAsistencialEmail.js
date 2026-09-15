@@ -4,6 +4,28 @@ const {
   Text, Heading, Hr, Link 
 } = require('@react-email/components');
 
+// URL base de iconos alojados en Firebase Hosting (compatibilidad universal Gmail/Outlook/Apple Mail)
+const ICON_BASE_URL = 'https://metrico-dashboard-2026.web.app/icons';
+
+function renderIcon(name, size = 13, style = {}) {
+  return React.createElement('img', {
+    src: `${ICON_BASE_URL}/${name}.png`,
+    width: String(size),
+    height: String(size),
+    alt: '',
+    style: {
+      verticalAlign: '-2px',
+      marginRight: '5px',
+      display: 'inline-block',
+      border: '0',
+      outline: 'none',
+      textDecoration: 'none',
+      ...style
+    }
+  });
+}
+
+
 /**
  * Plantilla de Correo React Email: Informe Ejecutivo Asistencial Auditado
  * Diseño institucional 100% fiel al apartado de Diseño de MÉTRICO.
@@ -347,7 +369,8 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
           
           // BANNER DE AUDITORÍA
           React.createElement('div', { style: s.bannerAudit },
-            '✔ Control de Integridad & Calidad Asistencial: Datos 100% auditados y conciliados con la Vista Maestra (SSOT). Incluye métricas operacionales de demanda, flujos clínicos y comparativa interanual (YoY).'
+            renderIcon('check_circle_emerald', 14),
+            ' Control de Integridad & Calidad Asistencial: Datos 100% auditados y conciliados con la Vista Maestra (SSOT). Incluye métricas operacionales de demanda, flujos clínicos y comparativa interanual (YoY).'
           ),
 
           // SALUDO FORMAL
@@ -365,14 +388,14 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
           ),
 
           // LÁMINA 1: CIFRAS OFICIALES DEL TURNO (PROTAGONISMO TOTAL DE DATOS DE GUARDIA)
-          React.createElement(Text, { style: s.sectionTitle }, '🏥 1. Balance Asistencial & Cifras Oficiales de Guardia (Datos del Turno)'),
+          React.createElement(Text, { style: s.sectionTitle }, renderIcon('hospital_emerald', 15), ' 1. Balance Asistencial & Cifras Oficiales de Guardia (Datos del Turno)'),
           
           React.createElement(Row, { style: { marginBottom: '8px' } },
             
             // CARD TURNO 1: PACIENTES ADMITIDOS
             React.createElement(Column, { style: { width: '20%', paddingRight: '3px', verticalAlign: 'top' } },
               React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#eff6ff', borderColor: '#bfdbfe' } },
-                React.createElement(Text, { style: { ...s.kpiTitle, color: '#1d4ed8' } }, 'PAC. ADMITIDOS'),
+                React.createElement(Text, { style: { ...s.kpiTitle, color: '#1d4ed8' } }, renderIcon('clock_blue', 11), ' PAC. ADMITIDOS'),
                 React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#dbeafe', color: '#1e40af' } }, 'Admisión'),
                 React.createElement('div', { style: { margin: '4px 0 2px 0' } },
                   React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#1d4ed8' } }, `${totalAdmitidos}`)
@@ -384,7 +407,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             // CARD TURNO 2: PACIENTES ATENDIDOS
             React.createElement(Column, { style: { width: '20%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
               React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' } },
-                React.createElement(Text, { style: { ...s.kpiTitle, color: '#15803d' } }, 'PAC. ATENDIDOS'),
+                React.createElement(Text, { style: { ...s.kpiTitle, color: '#15803d' } }, renderIcon('user_check_emerald', 11), ' PAC. ATENDIDOS'),
                 React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#dcfce7', color: '#166534' } }, 'Clínico'),
                 React.createElement('div', { style: { margin: '4px 0 2px 0' } },
                   React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#15803d' } }, `${totalAtendidos}`)
@@ -396,7 +419,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             // CARD TURNO 3: ALTAS ADMINISTRATIVAS
             React.createElement(Column, { style: { width: '20%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
               React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#fff1f2', borderColor: '#fecdd3' } },
-                React.createElement(Text, { style: { ...s.kpiTitle, color: '#be123c' } }, 'ALTAS ADMIN'),
+                React.createElement(Text, { style: { ...s.kpiTitle, color: '#be123c' } }, renderIcon('alert_triangle_rose', 11), ' ALTAS ADMIN'),
                 React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#ffe4e6', color: '#be123c' } }, 'Ventanilla'),
                 React.createElement('div', { style: { margin: '4px 0 2px 0' } },
                   React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#be123c' } }, `${totalAltas}`)
@@ -408,7 +431,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             // CARD TURNO 4: TOTAL TRASLADOS
             React.createElement(Column, { style: { width: '20%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
               React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#faf5ff', borderColor: '#e9d5ff' } },
-                React.createElement(Text, { style: { ...s.kpiTitle, color: '#7e22ce' } }, 'TRASLADOS HOSP.'),
+                React.createElement(Text, { style: { ...s.kpiTitle, color: '#7e22ce' } }, renderIcon('arrow_left_right_purple', 11), ' TRASLADOS HOSP.'),
                 React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#f3e8ff', color: '#6b21a8' } }, 'Derivación'),
                 React.createElement('div', { style: { margin: '4px 0 2px 0' } },
                   React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#7e22ce' } }, `${totalTraslados}`)
@@ -420,7 +443,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             // CARD TURNO 5: CONSTATACIONES
             React.createElement(Column, { style: { width: '20%', paddingLeft: '3px', verticalAlign: 'top' } },
               React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#fffbeb', borderColor: '#fde68a' } },
-                React.createElement(Text, { style: { ...s.kpiTitle, color: '#b45309' } }, 'CONSTATACIONES'),
+                React.createElement(Text, { style: { ...s.kpiTitle, color: '#b45309' } }, renderIcon('shield_alert_amber', 11), ' CONSTATACIONES'),
                 React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#fef3c7', color: '#92400e' } }, 'Z51.8'),
                 React.createElement('div', { style: { margin: '4px 0 2px 0' } },
                   React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#b45309' } }, `${totalConstataciones}`)
@@ -432,11 +455,11 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
 
           // BANNER DE CUADRATURA DEL TURNO
           React.createElement('div', { style: { backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '6px 10px', marginBottom: '14px', fontSize: '10.5px', color: '#334155', fontWeight: '700', textAlign: 'center' } },
-            `✔ Balance del Turno: ${totalAdmitidos} Admitidos = ${totalAtendidos} Atenciones (${altasMedicas} Altas Médicas + ${totalTraslados} Traslados Hosp.) + ${totalAltas} Altas Admin • ${totalConstataciones} Constataciones Z51.8.`
+            React.createElement('span', null, renderIcon('check_circle_emerald', 13), ` Balance del Turno: ${totalAdmitidos} Admitidos = ${totalAtendidos} Atenciones (${altasMedicas} Altas Médicas + ${totalTraslados} Traslados Hosp.) + ${totalAltas} Altas Admin • ${totalConstataciones} Constataciones Z51.8.`)
           ),
 
           // LÁMINA 2: INDICADORES INTERANUALES DE DEMANDA & COBERTURA (COMPARATIVA YOY)
-          React.createElement(Text, { style: s.sectionTitle }, '📊 2. Indicadores Maestros de Demanda & Cobertura (Comparativa YoY)'),
+          React.createElement(Text, { style: s.sectionTitle }, renderIcon('bar_chart_indigo', 15), ' 2. Indicadores Maestros de Demanda & Cobertura (Comparativa YoY)'),
           
           React.createElement(Row, { style: { marginBottom: '10px' } },
             
@@ -445,7 +468,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
               React.createElement('div', { style: s.kpiCard },
                 React.createElement(Row, null,
                   React.createElement(Column, { style: { textAlign: 'left' } },
-                    React.createElement(Text, { style: s.kpiTitle }, 'PAC. ADMITIDOS (YOY)')
+                    React.createElement(Text, { style: s.kpiTitle }, renderIcon('users_indigo', 11), ' PAC. ADMITIDOS (YOY)')
                   ),
                   React.createElement(Column, { style: { textAlign: 'right' } },
                     React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#eef2ff', color: '#4338ca', margin: 0 } }, 'Demanda ↗')
@@ -467,7 +490,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
               React.createElement('div', { style: s.kpiCard },
                 React.createElement(Row, null,
                   React.createElement(Column, { style: { textAlign: 'left' } },
-                    React.createElement(Text, { style: { ...s.kpiTitle, color: '#0284c7' } }, 'PAC. ATENDIDOS (YOY)')
+                    React.createElement(Text, { style: { ...s.kpiTitle, color: '#0284c7' } }, renderIcon('user_check_sky', 11), ' PAC. ATENDIDOS (YOY)')
                   ),
                   React.createElement(Column, { style: { textAlign: 'right' } },
                     React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#e0f2fe', color: '#0284c7', margin: 0 } }, 'Clínico ↗')
@@ -489,7 +512,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
               React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#fff1f2', borderColor: '#fecdd3' } },
                 React.createElement(Row, null,
                   React.createElement(Column, { style: { textAlign: 'left' } },
-                    React.createElement(Text, { style: { ...s.kpiTitle, color: '#be123c' } }, 'ALTAS ADMIN (YOY)')
+                    React.createElement(Text, { style: { ...s.kpiTitle, color: '#be123c' } }, renderIcon('alert_triangle_rose', 11), ' ALTAS ADMIN (YOY)')
                   ),
                   React.createElement(Column, { style: { textAlign: 'right' } },
                     React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#ffe4e6', color: '#be123c', margin: 0 } }, 'Altas ↗')
@@ -512,7 +535,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
               React.createElement('div', { style: s.kpiCard },
                 React.createElement(Row, null,
                   React.createElement(Column, { style: { textAlign: 'left' } },
-                    React.createElement(Text, { style: { ...s.kpiTitle, color: '#7e22ce' } }, 'TRASLADOS HOSP. (YOY)')
+                    React.createElement(Text, { style: { ...s.kpiTitle, color: '#7e22ce' } }, renderIcon('arrow_left_right_purple', 11), ' TRASLADOS HOSP. (YOY)')
                   ),
                   React.createElement(Column, { style: { textAlign: 'right' } },
                     React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#f3e8ff', color: '#7e22ce', margin: 0 } }, 'Traslados ↗')
@@ -534,14 +557,14 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
           React.createElement(Row, { style: { marginBottom: '14px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '8px 12px' } },
             React.createElement(Column, { style: { width: '50%' } },
               React.createElement(Text, { style: { fontSize: '10px', fontWeight: '800', color: '#334155', margin: 0 } },
-                '⚡ RENDIMIENTO CLÍNICO DE GUARDIA: ',
+                renderIcon('zap_indigo', 13), ' RENDIMIENTO CLÍNICO DE GUARDIA: ',
                 React.createElement('strong', { style: { color: '#4338ca' } }, `${rendimientoHora} pac/hr`),
                 React.createElement('span', { style: { color: '#64748b', fontSize: '9px', marginLeft: '6px' } }, '(↑ +9.5% vs 8.4 pac/hr)')
               )
             ),
             React.createElement(Column, { style: { width: '50%', textAlign: 'right' } },
               React.createElement(Text, { style: { fontSize: '10px', fontWeight: '800', color: '#334155', margin: 0 } },
-                '⏱️ ESTADÍA TOTAL PROMEDIO: ',
+                renderIcon('clock_purple', 13), ' ESTADÍA TOTAL PROMEDIO: ',
                 React.createElement('strong', { style: { color: '#7e22ce' } }, `${estadiaPromedio}`),
                 React.createElement('span', { style: { color: '#64748b', fontSize: '9px', marginLeft: '6px' } }, `(${estadiaMins} min promedio • ↓ -4.2%)`)
               )
@@ -556,7 +579,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                 React.createElement(Row, null,
                   React.createElement(Column, null,
                     React.createElement(Text, { style: { fontSize: '10.5px', fontWeight: '900', color: '#5b21b6', margin: 0, textTransform: 'uppercase' } },
-                      '⏱️ Desglose de los 3 Tramos de Espera y Estadía'
+                      React.createElement('span', null, renderIcon('clock_purple', 14), ' Desglose de los 3 Tramos de Espera y Estadía')
                     )
                   ),
                   React.createElement(Column, { style: { textAlign: 'right' } },
@@ -567,17 +590,17 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                 ),
                 React.createElement(Row, { style: { marginTop: '8px' } },
                   React.createElement(Column, { style: { width: '33.3%', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', padding: '6px', border: '1px solid #ede9fe' } },
-                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, '1. ADM. A TRIAJE'),
+                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, renderIcon('clock_blue', 9), ' 1. ADM. A TRIAJE'),
                     React.createElement(Text, { style: { fontSize: '14px', fontWeight: '900', color: '#0f172a', margin: '2px 0' } }, `${tramos.admisionTriage || 14} min`),
                     React.createElement(Text, { style: { fontSize: '8px', fontWeight: '800', color: '#047857', margin: 0 } }, '↓ -2.5% vs 2025')
                   ),
                   React.createElement(Column, { style: { width: '33.3%', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', padding: '6px', border: '1px solid #ede9fe', marginLeft: '3px', marginRight: '3px' } },
-                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, '2. TRIAJE A BOX'),
+                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, renderIcon('clock_purple', 9), ' 2. TRIAJE A BOX'),
                     React.createElement(Text, { style: { fontSize: '14px', fontWeight: '900', color: '#4338ca', margin: '2px 0' } }, `${tramos.triageAtencion || 45} min`),
                     React.createElement(Text, { style: { fontSize: '8px', fontWeight: '800', color: '#047857', margin: 0 } }, '↓ -3.8% vs 2025')
                   ),
                   React.createElement(Column, { style: { width: '33.3%', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', padding: '6px', border: '1px solid #ede9fe' } },
-                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, '3. BOX A ALTA'),
+                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, renderIcon('clock_purple', 9), ' 3. BOX A ALTA'),
                     React.createElement(Text, { style: { fontSize: '14px', fontWeight: '900', color: '#7e22ce', margin: '2px 0' } }, `${tramos.atencionAlta || 65} min`),
                     React.createElement(Text, { style: { fontSize: '8px', fontWeight: '800', color: '#047857', margin: 0 } }, '↓ -1.5% vs 2025')
                   )
@@ -591,7 +614,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                 React.createElement(Row, null,
                   React.createElement(Column, null,
                     React.createElement(Text, { style: { fontSize: '10.5px', fontWeight: '900', color: '#92400e', margin: 0, textTransform: 'uppercase' } },
-                      '🛡️ Constatación Lesiones (Z51.8)'
+                      React.createElement('span', null, renderIcon('shield_alert_amber', 14), ' Constatación Lesiones (Z51.8)')
                     )
                   ),
                   React.createElement(Column, { style: { textAlign: 'right' } },
@@ -624,7 +647,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             React.createElement(Row, { style: { borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '8px' } },
               React.createElement(Column, null,
                 React.createElement(Text, { style: { fontSize: '11px', fontWeight: '900', color: '#0f172a', textTransform: 'uppercase', margin: 0 } },
-                  '🏥 2. Distribución Oficial de Triaje (Categorización C1 a C5)'
+                  React.createElement('span', null, renderIcon('activity_indigo', 14), ' 2. Distribución Oficial de Triaje (Categorización C1 a C5)')
                 )
               ),
               React.createElement(Column, { style: { textAlign: 'right' } },
@@ -663,7 +686,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             React.createElement(Row, { style: { borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '8px' } },
               React.createElement(Column, null,
                 React.createElement(Text, { style: { fontSize: '11px', fontWeight: '900', color: '#0f172a', textTransform: 'uppercase', margin: 0 } },
-                  '👨‍⚕️ 3. Rendimiento Clínico por Profesional Médico en Turno'
+                  React.createElement('span', null, renderIcon('user_check_emerald', 14), ' 3. Rendimiento Clínico por Profesional Médico en Turno')
                 )
               ),
               React.createElement(Column, { style: { textAlign: 'right' } },
@@ -711,7 +734,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             React.createElement(Row, { style: { borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '8px' } },
               React.createElement(Column, null,
                 React.createElement(Text, { style: { fontSize: '11px', fontWeight: '900', color: '#0f172a', textTransform: 'uppercase', margin: 0 } },
-                  '🩺 4. Top 10 Diagnósticos de Consulta (CIE-10)'
+                  React.createElement('span', null, renderIcon('file_text_purple', 14), ' 4. Top 10 Diagnósticos de Consulta (CIE-10)')
                 )
               ),
               React.createElement(Column, { style: { textAlign: 'right' } },
@@ -754,7 +777,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             React.createElement(Column, { style: { width: '50%', paddingRight: '6px' } },
               React.createElement('div', { style: { ...s.cardModule, backgroundColor: '#faf5ff', borderColor: '#e9d5ff', margin: 0 } },
                 React.createElement(Text, { style: { fontSize: '10px', fontWeight: '900', color: '#7e22ce', textTransform: 'uppercase', textAlign: 'center', margin: '0 0 6px 0' } },
-                  'CENTROS BASE ACUMULADO'
+                  React.createElement('span', null, renderIcon('hospital_emerald', 11), ' CENTROS BASE ACUMULADO')
                 ),
                 React.createElement('div', { style: { textAlign: 'center', marginBottom: '8px' } },
                   React.createElement('span', { style: { fontSize: '26px', fontWeight: '900', color: '#6b21a8' } }, `${top3Pct}%`),
@@ -784,7 +807,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             React.createElement(Column, { style: { width: '50%', paddingLeft: '6px' } },
               React.createElement('div', { style: { ...s.cardModule, margin: 0 } },
                 React.createElement(Text, { style: { fontSize: '10px', fontWeight: '900', color: '#0f172a', textTransform: 'uppercase', margin: '0 0 8px 0' } },
-                  '👥 DISTRIBUCIÓN POR SEXO'
+                  React.createElement('span', null, renderIcon('users_indigo', 13), ' DISTRIBUCIÓN ASISTENCIAL POR SEXO')
                 ),
                 React.createElement(Row, { style: { marginBottom: '8px' } },
                   React.createElement(Column, { style: { width: '50%', textAlign: 'center', backgroundColor: '#fdf2f8', padding: '8px', borderRadius: '8px' } },
@@ -815,7 +838,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             React.createElement(Row, { style: { borderBottom: '1px solid #c7d2fe', paddingBottom: '6px', marginBottom: '8px' } },
               React.createElement(Column, null,
                 React.createElement(Text, { style: { fontSize: '11px', fontWeight: '900', color: '#312e81', textTransform: 'uppercase', margin: 0 } },
-                  '🚑 5. Apartado Exclusivo: Traslados Hospitalarios UEH'
+                  React.createElement('span', null, renderIcon('arrow_left_right_indigo', 15), ' 5. Apartado Exclusivo: Traslados Hospitalarios UEH')
                 )
               ),
               React.createElement(Column, { style: { textAlign: 'right' } },
@@ -844,7 +867,8 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             totalTraslados > 0 ? (
               React.createElement('div', { style: { marginTop: '6px' } },
                 React.createElement(Text, { style: { fontSize: '9.5px', fontWeight: '900', color: '#312e81', textTransform: 'uppercase', margin: '0 0 6px 0', letterSpacing: '0.5px' } },
-                  `📋 Ficha Clínica Individual de Traslados (${listaTraslados.length} ${listaTraslados.length === 1 ? 'paciente' : 'pacientes'} derivado${listaTraslados.length === 1 ? '' : 's'} a UEH)`
+                  renderIcon('file_text_purple', 12),
+                  ` Ficha Clínica Individual de Traslados (${listaTraslados.length} ${listaTraslados.length === 1 ? 'paciente' : 'pacientes'} derivado${listaTraslados.length === 1 ? '' : 's'} a UEH)`
                 ),
                 ...listaTraslados.map((t, idx) => {
                   const catClean = String(t.categoria || 'C2').toUpperCase().replace('CATEGORIA', '').replace('CATEGORÍA', '').trim();
@@ -911,7 +935,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
           React.createElement(Row, { style: { marginBottom: '14px' } },
             React.createElement(Column, { style: { width: '50%', paddingRight: '4px' } },
               React.createElement('div', { style: { ...s.cardModule, borderLeft: '4px solid #be123c', margin: 0 } },
-                React.createElement(Text, { style: { fontSize: '9.5px', fontWeight: '900', color: '#be123c', margin: 0, textTransform: 'uppercase' } }, '🦴 FRACTURAS & TRAUMATOLOGÍA'),
+                React.createElement(Text, { style: { fontSize: '9.5px', fontWeight: '900', color: '#be123c', margin: 0, textTransform: 'uppercase' } }, React.createElement('span', null, renderIcon('bone_rose', 12), ' FRACTURAS & TRAUMATOLOGÍA')),
                 React.createElement(Text, { style: { fontSize: '18px', fontWeight: '900', color: '#be123c', margin: '2px 0' } }, `${totalFracturas} casos`),
                 React.createElement(Text, { style: { fontSize: '8.5px', color: '#334155', margin: 0 } },
                   totalFracturas > 0 ? 'Hojas de urgencia auditadas con confirmación radiológica.' : 'Sin atenciones traumatológicas complejas en el turno.'
@@ -920,7 +944,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             ),
             React.createElement(Column, { style: { width: '50%', paddingLeft: '4px' } },
               React.createElement('div', { style: { ...s.cardModule, borderLeft: '4px solid #0284c7', margin: 0 } },
-                React.createElement(Text, { style: { fontSize: '9.5px', fontWeight: '900', color: '#0284c7', margin: 0, textTransform: 'uppercase' } }, '🫁 VIGILANCIA RESPIRATORIA'),
+                React.createElement(Text, { style: { fontSize: '9.5px', fontWeight: '900', color: '#0284c7', margin: 0, textTransform: 'uppercase' } }, React.createElement('span', null, renderIcon('lungs_sky', 12), ' VIGILANCIA RESPIRATORIA')),
                 React.createElement(Text, { style: { fontSize: '18px', fontWeight: '900', color: '#0284c7', margin: '2px 0' } }, `${totalRespiratorios} casos`),
                 React.createElement(Text, { style: { fontSize: '8.5px', color: '#334155', margin: 0 } },
                   'Monitoreo epidemiológico de IRA, bronquitis y síndrome gripal.'

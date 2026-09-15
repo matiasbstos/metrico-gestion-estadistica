@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.24',
+      version: 'v6.3.24',
+      fecha: '15 de Septiembre, 2026',
+      badge: 'PARIDAD VISUAL: SUITE ICONOGRÁFICA LUCIDE EN CORREOS',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Unificación de Identidad Visual: Integración de Iconos Lucide y Erradicación de Emojis Discordantes',
+      categoria: 'Diseño Institucional & Comunicaciones',
+      icon: Sparkles,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Para que los correos electrónicos reflejen la misma identidad visual sobria y profesional de la plataforma web, se generó una suite completa de 36 micro-iconos vectoriales Lucide en alta resolución Retina (PNG y SVG). Se erradicaron todos los emojis casuales o discordantes (como 🏥, 📊, ⚡, ⏱️, 🛡️, 👨‍⚕️, 🩺, 👥, 🚑, 🦴, 🫁) reemplazándolos por micro-iconos corporativos servidos desde Firebase Hosting. Asimismo, las 5 tarjetas de guardia y las 4 tarjetas YoY incorporan sus respectivos iconos Lucide alineados punto por punto con la previsualización.',
+      instructivo: {
+        paraQueSirve: 'Homogeneiza la presentación corporativa de los informes asistenciales, asegurando que tanto en pantalla como en la bandeja de entrada de Gmail, Outlook y dispositivos móviles los iconos se vean nítidos, elegantes y fieles al diseño del SAR.',
+        quePuedesVer: '1) Tarjetas de Guardia con Iconos Lucide: Clock (Admisiones), UserCheck (Atendidos), AlertTriangle (Altas Admin), ArrowLeftRight (Traslados), ShieldAlert (Constataciones). 2) Encabezados Institucionales: Hospital, BarChart3, Activity, FileText, Zap, Bone, Lungs. 3) Paridad 1:1 entre el modal de previsualización y el correo entregado.',
+        ejemploUso: 'Al abrir el informe en cualquier cliente de correo, cada sección exhibe su icono vectorial con el color exacto de la paleta institucional de MÉTRICO.'
+      },
+      changes: [
+        'Generación de suite de 36 iconos vectoriales Lucide en public/icons (PNG Retina y SVG).',
+        'Integración del renderizador de iconos renderIcon en InformeAsistencialEmail.js con enlace a Firebase Hosting.',
+        'Sustitución de emojis Unicode por micro-iconos corporativos en las 8 láminas asistenciales.',
+        'Sincronización del previsualizador web con componentes Lucide Hospital, BarChart3 y FileText.'
+      ]
+    },
+    {
       id: 'v6.3.23',
       version: 'v6.3.23',
       fecha: '15 de Septiembre, 2026',

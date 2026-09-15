@@ -8,6 +8,29 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-24',
+    titulo: 'Unificación de Identidad Visual: Integración de Suite Iconográfica Lucide en Correos y Erradicación de Emojis Discordantes',
+    fecha: '2026-09-15',
+    version_tag: 'v6.3.24',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'En las plantillas de correo anteriores se utilizaban emojis Unicode informales (como 🏥, 📊, ⚡, ⏱️, 🛡️, 👨‍⚕️, 🩺, 👥, 🚑, 🦴, 🫁) que no concordaban con la identidad visual minimalista y corporativa del sitio web (basada en iconos vectoriales Lucide con stroke institucional y coloresTailwind). Además, las tarjetas de guardia no incluían los micro-iconos presentes en la previsualización.',
+    logica: '1) Se generó mediante Puppeteer una suite de 36 iconos vectoriales oficiales de Lucide en resolución Retina 64x64 (PNG transparente y SVG) alojados en public/icons/. 2) Se implementó la función auxiliar renderIcon() en InformeAsistencialEmail.js para renderizar los micro-iconos servidos directamente desde Firebase Hosting, garantizando compatibilidad del 100% en Gmail, Outlook, Apple Mail y dispositivos móviles. 3) Se sincronizó el previsualizador web (ModalConfiguracionCorreo.jsx) reemplazando los emojis residuales por componentes nativos de Lucide (Hospital, BarChart3, FileText).',
+    solucion: 'El informe por correo electrónico ahora refleja con paridad milimétrica la misma estética y paleta corporativa de la aplicación web de MÉTRICO, erradicando emojis y garantizando nitidez vectorial absoluta.',
+    fullPost: `En esta versión v6.3.24 logramos la paridad visual absoluta entre los correos emitidos y la plataforma:
+
+1. **Suite Oficial de Iconos Lucide (public/icons/)**:
+   - 36 archivos generados (PNG Retina 64x64 + SVG): Clock, UserCheck, AlertTriangle, ArrowLeftRight, ShieldAlert, Users, Zap, Activity, FileText, Bone, Lungs, Hospital, BarChart3.
+   - Colores institucionales exactos: Indigo (#4f46e5), Emerald (#059669), Blue (#2563eb), Rose (#e11d48), Purple (#7e22ce), Amber (#d97706), Sky (#0284c7).
+
+2. **Renderizado Universal en Clientes de Correo (renderIcon)**:
+   - Los iconos se sirven vía CDN desde Firebase Hosting (\`https://metrico-dashboard-2026.web.app/icons/<nombre>.png\`), pasando limpiamente a través de los proxies de imagen de Gmail y Outlook sin riesgo de ser eliminados por filtros sanitizadores de SVG.
+
+3. **Erradicación de Emojis Discordantes**:
+   - Sustitución de 🏥, 📊, ⚡, ⏱️, 🛡️, 👨‍⚕️, 🩺, 👥, 🚑, 🦴, 🫁 por sus correspondientes micro-iconos vectoriales corporativos en las 8 láminas asistenciales.
+`
+  },
+  {
     id: 'devlog-v6-3-23',
     titulo: 'Auditoría Post-Despacho de Correo: Erradicación de "undefined", Sincronización de Tramos y Despliegue Cloud Functions',
     fecha: '2026-09-15',
