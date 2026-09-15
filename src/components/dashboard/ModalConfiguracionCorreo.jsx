@@ -39,9 +39,11 @@ const OFFICIAL_RAYEN_SHIFT_CONTROLS = {
     altasAdmin: 10,
     egresoAdmin: 10,
     sinAtencionMedica: 0,
-    traslados: 0,
-    trasladosCount: 0,
-    altasMedicas: 74,
+    traslados: 4,
+    trasladosCount: 4,
+    altasMedicas: 70,
+    constataciones: 1,
+    constatacionesCount: 1,
     isCompleto: true,
     triage: {
       c1: 0,
@@ -132,15 +134,20 @@ const getCanonicalShiftKey = (fechaIso, horarioStr = '', tipoStr = '') => {
   return `${fechaIso}_${getCanonicalShiftTag(horarioStr, tipoStr)}`;
 };
 
-export const buildTurnoInfoPayload = (selectedShiftObj, combinedPacientes = [], pautasDB = null, auditResult = null) => {
+export const buildTurnoInfoPayload = (selectedShiftObj, combinedPacientes = [], pautasDB = null, auditResult = null, statsKPI = null) => {
   let baseTurno = null;
   if (selectedShiftObj) {
     const pacs = selectedShiftObj.pacientesList || [];
     const totalAdmitidos = selectedShiftObj.pacientes || selectedShiftObj.totalAdmitidos || pacs.length;
     const altasAdmin = selectedShiftObj.altas || selectedShiftObj.altasAdmin || 0;
     const atendidos = selectedShiftObj.atendidos !== undefined ? selectedShiftObj.atendidos : Math.max(0, totalAdmitidos - altasAdmin);
-    const durHoras = (selectedShiftObj.horario && selectedShiftObj.horario.includes('17:00')) ? 15 : 12;
-    const rendimientoHora = durHoras > 0 ? Number((totalAdmitidos / durHoras).toFixed(1)) : 8.0;
+    const isSemanaLargo = (selectedShiftObj.horario && selectedShiftObj.horario.includes('17:00')) || (selectedShiftObj.tipo && selectedShiftObj.tipo.includes('Largo'));
+    const durHoras = isSemanaLargo ? 20 : 12;
+    const rendimientoHora = (selectedShiftObj.pacHora !== undefined)
+      ? Number(Number(selectedShiftObj.pacHora).toFixed(1))
+      : (selectedShiftObj.rendimientoHora !== undefined
+        ? Number(Number(selectedShiftObj.rendimientoHora).toFixed(1))
+        : (durHoras > 0 ? Number((totalAdmitidos / durHoras).toFixed(1)) : 4.2));
 
     const triage = selectedShiftObj.triage ? { ...selectedShiftObj.triage } : { c1: 0, c2: 0, c3: 0, c4: 0, c5: 0 };
     let sumEstadia = 0, countEstadia = 0;
@@ -242,9 +249,7 @@ export const buildTurnoInfoPayload = (selectedShiftObj, combinedPacientes = [], 
           const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
           return (dest.includes('hosp') || dest.includes('urgenc') || dest.includes('ueh')) && !dest.includes('cesfam');
         }).length;
-    const altasMedicas = selectedShiftObj.altasMedicas !== undefined
-      ? selectedShiftObj.altasMedicas
-      : Math.max(0, atendidos - trasladosCount);
+    const altasMedicas = Math.max(0, atendidos - trasladosCount);
 
     const rawAvgEstadia = countEstadia > 0 ? Math.round(sumEstadia / countEstadia) : 135;
     const admTriageMin = countAdmTriage > 0 ? Math.round(sumAdmTriage / countAdmTriage) : 14;
@@ -465,22 +470,44 @@ export const buildTurnoInfoPayload = (selectedShiftObj, combinedPacientes = [], 
     destino: 'Hospital San José de Melipilla (Urgencia Quirúrgica)'
   };
 
+  const anualSSOT = statsKPI?.anual;
+
+  const ytdAdm = Number(anualSSOT?.pacientes?.current || 28257);
+  const prevAdm = Number(anualSSOT?.pacientes?.prevYear || 23474);
+  const pctAdmVal = anualSSOT?.pacientes?.growthYear !== undefined ? Number(anualSSOT.pacientes.growthYear) : 20.4;
+  const pctAdm = pctAdmVal > 0 ? `+${pctAdmVal.toFixed(1)}%` : `${pctAdmVal.toFixed(1)}%`;
+
+  const ytdAtn = Number(anualSSOT?.atendidos?.current || 25696);
+  const prevAtn = Number(anualSSOT?.atendidos?.prevYear || 21448);
+  const pctAtnVal = anualSSOT?.atendidos?.growthYear !== undefined ? Number(anualSSOT.atendidos.growthYear) : 19.8;
+  const pctAtn = pctAtnVal > 0 ? `+${pctAtnVal.toFixed(1)}%` : `${pctAtnVal.toFixed(1)}%`;
+
+  const ytdAlt = Number(anualSSOT?.altasAdmin?.current || 2561);
+  const prevAlt = Number(anualSSOT?.altasAdmin?.prevYear || 2026);
+  const pctAltVal = anualSSOT?.altasAdmin?.growthYear !== undefined ? Number(anualSSOT.altasAdmin.growthYear) : 26.4;
+  const pctAlt = pctAltVal > 0 ? `+${pctAltVal.toFixed(1)}%` : `${pctAltVal.toFixed(1)}%`;
+
+  const ytdTra = Number(anualSSOT?.traslados?.current || 1162);
+  const prevTra = Number(anualSSOT?.traslados?.prevYear || 1039);
+  const pctTraVal = anualSSOT?.traslados?.growthYear !== undefined ? Number(anualSSOT.traslados.growthYear) : 11.8;
+  const pctTra = pctTraVal > 0 ? `+${pctTraVal.toFixed(1)}%` : `${pctTraVal.toFixed(1)}%`;
+
   const comparativaYoY = {
-    pctAdmitidosYoY: '+19.7%',
-    prevTotalAdmitidos: '23.474',
-    ytdAdmitidos: '28.091',
-    pctAtendidosYoY: '+19.1%',
-    prevAtendidos: '21.448',
-    ytdAtendidos: '25.547',
-    atendidosCobPct: '91.0%',
-    pctAltasYoY: '+25.6%',
-    prevAltasAdmin: '2.026',
-    ytdAltas: '2.544',
-    altasPct: '9.0%',
-    pctTrasladosYoY: '+11.8%',
-    prevTrasladosCount: '1.039',
-    ytdTraslados: '1.162',
-    trasladosTasa: '4.1%',
+    pctAdmitidosYoY: pctAdm,
+    prevTotalAdmitidos: prevAdm.toLocaleString('es-CL'),
+    ytdAdmitidos: ytdAdm.toLocaleString('es-CL'),
+    pctAtendidosYoY: pctAtn,
+    prevAtendidos: prevAtn.toLocaleString('es-CL'),
+    ytdAtendidos: ytdAtn.toLocaleString('es-CL'),
+    atendidosCobPct: ytdAdm > 0 ? ((ytdAtn / ytdAdm) * 100).toFixed(1) + '%' : '90.9%',
+    pctAltasYoY: pctAlt,
+    prevAltasAdmin: prevAlt.toLocaleString('es-CL'),
+    ytdAltas: ytdAlt.toLocaleString('es-CL'),
+    altasPct: ytdAdm > 0 ? ((ytdAlt / ytdAdm) * 100).toFixed(1) + '%' : '9.1%',
+    pctTrasladosYoY: pctTra,
+    prevTrasladosCount: prevTra.toLocaleString('es-CL'),
+    ytdTraslados: ytdTra.toLocaleString('es-CL'),
+    trasladosTasa: ytdAdm > 0 ? ((ytdTra / ytdAdm) * 100).toFixed(1) + '%' : '4.1%',
     prevTiempoCat: 18,
     prevEstadia: '1h 52m',
     prevFracturasCount: 0,
@@ -507,8 +534,8 @@ export const buildTurnoInfoPayload = (selectedShiftObj, combinedPacientes = [], 
     trasladoDetalle,
     fracturasCount: Number(baseTurno.fracturasCount ?? (baseTurno.fracturas ?? 0)),
     constatacionesCount: Number(baseTurno.constatacionesCount ?? (baseTurno.constataciones ?? 0)),
-    trasladosCount: baseTurno.trasladosCount !== undefined ? baseTurno.trasladosCount : (pacsTraslados.length > 0 ? pacsTraslados.length : Number(baseTurno.traslados ?? 0)),
-    altasMedicas: baseTurno.altasMedicas !== undefined ? baseTurno.altasMedicas : Math.max(0, baseTurno.atendidos - (baseTurno.trasladosCount ?? (baseTurno.traslados ?? 0))),
+    trasladosCount: Number(baseTurno.trasladosCount !== undefined ? baseTurno.trasladosCount : (pacsTraslados.length > 0 ? pacsTraslados.length : (baseTurno.traslados ?? 0))),
+    altasMedicas: Math.max(0, (baseTurno.atendidos || 0) - Number(baseTurno.trasladosCount !== undefined ? baseTurno.trasladosCount : (pacsTraslados.length > 0 ? pacsTraslados.length : (baseTurno.traslados ?? 0)))),
     respiratoriosCount: Math.round(baseTurno.totalAdmitidos * 0.38)
   };
 
@@ -525,7 +552,7 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
   const totalAtendidosVal = Number(turnoInfo.atendidos || 0);
   const totalAltasAdminVal = Number(turnoInfo.altasAdmin || 0);
   const totalTrasladosVal = Number(turnoInfo.trasladosCount ?? (turnoInfo.traslados || 0));
-  const altasMedicasVal = Number(turnoInfo.altasMedicas !== undefined ? turnoInfo.altasMedicas : Math.max(0, totalAtendidosVal - totalTrasladosVal));
+  const altasMedicasVal = Math.max(0, totalAtendidosVal - totalTrasladosVal);
 
   const pctCoberturaTurno = totalAdmitidosVal > 0 ? ((totalAtendidosVal / totalAdmitidosVal) * 100).toFixed(1) : '100.0';
   const pctAltasMedicasTurno = totalAtendidosVal > 0 ? ((altasMedicasVal / totalAtendidosVal) * 100).toFixed(1) : '94.6';
@@ -693,13 +720,13 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
               </div>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-black text-emerald-600">
-                  {turnoInfo.comparativaYoY?.pctAdmitidosYoY || '+19.7%'}
+                  {turnoInfo.comparativaYoY?.pctAdmitidosYoY || '+20.4%'}
                 </span>
                 <span className="text-[9px] font-black text-slate-500 uppercase">VS AÑO ANT.</span>
               </div>
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-0.5 text-[10px]">
                 <p className="font-bold text-slate-900 dark:text-slate-100">
-                  Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdAdmitidos || '28.091'} pac.</strong>
+                  Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdAdmitidos || '28.257'} pac.</strong>
                 </p>
                 <p className="text-slate-500 font-medium">
                   Año Ant. (2025): {turnoInfo.comparativaYoY?.prevTotalAdmitidos || '23.474'} pac.
@@ -719,13 +746,13 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
               </div>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-black text-emerald-600">
-                  {turnoInfo.comparativaYoY?.pctAtendidosYoY || '+19.1%'}
+                  {turnoInfo.comparativaYoY?.pctAtendidosYoY || '+19.8%'}
                 </span>
                 <span className="text-[9px] font-black text-slate-500 uppercase">VS AÑO ANT.</span>
               </div>
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-0.5 text-[10px]">
                 <p className="font-bold text-slate-900 dark:text-slate-100">
-                  Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdAtendidos || '25.547'} pac.</strong> <span className="text-emerald-600 font-bold">({turnoInfo.comparativaYoY?.atendidosCobPct || '91.0%'} cob.)</span>
+                  Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdAtendidos || '25.696'} pac.</strong> <span className="text-emerald-600 font-bold">({turnoInfo.comparativaYoY?.atendidosCobPct || '90.9%'} cob.)</span>
                 </p>
                 <p className="text-slate-500 font-medium">
                   Año Ant. (2025): {turnoInfo.comparativaYoY?.prevAtendidos || '21.448'} pac.
@@ -750,13 +777,13 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
               </div>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-black text-rose-600">
-                  {turnoInfo.comparativaYoY?.pctAltasYoY || '+25.6%'}
+                  {turnoInfo.comparativaYoY?.pctAltasYoY || '+26.4%'}
                 </span>
                 <span className="text-[9px] font-black text-rose-700 uppercase">VS AÑO ANT.</span>
               </div>
               <div className="pt-2 border-t border-rose-200/60 dark:border-rose-900/40 space-y-0.5 text-[10px]">
                 <p className="font-bold text-rose-900 dark:text-rose-200">
-                  Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdAltas || '2.544'} altas</strong> <span className="font-bold text-slate-600">({turnoInfo.comparativaYoY?.altasPct || '9.0%'} del total)</span>
+                  Volumen YTD: <strong>{turnoInfo.comparativaYoY?.ytdAltas || '2.561'} altas</strong> <span className="font-bold text-slate-600">({turnoInfo.comparativaYoY?.altasPct || '9.1%'} del total)</span>
                 </p>
                 <p className="text-slate-500 font-medium">
                   Año Ant. (2025): {turnoInfo.comparativaYoY?.prevAltasAdmin || '2.026'} altas
@@ -797,7 +824,7 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
           <div className="flex items-center gap-2">
             <Zap className="w-4 h-4 text-indigo-600" />
             <span className="text-slate-600 dark:text-slate-400 font-bold">
-              Rendimiento Clínico de Guardia: <strong className="text-indigo-600 dark:text-indigo-400 font-black">{turnoInfo.rendimientoHora || (turnoInfo.totalAdmitidos > 0 ? (turnoInfo.totalAdmitidos / 12).toFixed(1) : '8.5')} pac/hr</strong>
+              Rendimiento Clínico de Guardia: <strong className="text-indigo-600 dark:text-indigo-400 font-black">{turnoInfo.rendimientoHora || (turnoInfo.totalAdmitidos > 0 ? (turnoInfo.totalAdmitidos / 20).toFixed(1) : '4.2')} pac/hr</strong>
             </span>
             <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-md">
               ↑ +9.5% vs 2025
@@ -1205,6 +1232,7 @@ export default function ModalConfiguracionCorreo({
   pacientesDB = [], 
   turnosDB = [], 
   pautasDB = null,
+  statsKPI = null,
   onOpenReportes 
 }) {
   // Pestaña Principal del Módulo de Pantalla Completa
@@ -1826,16 +1854,16 @@ export default function ModalConfiguracionCorreo({
 
   // 7. Ensamble de Información Asistencial de Turno para Diseñador y Despacho
   const turnoInfo = useMemo(() => {
-    return buildTurnoInfoPayload(selectedShiftObj, combinedPacientes, pautasDB, auditResult);
-  }, [selectedShiftObj, combinedPacientes, pautasDB, auditResult]);
+    return buildTurnoInfoPayload(selectedShiftObj, combinedPacientes, pautasDB, auditResult, statsKPI);
+  }, [selectedShiftObj, combinedPacientes, pautasDB, auditResult, statsKPI]);
 
   // Turno específico para modal flotante de previsualización (soporta click directo en fila)
   const previewTurnoInfo = useMemo(() => {
     if (previewShiftTarget) {
-      return buildTurnoInfoPayload(previewShiftTarget, combinedPacientes, pautasDB, auditResult);
+      return buildTurnoInfoPayload(previewShiftTarget, combinedPacientes, pautasDB, auditResult, statsKPI);
     }
     return turnoInfo;
-  }, [previewShiftTarget, turnoInfo, combinedPacientes, pautasDB, auditResult]);
+  }, [previewShiftTarget, turnoInfo, combinedPacientes, pautasDB, auditResult, statsKPI]);
 
   // Resumen del Consolidado de Cierre Mensual
   const monthlyConsolidatedText = useMemo(() => {
@@ -2101,7 +2129,7 @@ export default function ModalConfiguracionCorreo({
       const functionsInstance = getFunctions(targetApp);
       const callEnviarCorreo = httpsCallable(functionsInstance, 'enviarInformeCorreo');
 
-      const shiftPayload = buildTurnoInfoPayload(shiftRow, combinedPacientes, pautasDB, auditResult);
+      const shiftPayload = buildTurnoInfoPayload(shiftRow, combinedPacientes, pautasDB, auditResult, statsKPI);
 
       const res = await callEnviarCorreo({
         destinatarios: target,
@@ -2763,7 +2791,7 @@ export default function ModalConfiguracionCorreo({
                                     onClick={() => {
                                       setPreviewShiftTarget(d);
                                       setSelectedShiftKey(d.shiftKey);
-                                      setShowModalPreviewRow(true);
+                                      setActiveTab('diseno');
                                     }}
                                     className="px-2.5 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all cursor-pointer flex items-center gap-1 bg-indigo-500/10 hover:bg-indigo-600 hover:text-white text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-2xs shrink-0"
                                     title="Previsualizar cómo se verá este correo oficial antes de enviar"

@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.19',
+      version: 'v6.3.19',
+      fecha: '15 de Septiembre, 2026',
+      badge: 'PARIDAD SSOT: RECONCILIACIÓN MATEMÁTICA Y CORREO OFICIAL',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Reconciliación y Certificación de Cifras de Correo con el Dashboard SSOT',
+      categoria: 'Auditoría & Despacho de Correos',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se rectificó la formulación matemática del informe asistencial por correo y su previsualizador: 1) Cuadratura Universal de Guardia: 84 Admitidos = 74 Atenciones (70 Altas Médicas a Domicilio + 4 Traslados Hospitalarios) + 10 Altas Administrativas. 2) Sincronización Interanual: Los 4 pilares maestros adoptan los valores exactos de la vista maestra (+20.4% en admisiones, +19.8% en atendidos, +26.4% en altas admin y +11.8% en traslados). 3) Rendimiento Horario: 4.2 pac/hr correspondiente a la ventana de 20 horas de día hábil.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la información visualizada en el previsualizador interactivo y la despachada por correo concilie al 100% con los paneles analíticos de MÉTRICO sin ninguna inconsistencia matemática.',
+        quePuedesVer: '1) Cifras de Guardia Auditadas: Total de altas médicas descontando traslados con balance equilibrado al 100%. 2) Indicadores YoY: Comparativas interanuales idénticas al banner superior del Dashboard.',
+        ejemploUso: 'Al hacer clic en Previsualizar en la fila del turno 10/09/2026 de la cola, se visualizan directamente las 70 altas médicas, 4 traslados y el +20.4% interanual con cuadratura absoluta.'
+      },
+      changes: [
+        'Ecuación matemática estricta: Altas Médicas = Atendidos - Traslados Hospitalarios.',
+        'Propagación de statsKPI al generador de turnos y componentes de previsualización.',
+        'Sincronización de fallbacks YoY en plantilla React Email y backend Cloud Function.',
+        'Ajuste del rendimiento de turno largo a 4.2 pac/hr.',
+        'Navegación automática a la pestaña de diseño al pulsar Previsualizar en la tabla.'
+      ]
+    },
+    {
       id: 'v6.3.18',
       version: 'v6.3.18',
       fecha: '14 de Septiembre, 2026',

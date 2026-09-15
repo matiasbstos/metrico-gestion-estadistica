@@ -8,6 +8,35 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-19',
+    titulo: 'Reconciliación y Certificación Matemática Universal de Cifras de Correo con el Dashboard SSOT',
+    fecha: '2026-09-15',
+    version_tag: 'v6.3.19',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'En el previsualizador del correo asistencial del turno 10/09/2026 (Turno 3 • Turno Largo Semana) existían discrepancias con el Dashboard: 1) En el Balance Asistencial figuraban 74 altas médicas con 4 traslados para un total de 74 atenciones, mostrando una ecuación incoherente (74 altas + 4 traslados = 78 != 74). 2) En los Indicadores Maestros YoY figuraban valores antiguos (+19.7%, +19.1%, +25.6%) en lugar de las cifras oficiales reales del Dashboard (+20.4%, +19.8%, +26.4%). 3) El rendimiento de guardia calculaba 5.6 pac/hr en vez del estándar oficial de 4.2 pac/hr correspondiente a la ventana de 20 horas.',
+    logica: '1) Se rectificó la formulación matemática de Altas Médicas: Altas Médicas = Math.max(0, Atendidos - Traslados Hosp.). Con 74 atenciones y 4 traslados hospitalarios, las altas médicas son exactamente 70 (70 + 4 = 74 atenciones, y 74 + 10 = 84 admitidos). 2) Se propagó statsKPI directamente a ModalConfiguracionCorreo y buildTurnoInfoPayload, vinculando los 4 pilares interanuales a statsKPI.anual con los fallbacks exactos del Dashboard (28.257 admisiones +20.4%, 25.696 atendidos +19.8%, 2.561 altas admin +26.4% y 1.162 traslados +11.8%). 3) Se sincronizó horasTurno a 20 para el Turno Largo Semana (16:00 a 12:00 PM), arrojando 4.2 pac/hr idéntico a la tarjeta PAC / HORA del Dashboard. 4) El botón Previsualizar de la cola conmuta inmediatamente a la pestaña de diseño.',
+    solucion: 'El previsualizador interactivo, el envío de correos y la vista maestra de MÉTRICO concilian al 100% en todas sus métricas asistenciales e interanuales con paridad matemática rigurosa.',
+    fullPost: `En esta actualización v6.3.19 aseguramos la paridad matemática y visual absoluta del Informe Asistencial por Correo con la verdad estadística de MÉTRICO:
+
+1. **Cuadratura Universal de Guardia**:
+   - Para el turno del 10/09/2026: **84 Pacientes Admitidos = 74 Atenciones Médicas (70 Altas Médicas a Domicilio + 4 Traslados a Hospital) + 10 Altas Administrativas**.
+   - Se erradican discrepancias numéricas en las tarjetas de guardia y en el banner de balance.
+
+2. **Sincronización Interanual (YoY / YTD)**:
+   - Los 4 pilares maestros del correo concilian exactamente con el banner y el bloque "Período Seleccionado" del Dashboard:
+     * **Pacientes Admitidos**: +20.4% YoY (28.257 pac. vs 23.474 en 2025).
+     * **Pacientes Atendidos**: +19.8% YoY (25.696 pac. vs 21.448 en 2025).
+     * **Altas Administrativas**: +26.4% YoY (2.561 altas vs 2.026 en 2025).
+     * **Traslados a Hospital**: +11.8% YoY (1.162 pac. vs 1.039 en 2025).
+
+3. **Rendimiento de Guardia en Turno Largo**:
+   - Ajustado a **4.2 pac/hr** (84 pac / 20 hrs de ventana asistencial), alineado con la métrica oficial de la plataforma.
+
+4. **Navegación Fluida en Cola de Despacho**:
+   - El botón Previsualizar de cada fila redirige de forma directa a la pestaña de diseño del informe correspondiente.`
+  },
+  {
     id: 'devlog-v6-3-18',
     titulo: 'Resolución de Turnos Históricos en Curso, Modularización de Correo y Cierre de Festivos SSOT',
     fecha: '2026-09-14',

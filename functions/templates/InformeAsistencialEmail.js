@@ -11,17 +11,17 @@ const {
  */
 function InformeAsistencialEmail({ turnoInfo = {} }) {
   const yoy = turnoInfo.comparativaYoY || {
-    pctAdmitidosYoY: '+19.7%',
+    pctAdmitidosYoY: '+20.4%',
     prevTotalAdmitidos: '23.474',
-    ytdAdmitidos: '28.091',
-    pctAtendidosYoY: '+19.1%',
+    ytdAdmitidos: '28.257',
+    pctAtendidosYoY: '+19.8%',
     prevAtendidos: '21.448',
-    ytdAtendidos: '25.547',
-    atendidosCobPct: '91.0%',
-    pctAltasYoY: '+25.6%',
+    ytdAtendidos: '25.696',
+    atendidosCobPct: '90.9%',
+    pctAltasYoY: '+26.4%',
     prevAltasAdmin: '2.026',
-    ytdAltas: '2.544',
-    altasPct: '9.0%',
+    ytdAltas: '2.561',
+    altasPct: '9.1%',
     pctTrasladosYoY: '+11.8%',
     prevTrasladosCount: '1.039',
     ytdTraslados: '1.162',
@@ -37,7 +37,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
   const totalAtendidos = Number(turnoInfo.atendidos || 0);
   const totalAltas = Number(turnoInfo.altasAdmin || 0);
   const totalTraslados = Number(turnoInfo.trasladosCount || turnoInfo.traslados || 0);
-  const altasMedicas = Number(turnoInfo.altasMedicas !== undefined ? turnoInfo.altasMedicas : Math.max(0, totalAtendidos - totalTraslados));
+  const altasMedicas = Math.max(0, totalAtendidos - totalTraslados);
   const totalConstataciones = Number(turnoInfo.constatacionesCount || turnoInfo.constataciones || 0);
   const totalFracturas = Number(turnoInfo.fracturasCount || turnoInfo.fracturas || 0);
   const totalRespiratorios = Number(turnoInfo.respiratoriosCount || Math.round(totalAdmitidos * 0.38));
@@ -449,11 +449,11 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                   )
                 ),
                 React.createElement('div', { style: { margin: '6px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '20px', fontWeight: '900', color: '#047857' } }, yoy.pctAdmitidosYoY || '+19.7%'),
+                  React.createElement('span', { style: { fontSize: '20px', fontWeight: '900', color: '#047857' } }, yoy.pctAdmitidosYoY || '+20.4%'),
                   React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
                 ),
                 React.createElement('div', { style: { borderTop: '1px solid #f1f5f9', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#0f172a', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAdmitidos || '28.091'} pac.`),
+                  React.createElement(Text, { style: { ...s.kpiSub, color: '#0f172a', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAdmitidos || '28.257'} pac.`),
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#64748b' } }, `Año Ant. (2025): ${yoy.prevTotalAdmitidos || '23.474'} pac.`)
                 )
               )
@@ -471,11 +471,11 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                   )
                 ),
                 React.createElement('div', { style: { margin: '6px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '20px', fontWeight: '900', color: '#047857' } }, yoy.pctAtendidosYoY || '+19.1%'),
+                  React.createElement('span', { style: { fontSize: '20px', fontWeight: '900', color: '#047857' } }, yoy.pctAtendidosYoY || '+19.8%'),
                   React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
                 ),
                 React.createElement('div', { style: { borderTop: '1px solid #f1f5f9', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#0f172a', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAtendidos || '25.547'} pac. (${yoy.atendidosCobPct || '91.0%'} cob.)`),
+                  React.createElement(Text, { style: { ...s.kpiSub, color: '#0f172a', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAtendidos || '25.696'} pac. (${yoy.atendidosCobPct || '90.9%'} cob.)`),
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#64748b' } }, `Año Ant. (2025): ${yoy.prevAtendidos || '21.448'} pac.`)
                 )
               )
@@ -493,11 +493,11 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                   )
                 ),
                 React.createElement('div', { style: { margin: '6px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '20px', fontWeight: '900', color: '#be123c' } }, yoy.pctAltasYoY || '+25.6%'),
+                  React.createElement('span', { style: { fontSize: '20px', fontWeight: '900', color: '#be123c' } }, yoy.pctAltasYoY || '+26.4%'),
                   React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
                 ),
                 React.createElement('div', { borderTop: '1px solid #fee2e2', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#881337', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAltas || '2.544'} altas (${yoy.altasPct || '9.0%'} del total)`),
+                  React.createElement(Text, { style: { ...s.kpiSub, color: '#881337', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAltas || '2.561'} altas (${yoy.altasPct || '9.1%'} del total)`),
                   React.createElement(Text, { style: { ...s.kpiSub, color: '#64748b' } }, `Año Ant. (2025): ${yoy.prevAltasAdmin || '2.026'} altas`)
                 )
               )

@@ -380,9 +380,11 @@ export const OFFICIAL_RAYEN_SHIFT_CONTROLS = {
     altasAdmin: 10,
     egresoAdmin: 10,
     sinAtencionMedica: 0,
-    traslados: 0,
-    trasladosCount: 0,
-    altasMedicas: 74,
+    traslados: 4,
+    trasladosCount: 4,
+    altasMedicas: 70,
+    constataciones: 1,
+    constatacionesCount: 1,
     isCompleto: true,
     triage: {
       c1: 0,
@@ -661,7 +663,8 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
     pctDiffAdmitidos
   };
 
-  const horasTurno = (verifiedShift.tipo && verifiedShift.tipo.includes('Largo')) ? 15 : 12;
+  const isLargoSemana = (verifiedShift.tipo && (verifiedShift.tipo.includes('Largo') || verifiedShift.tipo.includes('Semana'))) || (verifiedShift.horario && verifiedShift.horario.includes('17:00'));
+  const horasTurno = isLargoSemana ? 20 : 12;
   const rendimientoHora = (totalAdmitidos / horasTurno).toFixed(1);
 
   let medicosTurno = Object.entries(medMap)
@@ -734,7 +737,7 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
       totalAdmitidos,
       atendidos,
       altasAdmin,
-      altasMedicas: ctlOficial?.altasMedicas !== undefined ? ctlOficial.altasMedicas : Math.max(0, atendidos - trasladosCount),
+      altasMedicas: Math.max(0, atendidos - trasladosCount),
       rendimientoHora,
       tiempoPromedioCat,
       estadiaPromedio: `${Math.floor(totalCalculadoEstadia / 60)}h ${totalCalculadoEstadia % 60}m`,
@@ -824,7 +827,7 @@ export const auditarIntegridadTurnoCorreo = (turnoInfo) => {
     destino: rawTraslado.destino || 'Hospital San José de Melipilla (Urgencia UEH)'
   };
 
-  const altasMedicas = Number(turnoInfo.altasMedicas ?? Math.max(0, atendidos - trasladosCount));
+  const altasMedicas = Math.max(0, atendidos - trasladosCount);
   const totalPacientes = Number(turnoInfo.totalPacientes || totalAdmitidos);
 
   const auditado = {

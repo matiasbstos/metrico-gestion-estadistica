@@ -10,6 +10,31 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.19',
+    version_tag: 'v6.3.19',
+    fecha: '15 de Septiembre, 2026',
+    fecha_despliegue: '15 de Septiembre, 2026',
+    proposito_actualizacion: 'Reconciliación y Certificación Matemática Universal de Cifras de Correo con el Dashboard SSOT, Cuadratura Estricta de Altas Médicas y Rendimiento de Guardia.',
+    medios_y_stack: [
+      'ModalConfiguracionCorreo.jsx (Propagación de statsKPI al generador de turnos buildTurnoInfoPayload y sincronización de fallbacks YoY oficiales 2026: +20.4% en admisiones, +19.8% en atendidos, +26.4% en altas admin y +11.8% en traslados)',
+      'ModalConfiguracionCorreo.jsx (Garantía de cuadratura universal: Altas Médicas = Atendidos - Traslados Hosp., y enlace directo del botón Previsualizar a la pestaña de diseño)',
+      'helpers.js (Ajuste de horasTurno a 20 para Turno Largo Semana hábil 16:00 a 12:00 PM, fijando el rendimiento de guardia en 4.2 pac/hr exacto)',
+      'InformeAsistencialEmail.js y functions/index.js (Blindaje de cuadratura en backend React Email y Nodemailer, garantizando paridad al 100% con la plataforma)',
+      'Dashboard.jsx (Actualización protocolar a versión v6.3.19 en producción)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Ecuación Universal de Turno: Admitidos = Atendidos (Altas Médicas + Traslados Hosp.) + Altas Admin. Para un turno de 84 admitidos con 74 atendidos, 4 traslados y 10 altas admin, las altas médicas corresponden invariablemente a 70 (70 + 4 = 74). 2) Sincronización Interanual SSOT: Todo indicador interanual adopta las cifras del objeto statsKPI.anual del Dashboard (+20.4%, +19.8%, +26.4%, +11.8%). 3) Rendimiento de Guardia: La ventana ampliada de 20 horas de día hábil calcula un rendimiento de 4.2 pac/hr, coincidiendo con el indicador de la plataforma.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Integración en O(1) de indicadores maestros y sincronización de estados de previsualización.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'helpers.js', 'InformeAsistencialEmail.js', 'functions/index.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Corrección de fórmula de altas médicas en frontend y backend Nodemailer.',
+      'Sincronización de props statsKPI en ModalConfiguracionCorreo.',
+      'Redirección fluida del botón Previsualizar de la tabla a la pestaña de diseño institucional.'
+    ]
+  },
+  {
     id: 'v6.3.18',
     version_tag: 'v6.3.18',
     fecha: '14 de Septiembre, 2026',

@@ -1233,7 +1233,7 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
   };
 
   const turnoTrasladosCount = Number(rawTurno.trasladosCount ?? (rawTurno.traslados ?? 0));
-  const turnoAltasMedicas = Number(rawTurno.altasMedicas !== undefined ? rawTurno.altasMedicas : Math.max(0, atnEfectivas - turnoTrasladosCount));
+  const turnoAltasMedicas = Math.max(0, atnEfectivas - turnoTrasladosCount);
   const turnoTotalPacientes = Number(rawTurno.totalPacientes || totalAdm);
 
   const turnoInfo = {
