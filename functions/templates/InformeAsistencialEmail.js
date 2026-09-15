@@ -394,7 +394,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             React.createElement(Column, { style: { width: '20%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
               React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#fff1f2', borderColor: '#fecdd3' } },
                 React.createElement(Text, { style: { ...s.kpiTitle, color: '#be123c' } }, 'ALTAS ADMIN'),
-                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#ffe4e6', color: '#be123c' } }, `${pctAltas}%`),
+                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#ffe4e6', color: '#be123c' } }, 'Ventanilla'),
                 React.createElement('div', { style: { margin: '4px 0 2px 0' } },
                   React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#be123c' } }, `${totalAltas}`)
                 ),

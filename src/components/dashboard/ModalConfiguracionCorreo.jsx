@@ -635,7 +635,7 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
                   <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> ALTAS ADMIN
                 </span>
                 <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200">
-                  {pctAltasAdminTurno}%
+                  Ventanilla
                 </span>
               </div>
               <div className="flex items-baseline gap-1">
