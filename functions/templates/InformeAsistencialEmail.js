@@ -192,7 +192,8 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
       color: '#0f172a'
     },
     container: {
-      maxWidth: '680px',
+      maxWidth: '880px',
+      width: '100%',
       margin: '0 auto',
       backgroundColor: '#ffffff',
       borderRadius: '24px',
@@ -202,7 +203,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
     },
     header: {
       backgroundColor: '#0f172a',
-      padding: '24px 28px',
+      padding: '24px 32px',
       color: '#ffffff',
       borderBottom: '4px solid #6366f1'
     },
@@ -220,7 +221,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
     },
     headerTitle: {
       color: '#ffffff',
-      fontSize: '21px',
+      fontSize: '22px',
       fontWeight: '900',
       margin: '10px 0 4px 0',
       letterSpacing: '-0.5px',
@@ -241,7 +242,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
       display: 'inline-block'
     },
     content: {
-      padding: '24px'
+      padding: '26px 30px'
     },
     bannerAudit: {
       backgroundColor: '#ecfdf5',
@@ -554,19 +555,19 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
           ),
 
           // SUB-BLOQUE: RENDIMIENTO HORARIO Y ESTADÍA PROMEDIO (INDICADORES DE EFICIENCIA)
-          React.createElement(Row, { style: { marginBottom: '14px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '8px 12px' } },
-            React.createElement(Column, { style: { width: '50%' } },
-              React.createElement(Text, { style: { fontSize: '10px', fontWeight: '800', color: '#334155', margin: 0 } },
-                renderIcon('zap_indigo', 13), ' RENDIMIENTO CLÍNICO DE GUARDIA: ',
+          React.createElement(Row, { style: { marginBottom: '14px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '10px 16px' } },
+            React.createElement(Column, { style: { width: '50%', verticalAlign: 'middle' } },
+              React.createElement(Text, { style: { fontSize: '10.5px', fontWeight: '800', color: '#334155', margin: 0, whiteSpace: 'nowrap' } },
+                renderIcon('zap_indigo', 14), ' RENDIMIENTO CLÍNICO DE GUARDIA: ',
                 React.createElement('strong', { style: { color: '#4338ca' } }, `${rendimientoHora} pac/hr`),
-                React.createElement('span', { style: { color: '#64748b', fontSize: '9px', marginLeft: '6px' } }, '(↑ +9.5% vs 8.4 pac/hr)')
+                React.createElement('span', { style: { color: '#64748b', fontSize: '9.5px', marginLeft: '6px' } }, '(↑ +9.5% vs 8.4 pac/hr)')
               )
             ),
-            React.createElement(Column, { style: { width: '50%', textAlign: 'right' } },
-              React.createElement(Text, { style: { fontSize: '10px', fontWeight: '800', color: '#334155', margin: 0 } },
-                renderIcon('clock_purple', 13), ' ESTADÍA TOTAL PROMEDIO: ',
+            React.createElement(Column, { style: { width: '50%', textAlign: 'right', verticalAlign: 'middle' } },
+              React.createElement(Text, { style: { fontSize: '10.5px', fontWeight: '800', color: '#334155', margin: 0, whiteSpace: 'nowrap' } },
+                renderIcon('clock_purple', 14), ' ESTADÍA TOTAL PROMEDIO: ',
                 React.createElement('strong', { style: { color: '#7e22ce' } }, `${estadiaPromedio}`),
-                React.createElement('span', { style: { color: '#64748b', fontSize: '9px', marginLeft: '6px' } }, `(${estadiaMins} min promedio • ↓ -4.2%)`)
+                React.createElement('span', { style: { color: '#64748b', fontSize: '9.5px', marginLeft: '6px' } }, `(${estadiaMins} min promedio • ↓ -4.2%)`)
               )
             )
           ),

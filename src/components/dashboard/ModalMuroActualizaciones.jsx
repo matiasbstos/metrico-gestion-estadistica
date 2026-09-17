@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.25',
+      version: 'v6.3.25',
+      fecha: '17 de Septiembre, 2026',
+      badge: 'DISEÑO EJECUTIVO: EXPANSIÓN HORIZONTAL A 880PX',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Ampliación Horizontal del Correo Asistencial (880px) y Distribución Ergonómica de Métricas',
+      categoria: 'Diseño Institucional & Comunicaciones',
+      icon: Layers,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Para resolver la compresión vertical y aprovechar las pantallas de escritorio en clientes de correo como Gmail y Outlook, se amplió el ancho máximo del contenedor del correo desde 680px a 880px (con width: 100% fluido). Esta optimización proporciona holgura simétrica a las 5 tarjetas de guardia y las 4 tarjetas YoY, erradicando los quiebres de línea involuntarios en el bloque de eficiencia (rendimiento pac/hr y estadía promedio).',
+      instructivo: {
+        paraQueSirve: 'Permite que la información asistencial se despliegue de forma panorámica y ejecutiva, evitando que los badges y porcentajes se corten o compriman en la bandeja de entrada.',
+        quePuedesVer: '1) Mayor Espacio Horizontal: Las 5 tarjetas de guardia se distribuyen holgadamente al 20% con más de 160px útiles cada una. 2) Sub-bloque de Eficiencia Impecable: El rendimiento clínico (pac/hr) y la estadía promedio se leen en una sola línea fluida sin partir el texto. 3) Paridad Total con la Previsualización Web.',
+        ejemploUso: 'Al abrir el informe en Gmail o Outlook de escritorio, el documento ocupa naturalmente el ancho de lectura sin dejar espacios vacíos desproporcionados.'
+      },
+      changes: [
+        'Ampliación de maxWidth de 680px a 880px en InformeAsistencialEmail.js.',
+        'Ajuste de padding del cuerpo a 26px 30px.',
+        'Regla white-space: nowrap en el sub-bloque de eficiencia clínica.',
+        'Distribución simétrica de tablas diagnósticas, tramos y traslados.'
+      ]
+    },
+    {
       id: 'v6.3.24',
       version: 'v6.3.24',
       fecha: '15 de Septiembre, 2026',

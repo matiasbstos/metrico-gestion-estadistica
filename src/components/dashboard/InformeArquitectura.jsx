@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.25',
+    version_tag: 'v6.3.25',
+    fecha: '17 de Septiembre, 2026',
+    fecha_despliegue: '17 de Septiembre, 2026',
+    proposito_actualizacion: 'Optimización de Amplitud Horizontal Ejecutiva en Correo Asistencial (Expansión de 680px a 880px y Eliminación de Quiebres de Línea en Eficiencia).',
+    medios_y_stack: [
+      'InformeAsistencialEmail.js (Expansión del ancho máximo del contenedor principal a 880px con ancho fluido 100%, ajuste de padding horizontal y white-space: nowrap en sub-bloque de eficiencia clínica)',
+      'Alineación de proporciones con el previsualizador web (max-w-4xl / 896px), permitiendo distribución simétrica y holgada de las 5 tarjetas de guardia y las 4 tarjetas YoY)',
+      'Dashboard.jsx (Actualización a v6.3.25)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Amplitud Visual Ejecutiva en Bandejas de Correo: Los informes por correo aprovechan el ancho de lectura de clientes de escritorio (Gmail, Outlook) expandiendo el contenedor a 880px sin quiebres de texto forzados. 2) Fluidez Responsiva: En dispositivos móviles el contenedor se adapta automáticamente al 100% del viewport.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Renderizado React Email optimizado con distribución equilibrada de columnas.'
+    },
+    modulos_afectados: ['InformeAsistencialEmail.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx'],
+    detalles_tecnicos: [
+      'Ampliación de maxWidth de 680px a 880px.',
+      'Padding ajustado a 26px 30px en el cuerpo del correo.',
+      'whiteSpace nowrap en sub-bloque de rendimiento horario y estadía promedio.'
+    ]
+  },
+  {
     id: 'v6.3.24',
     version_tag: 'v6.3.24',
     fecha: '15 de Septiembre, 2026',

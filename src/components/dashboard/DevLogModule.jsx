@@ -8,6 +8,26 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-25',
+    titulo: 'Ampliación Horizontal del Correo Asistencial a 880px y Erradicación de Quiebres en Eficiencia',
+    fecha: '2026-09-17',
+    version_tag: 'v6.3.25',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'En bandejas de correo de escritorio (Gmail, Outlook), el contenedor del correo estaba limitado a maxWidth: 680px, dejando franjas laterales vacías excesivas y forzando saltos de línea antiestéticos en textos clave, como en el sub-bloque de eficiencia donde "(↑ +9.5% vs 8.4 pac/hr)" se quebraba justo después del paréntesis.',
+    logica: '1) Se amplió el ancho máximo del contenedor principal en InformeAsistencialEmail.js desde 680px a 880px (con width: 100% fluido). 2) Se ajustó el padding del contenido a 26px 30px. 3) Se aplicó la regla white-space: nowrap al rendimiento horario y a la estadía promedio para garantizar que ambas métricas se lean fluidamente en su respectiva columna sin cortes involuntarios.',
+    solucion: 'El informe por correo ahora luce amplio, panorámico y perfectamente proporcionado en pantallas de escritorio, alineándose con el previsualizador web y manteniendo adaptabilidad completa en móviles.',
+    fullPost: `En esta versión v6.3.25 optimizamos la ergonomía y amplitud visual del correo:
+
+1. **Ampliación Horizontal a 880px**:
+   - Se expandió el contenedor central de 680px a 880px, aprovechando la resolución de las bandejas de entrada de escritorio.
+   - Las 5 tarjetas de guardia y las 4 tarjetas YoY disponen de mayor ancho útil, sin amontonamiento de badges ni textos comprimidos.
+
+2. **Sub-bloque de Eficiencia sin Quiebres**:
+   - Integración de \`white-space: nowrap\` en las métricas de Rendimiento Clínico de Guardia y Estadía Total Promedio, asegurando lectura continua en una sola línea.
+`
+  },
+  {
     id: 'devlog-v6-3-24',
     titulo: 'Unificación de Identidad Visual: Integración de Suite Iconográfica Lucide en Correos y Erradicación de Emojis Discordantes',
     fecha: '2026-09-15',
