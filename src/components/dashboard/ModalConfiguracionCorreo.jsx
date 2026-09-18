@@ -15,7 +15,10 @@ import {
   isAltaAdmin, 
   auditarIntegridadTurnoCorreo,
   obtenerTurnoDetallado,
-  resolverEquipoTurno
+  resolverEquipoTurno,
+  isDiaHabilChile,
+  getProximoDiaHabilChile,
+  calcularHorarioDespachoTurno
 } from '../../utils/helpers';
 import { 
   generateAltasSummary, 
@@ -1709,23 +1712,11 @@ export default function ModalConfiguracionCorreo({
         return b.horario.localeCompare(a.horario);
       })
       .map((item, idx) => {
-        let horarioProyectado = 'Día siguiente 08:30 AM';
-        const isDiurno = item.horario.includes('08:00') && !item.horario.includes('20:00');
-        if (modoCargaMasiva === 'RAFAGA_MISMO_DIA') {
-          const now = new Date();
-          const currentHour = now.getHours();
-          const currentMinute = now.getMinutes();
-          const startBaseMinutes = (currentHour < 9) ? (9 * 60) : (currentHour * 60 + currentMinute + 5);
-          const totalMins = startBaseMinutes + (idx * Number(intervaloMinutos || 20));
-          const h = Math.floor(totalMins / 60) % 24;
-          const m = totalMins % 60;
-          const dayLabel = Math.floor(totalMins / (24 * 60)) > 0 ? 'Mañana' : 'Hoy';
-          horarioProyectado = `${dayLabel} ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} hrs (Escalonado)`;
-        } else if (modoCargaMasiva === 'CONSOLIDADO_MULTIDIA') {
-          horarioProyectado = 'Consolidado Único (Hoy 20:30 hrs)';
-        } else {
-          horarioProyectado = isDiurno ? 'Mismo día 20:30 hrs' : 'Día siguiente 08:30 hrs';
-        }
+        const infoDespacho = calcularHorarioDespachoTurno(item, modoCargaMasiva, idx, intervaloMinutos, pautasDB);
+        const horarioProyectado = infoDespacho.horarioTexto;
+        const esPausado = infoDespacho.esPausado;
+        const motivoPausa = infoDespacho.motivoPausa;
+        const proximoHabilTexto = infoDespacho.proximoHabilTexto;
 
         const isSent = Boolean(sentShiftsMap[item.shiftKey] || sentShiftsMap[item.fecha] || sentShiftsMap[item.textoCompleto]);
 
@@ -1785,7 +1776,10 @@ export default function ModalConfiguracionCorreo({
           isCompleto,
           esTurnoCompleto: isCompleto,
           isSent,
-          horarioProyectado
+          horarioProyectado,
+          esPausado,
+          motivoPausa,
+          proximoHabilTexto
         };
       });
 
@@ -2230,6 +2224,16 @@ export default function ModalConfiguracionCorreo({
       }
     }
 
+    // Regla 20 MÉTRICO: Advertencia de política asistencial en fin de semana o feriado oficial
+    const hoyEsHabil = isDiaHabilChile(new Date(), pautasDB);
+    if (!hoyEsHabil) {
+      const proxHabil = getProximoDiaHabilChile(new Date(), pautasDB);
+      const avisoHabil = `🛡️ POLÍTICA INSTITUCIONAL DE DESPACHO (Regla 20 MÉTRICO):\n\nHoy no es un día hábil (fin de semana o feriado nacional oficial en Chile).\nPor directriz oficial, los correos asistenciales se encuentran pausados hasta el próximo día hábil:\n\n📅 ${proxHabil?.textoCompleto || 'Lunes a las 08:30 hrs'}.\n\n¿Deseas autorizar una excepción clínica manual y emitir el correo de todas formas?`;
+      if (!window.confirm(avisoHabil)) {
+        return;
+      }
+    }
+
     if (!window.confirm(`¿Confirmas el despacho inmediato del informe oficial para el siguiente turno auditado?\n\n${shiftRow.textoCompleto}\n\nDestinatarios: ${target}`)) {
       return;
     }
@@ -2250,7 +2254,8 @@ export default function ModalConfiguracionCorreo({
       const res = await callEnviarCorreo({
         destinatarios: target,
         tipoEnvio: 'INFORME_DIARIO_TURNO',
-        turnoAuditado: shiftPayload
+        turnoAuditado: shiftPayload,
+        forzarEnvio: true
       });
 
       if (res && res.data && res.data.success) {
@@ -2400,9 +2405,17 @@ export default function ModalConfiguracionCorreo({
                     {confirmarEnvioAutomatico ? '✔ Programación Confirmada y Activa' : '⏸ En Pausa'}
                   </span>
                 </div>
-                <p className="text-xs text-secondary-custom leading-relaxed max-w-3xl">
-                  El sistema detecta <strong>de forma 100% automática y autónoma</strong> cuándo una jornada o turno ha sido completamente cargado en la base de datos y despacha el reporte al día siguiente hábil a las 08:30 AM (o según las directrices de carga masiva configuradas).
-                </p>
+                <div className="flex flex-col gap-2 max-w-3xl">
+                  <p className="text-xs text-secondary-custom leading-relaxed">
+                    El sistema detecta <strong>de forma 100% automática y autónoma</strong> cuándo una jornada o turno ha sido completamente cargado en la base de datos y despacha el reporte al día siguiente hábil a las 08:30 AM (o según las directrices de carga masiva configuradas).
+                  </p>
+                  <div className="flex items-center gap-2 p-2.5 bg-indigo-500/10 dark:bg-indigo-950/40 rounded-xl border border-indigo-500/25 text-[11px] text-indigo-700 dark:text-indigo-300 font-semibold">
+                    <ShieldCheck className="w-4 h-4 text-indigo-500 shrink-0" />
+                    <span>
+                      <strong>Directriz Institucional (Regla 20 MÉTRICO):</strong> Veda de Fin de Semana y Feriados. Los correos se emiten exclusivamente de Lunes a Viernes en días hábiles. Las guardias de sábados, domingos o festivos se pausan automáticamente y se despachan el primer día hábil siguiente a las 08:30 hrs.
+                    </span>
+                  </div>
+                </div>
               </div>
 
               <button
@@ -2671,7 +2684,7 @@ export default function ModalConfiguracionCorreo({
                       Cola de Despacho & Turnos Auditados ({colaFiltradaFinal.length} de {modoVistaCola === 'TURNOS' ? turnosAuditadosCola.length : diasCompletosAuditados.length} {modoVistaCola === 'TURNOS' ? 'Turnos' : 'Días'})
                     </h4>
                     <p className="text-[11px] text-secondary-custom font-medium mt-0.5">
-                      Pauta Oficial Rayen SAR • Desglose Finde Día (08-20h), Finde Noche (20-08h) y Turno Largo (16-09h)
+                      Pauta Oficial Rayen SAR • Veda Fines de Semana & Feriados: Despacho Exclusivo en Días Hábiles (08:30 hrs)
                     </p>
                   </div>
                 </div>
@@ -2878,8 +2891,17 @@ export default function ModalConfiguracionCorreo({
                               <span className="text-emerald-600 dark:text-emerald-400 font-bold">{d.atendidos}</span> atend. / <span className="text-rose-500 font-bold">{d.altas} altas</span>
                             </td>
 
-                            <td className="p-3.5 font-mono text-xs text-emerald-600 dark:text-emerald-400 font-bold">
-                              {d.horarioProyectado}
+                            <td className="p-3.5">
+                              <div className="flex flex-col gap-1">
+                                <span className={`font-mono text-xs font-bold ${d.esPausado ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                  {d.horarioProyectado}
+                                </span>
+                                {d.esPausado && (
+                                  <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase text-amber-700 dark:text-amber-300 bg-amber-500/15 px-1.5 py-0.5 rounded-md border border-amber-500/25 w-max tracking-tight" title={d.proximoHabilTexto || d.motivoPausa}>
+                                    <Clock className="w-2.5 h-2.5" /> {d.motivoPausa}
+                                  </span>
+                                )}
+                              </div>
                             </td>
 
                             <td className="p-3.5">

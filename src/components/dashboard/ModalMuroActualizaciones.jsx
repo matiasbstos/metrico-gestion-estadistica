@@ -14,6 +14,31 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.26',
+      version: 'v6.3.26',
+      fecha: '17 de Septiembre, 2026',
+      badge: 'REGLA 20: VEDA DE FIN DE SEMANA Y PAUSA POR FERIADOS',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Directriz Institucional de Despacho Asistencial: Veda de Fin de Semana y Postergación por Feriados',
+      categoria: 'Protocolo Institucional & Automatización',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'A solicitud de la jefatura asistencial, se estipuló e implementó la Regla 20 en las normas maestras del sistema y del agente: los correos de informe no pueden ser enviados en días de fin de semana (sábado y domingo) ni en feriados nacionales oficiales de Chile. Los turnos de sábados, domingos o festivos se auditan y consolidan normalmente en MÉTRICO, pero su despacho por correo se pausa de forma automática y queda programado para el primer día hábil siguiente a las 08:30 hrs.',
+      instructivo: {
+        paraQueSirve: 'Garantiza el respeto de las jornadas hábiles de los equipos directivos y clínicos receptores, evitando que los correos automáticos saturen las bandejas durante fines de semana o feriados.',
+        quePuedesVer: '1) Cola de Despacho Diferida: Los turnos de fines de semana y festivos muestran el badge amarillo "⏳ Pausado por Fin de Semana" o "⏳ Pausado por Feriado" junto con su día hábil de entrega oficial (ej. Lunes 07/09 a las 08:30 hrs). 2) Protección en Backend: Cloud Functions valida si la fecha es hábil y suspende envíos automáticos fuera de plazo. 3) Advertencia en Envío Manual: Si intentas despachar manualmente en un día inhábil, el sistema te solicitará confirmar una excepción clínica.',
+        ejemploUso: 'Al concluir la guardia del domingo, el turno queda 100% auditado y listo, marcando en su horario de despacho "Lunes 08:30 hrs" sin emitir correos el domingo en la noche.'
+      },
+      changes: [
+        'Formalización de la Regla 20 en AGENTS.md y .agents/AGENTS.md.',
+        'Ampliación de CHILE_HOLIDAYS_OFFICIAL (2025-2027) en helpers.js.',
+        'Implementación de isDiaHabilChile y getProximoDiaHabilChile.',
+        'Cálculo automatizado de próximo día hábil en calcularHorarioDespachoTurno.',
+        'Guard de validación en Cloud Function enviarInformeCorreo contra disparos en fin de semana.',
+        'Banner de directriz asistencial y distintivos de pausa en ModalConfiguracionCorreo.jsx.'
+      ]
+    },
+    {
       id: 'v6.3.25',
       version: 'v6.3.25',
       fecha: '17 de Septiembre, 2026',

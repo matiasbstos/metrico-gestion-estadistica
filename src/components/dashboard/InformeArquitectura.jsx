@@ -10,6 +10,32 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.26',
+    version_tag: 'v6.3.26',
+    fecha: '17 de Septiembre, 2026',
+    fecha_despliegue: '17 de Septiembre, 2026',
+    proposito_actualizacion: 'Institucionalización de la Regla 20: Veda de Despacho en Fines de Semana y Pausa Obligatoria por Feriados Oficiales de Chile.',
+    medios_y_stack: [
+      'AGENTS.md y .agents/AGENTS.md (Formalización vinculante de la Regla 20: envíos exclusivos en días hábiles Lunes a Viernes, con postergación automática al próximo día hábil a las 08:30 hrs)',
+      'helpers.js (Ampliación de CHILE_HOLIDAYS_OFFICIAL 2025-2027 e implementación de isDiaHabilChile, getProximoDiaHabilChile y calcularHorarioDespachoTurno)',
+      'functions/index.js (Cloud Function enviarInformeCorreo con validación de zona horaria America/Santiago y salvaguarda backend que suspende envíos automáticos en sábados, domingos y festivos)',
+      'ModalConfiguracionCorreo.jsx (Banner institucional de política asistencial, cálculo de fecha hábil en cola de turnos con badge ⏳ Pausa Finde / Pausa Feriado y advertencia previa de excepción en despacho manual)',
+      'Dashboard.jsx (Actualización a v6.3.26)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Veda Absoluta de Fines de Semana: Ningún correo asistencial programado o automático sale en sábados ni domingos. 2) Ventana Exclusiva en Días Hábiles: Despacho de lunes a viernes a las 08:30 hrs. 3) Postergación por Festivos: Si un día de semana es feriado, los correos se pausan automáticamente hasta el siguiente día hábil oficial. 4) Integridad Clínica: Los turnos de fines de semana y festivos se auditan con normalidad pero su entrega queda encolada.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'mail', 'envios_correos', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Cálculo algorítmico O(1) de días hábiles chilenos evitando invocaciones innecesarias a servicios externos.'
+    },
+    modulos_afectados: ['helpers.js', 'ModalConfiguracionCorreo.jsx', 'functions/index.js', 'AGENTS.md', '.agents/AGENTS.md', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx'],
+    detalles_tecnicos: [
+      'Integración de la Regla 20 en directrices maestras del sistema.',
+      'Matriz CHILE_HOLIDAYS_OFFICIAL con feriados 2025, 2026 y 2027.',
+      'Guard en Cloud Function enviarInformeCorreo para pausar envíos automáticos en días no hábiles.',
+      'Detección de próximo día hábil con getProximoDiaHabilChile y presentación en la cola de turnos.'
+    ]
+  },
+  {
     id: 'v6.3.25',
     version_tag: 'v6.3.25',
     fecha: '17 de Septiembre, 2026',

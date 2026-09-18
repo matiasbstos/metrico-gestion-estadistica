@@ -1086,15 +1086,60 @@ const generarPdfConsolidado = async (turnoInfo) => {
   return reports.length > 0 ? reports[0].content : null;
 };
 
+// Matriz Oficial de Feriados Nacionales de Chile para Cloud Functions (Regla 20 MÉTRICO)
+const CHILE_HOLIDAYS_OFFICIAL_BACKEND = new Set([
+  // 2027
+  '2027-01-01', '2027-03-26', '2027-03-27', '2027-05-01', '2027-05-21',
+  '2027-06-21', '2027-06-28', '2027-07-16', '2027-08-15', '2027-09-17',
+  '2027-09-18', '2027-09-19', '2027-10-11', '2027-10-31', '2027-11-01',
+  '2027-12-08', '2027-12-25',
+  // 2026
+  '2026-01-01', '2026-04-03', '2026-04-04', '2026-05-01', '2026-05-21',
+  '2026-06-07', '2026-06-21', '2026-06-29', '2026-07-16', '2026-08-15',
+  '2026-09-18', '2026-09-19', '2026-09-20', '2026-10-12', '2026-10-31',
+  '2026-11-01', '2026-12-08', '2026-12-25',
+  // 2025
+  '2025-01-01', '2025-04-18', '2025-04-19', '2025-05-01', '2025-05-21',
+  '2025-06-20', '2025-06-29', '2025-07-16', '2025-08-15', '2025-09-18',
+  '2025-09-19', '2025-10-12', '2025-10-31', '2025-11-01', '2025-12-08', '2025-12-25'
+]);
+
+const isDiaHabilChileBackend = (dateObj) => {
+  const d = dateObj || new Date();
+  const dayOfWeek = d.getDay(); // 0 = Domingo, 6 = Sábado
+  if (dayOfWeek === 0 || dayOfWeek === 6) return false;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const iso = `${y}-${m}-${day}`;
+  return !CHILE_HOLIDAYS_OFFICIAL_BACKEND.has(iso);
+};
+
+const getProximoDiaHabilBackend = (dateObj) => {
+  const cur = dateObj || new Date();
+  for (let i = 1; i <= 20; i++) {
+    const nextDate = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + i, 12, 0, 0);
+    if (isDiaHabilChileBackend(nextDate)) {
+      const y = nextDate.getFullYear();
+      const m = String(nextDate.getMonth() + 1).padStart(2, '0');
+      const day = String(nextDate.getDate()).padStart(2, '0');
+      const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      return `${dias[nextDate.getDay()]} ${day}/${m}/${y} a las 08:30 hrs`;
+    }
+  }
+  return 'Próximo día hábil a las 08:30 hrs';
+};
+
 /**
  * Cloud Function para despacho automático de informes por correo programado
  * 1. Verificación de completitud e integridad de datos del turno.
  * 2. Reconocimiento de turno activo (T1, T2, T3) y rotativa (Semana/FDS Día/Noche).
- * 3. Generación de cuerpo escrito HTML, payload en formato JSON y reporte ejecutivo total.
+ * 3. Validación de Veda en Fin de Semana y Feriados Oficiales (Regla 20 MÉTRICO).
+ * 4. Generación de cuerpo escrito HTML, payload en formato JSON y reporte ejecutivo total.
  */
 exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) => {
   const data = dataReq.data || dataReq || {};
-  const { destinatarios, tipoEnvio, turnoAuditado, monthlySummary } = data;
+  const { destinatarios, tipoEnvio, turnoAuditado, monthlySummary, esAutomatico, forzarEnvio } = data;
 
   if (!destinatarios) {
     throw new functions.https.HttpsError('invalid-argument', 'Falta la dirección de correo destinatario.');
@@ -1102,6 +1147,24 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
 
   const emailsList = String(destinatarios).split(',').map(e => e.trim()).filter(Boolean);
   const nowStr = new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago' });
+
+  // Salvaguarda Regla 20 MÉTRICO: Pausa automática en Fin de Semana y Feriados Nacionales
+  const ahoraSantiago = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Santiago' }));
+  const hoyEsHabil = isDiaHabilChileBackend(ahoraSantiago);
+
+  if (esAutomatico && !forzarEnvio && !hoyEsHabil) {
+    const proximoHabilStr = getProximoDiaHabilBackend(ahoraSantiago);
+    console.log(`[Regla 20 MÉTRICO] Despacho automático pausado. Hoy (${nowStr}) es fin de semana o feriado oficial. Próximo despacho programado: ${proximoHabilStr}`);
+    return {
+      success: true,
+      pausadoPorFeriadoOFinde: true,
+      motivo: 'Pausado por veda asistencial de fin de semana o feriado oficial en Chile (Regla 20 MÉTRICO)',
+      proximoDespachoHabil: proximoHabilStr,
+      despachadoAt: nowStr,
+      destinatarios: emailsList,
+      mensaje: `ℹ Despacho automático pausado por fin de semana/feriado. Programado para ${proximoHabilStr}.`
+    };
+  }
 
   // Manejo especial para Informe Consolidado de Cierre Mensual
   if (tipoEnvio === 'INFORME_CIERRE_MENSUAL') {

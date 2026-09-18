@@ -8,6 +8,31 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-26',
+    titulo: 'Institucionalización de la Regla 20: Veda de Despacho en Fines de Semana y Pausa Obligatoria por Feriados Oficiales',
+    fecha: '2026-09-17',
+    version_tag: 'v6.3.26',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    problema: 'A requerimiento de la jefatura de gestión del SAR, los correos asistenciales no pueden emitirse durante fines de semana (sábado y domingo) ni en días feriados oficiales. Si un turno concluía durante un fin de semana o feriado, el sistema requería pausar automáticamente la emisión del informe y postergarla hasta el primer día hábil siguiente a las 08:30 hrs, dejando estipulada la regla en las directrices maestras del sistema y del agente.',
+    logica: '1) Se formalizó la Regla 20 en AGENTS.md y .agents/AGENTS.md. 2) Se expandió la matriz canónica CHILE_HOLIDAYS_OFFICIAL en helpers.js (2025 a 2027) y se crearon las funciones isDiaHabilChile() y getProximoDiaHabilChile(). 3) Se integró calcularHorarioDespachoTurno() en ModalConfiguracionCorreo.jsx para que cada turno encolado proyecte su fecha hábil exacta y exhiba el badge de pausa. 4) Se integró un guard de validación en Cloud Function enviarInformeCorreo para pausar envíos automáticos en días inhábiles. 5) Se incorporó advertencia de confirmación previa en caso de despachos manuales forzados fuera de día hábil.',
+    solucion: 'El sistema MÉTRICO ahora respeta con rigor institucional la política de descanso y jornadas hábiles de los equipos destinatarios: los correos automáticos se pausan en fines de semana y festivos, saliendo puntualmente a primera hora del siguiente día hábil.',
+    fullPost: `En esta versión v6.3.26 implementamos e institucionalizamos la **Regla 20 de MÉTRICO**:
+
+1. **Veda de Fines de Semana & Feriados Nacionales**:
+   - Ningún correo asistencial automático se emite durante los días sábados, domingos o feriados oficiales en Chile.
+   - Las guardias de fines de semana y festivos se auditan normalmente en el sistema, pero su despacho queda programado para el primer día hábil siguiente a las 08:30 hrs.
+
+2. **Cálculo de Días Hábiles & Calendario Asistencial**:
+   - Integración de \`CHILE_HOLIDAYS_OFFICIAL\` con todos los festivos nacionales (2025, 2026 y 2027).
+   - Detección automática del próximo día hábil (\`getProximoDiaHabilChile\`) para rotativas nocturnas y diurnas festivas.
+
+3. **Salvaguardas en Cola y Backend**:
+   - Badges visuales en la cola de despacho: \`⏳ Pausado por Fin de Semana\` y \`⏳ Pausado por Feriado\`.
+   - Protección en Cloud Function \`enviarInformeCorreo\` contra disparos no hábiles.
+   - Advertencia preventiva de confirmación ante despachos manuales en días no hábiles.`
+  },
+  {
     id: 'devlog-v6-3-25',
     titulo: 'Ampliación Horizontal del Correo Asistencial a 880px y Erradicación de Quiebres en Eficiencia',
     fecha: '2026-09-17',

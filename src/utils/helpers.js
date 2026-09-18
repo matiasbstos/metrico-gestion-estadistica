@@ -89,6 +89,24 @@ export const resolverEquipoTurno = (fechaStr, horarioStr, pautasDB, equipoExplic
 };
 
 export const CHILE_HOLIDAYS_OFFICIAL = new Set([
+  // 2027
+  '2027-01-01', // Año Nuevo
+  '2027-03-26', // Viernes Santo
+  '2027-03-27', // Sábado Santo
+  '2027-05-01', // Día del Trabajo
+  '2027-05-21', // Glorias Navales
+  '2027-06-21', // Pueblos Indígenas
+  '2027-06-28', // San Pedro y San Pablo
+  '2027-07-16', // Virgen del Carmen
+  '2027-08-15', // Asunción de la Virgen
+  '2027-09-17', // Fiestas Patrias (Adicional)
+  '2027-09-18', // Fiestas Patrias
+  '2027-09-19', // Glorias del Ejército
+  '2027-10-11', // Encuentro de Dos Mundos
+  '2027-10-31', // Día de las Iglesias Evangélicas
+  '2027-11-01', // Todos los Santos
+  '2027-12-08', // Inmaculada Concepción
+  '2027-12-25', // Navidad
   // 2026
   '2026-01-01', // Año Nuevo
   '2026-04-03', // Viernes Santo
@@ -102,6 +120,7 @@ export const CHILE_HOLIDAYS_OFFICIAL = new Set([
   '2026-08-15', // Asunción de la Virgen (Sábado)
   '2026-09-18', // Fiestas Patrias (Viernes)
   '2026-09-19', // Glorias del Ejército (Sábado)
+  '2026-09-20', // Fiestas Patrias (Domingo)
   '2026-10-12', // Encuentro de Dos Mundos (Lunes)
   '2026-10-31', // Día de las Iglesias Evangélicas (Sábado)
   '2026-11-01', // Día de Todos los Santos (Domingo)
@@ -112,6 +131,193 @@ export const CHILE_HOLIDAYS_OFFICIAL = new Set([
   '2025-06-20', '2025-06-29', '2025-07-16', '2025-08-15', '2025-09-18',
   '2025-09-19', '2025-10-12', '2025-10-31', '2025-11-01', '2025-12-08', '2025-12-25'
 ]);
+
+/**
+ * Verifica si una fecha específica corresponde a un Día Hábil Asistencial en Chile (Regla 20 MÉTRICO).
+ * Día Hábil = Lunes a Viernes y NO feriado oficial ni festivo de pauta.
+ */
+export const isDiaHabilChile = (dateInput, pautasDB = null) => {
+  if (!dateInput) return false;
+  let d;
+  if (dateInput instanceof Date) {
+    d = new Date(dateInput);
+  } else if (typeof dateInput === 'string') {
+    const clean = dateInput.trim();
+    if (clean.includes('/')) {
+      const parts = clean.split('/');
+      if (parts.length === 3) {
+        d = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]), 12, 0, 0);
+      }
+    } else if (clean.includes('-')) {
+      const parts = clean.split('T')[0].split(' ')[0].split('-');
+      if (parts.length === 3) {
+        if (parts[0].length === 4) {
+          d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 12, 0, 0);
+        } else if (parts[2].length === 4) {
+          d = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]), 12, 0, 0);
+        }
+      }
+    }
+  } else if (typeof dateInput === 'number') {
+    d = new Date(dateInput);
+  }
+  if (!d || isNaN(d.getTime())) return false;
+
+  const dayOfWeek = d.getDay(); // 0 = Domingo, 6 = Sábado
+  if (dayOfWeek === 0 || dayOfWeek === 6) return false;
+
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const iso = `${y}-${m}-${day}`;
+  const monthId = `${y}-${m}`;
+
+  if (CHILE_HOLIDAYS_OFFICIAL.has(iso)) return false;
+  if (pautasDB && pautasDB[monthId]?.[iso]?.festivo) return false;
+
+  return true;
+};
+
+/**
+ * Obtiene el Próximo Día Hábil Asistencial en Chile a partir de una fecha dada (Regla 20 MÉTRICO).
+ * Si la fecha dada es un día inhábil (fin de semana o feriado), avanza día por día
+ * hasta encontrar el siguiente día hábil oficial (Lunes a Viernes no festivo).
+ */
+export const getProximoDiaHabilChile = (dateInput, pautasDB = null) => {
+  let d;
+  if (dateInput instanceof Date) {
+    d = new Date(dateInput);
+  } else if (typeof dateInput === 'string') {
+    const clean = dateInput.trim();
+    if (clean.includes('/')) {
+      const parts = clean.split('/');
+      if (parts.length === 3) {
+        d = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]), 12, 0, 0);
+      }
+    } else if (clean.includes('-')) {
+      const parts = clean.split('T')[0].split(' ')[0].split('-');
+      if (parts.length === 3) {
+        if (parts[0].length === 4) {
+          d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 12, 0, 0);
+        } else if (parts[2].length === 4) {
+          d = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]), 12, 0, 0);
+        }
+      }
+    }
+  } else if (typeof dateInput === 'number') {
+    d = new Date(dateInput);
+  }
+  if (!d || isNaN(d.getTime())) d = new Date();
+
+  const cur = new Date(d);
+  for (let i = 1; i <= 20; i++) {
+    const checkDate = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + i, 12, 0, 0);
+    if (isDiaHabilChile(checkDate, pautasDB)) {
+      const y = checkDate.getFullYear();
+      const m = String(checkDate.getMonth() + 1).padStart(2, '0');
+      const day = String(checkDate.getDate()).padStart(2, '0');
+      const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      const nombreDia = diasSemana[checkDate.getDay()];
+      return {
+        date: checkDate,
+        iso: `${y}-${m}-${day}`,
+        fechaFormateada: `${day}/${m}/${y}`,
+        nombreDia,
+        textoCorto: `${nombreDia} ${day}/${m}`,
+        textoCompleto: `${nombreDia} ${day}/${m}/${y} a las 08:30 hrs`
+      };
+    }
+  }
+  return null;
+};
+
+/**
+ * Calcula el Horario Oficial de Despacho Asistencial de un Turno de Guardia (Regla 20 MÉTRICO).
+ * - Días de Fin de Semana (Sábado y Domingo): VEDA TOTAL. Se pausa y posterga al próximo día hábil a las 08:30 hrs.
+ * - Feriados Oficiales durante la semana: Se pausa y posterga al próximo día hábil a las 08:30 hrs.
+ * - Días Hábiles: Se despacha según el horario formal de cierre asistencial (08:30 hrs del día siguiente).
+ */
+export const calcularHorarioDespachoTurno = (item, modoCargaMasiva = 'NORMAL', idx = 0, intervaloMinutos = 20, pautasDB = null) => {
+  if (!item) return { horarioTexto: '08:30 hrs', esPausado: false, motivoPausa: null, proximoHabilTexto: null };
+
+  const isDiurno = Boolean(
+    item.tipo?.includes('Día') || 
+    item.tipo?.includes('Diurno') || 
+    (item.horario?.includes('08:00') && !item.horario?.includes('17:00') && !item.tipo?.includes('Noche') && !item.tipo?.includes('Largo'))
+  );
+  const fechaBase = item.fecha; // YYYY-MM-DD
+
+  let y = 2026, m = 9, d = 1;
+  if (fechaBase && fechaBase.includes('-')) {
+    const parts = fechaBase.split('-').map(Number);
+    if (parts.length === 3) {
+      [y, m, d] = parts;
+    }
+  }
+
+  // Fecha y hora prevista natural de término y despacho:
+  // - Diurno: finaliza a las 20:00 hrs -> hora natural de despacho: 20:30 hrs del mismo día.
+  // - Noche / Largo: finaliza a las 08:00 hrs del día siguiente -> hora natural de despacho: 08:30 hrs del día siguiente.
+  let fechaDespachoNatural;
+  if (isDiurno) {
+    fechaDespachoNatural = new Date(y, m - 1, d, 20, 30, 0);
+  } else {
+    fechaDespachoNatural = new Date(y, m - 1, d + 1, 8, 30, 0);
+  }
+
+  const naturalIsHabil = isDiaHabilChile(fechaDespachoNatural, pautasDB);
+
+  if (naturalIsHabil) {
+    if (modoCargaMasiva === 'RAFAGA_MISMO_DIA') {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      const startBaseMinutes = (currentHour < 9) ? (9 * 60) : (currentHour * 60 + currentMinute + 5);
+      const totalMins = startBaseMinutes + (idx * Number(intervaloMinutos || 20));
+      const h = Math.floor(totalMins / 60) % 24;
+      const mins = totalMins % 60;
+      const dayLabel = Math.floor(totalMins / (24 * 60)) > 0 ? 'Mañana' : 'Hoy';
+      return {
+        horarioTexto: `${dayLabel} ${String(h).padStart(2, '0')}:${String(mins).padStart(2, '0')} hrs (Escalonado)`,
+        esPausado: false,
+        motivoPausa: null,
+        proximoHabilTexto: null
+      };
+    } else if (modoCargaMasiva === 'CONSOLIDADO_MULTIDIA') {
+      return {
+        horarioTexto: 'Consolidado Único (20:30 hrs)',
+        esPausado: false,
+        motivoPausa: null,
+        proximoHabilTexto: null
+      };
+    } else {
+      const label = isDiurno ? 'Mismo día 20:30 hrs' : 'Día siguiente 08:30 hrs';
+      return {
+        horarioTexto: label,
+        esPausado: false,
+        motivoPausa: null,
+        proximoHabilTexto: null
+      };
+    }
+  } else {
+    // Veda de Fin de Semana o Feriado (Regla 20 MÉTRICO)
+    const baseEval = new Date(fechaDespachoNatural);
+    baseEval.setDate(baseEval.getDate() - 1);
+    const proxHabil = getProximoDiaHabilChile(baseEval, pautasDB);
+
+    const proxTexto = proxHabil ? `${proxHabil.nombreDia} ${proxHabil.fechaFormateada.substring(0, 5)} a las 08:30 hrs` : 'Próximo día hábil 08:30 hrs';
+    const dayOfWeekNatural = fechaDespachoNatural.getDay();
+    const esFinde = (dayOfWeekNatural === 0 || dayOfWeekNatural === 6);
+    const motivo = esFinde ? 'Pausado por Fin de Semana' : 'Pausado por Feriado';
+
+    return {
+      horarioTexto: `${proxTexto}`,
+      esPausado: true,
+      motivoPausa: motivo,
+      proximoHabilTexto: proxHabil?.textoCompleto || proxTexto
+    };
+  }
+};
 
 /**
  * Determina el Turno Asociado (Turno 1, 2, 3 o 4), el equipo asignado y su horario oficial de urgencia.
