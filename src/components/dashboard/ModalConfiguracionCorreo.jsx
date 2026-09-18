@@ -33,6 +33,63 @@ import { HISTORIAL_ARQUITECTURA_BASE } from './InformeArquitectura';
 import { playSuccessChime, playErrorChime } from '../../utils/audioNotifications';
 // Controles Oficiales Rayen SSOT de Turnos Cerrados Auditados (Certificación Rayen)
 const OFFICIAL_RAYEN_SHIFT_CONTROLS = {
+  '2026-09-18_FINDE_DIA': {
+    fechaTurno: '18/09/2026',
+    totalPacientes: 85,
+    totalAdmitidos: 85,
+    atendidos: 77,
+    altas: 8,
+    altasAdmin: 8,
+    egresoAdmin: 8,
+    sinAtencionMedica: 0,
+    traslados: 3,
+    trasladosCount: 3,
+    altasMedicas: 74,
+    constataciones: 0,
+    constatacionesCount: 0,
+    isCompleto: true,
+    tipo: 'Festivo Diurno',
+    horario: '08:00 a 20:00 hrs',
+    equipo: 'Turno 1'
+  },
+  '2026-09-13_FINDE_NOCHE': {
+    fechaTurno: '13/09/2026',
+    totalPacientes: 40,
+    totalAdmitidos: 40,
+    atendidos: 33,
+    altas: 7,
+    altasAdmin: 7,
+    egresoAdmin: 6,
+    sinAtencionMedica: 1,
+    traslados: 1,
+    trasladosCount: 1,
+    altasMedicas: 32,
+    constataciones: 2,
+    constatacionesCount: 2,
+    isCompleto: true,
+    tipo: 'Fin de Semana Noche',
+    horario: '20:00 a 08:00 hrs',
+    equipo: 'Turno 2'
+  },
+  '2026-09-12_FINDE_DIA': {
+    fechaTurno: '12/09/2026',
+    totalPacientes: 97,
+    totalAdmitidos: 97,
+    atendidos: 88,
+    altas: 9,
+    altasAdmin: 9,
+    egresoAdmin: 9,
+    sinAtencionMedica: 0,
+    traslados: 4,
+    trasladosCount: 4,
+    altasMedicas: 84,
+    constataciones: 0,
+    constatacionesCount: 0,
+    isCompleto: true,
+    tipo: 'Fin de Semana Día',
+    horario: '08:00 a 20:00 hrs',
+    equipo: 'Turno 1'
+  },
   '2026-09-10_SEMANA_LARGO': {
     fechaTurno: '10/09/2026',
     totalPacientes: 84,
@@ -1676,10 +1733,11 @@ export default function ModalConfiguracionCorreo({
         const parts = key.split('_');
         const fIso = parts[0];
         const [y, m, d] = fIso.split('-');
-        const fTurno = `${d}/${m}/${y}`;
-        const horario = '17:00 a 08:00 hrs';
-        const tipo = 'Turno Largo Semana';
-        const resolvedEquipo = resolverEquipoTurno(fIso, horario, pautasDB, 'Turno 3');
+        const fTurno = ctl.fechaTurno || `${d}/${m}/${y}`;
+        const tag = parts[1] || 'SEMANA_LARGO';
+        const horario = ctl.horario || (tag === 'FINDE_DIA' ? '08:00 a 20:00 hrs' : tag === 'FINDE_NOCHE' ? '20:00 a 08:00 hrs' : '17:00 a 08:00 hrs');
+        const tipo = ctl.tipo || (tag === 'FINDE_DIA' ? 'Fin de Semana Día' : tag === 'FINDE_NOCHE' ? 'Fin de Semana Noche' : 'Turno Largo Semana');
+        const resolvedEquipo = ctl.equipo || resolverEquipoTurno(fIso, horario, pautasDB, 'Turno 3');
         shiftsMap.set(key, {
           shiftKey: key,
           fecha: fIso,

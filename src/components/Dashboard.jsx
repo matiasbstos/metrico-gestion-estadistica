@@ -68,7 +68,7 @@ import { usePautasTurnos } from '../hooks/usePautasTurnos';
 import { COLORS, DOC_COLORS, AGE_RANGES, METRIC_LABELS } from '../config/constants';
 import { getNormalizedUserPermissions } from '../config/modules';
 
-const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.3.26';
+const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.3.27';
 
 // Colores Institucionales
 
@@ -180,6 +180,23 @@ const DashboardContent = () => {
     }, 300);
     return () => clearTimeout(t);
   }, [filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin, filtrosGlobales]);
+
+  // Soporte de Captura Autónoma de Snapshots DevLog
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('snapshot_mode=true')) {
+      const params = new URLSearchParams(window.location.search);
+      const modalParam = params.get('modal');
+      if (modalParam === 'correo') {
+        setShowCorreoModal(true);
+      } else if (modalParam === 'muro') {
+        setShowMuroModal(true);
+      }
+      const viewParam = params.get('view');
+      if (viewParam) {
+        setActiveTab(viewParam);
+      }
+    }
+  }, []);
 
   const [tema, setTema] = useState(() => localStorage.getItem('metrico-tema') || 'crextio');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);

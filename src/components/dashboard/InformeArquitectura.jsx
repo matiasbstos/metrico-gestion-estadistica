@@ -10,6 +10,33 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.27',
+    version_tag: 'v6.3.27',
+    fecha: '18 de Septiembre, 2026',
+    fecha_despliegue: '18 de Septiembre, 2026',
+    proposito_actualizacion: 'Fotógrafo Autónomo DevLog: Bypass de Autenticación para Capturas Reales, Mapeo Individual de Snapshots y Controles Dinámicos de Turnos Finde/Festivos.',
+    medios_y_stack: [
+      'useMetricoData.js (Soporte de snapshot_mode=true con perfil administrativo inmediato que evita la redirección al Login)',
+      'Dashboard.jsx (Lectura de parámetros URL snapshot_mode, modal y view para apertura automatizada de pestañas y modales contextuales)',
+      'scripts/take_devlog_snapshot.cjs (Pipeline headless optimizado con Puppeteer para captura de vistas específicas del sistema)',
+      'DevLogModule.jsx (Individualización de snapshots de alta fidelidad para v6.3.27, v6.3.26, v6.3.25, v6.3.24, v6.3.23 y v6.3.21)',
+      'ModalConfiguracionCorreo.jsx (Ampliación de OFFICIAL_RAYEN_SHIFT_CONTROLS con turnos 12/09, 13/09 y 18/09, y lógica dinámica de tipo/horario para FINDE_DIA y FINDE_NOCHE)',
+      'Dashboard.jsx (Actualización protocolar a v6.3.27)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Fotógrafo Autónomo Zero-Click: Las capturas de la bitácora de desarrollo reflejan vistas y modales reales del dashboard en vez de pantallas de login. 2) Auditoría Rayen Integral: Las entradas oficiales de fines de semana y festivos mantienen su franja canónica (08:00 a 20:00 o 20:00 a 08:00 hrs) sin degradarse a turnos de semana hábiles.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'system_architecture_log', 'devlog_posts', 'pautas_turnos'],
+      query_optimization: 'Carga inmediata en modo snapshot y resolución O(1) de controles oficiales certificados Rayen.'
+    },
+    modulos_afectados: ['useMetricoData.js', 'Dashboard.jsx', 'scripts/take_devlog_snapshot.cjs', 'DevLogModule.jsx', 'ModalConfiguracionCorreo.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Parámetro snapshot_mode=true con inyección de sesión reactiva en useMetricoData.',
+      'Apertura declarativa de modales (correo, muro) y vistas según query params.',
+      'Soporte individual de archivos snapshot_v6_3_*.png en public/devlog_snapshots/.',
+      'Atributos dinámicos en shiftsMap para discriminación unívoca de fines de semana y festivos.'
+    ]
+  },
+  {
     id: 'v6.3.26',
     version_tag: 'v6.3.26',
     fecha: '17 de Septiembre, 2026',

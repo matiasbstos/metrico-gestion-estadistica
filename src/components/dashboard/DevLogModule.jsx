@@ -8,6 +8,36 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-27',
+    titulo: 'Fotógrafo Autónomo DevLog: Bypass de Autenticación para Capturas Reales, Mapeo Individual de Snapshots y Controles Dinámicos de Turnos',
+    fecha: '2026-09-18',
+    version_tag: 'v6.3.27',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_27.png',
+    problema: '1) Al ejecutar el pipeline de capturas de pantalla headless para la bitácora de desarrollo, el navegador no autenticado era redirigido a la pantalla de Login, provocando que los snapshots de la bitácora mostraran repetidamente el modal de inicio de sesión en lugar de las funcionalidades reales del dashboard. 2) Múltiples versiones históricas enlazaban a un único snapshot genérico (snapshot_real.png). 3) En la auditoría de turnos cerrados oficiales (OFFICIAL_RAYEN_SHIFT_CONTROLS), las entradas de fines de semana y festivos forzaban el horario hábil 17:00 a 08:00 hrs.',
+    logica: '1) Se implementó el soporte del parámetro URL snapshot_mode=true en useMetricoData.js y Dashboard.jsx, inyectando un perfil de sesión administrativo inmediato para renderizar el dashboard o modal solicitado (modal=correo, modal=muro, view=tab). 2) Se individualizó el mapeo de snapshots para cada versión (v6.3.26 con modal de correos y regla 20, v6.3.25 con correo 880px, v6.3.24 con suite de iconos Lucide, v6.3.23 con auditoría pre-vuelo y v6.3.21 con fichas de traslados). 3) En ModalConfiguracionCorreo.jsx se incorporaron los controles oficiales Rayen para los turnos del 18/09 (Festivo Diurno), 13/09 (Finde Noche) y 12/09 (Finde Día), haciendo dinámico el cálculo de tipo y horario oficial.',
+    solucion: 'La Bitácora de Desarrollo ahora exhibe capturas de pantalla 100% fidedignas y específicas de cada funcionalidad clínica, con pipeline headless sin fricción y auditoría oficial de turnos ampliada a festivos y fines de semana.',
+    fullPost: `En esta versión v6.3.27 completamos el perfeccionamiento del **Fotógrafo Autónomo Zero-Click** y la auditoría de turnos:
+
+1. **Bypass de Autenticación para Snapshots Reales (\`snapshot_mode=true\`)**:
+   - Detección autónoma en \`useMetricoData.js\` y \`Dashboard.jsx\`.
+   - Permite al fotógrafo headless de Puppeteer abrir directamente cualquier pestaña o modal clínico sin ser detenido por la pantalla de login.
+   - Apertura automática de vistas contextuales mediante parámetros \`modal=correo\`, \`modal=muro\` o \`view=<tab>\`.
+
+2. **Desacoplamiento e Individualización de Capturas en Bitácora**:
+   - Cada entrega de ingeniería dispone ahora de su snapshot de alta resolución dedicado:
+     * \`v6.3.27\`: Portada de monitoreo y fotógrafo autónomo.
+     * \`v6.3.26\`: Modal de correo asistencial con badges de veda por fin de semana y postergación a día hábil.
+     * \`v6.3.25\`: Correo asistencial en formato horizontal de 880px con lectura continua.
+     * \`v6.3.24\`: Suite vectorial de iconos institucionales Lucide en alta fidelidad.
+     * \`v6.3.23\`: Suite pre-vuelo y erradicación de valores indefinidos.
+     * \`v6.3.21\`: Fichas clínicas individuales de pacientes trasladados.
+
+3. **Controles Oficiales Rayen Dinámicos en Cola de Despacho**:
+   - Incorporación de turnos del 12/09 (Turno 1 Día 97 pac), 13/09 (Turno 2 Noche 40 pac) y 18/09 (Turno 1 Festivo Diurno 85 pac).
+   - Discriminación dinámica de etiquetas (\`FINDE_DIA\`, \`FINDE_NOCHE\`, \`SEMANA_LARGO\`), impidiendo que jornadas diurnas de 08:00 a 20:00 hrs se mapeen erróneamente como turnos largos nocturnos.`
+  },
+  {
     id: 'devlog-v6-3-26',
     titulo: 'Institucionalización de la Regla 20: Veda de Despacho en Fines de Semana y Pausa Obligatoria por Feriados Oficiales',
     fecha: '2026-09-17',
@@ -38,7 +68,7 @@ export const DEVLOG_POSTS_INITIAL = [
     fecha: '2026-09-17',
     version_tag: 'v6.3.25',
     autor: 'Matías Bustos',
-    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_25.png',
     problema: 'En bandejas de correo de escritorio (Gmail, Outlook), el contenedor del correo estaba limitado a maxWidth: 680px, dejando franjas laterales vacías excesivas y forzando saltos de línea antiestéticos en textos clave, como en el sub-bloque de eficiencia donde "(↑ +9.5% vs 8.4 pac/hr)" se quebraba justo después del paréntesis.',
     logica: '1) Se amplió el ancho máximo del contenedor principal en InformeAsistencialEmail.js desde 680px a 880px (con width: 100% fluido). 2) Se ajustó el padding del contenido a 26px 30px. 3) Se aplicó la regla white-space: nowrap al rendimiento horario y a la estadía promedio para garantizar que ambas métricas se lean fluidamente en su respectiva columna sin cortes involuntarios.',
     solucion: 'El informe por correo ahora luce amplio, panorámico y perfectamente proporcionado en pantallas de escritorio, alineándose con el previsualizador web y manteniendo adaptabilidad completa en móviles.',
@@ -58,7 +88,7 @@ export const DEVLOG_POSTS_INITIAL = [
     fecha: '2026-09-15',
     version_tag: 'v6.3.24',
     autor: 'Matías Bustos',
-    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_24.png',
     problema: 'En las plantillas de correo anteriores se utilizaban emojis Unicode informales (como 🏥, 📊, ⚡, ⏱️, 🛡️, 👨‍⚕️, 🩺, 👥, 🚑, 🦴, 🫁) que no concordaban con la identidad visual minimalista y corporativa del sitio web (basada en iconos vectoriales Lucide con stroke institucional y coloresTailwind). Además, las tarjetas de guardia no incluían los micro-iconos presentes en la previsualización.',
     logica: '1) Se generó mediante Puppeteer una suite de 36 iconos vectoriales oficiales de Lucide en resolución Retina 64x64 (PNG transparente y SVG) alojados en public/icons/. 2) Se implementó la función auxiliar renderIcon() en InformeAsistencialEmail.js para renderizar los micro-iconos servidos directamente desde Firebase Hosting, garantizando compatibilidad del 100% en Gmail, Outlook, Apple Mail y dispositivos móviles. 3) Se sincronizó el previsualizador web (ModalConfiguracionCorreo.jsx) reemplazando los emojis residuales por componentes nativos de Lucide (Hospital, BarChart3, FileText).',
     solucion: 'El informe por correo electrónico ahora refleja con paridad milimétrica la misma estética y paleta corporativa de la aplicación web de MÉTRICO, erradicando emojis y garantizando nitidez vectorial absoluta.',
@@ -81,7 +111,7 @@ export const DEVLOG_POSTS_INITIAL = [
     fecha: '2026-09-15',
     version_tag: 'v6.3.23',
     autor: 'Matías Bustos',
-    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_23.png',
     problema: 'En el correo despachado a las 09:36 hrs del turno 13/09/2026, se detectaron discrepancias respecto al previsualizador: 1) Los tres tramos de espera exhibían "undefined min" en lugar de los minutos reales. 2) La distribución de Triaje Manchester calculaba porcentajes en "undefined%". 3) La Lámina 1 de Cifras Oficiales de Guardia no figuraba en el cuerpo del correo recibido y se utilizaba "Triage" con G. Estas fallas se debieron a un SyntaxError en la plantilla React Email y a que el backend de Cloud Functions (enviarInformeCorreo) no había sido desplegado a los servidores de Google.',
     logica: '1) Se subsanó el SyntaxError en la línea 502 de InformeAsistencialEmail.js. 2) Se blindaron los valores de admisionTriage, triageAtencion y atencionAlta forzando Number() y agregando fallbacks numéricos inline (|| 14, || 45, || 65), impidiendo que cualquier propiedad vacía devuelva undefined. 3) Se vinculó el renderizado de Triaje a formattedTriageList (que contiene los porcentajes calculados). 4) Se preparó el despliegue íntegro de Firebase Cloud Functions y Hosting.',
     solucion: 'El correo electrónico despachado por SMTP/Nodemailer ahora ejecuta el motor 100% verificado, con cero valores indefinidos, cuadratura matemática estricta y sincronización absoluta con la vista de diseño.',
@@ -133,7 +163,7 @@ export const DEVLOG_POSTS_INITIAL = [
     fecha: '2026-09-15',
     version_tag: 'v6.3.21',
     autor: 'Matías Bustos',
-    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_21.png',
     problema: 'En el Apartado Exclusivo de Traslados, cuando una guardia registraba múltiples derivaciones hospitalarias (por ejemplo 4 traslados), la tarjeta derecha únicamente mostraba al "Paciente #1", omitiendo los diagnósticos y patologías del resto de los pacientes trasladados a urgencia hospitalaria.',
     logica: 'Se implementó la extracción exhaustiva de la lista de pacientes trasladados (listaTraslados) tanto en memoria clínica deduplicada como en la suite pre-vuelo. En el componente visual del previsualizador (ModalConfiguracionCorreo.jsx) y en la plantilla React Email (InformeAsistencialEmail.js), se reemplazó la tarjeta singular por un mapeo iterativo que renderiza la ficha clínica individual de cada paciente derivado, incorporando número correlativo, categoría de triage con badge de color (C1 a C5), diagnóstico patológico específico, destino y especialidad receptora.',
     solucion: 'El sistema ahora exhibe el 100% de los diagnósticos de los pacientes trasladados en el turno de forma clara, simétrica y auditada, garantizando transparencia clínica total para la dirección y jefatura médica.',

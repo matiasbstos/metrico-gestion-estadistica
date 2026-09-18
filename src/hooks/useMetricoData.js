@@ -46,6 +46,22 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
 
   // 1. Manejo de autenticación Ultra-Rápido (no bloqueante)
   useEffect(() => {
+    // Modo Snapshot / Fotógrafo Autónomo DevLog
+    const isSnapshotMode = typeof window !== 'undefined' && (
+      window.location.search.includes('snapshot_mode=true') || 
+      localStorage.getItem('metrico_snapshot_mode') === 'true'
+    );
+
+    if (isSnapshotMode) {
+      console.log('📸 [Fotógrafo Autónomo] Modo Snapshot detectado: Sesión y permisos habilitados.');
+      const snapUser = { email: 'matias.bustos@cormumel.cl', uid: 'snapshot-admin' };
+      setUser(snapUser);
+      setUserProfile({ email: snapUser.email, rol: 'global', nombre: 'Matías Bustos', centro: 'SAR Elsa Romo Aravena' });
+      setLoading(false);
+      setSyncStatus('synced');
+      return;
+    }
+
     if (!auth) return;
 
     const unsubscribeAuth = onAuthStateChanged(auth, (u) => {

@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.27',
+      version: 'v6.3.27',
+      fecha: '18 de Septiembre, 2026',
+      badge: 'FOTÓGRAFO AUTÓNOMO & DEVLOG ZERO-CLICK',
+      badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/20',
+      title: 'Fotógrafo Autónomo DevLog: Capturas Reales de Pantalla, Mapeo Individual por Versión y Controles Dinámicos',
+      categoria: 'Automatización & Calidad Visual',
+      icon: Sparkles,
+      iconBg: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+      summary: 'Se completó la arquitectura del Fotógrafo Autónomo para la Bitácora de Desarrollo: ahora el pipeline headless se conecta de forma autenticada mediante snapshot_mode=true, capturando directamente los componentes, modales y tarjetas reales del sistema en lugar de la pantalla de inicio de sesión. Además, cada versión cuenta con su propio snapshot independiente en alta resolución, y la cola de despacho incorpora controles dinámicos para turnos de fines de semana y festivos.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la bitácora de ingeniería y el muro de novedades exhiban evidencia visual verídica de cada hito técnico desarrollado, eliminando capturas genéricas o pantallas de login descontextualizadas.',
+        quePuedesVer: '1) Capturas Reales por Versión: Cada tarjeta de la bitácora muestra la captura de la funcionalidad exacta (el modal de correo con sus badges de veda, la vista ancha a 880px, la suite de iconos vectoriales Lucide o las fichas de traslados). 2) Acceso Contextual: El sistema admite parámetros URL para abrir vistas o modales automáticamente. 3) Controles Oficiales Rayen para el 12/09, 13/09 y 18/09.',
+        ejemploUso: 'Al abrir la Bitácora de Desarrollo, cada tarjeta despliega su captura específica de alta fidelidad sin pantallas de login repetidas.'
+      },
+      changes: [
+        'Soporte de snapshot_mode=true con bypass seguro de autenticación en useMetricoData.js.',
+        'Apertura automatizada de modales y tabs en Dashboard.jsx vía query params.',
+        'Script headless take_devlog_snapshot.cjs optimizado para capturas locales.',
+        'Mapeo individualizado de snapshots para v6.3.27, v6.3.26, v6.3.25, v6.3.24, v6.3.23 y v6.3.21.',
+        'Soporte dinámico de tipo y horario oficial en OFFICIAL_RAYEN_SHIFT_CONTROLS para fines de semana y festivos.'
+      ]
+    },
+    {
       id: 'v6.3.26',
       version: 'v6.3.26',
       fecha: '17 de Septiembre, 2026',

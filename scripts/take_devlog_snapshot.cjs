@@ -10,10 +10,15 @@ const path = require('path');
 async function runDevLogPhotographer() {
   console.log('📸 [Fotógrafo Autónomo Zero-Click] Iniciando pipeline de capturas de pantalla de alta resolución...');
 
-  const targetUrl = process.env.TARGET_URL || 'https://metrico-dashboard-2026.web.app';
+  const baseUrl = process.env.TARGET_URL || 'http://localhost:5173';
   const rawTag = process.argv[2] || process.env.VERSION_TAG || 'v6.3.26';
   const cleanTag = rawTag.replace(/[^a-zA-Z0-9_]/g, '_');
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  
+  // URL contextual según la versión/feature
+  let targetUrl = `${baseUrl}/?snapshot_mode=true`;
+  if (rawTag.includes('v6.3.26')) {
+    targetUrl = `${baseUrl}/?snapshot_mode=true&modal=correo`;
+  }
   
   const publicDir = path.join(__dirname, '..', 'public', 'devlog_snapshots');
   const distDir = path.join(__dirname, '..', 'dist', 'devlog_snapshots');
@@ -47,11 +52,11 @@ async function runDevLogPhotographer() {
         args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1920,1080']
       });
       const page = await browser.newPage();
-      await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 2 });
-      await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 45000 });
+      await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1.5 });
+      await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 30000 });
 
-      // Esperar a que se carguen los datos y se estabilicen las animaciones de Recharts y KPIs
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      // Esperar a que se carguen los datos y se estabilicen las animaciones
+      await new Promise(resolve => setTimeout(resolve, 4000));
 
       await page.screenshot({ path: publicOutputFile, fullPage: false });
       fs.copyFileSync(publicOutputFile, publicMainFile);
