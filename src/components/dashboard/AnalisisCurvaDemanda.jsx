@@ -5,7 +5,7 @@ import {
   AlertTriangle, Filter, ChevronRight, BarChart2, Info
 } from 'lucide-react';
 import { 
-  ResponsiveContainer, ComposedChart, Area, Line, XAxis, YAxis, 
+  ResponsiveContainer, ComposedChart, Area, Line, BarChart, Bar, XAxis, YAxis, 
   Tooltip, Legend, CartesianGrid 
 } from 'recharts';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -13,6 +13,52 @@ import { app } from '../../config/firebase';
 import InfoTooltip from '../InfoTooltip';
 import { generarAnalisisComportamientoGemini } from '../../utils/geminiCurvaDemanda';
 import { deduplicarPacientes, formatLocalDate } from '../../utils/helpers';
+import { 
+  determinarTipoJornada, 
+  agruparPorTurnoSAR, 
+  compararTurnosSARPeriodos 
+} from '../../utils/turnosSarDemanda';
+import AnalisisImpactoHito from './AnalisisImpactoHito';
+
+const CustomTooltipTurnoSar = ({ active, payload }) => {
+  if (!active || !payload || !payload.length) return null;
+  const data = payload[0]?.payload;
+  if (!data) return null;
+
+  return (
+    <div className="bg-slate-900/95 text-white p-3.5 rounded-xl shadow-xl border border-slate-700 text-xs backdrop-blur-md">
+      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-slate-700">
+        <span className="font-black text-sm text-indigo-300">{data.nombreTurno}</span>
+        <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold">
+          {data.horario}
+        </span>
+      </div>
+      <p className="text-slate-300 text-[11px] mb-2">
+        Fecha: <strong className="text-white">{data.fechaDisplay}</strong> ({data.tipoJornada === 'HABIL' ? 'Día Hábil' : 'Fin de Semana / Feriado'})
+      </p>
+      
+      <div className="grid grid-cols-2 gap-3 mb-2">
+        <div className="bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-500/20">
+          <span className="text-[10px] uppercase text-emerald-400 font-bold block">Volumen Base</span>
+          <span className="text-lg font-black text-emerald-400">{data.volumenBase} <span className="text-xs">pac.</span></span>
+          <span className="text-[9px] text-slate-400 block mt-0.5">Espera Box: ~{data.esperaBase} min</span>
+        </div>
+        <div className="bg-indigo-500/10 p-2.5 rounded-lg border border-indigo-500/20">
+          <span className="text-[10px] uppercase text-indigo-400 font-bold block">Volumen Contraste</span>
+          <span className="text-lg font-black text-indigo-300">{data.volumenContraste} <span className="text-xs">pac.</span></span>
+          <span className="text-[9px] text-slate-400 block mt-0.5">Espera Box: ~{data.esperaContraste} min</span>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between pt-1 border-t border-slate-800 text-[11px]">
+        <span className="text-slate-400">Variación Turno:</span>
+        <span className={`font-black ${data.delta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+          {data.delta >= 0 ? `+${data.delta} pac. (+${data.deltaPct}%)` : `${data.delta} pac. (${data.deltaPct}%)`}
+        </span>
+      </div>
+    </div>
+  );
+};
 
 export default function AnalisisCurvaDemanda({
   pacientesDB = [],
@@ -91,6 +137,26 @@ export default function AnalisisCurvaDemanda({
     return deduplicarPacientes(raw || []);
   }, [allPacientesDB, pacientesDB]);
 
+  // Helper para filtrar pacientes por rango de fechas ISO
+  const filtrarPacientesRango = useCallback((fIni, fFin) => {
+    if (!fIni || !fFin) return [];
+    const dIni = new Date(`${fIni}T00:00:00-04:00`).getTime();
+    const dFin = new Date(`${fFin}T23:59:59-04:00`).getTime();
+
+    return pacientesPool.filter(p => {
+      const tAdm = p.tAdmision ? (typeof p.tAdmision === 'number' ? p.tAdmision : new Date(p.tAdmision).getTime()) : null;
+      if (!tAdm) return false;
+      return tAdm >= dIni && tAdm <= dFin;
+    });
+  }, [pacientesPool]);
+
+  // FASE 2: Dataset de Turnos SAR (1 o 2 barras consolidadas por día según tipo de jornada)
+  const turnosSarDataset = useMemo(() => {
+    const pacsBase = filtrarPacientesRango(baseInicio, baseFin);
+    const pacsContraste = filtrarPacientesRango(contrasteInicio, contrasteFin);
+    return compararTurnosSARPeriodos(pacsBase, pacsContraste, baseInicio, baseFin, contrasteInicio, contrasteFin);
+  }, [filtrarPacientesRango, baseInicio, baseFin, contrasteInicio, contrasteFin]);
+
   // Aplicar Presets Automáticos
   const handleApplyPreset = (presetKey) => {
     setPresetSeleccionado(presetKey);
@@ -167,17 +233,6 @@ export default function AnalisisCurvaDemanda({
 
     // Si BigQuery no devolvió datos, calculamos directamente sobre pacientesPool local
     if (!fetchedFromBq) {
-      const filtrarPacientesRango = (fIni, fFin) => {
-        const dIni = new Date(`${fIni}T00:00:00-04:00`).getTime();
-        const dFin = new Date(`${fFin}T23:59:59-04:00`).getTime();
-
-        return pacientesPool.filter(p => {
-          const tAdm = p.tAdmision ? (typeof p.tAdmision === 'number' ? p.tAdmision : new Date(p.tAdmision).getTime()) : null;
-          if (!tAdm) return false;
-          return tAdm >= dIni && tAdm <= dFin;
-        });
-      };
-
       const procesarPool = (pacs) => {
         const hourlyMap = Array(24).fill(0).map((_, i) => ({
           hora: i,
@@ -737,6 +792,72 @@ export default function AnalisisCurvaDemanda({
           )}
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* FASE 2: GRÁFICO DE BARRAS POR TURNOS ASISTENCIALES SAR                    */}
+      {/* ========================================================================= */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm mt-6 theme-transition">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                Comparativa de Volumen por Turnos SAR
+              </h2>
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                Lógica Real SAR
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Jornada Hábil: 1 bloque ("Turno Hábil Vespertino-Nocturno" 17:00 a 07:59 hrs) | Finde/Feriado: 2 bloques ("Turno Día" 08:00-19:59 hrs y "Turno Noche" 20:00-07:59 hrs).
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4 text-xs font-bold">
+            <div className="flex items-center gap-2">
+              <span className="w-3.5 h-3.5 rounded bg-emerald-500 inline-block shadow-sm"></span>
+              <span className="text-slate-700 dark:text-slate-300">Volumen Base</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3.5 h-3.5 rounded bg-indigo-500 inline-block shadow-sm"></span>
+              <span className="text-slate-500 dark:text-slate-400">Volumen Contraste</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-[340px] min-h-[340px] w-full">
+          {turnosSarDataset && turnosSarDataset.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+              <BarChart data={turnosSarDataset} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.12)" />
+                <XAxis 
+                  dataKey="shortName" 
+                  fontSize={10} 
+                  tickMargin={8} 
+                  axisLine={false} 
+                  tickLine={false} 
+                  interval="preserveStartEnd" 
+                  minTickGap={10} 
+                  tick={{ fill: 'var(--text-secondary)' }} 
+                />
+                <YAxis fontSize={10} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)' }} />
+                <Tooltip content={<CustomTooltipTurnoSar />} />
+                <Legend wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', paddingTop: '10px' }} />
+                <Bar dataKey="volumenBase" name="Volumen Base" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                <Bar dataKey="volumenContraste" name="Volumen Contraste" fill="#6366f1" radius={[4, 4, 0, 0]} maxBarSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full flex items-center justify-center text-slate-400 text-xs">
+              No hay turnos registrados en los períodos seleccionados.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* FASE 3: MÓDULO DE ANÁLISIS DE IMPACTO EXTERNO (DERIVACIÓN HITO)           */}
+      {/* ========================================================================= */}
+      <AnalisisImpactoHito pacientesPool={pacientesPool} />
 
       {/* ========================================================================= */}
       {/* PANEL: ANÁLISIS DE COMPORTAMIENTO OPERATIVO (IA GEMINI)                    */}

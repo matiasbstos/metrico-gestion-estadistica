@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.30',
+      version: 'v6.3.30',
+      fecha: '18 de Septiembre, 2026',
+      badge: 'MOTOR LÓGICO DE TURNOS SAR & ANÁLISIS DE IMPACTO',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Lógica Real de Turnos SAR y Análisis de Impacto Hospitalario por Hito en Curva de Demanda',
+      categoria: 'Demanda & Turnos SAR',
+      icon: Activity,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se integró el nuevo motor lógico asistencial de turnos SAR (turnosSarDemanda.js) con detección automática de días hábiles y feriados oficiales de Chile (2025-2027). En el módulo de Curva de Demanda se incorporó un gráfico comparativo de barras consolidadas por turnos reales (1 bloque vespertino-nocturno en días hábiles de 17:00 a 07:59 hrs del día siguiente; 2 bloques diurno y nocturno en fines de semana/feriados: 08:00 a 19:59 hrs y 20:00 a 07:59 hrs). Asimismo, se incorporó el nuevo submódulo de Análisis de Impacto Externo por Hito de Derivación Hospitalaria con ventana de ±15 días, micrográficos de distribución de alta complejidad (C1, C2, C3) y cálculo automatizado de variaciones clínicas de gravedad.',
+      instructivo: {
+        paraQueSirve: 'Permite auditar la demanda real agrupada por turnos SAR oficiales sin cortes arbitrarios de reloj, y evaluar cuantitativamente el impacto que hitos hospitalarios o contingencias tienen en la severidad y complejidad de los pacientes recibidos.',
+        quePuedesVer: 'Bajo la curva horaria de 24 horas, una comparativa de barras por turno SAR (Base vs Contraste) y el panel interactivo de Impacto por Hito con selector de fechas, visualización en Donut o Barra 100% y dictamen clínico automatizado.',
+        ejemploUso: 'Selecciona el hito "Contingencia UEH (01/07/2026)" o cualquier fecha en el selector: la herramienta comparará la ventana previa (-15 días) contra la posterior (+15 días), revelando la variación en pacientes C1, C2 y C3.'
+      },
+      changes: [
+        'Motor lógico turnosSarDemanda.js con determinarTipoJornada y agruparPorTurnoSAR.',
+        'Soporte offline completo del calendario oficial de feriados de Chile (CHILE_HOLIDAYS_OFFICIAL).',
+        'Gráfico BarChart de Turnos SAR con desglose consolidado de 1 o 2 bloques y métricas comparativas Base vs Contraste.',
+        'Componente AnalisisImpactoHito con selector de fecha, presets rápidos, comparativa de alta complejidad (C1+C2+C3) y dictamen clínico.'
+      ]
+    },
+    {
       id: 'v6.3.29',
       version: 'v6.3.29',
       fecha: '18 de Septiembre, 2026',

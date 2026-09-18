@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.30',
+    version_tag: 'v6.3.30',
+    fecha: '18 de Septiembre, 2026',
+    fecha_despliegue: '18 de Septiembre, 2026',
+    proposito_actualizacion: 'Implementación de la Lógica Real de Turnos SAR y Submódulo de Análisis de Impacto por Hito Hospitalario en Curva de Demanda.',
+    medios_y_stack: [
+      'turnosSarDemanda.js (Nuevo motor lógico: determinarTipoJornada con feriados oficiales de Chile 2025-2027, agruparPorTurnoSAR con 1 bloque hábil 17:00 a 08:00 y 2 bloques finde 08:00-20:00 / 20:00-08:00, compararTurnosSARPeriodos y calcularImpactoHitoHospitalario)',
+      'AnalisisCurvaDemanda.jsx (Integración del BarChart de Turnos SAR comparando Volumen Base vs Volumen Contraste debajo de la curva continua 24h, y anclaje del componente AnalisisImpactoHito)',
+      'AnalisisImpactoHito.jsx (Nuevo componente con DatePicker de Fecha Hito, ventana automática de ±15 días, micro-gráficos Donut y 100% Stacked Bar exclusivos para C1, C2 y C3, y métrica automatizada de variación post-hito)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Lógica Asistencial SAR Pura: En días hábiles se consolida la jornada en el turno vespertino-nocturno (17:00 a 07:59 hrs del día siguiente); en fines de semana y feriados se divide fidedignamente en diurno (08:00 a 19:59 hrs) y nocturno (20:00 a 07:59 hrs). 2) Muestreo de Hito Hospitalario: Margen estricto de 15 días previos y 15 días posteriores calculando la delta de alta complejidad (C1+C2+C3) y omitiendo consultas banales C4/C5.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'system_architecture_log'],
+      query_optimization: 'Cálculo reactivo con filtrado de timestamps en memoria O(N) sin llamadas redundantes a la red.'
+    },
+    modulos_afectados: ['turnosSarDemanda.js', 'AnalisisCurvaDemanda.jsx', 'AnalisisImpactoHito.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx'],
+    detalles_tecnicos: [
+      'Creación del módulo src/utils/turnosSarDemanda.js con determinarTipoJornada, agruparPorTurnoSAR, compararTurnosSARPeriodos y calcularImpactoHitoHospitalario.',
+      'Implementación del BarChart Recharts comparativo de Turnos SAR (Base vs Contraste) con CustomTooltip institucional.',
+      'Creación del componente src/components/dashboard/AnalisisImpactoHito.jsx con presets de hitos y micro-gráficos Donut y Barras 100%.',
+      'Sincronización íntegra de versiones maestras a v6.3.30.'
+    ]
+  },
+  {
     id: 'v6.3.29',
     version_tag: 'v6.3.29',
     fecha: '18 de Septiembre, 2026',

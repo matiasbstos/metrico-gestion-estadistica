@@ -8,6 +8,28 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-30',
+    titulo: 'Lógica Real de Turnos SAR y Análisis de Impacto Hospitalario por Hito en Curva de Demanda',
+    fecha: '2026-09-18',
+    version_tag: 'v6.3.30',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_30.png',
+    problema: 'El módulo de Curva de Demanda utilizaba cortes horarios rígidos o preestablecidos que no reflejaban la dinámica operativa real de los turnos del SAR (donde los días hábiles concentran la demanda desde las 17:00 hasta las 07:59 hrs del día siguiente, y los fines de semana/feriados operan en dos bloques: diurno 08:00 a 19:59 hrs y nocturno 20:00 a 07:59 hrs). Adicionalmente, no existía una herramienta para auditar el impacto que contingencias de la red hospitalaria o hitos clínicos tienen sobre la alta complejidad (C1, C2, C3).',
+    logica: '1) Se creó turnosSarDemanda.js con determinarTipoJornada(fecha) integrado al calendario oficial de feriados de Chile (CHILE_HOLIDAYS_OFFICIAL) y agruparPorTurnoSAR para segmentar en 1 bloque (hábil) o 2 bloques (fin de semana/feriado). 2) Se implementó en AnalisisCurvaDemanda.jsx un BarChart consolidado por turnos reales con comparativa Base vs Contraste. 3) Se desarrolló AnalisisImpactoHito.jsx con ventana de ±15 días pre/post hito, micrográficos de distribución C1, C2 y C3 (Donut / Stacked Bar) y dictamen clínico de variación de alta complejidad.',
+    solucion: 'El dashboard de Curva de Demanda ahora visualiza fielmente la carga asistencial por turnos SAR oficiales y cuantifica de forma inmediata el impacto en la gravedad de pacientes ante cualquier hito hospitalario.',
+    fullPost: `En esta versión v6.3.30 implementamos la Lógica Real de Turnos SAR y el Análisis de Impacto Hospitalario por Hito:
+
+1. **Motor Lógico de Turnos y Feriados de Chile**:
+   - Creación de \`turnosSarDemanda.js\` con soporte para días hábiles y feriados oficiales de Chile 2025-2027.
+   - Segmentación asistencial oficial: 1 bloque para días hábiles (17:00 a 07:59 hrs +1d) y 2 bloques para fines de semana / feriados (Día 08:00 a 19:59 hrs y Noche 20:00 a 07:59 hrs +1d).
+
+2. **Refactorización Visual de Curva de Demanda**:
+   - Integración de \`BarChart\` de Recharts bajo la curva horaria de 24 horas, comparando el volumen de turnos reales entre el período Base y el de Contraste.
+
+3. **Submódulo de Análisis de Impacto Externo (Derivación)**:
+   - Componente \`AnalisisImpactoHito.jsx\` con selector de fecha, accesos rápidos para contingencias, ventana de ±15 días, enfoque exclusivo en alta complejidad (C1, C2, C3) y cálculo automatizado de variación porcentual y ratio de gravedad.`
+  },
+  {
     id: 'devlog-v6-3-29',
     titulo: 'Resolución de Duplicidad en Evolución de Atenciones: Precedencia de Franjas y Deduplicación Estricta de Turnos',
     fecha: '2026-09-18',
