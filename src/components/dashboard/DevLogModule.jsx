@@ -8,6 +8,26 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-28',
+    titulo: 'Estandarización Terminológica en Tarjeta de Altas Administrativas: Adopción del Distintivo "Egreso por Retiro"',
+    fecha: '2026-09-18',
+    version_tag: 'v6.3.28',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_28.png',
+    problema: 'En la tarjeta de ALTAS ADMIN del bloque de Balance del Turno de la suite asistencial, la etiqueta visual superior (pill/badge) utilizaba el término coloquial "Ventanilla", el cual no reflejaba con precisión técnica el acto clínico o administrativo correspondiente a deserciones voluntarias o retiros de pacientes.',
+    logica: 'Se actualizó estrictamente el string del badge de "Ventanilla" a "Egreso por Retiro" en ModalConfiguracionCorreo.jsx, armonizando a su vez la leyenda porcentual explicativa ({pctAltasAdminTurno}% de Demanda (Egreso por Retiro)). Se preservaron de forma íntegra todos los estilos de diseño, clases de Tailwind (bg-rose-100, text-rose-800, etc.) y la arquitectura de la tarjeta.',
+    solucion: 'La tarjeta de Altas Administrativas exhibe ahora una terminología formal, unívoca y fidedigna para los estamentos asistenciales y directivos del SAR.',
+    fullPost: `En esta versión v6.3.28 implementamos la estandarización terminológica de la tarjeta de Altas Administrativas:
+
+1. **Adopción de "Egreso por Retiro"**:
+   - Sustitución unívoca de la pastilla \`Ventanilla\` por \`Egreso por Retiro\` en la cabecera de la tarjeta de ALTAS ADMIN.
+   - Sincronización del texto de pie de tarjeta con el porcentaje de demanda del turno.
+
+2. **Preservación Estética y Funcional**:
+   - Clases de Tailwind, paddings, sombras y contrastes institucionales intactos.
+   - Jerarquía balanceada junto a Pac. Admitidos, Pac. Atendidos, Traslados Hosp. y Constataciones.`
+  },
+  {
     id: 'devlog-v6-3-27',
     titulo: 'Fotógrafo Autónomo DevLog: Bypass de Autenticación para Capturas Reales, Mapeo Individual de Snapshots y Controles Dinámicos de Turnos',
     fecha: '2026-09-18',

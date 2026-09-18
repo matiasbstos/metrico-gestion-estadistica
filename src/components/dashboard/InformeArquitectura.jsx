@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.28',
+    version_tag: 'v6.3.28',
+    fecha: '18 de Septiembre, 2026',
+    fecha_despliegue: '18 de Septiembre, 2026',
+    proposito_actualizacion: 'Actualización de Terminología Clínica en Tarjeta de Altas Administrativas: Adopción del Distintivo "Egreso por Retiro".',
+    medios_y_stack: [
+      'ModalConfiguracionCorreo.jsx (Actualización del badge superior de la tarjeta ALTAS ADMIN en Balance del Turno de "Ventanilla" a "Egreso por Retiro", y armonización del texto explicativo porcentual)',
+      'Dashboard.jsx (Actualización protocolar a v6.3.28)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Precisión Terminológica Asistencial: La tarjeta de ALTAS ADMIN identifica explícitamente el origen del trámite como "Egreso por Retiro" (deserciones voluntarias o retiros de sala de espera), sustituyendo la etiqueta coloquial "Ventanilla" por un estándar clínico fidedigno. 2) Preservación de Clases y Estilos: Se resguardan con exactitud los contrastes cromáticos y la jerarquía de las 5 tarjetas de guardia.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'system_architecture_log'],
+      query_optimization: 'Renderizado reactivo sin mutaciones estructurales ni impacto en performance.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx'],
+    detalles_tecnicos: [
+      'Reemplazo del string "Ventanilla" por "Egreso por Retiro" en pill badge de ALTAS ADMIN.',
+      'Alineación de la leyenda explicativa de porcentaje sobre demanda del turno.',
+      'Sincronización íntegra de versiones maestras a v6.3.28.'
+    ]
+  },
+  {
     id: 'v6.3.27',
     version_tag: 'v6.3.27',
     fecha: '18 de Septiembre, 2026',

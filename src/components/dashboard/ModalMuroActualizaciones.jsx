@@ -14,6 +14,28 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.28',
+      version: 'v6.3.28',
+      fecha: '18 de Septiembre, 2026',
+      badge: 'TERMINOLOGÍA CLÍNICA: EGRESO POR RETIRO',
+      badgeColor: 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20',
+      title: 'Estandarización Terminológica en Tarjeta de Altas Administrativas: "Egreso por Retiro"',
+      categoria: 'Terminología Asistencial & UX',
+      icon: UserCheck,
+      iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+      summary: 'Se actualizó la etiqueta visual (pill/badge) de la tarjeta de Altas Administrativas en el bloque de Balance del Turno de la suite asistencial. El texto anterior "Ventanilla" fue sustituido por la denominación oficial y fidedigna "Egreso por Retiro", describiendo con exactitud la naturaleza clínica de los pacientes que deciden retirarse antes de la atención o desisten del trámite.',
+      instructivo: {
+        paraQueSirve: 'Clarifica la procedencia y causa de las altas administrativas para el equipo clínico y directivo, eliminando términos informales de ventanilla.',
+        quePuedesVer: 'En la fila de las 5 tarjetas de Balance del Turno, la tercera tarjeta (ALTAS ADMIN) exhibe ahora en su esquina superior derecha la insignia destacada "Egreso por Retiro" junto con el porcentaje de demanda del turno.',
+        ejemploUso: 'Al previsualizar un turno asistencial (ej. 10/09/2026 con 10 altas admin), la tarjeta exhibe "ALTAS ADMIN" con la pastilla "Egreso por Retiro" y 11.9% de demanda.'
+      },
+      changes: [
+        'Sustitución de la pastilla "Ventanilla" por "Egreso por Retiro" en la tarjeta de ALTAS ADMIN.',
+        'Armonización del texto explicativo de porcentaje sobre demanda del turno.',
+        'Preservación absoluta de la paleta institucional Tailwind rose-100 / rose-900 y estructura visual.'
+      ]
+    },
+    {
       id: 'v6.3.27',
       version: 'v6.3.27',
       fecha: '18 de Septiembre, 2026',
