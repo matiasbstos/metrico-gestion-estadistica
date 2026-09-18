@@ -149,8 +149,9 @@ Esta norma es **inviolable, permanente y activa en todas las sesiones** (indepen
 4. **Registrarlo dentro del Apartado de Novedades del Sitio**:
    - Incorporar la tarjeta informativa en el Muro de Novedades e Instructivos (`src/components/dashboard/ModalMuroActualizaciones.jsx`), detallando de forma comprensible para el personal clínico: propósito, para qué sirve, qué puedes ver, ejemplo práctico de uso y lista de cambios técnicos.
 
-5. **Rellenar y Mantener al Día la Bitácora de Desarrollo (`DevLogModule.jsx`)**:
+5. **Rellenar y Mantener al Día la Bitácora de Desarrollo (`DevLogModule.jsx`) & Captura Fotográfica Real (Snapshots)**:
    - Toda actualización o hito significativo debe quedar registrado en `DEVLOG_POSTS_INITIAL` de `src/components/dashboard/DevLogModule.jsx` con su fecha real, título profesional, versión, problema técnico detectado, lógica aplicada, solución implementada y relato reflexivo `fullPost` de ingeniería.
+   - **Fotógrafo Autónomo / Screenshot Real de Alta Resolución (1080p)**: Es mandatorio ejecutar el script del fotógrafo autónomo (`node scripts/take_devlog_snapshot.cjs [version_tag]` o `npm run snapshot`) para abrir automáticamente la aplicación en motor headless, esperar el renderizado clínico y capturar una fotografía real de alta resolución (1920x1080) guardada en `public/devlog_snapshots/snapshot_[version_tag].png`. Dicha ruta debe vincularse obligatoriamente en la propiedad `snapshotUrl` del post en la bitácora, garantizando que el personal pueda abrir y hacer zoom a la evidencia visual auténtica del sistema.
    - **Regla de Regularización Retroactiva**: Si en algún momento una versión o actualización no fue registrada oportunamente en la bitácora, el agente o desarrollador DEBE incorporarla de forma retroactiva con base en la fecha e hito que corresponda, garantizando que el historial nunca quede congelado u obsoleto.
 
 ### ⚖️ Norma de Parámetros y Reglas del Sitio y del Agente:

@@ -13,7 +13,7 @@ export const DEVLOG_POSTS_INITIAL = [
     fecha: '2026-09-17',
     version_tag: 'v6.3.26',
     autor: 'Matías Bustos',
-    snapshotUrl: '/devlog_snapshots/snapshot_real.png',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_26.png',
     problema: 'A requerimiento de la jefatura de gestión del SAR, los correos asistenciales no pueden emitirse durante fines de semana (sábado y domingo) ni en días feriados oficiales. Si un turno concluía durante un fin de semana o feriado, el sistema requería pausar automáticamente la emisión del informe y postergarla hasta el primer día hábil siguiente a las 08:30 hrs, dejando estipulada la regla en las directrices maestras del sistema y del agente.',
     logica: '1) Se formalizó la Regla 20 en AGENTS.md y .agents/AGENTS.md. 2) Se expandió la matriz canónica CHILE_HOLIDAYS_OFFICIAL en helpers.js (2025 a 2027) y se crearon las funciones isDiaHabilChile() y getProximoDiaHabilChile(). 3) Se integró calcularHorarioDespachoTurno() en ModalConfiguracionCorreo.jsx para que cada turno encolado proyecte su fecha hábil exacta y exhiba el badge de pausa. 4) Se integró un guard de validación en Cloud Function enviarInformeCorreo para pausar envíos automáticos en días inhábiles. 5) Se incorporó advertencia de confirmación previa en caso de despachos manuales forzados fuera de día hábil.',
     solucion: 'El sistema MÉTRICO ahora respeta con rigor institucional la política de descanso y jornadas hábiles de los equipos destinatarios: los correos automáticos se pausan en fines de semana y festivos, saliendo puntualmente a primera hora del siguiente día hábil.',
