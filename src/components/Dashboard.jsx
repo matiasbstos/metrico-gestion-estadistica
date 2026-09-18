@@ -997,7 +997,7 @@ const DashboardContent = () => {
         dateCounts[d] = (dateCounts[d] || 0) + 1;
       });
 
-      return turnosFiltrados.slice().reverse().map(t => {
+      const rawRows = turnosFiltrados.slice().reverse().map(t => {
         let label = t.fechaInicio === t.fechaFin ? t.fechaInicio : `${t.fechaInicio} - ${t.fechaFin}`;
         if (dateCounts[t.fechaInicio] > 1) {
           const timing = parseShiftTiming(t);
@@ -1109,6 +1109,16 @@ const DashboardContent = () => {
 
         return row;
       });
+
+      const seenNames = new Set();
+      const uniqueRows = [];
+      for (const r of rawRows) {
+        if (!seenNames.has(r.name)) {
+          seenNames.add(r.name);
+          uniqueRows.push(r);
+        }
+      }
+      return uniqueRows;
     }
 
     // Fallback: Si no hay turnos en turnosFiltrados, agrupar por fecha de admisión de los pacientes
