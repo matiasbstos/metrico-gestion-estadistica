@@ -10,6 +10,31 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.29',
+    version_tag: 'v6.3.29',
+    fecha: '18 de Septiembre, 2026',
+    fecha_despliegue: '18 de Septiembre, 2026',
+    proposito_actualizacion: 'Resolución de Duplicidad en Evolución de Atenciones: Discriminación Canónica de Franjas Horarias (08:00 a 20:00 vs 20:00 a 08:00) y Deduplicación Estricta de Turnos.',
+    medios_y_stack: [
+      'useMetricoAnalytics.js (Función canónica parseShiftTiming para evitar que el turno diurno 08:00-20:00 sea interpretado como nocturno por contener la subcadena 20:00, deduplicación canónica de turnosPorFecha y unificación en turnosFiltrados)',
+      'Dashboard.jsx (Importación de parseShiftTiming y desambiguación explícita de etiquetas en el eje X de Evolución de Atenciones cuando conviven turnos en la misma fecha civil)',
+      'scripts/take_devlog_snapshot.cjs (Automatización de bypass y confirmación de sesión para capturas de pantalla auténticas 1080p)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Precedencia Canónica de Franjas Asistenciales: La discriminación de horarios evalúa estrictamente el turno diurno (08:00 a 20:00) antes de cualquier chequeo genérico de 20:00, garantizando que un turno de día jamás capture la ventana nocturna ni duplique columnas en la gráfica. 2) Deduplicación Unívoca de Turnos: turnosPorFecha unifica registros por fecha y clave canónica (FINDE_DIA, FINDE_NOCHE, SEMANA_LARGO), blindando la visualización contra dobles documentos en Firestore.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'system_architecture_log'],
+      query_optimization: 'Mapeo hash O(1) con filtrado instantáneo sin recálculos redundantes ni artefactos visuales duplicados.'
+    },
+    modulos_afectados: ['useMetricoAnalytics.js', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx', 'scripts/take_devlog_snapshot.cjs'],
+    detalles_tecnicos: [
+      'Implementación de export const parseShiftTiming(t) en useMetricoAnalytics.js.',
+      'Corrección de isShiftInWindowRange y mapeo de turnosFiltrados para respetar ventanas horarias exactas.',
+      'Deduplicación canónica en turnosPorFecha mediante Set con clave fechaInicio_tag.',
+      'Desambiguación en chartData (Dashboard.jsx) añadiendo sufijo (Día)/(Noche) únicamente si existen múltiples turnos en el mismo día.',
+      'Sincronización íntegra de versiones maestras a v6.3.29.'
+    ]
+  },
+  {
     id: 'v6.3.28',
     version_tag: 'v6.3.28',
     fecha: '18 de Septiembre, 2026',

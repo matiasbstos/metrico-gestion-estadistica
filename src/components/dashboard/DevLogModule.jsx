@@ -8,6 +8,26 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-29',
+    titulo: 'Resolución de Duplicidad en Evolución de Atenciones: Precedencia de Franjas y Deduplicación Estricta de Turnos',
+    fecha: '2026-09-18',
+    version_tag: 'v6.3.29',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_29.png',
+    problema: 'Al filtrar un turno clínico puntual de fin de semana (ej. Finde Noche 13/09/2026 20:00 a 14/09/2026 08:00 hrs), el gráfico "Evolución de Atenciones" renderizaba dos columnas idénticas para la fecha 2026-09-13. Esto se debía a que el evaluador horario verificaba la presencia de "20:00" antes de "08:00 a 20:00", provocando que el turno diurno fuera interpretado como nocturno y capturado por la ventana de filtro.',
+    logica: '1) Se creó la función canónica parseShiftTiming(t) en useMetricoAnalytics.js que discrimina el turno diurno (08:00 a 20:00) con prioridad 1 antes de evaluar la franja nocturna. 2) Se deduplicaron canónicamente los turnos en turnosPorFecha mediante Set con clave única de fecha y tipo. 3) Se sincronizó turnosFiltrados con parseShiftTiming. 4) En Dashboard.jsx se incorporó desambiguación condicional en las etiquetas del eje X cuando coexisten múltiples turnos en la misma fecha.',
+    solucion: 'Al seleccionar un turno clínico individual, la gráfica de Evolución de Atenciones despliega con exactitud quirúrgica una única columna con sus pacientes, triajes y altas fidedignas.',
+    fullPost: `En esta versión v6.3.29 resolvimos la duplicidad de columnas en el gráfico Evolución de Atenciones:
+
+1. **Discriminación Canónica de Franjas Horarias**:
+   - Implementación de \`parseShiftTiming(t)\` en \`useMetricoAnalytics.js\`.
+   - Se asegura que los turnos diurnos (\`08:00 a 20:00\`) se identifiquen antes de la evaluación nocturna (\`20:00 a 08:00\`), previniendo falsos positivos por la coincidencia del número "20:00".
+
+2. **Deduplicación Estricta y Unívoca**:
+   - Deduplicación canónica en \`turnosPorFecha\` garantizando un único registro por turno y jornada.
+   - Sincronización en \`turnosFiltrados\` y desambiguación en el eje X de Recharts.`
+  },
+  {
     id: 'devlog-v6-3-28',
     titulo: 'Estandarización Terminológica en Tarjeta de Altas Administrativas: Adopción del Distintivo "Egreso por Retiro"',
     fecha: '2026-09-18',

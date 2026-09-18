@@ -154,21 +154,50 @@ export const normalizeCategoria = (p) => {
   return 'sincat';
 };
 
+export const parseShiftTiming = (t) => {
+  if (!t) return { startH: '00:00', endH: '23:59', spansMidnight: false, tag: 'OTRO' };
+  const horarioStr = String(t.horario || '').toLowerCase();
+  const tipoStr = String(t.tipo || t.tipoTurno || '').toLowerCase();
+  const s = `${horarioStr} ${tipoStr}`;
+
+  // 1. Día Fin de Semana / Festivo Diurno (08:00 a 20:00)
+  // Se evalúa antes de 20:00 para evitar que "08:00 a 20:00" sea clasificado erróneamente como noche
+  const isNightExplicit = s.includes('noche') || s.includes('nocturno') || s.includes('20:00 a 08:00') || s.includes('20:00 - 08:00');
+  
+  if (!isNightExplicit && (
+    (s.includes('08:00') && s.includes('20:00')) ||
+    s.includes('dia') || s.includes('día') || s.includes('diurno')
+  )) {
+    return { startH: '08:00', endH: '20:00', spansMidnight: false, tag: 'FINDE_DIA' };
+  }
+
+  // 2. Noche Fin de Semana / Festivo Nocturno (20:00 a 08:00)
+  if (
+    isNightExplicit ||
+    (s.includes('20:00') && s.includes('08:00')) ||
+    s.includes('noche') || s.includes('nocturno')
+  ) {
+    return { startH: '20:00', endH: '08:00', spansMidnight: true, tag: 'FINDE_NOCHE' };
+  }
+
+  // 3. Turno Largo Semana Hábil (17:00 a 08:00 con ventana 16:00 a 12:00)
+  if (
+    s.includes('16:00') ||
+    s.includes('17:00') ||
+    s.includes('largo') ||
+    s.includes('semana')
+  ) {
+    return { startH: '16:00', endH: '12:00', spansMidnight: true, tag: 'SEMANA_LARGO' };
+  }
+
+  return { startH: '00:00', endH: '23:59', spansMidnight: false, tag: 'OTRO' };
+};
+
 const isShiftInWindowRange = (t, windowRange) => {
   if (!t || !windowRange) return true;
   const startDay = t.fechaInicio;
   const endDay = t.fechaFin || t.fechaInicio;
-  const horarioStr = String(t.horario || '').toLowerCase();
-  let startH = '00:00', endH = '23:59';
-  let spansMidnight = false;
-
-  if (horarioStr.includes('16:00') || horarioStr.includes('17:00') || horarioStr.includes('largo')) {
-    startH = '16:00'; endH = '12:00'; spansMidnight = true;
-  } else if (horarioStr.includes('20:00') || horarioStr.includes('noche')) {
-    startH = '20:00'; endH = '08:00'; spansMidnight = true;
-  } else if (horarioStr.includes('08:00') || horarioStr.includes('dia') || horarioStr.includes('día')) {
-    startH = '08:00'; endH = '20:00'; spansMidnight = false;
-  }
+  const { startH, endH, spansMidnight } = parseShiftTiming(t);
 
   const tStart = parseLocalDatetime(startDay, startH);
   let tEnd = parseLocalDatetime(endDay, endH);
@@ -190,10 +219,24 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
   }, [filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin]);
 
   const turnosPorFecha = useMemo(() => {
-    return turnosDB.filter(t => {
+    const matched = turnosDB.filter(t => {
       if (!windowRange) return true;
       return isShiftInWindowRange(t, windowRange);
     });
+
+    const seen = new Set();
+    const deduped = [];
+    for (const t of matched) {
+      const timing = parseShiftTiming(t);
+      const key = timing.tag !== 'OTRO' 
+        ? `${t.fechaInicio}_${timing.tag}` 
+        : `${t.fechaInicio}_${t.horario || ''}_${t.tipo || t.tipoTurno || ''}_${t.loteId || ''}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        deduped.push(t);
+      }
+    }
+    return deduped;
   }, [turnosDB, windowRange]);
 
   const hasGlobalFilters = useMemo(() => {
@@ -282,17 +325,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     return turnosPorFecha.map(t => {
       const startDay = t.fechaInicio;
       const endDay = t.fechaFin || t.fechaInicio;
-      const horarioStr = String(t.horario || '').toLowerCase();
-      let startH = '00:00', endH = '23:59';
-      let spansMidnight = false;
-
-      if (horarioStr.includes('16:00') || horarioStr.includes('17:00') || horarioStr.includes('largo')) {
-        startH = '16:00'; endH = '12:00'; spansMidnight = true;
-      } else if (horarioStr.includes('20:00') || horarioStr.includes('noche')) {
-        startH = '20:00'; endH = '08:00'; spansMidnight = true;
-      } else if (horarioStr.includes('08:00') || horarioStr.includes('dia') || horarioStr.includes('día')) {
-        startH = '08:00'; endH = '20:00'; spansMidnight = false;
-      }
+      const { startH, endH, spansMidnight } = parseShiftTiming(t);
 
       const tStart = parseLocalDatetime(startDay, startH);
       let tEnd = parseLocalDatetime(endDay, endH);

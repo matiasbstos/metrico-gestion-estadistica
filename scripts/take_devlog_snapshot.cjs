@@ -55,8 +55,17 @@ async function runDevLogPhotographer() {
       await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1.5 });
       await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 30000 });
 
+      // Si aparece el modal de Verificación de Identidad de Sesión, hacer click en Confirmar e Ingresar
+      try {
+        await page.evaluate(() => {
+          const btns = Array.from(document.querySelectorAll('button'));
+          const btn = btns.find(b => b.textContent && b.textContent.includes('Confirmar e Ingresar'));
+          if (btn) btn.click();
+        });
+      } catch (err) {}
+
       // Esperar a que se carguen los datos y se estabilicen las animaciones
-      await new Promise(resolve => setTimeout(resolve, 4000));
+      await new Promise(resolve => setTimeout(resolve, 5000));
 
       await page.screenshot({ path: publicOutputFile, fullPage: false });
       fs.copyFileSync(publicOutputFile, publicMainFile);

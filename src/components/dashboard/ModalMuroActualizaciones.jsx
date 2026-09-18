@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.29',
+      version: 'v6.3.29',
+      fecha: '18 de Septiembre, 2026',
+      badge: 'INTEGRIDAD GRÁFICA & HORARIOS DE GUARDIA',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Resolución de Duplicidad en Gráfico de Evolución de Atenciones: Discriminación Canónica de Franjas y Deduplicación de Turnos',
+      categoria: 'Integridad Gráfica & Analítica',
+      icon: BarChart2,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se resolvió la anomalía en el gráfico "Evolución de Atenciones" donde la selección de un único turno asistencial (ej. Fin de Semana Noche) generaba dos columnas idénticas para la misma fecha. Se corrigió la precedencia lógica del evaluador de horarios para discriminar con exactitud turnos diurnos (08:00 a 20:00) y nocturnos (20:00 a 08:00), deduplicando unívocamente las jornadas en turnosPorFecha y desambiguando el etiquetado del eje temporal.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que al filtrar un turno clínico específico, el gráfico de evolución muestre una única columna con sus métricas exactas, sin duplicaciones ni solapamientos.',
+        quePuedesVer: 'Al elegir el preset "Finde Noche" o "Finde Día", la gráfica de evolución de atenciones despliega exactamente una columna para la jornada seleccionada, respetando la simetría de triajes y volumen total.',
+        ejemploUso: 'Filtra el turno del 13/09/2026 de 20:00 a 08:00 hrs: verás una única columna limpia con los 40 pacientes del turno.'
+      },
+      changes: [
+        'Función canónica parseShiftTiming para discriminación rigurosa de turnos diurnos, nocturnos y largos.',
+        'Eliminación de falso positivo donde el turno diurno era capturado por la ventana nocturna debido al string "20:00".',
+        'Deduplicación canónica en turnosPorFecha por fecha y tipo de turno.',
+        'Desambiguación automática de etiquetas en el eje X de Recharts cuando conviven turnos en la misma fecha civil.'
+      ]
+    },
+    {
       id: 'v6.3.28',
       version: 'v6.3.28',
       fecha: '18 de Septiembre, 2026',

@@ -61,14 +61,14 @@ import { app, auth, db, appId } from '../config/firebase';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { collection, doc, writeBatch, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useMetricoData } from '../hooks/useMetricoData';
-import { useMetricoAnalytics } from '../hooks/useMetricoAnalytics';
+import { useMetricoAnalytics, parseShiftTiming } from '../hooks/useMetricoAnalytics';
 import { useMetricoDemanda } from '../hooks/useMetricoDemanda';
 import { useMetricoProfesionales } from '../hooks/useMetricoProfesionales';
 import { usePautasTurnos } from '../hooks/usePautasTurnos';
 import { COLORS, DOC_COLORS, AGE_RANGES, METRIC_LABELS } from '../config/constants';
 import { getNormalizedUserPermissions } from '../config/modules';
 
-const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.3.28';
+const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.3.29';
 
 // Colores Institucionales
 
@@ -990,8 +990,22 @@ const DashboardContent = () => {
     ];
 
     if (turnosFiltrados && turnosFiltrados.length > 0) {
+      // Identificar si hay múltiples turnos en una misma fecha para desambiguar etiquetas en el eje X
+      const dateCounts = {};
+      turnosFiltrados.forEach(t => {
+        const d = t.fechaInicio;
+        dateCounts[d] = (dateCounts[d] || 0) + 1;
+      });
+
       return turnosFiltrados.slice().reverse().map(t => {
-        const row = { name: t.fechaInicio === t.fechaFin ? t.fechaInicio : `${t.fechaInicio} - ${t.fechaFin}` };
+        let label = t.fechaInicio === t.fechaFin ? t.fechaInicio : `${t.fechaInicio} - ${t.fechaFin}`;
+        if (dateCounts[t.fechaInicio] > 1) {
+          const timing = parseShiftTiming(t);
+          if (timing.tag === 'FINDE_DIA') label += ' (Día)';
+          else if (timing.tag === 'FINDE_NOCHE') label += ' (Noche)';
+          else if (t.horario) label += ` (${t.horario})`;
+        }
+        const row = { name: label };
         const pacs = t.pacientesList || [];
 
         let sumAdmCat = 0, countAdmCat = 0;
