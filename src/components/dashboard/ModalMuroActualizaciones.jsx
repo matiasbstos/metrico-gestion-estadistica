@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.31',
+      version: 'v6.3.31',
+      fecha: '19 de Septiembre, 2026',
+      badge: 'REFACTORIZACIÓN GRÁFICA & LECTURA GERENCIAL',
+      badgeColor: 'bg-teal-500/10 text-teal-600 dark:text-teal-300 border-teal-500/20',
+      title: 'Agrupación Dinámica Temporal, Barras Horizontales Fijas de Turnos SAR, Gráfico Delta Divergente y Normalización a Promedio Diario',
+      categoria: 'Demanda & Turnos SAR',
+      icon: Activity,
+      iconBg: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20',
+      summary: 'Se refactorizaron integralmente los gráficos del módulo de Curva de Demanda Continua para eliminar el efecto "código de barras" en períodos extensos. 1) Agrupación Dinámica: el Eje X discrimina automáticamente entre Días individuales (<=31 días), Semanas (32-90 días) o Meses (>90 días). 2) Comparativa de Turnos SAR: se sustituyó el gráfico vertical denso por un BarChart horizontal con exactamente 3 categorías fijas (Hábil Vespertino-Nocturno, Finde/Feriado Día, Finde/Feriado Noche) comparando el promedio de pacientes por turno. 3) Nuevo Gráfico Delta Divergente (Waterfall): barras bidireccionales con sobrecarga en rojo suave y alivio en azul. 4) Normalización a Promedio Diario: la curva asistencial de 24h y ciclo semanal refleja pacientes/día preservando la altura y morfología de peaks reales.',
+      instructivo: {
+        paraQueSirve: 'Permite a directivos y jefaturas auditar la demanda continua de forma ejecutiva e inmediata, sin saturación visual en períodos anuales o mensuales, detectando qué turno absorbió mayor impacto y en qué semanas o meses se produjeron descalces asistenciales.',
+        quePuedesVer: 'La Superposición de Curva Asistencial en escala realista de promedio diario (con toggle a total), el nuevo Gráfico Delta Divergente con barras rojas/azules y tarjetas de sobrecarga/alivio, y las barras horizontales fijas de 3 categorías SAR.',
+        ejemploUso: 'Selecciona el preset "Año": observa cómo el gráfico Delta se agrupa automáticamente por meses, las 3 barras horizontales muestran el promedio por guardia, y la curva de 24h mantiene peaks nítidos entre 10 y 25 pacientes/día.'
+      },
+      changes: [
+        'Agrupación dinámica por días (<=31d), semanas (32-90d) y meses (>90d) en agruparPorBloquesTemporales.',
+        'Nuevo componente GraficoDeltaDivergente.jsx con visualización divergente de sobrecarga y alivio operativo.',
+        'Rediseño del gráfico de Turnos SAR a formato horizontal agrupado con 3 categorías fijas y métricas promedio.',
+        'Normalización matemática a Promedio Diario (pac/día) en curva horaria y ciclo semanal, con toggle a Total Acumulado.'
+      ]
+    },
+    {
       id: 'v6.3.30',
       version: 'v6.3.30',
       fecha: '18 de Septiembre, 2026',

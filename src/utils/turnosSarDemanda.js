@@ -499,3 +499,491 @@ export const calcularImpactoHitoHospitalario = (pacientesPool = [], fechaHito) =
     stackedData
   };
 };
+
+/**
+ * FASE 4: Calcula el número de días exactos comprendidos entre dos fechas ISO
+ * @param {string} fechaInicio 
+ * @param {string} fechaFin 
+ * @returns {number}
+ */
+export const calcularDiasEnRango = (fechaInicio, fechaFin) => {
+  const fIni = normalizeDateToIso(fechaInicio);
+  const fFin = normalizeDateToIso(fechaFin);
+  if (!fIni || !fFin) return 1;
+
+  const [y1, m1, d1] = fIni.split('-').map(Number);
+  const [y2, m2, d2] = fFin.split('-').map(Number);
+  const diffMs = Math.abs(new Date(y2, m2 - 1, d2).getTime() - new Date(y1, m1 - 1, d1).getTime());
+  return Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1);
+};
+
+/**
+ * FASE 4: Calcula cuántas veces se repite cada día de la semana (1=Dom, 2=Lun, ..., 7=Sáb)
+ * en un rango de fechas determinado.
+ * @param {string} fechaInicio 
+ * @param {string} fechaFin 
+ * @returns {Record<number, number>}
+ */
+export const calcularOcurrenciasDiasSemana = (fechaInicio, fechaFin) => {
+  const fIni = normalizeDateToIso(fechaInicio);
+  const fFin = normalizeDateToIso(fechaFin);
+  const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0 };
+  if (!fIni || !fFin) return { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1 };
+
+  const [y1, m1, d1] = fIni.split('-').map(Number);
+  const [y2, m2, d2] = fFin.split('-').map(Number);
+  const cur = new Date(y1, m1 - 1, d1);
+  const end = new Date(y2, m2 - 1, d2);
+
+  while (cur <= end) {
+    const dNum = cur.getDay() + 1; // 1=Dom, 2=Lun, ..., 7=Sáb
+    counts[dNum] = (counts[dNum] || 0) + 1;
+    cur.setDate(cur.getDate() + 1);
+  }
+
+  // Asegurar mínimo 1 para evitar divisiones por cero
+  Object.keys(counts).forEach(k => {
+    if (counts[k] === 0) counts[k] = 1;
+  });
+
+  return counts;
+};
+
+/**
+ * FASE 2: Consolida los turnos SAR en exactamente 3 categorías fijas
+ * para el gráfico de barras horizontales agrupadas (layout="vertical"):
+ * 1) Hábil Vespertino-Nocturno
+ * 2) Finde/Feriado Día
+ * 3) Finde/Feriado Noche
+ *
+ * @param {Array} pacientesBase 
+ * @param {Array} pacientesContraste 
+ * @param {string} fechaBaseIni 
+ * @param {string} fechaBaseFin 
+ * @param {string} fechaContrasteIni 
+ * @param {string} fechaContrasteFin 
+ * @param {Object} [pautasDB]
+ * @returns {Array<Object>} Lista de 3 objetos para Recharts
+ */
+export const consolidarResumenPorTipoTurnoSAR = (
+  pacientesBase = [],
+  pacientesContraste = [],
+  fechaBaseIni,
+  fechaBaseFin,
+  fechaContrasteIni,
+  fechaContrasteFin,
+  pautasDB = null
+) => {
+  const bIniIso = normalizeDateToIso(fechaBaseIni);
+  const bFinIso = normalizeDateToIso(fechaBaseFin);
+  const cIniIso = normalizeDateToIso(fechaContrasteIni);
+  const cFinIso = normalizeDateToIso(fechaContrasteFin);
+
+  const acum = {
+    HABIL_LARGO: {
+      key: 'HABIL_LARGO',
+      nombreCategoria: 'Hábil Vespertino-Nocturno',
+      horario: '17:00 a 07:59 hrs (+1d)',
+      turnosBase: 0,
+      volumenTotalBase: 0,
+      turnosContraste: 0,
+      volumenTotalContraste: 0,
+      c1Base: 0, c2Base: 0, c3Base: 0,
+      c1Contraste: 0, c2Contraste: 0, c3Contraste: 0
+    },
+    FINDE_DIA: {
+      key: 'FINDE_DIA',
+      nombreCategoria: 'Finde/Feriado Día',
+      horario: '08:00 a 19:59 hrs',
+      turnosBase: 0,
+      volumenTotalBase: 0,
+      turnosContraste: 0,
+      volumenTotalContraste: 0,
+      c1Base: 0, c2Base: 0, c3Base: 0,
+      c1Contraste: 0, c2Contraste: 0, c3Contraste: 0
+    },
+    FINDE_NOCHE: {
+      key: 'FINDE_NOCHE',
+      nombreCategoria: 'Finde/Feriado Noche',
+      horario: '20:00 a 07:59 hrs (+1d)',
+      turnosBase: 0,
+      volumenTotalBase: 0,
+      turnosContraste: 0,
+      volumenTotalContraste: 0,
+      c1Base: 0, c2Base: 0, c3Base: 0,
+      c1Contraste: 0, c2Contraste: 0, c3Contraste: 0
+    }
+  };
+
+  // 1. Procesar turnos período Base
+  if (bIniIso && bFinIso) {
+    const [y1, m1, d1] = bIniIso.split('-').map(Number);
+    const [y2, m2, d2] = bFinIso.split('-').map(Number);
+    const cur = new Date(y1, m1 - 1, d1);
+    const end = new Date(y2, m2 - 1, d2);
+
+    while (cur <= end) {
+      const curIso = normalizeDateToIso(cur);
+      const turnos = agruparPorTurnoSAR(pacientesBase, curIso, pautasDB);
+      turnos.forEach(t => {
+        const cat = acum[t.tipoTurno];
+        if (cat) {
+          cat.turnosBase++;
+          cat.volumenTotalBase += t.totalPacientes;
+          cat.c1Base += t.c1 || 0;
+          cat.c2Base += t.c2 || 0;
+          cat.c3Base += t.c3 || 0;
+        }
+      });
+      cur.setDate(cur.getDate() + 1);
+    }
+  }
+
+  // 2. Procesar turnos período Contraste
+  if (cIniIso && cFinIso) {
+    const [cy1, cm1, cd1] = cIniIso.split('-').map(Number);
+    const [cy2, cm2, cd2] = cFinIso.split('-').map(Number);
+    const cCur = new Date(cy1, cm1 - 1, cd1);
+    const cEnd = new Date(cy2, cm2 - 1, cd2);
+
+    while (cCur <= cEnd) {
+      const cIso = normalizeDateToIso(cCur);
+      const turnos = agruparPorTurnoSAR(pacientesContraste, cIso, pautasDB);
+      turnos.forEach(t => {
+        const cat = acum[t.tipoTurno];
+        if (cat) {
+          cat.turnosContraste++;
+          cat.volumenTotalContraste += t.totalPacientes;
+          cat.c1Contraste += t.c1 || 0;
+          cat.c2Contraste += t.c2 || 0;
+          cat.c3Contraste += t.c3 || 0;
+        }
+      });
+      cCur.setDate(cCur.getDate() + 1);
+    }
+  }
+
+  // 3. Generar array ordenado con promedios
+  const order = ['HABIL_LARGO', 'FINDE_DIA', 'FINDE_NOCHE'];
+  return order.map(k => {
+    const item = acum[k];
+    const promBase = item.turnosBase > 0 ? Number((item.volumenTotalBase / item.turnosBase).toFixed(1)) : 0;
+    const promContraste = item.turnosContraste > 0 ? Number((item.volumenTotalContraste / item.turnosContraste).toFixed(1)) : 0;
+    const deltaProm = Number((promBase - promContraste).toFixed(1));
+    const deltaPromPct = promContraste > 0 ? Number(((deltaProm / promContraste) * 100).toFixed(1)) : 0;
+    const deltaTotal = item.volumenTotalBase - item.volumenTotalContraste;
+
+    return {
+      categoriaKey: item.key,
+      nombreCategoria: item.nombreCategoria,
+      horario: item.horario,
+      promedioBase: promBase,
+      promedioContraste: promContraste,
+      volumenTotalBase: item.volumenTotalBase,
+      volumenTotalContraste: item.volumenTotalContraste,
+      turnosBase: item.turnosBase,
+      turnosContraste: item.turnosContraste,
+      deltaPromedio: deltaProm,
+      deltaPromedioPct: deltaPromPct,
+      deltaTotal,
+      altaComplejidadBase: item.c1Base + item.c2Base + item.c3Base,
+      altaComplejidadContraste: item.c1Contraste + item.c2Contraste + item.c3Contraste
+    };
+  });
+};
+
+/**
+ * FASE 1 & FASE 3: Agrupación dinámica por bloques temporales para el Gráfico Delta Divergente.
+ * - Si días <= 31: agrupa por Días individuales (DD/MM).
+ * - Si 32 <= días <= 90: agrupa por Semanas (Sem 1, Sem 2...).
+ * - Si días > 90: agrupa por Meses (Ene, Feb, Mar...).
+ *
+ * @param {Array} pacientesBase 
+ * @param {Array} pacientesContraste 
+ * @param {string} fechaBaseIni 
+ * @param {string} fechaBaseFin 
+ * @param {string} fechaContrasteIni 
+ * @param {string} fechaContrasteFin 
+ * @param {'auto'|'dia'|'semana'|'mes'} [modoManual]
+ * @returns {Object} { granularidadEfectiva, blocks, resumen }
+ */
+export const agruparPorBloquesTemporales = (
+  pacientesBase = [],
+  pacientesContraste = [],
+  fechaBaseIni,
+  fechaBaseFin,
+  fechaContrasteIni,
+  fechaContrasteFin,
+  modoManual = 'auto'
+) => {
+  const bIniIso = normalizeDateToIso(fechaBaseIni);
+  const bFinIso = normalizeDateToIso(fechaBaseFin);
+  const cIniIso = normalizeDateToIso(fechaContrasteIni);
+  const cFinIso = normalizeDateToIso(fechaContrasteFin);
+
+  if (!bIniIso || !bFinIso) {
+    return {
+      granularidadEfectiva: 'dia',
+      blocks: [],
+      resumen: { mayorSobrecarga: null, mayorAlivio: null, balanceNeto: 0, totalBase: 0, totalContraste: 0 }
+    };
+  }
+
+  const diasDiff = calcularDiasEnRango(bIniIso, bFinIso);
+
+  // Determinar granularidad efectiva
+  let gran = modoManual;
+  if (!modoManual || modoManual === 'auto') {
+    if (diasDiff <= 31) gran = 'dia';
+    else if (diasDiff <= 90) gran = 'semana';
+    else gran = 'mes';
+  }
+
+  // Mapa de pacientes por fecha ISO 'YYYY-MM-DD'
+  const indexarPacientesPorDia = (pacs) => {
+    const map = {};
+    pacs.forEach(p => {
+      const t = getTimestampAdmision(p);
+      if (!t) return;
+      const d = new Date(t);
+      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      map[iso] = (map[iso] || 0) + 1;
+    });
+    return map;
+  };
+
+  const mapBase = indexarPacientesPorDia(pacientesBase);
+  const mapContraste = indexarPacientesPorDia(pacientesContraste);
+
+  const [y1, m1, d1] = bIniIso.split('-').map(Number);
+  const [y2, m2, d2] = bFinIso.split('-').map(Number);
+  const curDate = new Date(y1, m1 - 1, d1);
+  const endDate = new Date(y2, m2 - 1, d2);
+
+  // Fecha inicio contraste para sincronización de desfase
+  let cStartDate = null;
+  if (cIniIso) {
+    const [cy1, cm1, cd1] = cIniIso.split('-').map(Number);
+    cStartDate = new Date(cy1, cm1 - 1, cd1);
+  }
+
+  const monthNamesShort = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  const monthNamesFull = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+  const blocks = [];
+
+  if (gran === 'dia') {
+    // =========================================================================
+    // MODO DÍA A DÍA (DD/MM)
+    // =========================================================================
+    let dayIndex = 0;
+    while (curDate <= endDate) {
+      const curIso = normalizeDateToIso(curDate);
+      const [, m, d] = curIso.split('-').map(Number);
+      const key = `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}`;
+
+      let curContrasteIso = null;
+      if (cStartDate) {
+        const cDate = new Date(cStartDate);
+        cDate.setDate(cDate.getDate() + dayIndex);
+        curContrasteIso = normalizeDateToIso(cDate);
+      }
+
+      const vBase = mapBase[curIso] || 0;
+      const vContraste = curContrasteIso ? (mapContraste[curContrasteIso] || 0) : 0;
+      const delta = vBase - vContraste;
+      const deltaPct = vContraste > 0 ? Number(((delta / vContraste) * 100).toFixed(1)) : 0;
+
+      blocks.push({
+        id: `dia_${curIso}`,
+        key,
+        label: `${key}/${curDate.getFullYear()}`,
+        fechaBaseIso: curIso,
+        fechaContrasteIso: curContrasteIso,
+        volumenBase: vBase,
+        volumenContraste: vContraste,
+        delta,
+        deltaPct,
+        esSobrecarga: delta > 0,
+        esAlivio: delta < 0
+      });
+
+      curDate.setDate(curDate.getDate() + 1);
+      dayIndex++;
+    }
+  } else if (gran === 'semana') {
+    // =========================================================================
+    // MODO SEMANAL (Sem 1, Sem 2...)
+    // =========================================================================
+    let weekIndex = 1;
+    let dayIndex = 0;
+
+    while (curDate <= endDate) {
+      const weekStartIso = normalizeDateToIso(curDate);
+      const weekStartDate = new Date(curDate);
+
+      // Avanzar hasta 7 días o hasta endDate
+      let vBaseSem = 0;
+      let vContrasteSem = 0;
+      let daysInThisWeek = 0;
+
+      while (daysInThisWeek < 7 && curDate <= endDate) {
+        const curIso = normalizeDateToIso(curDate);
+        vBaseSem += mapBase[curIso] || 0;
+
+        let curContrasteIso = null;
+        if (cStartDate) {
+          const cDate = new Date(cStartDate);
+          cDate.setDate(cDate.getDate() + dayIndex);
+          curContrasteIso = normalizeDateToIso(cDate);
+          vContrasteSem += mapContraste[curContrasteIso] || 0;
+        }
+
+        curDate.setDate(curDate.getDate() + 1);
+        dayIndex++;
+        daysInThisWeek++;
+      }
+
+      const lastDayOfThisWeek = new Date(curDate);
+      lastDayOfThisWeek.setDate(lastDayOfThisWeek.getDate() - 1);
+      const weekEndIso = normalizeDateToIso(lastDayOfThisWeek);
+
+      const d1Str = `${String(weekStartDate.getDate()).padStart(2, '0')}/${String(weekStartDate.getMonth() + 1).padStart(2, '0')}`;
+      const d2Str = `${String(lastDayOfThisWeek.getDate()).padStart(2, '0')}/${String(lastDayOfThisWeek.getMonth() + 1).padStart(2, '0')}`;
+
+      const delta = vBaseSem - vContrasteSem;
+      const deltaPct = vContrasteSem > 0 ? Number(((delta / vContrasteSem) * 100).toFixed(1)) : 0;
+
+      blocks.push({
+        id: `sem_${weekIndex}`,
+        key: `Sem ${weekIndex}`,
+        label: `Semana ${weekIndex} (${d1Str} al ${d2Str})`,
+        rangoBase: `${weekStartIso} al ${weekEndIso}`,
+        diasBloque: daysInThisWeek,
+        volumenBase: vBaseSem,
+        volumenContraste: vContrasteSem,
+        delta,
+        deltaPct,
+        esSobrecarga: delta > 0,
+        esAlivio: delta < 0
+      });
+
+      weekIndex++;
+    }
+  } else {
+    // =========================================================================
+    // MODO MENSUAL (Ene, Feb, Mar...)
+    // =========================================================================
+    const monthsMap = {};
+
+    // Agrupar pacientes Base por 'YYYY-MM'
+    pacientesBase.forEach(p => {
+      const t = getTimestampAdmision(p);
+      if (!t) return;
+      const d = new Date(t);
+      const mKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      if (!monthsMap[mKey]) {
+        monthsMap[mKey] = {
+          mKey,
+          year: d.getFullYear(),
+          monthNum: d.getMonth() + 1,
+          vBase: 0,
+          vContraste: 0
+        };
+      }
+      monthsMap[mKey].vBase++;
+    });
+
+    // Agrupar pacientes Contraste por 'YYYY-MM'
+    pacientesContraste.forEach(p => {
+      const t = getTimestampAdmision(p);
+      if (!t) return;
+      const d = new Date(t);
+      const mKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      if (!monthsMap[mKey]) {
+        monthsMap[mKey] = {
+          mKey,
+          year: d.getFullYear(),
+          monthNum: d.getMonth() + 1,
+          vBase: 0,
+          vContraste: 0
+        };
+      }
+      monthsMap[mKey].vContraste++;
+    });
+
+    // Si no hubo pacientes en algún mes del rango, inicializar todos los meses del rango base
+    let mScan = new Date(y1, m1 - 1, 1);
+    const mEnd = new Date(y2, m2 - 1, 1);
+    while (mScan <= mEnd) {
+      const mKey = `${mScan.getFullYear()}-${String(mScan.getMonth() + 1).padStart(2, '0')}`;
+      if (!monthsMap[mKey]) {
+        monthsMap[mKey] = {
+          mKey,
+          year: mScan.getFullYear(),
+          monthNum: mScan.getMonth() + 1,
+          vBase: 0,
+          vContraste: 0
+        };
+      }
+      mScan.setMonth(mScan.getMonth() + 1);
+    }
+
+    const sortedMonths = Object.values(monthsMap).sort((a, b) => a.mKey.localeCompare(b.mKey));
+
+    sortedMonths.forEach(mObj => {
+      const delta = mObj.vBase - mObj.vContraste;
+      const deltaPct = mObj.vContraste > 0 ? Number(((delta / mObj.vContraste) * 100).toFixed(1)) : 0;
+      const key = monthNamesShort[mObj.monthNum - 1];
+      const label = `${monthNamesFull[mObj.monthNum - 1]} ${mObj.year}`;
+
+      blocks.push({
+        id: `mes_${mObj.mKey}`,
+        key,
+        label,
+        mesIso: mObj.mKey,
+        volumenBase: mObj.vBase,
+        volumenContraste: mObj.vContraste,
+        delta,
+        deltaPct,
+        esSobrecarga: delta > 0,
+        esAlivio: delta < 0
+      });
+    });
+  }
+
+  // Resumen ejecutivo
+  let mayorSobrecarga = null;
+  let mayorAlivio = null;
+  let totalBase = 0;
+  let totalContraste = 0;
+
+  blocks.forEach(b => {
+    totalBase += b.volumenBase;
+    totalContraste += b.volumenContraste;
+
+    if (b.delta > 0) {
+      if (!mayorSobrecarga || b.delta > mayorSobrecarga.delta) {
+        mayorSobrecarga = b;
+      }
+    } else if (b.delta < 0) {
+      if (!mayorAlivio || b.delta < mayorAlivio.delta) {
+        mayorAlivio = b;
+      }
+    }
+  });
+
+  const balanceNeto = totalBase - totalContraste;
+
+  return {
+    granularidadEfectiva: gran,
+    blocks,
+    resumen: {
+      mayorSobrecarga,
+      mayorAlivio,
+      balanceNeto,
+      totalBase,
+      totalContraste
+    }
+  };
+};

@@ -8,6 +8,35 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-31',
+    titulo: 'Refactorización Gráfica de Curva de Demanda: Agrupación Temporal Dinámica, Turnos SAR Horizontales, Delta Divergente y Promedios Diarios',
+    fecha: '2026-09-19',
+    version_tag: 'v6.3.31',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_31.png',
+    problema: 'En períodos de análisis extensos (mensuales o anuales), el módulo de Curva de Demanda presentaba sobrecarga visual extrema: 1) El gráfico de Turnos SAR generaba un efecto "código de barras" con decenas de barras verticales densas e ilegibles. 2) No existía una visualización sintetizada para directivos que aislara las anomalías netas sin requerir análisis técnico. 3) El gráfico de área asistencial acumulaba la suma total anual en decenas de miles, aplanando la curva y perdiendo la forma de los peaks horarios reales.',
+    logica: '1) Se creó agruparPorBloquesTemporales en turnosSarDemanda.js que agrupa por días (<=31d), semanas (32-90d) o meses (>90d). 2) Se sustituyó el gráfico denso vertical por un BarChart horizontal layout="vertical" con exactamente 3 filas fijas (Hábil Vespertino-Nocturno, Finde/Feriado Día, Finde/Feriado Noche) comparando promedios por turno. 3) Se desarrolló GraficoDeltaDivergente.jsx para graficar variaciones netas (rojo suave = sobrecarga, azul = alivio). 4) Se normalizó la curva de 24h y ciclo semanal a Promedio Diario pac/día (con toggle a total acumulado).',
+    solucion: 'El módulo ofrece ahora una lectura gerencial inmediata, erradicando por completo el código de barras y permitiendo evaluar qué guardia absorbe mayor impacto y en qué tramos temporales se producen sobrecargas asistenciales.',
+    fullPost: `En esta versión v6.3.31 rediseñamos integralmente los gráficos del módulo de Curva de Demanda Continua:
+
+1. **Agrupación Dinámica Temporal**:
+   - Detección automática de granularidad: días individuales si el rango es <= 31 días, semanas si es entre 32 y 90 días, y meses si es mayor a 90 días.
+   - Selector manual de granularidad (Auto / Día / Semana / Mes) en la interfaz.
+
+2. **Comparativa de Turnos SAR en Barras Horizontales Agrupadas**:
+   - Reemplazo del gráfico vertical denso por un \`BarChart\` horizontal (\`layout="vertical"\`).
+   - Exactamente 3 categorías fijas en el eje Y: *Hábil Vespertino-Nocturno*, *Finde/Feriado Día* y *Finde/Feriado Noche*.
+   - Métrica comparativa: Volumen promedio de pacientes por turno (Base vs. Contraste) independiente de la extensión temporal.
+
+3. **Gráfico de Variación Neta (Delta Divergente)**:
+   - Componente \`GraficoDeltaDivergente.jsx\` con eje central en cero.
+   - Barras rojas suaves hacia arriba para sobrecargas y barras azules hacia abajo para alivio asistencial.
+   - Tarjetas ejecutivas con los puntos de mayor sobrecarga, mayor alivio y balance neto.
+
+4. **Normalización a Promedio Diario en Curva Asistencial**:
+   - Curva de 24 horas y ciclo semanal calculadas en pacientes por día, preservando la altura y forma de los peaks operativos del SAR sin aplanamiento.`
+  },
+  {
     id: 'devlog-v6-3-30',
     titulo: 'Lógica Real de Turnos SAR y Análisis de Impacto Hospitalario por Hito en Curva de Demanda',
     fecha: '2026-09-18',

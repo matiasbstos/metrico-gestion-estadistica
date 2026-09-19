@@ -16,44 +16,46 @@ import { deduplicarPacientes, formatLocalDate } from '../../utils/helpers';
 import { 
   determinarTipoJornada, 
   agruparPorTurnoSAR, 
-  compararTurnosSARPeriodos 
+  compararTurnosSARPeriodos,
+  consolidarResumenPorTipoTurnoSAR,
+  agruparPorBloquesTemporales,
+  calcularDiasEnRango,
+  calcularOcurrenciasDiasSemana
 } from '../../utils/turnosSarDemanda';
 import AnalisisImpactoHito from './AnalisisImpactoHito';
+import GraficoDeltaDivergente from './GraficoDeltaDivergente';
 
-const CustomTooltipTurnoSar = ({ active, payload }) => {
+const CustomTooltipTurnosResumen = ({ active, payload }) => {
   if (!active || !payload || !payload.length) return null;
   const data = payload[0]?.payload;
   if (!data) return null;
 
   return (
-    <div className="bg-slate-900/95 text-white p-3.5 rounded-xl shadow-xl border border-slate-700 text-xs backdrop-blur-md">
-      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-slate-700">
-        <span className="font-black text-sm text-indigo-300">{data.nombreTurno}</span>
+    <div className="bg-slate-900/95 text-white p-3.5 rounded-xl shadow-xl border border-slate-700 text-xs backdrop-blur-md min-w-[240px]">
+      <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-700">
+        <span className="font-black text-sm text-indigo-300">{data.nombreCategoria}</span>
         <span className="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold">
           {data.horario}
         </span>
       </div>
-      <p className="text-slate-300 text-[11px] mb-2">
-        Fecha: <strong className="text-white">{data.fechaDisplay}</strong> ({data.tipoJornada === 'HABIL' ? 'Día Hábil' : 'Fin de Semana / Feriado'})
-      </p>
-      
-      <div className="grid grid-cols-2 gap-3 mb-2">
+
+      <div className="grid grid-cols-2 gap-2 mb-2">
         <div className="bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-500/20">
-          <span className="text-[10px] uppercase text-emerald-400 font-bold block">Volumen Base</span>
-          <span className="text-lg font-black text-emerald-400">{data.volumenBase} <span className="text-xs">pac.</span></span>
-          <span className="text-[9px] text-slate-400 block mt-0.5">Espera Box: ~{data.esperaBase} min</span>
+          <span className="text-[10px] uppercase text-emerald-400 font-bold block">Base (Activo)</span>
+          <span className="text-lg font-black text-emerald-400">{data.promedioBase} <span className="text-xs">pac/turno</span></span>
+          <span className="text-[9px] text-slate-400 block mt-0.5">Total: {data.volumenTotalBase?.toLocaleString('es-CL')} pac ({data.turnosBase} turnos)</span>
         </div>
         <div className="bg-indigo-500/10 p-2.5 rounded-lg border border-indigo-500/20">
-          <span className="text-[10px] uppercase text-indigo-400 font-bold block">Volumen Contraste</span>
-          <span className="text-lg font-black text-indigo-300">{data.volumenContraste} <span className="text-xs">pac.</span></span>
-          <span className="text-[9px] text-slate-400 block mt-0.5">Espera Box: ~{data.esperaContraste} min</span>
+          <span className="text-[10px] uppercase text-indigo-400 font-bold block">Contraste (Ref.)</span>
+          <span className="text-lg font-black text-indigo-300">{data.promedioContraste} <span className="text-xs">pac/turno</span></span>
+          <span className="text-[9px] text-slate-400 block mt-0.5">Total: {data.volumenTotalContraste?.toLocaleString('es-CL')} pac ({data.turnosContraste} turnos)</span>
         </div>
       </div>
 
       <div className="flex items-center justify-between pt-1 border-t border-slate-800 text-[11px]">
-        <span className="text-slate-400">Variación Turno:</span>
-        <span className={`font-black ${data.delta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-          {data.delta >= 0 ? `+${data.delta} pac. (+${data.deltaPct}%)` : `${data.delta} pac. (${data.deltaPct}%)`}
+        <span className="text-slate-400">Variación Promedio:</span>
+        <span className={`font-black ${data.deltaPromedio >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+          {data.deltaPromedio >= 0 ? `+${data.deltaPromedio} pac/turno (+${data.deltaPromedioPct}%)` : `${data.deltaPromedio} pac/turno (${data.deltaPromedioPct}%)`}
         </span>
       </div>
     </div>
@@ -71,6 +73,7 @@ export default function AnalisisCurvaDemanda({
   // 1. Estados de Períodos (Base y Contraste)
   const [presetSeleccionado, setPresetSeleccionado] = useState('semana_anterior');
   const [vistaTemporal, setVistaTemporal] = useState('hora'); // 'hora' (24 hrs) | 'dia' (7 días sem.)
+  const [metricaEscalaCurva, setMetricaEscalaCurva] = useState('promedio'); // 'promedio' (Promedio Diario) | 'total' (Total Acumulado)
 
   // Fechas Período Base (por defecto rango del filtro global o última semana completa)
   const [baseInicio, setBaseInicio] = useState(filtroFechaInicio || '2026-09-07');
@@ -150,12 +153,14 @@ export default function AnalisisCurvaDemanda({
     });
   }, [pacientesPool]);
 
-  // FASE 2: Dataset de Turnos SAR (1 o 2 barras consolidadas por día según tipo de jornada)
-  const turnosSarDataset = useMemo(() => {
-    const pacsBase = filtrarPacientesRango(baseInicio, baseFin);
-    const pacsContraste = filtrarPacientesRango(contrasteInicio, contrasteFin);
-    return compararTurnosSARPeriodos(pacsBase, pacsContraste, baseInicio, baseFin, contrasteInicio, contrasteFin);
-  }, [filtrarPacientesRango, baseInicio, baseFin, contrasteInicio, contrasteFin]);
+  // Pacientes de cada período memoizados
+  const pacsBaseActual = useMemo(() => filtrarPacientesRango(baseInicio, baseFin), [filtrarPacientesRango, baseInicio, baseFin]);
+  const pacsContrasteActual = useMemo(() => filtrarPacientesRango(contrasteInicio, contrasteFin), [filtrarPacientesRango, contrasteInicio, contrasteFin]);
+
+  // FASE 2: Resumen Consolidado de Turnos SAR (3 Categorías fijas en barras horizontales agrupadas)
+  const turnosSarResumen = useMemo(() => {
+    return consolidarResumenPorTipoTurnoSAR(pacsBaseActual, pacsContrasteActual, baseInicio, baseFin, contrasteInicio, contrasteFin);
+  }, [pacsBaseActual, pacsContrasteActual, baseInicio, baseFin, contrasteInicio, contrasteFin]);
 
   // Aplicar Presets Automáticos
   const handleApplyPreset = (presetKey) => {
@@ -233,7 +238,10 @@ export default function AnalisisCurvaDemanda({
 
     // Si BigQuery no devolvió datos, calculamos directamente sobre pacientesPool local
     if (!fetchedFromBq) {
-      const procesarPool = (pacs) => {
+      const procesarPool = (pacs, fIni, fFin) => {
+        const diasEnRango = calcularDiasEnRango(fIni, fFin);
+        const ocurrenciasDiasSemana = calcularOcurrenciasDiasSemana(fIni, fFin);
+
         const hourlyMap = Array(24).fill(0).map((_, i) => ({
           hora: i,
           horaCorta: `${String(i).padStart(2, '0')}:00`,
@@ -292,7 +300,8 @@ export default function AnalisisCurvaDemanda({
           hora: h.hora,
           horaCorta: h.horaCorta,
           horaTooltip: h.horaTooltip,
-          atenciones: h.cantidad,
+          atencionesTotal: h.cantidad,
+          atencionesPromedio: Number((h.cantidad / diasEnRango).toFixed(1)),
           esperaTriaje: h.esperasCount > 0 ? Math.round(h.esperasSum / h.esperasCount) : 14
         }));
 
@@ -300,7 +309,8 @@ export default function AnalisisCurvaDemanda({
           diaNum: d.diaNum,
           diaNombre: d.diaNombre,
           diaCorto: d.diaCorto,
-          atenciones: d.cantidad,
+          atencionesTotal: d.cantidad,
+          atencionesPromedio: Number((d.cantidad / (ocurrenciasDiasSemana[d.diaNum] || 1)).toFixed(1)),
           esperaTriaje: d.esperasCount > 0 ? Math.round(d.esperasSum / d.esperasCount) : 14
         }));
 
@@ -309,8 +319,8 @@ export default function AnalisisCurvaDemanda({
         let peakHour = null;
         let maxVal = -1;
         hourlyCurve.forEach(h => {
-          if (h.atenciones > maxVal) {
-            maxVal = h.atenciones;
+          if (h.atencionesTotal > maxVal) {
+            maxVal = h.atencionesTotal;
             peakHour = h;
           }
         });
@@ -325,43 +335,56 @@ export default function AnalisisCurvaDemanda({
           peakHour,
           hourlyCurve,
           dailyCurve,
-          topDiagnosticos
+          topDiagnosticos,
+          diasEnRango
         };
       };
 
       const pacsBase = filtrarPacientesRango(baseInicio, baseFin);
       const pacsContraste = filtrarPacientesRango(contrasteInicio, contrasteFin);
 
-      baseRes = procesarPool(pacsBase);
-      contrasteRes = procesarPool(pacsContraste);
+      baseRes = procesarPool(pacsBase, baseInicio, baseFin);
+      contrasteRes = procesarPool(pacsContraste, contrasteInicio, contrasteFin);
     }
 
     // Ensamblar datasets superpuestos para Recharts
     const hourlyOverlay = (baseRes?.hourlyCurve || []).map((h, i) => {
       const c = contrasteRes?.hourlyCurve?.[i];
+      const baseVal = metricaEscalaCurva === 'promedio' ? h.atencionesPromedio : h.atencionesTotal;
+      const contrasteVal = c ? (metricaEscalaCurva === 'promedio' ? c.atencionesPromedio : c.atencionesTotal) : 0;
       return {
         key: h.horaCorta,
         horaCorta: h.horaCorta,
         horaTooltip: h.horaTooltip,
-        base: h.atenciones,
-        contraste: c ? c.atenciones : 0,
+        base: baseVal,
+        contraste: contrasteVal,
+        baseTotal: h.atencionesTotal,
+        contrasteTotal: c ? c.atencionesTotal : 0,
+        basePromedio: h.atencionesPromedio,
+        contrastePromedio: c ? c.atencionesPromedio : 0,
         esperaBase: h.esperaTriaje,
         esperaContraste: c ? c.esperaTriaje : 0,
-        delta: h.atenciones - (c ? c.atenciones : 0)
+        delta: Number((baseVal - contrasteVal).toFixed(1))
       };
     });
 
     const dailyOverlay = (baseRes?.dailyCurve || []).map((d, i) => {
       const c = contrasteRes?.dailyCurve?.[i];
+      const baseVal = metricaEscalaCurva === 'promedio' ? d.atencionesPromedio : d.atencionesTotal;
+      const contrasteVal = c ? (metricaEscalaCurva === 'promedio' ? c.atencionesPromedio : c.atencionesTotal) : 0;
       return {
         key: d.diaCorto,
         diaCorto: d.diaCorto,
         diaNombre: d.diaNombre,
-        base: d.atenciones,
-        contraste: c ? c.atenciones : 0,
+        base: baseVal,
+        contraste: contrasteVal,
+        baseTotal: d.atencionesTotal,
+        contrasteTotal: c ? c.atencionesTotal : 0,
+        basePromedio: d.atencionesPromedio,
+        contrastePromedio: c ? c.atencionesPromedio : 0,
         esperaBase: d.esperaTriaje,
         esperaContraste: c ? c.esperaTriaje : 0,
-        delta: d.atenciones - (c ? c.atenciones : 0)
+        delta: Number((baseVal - contrasteVal).toFixed(1))
       };
     });
 
@@ -389,7 +412,7 @@ export default function AnalisisCurvaDemanda({
 
     // Disparar motor de análisis de IA Gemini
     generarAnalisisOperativo(baseRes, contrasteRes, deltaVolPct, hourlyOverlay, dailyOverlay);
-  }, [baseInicio, baseFin, contrasteInicio, contrasteFin, pacientesPool]);
+  }, [baseInicio, baseFin, contrasteInicio, contrasteFin, pacientesPool, metricaEscalaCurva]);
 
   // Ejecución de la IA Gemini
   const generarAnalisisOperativo = async (baseData, contrasteData, deltaPct, hourlyData, dailyData) => {
@@ -687,12 +710,12 @@ export default function AnalisisCurvaDemanda({
       {/* GRÁFICO PRINCIPAL DE CURVA (RECHARTS OVERLAY)                             */}
       {/* ========================================================================= */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
           <div>
             <h2 className="text-base font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
               Superposición de Curva Asistencial
               <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
-                ({vistaTemporal === 'hora' ? 'Consolidado 24 Horas' : 'Ciclo Semanal'})
+                ({vistaTemporal === 'hora' ? 'Consolidado 24 Horas' : 'Ciclo Semanal Lun - Dom'})
               </span>
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
@@ -700,14 +723,40 @@ export default function AnalisisCurvaDemanda({
             </p>
           </div>
 
-          <div className="flex items-center gap-4 text-xs font-bold">
-            <div className="flex items-center gap-2">
-              <span className="w-3.5 h-3.5 rounded bg-emerald-500 inline-block shadow-sm"></span>
-              <span className="text-slate-700 dark:text-slate-300">Base</span>
+          <div className="flex flex-wrap items-center gap-4 text-xs font-bold">
+            {/* Toggle de Escala: Promedio Diario vs Total Acumulado */}
+            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200/60 dark:border-slate-800">
+              <button
+                onClick={() => setMetricaEscalaCurva('promedio')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  metricaEscalaCurva === 'promedio'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                Promedio Diario (Recomendado)
+              </button>
+              <button
+                onClick={() => setMetricaEscalaCurva('total')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  metricaEscalaCurva === 'total'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                Total Acumulado
+              </button>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="w-4 h-0.5 border-t-2 border-dashed border-indigo-400 inline-block"></span>
-              <span className="text-slate-500 dark:text-slate-400">Contraste</span>
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <span className="w-3.5 h-3.5 rounded bg-emerald-500 inline-block shadow-sm"></span>
+                <span className="text-slate-700 dark:text-slate-300">Base</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-4 h-0.5 border-t-2 border-dashed border-indigo-400 inline-block"></span>
+                <span className="text-slate-500 dark:text-slate-400">Contraste</span>
+              </div>
             </div>
           </div>
         </div>
@@ -715,7 +764,7 @@ export default function AnalisisCurvaDemanda({
         <div className="h-[380px] min-h-[380px] w-full">
           {chartData && chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-              <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+              <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="curvaBaseGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.28} />
@@ -738,6 +787,7 @@ export default function AnalisisCurvaDemanda({
                   axisLine={false} 
                   tickLine={false} 
                   tick={{ fill: 'var(--text-secondary)' }} 
+                  unit={metricaEscalaCurva === 'promedio' ? ' p/d' : ''}
                 />
                 <Tooltip 
                   contentStyle={{
@@ -748,10 +798,23 @@ export default function AnalisisCurvaDemanda({
                     color: 'var(--text-primary)',
                     boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.15)'
                   }}
-                  formatter={(value, name) => [
-                    `${value} pacientes`, 
-                    name === 'base' ? 'Período Base' : 'Período Contraste'
-                  ]}
+                  formatter={(value, name, item) => {
+                    const isBase = name === 'base';
+                    const label = isBase ? 'Período Base (Activo)' : 'Período Contraste (Ref.)';
+                    const payloadObj = item?.payload || {};
+                    const total = isBase ? payloadObj.baseTotal : payloadObj.contrasteTotal;
+                    const prom = isBase ? payloadObj.basePromedio : payloadObj.contrastePromedio;
+                    if (metricaEscalaCurva === 'promedio') {
+                      return [
+                        `${prom} pac/día (Total acumulado: ${total?.toLocaleString('es-CL') || total} pac)`, 
+                        label
+                      ];
+                    }
+                    return [
+                      `${total?.toLocaleString('es-CL') || total} pac (Promedio: ${prom} pac/día)`, 
+                      label
+                    ];
+                  }}
                   labelFormatter={(label, payload) => {
                     const item = payload?.[0]?.payload;
                     return item ? (item.horaTooltip || item.diaNombre || label) : label;
@@ -794,9 +857,21 @@ export default function AnalisisCurvaDemanda({
       </div>
 
       {/* ========================================================================= */}
-      {/* FASE 2: GRÁFICO DE BARRAS POR TURNOS ASISTENCIALES SAR                    */}
+      {/* FASE 1 & FASE 3: GRÁFICO DE VARIACIÓN NETA (DELTA DIVERGENTE)             */}
       {/* ========================================================================= */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm mt-6 theme-transition">
+      <GraficoDeltaDivergente 
+        pacientesBase={pacsBaseActual} 
+        pacientesContraste={pacsContrasteActual} 
+        baseInicio={baseInicio} 
+        baseFin={baseFin} 
+        contrasteInicio={contrasteInicio} 
+        contrasteFin={contrasteFin} 
+      />
+
+      {/* ========================================================================= */}
+      {/* FASE 2: GRÁFICO DE BARRAS HORIZONTALES AGRUPADAS POR TURNOS SAR           */}
+      {/* ========================================================================= */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-6 shadow-sm theme-transition">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -804,46 +879,103 @@ export default function AnalisisCurvaDemanda({
                 Comparativa de Volumen por Turnos SAR
               </h2>
               <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                Lógica Real SAR
+                3 Categorías Fijas
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
-              Jornada Hábil: 1 bloque ("Turno Hábil Vespertino-Nocturno" 17:00 a 07:59 hrs) | Finde/Feriado: 2 bloques ("Turno Día" 08:00-19:59 hrs y "Turno Noche" 20:00-07:59 hrs).
+              Barras horizontales agrupadas: Volumen Promedio Base vs. Contraste por tipo de guardia, sin importar la extensión del período.
             </p>
           </div>
 
           <div className="flex items-center gap-4 text-xs font-bold">
             <div className="flex items-center gap-2">
               <span className="w-3.5 h-3.5 rounded bg-emerald-500 inline-block shadow-sm"></span>
-              <span className="text-slate-700 dark:text-slate-300">Volumen Base</span>
+              <span className="text-slate-700 dark:text-slate-300">Promedio Base</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3.5 h-3.5 rounded bg-indigo-500 inline-block shadow-sm"></span>
-              <span className="text-slate-500 dark:text-slate-400">Volumen Contraste</span>
+              <span className="text-slate-500 dark:text-slate-400">Promedio Contraste</span>
             </div>
           </div>
         </div>
 
-        <div className="h-[340px] min-h-[340px] w-full">
-          {turnosSarDataset && turnosSarDataset.length > 0 ? (
+        {/* 3 MINI-TARJETAS DE IMPACTO POR TIPO DE TURNO */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+          {turnosSarResumen.map((t) => (
+            <div 
+              key={t.categoriaKey} 
+              className="bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[11px] font-black text-slate-800 dark:text-slate-200 truncate">
+                  {t.nombreCategoria}
+                </span>
+                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+                  t.deltaPromedio >= 0 
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                }`}>
+                  {t.deltaPromedio >= 0 ? `+${t.deltaPromedioPct}%` : `${t.deltaPromedioPct}%`}
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                  {t.promedioBase}
+                </span>
+                <span className="text-xs text-slate-400">
+                  vs {t.promedioContraste} pac/turno
+                </span>
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1 truncate">
+                Base: {t.volumenTotalBase.toLocaleString('es-CL')} pac ({t.turnosBase} t.) | Contraste: {t.volumenTotalContraste.toLocaleString('es-CL')} pac
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* GRÁFICO RECHARTS BARRAS HORIZONTALES (layout="vertical") */}
+        <div className="h-[280px] min-h-[280px] w-full">
+          {turnosSarResumen && turnosSarResumen.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-              <BarChart data={turnosSarDataset} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.12)" />
+              <BarChart 
+                layout="vertical" 
+                data={turnosSarResumen} 
+                margin={{ top: 10, right: 30, left: 30, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(148, 163, 184, 0.12)" />
                 <XAxis 
-                  dataKey="shortName" 
+                  type="number" 
                   fontSize={10} 
-                  tickMargin={8} 
-                  axisLine={false} 
                   tickLine={false} 
-                  interval="preserveStartEnd" 
-                  minTickGap={10} 
-                  tick={{ fill: 'var(--text-secondary)' }} 
+                  axisLine={false} 
+                  tick={{ fill: 'var(--text-secondary)' }}
+                  unit=" pac"
                 />
-                <YAxis fontSize={10} axisLine={false} tickLine={false} tick={{ fill: 'var(--text-secondary)' }} />
-                <Tooltip content={<CustomTooltipTurnoSar />} />
+                <YAxis 
+                  type="category" 
+                  dataKey="nombreCategoria" 
+                  fontSize={11} 
+                  tickLine={false} 
+                  axisLine={false} 
+                  tick={{ fill: 'var(--text-primary)', fontWeight: 700 }}
+                  width={190}
+                />
+                <Tooltip content={<CustomTooltipTurnosResumen />} />
                 <Legend wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', paddingTop: '10px' }} />
-                <Bar dataKey="volumenBase" name="Volumen Base" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                <Bar dataKey="volumenContraste" name="Volumen Contraste" fill="#6366f1" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                <Bar 
+                  dataKey="promedioBase" 
+                  name="Volumen Promedio Base" 
+                  fill="#10b981" 
+                  radius={[0, 4, 4, 0]} 
+                  maxBarSize={24} 
+                />
+                <Bar 
+                  dataKey="promedioContraste" 
+                  name="Volumen Promedio Contraste" 
+                  fill="#6366f1" 
+                  radius={[0, 4, 4, 0]} 
+                  maxBarSize={24} 
+                />
               </BarChart>
             </ResponsiveContainer>
           ) : (

@@ -10,6 +10,31 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.31',
+    version_tag: 'v6.3.31',
+    fecha: '19 de Septiembre, 2026',
+    fecha_despliegue: '19 de Septiembre, 2026',
+    proposito_actualizacion: 'Refactorización Gráfica de Curva de Demanda Continua: Agrupación Temporal Dinámica, Barras Horizontales Fijas de 3 Turnos SAR, Gráfico Delta Divergente y Normalización a Promedio Diario.',
+    medios_y_stack: [
+      'turnosSarDemanda.js (Nuevas funciones: agruparPorBloquesTemporales para agrupamiento dinámico <=31d por días, 32-90d por semanas y >90d por meses; consolidarResumenPorTipoTurnoSAR para resumir en 3 categorías fijas de guardias con promedios por turno; calcularDiasEnRango y calcularOcurrenciasDiasSemana)',
+      'GraficoDeltaDivergente.jsx (Nuevo componente con gráfico de barras divergentes para visualizar la variación neta de pacientes, resaltando en rojo suave la sobrecarga y en azul el alivio asistencial, con KPIs ejecutivos de mayor impacto)',
+      'AnalisisCurvaDemanda.jsx (Normalización de la curva horaria de 24h y del ciclo semanal a Promedio Diario pac/día erradicando distorsiones de decenas de miles, integración de GraficoDeltaDivergente y reemplazo del gráfico de barras densas por el BarChart horizontal de 3 categorías fijas)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Erradicación del Efecto Código de Barras: Se eliminan las barras verticales densas para períodos extensos, reemplazándolas por 3 categorías fijas en el eje Y (Hábil Vespertino-Nocturno, Finde/Feriado Día, Finde/Feriado Noche) con promedio de pacientes por turno. 2) Agrupación Dinámica Inteligente: Días individuales si rango <=31 días, semanas si 32-90 días y meses si >90 días. 3) Escala Diaria Fiel: El gráfico de curva de demanda normaliza a promedio diario por hora y día de la semana, manteniendo la forma y altura de peaks reales.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'system_architecture_log'],
+      query_optimization: 'Procesamiento en memoria O(N) con funciones puras deterministas sin recalcular el pool de pacientes.'
+    },
+    modulos_afectados: ['turnosSarDemanda.js', 'GraficoDeltaDivergente.jsx', 'AnalisisCurvaDemanda.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx'],
+    detalles_tecnicos: [
+      'Implementación de agruparPorBloquesTemporales, consolidarResumenPorTipoTurnoSAR, calcularDiasEnRango y calcularOcurrenciasDiasSemana en src/utils/turnosSarDemanda.js.',
+      'Creación del componente src/components/dashboard/GraficoDeltaDivergente.jsx con Recharts ReferenceLine y barras divergentes coloreadas por polaridad de delta.',
+      'Reemplazo del BarChart vertical por BarChart horizontal layout="vertical" con 3 categorías de turnos y tarjetas de resumen en AnalisisCurvaDemanda.jsx.',
+      'Normalización a escala de Promedio Diario (pac/día) en la Superposición de Curva Asistencial con toggle a Total Acumulado.',
+      'Sincronización íntegra de versiones maestras a v6.3.31.'
+    ]
+  },
+  {
     id: 'v6.3.30',
     version_tag: 'v6.3.30',
     fecha: '18 de Septiembre, 2026',
