@@ -961,7 +961,12 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
             'MÉTRICO Clínico Predictivo • SAR Elsa Romo Aravena'
           ),
           React.createElement(Text, { style: { margin: '4px 0 0 0', fontSize: '10px', color: '#64748b' } },
-            `Despacho automático de turno ejecutado el ${new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago' })} • Datos auditados conforme a la norma de integridad clínica SSOT.`
+            `Despacho asistencial auditado ejecutado el ${new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago' })} • Datos auditados conforme a la norma de integridad clínica SSOT.`
+          ),
+          React.createElement('div', { style: { marginTop: '8px', padding: '6px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px', border: '1px solid #e2e8f0', display: 'inline-block' } },
+            React.createElement(Text, { style: { margin: 0, fontSize: '9px', fontWeight: '800', color: '#334155' } },
+              '🛡️ POLÍTICA OFICIAL DE DESPACHO (Regla 20 MÉTRICO): Emisión exclusiva en Días Hábiles (Lunes a Viernes no festivos). Veda activa en Fines de Semana y Feriados Oficiales de Chile con reprogramación automática al siguiente día hábil a las 08:30 hrs.'
+            )
           )
         )
       )

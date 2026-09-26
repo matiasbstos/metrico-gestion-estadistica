@@ -255,7 +255,7 @@ export const calcularHorarioDespachoTurno = (item, modoCargaMasiva = 'NORMAL', i
     }
   }
 
-  // Fecha y hora prevista natural de término y despacho:
+  // Fecha y hora prevista natural de término y despacho del turno:
   // - Diurno: finaliza a las 20:00 hrs -> hora natural de despacho: 20:30 hrs del mismo día.
   // - Noche / Largo: finaliza a las 08:00 hrs del día siguiente -> hora natural de despacho: 08:30 hrs del día siguiente.
   let fechaDespachoNatural;
@@ -266,45 +266,49 @@ export const calcularHorarioDespachoTurno = (item, modoCargaMasiva = 'NORMAL', i
   }
 
   const naturalIsHabil = isDiaHabilChile(fechaDespachoNatural, pautasDB);
+  const now = new Date();
+  const hoyEsHabil = isDiaHabilChile(now, pautasDB);
 
-  if (naturalIsHabil) {
+  // REGLA 20 MÉTRICO: VEDA ABSOLUTA DE DESPACHO EN FINES DE SEMANA Y FERIADOS OFICIALES
+  // Si hoy (el momento actual en que corre el sistema) es fin de semana o feriado oficial en Chile,
+  // NINGÚN CORREO PUEDE SALIR HOY. Se reprograman de forma obligatoria para el próximo día hábil.
+  if (!hoyEsHabil) {
+    const dayOfWeekNow = now.getDay();
+    const esFindeHoy = (dayOfWeekNow === 0 || dayOfWeekNow === 6);
+    const motivo = esFindeHoy ? 'Pausado por Fin de Semana' : 'Pausado por Feriado';
+    const proxHabil = getProximoDiaHabilChile(now, pautasDB);
+    const nombreDia = proxHabil ? proxHabil.nombreDia : 'Lunes';
+    const fechaCorta = proxHabil ? proxHabil.fechaFormateada.substring(0, 5) : 'próximo hábil';
+
     if (modoCargaMasiva === 'RAFAGA_MISMO_DIA') {
-      const now = new Date();
-      const currentHour = now.getHours();
-      const currentMinute = now.getMinutes();
-      const startBaseMinutes = (currentHour < 9) ? (9 * 60) : (currentHour * 60 + currentMinute + 5);
-      const totalMins = startBaseMinutes + (idx * Number(intervaloMinutos || 20));
+      // Escalonado a partir de las 08:30 hrs del próximo día hábil
+      const startBaseMins = 8 * 60 + 30; // 08:30 AM
+      const totalMins = startBaseMins + (idx * Number(intervaloMinutos || 20));
       const h = Math.floor(totalMins / 60) % 24;
       const mins = totalMins % 60;
-      const dayLabel = Math.floor(totalMins / (24 * 60)) > 0 ? 'Mañana' : 'Hoy';
+      const horaStr = `${String(h).padStart(2, '0')}:${String(mins).padStart(2, '0')} hrs`;
       return {
-        horarioTexto: `${dayLabel} ${String(h).padStart(2, '0')}:${String(mins).padStart(2, '0')} hrs (Escalonado)`,
-        esPausado: false,
-        motivoPausa: null,
-        proximoHabilTexto: null
-      };
-    } else if (modoCargaMasiva === 'CONSOLIDADO_MULTIDIA') {
-      return {
-        horarioTexto: 'Consolidado Único (20:30 hrs)',
-        esPausado: false,
-        motivoPausa: null,
-        proximoHabilTexto: null
+        horarioTexto: `${nombreDia} ${fechaCorta} a las ${horaStr} (Escalonado)`,
+        esPausado: true,
+        motivoPausa: motivo,
+        proximoHabilTexto: `${nombreDia} ${fechaCorta} a las ${horaStr}`
       };
     } else {
-      const label = isDiurno ? 'Mismo día 20:30 hrs' : 'Día siguiente 08:30 hrs';
+      const proxTexto = proxHabil ? `${proxHabil.nombreDia} ${proxHabil.fechaFormateada.substring(0, 5)} a las 08:30 hrs` : 'Próximo día hábil 08:30 hrs';
       return {
-        horarioTexto: label,
-        esPausado: false,
-        motivoPausa: null,
-        proximoHabilTexto: null
+        horarioTexto: `${proxTexto}`,
+        esPausado: true,
+        motivoPausa: motivo,
+        proximoHabilTexto: proxHabil?.textoCompleto || proxTexto
       };
     }
-  } else {
-    // Veda de Fin de Semana o Feriado (Regla 20 MÉTRICO)
+  }
+
+  // Si hoy es día hábil pero el turno natural cayó en fin de semana o feriado y está en el futuro:
+  if (!naturalIsHabil && fechaDespachoNatural.getTime() > now.getTime()) {
     const baseEval = new Date(fechaDespachoNatural);
     baseEval.setDate(baseEval.getDate() - 1);
     const proxHabil = getProximoDiaHabilChile(baseEval, pautasDB);
-
     const proxTexto = proxHabil ? `${proxHabil.nombreDia} ${proxHabil.fechaFormateada.substring(0, 5)} a las 08:30 hrs` : 'Próximo día hábil 08:30 hrs';
     const dayOfWeekNatural = fechaDespachoNatural.getDay();
     const esFinde = (dayOfWeekNatural === 0 || dayOfWeekNatural === 6);
@@ -315,6 +319,38 @@ export const calcularHorarioDespachoTurno = (item, modoCargaMasiva = 'NORMAL', i
       esPausado: true,
       motivoPausa: motivo,
       proximoHabilTexto: proxHabil?.textoCompleto || proxTexto
+    };
+  }
+
+  // Si hoy es día hábil: se puede despachar hoy
+  if (modoCargaMasiva === 'RAFAGA_MISMO_DIA') {
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const startBaseMinutes = (currentHour < 9) ? (9 * 60) : (currentHour * 60 + currentMinute + 5);
+    const totalMins = startBaseMinutes + (idx * Number(intervaloMinutos || 20));
+    const h = Math.floor(totalMins / 60) % 24;
+    const mins = totalMins % 60;
+    const dayLabel = Math.floor(totalMins / (24 * 60)) > 0 ? 'Mañana' : 'Hoy';
+    return {
+      horarioTexto: `${dayLabel} ${String(h).padStart(2, '0')}:${String(mins).padStart(2, '0')} hrs (Escalonado)`,
+      esPausado: false,
+      motivoPausa: null,
+      proximoHabilTexto: null
+    };
+  } else if (modoCargaMasiva === 'CONSOLIDADO_MULTIDIA') {
+    return {
+      horarioTexto: 'Consolidado Único (20:30 hrs)',
+      esPausado: false,
+      motivoPausa: null,
+      proximoHabilTexto: null
+    };
+  } else {
+    const label = isDiurno ? 'Mismo día 20:30 hrs' : 'Día siguiente 08:30 hrs';
+    return {
+      horarioTexto: label,
+      esPausado: false,
+      motivoPausa: null,
+      proximoHabilTexto: null
     };
   }
 };

@@ -1415,11 +1415,14 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
           )}
         </div>
 
-        {/* 8. BLOQUE OFICIAL: PIE DE CERTIFICACIÓN Y CIERRE INSTITUCIONAL */}
-        <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] text-slate-700 space-y-1">
+        {/* 8. BLOQUE OFICIAL: PIE DE CERTIFICACIÓN, REGLAS Y CIERRE INSTITUCIONAL */}
+        <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] text-slate-700 space-y-1.5">
           <p><strong>Sistema Emisor:</strong> Métrico - Dashboard de Gestión Estadística y Tiempos de Espera de Urgencia (SAR Arpillerista Elsa Romo Aravena).</p>
           <p><strong>Usuario Certificante:</strong> {userProfile?.email || 'matias.bustos@cormumel.cl'}</p>
           <p><strong>Fecha de Generación / Descarga:</strong> {new Date().toLocaleString('es-CL', { dateStyle: 'long', timeStyle: 'medium' })} h</p>
+          <div className="p-2.5 bg-indigo-50 border border-indigo-200 rounded-xl text-[10px] text-indigo-900 font-medium">
+            <strong>🛡️ Directriz Oficial de Emisión Asistencial (Regla 20 MÉTRICO):</strong> Emisión exclusiva en Días Hábiles (Lunes a Viernes no festivos) a partir de las 08:30 hrs. Las jornadas de fin de semana (sábado y domingo) y feriados oficiales se pausan automáticamente y se reprograman para el primer día hábil siguiente.
+          </div>
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider pt-1 border-t border-slate-200">
             * ESTE DOCUMENTO ES UN CONSOLIDADO ESTADÍSTICO GENERADO A PARTIR DE REGISTROS DEL SISTEMA RAYEN URGENCIAS / SSOT OFICIAL.
           </p>
@@ -3073,13 +3076,21 @@ export default function ModalConfiguracionCorreo({
                   </h4>
                 </div>
                 <span className="text-[10px] font-black text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-3 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1">
-                  <ShieldAlert className="w-3.5 h-3.5 text-emerald-500" /> Protocolo Anti-Desfase
+                  <ShieldAlert className="w-3.5 h-3.5 text-emerald-500" /> Protocolo Anti-Desfase • Regla 20 Días Hábiles
                 </span>
               </div>
 
-              <p className="text-xs text-secondary-custom leading-relaxed">
-                Selecciona la directriz de despacho que el sistema aplicará cuando se carguen varios días acumulados a la vez (ej. cargar el domingo 5 días pendientes):
-              </p>
+              <div className="flex flex-col gap-1.5">
+                <p className="text-xs text-secondary-custom leading-relaxed">
+                  Selecciona la directriz de despacho que el sistema aplicará cuando se carguen varios días acumulados a la vez (ej. cargar el fin de semana 5 días pendientes):
+                </p>
+                <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-[11px] text-emerald-800 dark:text-emerald-300 font-semibold flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>
+                    <strong>Subordinación Estricta a Días Hábiles:</strong> Si la carga masiva o la fecha actual coincide con fin de semana (sábado/domingo) o feriado oficial en Chile, los envíos se pausan automáticamente y se ejecutan de forma escalonada a partir de las 08:30 hrs del primer día hábil siguiente.
+                  </span>
+                </div>
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 
@@ -3102,11 +3113,11 @@ export default function ModalConfiguracionCorreo({
                       </span>
                     </div>
                     <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
-                      Despacha los correos diarios de todos los días cargados <strong>durante el mismo día</strong>, espaciados cada {intervaloMinutos} minutos para no saturar los buzones ni activar filtros antispam.
+                      Despacha los correos diarios de todos los días cargados <strong>durante el mismo día hábil</strong> (o escalonado el próximo día hábil si es fin de semana/feriado), espaciados cada {intervaloMinutos} minutos para no saturar los buzones ni activar filtros antispam.
                     </p>
                   </div>
                   <div className="pt-3 border-t border-card-custom/50 flex items-center justify-between text-xs font-black text-emerald-600 dark:text-emerald-400">
-                    <span>Desfase: 0 días</span>
+                    <span>Desfase: Inmediato / Próx. Hábil</span>
                     <span>{modoCargaMasiva === 'RAFAGA_MISMO_DIA' ? '✓ Activo' : 'Seleccionar'}</span>
                   </div>
                 </div>
