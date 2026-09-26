@@ -40,6 +40,7 @@ import PopUpSincronizacion from './dashboard/PopUpSincronizacion';
 import InformeArquitectura, { HISTORIAL_ARQUITECTURA_BASE } from './dashboard/InformeArquitectura';
 import DevLogModule from './dashboard/DevLogModule';
 import MonitorFlujoOperativo from './dashboard/MonitorFlujoOperativo';
+import TorreControlSistema from './dashboard/TorreControlSistema';
 import FondoClinicoAnimado from './common/FondoClinicoAnimado';
 import { formatLocalDate, calcularUltimoTurnoCompleto, resolverMaxTimestampGlobal } from '../utils/helpers';
 import Login from './Login';
@@ -51,7 +52,7 @@ import {
   CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
   BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
   Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
-  HeartPulse, Shield, ShieldCheck, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail, BookOpen, Terminal, SlidersHorizontal, Wind, Workflow
+  HeartPulse, Shield, ShieldCheck, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail, BookOpen, Terminal, SlidersHorizontal, Wind, Workflow, Cpu
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
@@ -1835,6 +1836,12 @@ const DashboardContent = () => {
                     <ShieldCheck className="w-4 h-4 flex-shrink-0 text-emerald-400" />
                   </button>
                   <button 
+                    onClick={() => { setActiveTab('torre_admin'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                    title="Torre de Control (Auditoría de Sistema)"
+                    className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'torre_admin' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-cyan-400 hover:bg-cyan-500/10'}`}>
+                    <Cpu className="w-4 h-4 flex-shrink-0 text-cyan-400" />
+                  </button>
+                  <button 
                     onClick={() => { setActiveTab('devlog'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
                     title="Bitácora de Desarrollo"
                     className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'devlog' ? 'accent-bg-custom text-white font-bold' : 'bg-transparent text-secondary-custom hover:text-emerald-400 hover:bg-emerald-400/10'}`}>
@@ -1890,6 +1897,19 @@ const DashboardContent = () => {
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${activeTab === 'auditoria' || activeTab === 'arquitectura' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
                     <ShieldCheck className="w-4 h-4 flex-shrink-0 text-emerald-400" />
                     <span className="animate-fade-in truncate">Verificación</span>
+                  </button>
+
+                  <button 
+                    onClick={() => { setActiveTab('torre_admin'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                    title="Torre de Control (Auditoría de Sistema)"
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 cursor-pointer ${activeTab === 'torre_admin' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                    <div className="flex items-center gap-3">
+                      <Cpu className="w-4 h-4 flex-shrink-0 text-cyan-400" />
+                      <span className="animate-fade-in truncate">Torre de Control (Sistema)</span>
+                    </div>
+                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500 text-white shrink-0">
+                      PIPELINE
+                    </span>
                   </button>
 
                   <button 
@@ -2611,6 +2631,17 @@ const DashboardContent = () => {
             triggerRefresh={triggerRefresh}
             isGlobalAdmin={isGlobalAdmin}
             initialSubTab={activeTab === 'arquitectura' ? 'arquitectura' : 'resumen'}
+          />
+        )}
+
+        {activeTab === 'torre_admin' && (
+          <TorreControlSistema 
+            pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB}
+            turnosDB={turnosDB}
+            pautasDB={pautasTurnosHook?.pautasDB}
+            userProfile={userProfile}
+            filtroFechaInicio={filtroFechaInicio}
+            filtroFechaFin={filtroFechaFin}
           />
         )}
 

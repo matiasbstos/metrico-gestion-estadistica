@@ -1,6 +1,6 @@
 import { 
   BarChart2, GitCompare, Calendar, Award, Users, UserCheck, Activity,
-  ShieldAlert, ArrowLeftRight, FileSpreadsheet, Database, Shield, ShieldCheck, BookOpen, Terminal, Sparkles, Workflow
+  ShieldAlert, ArrowLeftRight, FileSpreadsheet, Database, Shield, ShieldCheck, BookOpen, Terminal, Sparkles, Workflow, Cpu
 } from 'lucide-react';
 
 export const SYSTEM_MODULES = [
@@ -167,6 +167,16 @@ export const SYSTEM_MODULES = [
     color: 'text-emerald-500', 
     category: 'Gestión & Control',
     defaultEnabled: true 
+  },
+  { 
+    id: 'torre_admin', 
+    name: 'Torre de Control (Auditoría de Sistema)', 
+    description: 'Diagrama interactivo de red con React Flow del flujo de datos, motor de turnos, SSOT y validación de reglas de negocio.', 
+    icon: Cpu, 
+    color: 'text-cyan-400', 
+    category: 'Gestión & Control',
+    defaultEnabled: true,
+    isNew: true
   },
   { 
     id: 'arquitectura', 

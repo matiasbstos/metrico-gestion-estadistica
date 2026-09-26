@@ -348,6 +348,21 @@ export default function BarraBusquedaGlobal({
         action: () => navigateAndScroll('flujo')
       },
       {
+        id: 'torre_admin',
+        title: 'Torre de Control (Auditoría de Sistema)',
+        category: 'Arquitectura & Pipeline Admin',
+        keywords: [
+          'torre admin', 'torre sistema', 'pipeline', 'react flow', 'diagrama de red', 'ingesta', 
+          'motor de turnos', 'motor de limpieza', 'ssot', 'reglas de negocio', 'troubleshooting', 
+          'arquitectura', 'datos', 'flujo de datos', 'excel', 'llave compuesta', 'calcular turno'
+        ],
+        icon: Cpu,
+        color: 'text-cyan-500 bg-cyan-100 dark:bg-cyan-950/50 border-cyan-300 dark:border-cyan-800',
+        liveKPI: 'Mapa mental de pipeline de datos, motor de turnos y SSOT',
+        description: 'Auditoría interactiva de reglas de negocio, ingesta Excel, deduplicación y troubleshooting.',
+        action: () => navigateAndScroll('torre_admin')
+      },
+      {
         id: 'comparativo',
         title: 'Rendimiento de Turnos & Equipos (Comparativo)',
         category: 'Comparativo Operacional',

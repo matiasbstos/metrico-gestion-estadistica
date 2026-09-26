@@ -17,6 +17,7 @@ import BitacoraAntecedentes from './BitacoraAntecedentes';
 import ModalDetalleReglaIntegridad from './ModalDetalleReglaIntegridad';
 import ModalProgresoConciliacion from './ModalProgresoConciliacion';
 import InformeArquitectura from './InformeArquitectura';
+import TorreControlSistema from './TorreControlSistema';
 
 // Línea Base Histórica Certificada SAR Elsa Romo Aravena (Reportes Oficiales Rayen 2025)
 const BASELINE_SAR_2025 = {
@@ -1221,6 +1222,7 @@ export default function CentroVerificacionAuditoria({
         <div className="flex items-center gap-2 overflow-x-auto pb-1 mt-8 border-b border-card-custom/40 scrollbar-thin">
           {[
             { id: 'resumen', label: 'Panel de Control & Estado General', icon: Sparkles, color: 'text-amber-500', isPrimary: true },
+            { id: 'torre_control', label: 'Torre de Control (Pipeline)', icon: Cpu, color: 'text-cyan-400' },
             { id: 'reglas', label: 'Reglas de Integridad (10)', icon: ShieldCheck, color: 'text-emerald-500' },
             { id: 'correlativos', label: 'Punto de Control & Correlativos', icon: Hash, color: 'text-blue-500' },
             { id: 'demanda', label: 'Prueba de Control de Demanda', icon: BarChart2, color: 'text-indigo-500' },
@@ -1594,6 +1596,22 @@ export default function CentroVerificacionAuditoria({
               </table>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ========================================================
+          SUB-PESTAÑA NUEVA: TORRE DE CONTROL (PIPELINE & AUDITORÍA)
+      ======================================================== */}
+      {activeSubTab === 'torre_control' && (
+        <div className="space-y-6 animate-fade-in">
+          <TorreControlSistema 
+            pacientesDB={pacientesDB}
+            turnosDB={turnosDB}
+            pautasDB={pautasTurnosHook?.pautasDB}
+            userProfile={userProfile}
+            filtroFechaInicio={filtroFechaInicio}
+            filtroFechaFin={filtroFechaFin}
+          />
         </div>
       )}
 
