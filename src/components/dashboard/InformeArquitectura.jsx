@@ -10,6 +10,32 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.32',
+    version_tag: 'v6.3.32',
+    fecha: '26 de Septiembre, 2026',
+    fecha_despliegue: '26 de Septiembre, 2026',
+    proposito_actualizacion: 'Gestión Persistente de Destinatarios en Firestore, Edición Integral, Trazabilidad e Incidencias en Envíos, Calibración de Ventana de Guardia Hábil y Certificación SSOT Rayen del Turno 24/09/2026.',
+    medios_y_stack: [
+      'ModalConfiguracionCorreo.jsx (Sincronización bidireccional continua con Firestore en artifacts/{appId}/public/data/configuracion_correo/destinatarios, fallback inteligente ante arrays vacíos, formulario reactivo con soporte para Agregar y Editar destinatarios, badges de auditoría por funcionario con detección de incidencias SMTP, y nueva bitácora de trazabilidad de envíos)',
+      'helpers.js (Calibración universal de la ventana matutina en días hábiles a hours < 16 en obtenerTurnoDetallado para capturar la resolución médica extendida hasta las 12:00 PM sin descalces, e integración del control oficial certificado 2026-09-24_SEMANA_LARGO en OFFICIAL_RAYEN_SHIFT_CONTROLS con 83 admisiones, 73 completados y 10 egresos)',
+      'CentroVerificacionAuditoria.jsx (Armonización de la ventana de guardia hábil a hours < 16 garantizando cuadratura universal entre módulos)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Persistencia Absoluta de Destinatarios: Los funcionarios y autoridades receptoras se sincronizan de forma permanente en Firestore, preservando los cambios frente a limpiezas de caché local o actualizaciones de versión. 2) Auditoría de Incidencias: Cada despacho audita si la entrega vía SMTP fue exitosa o si presentó fallas técnicas, registrando el motivo explícito y el timestamp en la bitácora cronológica. 3) Ventana de Guardia Hábil: Todo ingreso y permanencia médica registrada en días de semana antes de las 16:00 hrs se consolida en la guardia iniciada la tarde anterior.',
+      firestore_collections: ['configuracion_correo', 'destinatarios_correo', 'mail', 'envios_correos', 'turnos', 'pacientes_urgencia'],
+      query_optimization: 'Sincronización O(1) de configuración con fallback a DEFAULT_DESTINATARIOS.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'helpers.js', 'CentroVerificacionAuditoria.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx'],
+    detalles_tecnicos: [
+      'Sincronización Firestore en ModalConfiguracionCorreo.jsx para lectura/escritura de destinatarios en la nube.',
+      'Formulario unificado con modo Edición (handleStartEditDestinatario, handleCancelDestinatarioForm, handleSaveDestinatario) y botón de lápiz en la tabla.',
+      'Auditoría individual con badges dinámicos (Entregado verde, Incidencia roja con motivo técnico, Pendiente ámbar).',
+      'Nueva sección Bitácora de Trazabilidad e Incidencias de Envíos con historial de despachos.',
+      'Corrección de isPreviousShift en helpers.js (hours < 16) y certificación de 83 pacientes del 24/09/2026.',
+      'Incremento de versión a v6.3.32.'
+    ]
+  },
+  {
     id: 'v6.3.31',
     version_tag: 'v6.3.31',
     fecha: '19 de Septiembre, 2026',

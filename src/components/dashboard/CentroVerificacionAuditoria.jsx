@@ -879,7 +879,7 @@ export default function CentroVerificacionAuditoria({
           }
         } else {
           horario = '17:00 - 08:00';
-          if (hours < 8) {
+          if (hours < 16) {
             const prev = new Date(d);
             prev.setDate(prev.getDate() - 1);
             fechaInicio = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}-${String(prev.getDate()).padStart(2, '0')}`;

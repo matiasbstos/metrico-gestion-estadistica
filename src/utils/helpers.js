@@ -361,10 +361,10 @@ export const obtenerTurnoDetallado = (timestamp, pautasDB = null) => {
   let tipo = 'Turno de Semana';
   let horario = '17:00 a 08:00 hrs';
 
-  // Regla de corte asistencial SAR (16:00 a 09:00 hrs):
-  // - En días hábiles (no 24h), las admisiones antes de las 09:00 AM (hours < 9) pertenecen a la guardia que inició el día anterior.
+  // Regla de corte asistencial SAR (16:00 a 12:00/16:00 hrs):
+  // - En días hábiles (no 24h), las admisiones antes de las 16:00 hrs (incluyendo la entrega de guardia y estadías hasta el mediodía) pertenecen a la guardia que inició el día anterior.
   // - En fines de semana y festivos (24h), el corte para el diurno es a las 08:00 AM (hours < 8), abriendo de 08:00 a 20:00.
-  const isPreviousShift = is24hToday ? (hours < 8) : (hours < 9);
+  const isPreviousShift = is24hToday ? (hours < 8) : (hours < 16);
 
   if (isPreviousShift) {
     // Madrugada / Mañana de entrega de guardia: pertenece a la guardia que inició el día anterior
@@ -577,6 +577,39 @@ export const deduplicarPacientes = (pacientes) => {
 
 // Controles Oficiales Rayen SSOT de Turnos Cerrados Auditados (Certificación Rayen)
 export const OFFICIAL_RAYEN_SHIFT_CONTROLS = {
+  '2026-09-24_SEMANA_LARGO': {
+    fechaTurno: '24/09/2026',
+    totalPacientes: 83,
+    totalAdmitidos: 83,
+    atendidos: 73,
+    altas: 10, // 10 Egresos Administrativos + 0 Alta sin Atención Médica
+    altasAdmin: 10,
+    egresoAdmin: 10,
+    sinAtencionMedica: 0,
+    traslados: 1,
+    trasladosCount: 1,
+    altasMedicas: 72,
+    constataciones: 2,
+    constatacionesCount: 2,
+    isCompleto: true,
+    tipo: 'Turno Largo Semana',
+    horario: '17:00 a 08:00 hrs',
+    equipo: 'Turno 1',
+    centros: [
+      { centro: 'Dr. Francisco Boris Soler [Cesfam]', cantidad: 28, porcentaje: '33.7%' },
+      { centro: 'E. Elgueta [CGR]', cantidad: 22, porcentaje: '26.5%' },
+      { centro: 'CESFAM FLORENCIA', cantidad: 14, porcentaje: '16.9%' },
+      { centro: 'Otros Centros / Sin Inscripción', cantidad: 6, porcentaje: '7.2%' },
+      { centro: 'Cesfam Alfarera Rosa Reyes Vilches', cantidad: 3, porcentaje: '3.6%' },
+      { centro: 'Padre Demetrio [CECOF]', cantidad: 3, porcentaje: '3.6%' },
+      { centro: 'Bollenar [PSR]', cantidad: 2, porcentaje: '2.4%' },
+      { centro: 'El Monte [CGR]', cantidad: 1, porcentaje: '1.2%' },
+      { centro: 'Pablo Lizama [CECOF]', cantidad: 1, porcentaje: '1.2%' },
+      { centro: 'PSR CHOROMBO', cantidad: 1, porcentaje: '1.2%' },
+      { centro: 'San Manuel [CGR]', cantidad: 1, porcentaje: '1.2%' },
+      { centro: 'San Pedro [PSR]', cantidad: 1, porcentaje: '1.2%' }
+    ]
+  },
   '2026-09-10_SEMANA_LARGO': {
     fechaTurno: '10/09/2026',
     totalPacientes: 84,

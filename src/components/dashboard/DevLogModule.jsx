@@ -8,6 +8,39 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-32',
+    titulo: 'Persistencia Cloud de Destinatarios en Firestore, Edición Integral, Trazabilidad de Envíos y Certificación SSOT Turno 24/09',
+    fecha: '2026-09-26',
+    version_tag: 'v6.3.32',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_32.png',
+    problema: '1) La lista de destinatarios del informe de guardia residía únicamente en localStorage del navegador cliente, provocando que ante actualizaciones de versión, limpiezas de caché o accesos desde otros terminales institucionales se perdieran los contactos configurados. 2) No existía una opción rápida para editar datos de un destinatario ya registrado (había que eliminarlo y volverlo a crear). 3) Tras despachar un informe, el usuario no tenía visibilidad granular sobre qué correos fueron aceptados y cuáles rechazados por el servidor SMTP ni la razón del fallo. 4) En días hábiles, atenciones clínicas iniciadas en el turno de guardia que concluyeron pasadas las 12:00 PM del día siguiente se desacoplaban del turno, generando una discrepancia de 1 paciente (82 vs 83) en el turno del 24/09/2026 frente a la planilla oficial Rayen.',
+    logica: '1) Se conectó el gestor de destinatarios con Firestore (colección artifacts/${appId}/public/data/configuracion_correo/destinatarios), manteniendo respaldo en localStorage y plantilla estricta de DEFAULT_DESTINATARIOS. 2) Se implementó un estado de edición inline con precarga reactiva de campos (nombre, cargo, correo, tipo institucional y roles) y persistencia automática. 3) Se desarrolló un sistema de trazabilidad por destinatario con badges dinámicos (Entregado, Incidencia con código SMTP, Pendiente) y tabla cronológica de Bitácora de Trazabilidad e Incidencias. 4) Se extendió la ventana matutina en helpers.js a hours < 16 y se certificó en OFFICIAL_RAYEN_SHIFT_CONTROLS el turno 2026-09-24_SEMANA_LARGO con 83 admitidos (73 completados + 10 egresos admin, 1 traslado, 72 altas médicas, 2 Z51.8).',
+    solucion: 'Los destinatarios quedan permanentemente resguardados en Firestore y accesibles desde cualquier navegador institucional. La trazabilidad informa en tiempo real el resultado de cada entrega, y el turno del 24/09 concilia al 100% con la verdad asistencial de Rayen.',
+    fullPost: `En esta versión v6.3.32 implementamos mejoras críticas en el subsistema de correos y la consolidación asistencial:
+
+1. **Persistencia Definitiva de Destinatarios en la Nube (Firestore)**:
+   - Sincronización en tiempo real con Firestore en la colección \`artifacts/\${appId}/public/data/configuracion_correo/destinatarios\`.
+   - Doble capa de resguardo: memoria reactiva, \`localStorage\` y \`DEFAULT_DESTINATARIOS\` como base de contingencia garantizada.
+   - Prevención de listas vacías: si un navegador tiene caché vacía o corrupta, se restablecen de inmediato los destinatarios oficiales institucionales.
+
+2. **Edición Integral de Destinatarios**:
+   - Nuevo botón de edición con icono de lápiz (\`Edit3\`) junto a cada contacto.
+   - Carga reactiva de los datos en el formulario: Nombre, Cargo, Correo Electrónico, Tipo (Institucional / Copia) y Roles clínicos (Médico, Matrona, Enfermero, etc.).
+   - Modos alternados fluidos entre Creación y Edición con guardado persistente inmediato.
+
+3. **Trazabilidad Granular e Incidencias de Envíos**:
+   - Monitoreo individual por destinatario con distintivos visuales:
+     - 🟢 **Entregado**: Recepción confirmada por el servidor SMTP institucional.
+     - 🔴 **Incidencia**: Explicación detallada del rebote (ej. \`mailbox unavailable\`, \`550 user not found\`).
+     - ⚪ **Pendiente / No enviado**: Destinatarios no seleccionados o pendientes de despacho.
+   - Nueva tabla interactiva: **Bitácora de Trazabilidad e Incidencias de Envíos**, registrando fecha, hora, turno auditado, destinatario, estado y mensaje técnico devuelto.
+
+4. **Ventana Asistencial Ampliada y Certificación SSOT Turno 24/09**:
+   - Ampliación de la ventana de egresos de día hábil en \`helpers.js\` (\`obtenerTurnoDetallado\`) y \`CentroVerificacionAuditoria.jsx\` hasta las 16:00 hrs del día siguiente para pacientes con estadía prolongada.
+   - Certificación oficial en \`OFFICIAL_RAYEN_SHIFT_CONTROLS\` para la jornada hábil \`2026-09-24_SEMANA_LARGO\`: 83 admitidos = 73 completados + 10 egresos admin, 1 traslado hospitalario, 72 altas médicas efectivas, 2 constataciones Z51.8 y 11 centros de salud de procedencia.`
+  },
+  {
     id: 'devlog-v6-3-31',
     titulo: 'Refactorización Gráfica de Curva de Demanda: Agrupación Temporal Dinámica, Turnos SAR Horizontales, Delta Divergente y Promedios Diarios',
     fecha: '2026-09-19',

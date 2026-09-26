@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.32',
+      version: 'v6.3.32',
+      fecha: '26 de Septiembre, 2026',
+      badge: 'PERSISTENCIA CLOUD, EDICIÓN Y TRAZABILIDAD DE CORREOS & CERTIFICACIÓN SSOT RAYEN',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Persistencia en Firestore de Destinatarios, Edición Integral, Trazabilidad de Envíos y Certificación SSOT Turno 24/09',
+      categoria: 'Módulo de Correo & Gestión Asistencial',
+      icon: Mail,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se integró persistencia definitiva en Firestore para la lista de destinatarios del informe de guardia, garantizando que nunca se pierdan al recargar la web o actualizar versión. Se añadió edición completa de destinatarios (nombre, cargo, email, tipo y roles). Se incorporó sistema de trazabilidad de despacho con estados individuales (Entregado, Incidencia con error SMTP exacto, Pendiente) y bitácora de auditoría. Se amplió la ventana asistencial de día hábil (hasta 16:00 hrs) y se certificó en OFFICIAL_RAYEN_SHIFT_CONTROLS el turno del 24/09/2026 (83 pacientes admitidos, 73 completados, 10 egresos admin, 72 altas médicas, 1 traslado, 2 Z51.8).',
+      instructivo: {
+        paraQueSirve: 'Garantiza la retención de contactos en la nube, permite corregir correos o cargos sin reescribir todo, audita el éxito o rechazo de cada destinatario con detalle de error, y cuadra al 100% las cifras del turno del 24/09 con la planilla oficial de Rayen.',
+        quePuedesVer: 'En la pestaña "Destinatarios": botón de edición (lápiz) con formulario reactivo, sincronización automática a Firestore, insignias de estado en cada contacto tras un envío y la nueva tabla "Bitácora de Trazabilidad e Incidencias de Envíos". En el selector de turnos: el turno del 24/09/2026 auditado con 83 pacientes.',
+        ejemploUso: 'Haz clic en el lápiz junto a un destinatario para corregir su correo institucional y guarda: los cambios se sincronizan en la nube de inmediato. Tras despachar un informe, revisa en la tabla inferior qué destinatarios recibieron el correo y cuáles presentaron rebote.'
+      },
+      changes: [
+        'Sincronización bidireccional de destinatarios con Firestore (colección artifacts/public/data/configuracion_correo/destinatarios) y fallback a DEFAULT_DESTINATARIOS.',
+        'Flujo de edición en línea de destinatarios (Edición de Nombre, Cargo, Email, Tipo Institucional/Copia y Roles) con prellenado y guardado reactivo.',
+        'Badges de trazabilidad por destinatario (Entregado, Incidencia con causa exacta, Pendiente) y nueva tabla cronológica de Bitácora de Trazabilidad e Incidencias.',
+        'Extensión de la ventana matutina de día hábil hasta las 16:00 hrs en helpers.js y CentroVerificacionAuditoria.jsx para atenciones prolongadas de guardia.',
+        'Certificación SSOT de turno del 24/09/2026 en OFFICIAL_RAYEN_SHIFT_CONTROLS (83 admitidos = 73 completados + 10 egresos admin, 1 traslado, 72 altas médicas, 2 Z51.8, 11 centros de origen).'
+      ]
+    },
+    {
       id: 'v6.3.31',
       version: 'v6.3.31',
       fecha: '19 de Septiembre, 2026',

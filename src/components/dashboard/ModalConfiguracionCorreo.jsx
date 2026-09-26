@@ -3,11 +3,11 @@ import {
   Mail, Clock, Calendar as CalendarIcon, CheckCircle, CheckCircle2, Send, ShieldAlert, Sparkles, X, Check, 
   FileText, AlertCircle, RefreshCw, Layers, Code, CheckSquare, Square, Cpu, Eye, UserCheck, 
   Activity, ArrowLeftRight, Hospital, FastForward, Play, ListOrdered, ChevronRight, Users, 
-  UserPlus, Trash2, Edit3, Smartphone, Monitor, ShieldCheck, History, ArrowRight, ToggleLeft, ToggleRight, 
+  UserPlus, Trash2, Edit3, Pencil, Smartphone, Monitor, ShieldCheck, History, ArrowRight, ToggleLeft, ToggleRight, 
   Inbox, BellRing, Filter, Search, ChevronLeft, Zap, AlertTriangle, BarChart3
 } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { app as defaultApp } from '../../config/firebase';
+import { app as defaultApp, db as defaultDb, appId as defaultAppId } from '../../config/firebase';
 import { 
   auditarUltimoTurnoCompleto, 
   deduplicarPacientes, 
@@ -33,6 +33,39 @@ import { HISTORIAL_ARQUITECTURA_BASE } from './InformeArquitectura';
 import { playSuccessChime, playErrorChime } from '../../utils/audioNotifications';
 // Controles Oficiales Rayen SSOT de Turnos Cerrados Auditados (Certificación Rayen)
 const OFFICIAL_RAYEN_SHIFT_CONTROLS = {
+  '2026-09-24_SEMANA_LARGO': {
+    fechaTurno: '24/09/2026',
+    totalPacientes: 83,
+    totalAdmitidos: 83,
+    atendidos: 73,
+    altas: 10, // 10 Egresos Administrativos + 0 Alta sin Atención Médica
+    altasAdmin: 10,
+    egresoAdmin: 10,
+    sinAtencionMedica: 0,
+    traslados: 1,
+    trasladosCount: 1,
+    altasMedicas: 72,
+    constataciones: 2,
+    constatacionesCount: 2,
+    isCompleto: true,
+    tipo: 'Turno Largo Semana',
+    horario: '17:00 a 08:00 hrs',
+    equipo: 'Turno 1',
+    centros: [
+      { centro: 'Dr. Francisco Boris Soler [Cesfam]', cantidad: 28, porcentaje: '33.7%' },
+      { centro: 'E. Elgueta [CGR]', cantidad: 22, porcentaje: '26.5%' },
+      { centro: 'CESFAM FLORENCIA', cantidad: 14, porcentaje: '16.9%' },
+      { centro: 'Otros Centros / Sin Inscripción', cantidad: 6, porcentaje: '7.2%' },
+      { centro: 'Cesfam Alfarera Rosa Reyes Vilches', cantidad: 3, porcentaje: '3.6%' },
+      { centro: 'Padre Demetrio [CECOF]', cantidad: 3, porcentaje: '3.6%' },
+      { centro: 'Bollenar [PSR]', cantidad: 2, porcentaje: '2.4%' },
+      { centro: 'El Monte [CGR]', cantidad: 1, porcentaje: '1.2%' },
+      { centro: 'Pablo Lizama [CECOF]', cantidad: 1, porcentaje: '1.2%' },
+      { centro: 'PSR CHOROMBO', cantidad: 1, porcentaje: '1.2%' },
+      { centro: 'San Manuel [CGR]', cantidad: 1, porcentaje: '1.2%' },
+      { centro: 'San Pedro [PSR]', cantidad: 1, porcentaje: '1.2%' }
+    ]
+  },
   '2026-09-18_FINDE_DIA': {
     fechaTurno: '18/09/2026',
     totalPacientes: 85,
@@ -1396,6 +1429,46 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
   );
 }
 
+// Destinatarios Oficiales Institucionales Predeterminados SAR Elsa Romo Aravena
+export const DEFAULT_DESTINATARIOS = [
+  {
+    id: 'dest-1',
+    nombre: 'Dra. Dirección SAR',
+    cargo: 'Dirección Médica SAR',
+    email: 'direccion.sar@cormumel.cl',
+    frecuencia: 'AMBOS', // 'DIARIO' | 'MENSUAL' | 'AMBOS'
+    activo: true,
+    totalEnviados: 48,
+    ultimoEnvio: 'Hoy 08:30 hrs',
+    ultimoEstado: 'EXITOSO',
+    ultimaIncidencia: null
+  },
+  {
+    id: 'dest-2',
+    nombre: 'Jefatura de Gestión Clínica',
+    cargo: 'Jefatura Asistencial',
+    email: 'jefatura.sar@cormumel.cl',
+    frecuencia: 'AMBOS',
+    activo: true,
+    totalEnviados: 52,
+    ultimoEnvio: 'Hoy 08:30 hrs',
+    ultimoEstado: 'EXITOSO',
+    ultimaIncidencia: null
+  },
+  {
+    id: 'dest-3',
+    nombre: 'Coordinación de Turnos',
+    cargo: 'Supervisión de Enfermería',
+    email: 'coordinacion.sar@cormumel.cl',
+    frecuencia: 'DIARIO',
+    activo: true,
+    totalEnviados: 35,
+    ultimoEnvio: 'Ayer 20:30 hrs',
+    ultimoEstado: 'EXITOSO',
+    ultimaIncidencia: null
+  }
+];
+
 export default function ModalConfiguracionCorreo({ 
   isOpen, 
   onClose, 
@@ -1469,52 +1542,89 @@ export default function ModalConfiguracionCorreo({
   const [incConstataciones, setIncConstataciones] = useState(true);
   const [incTraslados, setIncTraslados] = useState(true);
 
-  // Gestión de Destinatarios Estructurados
+  // Gestión de Destinatarios Estructurados (Triple Capa: State + LocalStorage + Firestore SSOT)
   const [destinatariosList, setDestinatariosList] = useState(() => {
     try {
       const saved = localStorage.getItem('metrico_destinatarios_correo');
-      if (saved) return JSON.parse(saved);
-    } catch(e) {}
-    return [
-      {
-        id: 'dest-1',
-        nombre: 'Dra. Dirección SAR',
-        cargo: 'Dirección Médica SAR',
-        email: 'direccion.sar@cormumel.cl',
-        frecuencia: 'AMBOS', // 'DIARIO' | 'MENSUAL' | 'AMBOS'
-        activo: true,
-        totalEnviados: 48,
-        ultimoEnvio: 'Hoy 08:30 hrs'
-      },
-      {
-        id: 'dest-2',
-        nombre: 'Jefatura de Gestión Clínica',
-        cargo: 'Jefatura Asistencial',
-        email: 'jefatura.sar@cormumel.cl',
-        frecuencia: 'AMBOS',
-        activo: true,
-        totalEnviados: 52,
-        ultimoEnvio: 'Hoy 08:30 hrs'
-      },
-      {
-        id: 'dest-3',
-        nombre: 'Coordinación de Turnos',
-        cargo: 'Supervisión de Enfermería',
-        email: 'coordinacion.sar@cormumel.cl',
-        frecuencia: 'DIARIO',
-        activo: true,
-        totalEnviados: 35,
-        ultimoEnvio: 'Ayer 20:30 hrs'
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
-    ];
+    } catch(e) {}
+    return DEFAULT_DESTINATARIOS;
   });
 
-  // Formulario Nuevo Destinatario
+  // Formulario Nuevo / Editar Destinatario
   const [newDestNombre, setNewDestNombre] = useState('');
   const [newDestCargo, setNewDestCargo] = useState('');
   const [newDestEmail, setNewDestEmail] = useState('');
   const [newDestFrecuencia, setNewDestFrecuencia] = useState('AMBOS');
+  const [newDestActivo, setNewDestActivo] = useState(true);
+  const [editingDestId, setEditingDestId] = useState(null);
   const [showAddDestForm, setShowAddDestForm] = useState(false);
+
+  // Sincronización bidireccional y carga desde Firestore
+  useEffect(() => {
+    const activeDb = db || defaultDb;
+    const activeAppId = appId || defaultAppId;
+    if (!activeDb) return;
+
+    let isMounted = true;
+    const loadDestinatariosFirestore = async () => {
+      try {
+        const { doc, getDoc, setDoc } = await import('firebase/firestore');
+        const destDocRef = doc(activeDb, 'artifacts', activeAppId, 'public', 'data', 'configuracion_correo', 'destinatarios');
+        const snap = await getDoc(destDocRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          if (Array.isArray(data?.destinatarios) && data.destinatarios.length > 0) {
+            if (isMounted) {
+              setDestinatariosList(data.destinatarios);
+              try {
+                localStorage.setItem('metrico_destinatarios_correo', JSON.stringify(data.destinatarios));
+              } catch(e) {}
+            }
+            return;
+          }
+        }
+        // Si no existe en Firestore, respaldar inmediatamente los predeterminados en la nube
+        await setDoc(destDocRef, {
+          destinatarios: DEFAULT_DESTINATARIOS,
+          updatedAt: Date.now(),
+          updatedBy: user?.email || 'admin'
+        }, { merge: true });
+      } catch (err) {
+        console.warn('[Firestore Destinatarios] Modo offline o sin permisos:', err?.message);
+      }
+    };
+
+    loadDestinatariosFirestore();
+    return () => { isMounted = false; };
+  }, [db, user]);
+
+  // Persistir destinatarios en LocalStorage y Firestore en cada modificación
+  const persistDestinatarios = async (updatedList) => {
+    setDestinatariosList(updatedList);
+    try {
+      localStorage.setItem('metrico_destinatarios_correo', JSON.stringify(updatedList));
+    } catch(e) {}
+
+    const activeDb = db || defaultDb;
+    const activeAppId = appId || defaultAppId;
+    if (activeDb) {
+      try {
+        const { doc, setDoc } = await import('firebase/firestore');
+        const destDocRef = doc(activeDb, 'artifacts', activeAppId, 'public', 'data', 'configuracion_correo', 'destinatarios');
+        await setDoc(destDocRef, {
+          destinatarios: updatedList,
+          updatedAt: Date.now(),
+          updatedBy: user?.email || 'admin'
+        }, { merge: true });
+      } catch (err) {
+        console.warn('[Firestore] Error persistiendo destinatarios:', err);
+      }
+    }
+  };
 
   // Estados de Pruebas de Envío y Consola
   const [testTemplate, setTestTemplate] = useState('DIARIO'); // 'DIARIO' | 'MENSUAL' | 'MASIVO' | 'SUBREPORTES'
@@ -2062,7 +2172,7 @@ export default function ModalConfiguracionCorreo({
   }, [destinatariosList]);
 
   // Guardar Configuración Global
-  const handleSaveAllConfig = () => {
+  const handleSaveAllConfig = async () => {
     const configData = {
       confirmarEnvioAutomatico,
       programacion: {
@@ -2084,52 +2194,118 @@ export default function ModalConfiguracionCorreo({
         incConstataciones,
         incTraslados
       },
+      destinatarios: destinatariosList,
       ultimoTurnoAuditado: turnoInfo.textoCompleto,
       updatedAt: new Date().toISOString()
     };
 
-    localStorage.setItem('metrico_config_correo', JSON.stringify(configData));
-    setSaveMsg('¡Configuración, programación y reglas de despacho guardadas exitosamente!');
-    if (showNotif) showNotif('Programación general de correos actualizada y confirmada.', 'success');
+    try {
+      localStorage.setItem('metrico_config_correo', JSON.stringify(configData));
+      localStorage.setItem('metrico_destinatarios_correo', JSON.stringify(destinatariosList));
+    } catch(e) {}
+
+    const activeDb = db || defaultDb;
+    const activeAppId = appId || defaultAppId;
+    if (activeDb) {
+      try {
+        const { doc, setDoc } = await import('firebase/firestore');
+        const destDocRef = doc(activeDb, 'artifacts', activeAppId, 'public', 'data', 'configuracion_correo', 'destinatarios');
+        await setDoc(destDocRef, {
+          destinatarios: destinatariosList,
+          configuracion: configData,
+          updatedAt: Date.now(),
+          updatedBy: user?.email || 'admin'
+        }, { merge: true });
+      } catch(err) {
+        console.warn('Error guardando en Firestore:', err);
+      }
+    }
+
+    setSaveMsg('¡Configuración, programación y destinatarios guardados permanentemente!');
+    if (showNotif) showNotif('Configuración general y destinatarios sincronizados en la nube.', 'success');
     setTimeout(() => setSaveMsg(''), 4000);
   };
 
-  // Manejador de Agregar Destinatario
-  const handleAddDestinatario = (e) => {
+  // Iniciar Edición de Destinatario
+  const handleStartEditDestinatario = (dest) => {
+    setEditingDestId(dest.id);
+    setNewDestNombre(dest.nombre || '');
+    setNewDestCargo(dest.cargo || '');
+    setNewDestEmail(dest.email || '');
+    setNewDestFrecuencia(dest.frecuencia || 'AMBOS');
+    setNewDestActivo(dest.activo !== undefined ? dest.activo : true);
+    setShowAddDestForm(true);
+  };
+
+  // Cancelar Formulario de Destinatario
+  const handleCancelDestinatarioForm = () => {
+    setShowAddDestForm(false);
+    setEditingDestId(null);
+    setNewDestNombre('');
+    setNewDestCargo('');
+    setNewDestEmail('');
+    setNewDestFrecuencia('AMBOS');
+    setNewDestActivo(true);
+  };
+
+  // Manejador de Guardar o Actualizar Destinatario
+  const handleSaveDestinatario = async (e) => {
     e.preventDefault();
     if (!newDestEmail.trim() || !newDestNombre.trim()) {
       if (showNotif) showNotif('Ingrese el nombre y correo electrónico del funcionario.', 'error');
       return;
     }
 
-    const newDest = {
-      id: `dest-${Date.now()}`,
-      nombre: newDestNombre.trim(),
-      cargo: newDestCargo.trim() || 'Gestión / Asistencial',
-      email: newDestEmail.trim().toLowerCase(),
-      frecuencia: newDestFrecuencia,
-      activo: true,
-      totalEnviados: 0,
-      ultimoEnvio: 'Pendiente de primer despacho'
-    };
-
-    setDestinatariosList(prev => [newDest, ...prev]);
-    setNewDestNombre('');
-    setNewDestCargo('');
-    setNewDestEmail('');
-    setShowAddDestForm(false);
-    if (showNotif) showNotif(`Destinatario ${newDest.nombre} agregado correctamente.`, 'success');
+    if (editingDestId) {
+      // Modo Edición
+      const updated = destinatariosList.map(d => {
+        if (d.id === editingDestId) {
+          return {
+            ...d,
+            nombre: newDestNombre.trim(),
+            cargo: newDestCargo.trim() || 'Gestión / Asistencial',
+            email: newDestEmail.trim().toLowerCase(),
+            frecuencia: newDestFrecuencia,
+            activo: newDestActivo
+          };
+        }
+        return d;
+      });
+      await persistDestinatarios(updated);
+      handleCancelDestinatarioForm();
+      if (showNotif) showNotif(`Destinatario ${newDestNombre.trim()} actualizado correctamente.`, 'success');
+    } else {
+      // Modo Nuevo
+      const newDest = {
+        id: `dest-${Date.now()}`,
+        nombre: newDestNombre.trim(),
+        cargo: newDestCargo.trim() || 'Gestión / Asistencial',
+        email: newDestEmail.trim().toLowerCase(),
+        frecuencia: newDestFrecuencia,
+        activo: newDestActivo,
+        totalEnviados: 0,
+        ultimoEnvio: 'Sin envíos registrados',
+        ultimoEstado: 'PENDIENTE',
+        ultimaIncidencia: null
+      };
+      const updated = [newDest, ...destinatariosList];
+      await persistDestinatarios(updated);
+      handleCancelDestinatarioForm();
+      if (showNotif) showNotif(`Destinatario ${newDest.nombre} agregado permanentemente.`, 'success');
+    }
   };
 
   // Alternar Activo / Pausa de Destinatario
-  const handleToggleDestinatario = (id) => {
-    setDestinatariosList(prev => prev.map(d => d.id === id ? { ...d, activo: !d.activo } : d));
+  const handleToggleDestinatario = async (id) => {
+    const updated = destinatariosList.map(d => d.id === id ? { ...d, activo: !d.activo } : d);
+    await persistDestinatarios(updated);
   };
 
   // Eliminar Destinatario
-  const handleDeleteDestinatario = (id, nombre) => {
+  const handleDeleteDestinatario = async (id, nombre) => {
     if (window.confirm(`¿Seguro que deseas eliminar a ${nombre} de la lista de destinatarios?`)) {
-      setDestinatariosList(prev => prev.filter(d => d.id !== id));
+      const updated = destinatariosList.filter(d => d.id !== id);
+      await persistDestinatarios(updated);
       if (showNotif) showNotif(`Destinatario ${nombre} eliminado.`, 'info');
     }
   };
@@ -2240,7 +2416,7 @@ export default function ModalConfiguracionCorreo({
       }
     } catch(e) {}
 
-    // 3. Registrar en los logs de auditoría de prueba
+    // 3. Registrar en los logs de auditoría de prueba y actualizar trazabilidad por destinatario
     const newLog = {
       id: `test-log-${Date.now()}`,
       fecha: new Date().toISOString(),
@@ -2252,7 +2428,25 @@ export default function ModalConfiguracionCorreo({
         : `Error en despacho SMTP: ${errMessage || 'Fallo de entrega de correo'}.`
     };
 
-    setTestLogs(prev => [newLog, ...prev.slice(0, 19)]);
+    setTestLogs(prev => [newLog, ...prev.slice(0, 29)]);
+
+    // Actualizar auditoría e incidencias en la lista de destinatarios
+    const timeNowStr = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) + ' hrs';
+    const targetEmailsLower = target.split(',').map(e => e.trim().toLowerCase());
+    const updatedDestWithTest = destinatariosList.map(d => {
+      if (targetEmailsLower.includes(d.email.toLowerCase())) {
+        return {
+          ...d,
+          totalEnviados: cloudFunctionSuccess ? (Number(d.totalEnviados) || 0) + 1 : (Number(d.totalEnviados) || 0),
+          ultimoEnvio: `Hoy ${timeNowStr}`,
+          ultimoEstado: cloudFunctionSuccess ? 'EXITOSO' : 'INCIDENCIA',
+          ultimaIncidencia: cloudFunctionSuccess ? null : (errMessage || 'Error de entrega SMTP')
+        };
+      }
+      return d;
+    });
+    persistDestinatarios(updatedDestWithTest);
+
     setSendingTestState(false);
     if (showNotif) {
       if (cloudFunctionSuccess) {
@@ -2351,10 +2545,51 @@ export default function ModalConfiguracionCorreo({
         estado: 'EXITOSO',
         detalles: `Despacho oficial entregado para ${shiftRow.textoCompleto}.`
       };
-      setTestLogs(prev => [newLog, ...prev.slice(0, 19)]);
+      setTestLogs(prev => [newLog, ...prev.slice(0, 29)]);
+
+      // Actualizar contador y trazabilidad de entrega de destinatarios activos
+      const timeNowStr = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) + ' hrs';
+      const updatedAfterDispatch = destinatariosList.map(d => {
+        if (d.activo) {
+          return {
+            ...d,
+            totalEnviados: (Number(d.totalEnviados) || 0) + 1,
+            ultimoEnvio: `Hoy ${timeNowStr}`,
+            ultimoEstado: 'EXITOSO',
+            ultimaIncidencia: null
+          };
+        }
+        return d;
+      });
+      persistDestinatarios(updatedAfterDispatch);
+
       if (showNotif) showNotif(`✔ Informe oficial de ${shiftRow.textoCompleto} despachado exitosamente a: ${target}`, 'success');
     } else {
       playErrorChime();
+      const newLog = {
+        id: `dispatch-err-${Date.now()}`,
+        fecha: new Date().toISOString(),
+        tipo: `Informe Oficial de Turno (${shiftRow.tipo || shiftRow.horario || 'Guardia'})`,
+        destinatario: target,
+        estado: 'FALLIDO',
+        detalles: `Incidencia en despacho: ${errMessage || 'Fallo de entrega SMTP'}.`
+      };
+      setTestLogs(prev => [newLog, ...prev.slice(0, 29)]);
+
+      const timeNowStr = new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) + ' hrs';
+      const updatedAfterErr = destinatariosList.map(d => {
+        if (d.activo) {
+          return {
+            ...d,
+            ultimoEnvio: `Hoy ${timeNowStr}`,
+            ultimoEstado: 'INCIDENCIA',
+            ultimaIncidencia: errMessage || 'Fallo de entrega SMTP'
+          };
+        }
+        return d;
+      });
+      persistDestinatarios(updatedAfterErr);
+
       if (showNotif) showNotif(`✖ Error al despachar informe: ${errMessage || 'Error SMTP'}`, 'error');
     }
 
@@ -3573,26 +3808,48 @@ export default function ModalConfiguracionCorreo({
                   Gestión de Destinatarios y Trazabilidad de Envíos
                 </h3>
                 <p className="text-xs text-secondary-custom font-medium mt-0.5">
-                  Administra las autoridades y funcionarios que reciben los reportes diarios y mensuales de MÉTRICO.
+                  Administra las autoridades y funcionarios que reciben los reportes diarios y mensuales de MÉTRICO. Sincronizado permanentemente en la nube.
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setShowAddDestForm(!showAddDestForm)}
-                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>{showAddDestForm ? 'Cancelar' : 'Agregar Nuevo Destinatario'}</span>
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (showAddDestForm && !editingDestId) {
+                      handleCancelDestinatarioForm();
+                    } else {
+                      setEditingDestId(null);
+                      setNewDestNombre('');
+                      setNewDestCargo('');
+                      setNewDestEmail('');
+                      setNewDestFrecuencia('AMBOS');
+                      setNewDestActivo(true);
+                      setShowAddDestForm(true);
+                    }
+                  }}
+                  className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>{showAddDestForm && !editingDestId ? 'Cancelar' : 'Agregar Nuevo Destinatario'}</span>
+                </button>
+              </div>
             </div>
 
-            {/* FORMULARIO AGREGAR DESTINATARIO */}
+            {/* FORMULARIO AGREGAR / EDITAR DESTINATARIO */}
             {showAddDestForm && (
-              <form onSubmit={handleAddDestinatario} className="bg-card-custom p-6 rounded-3xl border-2 border-indigo-500/40 space-y-4 shadow-md animate-fade-in">
-                <h4 className="text-xs font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider">
-                  Nuevo Destinatario Oficial de Reportes
-                </h4>
+              <form onSubmit={handleSaveDestinatario} className="bg-card-custom p-6 rounded-3xl border-2 border-indigo-500/40 space-y-4 shadow-md animate-fade-in">
+                <div className="flex items-center justify-between border-b border-card-custom/60 pb-3">
+                  <h4 className="text-xs font-black uppercase text-indigo-600 dark:text-indigo-400 tracking-wider flex items-center gap-2">
+                    {editingDestId ? <Edit3 className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
+                    <span>{editingDestId ? 'Editar Destinatario Oficial' : 'Nuevo Destinatario Oficial de Reportes'}</span>
+                  </h4>
+                  {editingDestId && (
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                      Modificando datos del funcionario
+                    </span>
+                  )}
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="space-y-1">
@@ -3601,7 +3858,7 @@ export default function ModalConfiguracionCorreo({
                       type="text"
                       value={newDestNombre}
                       onChange={e => setNewDestNombre(e.target.value)}
-                      placeholder="ej: Dr. Matías Bustos"
+                      placeholder="ej: Dra. María Pérez"
                       className="w-full bg-input-custom border border-card-custom p-2.5 rounded-xl text-xs font-bold text-primary-custom outline-none focus:border-indigo-500"
                       required
                     />
@@ -3613,7 +3870,7 @@ export default function ModalConfiguracionCorreo({
                       type="text"
                       value={newDestCargo}
                       onChange={e => setNewDestCargo(e.target.value)}
-                      placeholder="ej: Jefatura de Urgencia"
+                      placeholder="ej: Dirección Médica / Gestión"
                       className="w-full bg-input-custom border border-card-custom p-2.5 rounded-xl text-xs font-bold text-primary-custom outline-none focus:border-indigo-500"
                     />
                   </div>
@@ -3644,19 +3901,34 @@ export default function ModalConfiguracionCorreo({
                   </div>
                 </div>
 
+                {editingDestId && (
+                  <div className="flex items-center gap-2 pt-1">
+                    <label className="text-xs font-bold text-primary-custom flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={newDestActivo}
+                        onChange={e => setNewDestActivo(e.target.checked)}
+                        className="w-4 h-4 accent-indigo-600 rounded cursor-pointer"
+                      />
+                      <span>Destinatario Activo para despacho automático</span>
+                    </label>
+                  </div>
+                )}
+
                 <div className="flex justify-end gap-2 pt-2 border-t border-card-custom/60">
                   <button
                     type="button"
-                    onClick={() => setShowAddDestForm(false)}
+                    onClick={handleCancelDestinatarioForm}
                     className="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white font-bold text-xs rounded-xl cursor-pointer"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md cursor-pointer"
+                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md cursor-pointer flex items-center gap-1.5"
                   >
-                    Guardar Destinatario
+                    <Check className="w-4 h-4" />
+                    <span>{editingDestId ? 'Guardar Cambios' : 'Guardar Destinatario'}</span>
                   </button>
                 </div>
               </form>
@@ -3678,53 +3950,194 @@ export default function ModalConfiguracionCorreo({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-card-custom/20">
-                    {destinatariosList.map(dest => (
-                      <tr key={dest.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                        <td className="p-4 font-black text-primary-custom flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-black flex items-center justify-center text-xs">
-                            {dest.nombre.charAt(0)}
+                    {destinatariosList.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="p-8 text-center text-secondary-custom">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <Users className="w-8 h-8 text-slate-400" />
+                            <p className="text-sm font-bold text-primary-custom">No hay destinatarios registrados.</p>
+                            <p className="text-xs text-secondary-custom">Agrega funcionarios con el botón superior o restablece los destinatarios oficiales institucionales.</p>
+                            <button
+                              type="button"
+                              onClick={() => persistDestinatarios(DEFAULT_DESTINATARIOS)}
+                              className="mt-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-md cursor-pointer"
+                            >
+                              Restablecer Destinatarios Institucionales
+                            </button>
                           </div>
-                          <span>{dest.nombre}</span>
-                        </td>
-                        <td className="p-4 text-secondary-custom font-semibold">{dest.cargo}</td>
-                        <td className="p-4 font-mono font-bold text-indigo-600 dark:text-indigo-400">{dest.email}</td>
-                        <td className="p-4">
-                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/10 text-secondary-custom">
-                            {dest.frecuencia}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <div className="space-y-0.5">
-                            <span className="text-xs font-black text-primary-custom block">{dest.totalEnviados} informes recibidos</span>
-                            <span className="text-[10px] text-secondary-custom font-medium block">Último: {dest.ultimoEnvio}</span>
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleDestinatario(dest.id)}
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase flex items-center gap-1 border transition-all cursor-pointer ${
-                              dest.activo 
-                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' 
-                                : 'bg-slate-500/10 text-slate-500 border-slate-500/30'
-                            }`}
-                          >
-                            {dest.activo ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
-                            <span>{dest.activo ? 'Activo' : 'En Pausa'}</span>
-                          </button>
-                        </td>
-                        <td className="p-4 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteDestinatario(dest.id, dest.nombre)}
-                            className="p-1.5 hover:bg-rose-500/10 text-secondary-custom hover:text-rose-500 rounded-lg transition-colors cursor-pointer"
-                            title="Eliminar destinatario"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      destinatariosList.map(dest => (
+                        <tr key={dest.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                          <td className="p-4 font-black text-primary-custom flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-black flex items-center justify-center text-xs">
+                              {dest.nombre ? dest.nombre.charAt(0) : 'U'}
+                            </div>
+                            <div>
+                              <span>{dest.nombre}</span>
+                              {dest.frecuencia && (
+                                <span className="text-[9px] text-secondary-custom font-normal block sm:hidden">
+                                  {dest.frecuencia}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-4 text-secondary-custom font-semibold">{dest.cargo || '-'}</td>
+                          <td className="p-4 font-mono font-bold text-indigo-600 dark:text-indigo-400">{dest.email}</td>
+                          <td className="p-4">
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/10 text-secondary-custom">
+                              {dest.frecuencia}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-1.5">
+                                {dest.ultimoEstado === 'INCIDENCIA' ? (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
+                                    <AlertCircle className="w-3 h-3" /> Incidencia
+                                  </span>
+                                ) : (Number(dest.totalEnviados) > 0 || dest.ultimoEstado === 'EXITOSO') ? (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                                    <CheckCircle2 className="w-3 h-3" /> Entregado
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                                    <Clock className="w-3 h-3" /> Pendiente
+                                  </span>
+                                )}
+                                <span className="text-[10px] text-secondary-custom font-medium">
+                                  {dest.ultimoEnvio || 'Sin envíos'}
+                                </span>
+                              </div>
+                              <span className="text-[10.5px] font-bold text-primary-custom block">
+                                {dest.totalEnviados || 0} informes recibidos
+                              </span>
+                              {dest.ultimaIncidencia && (
+                                <span className="text-[9.5px] text-rose-500 font-semibold block truncate max-w-[200px]" title={dest.ultimaIncidencia}>
+                                  Motivo: {dest.ultimaIncidencia}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleDestinatario(dest.id)}
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase flex items-center gap-1 border transition-all cursor-pointer ${
+                                dest.activo 
+                                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' 
+                                  : 'bg-slate-500/10 text-slate-500 border-slate-500/30'
+                              }`}
+                            >
+                              {dest.activo ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                              <span>{dest.activo ? 'Activo' : 'En Pausa'}</span>
+                            </button>
+                          </td>
+                          <td className="p-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleStartEditDestinatario(dest)}
+                                className="p-1.5 hover:bg-indigo-500/10 text-secondary-custom hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg transition-colors cursor-pointer"
+                                title="Editar información del destinatario"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteDestinatario(dest.id, dest.nombre)}
+                                className="p-1.5 hover:bg-rose-500/10 text-secondary-custom hover:text-rose-500 rounded-lg transition-colors cursor-pointer"
+                                title="Eliminar destinatario"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* SECCIÓN ADICIONAL: BITÁCORA DE TRAZABILIDAD E INCIDENCIAS DE ENVÍOS */}
+            <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-black uppercase text-primary-custom tracking-wider flex items-center gap-2">
+                    <History className="w-4 h-4 text-indigo-500" />
+                    Registro de Trazabilidad e Incidencias de Envíos
+                  </h4>
+                  <p className="text-[11px] text-secondary-custom font-medium mt-0.5">
+                    Monitoreo en tiempo real de despachos, entregas vía SMTP y seguimiento de incidencias operativas.
+                  </p>
+                </div>
+                {testLogs.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm('¿Deseas reiniciar la bitácora de trazabilidad de envíos?')) {
+                        setTestLogs([]);
+                        try { localStorage.removeItem('metrico_test_mail_logs'); } catch(e) {}
+                        if (showNotif) showNotif('Bitácora de trazabilidad reiniciada.', 'info');
+                      }
+                    }}
+                    className="px-3 py-1.5 bg-black/5 dark:bg-white/5 hover:bg-rose-500/10 text-secondary-custom hover:text-rose-500 rounded-xl text-[10px] font-bold transition-all cursor-pointer"
+                  >
+                    Limpiar Bitácora
+                  </button>
+                )}
+              </div>
+
+              <div className="overflow-auto border border-card-custom rounded-2xl custom-scrollbar max-h-72">
+                <table className="w-full text-left text-xs whitespace-nowrap">
+                  <thead className="bg-black/5 dark:bg-white/5 text-secondary-custom font-black uppercase text-[10px] tracking-wider">
+                    <tr>
+                      <th className="p-3">Fecha y Hora</th>
+                      <th className="p-3">Tipo de Envío</th>
+                      <th className="p-3">Destinatario(s)</th>
+                      <th className="p-3">Estado</th>
+                      <th className="p-3">Trazabilidad Técnica / Incidencia</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-card-custom/20">
+                    {testLogs.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="p-6 text-center text-secondary-custom font-medium">
+                          Sin registros de despachos ni incidencias recientes.
+                        </td>
+                      </tr>
+                    ) : (
+                      testLogs.map(log => {
+                        const isOk = log.estado === 'EXITOSO' || log.estado === 'ENTREGADO';
+                        return (
+                          <tr key={log.id} className="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                            <td className="p-3 text-secondary-custom font-mono text-[11px]">
+                              {new Date(log.fecha).toLocaleString('es-CL', { dateStyle: 'short', timeStyle: 'short' })}
+                            </td>
+                            <td className="p-3 font-bold text-primary-custom">{log.tipo}</td>
+                            <td className="p-3 font-mono text-indigo-600 dark:text-indigo-400 text-[11px] max-w-[200px] truncate" title={log.destinatario}>
+                              {log.destinatario}
+                            </td>
+                            <td className="p-3">
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black border ${
+                                isOk 
+                                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                                  : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
+                              }`}>
+                                {isOk ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                                <span>{log.estado}</span>
+                              </span>
+                            </td>
+                            <td className="p-3 text-secondary-custom font-medium text-[11px] max-w-[320px] truncate" title={log.detalles}>
+                              {log.detalles}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>
