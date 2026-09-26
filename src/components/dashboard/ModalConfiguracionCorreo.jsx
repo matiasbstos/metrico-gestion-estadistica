@@ -1438,9 +1438,9 @@ export const DEFAULT_DESTINATARIOS = [
     email: 'direccion.sar@cormumel.cl',
     frecuencia: 'AMBOS', // 'DIARIO' | 'MENSUAL' | 'AMBOS'
     activo: true,
-    totalEnviados: 48,
-    ultimoEnvio: 'Hoy 08:30 hrs',
-    ultimoEstado: 'EXITOSO',
+    totalEnviados: 0,
+    ultimoEnvio: 'Sin envíos',
+    ultimoEstado: 'PENDIENTE',
     ultimaIncidencia: null
   },
   {
@@ -1450,9 +1450,9 @@ export const DEFAULT_DESTINATARIOS = [
     email: 'jefatura.sar@cormumel.cl',
     frecuencia: 'AMBOS',
     activo: true,
-    totalEnviados: 52,
-    ultimoEnvio: 'Hoy 08:30 hrs',
-    ultimoEstado: 'EXITOSO',
+    totalEnviados: 0,
+    ultimoEnvio: 'Sin envíos',
+    ultimoEstado: 'PENDIENTE',
     ultimaIncidencia: null
   },
   {
@@ -1462,9 +1462,9 @@ export const DEFAULT_DESTINATARIOS = [
     email: 'coordinacion.sar@cormumel.cl',
     frecuencia: 'DIARIO',
     activo: true,
-    totalEnviados: 35,
-    ultimoEnvio: 'Ayer 20:30 hrs',
-    ultimoEstado: 'EXITOSO',
+    totalEnviados: 0,
+    ultimoEnvio: 'Sin envíos',
+    ultimoEstado: 'PENDIENTE',
     ultimaIncidencia: null
   }
 ];
@@ -1549,7 +1549,14 @@ export default function ModalConfiguracionCorreo({
       const saved = localStorage.getItem('metrico_destinatarios_correo');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map(d => {
+            if (d.totalEnviados === 48 || d.totalEnviados === 52 || d.totalEnviados === 35) {
+              return { ...d, totalEnviados: 0, ultimoEnvio: 'Sin envíos', ultimoEstado: 'PENDIENTE' };
+            }
+            return d;
+          });
+        }
       }
     } catch(e) {}
     return DEFAULT_DESTINATARIOS;
@@ -1580,9 +1587,15 @@ export default function ModalConfiguracionCorreo({
           const data = snap.data();
           if (Array.isArray(data?.destinatarios) && data.destinatarios.length > 0) {
             if (isMounted) {
-              setDestinatariosList(data.destinatarios);
+              const sanitized = data.destinatarios.map(d => {
+                if (d.totalEnviados === 48 || d.totalEnviados === 52 || d.totalEnviados === 35) {
+                  return { ...d, totalEnviados: 0, ultimoEnvio: 'Sin envíos', ultimoEstado: 'PENDIENTE' };
+                }
+                return d;
+              });
+              setDestinatariosList(sanitized);
               try {
-                localStorage.setItem('metrico_destinatarios_correo', JSON.stringify(data.destinatarios));
+                localStorage.setItem('metrico_destinatarios_correo', JSON.stringify(sanitized));
               } catch(e) {}
             }
             return;
@@ -1634,19 +1647,34 @@ export default function ModalConfiguracionCorreo({
   const [testLogs, setTestLogs] = useState(() => {
     try {
       const saved = localStorage.getItem('metrico_test_mail_logs');
-      if (saved) return JSON.parse(saved);
-    } catch(e) {}
-    return [
-      {
-        id: 'log-init-1',
-        fecha: new Date().toISOString(),
-        tipo: 'Informe Diario por Turno',
-        destinatario: 'jefatura.sar@cormumel.cl',
-        estado: 'EXITOSO',
-        detalles: 'Plantilla de Turno Auditado despachada correctamente.'
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(l => l.id !== 'log-init-1' && l.detalles !== 'Plantilla de Turno Auditado despachada correctamente.');
+        }
       }
-    ];
+    } catch(e) {}
+    return [];
   });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('metrico_test_mail_logs', JSON.stringify(testLogs));
+    } catch(e) {}
+  }, [testLogs]);
+
+  // Limpiar residuo 'log-init-1' de localStorage al montar
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('metrico_test_mail_logs');
+      if (saved && (saved.includes('log-init-1') || saved.includes('Plantilla de Turno Auditado despachada correctamente.'))) {
+        const parsed = JSON.parse(saved);
+        const clean = Array.isArray(parsed) ? parsed.filter(l => l.id !== 'log-init-1' && l.detalles !== 'Plantilla de Turno Auditado despachada correctamente.') : [];
+        localStorage.setItem('metrico_test_mail_logs', JSON.stringify(clean));
+        setTestLogs(clean);
+      }
+    } catch(e) {}
+  }, []);
 
   // Selector de Plantilla en Vista de Diseño
   const [disenoTemplate, setDisenoTemplate] = useState('DIARIO'); // 'DIARIO' | 'MENSUAL' | 'MASIVO' | 'SUBREPORTES'
