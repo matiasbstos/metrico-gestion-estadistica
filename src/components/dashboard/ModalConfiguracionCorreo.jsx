@@ -1429,45 +1429,22 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
   );
 }
 
-// Destinatarios Oficiales Institucionales Predeterminados SAR Elsa Romo Aravena
-export const DEFAULT_DESTINATARIOS = [
-  {
-    id: 'dest-1',
-    nombre: 'Dra. Dirección SAR',
-    cargo: 'Dirección Médica SAR',
-    email: 'direccion.sar@cormumel.cl',
-    frecuencia: 'AMBOS', // 'DIARIO' | 'MENSUAL' | 'AMBOS'
-    activo: true,
-    totalEnviados: 0,
-    ultimoEnvio: 'Sin envíos',
-    ultimoEstado: 'PENDIENTE',
-    ultimaIncidencia: null
-  },
-  {
-    id: 'dest-2',
-    nombre: 'Jefatura de Gestión Clínica',
-    cargo: 'Jefatura Asistencial',
-    email: 'jefatura.sar@cormumel.cl',
-    frecuencia: 'AMBOS',
-    activo: true,
-    totalEnviados: 0,
-    ultimoEnvio: 'Sin envíos',
-    ultimoEstado: 'PENDIENTE',
-    ultimaIncidencia: null
-  },
-  {
-    id: 'dest-3',
-    nombre: 'Coordinación de Turnos',
-    cargo: 'Supervisión de Enfermería',
-    email: 'coordinacion.sar@cormumel.cl',
-    frecuencia: 'DIARIO',
-    activo: true,
-    totalEnviados: 0,
-    ultimoEnvio: 'Sin envíos',
-    ultimoEstado: 'PENDIENTE',
-    ultimaIncidencia: null
-  }
+// Destinatarios Oficiales Institucionales Predeterminados (Comienza vacío por requerimiento operativo)
+export const DEFAULT_DESTINATARIOS = [];
+
+// Correos ficticios / mock a purgar permanentemente de cualquier almacenamiento
+export const FICTITIOUS_DESTINATARIOS_EMAILS = [
+  'direccion.sar@cormumel.cl',
+  'jefatura.sar@cormumel.cl',
+  'coordinacion.sar@cormumel.cl'
 ];
+
+export const isRealDestinatario = (d) => {
+  if (!d || !d.email) return false;
+  const emailLower = String(d.email).trim().toLowerCase();
+  return !FICTITIOUS_DESTINATARIOS_EMAILS.some(fake => emailLower === fake.toLowerCase());
+};
+
 
 export default function ModalConfiguracionCorreo({ 
   isOpen, 
@@ -1549,17 +1526,23 @@ export default function ModalConfiguracionCorreo({
       const saved = localStorage.getItem('metrico_destinatarios_correo');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map(d => {
+        if (Array.isArray(parsed)) {
+          const sanitized = parsed.filter(isRealDestinatario).map(d => {
             if (d.totalEnviados === 48 || d.totalEnviados === 52 || d.totalEnviados === 35) {
               return { ...d, totalEnviados: 0, ultimoEnvio: 'Sin envíos', ultimoEstado: 'PENDIENTE' };
             }
             return d;
           });
+          if (sanitized.length !== parsed.length) {
+            try {
+              localStorage.setItem('metrico_destinatarios_correo', JSON.stringify(sanitized));
+            } catch(e) {}
+          }
+          return sanitized;
         }
       }
     } catch(e) {}
-    return DEFAULT_DESTINATARIOS;
+    return [];
   });
 
   // Formulario Nuevo / Editar Destinatario
@@ -1585,28 +1568,42 @@ export default function ModalConfiguracionCorreo({
         const snap = await getDoc(destDocRef);
         if (snap.exists()) {
           const data = snap.data();
-          if (Array.isArray(data?.destinatarios) && data.destinatarios.length > 0) {
+          if (Array.isArray(data?.destinatarios)) {
+            const sanitized = data.destinatarios.filter(isRealDestinatario).map(d => {
+              if (d.totalEnviados === 48 || d.totalEnviados === 52 || d.totalEnviados === 35) {
+                return { ...d, totalEnviados: 0, ultimoEnvio: 'Sin envíos', ultimoEstado: 'PENDIENTE' };
+              }
+              return d;
+            });
             if (isMounted) {
-              const sanitized = data.destinatarios.map(d => {
-                if (d.totalEnviados === 48 || d.totalEnviados === 52 || d.totalEnviados === 35) {
-                  return { ...d, totalEnviados: 0, ultimoEnvio: 'Sin envíos', ultimoEstado: 'PENDIENTE' };
-                }
-                return d;
-              });
               setDestinatariosList(sanitized);
               try {
                 localStorage.setItem('metrico_destinatarios_correo', JSON.stringify(sanitized));
               } catch(e) {}
             }
+            // Si la lista en Firestore contenía ficticios, purgar permanentemente en Firestore
+            if (sanitized.length !== data.destinatarios.length) {
+              await setDoc(destDocRef, {
+                destinatarios: sanitized,
+                updatedAt: Date.now(),
+                updatedBy: user?.email || 'admin'
+              }, { merge: true });
+            }
             return;
           }
         }
-        // Si no existe en Firestore, respaldar inmediatamente los predeterminados en la nube
+        // Si no existe en Firestore, inicializar con lista vacía
         await setDoc(destDocRef, {
-          destinatarios: DEFAULT_DESTINATARIOS,
+          destinatarios: [],
           updatedAt: Date.now(),
           updatedBy: user?.email || 'admin'
         }, { merge: true });
+        if (isMounted) {
+          setDestinatariosList([]);
+          try {
+            localStorage.setItem('metrico_destinatarios_correo', JSON.stringify([]));
+          } catch(e) {}
+        }
       } catch (err) {
         console.warn('[Firestore Destinatarios] Modo offline o sin permisos:', err?.message);
       }
@@ -2197,7 +2194,7 @@ export default function ModalConfiguracionCorreo({
   // Lista de correos activos en formato string para envíos
   const activeEmailsString = useMemo(() => {
     const list = destinatariosList.filter(d => d.activo).map(d => d.email);
-    return list.length > 0 ? list.join(', ') : 'jefatura.sar@cormumel.cl';
+    return list.length > 0 ? list.join(', ') : '';
   }, [destinatariosList]);
 
   // Guardar Configuración Global
@@ -3982,16 +3979,31 @@ export default function ModalConfiguracionCorreo({
                     {destinatariosList.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="p-8 text-center text-secondary-custom">
-                          <div className="flex flex-col items-center justify-center gap-2">
-                            <Users className="w-8 h-8 text-slate-400" />
-                            <p className="text-sm font-bold text-primary-custom">No hay destinatarios registrados.</p>
-                            <p className="text-xs text-secondary-custom">Agrega funcionarios con el botón superior o restablece los destinatarios oficiales institucionales.</p>
+                          <div className="flex flex-col items-center justify-center gap-3 py-6">
+                            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                              <Users className="w-6 h-6" />
+                            </div>
+                            <div className="space-y-1 text-center">
+                              <p className="text-sm font-black text-primary-custom">Sin destinatarios configurados</p>
+                              <p className="text-xs text-secondary-custom max-w-md mx-auto">
+                                No hay destinatarios registrados aún. Haz clic en el botón para ingresar a las autoridades o funcionarios que recibirán los reportes asistenciales.
+                              </p>
+                            </div>
                             <button
                               type="button"
-                              onClick={() => persistDestinatarios(DEFAULT_DESTINATARIOS)}
-                              className="mt-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-md cursor-pointer"
+                              onClick={() => {
+                                setEditingDestId(null);
+                                setNewDestNombre('');
+                                setNewDestCargo('');
+                                setNewDestEmail('');
+                                setNewDestFrecuencia('AMBOS');
+                                setNewDestActivo(true);
+                                setShowAddDestForm(true);
+                              }}
+                              className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow-md cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
                             >
-                              Restablecer Destinatarios Institucionales
+                              <UserPlus className="w-4 h-4" />
+                              <span>Agregar Primer Destinatario</span>
                             </button>
                           </div>
                         </td>
