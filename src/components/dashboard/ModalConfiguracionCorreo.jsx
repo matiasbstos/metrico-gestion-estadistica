@@ -4,7 +4,7 @@ import {
   FileText, AlertCircle, RefreshCw, Layers, Code, CheckSquare, Square, Cpu, Eye, UserCheck, 
   Activity, ArrowLeftRight, Hospital, FastForward, Play, ListOrdered, ChevronRight, Users, 
   UserPlus, Trash2, Edit3, Pencil, Smartphone, Monitor, ShieldCheck, History, ArrowRight, ToggleLeft, ToggleRight, 
-  Inbox, BellRing, Filter, Search, ChevronLeft, Zap, AlertTriangle, BarChart3
+  Inbox, BellRing, Filter, Search, ChevronLeft, Zap, AlertTriangle, BarChart3, Pause, XCircle, RotateCcw
 } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app as defaultApp, db as defaultDb, appId as defaultAppId } from '../../config/firebase';
@@ -1512,6 +1512,35 @@ export default function ModalConfiguracionCorreo({
     return {};
   });
 
+  // Mapa de Turnos Cancelados u Omitidos manualmente por el usuario
+  const [cancelledShiftsMap, setCancelledShiftsMap] = useState(() => {
+    try {
+      const s = localStorage.getItem('metrico_informes_cancelados_map');
+      if (s) return JSON.parse(s);
+    } catch(e) {}
+    return {};
+  });
+
+  const handleToggleCancelShift = (shiftKey) => {
+    if (!shiftKey) return;
+    setCancelledShiftsMap(prev => {
+      const next = { ...prev, [shiftKey]: !prev[shiftKey] };
+      try {
+        localStorage.setItem('metrico_informes_cancelados_map', JSON.stringify(next));
+      } catch(e) {}
+      return next;
+    });
+    const willBeCancelled = !cancelledShiftsMap[shiftKey];
+    if (showNotif) {
+      showNotif(
+        willBeCancelled 
+          ? `Envío de este informe cancelado / omitido.` 
+          : `Envío de este informe restaurado a la programación.`,
+        willBeCancelled ? 'warning' : 'success'
+      );
+    }
+  };
+
   // Sub-Reportes Incluidos
   const [incDemanda, setIncDemanda] = useState(true);
   const [incAltas, setIncAltas] = useState(true);
@@ -1913,6 +1942,7 @@ export default function ModalConfiguracionCorreo({
         const proximoHabilTexto = infoDespacho.proximoHabilTexto;
 
         const isSent = Boolean(sentShiftsMap[item.shiftKey] || sentShiftsMap[item.fecha] || sentShiftsMap[item.textoCompleto]);
+        const isCancelled = Boolean(cancelledShiftsMap[item.shiftKey] || cancelledShiftsMap[item.fecha]);
 
         // Cómputo matemático de turno completo cerrado vs turno en curso (Regla 5 SSOT Rayen)
         const isNightShift = item.tipo?.includes('Noche') || item.tipo?.includes('Largo');
@@ -1970,6 +2000,7 @@ export default function ModalConfiguracionCorreo({
           isCompleto,
           esTurnoCompleto: isCompleto,
           isSent,
+          isCancelled,
           horarioProyectado,
           esPausado,
           motivoPausa,
@@ -1978,7 +2009,15 @@ export default function ModalConfiguracionCorreo({
       });
 
     return list;
-  }, [combinedPacientes, turnosDB, pautasDB, modoCargaMasiva, intervaloMinutos, sentShiftsMap]);
+  }, [combinedPacientes, turnosDB, pautasDB, modoCargaMasiva, intervaloMinutos, sentShiftsMap, cancelledShiftsMap]);
+
+  // 1.1 Próximo Turno Clínico en Espera de Despacho (SSOT)
+  const proximoTurnoPendiente = useMemo(() => {
+    const listPend = turnosAuditadosCola.filter(t => !t.isSent && !t.isCancelled);
+    if (listPend.length === 0) return null;
+    const cerradoListo = listPend.find(t => t.esTurnoCompleto);
+    return cerradoListo || listPend[0];
+  }, [turnosAuditadosCola]);
 
   // 2. Detección Automática de Días Completos (Consolidado por Día Civil 24h)
   const diasCompletosAuditados = useMemo(() => {
@@ -2247,9 +2286,19 @@ export default function ModalConfiguracionCorreo({
       }
     }
 
-    setSaveMsg('¡Configuración, programación y destinatarios guardados permanentemente!');
-    if (showNotif) showNotif('Configuración general y destinatarios sincronizados en la nube.', 'success');
-    setTimeout(() => setSaveMsg(''), 4000);
+    const activeCount = destinatariosList.filter(d => d.activo).length;
+    const nextInfo = proximoTurnoPendiente
+      ? `Próximo informe programado: ${proximoTurnoPendiente.textoCompleto} para ${proximoTurnoPendiente.horarioProyectado || 'el próximo día hábil 08:30 hrs'}.`
+      : 'Cola de informes al día.';
+    const motorStatus = confirmarEnvioAutomatico
+      ? 'Motor ACTIVO y en espera.'
+      : 'Motor PAUSADO (envíos automáticos cancelados).';
+
+    setSaveMsg(`✔ Configuración y ${activeCount} destinatarios guardados permanentemente. ${motorStatus} ${nextInfo}`);
+    if (showNotif) {
+      showNotif(`✔ Sincronizado en la nube: ${motorStatus} ${nextInfo}`, 'success');
+    }
+    setTimeout(() => setSaveMsg(''), 7000);
   };
 
   // Iniciar Edición de Destinatario
@@ -2700,9 +2749,193 @@ export default function ModalConfiguracionCorreo({
       <main className="flex-1 overflow-y-auto p-6 bg-app-custom space-y-6 custom-scrollbar">
         
         {saveMsg && (
-          <div className="p-4 bg-emerald-500/20 border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs rounded-2xl flex items-center gap-2 animate-fade-in shadow-sm">
+          <div className="p-4 bg-emerald-500/20 border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs rounded-2xl flex items-center gap-2 animate-fade-in shadow-sm max-w-7xl mx-auto">
             <CheckCircle2 className="w-5 h-5 text-emerald-500" />
             <span>{saveMsg}</span>
+          </div>
+        )}
+
+        {/* WIDGET / BANNER EN VIVO: ESTADO DEL MOTOR DE DESPACHO Y PRÓXIMO ENVÍO EN ESPERA */}
+        {(activeTab === 'programados' || activeTab === 'destinatarios') && (
+          <div className="bg-gradient-to-r from-card-custom via-card-custom to-indigo-950/20 p-5 rounded-3xl border-2 border-indigo-500/40 shadow-md space-y-4 animate-fade-in max-w-7xl mx-auto">
+            {/* Cabecera del Banner: Estado del Motor + Botones de Control Maestro */}
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b border-card-custom/60 pb-3">
+              <div className="flex items-center gap-3">
+                <div className={`p-2.5 rounded-2xl flex items-center justify-center shrink-0 ${
+                  confirmarEnvioAutomatico 
+                    ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30' 
+                    : 'bg-rose-500/15 text-rose-500 border border-rose-500/30'
+                }`}>
+                  {confirmarEnvioAutomatico ? <Zap className="w-5 h-5 animate-pulse" /> : <Pause className="w-5 h-5" />}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-black uppercase tracking-wider text-primary-custom">
+                      Monitor de Ejecución en Vivo:
+                    </span>
+                    {confirmarEnvioAutomatico ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        Sistema Activo y Corriendo en Segundo Plano
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
+                        <XCircle className="w-3.5 h-3.5" />
+                        Despacho Automático en Pausa / Cancelado
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-secondary-custom font-medium mt-0.5">
+                    {confirmarEnvioAutomatico
+                      ? 'El motor autónomo está monitoreando la cola asistencial y despachará el informe al cumplirse el horario programado.'
+                      : 'Todos los envíos automáticos están temporalmente suspendidos. Ningún correo saldrá sin confirmación manual.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Botón Maestro de Pausar / Cancelar / Reanudar */}
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newState = !confirmarEnvioAutomatico;
+                    setConfirmarEnvioAutomatico(newState);
+                    try {
+                      const s = localStorage.getItem('metrico_config_correo');
+                      const parsed = s ? JSON.parse(s) : {};
+                      parsed.confirmarEnvioAutomatico = newState;
+                      localStorage.setItem('metrico_config_correo', JSON.stringify(parsed));
+                    } catch(e) {}
+                    if (showNotif) {
+                      showNotif(
+                        newState 
+                          ? '✔ Motor de despacho reactivado. Envíos programados en marcha.' 
+                          : '⏸ Envíos automáticos pausados / cancelados. Ningún correo saldrá automáticamente.',
+                        newState ? 'success' : 'warning'
+                      );
+                    }
+                  }}
+                  className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer shadow-sm ${
+                    confirmarEnvioAutomatico
+                      ? 'bg-rose-500/10 hover:bg-rose-500 text-rose-600 dark:text-rose-400 hover:text-white border border-rose-500/20'
+                      : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30'
+                  }`}
+                  title={confirmarEnvioAutomatico ? 'Suspender temporalmente los envíos automáticos' : 'Reanudar envíos automáticos'}
+                >
+                  {confirmarEnvioAutomatico ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  <span>{confirmarEnvioAutomatico ? 'Pausar / Cancelar Envíos Automáticos' : 'Reanudar Despacho Automático'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Grid Informativo del Próximo Envío en Espera */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              {/* Tarjeta 1: Próximo Informe a Enviar */}
+              <div className="bg-card-custom/80 p-3.5 rounded-2xl border border-card-custom/80 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase text-secondary-custom flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5 text-indigo-500" />
+                    Próximo Informe en Espera
+                  </span>
+                  {proximoTurnoPendiente && (
+                    <button
+                      type="button"
+                      onClick={() => handleToggleCancelShift(proximoTurnoPendiente.shiftKey)}
+                      className="text-[10px] font-bold text-rose-500 hover:text-rose-600 hover:underline cursor-pointer"
+                      title="Cancelar o saltar el envío de este turno específico"
+                    >
+                      {proximoTurnoPendiente.isCancelled ? 'Restaurar turno' : 'Cancelar este informe'}
+                    </button>
+                  )}
+                </div>
+                {proximoTurnoPendiente ? (
+                  <div>
+                    <p className="text-xs font-black text-primary-custom truncate" title={proximoTurnoPendiente.textoCompleto}>
+                      {proximoTurnoPendiente.textoCompleto}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[10.5px] font-mono text-indigo-600 dark:text-indigo-400 font-bold">
+                        {proximoTurnoPendiente.pacientes} pac. ({proximoTurnoPendiente.atendidos} atend. / {proximoTurnoPendiente.altas} altas)
+                      </span>
+                      {proximoTurnoPendiente.isCancelled ? (
+                        <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-600 border border-rose-500/25">
+                          Cancelado
+                        </span>
+                      ) : proximoTurnoPendiente.esTurnoCompleto ? (
+                        <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-600 border border-emerald-500/25">
+                          Turno Cerrado
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-600 border border-amber-500/25">
+                          En Curso
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                    ✓ Todos los turnos han sido despachados. Cola al día.
+                  </p>
+                )}
+              </div>
+
+              {/* Tarjeta 2: Horario Programado de Emisión */}
+              <div className="bg-card-custom/80 p-3.5 rounded-2xl border border-card-custom/80 space-y-1">
+                <span className="text-[10px] font-black uppercase text-secondary-custom flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-amber-500" />
+                  Fecha y Horario Programado
+                </span>
+                {proximoTurnoPendiente ? (
+                  <div>
+                    <p className={`text-xs font-black ${proximoTurnoPendiente.esPausado ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                      {proximoTurnoPendiente.horarioProyectado || 'Próximo día hábil 08:30 hrs'}
+                    </p>
+                    <p className="text-[10.5px] text-secondary-custom font-medium mt-1">
+                      {proximoTurnoPendiente.esPausado 
+                        ? `⏸ Pausa por Veda Fin de Semana: Emite ${proximoTurnoPendiente.proximoHabilTexto || 'Lunes 08:30 hrs'}`
+                        : '⚡ En espera de cumplimiento del horario para emisión autónoma.'}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-xs font-semibold text-secondary-custom">Sin fechas pendientes</p>
+                )}
+              </div>
+
+              {/* Tarjeta 3: Destinatarios Confirmados */}
+              <div className="bg-card-custom/80 p-3.5 rounded-2xl border border-card-custom/80 space-y-1">
+                <span className="text-[10px] font-black uppercase text-secondary-custom flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-emerald-500" />
+                  Destinatarios en Cola ({destinatariosList.filter(d => d.activo).length})
+                </span>
+                {destinatariosList.filter(d => d.activo).length > 0 ? (
+                  <div>
+                    <p className="text-xs font-black text-primary-custom truncate">
+                      {destinatariosList.filter(d => d.activo).map(d => d.nombre).slice(0, 3).join(', ')}
+                      {destinatariosList.filter(d => d.activo).length > 3 && ` +${destinatariosList.filter(d => d.activo).length - 3} más`}
+                    </p>
+                    <p className="text-[10.5px] text-secondary-custom truncate font-mono mt-1" title={activeEmailsString}>
+                      {activeEmailsString}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-amber-500">Sin destinatarios activos</p>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('destinatarios')}
+                      className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 underline cursor-pointer"
+                    >
+                      Ir a Destinatarios
+                    </button>
+                  </div>
+                )}
+              </div>
+
+            </div>
           </div>
         )}
 
@@ -3224,7 +3457,11 @@ export default function ModalConfiguracionCorreo({
                             </td>
 
                             <td className="p-3.5">
-                              {!d.isCompleto ? (
+                              {d.isCancelled ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30" title="Envío cancelado/omitido manualmente por el usuario.">
+                                  <XCircle className="w-3 h-3" /> Cancelado
+                                </span>
+                              ) : !d.isCompleto ? (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30" title="Turno aún en curso o con admisiones parciales. No cerrado al 100%.">
                                   <AlertCircle className="w-3 h-3" /> ⏳ En Curso (Parcial)
                                 </span>
@@ -3287,6 +3524,21 @@ export default function ModalConfiguracionCorreo({
                                         <span>Enviar Ahora</span>
                                       </>
                                     )}
+                                  </button>
+
+                                  {/* BOTÓN 3: CANCELAR O RESTAURAR ENVÍO */}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleCancelShift(d.shiftKey)}
+                                    className={`px-2 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all cursor-pointer flex items-center gap-1 shadow-2xs shrink-0 ${
+                                      d.isCancelled
+                                        ? 'bg-amber-500/10 hover:bg-amber-500 hover:text-white text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                                        : 'bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 border border-rose-500/20'
+                                    }`}
+                                    title={d.isCancelled ? 'Restaurar envío de este informe' : 'Cancelar/omitir envío de este informe'}
+                                  >
+                                    {d.isCancelled ? <RotateCcw className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
+                                    <span>{d.isCancelled ? 'Restaurar' : 'Cancelar'}</span>
                                   </button>
                                 </div>
                               </td>
