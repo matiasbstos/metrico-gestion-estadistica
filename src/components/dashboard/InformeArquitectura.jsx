@@ -4042,12 +4042,319 @@ export const HISTORIAL_ARQUITECTURA_BASE = [
   }
 ];
 
+export const REGLAS_INSTITUCIONALES_METRICO = [
+  {
+    id: 1,
+    numero: 'Regla 1',
+    titulo: 'Techo y Límite de Correlativos en Archivo Cargado',
+    categoria: 'SSOT & Correlativos',
+    badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20',
+    resumen: 'El total acumulado de admisiones (YTD) procesado en MÉTRICO nunca puede superar el correlativo máximo del archivo oficial entregado (#28.091 para corte al 09/09/2026).',
+    directrices: [
+      'Correlativo Máximo Cargado en Sistema: #28.091 (Fecha de corte: 09/09/2026 a las 21:57 hrs).',
+      'Correlativo de Control Oficial Rayen: #28.091 (con 25.547 pacientes atendidos efectivos).',
+      'El total acumulado de admisiones (YTD) procesado en MÉTRICO nunca puede superar el correlativo máximo del archivo entregado (#28.091) para dicho corte temporal.'
+    ],
+    normaTecnica: 'Techo YTD <= #28.091 (25.547 atendidos efectivos)'
+  },
+  {
+    id: 2,
+    numero: 'Regla 2',
+    titulo: 'SSOT en pacientesDB y Deduplicación Estricta',
+    categoria: 'SSOT & Correlativos',
+    badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20',
+    resumen: 'La demanda mensual y global debe priorizar siempre el conteo desduplicado directo de pacientesDB (deduplicarPacientes) para evitar que turnos precalculados o sincronizaciones superpuestas en Firestore inflen artificialmente los totales.',
+    directrices: [
+      'Fuente de verdad única: pacientesDB deduplicado mediante deduplicarPacientes().',
+      'Erradica inflaciones producidas por turnos precalculados en Firestore o sincronizaciones de red solapadas.',
+      'Asegura que cada paciente físico compute exactamente una vez en las métricas institucionales.'
+    ],
+    normaTecnica: 'Fuente Única = deduplicarPacientes(pacientesDB)'
+  },
+  {
+    id: 3,
+    numero: 'Regla 3',
+    titulo: 'Integridad de Líneas Base Históricas (2025)',
+    categoria: 'SSOT & Correlativos',
+    badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20',
+    resumen: 'Las series comparativas de 12 meses deben mantener la continuidad de la línea base histórica SAR si la base de datos local contiene meses incompletos o fragmentos de prueba (< 2.000 pacientes por mes).',
+    directrices: [
+      'Preservación de líneas base auditadas de 2025 frente a importaciones fragmentarias.',
+      'Meses históricos con < 2.000 pacientes se reconocen como fragmentos de prueba y se respaldan con la línea base certificada.',
+      'Garantiza curvas interanuales fluidas y consistentes sin valles artificiales a cero.'
+    ],
+    normaTecnica: 'Umbral histórico mensual >= 2.000 pac/mes para considerarse consolidado.'
+  },
+  {
+    id: 4,
+    numero: 'Regla 4',
+    titulo: 'Prioridad Absoluta de Pauta Manual de Turnos (pautas_turnos)',
+    categoria: 'Turnos Asistenciales',
+    badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+    resumen: 'Toda resolución de equipos asistenciales (resolverEquipoTurno y usePautasTurnos) debe subordinarse con prioridad 1 a la pauta guardada por el usuario en Firestore (pautas_turnos).',
+    directrices: [
+      'Prioridad 1 inviolable para la pauta manual registrada en la colección pautas_turnos de Firestore.',
+      'Las franjas de fin de semana (08:00 - 20:00 y 20:00 - 08:00) se discriminan con exactitud antes que cualquier búsqueda genérica de texto.',
+      'Impide que la presencia del término "fin de semana" en observaciones sea confundida con el turno hábil de semana (17:00 - 08:00).'
+    ],
+    normaTecnica: 'Prioridad 1: Firestore pautas_turnos > Algoritmo predictivo de guardia.'
+  },
+  {
+    id: 5,
+    numero: 'Regla 5',
+    titulo: 'Auto-Detección Estricta del Último Turno Clínico 100% Completo y Cerrado',
+    categoria: 'Turnos Asistenciales',
+    badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+    resumen: 'La selección inicial por defecto del período al abrir la plataforma (Dashboard.jsx) y en la auditoría de despacho de correos debe apuntar siempre al último turno asistencial cerrado al 100% con datos de pacientes completos.',
+    directrices: [
+      'Fines de semana y festivos: corte formal a las 20:00 hrs para turnos diurnos y a las 08:00 hrs del día siguiente para nocturnos.',
+      'Días hábiles: ventana asistencial y búsqueda de estadía extendida hasta la tarde del día siguiente (Regla 21). Cortes de datos de día hábil en curso se consideran abiertos, seleccionando el sistema el turno cerrado previo.',
+      'Turnos nocturnos en curso o con fragmentos parciales de datos (ej. corte a las 21:57 hrs con 13 pacientes) nunca se auto-seleccionan como turno completo.',
+      'Filtro Anti-Fechas Futuras y blindaje contra inversiones de formato de fecha estadounidense (MM/DD/YYYY).'
+    ],
+    normaTecnica: 'Filtro anti-incompletos: isCompleto = true && pacs >= umbralCierre.'
+  },
+  {
+    id: 6,
+    numero: 'Regla 6',
+    titulo: 'Atribución Continua por Fecha Lógica Asistencial en Cruce de Mes (Cierre 30/31)',
+    categoria: 'Turnos Asistenciales',
+    badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+    resumen: 'Todo turno asistencial nocturno que inicie en el último día del mes y concluya en la mañana del día 1 del mes siguiente consolida el 100% de sus pacientes en el turno y mes que cerró.',
+    directrices: [
+      'Las admisiones de madrugada (00:00 a 07:59 del día 1) pertenecen al turno y mes del día 30/31.',
+      'En el Histórico Mensual y en todos los reportes, el día 1 del nuevo mes sólo contabiliza los turnos que abren a partir de las 08:00 hrs o 17:00/20:00 hrs.',
+      'Garantiza integridad asistencial y financiera sin fragmentar el equipo de guardia médica.'
+    ],
+    normaTecnica: 'Madrugada 00:00 - 07:59 del día 1 -> Atribución a guardia del día 30/31.'
+  },
+  {
+    id: 7,
+    numero: 'Regla 7',
+    titulo: 'Tratamiento de Meses Activos / En Curso en Demanda Interanual y Gráficos',
+    categoria: 'Demanda & Rayen',
+    badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+    resumen: 'Todo mes civil en curso que aún no haya concluido o presente datos parciales (< 2.000 pacientes) nunca debe calcular contracciones interanuales engañosas.',
+    directrices: [
+      'Prohibido comparar fragmentos de días contra un mes cerrado completo de 30 días (ej. distorsión de -75.9%).',
+      'En tarjetas mensuales se exhibe obligatoriamente el distintivo institucional: "En curso (X pac.) ⏳ Activo".',
+      'En gráficos comparativos Recharts, los meses en curso o futuros pasan valor null para evitar caídas artificiales a cero.'
+    ],
+    normaTecnica: 'Mes abierto (< 2.000 pac): YoY = "En curso ⏳" && Recharts value = null.'
+  },
+  {
+    id: 8,
+    numero: 'Regla 8',
+    titulo: 'Conciliación Universal SSOT de Crecimiento Interanual (YoY)',
+    categoria: 'Demanda & Rayen',
+    badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+    resumen: 'Toda cifra o badge de crecimiento interanual acumulado (YoY) en Demanda, PanelKPIs, ReportesModule o informes ejecutivos DEBE subordinarse estrictamente al objeto SSOT canónico statsKPI.anual.',
+    directrices: [
+      'Las 9 tarjetas inferiores del bloque "Período Seleccionado" adoptan obligatoriamente el porcentaje Vs Año Ant. idéntico al banner ejecutivo (+19.7% admisiones, +19.1% atendidos, +25.6% altas, +11.8% traslados, etc.).',
+      'En rangos anuales se suprime estrictamente la etiqueta "Vs Mes Ant.", eliminando comparativas inconsistentes de un año civil completo contra un único mes previo.',
+      'En la vista anual, las tarjetas de Traslados y Constataciones adoptan los totales consolidados oficiales de guardia (1.162 pac. y 242 pac.).',
+      'Todo porcentaje interanual positivo debe formatearse explícitamente con signo más (+X.X% YoY).'
+    ],
+    normaTecnica: 'SSOT Canónico: statsKPI.anual proveniente de useMetricoAnalytics.'
+  },
+  {
+    id: 9,
+    numero: 'Regla 9',
+    titulo: 'Desglose y Auditoría por Franjas Horarias Asistenciales en Control de Demanda',
+    categoria: 'Turnos Asistenciales',
+    badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+    resumen: 'En la Prueba de Control Clínico de Demanda y módulos de auditoría de turnos, la selección "Día" debe soportar obligatoriamente el filtrado por franjas horarias asistenciales oficiales.',
+    directrices: [
+      'Día Completo (24 hrs): 00:00 a 23:59 hrs del día civil.',
+      'Turno Diurno: 08:00 a 20:00 hrs (12 horas).',
+      'Turno Noche Fin de Semana / Festivo: 20:00 a 08:00 hrs del día siguiente (12 horas con cruce de medianoche).',
+      'Turno Largo Semana Hábil: 17:00 a 08:00 hrs del día siguiente (con ventana ampliada de búsqueda asistencial hasta las 16:00 hrs del día siguiente).'
+    ],
+    normaTecnica: '4 Franjas Canónicas: 24h civil, Diurno 12h, Finde Noche 12h y Hábil Largo.'
+  },
+  {
+    id: 10,
+    numero: 'Regla 10',
+    titulo: 'Garantía de Alto Contraste, Visibilidad y Accesibilidad UI',
+    categoria: 'Calidad & Accesibilidad',
+    badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/20',
+    resumen: 'Queda estrictamente prohibido el renderizado de botones activos, pestañas o subpestañas con estilos transparentes, fondos blancos sobre fondos claros o texto ilegible (blanco sobre blanco).',
+    directrices: [
+      'Todo selector o elemento de navegación activo debe utilizar estilos sólidos contrastantes institucionales (.bg-primary-custom o bg-indigo-600 text-white font-black shadow-md).',
+      'Asegura visibilidad óptima tanto en modo Claro (Light) como en modo Oscuro (Dark).',
+      'Cumplimiento de estándares de accesibilidad WCAG 2.1 AA para visualización clínica bajo distintas condiciones de iluminación.'
+    ],
+    normaTecnica: 'Contraste mínimo 4.5:1 en elementos de navegación y badges activos.'
+  },
+  {
+    id: 11,
+    numero: 'Regla 11',
+    titulo: 'Paridad Oficial de Estados Rayen y Desambiguación de Egresos Administrativos',
+    categoria: 'Demanda & Rayen',
+    badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+    resumen: 'La Ecuación Universal y los controles de demanda deben reflejar de forma estricta y desglosada la terminología oficial de la planilla Rayen.',
+    directrices: [
+      'Ecuación Universal: Total Pacientes Admitidos = Completado (Atención Médica) + Egreso Administrativo + Alta sin Atención Médica.',
+      'Alta sin Atención Médica: retiro, fuga, abandono voluntario o alta sin atención médica.',
+      'Egreso Administrativo: cancelación de ventanilla, duplicado o trámite administrativo (que no sea retiro voluntario).',
+      'Completado (Atención Médica): todo paciente atendido o en curso. Prohibido degradar a un paciente a alta administrativa simplemente porque el médico tratante figure "No registrado" nominalmente.',
+      'Orden UI obligatorio: 1. Total Pacientes, 2. Completados, 3. Egreso Administrativo, 4. Alta sin Atención Médica.'
+    ],
+    normaTecnica: 'Admitidos = Atendidos Efectivos + Egresos Admin + Altas sin Atención'
+  },
+  {
+    id: 12,
+    numero: 'Regla 12',
+    titulo: 'Evaluación de Rendimiento de Equipos de Guardia (Admisión y Triaje)',
+    categoria: 'Turnos Asistenciales',
+    badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+    resumen: 'El módulo de Rendimiento de Turnos enfoca su evaluación exclusivamente en el desempeño operativo de los Equipos de Guardia (Turnos 1 al 4) en admisión y categorización clínica (Triaje).',
+    directrices: [
+      'Suprime métricas individuales por médico para evitar sesgos diagnósticos y enfocar el análisis en la gestión del equipo.',
+      '3 KPIs canónicos de equipo: 1) Volumen Total Ingresado, 2) Latencia Promedio a Triaje (con delta invertido de rapidez) y 3) Criterio de Alta Complejidad % (C1+C2+C3).',
+      'Correlación de sobrecarga mediante ComposedChart con doble eje Y (Volumen en Eje Y Izquierdo y Latencia en minutos por categoría en Eje Y Derecho).'
+    ],
+    normaTecnica: 'KPIs Canónicos: Volumen Total, Latencia Triaje (min), % Alta Complejidad.'
+  },
+  {
+    id: 13,
+    numero: 'Regla 13',
+    titulo: 'Norma Oficial de Despacho de Informes por Correo (4 Pilares y Despacho Ágil)',
+    categoria: 'Despacho de Correos',
+    badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/20',
+    resumen: 'Todo despacho de informe asistencial por correo electrónico se genera estrictamente en React Email con fondo oscuro institucional (#0f172a), logo en pill blanco y estructura en 8 láminas fidedigna al previsualizador web.',
+    directrices: [
+      '4 Pilares Maestros de Demanda con igual jerarquía: Admitidos, Atendidos, Altas Admin y Traslados Hosp. con volúmenes del turno, variaciones YoY oficiales y acumulados YTD.',
+      '8 Láminas canónicas: 1) 4 Pilares Maestros, 2) Tramos de Espera y Constataciones Z51.8, 3) Triaje Manchester C1-C5, 4) Rendimiento Médico, 5) Top 10 CIE-10, 6) Centros de Origen y Demografía, 7) Apartado de Traslados UEH, 8) Bitácora de Seguridad.',
+      'Despacho Ligero sin Adjuntos de los 7 PDFs: se envían directamente en el cuerpo HTML y como adjuntos livianos la bitácora TXT y el CSV consolidado, optimizando la entrega SMTP y evitando saturar buzones institucionales.'
+    ],
+    normaTecnica: 'Motor React Email + inline CSS + compatibilidad 100% desktop/mobile.'
+  },
+  {
+    id: 14,
+    numero: 'Regla 14',
+    titulo: 'Feedback Visual de Carga Inmediata y Complejidad Algorítmica O(1)',
+    categoria: 'Calidad & Accesibilidad',
+    badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/20',
+    resumen: 'Ante cualquier cambio de filtro temporal, el sistema DEBE activar inmediatamente el indicador visual de carga (isFiltering = true), difiriendo los cálculos pesados al siguiente tick del navegador.',
+    directrices: [
+      'Queda prohibido bloquear el hilo principal de JavaScript antes de que el usuario vea la barra de progreso de actividad.',
+      'Complejidad algorítmica máxima O(1) en agrupación de turnos y pacientes mediante índices hash por fecha (pacsByDateStr).',
+      'Protección de cuotas de red en consultas sobre rangos mayores a 60 días cuando la base de datos ya está en memoria.'
+    ],
+    normaTecnica: 'Agrupación O(1) hash table + setTimeout(..., 16) para zero-freeze UI.'
+  },
+  {
+    id: 15,
+    numero: 'Regla 15',
+    titulo: 'Auditoría y Deduplicación SSOT en Cola de Despacho de Informes',
+    categoria: 'SSOT & Correlativos',
+    badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20',
+    resumen: 'Todo conteo diario o acumulado en la cola de jornadas auditadas y envíos de correo se alimenta única y exclusivamente de deduplicarPacientes(pacientesDB) y formatLocalDate.',
+    directrices: [
+      'Prohibido combinar cachés sin deduplicar o recurrir a deduplicaciones débiles por ID de Firestore.',
+      'Techo Oficial de Demanda Asistencial SAR: récord histórico auditado de 192 pacientes en fin de semana y 151 pacientes en día hábil. Ningún día civil supera los 200 pacientes atendidos en operación normal.'
+    ],
+    normaTecnica: 'Techo SAR: Max fin de semana = 192 pac, Max día hábil = 151 pac.'
+  },
+  {
+    id: 16,
+    numero: 'Regla 16',
+    titulo: 'Protocolo y Auditoría Pre-Vuelo Obligatoria para Despacho de Informes',
+    categoria: 'Despacho de Correos',
+    badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/20',
+    resumen: 'Todo informe asistencial por correo DEBE validar y cumplir estrictamente la ecuación universal: Total Admitidos = Atenciones Médicas Efectivas + Altas Administrativas.',
+    directrices: [
+      'Clasificación estricta mediante isAltaAdmin(p) || p.estado === "Cancelada". Prohibido evaluar solo p.estado === "Cancelada".',
+      'Conciliación unívoca: Traslados hospitalarios provenientes del conteo efectivo de derivaciones (trasladosCount).',
+      'Rendimiento médico: suma de atenciones médicas + No Registrado debe igualar al 100% de admisiones.',
+      'Triaje Manchester: C1 a C5 + Sin Categorizar = 100% admitidos.',
+      'Auditoría Pre-Vuelo Automática (Pre-Flight Check) ejecutada en frontend y backend antes de ensamblar el HTML.',
+      'Obligación del agente ante pruebas: realizar cruce explícito de datos (Shadow Testing) antes de cerrar tareas.'
+    ],
+    normaTecnica: 'Pre-flight check: Admitidos === Atendidos + AltasAdmin (100% paridad).'
+  },
+  {
+    id: 17,
+    numero: 'Regla 17',
+    titulo: 'Desagregación Estricta por Turnos Asistenciales Oficiales en Cola de Despacho',
+    categoria: 'Turnos Asistenciales',
+    badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+    resumen: 'Los fines de semana y festivos operan con 2 turnos clínicos independientes; los días hábiles operan con 1 turno largo.',
+    directrices: [
+      'Fines de semana y festivos: 1. Diurno (08:00 a 20:00 hrs) y 2. Nocturno (20:00 a 08:00 hrs +1d). Prohibido consolidar en una única fila civil de 24 horas.',
+      'Días hábiles: Turno Largo Semana (17:00 a 08:00 hrs con ventana de búsqueda ampliada hasta las 16:00 hrs).',
+      'Filtros multidimensionales requeridos en la interfaz: Mes, Semana, Fecha Exacta, Búsqueda Reactiva y Toggle de Modalidad (Turnos SAR vs Días Civiles).'
+    ],
+    normaTecnica: '2 turnos en sáb/dom/festivo (12h c/u); 1 turno en semana hábil (15h oficiales).'
+  },
+  {
+    id: 18,
+    numero: 'Regla 18',
+    titulo: 'Unificación Canónica de Claves de Turno & Controles Rayen',
+    categoria: 'Turnos Asistenciales',
+    badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+    resumen: 'Toda agrupación o mapeo de turnos en la cola de despacho DEBE normalizar unívocamente la clave del turno mediante getCanonicalShiftKey(fechaIso, horarioStr, tipoStr).',
+    directrices: [
+      'Tres variantes oficiales de clave: FINDE_DIA, FINDE_NOCHE y SEMANA_LARGO.',
+      'Impide que diferencias cosméticas de texto ("17:00 a 08:00 hrs" vs "17:00 - 08:00 (Semana Largo)") generen filas duplicadas para un mismo turno.',
+      'Certificación en matriz OFFICIAL_RAYEN_SHIFT_CONTROLS para respaldar turnos auditados oficialmente.'
+    ],
+    normaTecnica: 'Key canónica: `${fechaIso}_${FINDE_DIA | FINDE_NOCHE | SEMANA_LARGO}`'
+  },
+  {
+    id: 19,
+    numero: 'Regla 19',
+    titulo: 'Protocolo Obligatorio de Rectificación Previa & Verificación Cruzada Multicapa',
+    categoria: 'Demanda & Rayen',
+    badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+    resumen: 'Principio inviolable de veracidad y fidedignidad: ningún dato, cifra, reporte formal ni correo asistencial puede emitirse si sus datos no concilian al 100% con los módulos de auditoría oficial.',
+    directrices: [
+      'Las 5 fuentes canónicas de rectificación: 1) Histórico Mensual (CalendarioHistorico), 2) Centro de Verificación & Auditoría Clínica, 3) Rendimiento de Equipos, 4) Módulos Especializados y 5) Auditoría Pre-Vuelo.',
+      'Sello Institucional Visible Universal: tanto en el previsualizador del correo como en cada una de las hojas de reportes ejecutivos en PDF carta se despliega el sello de verificación cruzada Regla 19.'
+    ],
+    normaTecnica: 'Sello Regla 19: Total Admitidos = Atenciones Efectivas + Altas Administrativas.'
+  },
+  {
+    id: 20,
+    numero: 'Regla 20',
+    titulo: 'Directriz Estricta de Despacho en Días Hábiles: Veda Finde y Pausa por Feriados',
+    categoria: 'Despacho de Correos',
+    badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/20',
+    resumen: 'Veda absoluta de envíos automáticos durante fines de semana y pausa obligatoria ante feriados nacionales en Chile.',
+    directrices: [
+      'Envíos programados se realizan exclusivamente de Lunes a Viernes en días hábiles.',
+      'Pausa y postergación automática por feriados oficiales (CHILE_HOLIDAYS_OFFICIAL): reprogramados al primer día hábil siguiente a las 08:30 hrs.',
+      'Las guardias de fin de semana y festivos se auditan y consolidan con total normalidad; la emisión del correo queda encolada en estado diferido (⏳ Pausado por Fin de Semana / Feriado).',
+      'Salvaguardas duales: guard en Cloud Function backend y cálculo en frontend con advertencia previa ante despachos manuales forzados.'
+    ],
+    normaTecnica: 'isDiaHabilChile() guard en backend (functions/index.js) y frontend.'
+  },
+  {
+    id: 21,
+    numero: 'Regla 21',
+    titulo: 'Persistencia Cloud de Destinatarios, Trazabilidad SMTP & Tolerancia Asistencial Ampliada',
+    categoria: 'Turnos Asistenciales',
+    badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+    resumen: 'Persistencia bidireccional en Firestore de la nómina de destinatarios, trazabilidad individual de entrega con códigos de error SMTP y ampliación de la ventana de guardia hábil hasta las 16:00 hrs.',
+    directrices: [
+      'Persistencia en Firestore en artifacts/${appId}/public/data/configuracion_correo/destinatarios con fallback a DEFAULT_DESTINATARIOS, inmune a recargas de página o limpiezas de caché local.',
+      'Trazabilidad e incidencias granulares por destinatario (Entregado, Incidencia con código SMTP exacto, Pendiente) y bitácora cronológica limpia en cero.',
+      'Ventana Asistencial de Día Hábil Ampliada (16:00 hrs): consolidación en el turno largo de semana de pacientes cuya permanencia, observación o tratamiento se extienda durante la mañana y tarde del día siguiente (ej. certificación oficial turno 24/09/2026 con 83 admisiones).'
+    ],
+    normaTecnica: 'Ventana hábil extendida: hours < 16 + sync bidireccional Firestore.'
+  }
+];
+
 export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, db }) {
   const [logs, setLogs] = useState(HISTORIAL_ARQUITECTURA_BASE);
   const [activeTab, setActiveTab] = useState('formulas'); // 'historial', 'formulas', 'horarios', 'diseno', 'reportes', 'protocolo'
   const [expandedVersion, setExpandedVersion] = useState('v4.3.0');
   const [searchTerm, setSearchTerm] = useState('');
   const [loadingDb, setLoadingDb] = useState(false);
+  const [reglaSearch, setReglaSearch] = useState('');
+  const [reglaCategory, setReglaCategory] = useState('TODAS');
+  const [expandedReglaId, setExpandedReglaId] = useState(null);
 
   // Cargar logs desde Firestore si existen, o usar el dataset base
   useEffect(() => {
@@ -4248,7 +4555,7 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
-          <span>6. Protocolo de Despliegue Continuo</span>
+          <span>6. Normativa Oficial (21 Reglas SSOT) & Despliegue</span>
         </button>
       </div>
 
@@ -4760,46 +5067,218 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
         </div>
       )}
 
-      {/* PESTAÑA 6: PROTOCOLO OBLIGATORIO DE DESPLIEGUE */}
+      {/* PESTAÑA 6: NORMATIVA OFICIAL (21 REGLAS SSOT) Y PROTOCOLO DE DESPLIEGUE */}
       {(activeTab === 'protocolo' || true) && (
         <div className={`space-y-6 ${activeTab !== 'protocolo' ? 'hidden print:block' : ''}`}>
+          
+          {/* BLOQUE MAESTRO: LAS 21 REGLAS CANÓNICAS DE INTEGRIDAD ASISTENCIAL (SSOT RAYEN) */}
+          <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-sm space-y-6 theme-transition print:border-gray print:bg-white">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-card-custom/50 pb-5">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-indigo-500/10 text-indigo-500 rounded-2xl">
+                  <ShieldCheck className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-black text-primary-custom">Normativa Institucional & 21 Reglas Canónicas SSOT</h2>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">
+                      Inviolable & Permanente
+                    </span>
+                  </div>
+                  <p className="text-xs text-secondary-custom font-medium mt-0.5">
+                    Directrices de auditoría clínica, conciliación matemática con Rayen Urgencias y consistencia asistencial del SAR Elsa Romo Aravena.
+                  </p>
+                </div>
+              </div>
+
+              {/* CONTADOR DE REGLAS */}
+              <div className="px-3.5 py-1.5 bg-black/5 dark:bg-white/5 rounded-xl border border-card-custom text-xs font-bold text-primary-custom">
+                21 Reglas Certificadas
+              </div>
+            </div>
+
+            {/* FILTROS INTERACTIVOS Y BUSCADOR DE REGLAS */}
+            <div className="space-y-3 print:hidden">
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <div className="relative flex-1 w-full">
+                  <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-secondary-custom" />
+                  <input
+                    type="text"
+                    value={reglaSearch}
+                    onChange={(e) => setReglaSearch(e.target.value)}
+                    placeholder="Buscar regla por palabra clave (ej. triage, 28.091, traslados, hábil, firestore, yoy)..."
+                    className="w-full pl-10 pr-4 py-2.5 bg-black/5 dark:bg-white/5 rounded-xl border border-card-custom text-xs font-medium text-primary-custom placeholder:text-secondary-custom focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                  />
+                  {reglaSearch && (
+                    <button
+                      onClick={() => setReglaSearch('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-secondary-custom hover:text-primary-custom"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* BOTÓN COLAPSAR / EXPANDIR TODAS */}
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={() => setExpandedReglaId(expandedReglaId === 'ALL' ? null : 'ALL')}
+                    className="px-3 py-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl text-xs font-bold text-secondary-custom transition-all cursor-pointer whitespace-nowrap"
+                  >
+                    {expandedReglaId === 'ALL' ? 'Colapsar Detalles' : 'Expandir Todas'}
+                  </button>
+                </div>
+              </div>
+
+              {/* PILLS DE CATEGORÍAS */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {['TODAS', 'SSOT & Correlativos', 'Turnos Asistenciales', 'Demanda & Rayen', 'Despacho de Correos', 'Calidad & Accesibilidad'].map(cat => {
+                  const isActive = reglaCategory === cat;
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setReglaCategory(cat)}
+                      className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                        isActive
+                          ? 'bg-indigo-600 text-white shadow-sm'
+                          : 'bg-black/5 dark:bg-white/5 text-secondary-custom hover:text-primary-custom hover:bg-black/10'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* LISTADO DE REGLAS INTERACTIVAS */}
+            <div className="space-y-3">
+              {REGLAS_INSTITUCIONALES_METRICO
+                .filter(regla => {
+                  if (reglaCategory !== 'TODAS' && regla.categoria !== reglaCategory) return false;
+                  if (!reglaSearch.trim()) return true;
+                  const q = reglaSearch.toLowerCase();
+                  return (
+                    regla.titulo.toLowerCase().includes(q) ||
+                    regla.numero.toLowerCase().includes(q) ||
+                    regla.resumen.toLowerCase().includes(q) ||
+                    regla.normaTecnica.toLowerCase().includes(q) ||
+                    regla.directrices.some(d => d.toLowerCase().includes(q))
+                  );
+                })
+                .map(regla => {
+                  const isExpanded = expandedReglaId === 'ALL' || expandedReglaId === regla.id;
+                  return (
+                    <div
+                      key={regla.id}
+                      className="border border-card-custom rounded-2xl p-4 bg-black/[0.02] dark:bg-white/[0.02] hover:border-indigo-500/30 transition-all space-y-3"
+                    >
+                      <div
+                        onClick={() => setExpandedReglaId(expandedReglaId === regla.id ? null : regla.id)}
+                        className="flex items-start justify-between gap-3 cursor-pointer select-none"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 font-mono px-2 py-0.5 rounded-md bg-indigo-500/10 border border-indigo-500/20">
+                              {regla.numero}
+                            </span>
+                            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md border ${regla.badgeColor}`}>
+                              {regla.categoria}
+                            </span>
+                            <h3 className="text-sm font-black text-primary-custom">
+                              {regla.titulo}
+                            </h3>
+                          </div>
+                          <p className="text-xs text-secondary-custom font-medium leading-relaxed pl-0.5">
+                            {regla.resumen}
+                          </p>
+                        </div>
+                        <div className="text-secondary-custom shrink-0 mt-1">
+                          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </div>
+                      </div>
+
+                      {/* DETALLE EXPANDIBLE */}
+                      {isExpanded && (
+                        <div className="pt-3 border-t border-card-custom/40 space-y-3 text-xs animate-fade-in">
+                          <div className="space-y-1.5 pl-1">
+                            <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider block">
+                              Directrices Obligatorias de Cumplimiento:
+                            </span>
+                            <ul className="space-y-1 text-secondary-custom font-medium">
+                              {regla.directrices.map((dir, idx) => (
+                                <li key={idx} className="flex items-start gap-2">
+                                  <CheckCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                                  <span>{dir}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          <div className="p-2.5 rounded-xl bg-black/5 dark:bg-white/5 border border-card-custom flex items-center justify-between gap-3 flex-wrap">
+                            <div className="flex items-center gap-2">
+                              <Terminal className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                              <span className="text-[11px] font-mono font-bold text-primary-custom">
+                                Restricción Técnica / SSOT: {regla.normaTecnica}
+                              </span>
+                            </div>
+                            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                              Vigente en v6.3.32
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+
+          {/* BLOQUE PROTOCOLO OBLIGATORIO DE DESPLIEGUE CONTINUO */}
           <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-sm space-y-4 theme-transition print:border-gray print:bg-white">
             <div className="flex items-center gap-3 border-b border-card-custom/50 pb-4">
               <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-2xl">
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-xl font-black text-primary-custom">6. Protocolo Obligatorio de Despliegue & Retroalimentación Continua</h2>
-                <p className="text-xs text-secondary-custom font-medium">Secuencia reglamentaria de 4 pasos para cualquier modificación o nueva variable en MÉTRICO.</p>
+                <h2 className="text-xl font-black text-primary-custom">Protocolo Obligatorio de Despliegue, Novedades & Bitácora</h2>
+                <p className="text-xs text-secondary-custom font-medium">Secuencia reglamentaria inviolable de 5 pasos ejecutada ante cualquier modificación o nueva variable en MÉTRICO.</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs font-medium">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3.5 text-xs font-medium">
               <div className="p-4 bg-sky-500/10 border border-sky-500/30 rounded-2xl space-y-1">
-                <strong className="text-sky-600 dark:text-sky-400 block text-sm font-black">1. Subir la versión a GitHub</strong>
-                <p className="text-secondary-custom">
-                  Validar compilación con <code className="font-mono text-sky-500">npm run build</code>, realizar <code className="font-mono text-sky-500">git commit</code> con mensaje semántico y push a <code className="font-mono text-sky-500">main</code>.
+                <strong className="text-sky-600 dark:text-sky-400 block text-sm font-black">1. Subir a GitHub</strong>
+                <p className="text-secondary-custom text-[11px] leading-relaxed">
+                  Validar compilación con <code className="font-mono text-sky-500">npm run build</code>, realizar <code className="font-mono text-sky-500">git commit</code> con mensaje semántico y push a <code className="font-mono text-sky-500">origin main</code>.
                 </p>
               </div>
 
               <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl space-y-1">
-                <strong className="text-emerald-600 dark:text-emerald-400 block text-sm font-black">2. Muro de Actualizaciones</strong>
-                <p className="text-secondary-custom">
-                  De GitHub, registrar la nueva versión y detalles técnicos en el historial de arquitectura (<code className="font-mono text-emerald-500">InformeArquitectura.jsx</code>).
+                <strong className="text-emerald-600 dark:text-emerald-400 block text-sm font-black">2. Hosting Firebase</strong>
+                <p className="text-secondary-custom text-[11px] leading-relaxed">
+                  Desplegar inmediatamente con <code className="font-mono text-emerald-500">npx --yes firebase-tools deploy --only hosting</code> y corroborar en vivo en la URL pública.
                 </p>
               </div>
 
               <div className="p-4 bg-indigo-500/10 border border-indigo-500/30 rounded-2xl space-y-1">
-                <strong className="text-indigo-600 dark:text-indigo-400 block text-sm font-black">3. Apartado de Novedades</strong>
-                <p className="text-secondary-custom">
-                  Dentro del mismo sitio, registrar la explicación de uso en el Muro de Novedades interactivo (<code className="font-mono text-indigo-500">ModalMuroActualizaciones.jsx</code>).
+                <strong className="text-indigo-600 dark:text-indigo-400 block text-sm font-black">3. Tag de Versión</strong>
+                <p className="text-secondary-custom text-[11px] leading-relaxed">
+                  Incrementar versión semántica, sincronizar <code className="font-mono text-indigo-500">CURRENT_APP_VERSION</code> en Dashboard, barra lateral y catálogo de arquitectura.
                 </p>
               </div>
 
               <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-2xl space-y-1">
-                <strong className="text-purple-600 dark:text-purple-400 block text-sm font-black">4. Versión Clínico Predictivo</strong>
-                <p className="text-secondary-custom">
-                  Actualizar la insignia oficial bajo el apartado "MÉTRICO Clínico Predictivo" en la barra lateral y desplegar a Firebase Hosting (<code className="font-mono text-purple-500">deploy --only hosting</code>).
+                <strong className="text-purple-600 dark:text-purple-400 block text-sm font-black">4. Muro Novedades</strong>
+                <p className="text-secondary-custom text-[11px] leading-relaxed">
+                  Registrar en <code className="font-mono text-purple-500">ModalMuroActualizaciones.jsx</code> la tarjeta orientada a personal clínico: para qué sirve, qué puedes ver y ejemplos.
+                </p>
+              </div>
+
+              <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl space-y-1">
+                <strong className="text-rose-600 dark:text-rose-400 block text-sm font-black">5. Bitácora & Snapshot</strong>
+                <p className="text-secondary-custom text-[11px] leading-relaxed">
+                  Añadir post en <code className="font-mono text-rose-500">DevLogModule.jsx</code> y capturar fotografía real 1080p con fotógrafo autónomo headless.
                 </p>
               </div>
             </div>
