@@ -4423,8 +4423,8 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
                 </div>
 
                 <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-xs font-medium text-emerald-800 dark:text-emerald-200">
-                  <strong>Encasillamiento Asistencial & Estadía Extendida (16:00 a 12:00 PM):</strong><br />
-                  Se extiende desde las <strong>16:00 hrs hasta las 12:00 PM</strong> del día siguiente para capturar admisiones en fila previa, entrega de guardia matutina y la totalidad de la permanencia en box y altas médicas de los pacientes que ingresan a las 08:00 AM.
+                  <strong>Encasillamiento Asistencial & Estadía Extendida de Guardia Hábil (16:00 a 16:00 hrs — Regla 21):</strong><br />
+                  Se extiende desde las <strong>16:00 hrs hasta las 16:00 hrs del día siguiente</strong> para capturar admisiones en fila previa, entrega de guardia matutina y la totalidad de la permanencia en box, tratamientos y altas médicas de pacientes admitidos en la guardia de semana (ej. certificación oficial SSOT del turno 24/09/2026 con 83 admisiones = 73 completados + 10 egresos administrativos).
                 </div>
               </div>
 
