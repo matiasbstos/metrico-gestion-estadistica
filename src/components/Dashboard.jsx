@@ -39,6 +39,7 @@ import Radar from './dashboard/Radar';
 import PopUpSincronizacion from './dashboard/PopUpSincronizacion';
 import InformeArquitectura, { HISTORIAL_ARQUITECTURA_BASE } from './dashboard/InformeArquitectura';
 import DevLogModule from './dashboard/DevLogModule';
+import MonitorFlujoOperativo from './dashboard/MonitorFlujoOperativo';
 import FondoClinicoAnimado from './common/FondoClinicoAnimado';
 import { formatLocalDate, calcularUltimoTurnoCompleto, resolverMaxTimestampGlobal } from '../utils/helpers';
 import Login from './Login';
@@ -50,7 +51,7 @@ import {
   CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
   BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
   Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
-  HeartPulse, Shield, ShieldCheck, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail, BookOpen, Terminal, SlidersHorizontal, Wind
+  HeartPulse, Shield, ShieldCheck, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail, BookOpen, Terminal, SlidersHorizontal, Wind, Workflow
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
@@ -68,7 +69,7 @@ import { usePautasTurnos } from '../hooks/usePautasTurnos';
 import { COLORS, DOC_COLORS, AGE_RANGES, METRIC_LABELS } from '../config/constants';
 import { getNormalizedUserPermissions } from '../config/modules';
 
-const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.3.32';
+const CURRENT_APP_VERSION = HISTORIAL_ARQUITECTURA_BASE?.[0]?.version_tag || 'v6.3.33';
 
 // Colores Institucionales
 
@@ -1662,6 +1663,25 @@ const DashboardContent = () => {
               )}
             </button>
 
+            <button 
+              onClick={() => { setActiveTab('flujo'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+              title="Torre de Control (Flujo Operativo)"
+              className={`flex items-center rounded-xl font-bold text-sm transition-all duration-200 my-1 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${
+                activeTab === 'flujo' 
+                  ? 'accent-bg-custom text-white shadow-md' 
+                  : 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/25 hover:bg-cyan-500/20 shadow-xs'
+              }`}>
+              <Workflow className={`w-5 h-5 flex-shrink-0 ${activeTab !== 'flujo' ? 'text-cyan-500' : 'text-white'}`} />
+              {!sidebarCollapsed && (
+                <span className="animate-fade-in truncate flex items-center justify-between w-full">
+                  <span>Torre de Control</span>
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500 text-white shadow-xs shrink-0">
+                    REACT FLOW
+                  </span>
+                </span>
+              )}
+            </button>
+
             {/* APARTADO GENERAL: ANÁLISIS ESPECÍFICOS */}
             {sidebarCollapsed ? (
               <>
@@ -2321,6 +2341,17 @@ const DashboardContent = () => {
             showNotif={showNotif}
             pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB}
             turnosDB={turnosDB}
+          />
+        )}
+
+        {activeTab === 'flujo' && (
+          <MonitorFlujoOperativo 
+            pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB}
+            turnosDB={turnosDB}
+            pautasDB={pautasTurnosHook?.pautasDB}
+            filtroFechaInicio={filtroFechaInicio}
+            filtroFechaFin={filtroFechaFin}
+            onNavigateTab={setActiveTab}
           />
         )}
 

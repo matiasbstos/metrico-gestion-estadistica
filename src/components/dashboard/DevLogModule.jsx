@@ -8,6 +8,36 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-33',
+    titulo: 'Monitor de Flujo Operativo: Torre de Control con React Flow y Detección en Tiempo Real de Cuellos de Botella',
+    fecha: '2026-09-26',
+    version_tag: 'v6.3.33',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_33.png',
+    problema: 'La gestión de urgencias requería una herramienta visual que permitiera a la jefatura de turno supervisar el avance de los pacientes a lo largo del circuito asistencial y detectar puntos de congestión antes de que deriven en colapso de sala. Las tablas numéricas tradicionales dispersaban la información y no permitían apreciar de forma intuitiva las transiciones críticas entre admisión, triaje, espera de box, atención médica y egreso.',
+    logica: '1) Se instaló e implementó la librería @xyflow/react (React Flow) para renderizar un diagrama de red en lienzo de pantalla completa con fondo cuadriculado, navegación y minimapa. 2) Se crearon nodos personalizados (EstacionClinicaNode) para las 5 etapas del SAR con semáforo de 3 estados (Normal verde, Precaución amarillo, Saturado rojo), métricas en vivo y personal de turno. 3) Se diseñaron flechas secuenciales animadas con lógica condicional: si el tiempo de paso o la cola superan el estándar clínico, la flecha se torna rojo intenso, se engrosa a strokeWidth 4, detiene su animación y muestra un badge de atasco. 4) Se integró un panel lateral de subreporte deslizable que al hacer clic en cualquier estación desglosa pacientes en espera, tiempo máximo, profesional a cargo y clasificación Manchester.',
+    solucion: 'El SAR cuenta ahora con una Torre de Control operativa que detecta y alerta cuellos de botella al instante, facilitando la toma de decisiones clínicas y redistribución de personal en tiempo real.',
+    fullPost: `En esta versión v6.3.33 creamos el nuevo módulo "Monitor de Flujo Operativo (Torre de Control)" implementado sobre React Flow (@xyflow/react):
+
+1. **Configuración del Lienzo (Canvas)**:
+   - Lienzo amplio con soporte de modo oscuro institucional y fondo cuadriculado sutil (\`Background\`).
+   - Controles interactivos de zoom, paneo y recentrado (\`Controls\` y \`MiniMap\`).
+
+2. **Nodos Personalizados (Estaciones del SAR)**:
+   - Representación de las 5 estaciones: Admisión, Categorización (Triaje), Espera Médica, Atención en Box y Alta / Derivación.
+   - Indicador de estado Semáforo: Verde (Normal), Amarillo (Precaución) y Rojo (Saturado con pulso de alerta).
+   - Título, métrica en vivo (volumen actual), tiempo promedio, tiempo máximo y personal de turno.
+
+3. **Dinámica de Flechas y Detección de Cuellos de Botella**:
+   - Flechas secuenciales con animación fluida activa (\`animated: true\`).
+   - Detección condicional de atascos: cambio de color a rojo intenso, engrosamiento a 4px y detención de animación (\`animated: false\`).
+   - Badge de advertencia flotante con tiempo de retraso acumulado.
+
+4. **Panel Lateral de Subreporte Clínico**:
+   - Despliegue interactivo al hacer clic en cualquier estación.
+   - Detalle de pacientes en espera, tiempo máximo, personal a cargo, distribución Manchester C1 a C5 y buscador de pacientes.`
+  },
+  {
     id: 'devlog-v6-3-32',
     titulo: 'Persistencia Cloud de Destinatarios en Firestore, Edición Integral, Trazabilidad de Envíos y Certificación SSOT Turno 24/09',
     fecha: '2026-09-26',

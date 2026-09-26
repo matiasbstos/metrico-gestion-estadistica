@@ -10,6 +10,34 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.33',
+    version_tag: 'v6.3.33',
+    fecha: '26 de Septiembre, 2026',
+    fecha_despliegue: '26 de Septiembre, 2026',
+    proposito_actualizacion: 'Nuevo Módulo "Monitor de Flujo Operativo (Torre de Control)" con React Flow: Diagrama de Red Interactivo del Recorrido Asistencial, Nodos Personalizados de Estaciones SAR con Semáforo Operativo, Dinámica de Flechas con Detección Automática de Cuellos de Botella y Panel Lateral de Subreporte Clínico.',
+    medios_y_stack: [
+      '@xyflow/react v12+ (Canvas de flujo interactivo con Background cuadriculado sutil, controles de navegación y zoom Controls, y MiniMap reactivo)',
+      'MonitorFlujoOperativo.jsx (Componente principal con nodo personalizado EstacionClinicaNode para las 5 estaciones canónicas del SAR: Admisión, Categorización Triaje, Espera Médica, Box de Atención y Alta/Derivación; bordes dinámicos de semáforo Normal verde, Precaución amarillo y Saturado rojo con pulsos de alerta)',
+      'Detección de Cuellos de Botella en Flechas (Lógica condicional de latencias y colas asistenciales: si la espera entre Triaje y Box o Admisión y Triaje excede los estándares, la flecha se torna rojo intenso, se engrosa a strokeWidth 4, detiene su animación animated: false y presenta badge crítico de advertencia)',
+      'Subreporte Clínico Desplegable (Panel lateral interactivo que al hacer clic en cualquier estación desglosa pacientes en espera, tiempo máximo actual, tiempo promedio, profesional de turno asignado, matriz Manchester C1-C5 y tabla de pacientes en estación)',
+      'Dashboard.jsx y modules.js (Integración en la navegación lateral principal con icono Workflow y acceso unificado)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Recorrido Secuencial Clínico SAR: Admisión -> Categorización (Triaje) -> Espera Médica -> Atención en Box -> Alta / Derivación. 2) Detección de Cuellos de Botella: Umbrales clínicos de alerta: Admisión-Triaje > 18 min, Espera Box > 45 min o colas > 20 pac. 3) Visibilidad Instantánea de Atascos: La flecha del tramo saturado se detiene visualmente y se tiñe de rojo para alertar a la jefatura de turno. 4) Subreporte Detallado: Desglose inmediato con profesional de turno, tiempo máximo de espera y distribución Manchester.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Cálculo reactivo O(N) en memoria con fallback a datos proyectados y simulación interactiva sin costo de red.'
+    },
+    modulos_afectados: ['MonitorFlujoOperativo.jsx', 'Dashboard.jsx', 'modules.js', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx'],
+    detalles_tecnicos: [
+      'Implementación de @xyflow/react y definición de nodo personalizado EstacionClinicaNode con Handles izquierdo y derecho.',
+      'Soporte de semáforo operativo de 3 estados: Verde (#10b981), Amarillo (#f59e0b) y Rojo (#ef4444).',
+      'Configuración de edges con animación fluida por defecto y detención automática con stroke rojo ante cuellos de botella.',
+      'Panel lateral interactivo de subreporte con búsqueda de pacientes y desglose Manchester.',
+      'Modo demostración / simulación interactiva para simular sobrecargas asistenciales en tiempo real.',
+      'Actualización de versión del sistema a v6.3.33.'
+    ]
+  },
+  {
     id: 'v6.3.32',
     version_tag: 'v6.3.32',
     fecha: '26 de Septiembre, 2026',

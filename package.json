@@ -11,6 +11,7 @@
     "snapshot": "node scripts/take_devlog_snapshot.cjs"
   },
   "dependencies": {
+    "@xyflow/react": "^12.12.0",
     "dotenv": "^17.4.2",
     "firebase": "^12.13.0",
     "firebase-admin": "^13.10.0",

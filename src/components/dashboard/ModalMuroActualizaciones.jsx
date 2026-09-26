@@ -4,7 +4,7 @@ import {
   HelpCircle, BookOpen, Lightbulb, Eye, Mail, Volume2, Lock, Activity, ShieldCheck, Database, FileSpreadsheet, 
   BarChart3, LineChart, ArrowLeftRight, Send, Award, Users, TrendingUp, CheckCircle, Zap, UserCheck, Cloud, 
   ExternalLink, Search, Printer, FileText, RefreshCw, UploadCloud, Compass, Flame, Maximize2, Wind,
-  Building2, Stethoscope, Gauge
+  Building2, Stethoscope, Gauge, Workflow
 } from 'lucide-react';
 
 export default function ModalMuroActualizaciones({ isOpen, onClose }) {
@@ -13,6 +13,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const updatesList = [
+    {
+      id: 'v6.3.33',
+      version: 'v6.3.33',
+      fecha: '26 de Septiembre, 2026',
+      badge: 'NUEVO MÓDULO REACT FLOW • TORRE DE CONTROL & DETECCIÓN DE CUELLOS DE BOTELLA',
+      badgeColor: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-300 border-cyan-500/20',
+      title: 'Monitor de Flujo Operativo: Torre de Control con React Flow y Detección Automática de Atascos',
+      categoria: 'Torre de Control & Flujo Clínico',
+      icon: Workflow,
+      iconBg: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
+      summary: 'Se implementó el nuevo módulo "Monitor de Flujo Operativo (Torre de Control)" basado en React Flow (@xyflow/react). Permite visualizar en un lienzo interactivo de pantalla completa el recorrido asistencial secuencial del paciente (Admisión -> Categorización Triaje -> Espera Médica -> Box de Atención -> Alta / Derivación). Los nodos personalizados cuentan con semáforo operativo de 3 estados (Normal, Precaución, Saturado), métricas en vivo de volumen y latencia, y personal de turno. Las flechas animadas cambian dinámicamente: ante cuellos de botella se tornan rojo intenso, se engrosan y detienen su animación, visibilizando instantáneamente atascos en el recinto. Además, incluye panel lateral de subreporte con desglose clínico Manchester y listado de pacientes.',
+      instructivo: {
+        paraQueSirve: 'Monitorear la fluidez asistencial del SAR en tiempo real, identificar demoras excesivas antes de que se conviertan en colapsos de sala, y conocer de un vistazo el personal y pacientes en cada etapa.',
+        quePuedesVer: 'En la barra lateral: nuevo botón "Torre de Control". En el lienzo: diagrama interactivo con nodos de las 5 estaciones SAR, semáforos verde/amarillo/rojo, flechas de flujo animadas, alertas de cuellos de botella con tiempos de retraso, y al hacer clic en cualquier estación, el panel lateral con detalle de pacientes y tiempos.',
+        ejemploUso: 'Haz clic en "Categorización (Triaje)" para ver cuántos pacientes esperan, el tiempo máximo de espera y el enfermero de turno. Activa "Simular Sobrecarga" para comprobar cómo la flecha hacia Espera Médica se detiene y se tiñe de rojo alertando del atasco.'
+      },
+      changes: [
+        'Instalación e integración de la librería @xyflow/react con lienzo interactivo, fondo cuadriculado (Background) y controles de zoom/paneo (Controls y MiniMap).',
+        'Diseño de nodos personalizados (EstacionClinicaNode) para las 5 etapas del SAR con semáforo operativo Verde/Amarillo/Rojo, volumen en vivo y personal de turno.',
+        'Dinámica de flechas secuenciales animadas con detección condicional de cuellos de botella: cambio a rojo (#ef4444), engrosamiento (strokeWidth: 4) y detención visual del flujo.',
+        'Panel lateral de "Subreporte" deslizable con métricas específicas de estación, tiempos máximos, profesional asignado, matriz Manchester C1-C5 y buscador de pacientes.',
+        'Modo interactivo de Demostración/Simulación de sobrecarga para entrenamiento de jefaturas de guardia y auditoría en tiempo real.'
+      ]
+    },
     {
       id: 'v6.3.32',
       version: 'v6.3.32',

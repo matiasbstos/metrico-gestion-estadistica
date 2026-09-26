@@ -1,6 +1,6 @@
 import { 
   BarChart2, GitCompare, Calendar, Award, Users, UserCheck, Activity,
-  ShieldAlert, ArrowLeftRight, FileSpreadsheet, Database, Shield, ShieldCheck, BookOpen, Terminal, Sparkles
+  ShieldAlert, ArrowLeftRight, FileSpreadsheet, Database, Shield, ShieldCheck, BookOpen, Terminal, Sparkles, Workflow
 } from 'lucide-react';
 
 export const SYSTEM_MODULES = [
@@ -55,6 +55,16 @@ export const SYSTEM_MODULES = [
     description: 'Monitoreo epidemiológico en tiempo real y alertas tempranas.', 
     icon: Activity, 
     color: 'text-rose-500', 
+    category: 'General',
+    defaultEnabled: true,
+    isNew: true
+  },
+  { 
+    id: 'flujo', 
+    name: 'Torre de Control (Flujo)', 
+    description: 'Monitor de flujo operativo en tiempo real y detección de cuellos de botella con React Flow.', 
+    icon: Workflow, 
+    color: 'text-cyan-500', 
     category: 'General',
     defaultEnabled: true,
     isNew: true
