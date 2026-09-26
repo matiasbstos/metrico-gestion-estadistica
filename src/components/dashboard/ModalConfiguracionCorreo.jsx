@@ -1475,6 +1475,7 @@ export default function ModalConfiguracionCorreo({
   sidebarCollapsed = false,
   app, 
   db, 
+  appId,
   user,
   userProfile,
   showNotif, 
@@ -1600,7 +1601,7 @@ export default function ModalConfiguracionCorreo({
 
     loadDestinatariosFirestore();
     return () => { isMounted = false; };
-  }, [db, user]);
+  }, [db, user, appId]);
 
   // Persistir destinatarios en LocalStorage y Firestore en cada modificación
   const persistDestinatarios = async (updatedList) => {

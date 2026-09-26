@@ -1357,6 +1357,7 @@ const DashboardContent = () => {
         sidebarCollapsed={sidebarCollapsed}
         app={app} 
         db={db}
+        appId={appId}
         user={user}
         userProfile={userProfile}
         showNotif={showNotif} 
