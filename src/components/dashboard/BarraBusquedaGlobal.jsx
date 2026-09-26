@@ -4,7 +4,7 @@ import {
   Search, X, Command, Activity, Users, FileSpreadsheet, BarChart2, Shield, Calendar, 
   Database, UserCheck, ShieldAlert, ArrowLeftRight, Clock, Award, BookOpen, Terminal,
   ExternalLink, Sparkles, ChevronRight, Hash, Eye, MapPin, Stethoscope, Cpu, TrendingUp,
-  FileText, UserPlus, Sliders, CheckCircle, PieChart as PieIcon, Layers, HeartPulse, Wind
+  FileText, UserPlus, Sliders, CheckCircle, PieChart as PieIcon, Layers, HeartPulse, Wind, Workflow
 } from 'lucide-react';
 import { formatTime } from '../../utils/helpers';
 
@@ -331,6 +331,21 @@ export default function BarraBusquedaGlobal({
         liveKPI: 'Mapa de densidad y afluencia por zonas',
         description: 'Geolocalización y procedencia de usuarios por cuadrantes territoriales.',
         action: () => navigateAndScroll('resumen', null, 'seccion-analisis-sociodemografico')
+      },
+      {
+        id: 'flujo',
+        title: 'Torre de Control (Monitor de Flujo Operativo)',
+        category: 'Operaciones en Vivo & Red',
+        keywords: [
+          'flujo', 'torre', 'torre de control', 'react flow', 'cuello de botella', 'cuellos de botella', 
+          'atasco', 'atascos', 'recorrido', 'recorrido paciente', 'red', 'estaciones', 'semaforo',
+          'admision', 'triage', 'triaje', 'espera medica', 'box', 'alta', 'derivacion'
+        ],
+        icon: Workflow,
+        color: 'text-cyan-600 bg-cyan-100 dark:bg-cyan-950/50 border-cyan-300 dark:border-cyan-800',
+        liveKPI: 'Diagrama interactivo de red y detección de cuellos de botella',
+        description: 'Visualización secuencial del recorrido del paciente con React Flow y semáforo asistencial.',
+        action: () => navigateAndScroll('flujo')
       },
       {
         id: 'comparativo',
