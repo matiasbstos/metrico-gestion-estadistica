@@ -18,6 +18,8 @@ async function runDevLogPhotographer() {
   let targetUrl = `${baseUrl}/?snapshot_mode=true`;
   if (rawTag.includes('v6.3.26')) {
     targetUrl = `${baseUrl}/?snapshot_mode=true&modal=correo`;
+  } else if (rawTag.includes('v6.3.37')) {
+    targetUrl = `${baseUrl}/?snapshot_mode=true&tab=comparativo`;
   }
   
   const publicDir = path.join(__dirname, '..', 'public', 'devlog_snapshots');

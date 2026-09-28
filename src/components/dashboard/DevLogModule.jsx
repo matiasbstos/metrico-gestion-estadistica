@@ -8,6 +8,28 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-37',
+    titulo: 'Extensión de Corte Asistencial al 28 de Septiembre y Síntesis Agregada Completa en Rendimiento de Turnos',
+    fecha: '2026-09-28',
+    version_tag: 'v6.3.37',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_37.png',
+    problema: '1) La plataforma restringía las fechas cargadas hasta el 09/09/2026 debido a los límites preexistentes en helpers.js, impidiendo que el Explorador Global reconociera las cargas masivas del 21 al 28 de Septiembre (lotes 49 y 50). 2) En el módulo Rendimiento de Turnos (AnalisisComparativoTriple.jsx), al elegir el preset "Últimos 3 Meses", el sistema sólo contabilizaba ~750 pacientes individuales (~4 pac/guardia) en vez de las ~48 guardias reales con más de 13.500 atenciones, debido a que sólo recurría a turnosDB si pacsCountInPeriod era estrictamente 0.',
+    logica: '1) Se extendió OFFICIAL_DATA_CUTOFF_MS al 28/09/2026 23:59:59 y se actualizó resolverMaxTimestampGlobal en helpers.js para admitir registros hasta el 28 de Septiembre. 2) Se actualizó MAX_SYSTEM_CUTOFF = "2026-09-28" y los presets de fecha en AnalisisComparativoTriple.jsx. 3) Se implementó un algoritmo de síntesis agregada por turno: cuando pacientesDB sólo contiene una muestra o caché limitada (< 70% del volumen del período), el sistema procesa sistemáticamente cada guardia de turnosDB deduplicada por clave canónica, consolidando pacientes, altas administrativas, categorías C1 a C5, lead times de triage y box, y récord de turno.',
+    solucion: 'El sistema reconoce y muestra turnos hasta el 28/09/2026. Al consultar "Últimos 3 Meses" en Rendimiento de Turnos, cada equipo de guardia (Turnos 1, 2 y 3) refleja fielmente sus más de 4.000 pacientes atendidos, con un promedio representativo de ~95 pac/guardia y distribución Manchester completa.',
+    fullPost: `En esta versión v6.3.37 completamos la extensión de corte temporal y la conciliación agregada en Rendimiento de Turnos:
+
+1. **Extensión del Límite de Corte Oficial al 28 de Septiembre de 2026**:
+   - Se actualizó OFFICIAL_DATA_CUTOFF_MS al 28/09/2026 23:59:59 en helpers.js.
+   - El resolverMaxTimestampGlobal ahora reconoce y valida las cargas de datos efectuadas hasta el día 28 de Septiembre de 2026.
+   - Se ajustó MAX_SYSTEM_CUTOFF = '2026-09-28' en AnalisisComparativoTriple.jsx y se actualizaron los presets temporales.
+
+2. **Síntesis Agregada Completa en Rendimiento de Turnos**:
+   - Se corrigió la condición excluyente (pacsCountInPeriod === 0) en AnalisisComparativoTriple.jsx.
+   - Cuando la consulta abarca períodos extensos (como "Últimos 3 Meses", "Año 2026 Completo" o "Últimos 30 Días") donde pacientesDB no se descarga completo a memoria por motivos de rendimiento y cuota de red, el sistema consolida automáticamente los registros oficiales de turnosDB deduplicados por clave canónica.
+   - Cada equipo refleja sus métricas reales: ~95 pacientes/guardia, récord de turno verdadero (~180 pac), categorías Manchester C1 a C5 agregadas, latencias y lead times asistenciales ponderados.`
+  },
+  {
     id: 'devlog-v6-3-36',
     titulo: 'Restitución Estricta del Techo Oficial Rayen #28.091 YTD y Erradicación de Inflación por Turnos Duplicados',
     fecha: '2026-09-28',

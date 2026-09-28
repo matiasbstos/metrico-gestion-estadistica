@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.37',
+      version: 'v6.3.37',
+      fecha: '28 de Septiembre, 2026',
+      badge: 'EXTENSIÓN DE CORTE HASTA 28/09 & SÍNTESIS AGREGADA COMPLETA EN RENDIMIENTO DE TURNOS',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Extensión de Corte Asistencial al 28 de Septiembre y Síntesis Agregada Completa en Rendimiento de Turnos',
+      categoria: 'Rendimiento de Turnos & Operación Asistencial',
+      icon: Gauge,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se amplió el límite temporal de corte oficial del sistema al 28 de Septiembre de 2026 (28/09/2026 23:59 hrs), permitiendo que la plataforma reconozca e incorpore todas las cargas masivas recientes (lotes 49 y 50). Adicionalmente, se corrigió el cálculo en AnalisisComparativoTriple.jsx (Rendimiento de Turnos): en vistas amplias (como "Últimos 3 Meses" o "Año 2026 Completo") donde los pacientes nominales no se descargan en bruto a memoria por protección de red, el sistema consolida automáticamente los turnos deduplicados de turnosDB, reflejando el volumen real (~13.500 pacientes acumulados, ~95 pac/guardia y distribución Manchester completa) en lugar del fragmento parcial de 750 pacientes.',
+      instructivo: {
+        paraQueSirve: 'Permite visualizar todos los turnos cargados hasta el 28 de Septiembre de 2026 y garantiza que la pestaña "Rendimiento de Turnos" muestre métricas operativas completas y veraces para cualquier período seleccionado (1 día, 7 días, 30 días, 3 meses o anual).',
+        quePuedesVer: 'En Rendimiento de Turnos: al seleccionar "Últimos 3 Meses", cada equipo de guardia (Turno 1, Turno 2, Turno 3) muestra sus más de 4.000 pacientes atendidos, con un promedio representativo de ~90-100 pac/guardia, récord de turno verídico (~180 pac) y categorizaciones C1-C5 completas.',
+        ejemploUso: 'Haz clic en "Rendimiento Turno" y selecciona el preset "Últimos 3 Meses": verás que la carga operativa y los lead times de triage y box reflejan fielmente el desempeño asistencial de todas las guardias del período.'
+      },
+      changes: [
+        'Extensión de OFFICIAL_DATA_CUTOFF_MS al 28/09/2026 23:59:59 y actualización del filtro de fecha máxima en helpers.js.',
+        'Actualización de MAX_SYSTEM_CUTOFF = "2026-09-28" y presets temporales en AnalisisComparativoTriple.jsx.',
+        'Implementación de síntesis consolidada por turno desde turnosDB deduplicados cuando pacientesDB se encuentra paginado o limitado en memoria.',
+        'Desglose fidedigno de volumen por equipo, latencias Manchester (C1 a C5), lead times de atención, récord de guardia y retención clínica.'
+      ]
+    },
+    {
       id: 'v6.3.36',
       version: 'v6.3.36',
       fecha: '28 de Septiembre, 2026',

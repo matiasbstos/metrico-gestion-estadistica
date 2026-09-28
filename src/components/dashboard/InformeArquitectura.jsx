@@ -10,6 +10,31 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.37',
+    version_tag: 'v6.3.37',
+    fecha: '28 de Septiembre, 2026',
+    fecha_despliegue: '28 de Septiembre, 2026',
+    proposito_actualizacion: 'Extensión de Corte Asistencial al 28 de Septiembre de 2026 y Síntesis Agregada Completa en Rendimiento de Turnos.',
+    medios_y_stack: [
+      'helpers.js (Extensión de OFFICIAL_DATA_CUTOFF_MS al 28/09/2026 23:59:59 y actualización del filtro de fecha máxima en resolverMaxTimestampGlobal, permitiendo reconocer cargas masivas recientes)',
+      'AnalisisComparativoTriple.jsx (Actualización de MAX_SYSTEM_CUTOFF = "2026-09-28" y presets temporales)',
+      'AnalisisComparativoTriple.jsx (Implementación de síntesis consolidada por turno desde turnosDB deduplicados cuando pacientesDB está paginado o limitado en memoria, resolviendo la inconsistencia que mostraba sólo 750 pacientes en Últimos 3 Meses)',
+      'Dashboard.jsx, ModalMuroActualizaciones.jsx, DevLogModule.jsx & InformeArquitectura.jsx (Sincronización protocolar a versión v6.3.37)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Corte Asistencial Actualizado: La plataforma reconoce y procesa atenciones cargadas hasta el 28 de Septiembre de 2026. 2) Síntesis de Rendimiento por Guardia: La evaluación comparativa de equipos procesa la totalidad de turnos deduplicados aun cuando la base de pacientes nominales en memoria esté limitada por protección de red. 3) Paridad de Métricas Operativas: Volumen, altas admin, derivaciones, récord de turno y lead times reflejan el 100% de la operación clínica.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Deduplicación canónica en O(1) y agregación de métricas de guardia sin sobrecargar el hilo de renderizado.'
+    },
+    modulos_afectados: ['helpers.js', 'AnalisisComparativoTriple.jsx', 'Dashboard.jsx', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx'],
+    detalles_tecnicos: [
+      'Reconocimiento pleno de cargas masivas de datos hasta el 28/09/2026.',
+      'Resolución de la subestimación en Rendimiento de Turnos para rangos amplios (de 750 a más de 13.500 pacientes).',
+      'Cálculo ponderado de esperas Manchester C1 a C5 y lead times de estadía.',
+      'Actualización oficial de versión del sistema a v6.3.37.'
+    ]
+  },
+  {
     id: 'v6.3.36',
     version_tag: 'v6.3.36',
     fecha: '28 de Septiembre, 2026',

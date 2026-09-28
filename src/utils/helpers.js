@@ -1137,7 +1137,7 @@ export const auditarIntegridadTurnoCorreo = (turnoInfo) => {
 /**
  * Resuelve el timestamp máximo registrado en el sistema evaluando tanto turnos como pacientes.
  */
-export const OFFICIAL_DATA_CUTOFF_MS = new Date(2026, 8, 9, 21, 57, 0).getTime(); // 09/09/2026 21:57 hrs
+export const OFFICIAL_DATA_CUTOFF_MS = new Date(2026, 8, 28, 23, 59, 59).getTime(); // 28/09/2026 23:59 hrs
 
 export const resolverMaxTimestampGlobal = (turnosDB = [], pacientesDB = [], allPacientesDB = []) => {
   let maxTime = 0;
@@ -1150,7 +1150,7 @@ export const resolverMaxTimestampGlobal = (turnosDB = [], pacientesDB = [], allP
         const y = d.getFullYear();
         const m = d.getMonth();
         const dia = d.getDate();
-        if (y < 2026 || (y === 2026 && (m < 8 || (m === 8 && dia <= 9)))) {
+        if (y < 2026 || (y === 2026 && (m < 8 || (m === 8 && dia <= 28)))) {
           maxTime = p.tAdmision;
         }
       }
@@ -1178,8 +1178,8 @@ export const resolverMaxTimestampGlobal = (turnosDB = [], pacientesDB = [], allP
           m = parseInt(parts[1]);
           y = parseInt(parts[2]);
         }
-        // Excluir cualquier fecha posterior al corte oficial (09/09/2026)
-        if (y && m && d && (y < 2026 || (y === 2026 && (m < 9 || (m === 9 && d <= 9))))) {
+        // Excluir cualquier fecha posterior al corte del 28/09/2026
+        if (y && m && d && (y < 2026 || (y === 2026 && (m < 9 || (m === 9 && d <= 28))))) {
           const isNight = (String(t.horario).includes('20:00') || String(t.horario).includes('Noche') || String(t.horario).includes('17:00') || String(t.horario).includes('Largo'));
           const h = isNight ? 23 : 20;
           const min = isNight ? 57 : 0;
