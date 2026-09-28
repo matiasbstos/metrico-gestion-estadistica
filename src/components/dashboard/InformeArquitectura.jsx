@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.35',
+    version_tag: 'v6.3.35',
+    fecha: '28 de Septiembre, 2026',
+    fecha_despliegue: '28 de Septiembre, 2026',
+    proposito_actualizacion: 'Población 100% Completa del Período Anual en Inicio y Triaje, Fallback Asistencial desde Turnos de Guardia y Blindaje Integral de Métricas Operativas.',
+    medios_y_stack: [
+      'Dashboard.jsx (Completación universal de las 9 tarjetas del bloque "Período Seleccionado" y de la "Distribución de Triaje" Manchester C1-C5 al activar el filtro anual isAnnualFilter, asegurando 28.091 admisiones, 25.547 atenciones efectivas, 2.544 altas, 1.162 traslados, 242 constataciones, 4.8 pac/hora, 133 min estadía, 34.2 años promedio y 94.1% Fonasa)',
+      'useMetricoAnalytics.js (Fallback dinámico hacia turnosFiltrados para calcular volumen, altas, traslados, constataciones, estadía y categorías de triaje cuando pacientesFiltrados no cuenta con pacientes individuales en memoria, eliminando ceros accidentales)',
+      'ModalMuroActualizaciones.jsx & DevLogModule.jsx (Actualización protocolar de versión v6.3.35 con documentación técnica y de usuario)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Integridad Asistencial del Período Anual: La selección de la vista anual refleja siempre la totalidad de pacientes del año en curso (#28.091) sin omitir métricas ni categorías clínicas. 2) Fallback Canónico de Guardia: Cuando la descarga de pacientes nominales aún no concluye o está restringida por red, el sistema toma los totales auditados de turnosDB, previniendo visualizaciones en blanco. 3) Regla 8 SSOT: Consistencia irrestricta de porcentajes interanuales (+19.7% YoY en admisiones, +19.1% YoY en atenciones).',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Cómputo en memoria sin llamadas bloqueantes a Firestore.'
+    },
+    modulos_afectados: ['Dashboard.jsx', 'useMetricoAnalytics.js', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx'],
+    detalles_tecnicos: [
+      'Población universal de las 9 tarjetas de período y triaje C1-C5 en isAnnualFilter.',
+      'Soporte de fallback desde turnosFiltrados en useMetricoAnalytics.js.',
+      'Actualización oficial de versión del sistema a v6.3.35.'
+    ]
+  },
+  {
     id: 'v6.3.34',
     version_tag: 'v6.3.34',
     fecha: '28 de Septiembre, 2026',

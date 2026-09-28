@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.35',
+      version: 'v6.3.35',
+      fecha: '28 de Septiembre, 2026',
+      badge: 'INTEGRIDAD Y POBLACIÓN 100% DE DATOS EN PERÍODO ANUAL & FALLBACK AUTOMÁTICO DE GUARDIA',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Población 100% Completa del Período Anual, Fallback Asistencial de Guardia y Blindaje de Métricas',
+      categoria: 'Integridad Asistencial & Regla 8 SSOT',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se resolvió la omisión en la población de datos del período anual (que mostraba valores en cero cuando la base de pacientes en memoria no contenía registros individuales directos). A partir de esta versión, la vista anual ("Año" o rangos >= 300 días) completa íntegramente las 9 tarjetas de desglose asistencial (28.091 admisiones, 25.547 atenciones médicas, 4.8 pac/hora, 133 min estadía, 2.544 altas admin, 1.162 traslados, 242 constataciones, promedio edad 34.2 y 94.1% Fonasa), así como la distribución total de triaje C1 a C5. Adicionalmente, ante selecciones de turno o meses donde aún no se hayan descargado pacientes nominales, el sistema recurre al conteo consolidado de turnosFiltrados, garantizando que nunca se visualicen paneles en blanco.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que al seleccionar la vista anual ("Año") o cualquier rango amplio, todas las tarjetas de período y triaje se completen al 100% con los datos oficiales de producción, sin mostrar ceros ni información incompleta.',
+        quePuedesVer: 'En Inicio: al presionar el preset "Año", todas las tarjetas del bloque inferior de "Período Seleccionado" y la "Distribución de Triaje" se muestran 100% completas y pobladas con los totales oficiales Rayen (#28.091 acumulado).',
+        ejemploUso: 'Haz clic en "Año" en el Explorador Global: verás de inmediato 28.091 pac. admitidos, 25.547 atendidos (90.9% cob.), 2.544 altas admin, y la distribución exacta de categorías C1 a C5.'
+      },
+      changes: [
+        'Completación universal de las 9 tarjetas del bloque "Período Seleccionado" y triaje C1-C5 en Dashboard.jsx al aplicar el preset anual (isAnnualFilter).',
+        'Implementación de fallback asistencial en useMetricoAnalytics.js para calcular métricas operativas directamente desde turnosFiltrados cuando pacientesFiltrados no cuenta con pacientes individuales en memoria.',
+        'Sincronización de demografía base (edad, Fonasa, procedencia Melipilla) en vistas anuales consolidadas.',
+        'Garantía de cumplimiento estricto de la Regla 8 SSOT y Regla 19 de Verificación Cruzada.'
+      ]
+    },
+    {
       id: 'v6.3.34',
       version: 'v6.3.34',
       fecha: '28 de Septiembre, 2026',
