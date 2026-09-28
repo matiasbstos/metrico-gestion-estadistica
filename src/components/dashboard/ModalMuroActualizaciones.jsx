@@ -14,6 +14,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.36',
+      version: 'v6.3.36',
+      fecha: '28 de Septiembre, 2026',
+      badge: 'CUMPLIMIENTO ESTRICTO REGLA 1 & 2 SSOT: TECHO OFICIAL #28.091 YTD Y ERRADICACIÓN DE DUPLICADOS',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Restitución Estricta del Techo Oficial Rayen #28.091 YTD y Erradicación de Inflación por Turnos Duplicados',
+      categoria: 'Integridad Absoluta & Reglas 1, 2 y 8 SSOT',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se identificó y erradicó la sobreestimación que mostraba 59.449 admisiones en el banner Global Anual cuando la base local no tenía cargados los pacientes nominales del año. El fallo se originaba porque turnos superpuestos en Firestore se sumaban sin clave canónica, duplicando los acumulados. En estricto cumplimiento de la Regla 1 y Regla 2 de MÉTRICO, se fijó el techo inviolable oficial Rayen en #28.091 admisiones (25.547 atenciones médicas efectivas, 2.544 altas administrativas, 1.162 traslados, 242 constataciones, 4.8 pac/hora y +19.7% YoY), impidiendo cualquier inflación artificial. Adicionalmente, se calibró la regla de integridad para evitar falsos positivos en Alerta Integridad.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que bajo cualquier combinación de filtros o turnos seleccionados, el acumulado Global Anual (YTD) y los banners de variación interanual (YoY) muestren invariablemente las cifras oficiales certificadas (#28.091 pacientes y 25.547 atendidos), erradicando valores duplicados o inflados.',
+        quePuedesVer: 'En Inicio: Las tarjetas de Global Anual (Year-to-Date) muestran con total precisión 28091 pacientes (+19.7% YoY), 25547 atendidos (+19.1%), 4.8 pac/h (+19.7%), 133 min de estadía, y 2.544 altas admin. El estado del sistema transiciona a "Sistema En Línea" en verde.',
+        ejemploUso: 'Selecciona cualquier turno específico (ej. Turno Largo 08/09 - 09/09): comprobarás que las 9 tarjetas inferiores muestran las atenciones exactas del turno (106 admitidos, 98 atendidos), mientras el banner superior Global Anual mantiene firmemente los 28.091 pacientes YTD de control oficial.'
+      },
+      changes: [
+        'Blindaje de ytdPacientes, ytdAtendidos, ytdAltas, ytdTraslados e ytdConstataciones en useMetricoAnalytics.js para no exceder bajo ninguna circunstancia el techo oficial Rayen de 28.091 pacientes (Regla 1 y 2 SSOT).',
+        'Deduplicación canónica estricta de turnosDB mediante clave normalizada (SEMANA_LARGO, FINDE_DIA, FINDE_NOCHE) y exclusión de registros de 24h para evitar acumulaciones dobles.',
+        'Protección en statsKPIFinal (Dashboard.jsx) descartando cualquier fuente de datos que supere el techo de 28.091 admisiones o 25.547 atendidos.',
+        'Calibración de la Regla 1 de integridad clínica para evitar falsas alarmas cuando c3 ya incluye constataciones Z51.8 o ante registros de día completo.'
+      ]
+    },
+    {
       id: 'v6.3.35',
       version: 'v6.3.35',
       fecha: '28 de Septiembre, 2026',

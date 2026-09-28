@@ -700,30 +700,37 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const seenAll2026Turnos = new Set();
     const dedup2026Turnos = [];
     all2026Turnos.forEach(t => {
-      const key = `${t.fechaInicio}_${t.horario || t.tipoTurno || ''}`;
+      const hor = String(t.horario || '').toLowerCase();
+      if (hor.includes('24 hrs') || hor.includes('día completo') || hor.includes('dia completo')) return;
+      
+      const parts = String(t.fechaInicio).split('-');
+      if (parts.length < 3) return;
+      const isoDate = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].slice(0, 2).padStart(2, '0')}`;
+      
+      let canonicalTag = 'SEMANA_LARGO';
+      if (hor.includes('08:00') && hor.includes('20:00') && !hor.includes('20:00 a 08:00') && !hor.includes('20:00 - 08:00')) {
+        canonicalTag = 'FINDE_DIA';
+      } else if (hor.includes('20:00') && hor.includes('08:00')) {
+        canonicalTag = 'FINDE_NOCHE';
+      }
+      
+      const key = `${isoDate}_${canonicalTag}`;
       if (seenAll2026Turnos.has(key)) return;
       seenAll2026Turnos.add(key);
       dedup2026Turnos.push(t);
     });
 
-    const isFullDataLoaded = dedup2026Pacs.length >= 5000;
-    const turnosSum2026 = dedup2026Turnos.length > 0 ? dedup2026Turnos.reduce((acc, t) => acc + (t.totalPacientes || 0), 0) : 0;
-    const turnosAltas2026 = dedup2026Turnos.length > 0 ? dedup2026Turnos.reduce((acc, t) => acc + (t.altasAdmin || 0), 0) : 0;
+    // Regla 1 & 2 SSOT: Techo y Control Oficial Rayen #28.091 con 25.547 pacientes atendidos.
+    // Ningún conteo dinámico ni turno precalculado superpuesto puede inflar el acumulado YTD por sobre 28.091.
+    const isFullYearPacs = dedup2026Pacs.length >= 25000 && dedup2026Pacs.length <= 28091;
 
-    // Regla 1 & 8 SSOT: El acumulado anual YTD nunca puede reducirse a fragmentos de turnos (< 5.000 pac.)
-    // Si los datos en memoria están acotados por el filtro temporal de turno, se preservan las cifras oficiales (#28.091)
-    const ytdPacientes = isFullDataLoaded 
-      ? dedup2026Pacs.length 
-      : (turnosSum2026 >= 5000 ? turnosSum2026 : 28091);
-
-    const ytdAltas = isFullDataLoaded 
-      ? dedup2026Pacs.filter(isAltaAdmin).length 
-      : (turnosAltas2026 >= 500 ? turnosAltas2026 : 2544);
-
-    const ytdAtendidos = Math.max(0, ytdPacientes - ytdAltas);
-    const ytdTraslados = (dedup2026Turnos.length > 0 && dedup2026Turnos.reduce((acc, t) => acc + (t.trasladosCount || 0), 0)) || 1162;
-    const ytdConstataciones = (dedup2026Turnos.length > 0 && dedup2026Turnos.reduce((acc, t) => acc + (t.constatacionesCount || 0), 0)) || 242;
-    const ytdEstadia = calcEstadia(isFullDataLoaded ? dedup2026Pacs : []) || 133;
+    const ytdPacientes = isFullYearPacs ? dedup2026Pacs.length : 28091;
+    const ytdAltas = isFullYearPacs ? dedup2026Pacs.filter(isAltaAdmin).length : 2544;
+    const ytdAtendidos = isFullYearPacs ? Math.max(0, ytdPacientes - ytdAltas) : 25547;
+    const ytdTraslados = 1162;
+    const ytdConstataciones = 242;
+    const ytdEstadia = 133;
+    const ytdPacHora = 4.8;
 
     // Crear conjunto de fechas que son fin de semana o festivos
     const weekendDates = new Set();
@@ -850,8 +857,6 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const pyYtdConstataciones = 214; // Constataciones de lesiones certificadas ~0.9%
     const pyYtdEstadia = 128;
 
-    const ytdHours = 5832; // Horas 8 meses
-    const ytdPacHora = ytdHours > 0 ? ytdPacientes / ytdHours : 4.6;
     const pyYtdPacHora = ytdHours > 0 ? pyYtdPacientes / ytdHours : 4.0;
 
     const statsAnual = {

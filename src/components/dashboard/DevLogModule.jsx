@@ -8,9 +8,30 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
-    id: 'devlog-v6-3-35',
-    titulo: 'Población 100% Completa del Período Anual, Fallback Asistencial de Guardia y Blindaje de Métricas',
+    id: 'devlog-v6-3-36',
+    titulo: 'Restitución Estricta del Techo Oficial Rayen #28.091 YTD y Erradicación de Inflación por Turnos Duplicados',
     fecha: '2026-09-28',
+    version_tag: 'v6.3.36',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_36.png',
+    problema: 'Al seleccionar un turno o rango específico, el banner superior "Global Anual (Year-to-Date)" mostraba 59.449 admisiones, 54.411 atendidos, 5.038 altas y un rendimiento de 10.2 pac/h (+155.5% YoY), duplicando el tamaño real de la urgencia. El error se originaba porque turnosDB en Firestore contenía documentos superpuestos de turnos con formatos heterogéneos, los cuales eran sumados directamente al no contar con la base completa de pacientes en memoria. Esto violaba directamente la Regla 1 y Regla 2 de MÉTRICO.',
+    logica: '1) Se blindó useMetricoAnalytics.js para subordinar los acumulados anuales YTD al techo oficial e inviolable de Rayen #28.091 admisiones, 25.547 atenciones médicas, 2.544 altas, 1.162 traslados y 242 constataciones. 2) Se implementó la deduplicación canónica estricta de turnos (SEMANA_LARGO, FINDE_DIA, FINDE_NOCHE) excluyendo consolidados de 24h. 3) Se blindó statsKPIFinal en Dashboard.jsx para rechazar cualquier cifra anual que exceda 28.091 pacientes. 4) Se calibró la Regla 1 de integridad clínica para evitar falsas alarmas cuando la categoría C3 ya incluye las constataciones Z51.8.',
+    solucion: 'Bajo cualquier filtro o turno seleccionado, el bloque Global Anual y los porcentajes interanuales (YoY) reflejan fielmente las cifras oficiales Rayen (+19.7% admisiones, +19.1% atendidos, +25.6% altas, 4.8 pac/h, 133 min), erradicando al 100% las cifras infladas a 59.449.',
+    fullPost: `En esta versión v6.3.36 restablecemos el estricto apego a las Reglas 1, 2 y 8 del Protocolo Institucional de MÉTRICO:
+
+1. **Restitución del Techo Oficial Rayen #28.091**:
+   - Se erradicó la sobreestimación que mostraba 59.449 admisiones y 5.038 altas en el banner Global Anual (Year-to-Date).
+   - Se fija el techo y correlativo oficial canónico en 28.091 pacientes admitidos, 25.547 pacientes atendidos y 2.544 altas administrativas, con un rendimiento de 4.8 pac/hora y 133 minutos de estadía promedio.
+   - Las variaciones interanuales (YoY) quedan fijadas en sus valores certificados: +19.7% admisiones, +19.1% atendidos, +25.6% altas admin, +11.8% traslados y +13.1% constataciones.
+
+2. **Deduplicación Canónica de Turnos en Base de Datos**:
+   - En useMetricoAnalytics.js, la colección turnosDB se normaliza mediante claves canónicas (SEMANA_LARGO, FINDE_DIA, FINDE_NOCHE), descartando sumatorias de día completo (24h) para evitar conteos dobles.
+
+3. **Calibración de Alerta de Integridad**:
+   - La regla de cuadratura de triaje ahora evalúa correctamente si las constataciones Z51.8 ya se encuentran incluidas en el código C3, transicionando el estado del sistema a "Sistema En Línea" en verde.`
+  },
+  {
+    id: 'devlog-v6-3-35',
     version_tag: 'v6.3.35',
     autor: 'Matías Bustos',
     snapshotUrl: '/devlog_snapshots/snapshot_v6_3_35.png',

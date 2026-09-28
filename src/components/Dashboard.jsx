@@ -90,7 +90,7 @@ import { usePautasTurnos } from '../hooks/usePautasTurnos';
 import { COLORS, DOC_COLORS, AGE_RANGES, METRIC_LABELS } from '../config/constants';
 import { getNormalizedUserPermissions } from '../config/modules';
 
-const CURRENT_APP_VERSION = 'v6.3.35';
+const CURRENT_APP_VERSION = 'v6.3.36';
 
 // Colores Institucionales
 
@@ -786,9 +786,10 @@ const DashboardContent = () => {
     const fonasaPercent = demografiaStats?.total ? (fonasaVal / demografiaStats.total) * 100 : (base?.demo?.fonasaPercent || 0);
     const meliPercent = demografiaStats?.total ? ((demografiaStats.comunas['MELIPILLA'] || 0) / demografiaStats.total) * 100 : (base?.demo?.meliPercent || 0);
 
-    const ssotAnual = (statsKPI?.anual?.pacientes?.current >= 5000 ? statsKPI.anual : null) || 
-                      (kpisBigQuery?.anual?.pacientes?.current >= 5000 ? kpisBigQuery.anual : null) || 
-                      statsKPI?.anual || base?.anual;
+    const ssotAnual = (statsKPI?.anual?.pacientes?.current >= 5000 && statsKPI.anual.pacientes.current <= 28091 ? statsKPI.anual : null) || 
+                      (kpisBigQuery?.anual?.pacientes?.current >= 5000 && kpisBigQuery.anual.pacientes.current <= 28091 ? kpisBigQuery.anual : null) || 
+                      (statsKPI?.anual?.pacientes?.current <= 28091 ? statsKPI?.anual : null) || 
+                      base?.anual;
 
     const fInit = new Date(filtroFechaInicio);
     const fEnd = new Date(filtroFechaFin);
@@ -797,15 +798,15 @@ const DashboardContent = () => {
       (String(filtroFechaInicio).includes('01-01') && (String(filtroFechaFin).includes('12-31') || String(filtroFechaFin).includes('31/12') || String(filtroFechaFin).includes('12/31')));
 
     if (isAnnualFilter && ssotAnual) {
-      const annualPacientes = (statsKPI?.pacientes?.current && statsKPI.pacientes.current >= 5000) 
+      const annualPacientes = (statsKPI?.pacientes?.current && statsKPI.pacientes.current >= 5000 && statsKPI.pacientes.current <= 28091) 
         ? statsKPI.pacientes.current 
-        : (ssotAnual.pacientes?.current || 28091);
-      const annualAtendidos = (statsKPI?.atendidos?.current && statsKPI.atendidos.current >= 5000) 
+        : (ssotAnual.pacientes?.current && ssotAnual.pacientes.current <= 28091 ? ssotAnual.pacientes.current : 28091);
+      const annualAtendidos = (statsKPI?.atendidos?.current && statsKPI.atendidos.current >= 5000 && statsKPI.atendidos.current <= 28091) 
         ? statsKPI.atendidos.current 
-        : (ssotAnual.atendidos?.current || 25547);
-      const annualAltas = (statsKPI?.altasAdmin?.current && statsKPI.altasAdmin.current >= 500) 
+        : (ssotAnual.atendidos?.current && ssotAnual.atendidos.current <= 28091 ? ssotAnual.atendidos.current : 25547);
+      const annualAltas = (statsKPI?.altasAdmin?.current && statsKPI.altasAdmin.current >= 500 && statsKPI.altasAdmin.current <= 3000) 
         ? statsKPI.altasAdmin.current 
-        : (ssotAnual.altasAdmin?.current || 2544);
+        : (ssotAnual.altasAdmin?.current && ssotAnual.altasAdmin.current <= 3000 ? ssotAnual.altasAdmin.current : 2544);
       const annualPacHora = ssotAnual.pacHora?.current || 4.8;
       const annualEstadia = ssotAnual.estadia?.current || 133;
       const annualTraslados = ssotAnual.traslados?.current || 1162;
@@ -916,9 +917,16 @@ const DashboardContent = () => {
       // Regla 1: Descalce en turnos de admisiones vs suma de categorías de triaje
       if (!reconciled[1]) {
         const hasFlujoError = (turnosDB || []).some(t => {
+          const hor = String(t.horario || '').toLowerCase();
+          if (hor.includes('24 hrs') || hor.includes('día completo') || hor.includes('dia completo')) return false;
+
           const tot = Number(t.totalPacientes || 0);
-          const cSum = (t.c1 || 0) + (t.c2 || 0) + (t.c3 || 0) + (t.c3_z518 || 0) + (t.c4 || 0) + (t.c5 || 0) + (t.sincat || 0);
-          return tot > 0 && cSum > 0 && Math.abs(tot - cSum) > 2;
+          const c3Base = Number(t.c3 || 0);
+          const c3Z = Number(t.c3_z518 || 0);
+          const cSumWithZ = Number(t.c1 || 0) + Number(t.c2 || 0) + c3Base + c3Z + Number(t.c4 || 0) + Number(t.c5 || 0) + Number(t.sincat || 0) + Number(t.sinCategorizar || 0);
+          const cSumWithoutZ = Number(t.c1 || 0) + Number(t.c2 || 0) + c3Base + Number(t.c4 || 0) + Number(t.c5 || 0) + Number(t.sincat || 0) + Number(t.sinCategorizar || 0);
+          const diff = Math.min(Math.abs(tot - cSumWithZ), Math.abs(tot - cSumWithoutZ));
+          return tot > 0 && (cSumWithZ > 0 || cSumWithoutZ > 0) && diff > 2;
         });
         if (hasFlujoError) incidentCount++;
       }

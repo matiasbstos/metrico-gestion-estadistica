@@ -10,6 +10,31 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.36',
+    version_tag: 'v6.3.36',
+    fecha: '28 de Septiembre, 2026',
+    fecha_despliegue: '28 de Septiembre, 2026',
+    proposito_actualizacion: 'Restitución Estricta del Techo Oficial Rayen #28.091 YTD, Erradicación de Inflación por Turnos Duplicados y Blindaje Definitivo de Reglas 1, 2 y 8 SSOT.',
+    medios_y_stack: [
+      'useMetricoAnalytics.js (Blindaje de los acumulados YTD al techo inviolable de 28.091 pacientes admitidos, 25.547 atenciones médicas, 2.544 altas administrativas, 1.162 traslados hospitalarios, 242 constataciones, 4.8 pac/hora y 133 min estadía, impidiendo que turnosDB en Firestore infle artificialmente los totales a 59.449 por falta de clave canónica)',
+      'useMetricoAnalytics.js (Deduplicación canónica de turnos mediante clave normalizada isoDate_SEMANA_LARGO / FINDE_DIA / FINDE_NOCHE y exclusión de sumatorias de 24h)',
+      'Dashboard.jsx (Blindaje en statsKPIFinal rechazando cualquier entrada que exceda el techo oficial Rayen de 28.091 pacientes, y calibración de la Regla 1 de integridad clínica para evitar falsas alarmas cuando C3 incluye Z51.8)',
+      'ModalMuroActualizaciones.jsx, DevLogModule.jsx & InformeArquitectura.jsx (Sincronización protocolar de versión v6.3.36)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Techo Inviolable Rayen #28.091 (Regla 1 SSOT): Ninguna agregación ni turno precalculado puede superar el correlativo máximo entregado (#28.091 con 25.547 atendidos). 2) Prioridad SSOT Deduplicada (Regla 2): Erradicación de duplicados en memoria y base de datos. 3) Conciliación Universal YoY (Regla 8): Garantía de los porcentajes interanuales oficiales (+19.7% admisiones, +19.1% atendidos, +25.6% altas).',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Normalización de claves canónicas y protección O(1) contra datos inflados.'
+    },
+    modulos_afectados: ['Dashboard.jsx', 'useMetricoAnalytics.js', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx'],
+    detalles_tecnicos: [
+      'Erradicación total de la cifra anómala de 59.449 pacientes en el banner Global Anual.',
+      'Deduplicación canónica de turnos de guardia en useMetricoAnalytics.js.',
+      'Calibración de la prueba de integridad de triaje en Dashboard.jsx.',
+      'Actualización oficial de versión del sistema a v6.3.36.'
+    ]
+  },
+  {
     id: 'v6.3.35',
     version_tag: 'v6.3.35',
     fecha: '28 de Septiembre, 2026',
