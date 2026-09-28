@@ -857,7 +857,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const pyYtdConstataciones = 214; // Constataciones de lesiones certificadas ~0.9%
     const pyYtdEstadia = 128;
 
-    const pyYtdPacHora = ytdHours > 0 ? pyYtdPacientes / ytdHours : 4.0;
+    const pyYtdPacHora = 4.0;
 
     const statsAnual = {
       pacientes: { 
