@@ -3,6 +3,7 @@
  * Implementación canónica conforme a la Lógica Real de Turnos SAR (Reglas 4, 9, 17, 20).
  */
 
+export { CHILE_HOLIDAYS_OFFICIAL } from './helpers';
 import { CHILE_HOLIDAYS_OFFICIAL } from './helpers';
 
 /**

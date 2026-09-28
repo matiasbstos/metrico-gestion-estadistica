@@ -1137,17 +1137,20 @@ export const auditarIntegridadTurnoCorreo = (turnoInfo) => {
 /**
  * Resuelve el timestamp máximo registrado en el sistema evaluando tanto turnos como pacientes.
  */
+export const OFFICIAL_DATA_CUTOFF_MS = new Date(2026, 8, 9, 21, 57, 0).getTime(); // 09/09/2026 21:57 hrs
+
 export const resolverMaxTimestampGlobal = (turnosDB = [], pacientesDB = [], allPacientesDB = []) => {
   let maxTime = 0;
-  const ahoraMs = Date.now() + 3600000;
+  const maxPermitido = Math.min(Date.now() + 3600000, OFFICIAL_DATA_CUTOFF_MS);
   const records = (allPacientesDB && allPacientesDB.length > 0) ? allPacientesDB : (pacientesDB || []);
   if (records && records.length > 0) {
     records.forEach(p => {
-      if (p.tAdmision && p.tAdmision <= ahoraMs && p.tAdmision > maxTime) {
+      if (p.tAdmision && p.tAdmision <= maxPermitido && p.tAdmision > maxTime) {
         const d = new Date(p.tAdmision);
         const y = d.getFullYear();
         const m = d.getMonth();
-        if (y <= 2026 && !(y === 2026 && m > 8)) {
+        const dia = d.getDate();
+        if (y < 2026 || (y === 2026 && (m < 8 || (m === 8 && dia <= 9)))) {
           maxTime = p.tAdmision;
         }
       }
@@ -1175,12 +1178,13 @@ export const resolverMaxTimestampGlobal = (turnosDB = [], pacientesDB = [], allP
           m = parseInt(parts[1]);
           y = parseInt(parts[2]);
         }
-        if (y && m && d && y <= 2026 && !(y === 2026 && m > 9)) {
+        // Excluir cualquier fecha posterior al corte oficial (09/09/2026)
+        if (y && m && d && (y < 2026 || (y === 2026 && (m < 9 || (m === 9 && d <= 9))))) {
           const isNight = (String(t.horario).includes('20:00') || String(t.horario).includes('Noche') || String(t.horario).includes('17:00') || String(t.horario).includes('Largo'));
           const h = isNight ? 23 : 20;
           const min = isNight ? 57 : 0;
           const tMs = new Date(y, m - 1, d, h, min, 0).getTime();
-          if (tMs <= ahoraMs && tMs > maxTime) maxTime = tMs;
+          if (tMs <= maxPermitido && tMs > maxTime) maxTime = tMs;
         }
       }
     });

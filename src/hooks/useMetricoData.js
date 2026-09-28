@@ -251,8 +251,6 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
 
   // 3. Carga inicial instantánea desde IndexedDB + primer refresco
   useEffect(() => {
-    if (!user || !db) return;
-
     let isSubscribed = true;
 
     const runPreload = async () => {
@@ -279,20 +277,24 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
             setTurnosDB(cachedTurnos);
           }
 
-          setLoading(false);
-          setSyncStatus('synced');
+          if ((cachedPacs && cachedPacs.length > 0) || (cachedTurnos && cachedTurnos.length > 0)) {
+            setLoading(false);
+            setSyncStatus('synced');
+          }
         }
       } catch (e) {
         console.warn("Error cargando caché IndexedDB:", e);
       } finally {
-        if (isSubscribed) {
+        if (isSubscribed && globalPacientesMapRef.current.size > 0) {
           setLoading(false);
           setSyncStatus('synced');
         }
       }
 
-      // Sincronización en segundo plano sin congelar la pantalla
-      forceDeepSync(true);
+      // Si el usuario ya está autenticado, sincronizar en segundo plano
+      if (user && db) {
+        forceDeepSync(true);
+      }
     };
 
     runPreload();

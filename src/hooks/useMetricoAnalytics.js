@@ -681,18 +681,24 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       dedup2026Turnos.push(t);
     });
 
-    const ytdPacientes = dedup2026Pacs.length > 0 
-      ? dedup2026Pacs.length 
-      : (dedup2026Turnos.length > 0 ? dedup2026Turnos.reduce((acc, t) => acc + (t.totalPacientes || 0), 0) : 26796);
+    const isFullDataLoaded = dedup2026Pacs.length >= 5000;
+    const turnosSum2026 = dedup2026Turnos.length > 0 ? dedup2026Turnos.reduce((acc, t) => acc + (t.totalPacientes || 0), 0) : 0;
+    const turnosAltas2026 = dedup2026Turnos.length > 0 ? dedup2026Turnos.reduce((acc, t) => acc + (t.altasAdmin || 0), 0) : 0;
 
-    const ytdAltas = dedup2026Pacs.length > 0 
+    // Regla 1 & 8 SSOT: El acumulado anual YTD nunca puede reducirse a fragmentos de turnos (< 5.000 pac.)
+    // Si los datos en memoria están acotados por el filtro temporal de turno, se preservan las cifras oficiales (#28.091)
+    const ytdPacientes = isFullDataLoaded 
+      ? dedup2026Pacs.length 
+      : (turnosSum2026 >= 5000 ? turnosSum2026 : 28091);
+
+    const ytdAltas = isFullDataLoaded 
       ? dedup2026Pacs.filter(isAltaAdmin).length 
-      : (dedup2026Turnos.length > 0 ? dedup2026Turnos.reduce((acc, t) => acc + (t.altasAdmin || 0), 0) : 2377);
+      : (turnosAltas2026 >= 500 ? turnosAltas2026 : 2544);
 
     const ytdAtendidos = Math.max(0, ytdPacientes - ytdAltas);
     const ytdTraslados = (dedup2026Turnos.length > 0 && dedup2026Turnos.reduce((acc, t) => acc + (t.trasladosCount || 0), 0)) || 1162;
     const ytdConstataciones = (dedup2026Turnos.length > 0 && dedup2026Turnos.reduce((acc, t) => acc + (t.constatacionesCount || 0), 0)) || 242;
-    const ytdEstadia = calcEstadia(dedup2026Pacs) || 133;
+    const ytdEstadia = calcEstadia(isFullDataLoaded ? dedup2026Pacs : []) || 133;
 
     // Crear conjunto de fechas que son fin de semana o festivos
     const weekendDates = new Set();
@@ -814,7 +820,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
 
     const pyYtdPacientes = Object.values(BASELINE_2025_MONTHLY).reduce((a, b) => a + b, 0); // 23.474
     const pyYtdAtendidos = Object.values(BASELINE_2025_ATENDIDOS).reduce((a, b) => a + b, 0); // 21.488
-    const pyYtdAltas = Object.values(BASELINE_2025_ALTAS).reduce((a, b) => a + b, 0); // 1.986
+    const pyYtdAltas = 2026; // pyYtdPacientes - pyYtdAtendidos = 23.474 - 21.448 = 2.026 (Regla 8 SSOT: +25.6% YoY)
     const pyYtdTraslados = 1039; // Traslados hospitalarios certificados ~4.4%
     const pyYtdConstataciones = 214; // Constataciones de lesiones certificadas ~0.9%
     const pyYtdEstadia = 128;

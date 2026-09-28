@@ -10,6 +10,32 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.34',
+    version_tag: 'v6.3.34',
+    fecha: '28 de Septiembre, 2026',
+    fecha_despliegue: '28 de Septiembre, 2026',
+    proposito_actualizacion: 'Filtro Global de Fechas en Rendimiento Turno con 6 Presets Rápidos, Podio de Honor de Equipos de Guardia y Blindaje Canónico SSOT de Porcentajes YoY en Inicio y PanelKPIs.',
+    medios_y_stack: [
+      'AnalisisComparativoTriple.jsx (Integración de selector de rango temporal con fechaInicio y fechaFin, 6 presets rápidos: Últimos 3 Meses, Año 2026 Completo, Últimos 30 Días, Últimos 7 Días, Agosto 2026 y Septiembre 2026, Podio de Honor de Guardia destacando agilidad, retención resolutiva y complejidad, y matriz comparativa de KPIs agregados multi-jornada)',
+      'useMetricoAnalytics.js (Blindaje de ytdPacientes, ytdAltas y ytdAtendidos garantizando que fragmentos de turnos en memoria < 5.000 pac. no sustituyan el total acumulado YTD oficial #28.091, protegiendo los porcentajes YoY de contracciones artificiales como -98.7%)',
+      'Dashboard.jsx (Protección de stats.anual contra respuestas incompletas de BigQuery < 5.000 atenciones, asegurando la consistencia interanual en todo momento)',
+      'helpers.js (Implementación de OFFICIAL_DATA_CUTOFF_MS al 09/09/2026 21:57 hrs en resolverMaxTimestampGlobal y getInitialCompleteShift, descartando fechas futuras erróneas)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Evaluación Agregada de Turnos: El análisis comparativo de guardias permite evaluar a los Equipos 1, 2 y 3 sobre períodos continuos o meses completos con cálculo O(N) reactivo. 2) Podio de Honor de Guardia: Reconocimiento explícito al equipo con menor tiempo de espera a triaje, menor tasa de altas administrativas y mayor resolución de complejidad. 3) Regla 8 SSOT YoY: El cálculo interanual preserva estrictamente la base anual oficial 2026 (#28.091) vs 2025 (23.474 pac. y 21.488 atendidos), manteniendo invariables los porcentajes institucionales (+19.7% admisiones, +19.1% atendidos, +25.6% altas, +11.8% traslados). 4) Techo Oficial de Corte: Ningún componente puede auto-seleccionar fechas posteriores a la entrega certificada de Rayen (09/09/2026 21:57 hrs).',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Pre-carga inmediata en useMetricoData desde IndexedDB al montar el componente, eliminando demoras de renderizado de KPIs.'
+    },
+    modulos_afectados: ['AnalisisComparativoTriple.jsx', 'useMetricoAnalytics.js', 'Dashboard.jsx', 'helpers.js', 'useMetricoData.js', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx'],
+    detalles_tecnicos: [
+      'Implementación del Podio de Honor y presets temporales en AnalisisComparativoTriple.jsx.',
+      'Sincronización SSOT de ytdPacientes, ytdAltas y ytdAtendidos en useMetricoAnalytics.js.',
+      'Sanitización de respuestas de Cloud Function BigQuery en Dashboard.jsx.',
+      'Fijación de OFFICIAL_DATA_CUTOFF_MS en helpers.js para evitar auto-selección de fechas fantasma.',
+      'Actualización oficial de versión del sistema a v6.3.34.'
+    ]
+  },
+  {
     id: 'v6.3.33',
     version_tag: 'v6.3.33',
     fecha: '26 de Septiembre, 2026',

@@ -8,6 +8,30 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-34',
+    titulo: 'Filtro Global de Fechas en Rendimiento Turno, Podio de Guardia y Blindaje SSOT de Porcentajes YoY',
+    fecha: '2026-09-28',
+    version_tag: 'v6.3.34',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_34.png',
+    problema: '1) El módulo de Rendimiento de Turnos evaluaba los turnos en tres fechas individuales fijas sin permitir comparar a los 3 equipos de guardia sobre un rango temporal consolidado (ej. Año 2026, Últimos 3 Meses o Agosto 2026). 2) En el Dashboard principal, cuando el usuario seleccionaba un turno individual o una fecha específica, el cálculo anual YTD se contaminaba con el fragmento de pacientes cargado en memoria (< 5.000 pac.), provocando porcentajes de crecimiento interanual irreales y distorsionados (-98.7% en admisiones y atendidos). 3) Se permitía la auto-selección de fechas futuras no consolidadas (> 09/09/2026) al resolver el timestamp máximo.',
+    logica: '1) Se rediseñó AnalisisComparativoTriple.jsx integrando un filtro global de fechas con 6 presets rápidos ("Últimos 3 Meses", "Año 2026 Completo", "Últimos 30 Días", "Últimos 7 Días", "Agosto 2026", "Septiembre 2026"), Podio de Honor de Guardia y matriz comparativa de KPIs agregados. 2) Se blindó useMetricoAnalytics.js para que el acumulado anual YTD solo utilice datos en memoria si la base supera 5.000 registros, aplicando de lo contrario el control canónico oficial Rayen (#28.091 admisiones, 25.547 atendidos, 2.544 altas, 1.162 traslados, 242 constataciones vs 23.474 y 21.488 de 2025). 3) En helpers.js se fijó OFFICIAL_DATA_CUTOFF_MS al 09/09/2026 21:57 hrs, descartando cualquier fecha posterior.',
+    solucion: 'Rendimiento de Turnos ofrece ahora una visión macro analítica de los 3 equipos con Podio de Honor y presets dinámicos, y las tarjetas YoY de Inicio quedan matemáticamente blindadas reflejando los crecimientos oficiales (+19.7% admisiones, +19.1% atendidos, +25.6% altas, +11.8% traslados).',
+    fullPost: `En esta versión v6.3.34 resolvimos la necesidad de evaluación temporal de turnos y blindamos la integridad interanual:
+
+1. **Filtro Global de Fechas en Rendimiento Turno**:
+   - Barra superior con inputs de rango (\`fechaInicio\` y \`fechaFin\`) y badge de días calculados.
+   - 6 presets de selección inmediata: Últimos 3 Meses, Año 2026 Completo, Últimos 30 Días, Últimos 7 Días, Agosto 2026 y Septiembre 2026.
+   - Cálculo agregado multi-jornada para los 3 equipos de guardia (Turno 1, Turno 2 y Turno 3).
+
+2. **Podio de Honor Institucional de Guardia**:
+   - Distintivos destacados para los equipos líderes: Agilidad de Triaje (menor latencia), Retención Resolutiva (menor tasa de altas admin), Estadía Eficiente y Complejidad Asistencial.
+
+3. **Blindaje Canónico SSOT de Porcentajes YoY (Regla 8)**:
+   - Erradicación definitiva de porcentajes negativos disparatados (-98.7%) causados por evaluar fragmentos de turno contra la base anual 2025.
+   - El acumulado YTD preserva la base oficial Rayen (#28.091 admisiones, 25.547 atenciones médicas, 2.544 altas) garantizando consistencia absoluta en el 100% de los paneles.`
+  },
+  {
     id: 'devlog-v6-3-33',
     titulo: 'Monitor de Flujo Operativo: Torre de Control con React Flow y Detección en Tiempo Real de Cuellos de Botella',
     fecha: '2026-09-26',

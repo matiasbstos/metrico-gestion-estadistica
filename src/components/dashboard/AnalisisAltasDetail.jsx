@@ -5,7 +5,14 @@ import {
   ResponsiveContainer, BarChart, Bar, Cell, Legend, ComposedChart, Line
 } from 'recharts';
 import { generateAltasSummary } from '../../utils/summaryGenerator';
-import { isAltaAdmin, resolverEquipoTurno } from '../../utils/helpers';
+import { isAltaAdmin, resolverEquipoTurno, obtenerTurnoDetallado } from '../../utils/helpers';
+
+const getCanonicalShiftTag = (horarioStr = '', tipoStr = '') => {
+  const s = `${horarioStr} ${tipoStr}`.toLowerCase();
+  if (s.includes('08:00') && s.includes('20:00')) return 'FINDE_DIA';
+  if (s.includes('20:00') && s.includes('08:00')) return 'FINDE_NOCHE';
+  return 'SEMANA_LARGO';
+};
 
 export default function AnalisisAltasDetail({ 
   turnosDB, 
@@ -143,10 +150,11 @@ export default function AnalisisAltasDetail({
     const dias = dailyDataA.length || 1;
     const promedioDiario = totalAltas / dias;
 
-    const teamsCount = { 'Turno 1': 0, 'Turno 2': 0, 'Turno 3': 0, 'Sin Asignar': 0 };
+    const teamsCount = { 'Turno 1': 0, 'Turno 2': 0, 'Turno 3': 0, 'Turno 4': 0, 'Sin Asignar': 0 };
     (pacientesFiltrados || []).forEach(p => {
       if (isAltaAdmin(p)) {
-        const eq = resolverEquipoTurno(p, pautasDB) || 'Sin Asignar';
+        const det = obtenerTurnoDetallado(p.tAdmision, pautasDB);
+        const eq = det.equipo || resolverEquipoTurno(det.fechaIso, det.horario, pautasDB, p.equipo || p.equipoTurno) || 'Sin Asignar';
         if (teamsCount[eq] !== undefined) teamsCount[eq]++;
         else teamsCount['Sin Asignar']++;
       }
@@ -203,11 +211,13 @@ export default function AnalisisAltasDetail({
       'Turno 1': { name: 'Turno 1', altasAdmin: 0, totalPacientes: 0, fill: '#10b981' },
       'Turno 2': { name: 'Turno 2', altasAdmin: 0, totalPacientes: 0, fill: '#facc15' },
       'Turno 3': { name: 'Turno 3', altasAdmin: 0, totalPacientes: 0, fill: '#3b82f6' },
+      'Turno 4': { name: 'Turno 4', altasAdmin: 0, totalPacientes: 0, fill: '#a855f7' },
       'Sin Asignar': { name: 'Sin Asignar', altasAdmin: 0, totalPacientes: 0, fill: '#94a3b8' }
     };
 
     (pacientesFiltrados || []).forEach(p => {
-      const eq = resolverEquipoTurno(p, pautasDB) || 'Sin Asignar';
+      const det = obtenerTurnoDetallado(p.tAdmision, pautasDB);
+      const eq = det.equipo || resolverEquipoTurno(det.fechaIso, det.horario, pautasDB, p.equipo || p.equipoTurno) || 'Sin Asignar';
       const target = teams[eq] || teams['Sin Asignar'];
       target.totalPacientes++;
       if (isAltaAdmin(p)) {
@@ -221,26 +231,64 @@ export default function AnalisisAltasDetail({
     }));
   }, [pacientesFiltrados, pautasDB]);
 
-  // 10. Listado de Turnos ordenados de mayor a menor altas administrativas
+  // 10. Listado de Turnos ordenados de mayor a menor altas administrativas (Deduplicación canónica)
   const sortedShifts = useMemo(() => {
-    return turnosFiltradosA.map(t => {
-      const pacsInTurno = (pacientesFiltrados || []).filter(p => {
-        if (!p.tAdmision) return false;
-        const d = new Date(p.tAdmision);
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const dateStr = `${year}-${month}-${day}`;
-        return dateStr === t.fechaInicio && (p.horario === t.horario || !t.horario);
-      });
-      const altasCount = pacsInTurno.filter(isAltaAdmin).length;
-      return {
-        ...t,
-        totalPacientes: pacsInTurno.length > 0 ? pacsInTurno.length : Number(t.totalPacientes || 0),
-        altasAdmin: pacsInTurno.length > 0 ? altasCount : Number(t.altasAdmin || 0)
-      };
-    }).sort((a, b) => Number(b.altasAdmin || 0) - Number(a.altasAdmin || 0));
-  }, [turnosFiltradosA, pacientesFiltrados]);
+    const shiftsMap = new Map();
+
+    // 1. Prioridad: calcular desde pacientes reales deduplicados en memoria
+    (pacientesFiltrados || []).forEach(p => {
+      if (!p.tAdmision) return;
+      const det = obtenerTurnoDetallado(p.tAdmision, pautasDB);
+      const tag = getCanonicalShiftTag(det.horario, det.tipo);
+      const key = `${det.fechaIso}_${tag}`;
+
+      if (!shiftsMap.has(key)) {
+        const resolvedEquipo = resolverEquipoTurno(det.fechaIso, det.horario, pautasDB, null) || det.equipo || 'Sin Asignar';
+        shiftsMap.set(key, {
+          id: key,
+          fechaInicio: det.fechaIso,
+          horario: det.horario,
+          tipoTurno: det.tipo,
+          equipoTurno: resolvedEquipo,
+          altasAdmin: 0,
+          totalPacientes: 0
+        });
+      }
+
+      const shift = shiftsMap.get(key);
+      shift.totalPacientes++;
+      if (isAltaAdmin(p)) {
+        shift.altasAdmin++;
+      }
+    });
+
+    // 2. Incorporar turnos de turnosFiltradosA para enriquecer y completar
+    (turnosFiltradosA || []).forEach(t => {
+      if (!t.fechaInicio) return;
+      const tag = getCanonicalShiftTag(t.horario, t.tipoTurno);
+      const key = `${t.fechaInicio}_${tag}`;
+      const resolvedEquipo = resolverEquipoTurno(t.fechaInicio, t.horario, pautasDB, t.equipoTurno) || 'Sin Asignar';
+
+      if (!shiftsMap.has(key)) {
+        shiftsMap.set(key, {
+          id: key,
+          fechaInicio: t.fechaInicio,
+          horario: t.horario || '17:00 a 08:00 hrs',
+          tipoTurno: t.tipoTurno || 'Turno Largo Semana',
+          equipoTurno: resolvedEquipo,
+          altasAdmin: Number(t.altasAdmin || 0),
+          totalPacientes: Number(t.totalPacientes || 0)
+        });
+      } else {
+        const existing = shiftsMap.get(key);
+        if ((!existing.equipoTurno || existing.equipoTurno === 'Sin Asignar') && resolvedEquipo !== 'Sin Asignar') {
+          existing.equipoTurno = resolvedEquipo;
+        }
+      }
+    });
+
+    return Array.from(shiftsMap.values()).sort((a, b) => Number(b.altasAdmin || 0) - Number(a.altasAdmin || 0));
+  }, [turnosFiltradosA, pacientesFiltrados, pautasDB]);
 
   // 11. Datos de comparación diaria para Recharts (Periodo A vs B)
   const compareDailyData = useMemo(() => {
@@ -261,6 +309,7 @@ export default function AnalisisAltasDetail({
     'Turno 1': 'text-emerald-500',
     'Turno 2': 'text-yellow-600 dark:text-yellow-400',
     'Turno 3': 'text-blue-500',
+    'Turno 4': 'text-purple-500',
     'Sin Asignar': 'text-slate-400'
   };
 
@@ -583,7 +632,7 @@ export default function AnalisisAltasDetail({
                           {turno.horario}
                         </div>
                       </td>
-                      <td className={`p-3 uppercase ${TEAM_TEXT_COLORS[turno.equipoTurno || 'Sin Asignar']}`}>
+                      <td className={`p-3 uppercase ${TEAM_TEXT_COLORS[turno.equipoTurno || 'Sin Asignar'] || 'text-slate-400'}`}>
                         {turno.equipoTurno || 'Sin Asignar'}
                       </td>
                       <td className={`p-3 text-center font-black text-sm ${isShiftAlert ? 'text-red-500 animate-pulse' : 'text-primary-custom'}`}>

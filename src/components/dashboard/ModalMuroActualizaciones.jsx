@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.34',
+      version: 'v6.3.34',
+      fecha: '28 de Septiembre, 2026',
+      badge: 'FILTRO GLOBAL DE FECHAS EN RENDIMIENTO TURNO & BLINDAJE SSOT YOY',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Filtro Global de Fechas en Rendimiento Turno, Podio de Guardia y Blindaje SSOT de Porcentajes YoY',
+      categoria: 'Rendimiento de Turnos & Integridad Analítica',
+      icon: Award,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se integró el filtro global de fechas con 6 presets rápidos (Últimos 3 Meses, Año 2026 Completo, Últimos 30 Días, Últimos 7 Días, Agosto 2026 y Septiembre 2026) en Rendimiento de Turnos, permitiendo evaluar a los 3 equipos de guardia en una sola vista agregada con Podio de Honor y KPIs comparativos. Además, se blindó de forma estricta la conciliación SSOT de los porcentajes interanuales (YoY) en Inicio y PanelKPIs: el acumulado anual YTD queda protegido contra fragmentos de filtros puntuales, erradicando distorsiones extremas (-98.7%) y garantizando la alineación con las cifras oficiales Rayen (+19.7% admisiones, +19.1% atendidos, +25.6% altas, +11.8% traslados y +13.1% constataciones).',
+      instructivo: {
+        paraQueSirve: 'Permite analizar y comparar el desempeño de los 3 Equipos de Guardia (Turno 1, 2 y 3) sobre períodos amplios o meses completos, y asegura que las tarjetas de crecimiento interanual en Inicio siempre muestren los porcentajes fidedignos y coherentes con la historia institucional.',
+        quePuedesVer: 'En Rendimiento Turno: Barra superior de filtro de rango de fechas con botones de acceso rápido y Podio de Honor institucional destacando al equipo líder en agilidad, retención resolutiva y complejidad. En Inicio: Tarjetas de YoY y Global Anual con el volumen completo YTD (#28.091) y variaciones positivas oficiales.',
+        ejemploUso: 'Entra a "Rendimiento Turno" y haz clic en "Año 2026 Completo" para ver el consolidado anual de los 3 turnos con sus latencias de categorización y podio de agilidad. En Inicio, comprueba que los porcentajes YoY reflejan +19.7% y +19.1% de manera consistente.'
+      },
+      changes: [
+        'Integración del filtro de rango de fechas (fechaInicio y fechaFin) con 6 presets dinámicos y badge de días calculados en AnalisisComparativoTriple.jsx.',
+        'Implementación del Podio de Honor de Guardia (Agilidad de Triaje, Retención Resolutiva, Estadía y Complejidad) y matriz comparativa de KPIs de los 3 turnos.',
+        'Blindaje de ytdPacientes, ytdAltas y ytdAtendidos en useMetricoAnalytics.js para evitar que la selección de un turno o fragmento puntual (< 5.000 pac.) contamine el Global Anual YTD.',
+        'Protección de stats.anual en Dashboard.jsx frente a respuestas parciales de BigQuery, subordinando las tarjetas de tendencia al objeto canónico SSOT.',
+        'Guarda de corte temporal en resolverMaxTimestampGlobal y getInitialCompleteShift (OFFICIAL_DATA_CUTOFF_MS) excluyendo fechas futuras (> 09/09/2026).'
+      ]
+    },
+    {
       id: 'v6.3.33',
       version: 'v6.3.33',
       fecha: '26 de Septiembre, 2026',
