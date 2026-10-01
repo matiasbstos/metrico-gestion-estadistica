@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { 
   formatLocalDate, 
+  parseLocalDateStr,
   resolverEquipoTurno, 
   obtenerTurnoDetallado, 
   isAltaAdmin,
@@ -38,8 +39,8 @@ export default function AnalisisComparativoTriple({
     }
     if (turnosDB && turnosDB.length > 0) {
       const validT = turnosDB
-        .filter(t => t && t.fechaInicio && (Number(t.totalPacientes || 0) > 0 || (t.pacientes && t.pacientes.length > 0)) && t.fechaInicio <= MAX_SYSTEM_CUTOFF)
-        .map(t => t.fechaInicio)
+        .map(t => parseLocalDateStr(t?.fechaInicio) || (typeof t?.fechaInicio === 'string' ? t.fechaInicio.trim() : null))
+        .filter(fIso => fIso && fIso <= MAX_SYSTEM_CUTOFF)
         .sort()
         .reverse();
       if (validT.length > 0) return validT[0];
@@ -230,13 +231,11 @@ export default function AnalisisComparativoTriple({
     const seenTurnosMap = new Map();
     (turnosDB || []).forEach(t => {
       if (!t || !t.fechaInicio) return;
-      if (t.fechaInicio < startIso || t.fechaInicio > endIso) return;
       const hor = String(t.horario || '').toLowerCase();
       if (hor.includes('24 hrs') || hor.includes('día completo') || hor.includes('dia completo')) return;
 
-      const parts = String(t.fechaInicio).split('-');
-      if (parts.length < 3) return;
-      const isoDate = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].slice(0, 2).padStart(2, '0')}`;
+      const isoDate = parseLocalDateStr(t.fechaInicio);
+      if (!isoDate || isoDate < startIso || isoDate > endIso) return;
 
       let canonicalTag = 'SEMANA_LARGO';
       if (hor.includes('08:00') && hor.includes('20:00') && !hor.includes('20:00 a 08:00') && !hor.includes('20:00 - 08:00')) {
@@ -407,18 +406,20 @@ export default function AnalisisComparativoTriple({
 
       // Incorporar coberturas horarias y completar guardias faltantes de turnosDB si las hubiera
       dedupTurnosList.forEach(t => {
-        const teamName = resolverEquipoTurno(t.fechaInicio, t.horario, pautasDB, t.equipoTurno);
+        const dKey = t.isoDate || t.fechaInicio;
+        const teamName = resolverEquipoTurno(dKey, t.horario, pautasDB, t.equipoTurno);
         const targetB = buckets[teamName] || buckets['Turno 1'];
-        targetB.guardiasDates.add(t.fechaInicio);
+        targetB.guardiasDates.add(dKey);
         const hours = String(t.horario || '').includes('17:00') ? 15 : 12;
         targetB.horasCobertura += hours;
       });
     } else {
       // 2B. MODO SÍNTESIS CONSOLIDADA DESDE TURNOS DEDUPLICADOS (Rangos amplios como 3 Meses o Anual con límite de memoria)
       dedupTurnosList.forEach(t => {
-        const teamName = resolverEquipoTurno(t.fechaInicio, t.horario, pautasDB, t.equipoTurno);
+        const dKey = t.isoDate || t.fechaInicio;
+        const teamName = resolverEquipoTurno(dKey, t.horario, pautasDB, t.equipoTurno);
         const targetB = buckets[teamName] || buckets['Turno 1'];
-        targetB.guardiasDates.add(t.fechaInicio);
+        targetB.guardiasDates.add(dKey);
 
         const hours = String(t.horario || '').includes('17:00') ? 15 : 12;
         targetB.horasCobertura += hours;
@@ -443,7 +444,7 @@ export default function AnalisisComparativoTriple({
         const constZ = Number(t.constatacionesCount || t.constataciones || 0);
         targetB.constataciones += constZ;
 
-        targetB.pacientesPorTurnoMap[t.fechaInicio] = (targetB.pacientesPorTurnoMap[t.fechaInicio] || 0) + turnoTotal;
+        targetB.pacientesPorTurnoMap[dKey] = (targetB.pacientesPorTurnoMap[dKey] || 0) + turnoTotal;
 
         // Horario Peak (19:00 a 22:30 hrs) ~22%
         targetB.peakHourCount += Math.round(turnoTotal * 0.22);

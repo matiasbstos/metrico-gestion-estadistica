@@ -14,19 +14,58 @@ export const truncateStr = (str, n) => {
 };
 
 /**
+ * Normaliza cualquier formato de fecha a string ISO local YYYY-MM-DD
+ */
+export const parseLocalDateStr = (dateInput) => {
+  if (!dateInput) return null;
+  if (typeof dateInput === 'number') {
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return null;
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+  if (dateInput instanceof Date && !isNaN(dateInput.getTime())) {
+    return `${dateInput.getFullYear()}-${String(dateInput.getMonth() + 1).padStart(2, '0')}-${String(dateInput.getDate()).padStart(2, '0')}`;
+  }
+  if (typeof dateInput !== 'string') return null;
+  const clean = dateInput.trim();
+  if (clean.includes('-')) {
+    const parts = clean.split('-');
+    if (parts.length >= 3) {
+      if (parts[0].length === 4) {
+        return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].slice(0, 2).padStart(2, '0')}`;
+      } else if (parts[2].slice(0, 4).length === 4) {
+        return `${parts[2].slice(0, 4)}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
+    }
+  } else if (clean.includes('/')) {
+    const parts = clean.split('/');
+    if (parts.length >= 3) {
+      if (parts[2].length === 4) {
+        return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      } else if (parts[0].length === 4) {
+        return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+      }
+    }
+  }
+  return null;
+};
+
+/**
  * Resuelve el Equipo/Turno asignado de forma universal:
  * 1. Prioridad 1: Pauta manual configurada en pautasDB para ese mes y fecha.
  * 2. Prioridad 2: Equipo explícito válido registrado en la base de datos de turnos.
  * 3. Prioridad 3: Algoritmo de rotativa oficial de 3 turnos continuos.
  */
 export const resolverEquipoTurno = (fechaStr, horarioStr, pautasDB, equipoExplicit) => {
+  const normDate = parseLocalDateStr(fechaStr) || (typeof fechaStr === 'string' ? fechaStr.trim() : null);
+
   // 1. Prioridad 1: Si existe pauta manual configurada en pautasDB para ese mes y fecha
-  if (pautasDB && fechaStr) {
-    const monthId = fechaStr.substring(0, 7);
-    if (pautasDB[monthId] && pautasDB[monthId][fechaStr]) {
-      const dayData = pautasDB[monthId][fechaStr];
+  if (pautasDB && normDate) {
+    const monthId = normDate.substring(0, 7);
+    if (pautasDB[monthId] && pautasDB[monthId][normDate]) {
+      const dayData = pautasDB[monthId][normDate];
       const h = String(horarioStr || '').toLowerCase();
-      let eqPauta = null;
+      let eqPauta;
 
       // Evaluar primero franjas específicas y no ambiguas:
       if (h.includes('08:00 - 20:00') || h.includes('08:00 a 20:00') || (h.includes('08:00') && (h.includes('dia') || h.includes('día') || h.includes('diurno')))) {
@@ -65,8 +104,8 @@ export const resolverEquipoTurno = (fechaStr, horarioStr, pautasDB, equipoExplic
   }
 
   // 3. Prioridad 3: Algoritmo Determinista Rotativo Oficial de Respaldo (Ciclo de 3 Turnos)
-  if (fechaStr && typeof fechaStr === 'string') {
-    const parts = fechaStr.split('-').map(Number);
+  if (normDate && typeof normDate === 'string') {
+    const parts = normDate.split('-').map(Number);
     if (parts.length === 3) {
       const [y, m, d] = parts;
       const targetDate = new Date(y, m - 1, d);
