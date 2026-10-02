@@ -8,6 +8,32 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-44',
+    titulo: 'Arquitectura Móvil Responsiva de Informes de Correo, Cero Colisión de Textos y Tarjetas en 2 Columnas',
+    fecha: '2026-10-02',
+    version_tag: 'v6.3.44',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_44.png',
+    problema: 'Al recibir los informes de guardia en teléfonos móviles (iPhone iOS Mail y clientes WebKit), los textos del saludo chocaban con los títulos de sección, las líneas de encabezado se superponían y las tarjetas de guardia se apretaban en 5 columnas de apenas 60px de ancho, provocando deformación visual.',
+    logica: '1) Erradicación del Colapso de Márgenes: Los motores de correo móvil (WebKit) colapsan o anulan márgenes entre divs y párrafos contiguos. Se reestructuró la plantilla mediante celdas de tabla <tr><td> con espaciado estructural padding-bottom aislado. 2) Alturas de Línea Explícitas: Se definieron line-height en píxeles fijos en todos los títulos, subtítulos y párrafos, impidiendo que el texto multilínea se superponga al envolver. 3) Rejilla Fluida en 2 Columnas: Se implementó un layout híbrido mediante inline-block y media queries @media only screen and (max-width: 600px). En escritorio mantiene 5 columnas (19% cada una) y en celulares conmuta automáticamente a 2 columnas al 48% (.mobile-card-half) más una tarjeta completa al 98% para Constataciones Z51.8 (.mobile-card-full). 4) Apilamiento de Submódulos: Los tramos de espera vs Z51.8, centros de origen vs demografía, y fracturas vs respiratorio conmutan de 50%/50% a apilamiento vertical al 100% en pantallas móviles. 5) Reconocimiento Institucional: Se integró en el pie de página el apoyo técnico asistencial de Mariel Quintanilla (Directora Técnica SAR) junto a Matías Bustos.',
+    solucion: 'El despacho de correo ofrece ahora una experiencia visual perfecta y adaptativa, luciendo impecable tanto en monitores de escritorio de alta resolución como en cualquier teléfono inteligente.',
+    fullPost: `En esta versión v6.3.44 perfeccionamos la presentación de los informes asistenciales enviados por correo electrónico:
+
+1. **Diseño Responsivo Móvil Universal (iOS Mail, Android Gmail, Outlook)**:
+   - Encapsulamiento por celdas \`<tr><td>\` con \`padding-bottom\` estructural que previene colapsos de margen.
+   - Definición de \`line-height\` exacto en todos los componentes tipográficos, garantizando cero superposición de líneas.
+   - Meta etiquetas oficiales \`viewport\` (\`width=device-width, initial-scale=1.0\`) y reglas CSS responsive incrustadas en el \`<head>\`.
+
+2. **Rejilla Fluida Adaptativa**:
+   - **Escritorio**: 5 tarjetas en una sola fila simétrica (20% cada una).
+   - **Móvil / Smartphone**: Fila 1 (Admitidos + Atendidos al 48%), Fila 2 (Altas Admin + Traslados al 48%), Fila 3 (Constataciones Z51.8 al 98% ancho completo).
+   - **Indicadores YoY**: Grilla fluida 2x2 en pantallas pequeñas.
+   - **Submódulos Laterales**: Apilamiento automático al 100% en pantallas menores a 600px.
+
+3. **Reconocimiento Directivo SAR**:
+   - Inclusión en el pie de página del correo del reconocimiento formal conjunto: *"Desarrollado por Matías Bustos con el Apoyo Técnico de Mariel Quintanilla (Directora Técnica SAR)"*.`
+  },
+  {
     id: 'devlog-v6-3-43',
     titulo: 'Activación del Motor Autónomo de Despacho de Correos, Ticker en Vivo y Certificación Clínica SSOT Rayen',
     fecha: '2026-10-02',

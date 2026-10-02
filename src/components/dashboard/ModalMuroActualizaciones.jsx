@@ -15,6 +15,32 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.44',
+      version: 'v6.3.44',
+      fecha: '02 de Octubre, 2026',
+      badge: 'RESPONSIVIDAD MÓVIL & UX ASISTENCIAL: CORREOS 100% ADAPTABLES A SMARTPHONES Y COMPUTADOR',
+      badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/20',
+      title: 'Arquitectura Móvil Responsiva de Informes de Correo, Cero Colisión de Textos y Tarjetas en 2 Columnas',
+      categoria: 'Automatización & Comunicaciones',
+      icon: Mail,
+      iconBg: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+      summary: 'A partir de la retroalimentación de la dirección clínica y la verificación en smartphones (iOS Mail y Android), se rediseñó exhaustivamente la plantilla de correos de guardia (InformeAsistencialEmail.js). Se erradicó el colapso de márgenes de WebKit mediante aislamiento por celdas de tabla estructural, se asignaron line-heights explícitos en píxeles que eliminan cualquier superposición de textos, se implementó una grilla fluida híbrida (5 columnas en computador y 2 columnas espaciosas en celular), se adaptaron los submódulos laterales para apilarse verticalmente en pantallas pequeñas, y se integró en el pie de página institucional el reconocimiento formal conjunto a Matías Bustos y Mariel Quintanilla (Directora Técnica SAR).',
+      instructivo: {
+        paraQueSirve: 'Garantiza que el informe de guardia recibido en el correo se visualice con máxima elegancia, legibilidad y simetría tanto si se abre en un teléfono móvil (iPhone/Android) como en un computador de escritorio.',
+        quePuedesVer: 'En tu teléfono: las 5 tarjetas de guardia se distribuyen en filas de 2 tarjetas al 48% más una tarjeta destacada de Z51.8 al 98%, las tarjetas YoY en 2x2, sin ningún texto cortado ni encimado, y con todos los datos clínicos perfectamente proporcionados.',
+        ejemploUso: 'Abre cualquier correo de guardia recibido desde tu iPhone o teléfono móvil para constatar la nueva visualización fluida y 100% responsiva.'
+      },
+      changes: [
+        'Aislamiento estructural por filas de tabla en InformeAsistencialEmail.js, erradicando el colapso vertical en WebKit.',
+        'Asignación de line-height explícito en todos los encabezados y párrafos, eliminando superposiciones de líneas.',
+        'Rejilla fluida responsiva: 5 columnas en escritorio y 2 columnas amplias (.mobile-card-half al 48%) en celular.',
+        'Tarjeta Z51.8 en celular al 98% (.mobile-card-full), garantizando visibilidad destacada.',
+        'Apilamiento automático de tramos de espera, centros de origen y bitácora de seguridad en pantallas <= 600px.',
+        'Incorporación en el pie institucional del apoyo técnico de Mariel Quintanilla (Directora Técnica SAR).',
+        'Validación y prueba física de envío SMTP completada exitosamente.'
+      ]
+    },
+    {
       id: 'v6.3.43',
       version: 'v6.3.43',
       fecha: '02 de Octubre, 2026',

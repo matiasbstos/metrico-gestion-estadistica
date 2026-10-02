@@ -746,7 +746,7 @@ Genera la alerta operativa preventiva ahora.`;
  * - SEASONALITIES = ['WEEKLY', 'YEARLY'] (ciclo de fin de semana e invierno)
  * - Features exógenas con lags de 2 y 3 días
  */
-exports.reentrenarModeloBigQueryML = functions.runWith({ timeoutSeconds: 540, memory: '1GB' }).https.onCall(async (dataReq, context) => {
+exports.reentrenarModeloBigQueryML = functions.https.onCall({ timeoutSeconds: 540, memory: '1GiB' }, async (dataReq, context) => {
   const trainQuery = `
     CREATE OR REPLACE MODEL \`metrico-dashboard-2026.metrico_analytics.prediccion_volumen_diario\`
     OPTIONS(

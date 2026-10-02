@@ -10,6 +10,34 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.44',
+    version_tag: 'v6.3.44',
+    fecha: '02 de Octubre, 2026',
+    fecha_despliegue: '02 de Octubre, 2026',
+    proposito_actualizacion: 'Arquitectura 100% Móvil Responsiva de Informes por Correo, Erradicación de Colisión de Textos, Tarjetas Fluidas en 2 Columnas y Reconocimiento Oficial a Mariel Quintanilla (Directora Técnica SAR).',
+    medios_y_stack: [
+      'functions/templates/InformeAsistencialEmail.js (Reestructuración total con tablas de aislamiento estructural por filas, eliminación de margen colapsable WebKit, line-heights explícitos en píxeles, viewport meta tag, y media queries @media only screen and max-width 600px)',
+      'Aislamiento de Filas (Cada módulo asistencial, saludo, banner y tabla maquetado en su propio <tr><td> con padding estructural, impidiendo cualquier superposición de textos)',
+      'Rejilla Fluida en Móvil (.mobile-card-half al 48% y .mobile-card-full al 98% para distribuir las 5 tarjetas de guardia y las 4 tarjetas YoY en filas de 2 columnas legibles)',
+      'Submódulos Apilables (.mobile-split-stack y .mobile-stack para transformar columnas laterales estrechas en bloques verticales 100% legibles en pantallas de 375px)',
+      'Reconocimiento Institucional (Pie de página formal integrando a Matías Bustos como desarrollador/arquitecto y Mariel Quintanilla como Directora Técnica SAR y apoyo técnico asistencial)',
+      'version.js (Sincronización a v6.3.44)',
+      'DevLogModule.jsx (Publicación devlog v6.3.44)',
+      'ModalMuroActualizaciones.jsx (Ficha en muro de novedades)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Responsividad Universal Email: Compatibilidad garantizada en iOS Mail (iPhone), Android Gmail, Outlook Desktop/Web y navegadores de escritorio. 2) Cero Superposición de Texto: Eliminación de márgenes colapsables entre párrafos y cabeceras mediante encapsulamiento por celdas con padding-bottom. 3) Reconocimiento Directivo: Inclusión permanente de los créditos de la Dirección Técnica del SAR Elsa Romo Aravena en cada informe emitido.',
+      firestore_collections: ['envios_correos', 'configuracion_correo', 'system_architecture_log'],
+      query_optimization: 'HTML optimizado y comprimido con renderizado inline seguro e imágenes/iconos servidos vía CDN HTTPS.'
+    },
+    modulos_afectados: ['functions/templates/InformeAsistencialEmail.js', 'version.js', 'InformeArquitectura.jsx', 'DevLogModule.jsx', 'ModalMuroActualizaciones.jsx'],
+    detalles_tecnicos: [
+      'Resolución de issue visual reportado en dispositivos móviles donde los textos se superponían y las tarjetas se comprimían en 5 columnas de 60px.',
+      'Implementación de layout híbrido: 5 columnas en escritorio y 2 columnas fluidas en smartphone.',
+      'Despliegue de Cloud Function enviarInformeCorreo y sincronización oficial v6.3.44.'
+    ]
+  },
+  {
     id: 'v6.3.43',
     version_tag: 'v6.3.43',
     fecha: '02 de Octubre, 2026',

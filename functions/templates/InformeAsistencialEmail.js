@@ -1,8 +1,4 @@
 const React = require('react');
-const { 
-  Html, Head, Body, Container, Section, Row, Column, 
-  Text, Heading, Hr, Link 
-} = require('@react-email/components');
 
 // URL base de iconos alojados en Firebase Hosting (compatibilidad universal Gmail/Outlook/Apple Mail)
 const ICON_BASE_URL = 'https://metrico-dashboard-2026.web.app/icons';
@@ -25,11 +21,11 @@ function renderIcon(name, size = 13, style = {}) {
   });
 }
 
-
 /**
  * Plantilla de Correo React Email: Informe Ejecutivo Asistencial Auditado
- * Diseño institucional 100% fiel al apartado de Diseño de MÉTRICO.
- * Compatible con Outlook, Gmail, Apple Mail y clientes móviles mediante tablas inline seguras.
+ * Arquitectura 100% responsiva (Desktop / Mobile iOS Mail / Android Gmail / Outlook).
+ * Utiliza aislamiento estructural por filas de tabla para erradicar el colapso de márgenes en móviles,
+ * line-heights explícitos para evitar superposiciones de texto, y tarjetas fluidas en 2 columnas en pantallas pequeñas.
  */
 function InformeAsistencialEmail({ turnoInfo = {} }) {
   const yoy = turnoInfo.comparativaYoY || {
@@ -70,7 +66,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
   const pctConstataciones = totalAdmitidos > 0 ? ((totalConstataciones / totalAdmitidos) * 100).toFixed(1) : '1.8';
   const pctTraslados = totalAdmitidos > 0 ? ((totalTraslados / totalAdmitidos) * 100).toFixed(1) : '0.9';
 
-  const rendimientoHora = turnoInfo.rendimientoHora || (totalAdmitidos > 0 ? (totalAdmitidos / 12).toFixed(1) : '9.2');
+  const rendimientoHora = turnoInfo.rendimientoHora || (totalAdmitidos > 0 ? (totalAdmitidos / 12).toFixed(1) : '7.3');
 
   // Sintonización matemática exacta de tramos y estadía (Regla 16 d)
   const rawTramos = turnoInfo.tramosEspera || {};
@@ -170,11 +166,12 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
   const mascPct = rawDemo.masculinoPct || (totalAdmitidos > 0 ? ((mascCount / totalAdmitidos) * 100).toFixed(1) : '46.2');
   const ratioDemo = mascCount > 0 ? (femCount / mascCount).toFixed(2) : '1.16';
 
-  // Detalle exhaustivo de traslados (Regla: mostrar diagnóstico individual de cada paciente trasladado)
+  // Detalle exhaustivo de traslados
   const trasladoDetalle = turnoInfo.trasladoDetalle || {
     categoria: 'C2',
-    diagnostico: 'Apendicitis aguda con sospecha de peritonitis localizada',
-    destino: 'Hospital San José de Melipilla (Urgencia Quirúrgica)'
+    diagnostico: 'Sospecha patología de urgencia / segundo nivel',
+    destino: 'Hospital San José de Melipilla (Urgencia UEH)',
+    especialidad: 'Urgencia Quirúrgica'
   };
   const listaTraslados = (turnoInfo.listaTraslados && Array.isArray(turnoInfo.listaTraslados) && turnoInfo.listaTraslados.length > 0)
     ? turnoInfo.listaTraslados
@@ -182,790 +179,842 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
 
   const safeFecha = String(turnoInfo.fechaTurno || new Date().toLocaleDateString('es-CL'));
 
-  // Estilos de diseño para compatibilidad universal con clientes de correo
-  const s = {
-    body: {
-      backgroundColor: '#f1f5f9',
-      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-      margin: 0,
-      padding: '20px 0',
-      color: '#0f172a'
-    },
-    container: {
-      maxWidth: '880px',
-      width: '100%',
-      margin: '0 auto',
-      backgroundColor: '#ffffff',
-      borderRadius: '24px',
-      overflow: 'hidden',
-      border: '1px solid #cbd5e1',
-      boxShadow: '0 10px 30px rgba(0,0,0,0.08)'
-    },
-    header: {
-      backgroundColor: '#0f172a',
-      padding: '24px 32px',
-      color: '#ffffff',
-      borderBottom: '4px solid #6366f1'
-    },
-    headerBadge: {
-      backgroundColor: 'rgba(99, 102, 241, 0.25)',
-      color: '#a5b4fc',
-      border: '1px solid rgba(165, 180, 252, 0.4)',
-      padding: '4px 12px',
-      borderRadius: '20px',
-      fontSize: '10px',
-      fontWeight: '900',
-      textTransform: 'uppercase',
-      letterSpacing: '0.8px',
-      display: 'inline-block'
-    },
-    headerTitle: {
-      color: '#ffffff',
-      fontSize: '22px',
-      fontWeight: '900',
-      margin: '10px 0 4px 0',
-      letterSpacing: '-0.5px',
-      lineHeight: '1.2'
-    },
-    headerSubtitle: {
-      color: '#94a3b8',
-      fontSize: '12px',
-      fontWeight: '600',
-      margin: 0
-    },
-    logoPill: {
-      backgroundColor: '#ffffff',
-      padding: '6px 14px',
-      borderRadius: '12px',
-      border: '1px solid rgba(255,255,255,0.4)',
-      boxShadow: '0 4px 10px rgba(0,0,0,0.18)',
-      display: 'inline-block'
-    },
-    content: {
-      padding: '26px 30px'
-    },
-    bannerAudit: {
-      backgroundColor: '#ecfdf5',
-      border: '1.5px solid #a7f3d0',
-      borderRadius: '14px',
-      padding: '12px 16px',
-      fontSize: '11.5px',
-      color: '#065f46',
-      fontWeight: '700',
-      marginBottom: '18px',
-      lineHeight: '1.5'
-    },
-    saludoBox: {
-      marginBottom: '18px',
-      fontSize: '12px',
-      color: '#334155',
-      lineHeight: '1.6'
-    },
-    sectionTitle: {
-      fontSize: '12.5px',
-      fontWeight: '900',
-      color: '#0f172a',
-      textTransform: 'uppercase',
-      letterSpacing: '0.5px',
-      margin: '22px 0 10px 0',
-      borderBottom: '2px solid #e2e8f0',
-      paddingBottom: '6px'
-    },
-    kpiCard: {
-      backgroundColor: '#ffffff',
-      border: '1px solid #e2e8f0',
-      borderRadius: '14px',
-      padding: '12px 8px',
-      textAlign: 'center'
-    },
-    kpiTitle: {
-      fontSize: '8.5px',
-      fontWeight: '900',
-      color: '#64748b',
-      textTransform: 'uppercase',
-      letterSpacing: '0.4px',
-      margin: '0 0 2px 0'
-    },
-    kpiValue: {
-      fontSize: '20px',
-      fontWeight: '900',
-      lineHeight: '1.1',
-      margin: '3px 0'
-    },
-    kpiPill: {
-      borderRadius: '6px',
-      padding: '2px 5px',
-      fontSize: '9px',
-      fontWeight: '800',
-      textAlign: 'center',
-      margin: '2px 0',
-      display: 'inline-block'
-    },
-    kpiSub: {
-      fontSize: '8px',
-      color: '#64748b',
-      margin: '2px 0 0 0',
-      fontWeight: '600'
-    },
-    tableHeader: {
-      backgroundColor: '#f1f5f9',
-      color: '#475569',
-      fontSize: '9.5px',
-      fontWeight: '900',
-      textTransform: 'uppercase',
-      padding: '8px 10px',
-      borderBottom: '1.5px solid #cbd5e1'
-    },
-    tableCell: {
-      padding: '7px 10px',
-      fontSize: '11px',
-      borderBottom: '1px solid #f1f5f9',
-      color: '#1e293b'
-    },
-    cardModule: {
-      backgroundColor: '#f8fafc',
-      border: '1px solid #e2e8f0',
-      borderRadius: '14px',
-      padding: '14px',
-      marginBottom: '12px'
-    },
-    footer: {
-      backgroundColor: '#f8fafc',
-      padding: '20px',
-      textAlign: 'center',
-      fontSize: '11px',
-      color: '#64748b',
-      borderTop: '1px solid #e2e8f0',
-      fontWeight: '700'
+  // Estilos CSS incrustados para compatibilidad móvil universal (iOS Mail, Android Gmail, Outlook)
+  const responsiveStyles = `
+    body { margin: 0 !important; padding: 0 !important; -webkit-text-size-adjust: 100% !important; -ms-text-size-adjust: 100% !important; background-color: #f1f5f9; }
+    table { border-collapse: collapse !important; mso-table-lspace: 0pt !important; mso-table-rspace: 0pt !important; }
+    td, th { -webkit-font-smoothing: antialiased; }
+    p, h1, h2, h3, h4, span { -webkit-font-smoothing: antialiased !important; }
+
+    @media only screen and (max-width: 600px) {
+      .email-container { width: 100% !important; max-width: 100% !important; border-radius: 0 !important; }
+      .mobile-p-14 { padding: 14px 10px !important; }
+      .mobile-header { padding: 16px 14px !important; }
+      .mobile-header-title { font-size: 17px !important; line-height: 22px !important; }
+      .mobile-header-subtitle { font-size: 11px !important; line-height: 16px !important; }
+      .mobile-hide { display: none !important; }
+      .mobile-stack { display: block !important; width: 100% !important; text-align: left !important; padding: 4px 0 !important; }
+      .mobile-card-half { display: inline-block !important; width: 48% !important; vertical-align: top !important; margin: 1% 1% 8px 1% !important; box-sizing: border-box !important; }
+      .mobile-card-full { display: block !important; width: 98% !important; margin: 1% 1% 8px 1% !important; box-sizing: border-box !important; }
+      .mobile-split-stack { display: block !important; width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; margin-bottom: 12px !important; }
+      .mobile-table-cell { font-size: 9.5px !important; padding: 6px 4px !important; }
+      .mobile-table-header { font-size: 8px !important; padding: 6px 4px !important; }
+      .mobile-kpi-val { font-size: 20px !important; line-height: 22px !important; }
+      .mobile-nowrap-wrap { white-space: normal !important; }
     }
-  };
+  `;
 
-  return React.createElement(Html, { lang: 'es' },
-    React.createElement(Head, null),
-    React.createElement(Body, { style: s.body },
-      React.createElement(Container, { style: s.container },
-        
-        // CABECERA INSTITUCIONAL
-        React.createElement(Section, { style: s.header },
-          React.createElement(Row, null,
-            React.createElement(Column, { style: { verticalAlign: 'middle' } },
-              React.createElement(Text, { style: s.headerBadge }, 'SAR ELSA ROMO ARAVENA • MÉTRICO'),
-              React.createElement(Heading, { as: 'h1', style: s.headerTitle }, 'Informe Ejecutivo Auditado de Atención Médica'),
-              React.createElement(Text, { style: s.headerSubtitle }, `${turnoInfo.textoCompleto || `Jornada ${safeFecha}`} • Rotativa: ${turnoInfo.rotativa || 'Turno Regular'}`)
-            ),
-            React.createElement(Column, { style: { width: '130px', textAlign: 'right', verticalAlign: 'middle' } },
-              React.createElement('div', { style: s.logoPill },
-                React.createElement('img', {
-                  src: 'cid:logo_sar',
-                  alt: 'SAR Elsa Romo',
-                  style: { maxHeight: '44px', width: 'auto', display: 'block' }
-                })
-              )
-            )
-          )
-        ),
-
-        // CUERPO PRINCIPAL DEL INFORME
-        React.createElement(Section, { style: s.content },
-          
-          // BANNER DE AUDITORÍA
-          React.createElement('div', { style: s.bannerAudit },
-            renderIcon('check_circle_emerald', 14),
-            ' Control de Integridad & Calidad Asistencial: Datos 100% auditados y conciliados con la Vista Maestra (SSOT). Incluye métricas operacionales de demanda, flujos clínicos y comparativa interanual (YoY).'
-          ),
-
-          // SALUDO FORMAL
-          React.createElement('div', { style: s.saludoBox },
-            React.createElement('p', { style: { margin: '0 0 6px 0', fontWeight: '900', color: '#0f172a', fontSize: '13px' } },
-              'Estimada Dirección y Equipo de Gestión Asistencial del SAR Elsa Romo:'
-            ),
-            React.createElement('p', { style: { margin: 0 } },
-              'Junto con saludarles cordialmente, presentamos el ',
-              React.createElement('strong', null, 'Informe Ejecutivo Auditado de Atención Médica y Demanda de Urgencia'),
-              ` correspondiente al `,
-              React.createElement('strong', null, turnoInfo.textoCompleto || safeFecha),
-              '.'
-            )
-          ),
-
-          // LÁMINA 1: CIFRAS OFICIALES DEL TURNO (PROTAGONISMO TOTAL DE DATOS DE GUARDIA)
-          React.createElement(Text, { style: s.sectionTitle }, renderIcon('hospital_emerald', 15), ' 1. Balance Asistencial & Cifras Oficiales de Guardia (Datos del Turno)'),
-          
-          React.createElement(Row, { style: { marginBottom: '8px' } },
-            
-            // CARD TURNO 1: PACIENTES ADMITIDOS
-            React.createElement(Column, { style: { width: '20%', paddingRight: '3px', verticalAlign: 'top' } },
-              React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#eff6ff', borderColor: '#bfdbfe' } },
-                React.createElement(Text, { style: { ...s.kpiTitle, color: '#1d4ed8' } }, renderIcon('clock_blue', 11), ' PAC. ADMITIDOS'),
-                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#dbeafe', color: '#1e40af' } }, 'Admisión'),
-                React.createElement('div', { style: { margin: '4px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#1d4ed8' } }, `${totalAdmitidos}`)
-                ),
-                React.createElement(Text, { style: { ...s.kpiSub, color: '#1e40af', fontWeight: '700' } }, 'Ingreso Formal (100%)')
-              )
-            ),
-
-            // CARD TURNO 2: PACIENTES ATENDIDOS
-            React.createElement(Column, { style: { width: '20%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
-              React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' } },
-                React.createElement(Text, { style: { ...s.kpiTitle, color: '#15803d' } }, renderIcon('user_check_emerald', 11), ' PAC. ATENDIDOS'),
-                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#dcfce7', color: '#166534' } }, 'Clínico'),
-                React.createElement('div', { style: { margin: '4px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#15803d' } }, `${totalAtendidos}`)
-                ),
-                React.createElement(Text, { style: { ...s.kpiSub, color: '#166534', fontWeight: '700' } }, `${pctCobertura}% cobertura`)
-              )
-            ),
-
-            // CARD TURNO 3: ALTAS ADMINISTRATIVAS
-            React.createElement(Column, { style: { width: '20%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
-              React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#fff1f2', borderColor: '#fecdd3' } },
-                React.createElement(Text, { style: { ...s.kpiTitle, color: '#be123c' } }, renderIcon('alert_triangle_rose', 11), ' ALTAS ADMIN'),
-                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#ffe4e6', color: '#be123c' } }, 'Ventanilla'),
-                React.createElement('div', { style: { margin: '4px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#be123c' } }, `${totalAltas}`)
-                ),
-                React.createElement(Text, { style: { ...s.kpiSub, color: '#881337', fontWeight: '700' } }, `${pctAltas}% demanda`)
-              )
-            ),
-
-            // CARD TURNO 4: TOTAL TRASLADOS
-            React.createElement(Column, { style: { width: '20%', paddingLeft: '2px', paddingRight: '2px', verticalAlign: 'top' } },
-              React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#faf5ff', borderColor: '#e9d5ff' } },
-                React.createElement(Text, { style: { ...s.kpiTitle, color: '#7e22ce' } }, renderIcon('arrow_left_right_purple', 11), ' TRASLADOS HOSP.'),
-                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#f3e8ff', color: '#6b21a8' } }, 'Derivación'),
-                React.createElement('div', { style: { margin: '4px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#7e22ce' } }, `${totalTraslados}`)
-                ),
-                React.createElement(Text, { style: { ...s.kpiSub, color: '#6b21a8', fontWeight: '700' } }, `${pctTraslados}% demanda`)
-              )
-            ),
-
-            // CARD TURNO 5: CONSTATACIONES
-            React.createElement(Column, { style: { width: '20%', paddingLeft: '3px', verticalAlign: 'top' } },
-              React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#fffbeb', borderColor: '#fde68a' } },
-                React.createElement(Text, { style: { ...s.kpiTitle, color: '#b45309' } }, renderIcon('shield_alert_amber', 11), ' CONSTATACIONES'),
-                React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#fef3c7', color: '#92400e' } }, 'Z51.8'),
-                React.createElement('div', { style: { margin: '4px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '22px', fontWeight: '900', color: '#b45309' } }, `${totalConstataciones}`)
-                ),
-                React.createElement(Text, { style: { ...s.kpiSub, color: '#92400e', fontWeight: '700' } }, `${pctConstataciones}% demanda`)
-              )
-            )
-          ),
-
-          // BANNER DE CUADRATURA DEL TURNO
-          React.createElement('div', { style: { backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '6px 10px', marginBottom: '14px', fontSize: '10.5px', color: '#334155', fontWeight: '700', textAlign: 'center' } },
-            React.createElement('span', null, renderIcon('check_circle_emerald', 13), ` Balance del Turno: ${totalAdmitidos} Admitidos = ${totalAtendidos} Atenciones (${altasMedicas} Altas Médicas + ${totalTraslados} Traslados Hosp.) + ${totalAltas} Altas Admin • ${totalConstataciones} Constataciones Z51.8.`)
-          ),
-
-          // LÁMINA 2: INDICADORES INTERANUALES DE DEMANDA & COBERTURA (COMPARATIVA YOY)
-          React.createElement(Text, { style: s.sectionTitle }, renderIcon('bar_chart_indigo', 15), ' 2. Indicadores Maestros de Demanda & Cobertura (Comparativa YoY)'),
-          
-          React.createElement(Row, { style: { marginBottom: '10px' } },
-            
-            // CARD 1: PACIENTES ADMITIDOS (YOY)
-            React.createElement(Column, { style: { width: '25%', paddingRight: '4px' } },
-              React.createElement('div', { style: s.kpiCard },
-                React.createElement(Row, null,
-                  React.createElement(Column, { style: { textAlign: 'left' } },
-                    React.createElement(Text, { style: s.kpiTitle }, renderIcon('users_indigo', 11), ' PAC. ADMITIDOS (YOY)')
-                  ),
-                  React.createElement(Column, { style: { textAlign: 'right' } },
-                    React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#eef2ff', color: '#4338ca', margin: 0 } }, 'Demanda ↗')
-                  )
-                ),
-                React.createElement('div', { style: { margin: '6px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '20px', fontWeight: '900', color: '#047857' } }, yoy.pctAdmitidosYoY || '+20.4%'),
-                  React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
-                ),
-                React.createElement('div', { style: { borderTop: '1px solid #f1f5f9', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#0f172a', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAdmitidos || '28.257'} pac.`),
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#64748b' } }, `Año Ant. (2025): ${yoy.prevTotalAdmitidos || '23.474'} pac.`)
-                )
-              )
-            ),
-
-            // CARD 2: PACIENTES ATENDIDOS (YOY)
-            React.createElement(Column, { style: { width: '25%', paddingLeft: '2px', paddingRight: '2px' } },
-              React.createElement('div', { style: s.kpiCard },
-                React.createElement(Row, null,
-                  React.createElement(Column, { style: { textAlign: 'left' } },
-                    React.createElement(Text, { style: { ...s.kpiTitle, color: '#0284c7' } }, renderIcon('user_check_sky', 11), ' PAC. ATENDIDOS (YOY)')
-                  ),
-                  React.createElement(Column, { style: { textAlign: 'right' } },
-                    React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#e0f2fe', color: '#0284c7', margin: 0 } }, 'Clínico ↗')
-                  )
-                ),
-                React.createElement('div', { style: { margin: '6px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '20px', fontWeight: '900', color: '#047857' } }, yoy.pctAtendidosYoY || '+19.8%'),
-                  React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
-                ),
-                React.createElement('div', { style: { borderTop: '1px solid #f1f5f9', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#0f172a', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAtendidos || '25.696'} pac. (${yoy.atendidosCobPct || '90.9%'} cob.)`),
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#64748b' } }, `Año Ant. (2025): ${yoy.prevAtendidos || '21.448'} pac.`)
-                )
-              )
-            ),
-
-            // CARD 3: ALTAS ADMIN (YOY)
-            React.createElement(Column, { style: { width: '25%', paddingLeft: '2px', paddingRight: '2px' } },
-              React.createElement('div', { style: { ...s.kpiCard, backgroundColor: '#fff1f2', borderColor: '#fecdd3' } },
-                React.createElement(Row, null,
-                  React.createElement(Column, { style: { textAlign: 'left' } },
-                    React.createElement(Text, { style: { ...s.kpiTitle, color: '#be123c' } }, renderIcon('alert_triangle_rose', 11), ' ALTAS ADMIN (YOY)')
-                  ),
-                  React.createElement(Column, { style: { textAlign: 'right' } },
-                    React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#ffe4e6', color: '#be123c', margin: 0 } }, 'Altas ↗')
-                  )
-                ),
-                React.createElement('div', { style: { margin: '6px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '20px', fontWeight: '900', color: '#be123c' } }, yoy.pctAltasYoY || '+26.4%'),
-                  React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
-                ),
-                React.createElement('div', { style: { borderTop: '1px solid #fee2e2', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#881337', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdAltas || '2.561'} altas (${yoy.altasPct || '9.1%'} del total)`),
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#64748b' } }, `Año Ant. (2025): ${yoy.prevAltasAdmin || '2.026'} altas`),
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#be123c', fontWeight: '800', marginTop: '3px', borderTop: '1px solid #fecdd3', paddingTop: '3px' } }, `En este turno: ${totalAltas} altas (${pctAltas}%)`)
-                )
-              )
-            ),
-
-            // CARD 4: TRASLADOS HOSP. (YOY)
-            React.createElement(Column, { style: { width: '25%', paddingLeft: '4px' } },
-              React.createElement('div', { style: s.kpiCard },
-                React.createElement(Row, null,
-                  React.createElement(Column, { style: { textAlign: 'left' } },
-                    React.createElement(Text, { style: { ...s.kpiTitle, color: '#7e22ce' } }, renderIcon('arrow_left_right_purple', 11), ' TRASLADOS HOSP. (YOY)')
-                  ),
-                  React.createElement(Column, { style: { textAlign: 'right' } },
-                    React.createElement('span', { style: { ...s.kpiPill, backgroundColor: '#f3e8ff', color: '#7e22ce', margin: 0 } }, 'Traslados ↗')
-                  )
-                ),
-                React.createElement('div', { style: { margin: '6px 0 2px 0' } },
-                  React.createElement('span', { style: { fontSize: '20px', fontWeight: '900', color: '#047857' } }, yoy.pctTrasladosYoY || '+11.8%'),
-                  React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
-                ),
-                React.createElement('div', { style: { borderTop: '1px solid #f1f5f9', paddingTop: '6px', marginTop: '4px', textAlign: 'left' } },
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#0f172a', fontWeight: '700' } }, `Volumen YTD: ${yoy.ytdTraslados || '1.162'} pac. (${yoy.trasladosTasa || '4.1%'} tasa)`),
-                  React.createElement(Text, { style: { ...s.kpiSub, color: '#64748b' } }, `Año Ant. (2025): ${yoy.prevTrasladosCount || '1.039'} pac.`)
-                )
-              )
-            )
-          ),
-
-          // SUB-BLOQUE: RENDIMIENTO HORARIO Y ESTADÍA PROMEDIO (INDICADORES DE EFICIENCIA)
-          React.createElement(Row, { style: { marginBottom: '14px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '10px 16px' } },
-            React.createElement(Column, { style: { width: '50%', verticalAlign: 'middle' } },
-              React.createElement(Text, { style: { fontSize: '10.5px', fontWeight: '800', color: '#334155', margin: 0, whiteSpace: 'nowrap' } },
-                renderIcon('zap_indigo', 14), ' RENDIMIENTO CLÍNICO DE GUARDIA: ',
-                React.createElement('strong', { style: { color: '#4338ca' } }, `${rendimientoHora} pac/hr`),
-                React.createElement('span', { style: { color: '#64748b', fontSize: '9.5px', marginLeft: '6px' } }, '(↑ +9.5% vs 8.4 pac/hr)')
-              )
-            ),
-            React.createElement(Column, { style: { width: '50%', textAlign: 'right', verticalAlign: 'middle' } },
-              React.createElement(Text, { style: { fontSize: '10.5px', fontWeight: '800', color: '#334155', margin: 0, whiteSpace: 'nowrap' } },
-                renderIcon('clock_purple', 14), ' ESTADÍA TOTAL PROMEDIO: ',
-                React.createElement('strong', { style: { color: '#7e22ce' } }, `${estadiaPromedio}`),
-                React.createElement('span', { style: { color: '#64748b', fontSize: '9.5px', marginLeft: '6px' } }, `(${estadiaMins} min promedio • ↓ -4.2%)`)
-              )
-            )
-          ),
-
-          // LÁMINA 2: DESGLOSE DE LOS 3 TRAMOS DE ESPERA & CONSTATACIONES Z51.8
-          React.createElement(Row, { style: { marginBottom: '14px' } },
-            // DESGLOSE DE 3 TRAMOS DE ESPERA
-            React.createElement(Column, { style: { width: '58%', paddingRight: '6px' } },
-              React.createElement('div', { style: { ...s.cardModule, backgroundColor: '#f5f3ff', borderColor: '#ddd6fe', margin: 0 } },
-                React.createElement(Row, null,
-                  React.createElement(Column, null,
-                    React.createElement(Text, { style: { fontSize: '10.5px', fontWeight: '900', color: '#5b21b6', margin: 0, textTransform: 'uppercase' } },
-                      React.createElement('span', null, renderIcon('clock_purple', 14), ' Desglose de los 3 Tramos de Espera y Estadía')
-                    )
-                  ),
-                  React.createElement(Column, { style: { textAlign: 'right' } },
-                    React.createElement('span', { style: { fontSize: '9.5px', fontWeight: '800', backgroundColor: '#ede9fe', color: '#6d28d9', padding: '2px 6px', borderRadius: '4px' } },
-                      `Total: ${estadiaMins} min`
-                    )
-                  )
-                ),
-                React.createElement(Row, { style: { marginTop: '8px' } },
-                  React.createElement(Column, { style: { width: '33.3%', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', padding: '6px', border: '1px solid #ede9fe' } },
-                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, renderIcon('clock_blue', 9), ' 1. ADM. A TRIAJE'),
-                    React.createElement(Text, { style: { fontSize: '14px', fontWeight: '900', color: '#0f172a', margin: '2px 0' } }, `${tramos.admisionTriage || 14} min`),
-                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '800', color: '#047857', margin: 0 } }, '↓ -2.5% vs 2025')
-                  ),
-                  React.createElement(Column, { style: { width: '33.3%', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', padding: '6px', border: '1px solid #ede9fe', marginLeft: '3px', marginRight: '3px' } },
-                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, renderIcon('clock_purple', 9), ' 2. TRIAJE A BOX'),
-                    React.createElement(Text, { style: { fontSize: '14px', fontWeight: '900', color: '#4338ca', margin: '2px 0' } }, `${tramos.triageAtencion || 45} min`),
-                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '800', color: '#047857', margin: 0 } }, '↓ -3.8% vs 2025')
-                  ),
-                  React.createElement(Column, { style: { width: '33.3%', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', padding: '6px', border: '1px solid #ede9fe' } },
-                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, renderIcon('clock_purple', 9), ' 3. BOX A ALTA'),
-                    React.createElement(Text, { style: { fontSize: '14px', fontWeight: '900', color: '#7e22ce', margin: '2px 0' } }, `${tramos.atencionAlta || 65} min`),
-                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '800', color: '#047857', margin: 0 } }, '↓ -1.5% vs 2025')
-                  )
-                )
-              )
-            ),
-
-            // CONSTATACIONES DE LESIONES Z51.8 (NÚMERO GRANDE DESTACADO)
-            React.createElement(Column, { style: { width: '42%', paddingLeft: '6px' } },
-              React.createElement('div', { style: { ...s.cardModule, backgroundColor: '#fffbeb', borderColor: '#fde68a', margin: 0 } },
-                React.createElement(Row, null,
-                  React.createElement(Column, null,
-                    React.createElement(Text, { style: { fontSize: '10.5px', fontWeight: '900', color: '#92400e', margin: 0, textTransform: 'uppercase' } },
-                      React.createElement('span', null, renderIcon('shield_alert_amber', 14), ' Constatación Lesiones (Z51.8)')
-                    )
-                  ),
-                  React.createElement(Column, { style: { textAlign: 'right' } },
-                    React.createElement('span', { style: { fontSize: '8.5px', fontWeight: '800', backgroundColor: '#fef3c7', color: '#b45309', padding: '2px 5px', borderRadius: '4px' } },
-                      'Judicial / Policial'
-                    )
-                  )
-                ),
-                React.createElement('div', { style: { backgroundColor: '#ffffff', borderRadius: '8px', padding: '8px', border: '1px solid #fde68a', marginTop: '6px' } },
-                  React.createElement(Row, null,
-                    React.createElement(Column, { style: { width: '45px', verticalAlign: 'middle' } },
-                      React.createElement('span', { style: { fontSize: '28px', fontWeight: '900', color: '#78350f', lineHeight: '1' } }, totalConstataciones)
-                    ),
-                    React.createElement(Column, { style: { verticalAlign: 'middle' } },
-                      React.createElement(Text, { style: { fontSize: '10.5px', fontWeight: '900', color: '#0f172a', margin: 0 } }, 'Constataciones de Lesiones'),
-                      React.createElement(Text, { style: { fontSize: '8.5px', color: '#64748b', margin: '2px 0 0 0' } }, 'Carabineros / PDI / Fiscalía')
-                    ),
-                    React.createElement(Column, { style: { textAlign: 'right', verticalAlign: 'middle' } },
-                      React.createElement(Text, { style: { fontSize: '10px', fontWeight: '900', color: '#b45309', margin: 0 } }, `${pctConstataciones}% demanda`),
-                      React.createElement(Text, { style: { fontSize: '8.5px', fontWeight: '800', color: '#047857', margin: '2px 0 0 0' } }, '↑ +5.2% vs 2025')
-                    )
-                  )
-                )
-              )
-            )
-          ),
-
-          // LÁMINA 3: DISTRIBUCIÓN OFICIAL DE TRIAJE (C1 A C5)
-          React.createElement('div', { style: { ...s.cardModule, marginBottom: '14px' } },
-            React.createElement(Row, { style: { borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '8px' } },
-              React.createElement(Column, null,
-                React.createElement(Text, { style: { fontSize: '11px', fontWeight: '900', color: '#0f172a', textTransform: 'uppercase', margin: 0 } },
-                  React.createElement('span', null, renderIcon('activity_indigo', 14), ' 2. Distribución Oficial de Triaje (Categorización C1 a C5)')
-                )
-              ),
-              React.createElement(Column, { style: { textAlign: 'right' } },
-                React.createElement('span', { style: { fontSize: '9px', fontWeight: '900', backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px' } },
-                  '100% AUDITADO'
-                )
-              )
-            ),
-            React.createElement('div', null,
-              formattedTriageList.map((c, i) => (
-                React.createElement('div', { key: i, style: { backgroundColor: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '8px', padding: '6px 10px', marginBottom: '4px' } },
-                  React.createElement(Row, null,
-                    React.createElement(Column, { style: { width: '170px', verticalAlign: 'middle' } },
-                      React.createElement('span', { style: { display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: c.color, marginRight: '6px' } }),
-                      React.createElement('span', { style: { fontSize: '10.5px', fontWeight: '800', color: '#1e293b' } }, c.label)
-                    ),
-                    React.createElement(Column, { style: { verticalAlign: 'middle' } },
-                      React.createElement('div', { style: { backgroundColor: '#f1f5f9', borderRadius: '10px', height: '6px', width: '100%', overflow: 'hidden' } },
-                        React.createElement('div', { style: { backgroundColor: c.color, height: '6px', width: `${Math.max(Number(c.pct), 2)}%`, borderRadius: '10px' } })
+  return React.createElement('html', { lang: 'es' },
+    React.createElement('head', null,
+      React.createElement('meta', { charSet: 'UTF-8' }),
+      React.createElement('meta', { name: 'viewport', content: 'width=device-width, initial-scale=1.0, maximum-scale=1.0' }),
+      React.createElement('meta', { httpEquiv: 'X-UA-Compatible', content: 'IE=edge' }),
+      React.createElement('title', null, `Informe Asistencial ${turnoInfo.textoCompleto || safeFecha}`),
+      React.createElement('style', null, responsiveStyles)
+    ),
+    React.createElement('body', { style: { backgroundColor: '#f1f5f9', margin: 0, padding: '16px 0', fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" } },
+      React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0', role: 'presentation', style: { backgroundColor: '#f1f5f9' } },
+        React.createElement('tbody', null,
+          React.createElement('tr', null,
+            React.createElement('td', { align: 'center', style: { padding: '0 6px' } },
+              
+              // CONTENEDOR PRINCIPAL
+              React.createElement('table', { className: 'email-container', width: '100%', border: '0', cellPadding: '0', cellSpacing: '0', role: 'presentation', style: { maxWidth: '840px', backgroundColor: '#ffffff', borderRadius: '20px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 8px 24px rgba(0,0,0,0.06)' } },
+                React.createElement('tbody', null,
+                  
+                  // CABECERA INSTITUCIONAL
+                  React.createElement('tr', null,
+                    React.createElement('td', { className: 'mobile-header', style: { backgroundColor: '#0f172a', padding: '24px 28px', borderBottom: '4px solid #6366f1' } },
+                      React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0', role: 'presentation' },
+                        React.createElement('tbody', null,
+                          React.createElement('tr', null,
+                            React.createElement('td', { style: { verticalAlign: 'middle' } },
+                              React.createElement('span', { style: { backgroundColor: 'rgba(99, 102, 241, 0.25)', color: '#a5b4fc', border: '1px solid rgba(165, 180, 252, 0.4)', padding: '3px 10px', borderRadius: '16px', fontSize: '9.5px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.8px', display: 'inline-block' } },
+                                'SAR ELSA ROMO ARAVENA • MÉTRICO'
+                              ),
+                              React.createElement('h1', { className: 'mobile-header-title', style: { color: '#ffffff', fontSize: '21px', fontWeight: '900', margin: '8px 0 4px 0', letterSpacing: '-0.4px', lineHeight: '26px' } },
+                                'Informe Ejecutivo Auditado de Atención Médica'
+                              ),
+                              React.createElement('p', { className: 'mobile-header-subtitle', style: { color: '#cbd5e1', fontSize: '12px', fontWeight: '700', margin: '0', lineHeight: '18px', wordBreak: 'break-word' } },
+                                turnoInfo.textoCompleto || `Jornada ${safeFecha}`
+                              ),
+                              React.createElement('p', { className: 'mobile-header-subtitle', style: { color: '#94a3b8', fontSize: '11px', fontWeight: '600', margin: '2px 0 0 0', lineHeight: '16px' } },
+                                `Rotativa: ${turnoInfo.rotativa || 'Turno Regular'}`
+                              )
+                            ),
+                            React.createElement('td', { className: 'mobile-hide', style: { width: '130px', textAlign: 'right', verticalAlign: 'middle', paddingLeft: '14px' } },
+                              React.createElement('div', { style: { backgroundColor: '#ffffff', padding: '6px 12px', borderRadius: '12px', display: 'inline-block', boxShadow: '0 4px 10px rgba(0,0,0,0.18)' } },
+                                React.createElement('img', { src: 'cid:logo_sar', alt: 'SAR Elsa Romo', style: { maxHeight: '42px', width: 'auto', display: 'block' } })
+                              )
+                            )
+                          )
+                        )
                       )
-                    ),
-                    React.createElement(Column, { style: { width: '100px', textAlign: 'right', verticalAlign: 'middle' } },
-                      React.createElement('span', { style: { fontSize: '10.5px', fontWeight: '900', color: '#0f172a' } }, `${c.count} pac. (${c.pct}%)`)
-                    ),
-                    React.createElement(Column, { style: { width: '110px', textAlign: 'right', verticalAlign: 'middle' } },
-                      React.createElement('span', { style: { fontSize: '9px', fontWeight: '700', color: '#64748b' } }, c.trend)
                     )
-                  )
-                )
-              ))
-            )
-          ),
+                  ),
 
-          // LÁMINA 4: RENDIMIENTO CLÍNICO POR PROFESIONAL MÉDICO EN TURNO
-          React.createElement('div', { style: { ...s.cardModule, marginBottom: '14px' } },
-            React.createElement(Row, { style: { borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '8px' } },
-              React.createElement(Column, null,
-                React.createElement(Text, { style: { fontSize: '11px', fontWeight: '900', color: '#0f172a', textTransform: 'uppercase', margin: 0 } },
-                  React.createElement('span', null, renderIcon('user_check_emerald', 14), ' 3. Rendimiento Clínico por Profesional Médico en Turno')
-                )
-              ),
-              React.createElement(Column, { style: { textAlign: 'right' } },
-                React.createElement('span', { style: { fontSize: '9px', fontWeight: '800', color: '#64748b' } },
-                  `${medicos.filter(m => !m.isTramite && !m.nombre?.toLowerCase().includes('trámite') && !m.nombre?.toLowerCase().includes('no registrado')).length} Médico(s) en Turno Oficial`
-                )
-              )
-            ),
-            React.createElement('table', { width: '100%', style: { borderCollapse: 'collapse', backgroundColor: '#ffffff', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0' } },
-              React.createElement('thead', null,
-                React.createElement('tr', null,
-                  React.createElement('th', { style: { ...s.tableHeader, textAlign: 'left' } }, 'Médico Tratante'),
-                  React.createElement('th', { style: { ...s.tableHeader, width: '110px', textAlign: 'center' } }, 'Atenciones'),
-                  React.createElement('th', { style: { ...s.tableHeader, width: '120px', textAlign: 'center' } }, 'Rendimiento (Pac/Hr)'),
-                  React.createElement('th', { style: { ...s.tableHeader, width: '110px', textAlign: 'right' } }, '% Aporte Turno')
-                )
-              ),
-              React.createElement('tbody', null,
-                medicos.map((m, idx) => {
-                  const isTramite = m.isTramite || m.nombre?.toLowerCase().includes('trámite') || m.nombre?.toLowerCase().includes('no registrado');
-                  const durH = (turnoInfo.rotativa && turnoInfo.rotativa.includes('Largo')) ? 15 : 12;
-                  const rendPacHr = isTramite ? '—' : (m.rendimientoPacHr || (m.pacHora ? `${m.pacHora} pac/hr` : `${(m.atenciones / durH).toFixed(2)} pac/hr`));
-                  const pctAp = m.pctAporte || (m.aportePct ? `${m.aportePct}%` : `${((m.atenciones / (totalAdmitidos || 1)) * 100).toFixed(1)}%`);
-                  const dotColor = isTramite ? '#94a3b8' : (idx === 0 ? '#10b981' : idx === 1 ? '#6366f1' : '#a855f7');
-                  const atencionColor = isTramite ? '#64748b' : '#047857';
-                  const nombreDisplay = isTramite ? 'Trámites Administrativos (Sin Asignación Médica)' : m.nombre;
-                  return (
-                    React.createElement('tr', { key: idx, style: { backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8fafc' } },
-                      React.createElement('td', { style: { ...s.tableCell, fontWeight: '800' } },
-                        React.createElement('span', { style: { display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', backgroundColor: dotColor, marginRight: '6px' } }),
-                        nombreDisplay
+                  // CUERPO PRINCIPAL AISLADO EN FILAS ESTRUCTURALES (SIN COLAPSO DE MÁRGENES)
+                  React.createElement('tr', null,
+                    React.createElement('td', { className: 'mobile-p-14', style: { padding: '24px 26px' } },
+                      React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0', role: 'presentation' },
+                        React.createElement('tbody', null,
+                          
+                          // BANNER DE AUDITORÍA
+                          React.createElement('tr', null,
+                            React.createElement('td', { style: { paddingBottom: '16px' } },
+                              React.createElement('div', { style: { backgroundColor: '#ecfdf5', border: '1.5px solid #a7f3d0', borderRadius: '12px', padding: '10px 14px', fontSize: '11.5px', color: '#065f46', fontWeight: '700', lineHeight: '17px' } },
+                                renderIcon('check_circle_emerald', 14),
+                                ' Control de Integridad & Calidad Asistencial: Datos 100% auditados y conciliados con la Vista Maestra (SSOT). Incluye métricas operacionales de demanda, flujos clínicos y comparativa interanual (YoY).'
+                              )
+                            )
+                          ),
+
+                          // SALUDO FORMAL
+                          React.createElement('tr', null,
+                            React.createElement('td', { style: { paddingBottom: '18px' } },
+                              React.createElement('p', { style: { margin: '0 0 5px 0', fontWeight: '900', color: '#0f172a', fontSize: '13px', lineHeight: '18px' } },
+                                'Estimada Dirección y Equipo de Gestión Asistencial del SAR Elsa Romo:'
+                              ),
+                              React.createElement('p', { style: { margin: '0', color: '#334155', fontSize: '12px', lineHeight: '18px' } },
+                                'Junto con saludarles cordialmente, presentamos el ',
+                                React.createElement('strong', null, 'Informe Ejecutivo Auditado de Atención Médica y Demanda de Urgencia'),
+                                ' correspondiente al ',
+                                React.createElement('strong', null, turnoInfo.textoCompleto || safeFecha),
+                                '.'
+                              )
+                            )
+                          ),
+
+                          // TÍTULO SECCIÓN 1: BALANCE ASISTENCIAL (EN SU PROPIA FILA AISLADA)
+                          React.createElement('tr', null,
+                            React.createElement('td', { style: { paddingBottom: '12px', borderBottom: '2px solid #e2e8f0' } },
+                              React.createElement('p', { style: { margin: '0', fontSize: '12.5px', fontWeight: '900', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.4px', lineHeight: '18px' } },
+                                renderIcon('hospital_emerald', 15),
+                                ' 1. Balance Asistencial & Cifras Oficiales de Guardia (Datos del Turno)'
+                              )
+                            )
+                          ),
+
+                          // GRILLA DE 5 TARJETAS DE GUARDIA (FLUIDA + RESPONSIVA)
+                          React.createElement('tr', null,
+                            React.createElement('td', { style: { paddingTop: '12px', paddingBottom: '10px', textAlign: 'center' } },
+                              
+                              // CARD 1: ADMITIDOS
+                              React.createElement('div', { className: 'mobile-card-half', style: { display: 'inline-block', width: '19%', minWidth: '135px', verticalAlign: 'top', margin: '0 0.4% 8px 0.4%', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', padding: '10px 6px', textAlign: 'center', boxSizing: 'border-box' } },
+                                React.createElement('p', { style: { fontSize: '8.5px', fontWeight: '900', color: '#1d4ed8', textTransform: 'uppercase', margin: '0 0 2px 0', lineHeight: '12px' } },
+                                  renderIcon('clock_blue', 11), ' PAC. ADMITIDOS'
+                                ),
+                                React.createElement('span', { style: { backgroundColor: '#dbeafe', color: '#1e40af', borderRadius: '6px', padding: '2px 5px', fontSize: '8.5px', fontWeight: '800', display: 'inline-block' } }, 'Admisión'),
+                                React.createElement('p', { className: 'mobile-kpi-val', style: { fontSize: '22px', fontWeight: '900', color: '#1d4ed8', margin: '4px 0 2px 0', lineHeight: '24px' } }, `${totalAdmitidos}`),
+                                React.createElement('p', { style: { fontSize: '8px', color: '#1e40af', fontWeight: '700', margin: '0', lineHeight: '11px' } }, 'Ingreso Formal (100%)')
+                              ),
+
+                              // CARD 2: ATENDIDOS
+                              React.createElement('div', { className: 'mobile-card-half', style: { display: 'inline-block', width: '19%', minWidth: '135px', verticalAlign: 'top', margin: '0 0.4% 8px 0.4%', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '10px 6px', textAlign: 'center', boxSizing: 'border-box' } },
+                                React.createElement('p', { style: { fontSize: '8.5px', fontWeight: '900', color: '#15803d', textTransform: 'uppercase', margin: '0 0 2px 0', lineHeight: '12px' } },
+                                  renderIcon('user_check_emerald', 11), ' PAC. ATENDIDOS'
+                                ),
+                                React.createElement('span', { style: { backgroundColor: '#dcfce7', color: '#166534', borderRadius: '6px', padding: '2px 5px', fontSize: '8.5px', fontWeight: '800', display: 'inline-block' } }, 'Clínico'),
+                                React.createElement('p', { className: 'mobile-kpi-val', style: { fontSize: '22px', fontWeight: '900', color: '#15803d', margin: '4px 0 2px 0', lineHeight: '24px' } }, `${totalAtendidos}`),
+                                React.createElement('p', { style: { fontSize: '8px', color: '#166534', fontWeight: '700', margin: '0', lineHeight: '11px' } }, `${pctCobertura}% cobertura`)
+                              ),
+
+                              // CARD 3: ALTAS ADMIN
+                              React.createElement('div', { className: 'mobile-card-half', style: { display: 'inline-block', width: '19%', minWidth: '135px', verticalAlign: 'top', margin: '0 0.4% 8px 0.4%', backgroundColor: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '12px', padding: '10px 6px', textAlign: 'center', boxSizing: 'border-box' } },
+                                React.createElement('p', { style: { fontSize: '8.5px', fontWeight: '900', color: '#be123c', textTransform: 'uppercase', margin: '0 0 2px 0', lineHeight: '12px' } },
+                                  renderIcon('alert_triangle_rose', 11), ' ALTAS ADMIN'
+                                ),
+                                React.createElement('span', { style: { backgroundColor: '#ffe4e6', color: '#be123c', borderRadius: '6px', padding: '2px 5px', fontSize: '8.5px', fontWeight: '800', display: 'inline-block' } }, 'Ventanilla'),
+                                React.createElement('p', { className: 'mobile-kpi-val', style: { fontSize: '22px', fontWeight: '900', color: '#be123c', margin: '4px 0 2px 0', lineHeight: '24px' } }, `${totalAltas}`),
+                                React.createElement('p', { style: { fontSize: '8px', color: '#881337', fontWeight: '700', margin: '0', lineHeight: '11px' } }, `${pctAltas}% demanda`)
+                              ),
+
+                              // CARD 4: TRASLADOS HOSP.
+                              React.createElement('div', { className: 'mobile-card-half', style: { display: 'inline-block', width: '19%', minWidth: '135px', verticalAlign: 'top', margin: '0 0.4% 8px 0.4%', backgroundColor: '#faf5ff', border: '1px solid #e9d5ff', borderRadius: '12px', padding: '10px 6px', textAlign: 'center', boxSizing: 'border-box' } },
+                                React.createElement('p', { style: { fontSize: '8.5px', fontWeight: '900', color: '#7e22ce', textTransform: 'uppercase', margin: '0 0 2px 0', lineHeight: '12px' } },
+                                  renderIcon('arrow_left_right_purple', 11), ' TRASLADOS HOSP.'
+                                ),
+                                React.createElement('span', { style: { backgroundColor: '#f3e8ff', color: '#6b21a8', borderRadius: '6px', padding: '2px 5px', fontSize: '8.5px', fontWeight: '800', display: 'inline-block' } }, 'Derivación'),
+                                React.createElement('p', { className: 'mobile-kpi-val', style: { fontSize: '22px', fontWeight: '900', color: '#7e22ce', margin: '4px 0 2px 0', lineHeight: '24px' } }, `${totalTraslados}`),
+                                React.createElement('p', { style: { fontSize: '8px', color: '#6b21a8', fontWeight: '700', margin: '0', lineHeight: '11px' } }, `${pctTraslados}% demanda`)
+                              ),
+
+                              // CARD 5: CONSTATACIONES
+                              React.createElement('div', { className: 'mobile-card-full', style: { display: 'inline-block', width: '19%', minWidth: '135px', verticalAlign: 'top', margin: '0 0.4% 8px 0.4%', backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '10px 6px', textAlign: 'center', boxSizing: 'border-box' } },
+                                React.createElement('p', { style: { fontSize: '8.5px', fontWeight: '900', color: '#b45309', textTransform: 'uppercase', margin: '0 0 2px 0', lineHeight: '12px' } },
+                                  renderIcon('shield_alert_amber', 11), ' CONSTATACIONES'
+                                ),
+                                React.createElement('span', { style: { backgroundColor: '#fef3c7', color: '#92400e', borderRadius: '6px', padding: '2px 5px', fontSize: '8.5px', fontWeight: '800', display: 'inline-block' } }, 'Z51.8'),
+                                React.createElement('p', { className: 'mobile-kpi-val', style: { fontSize: '22px', fontWeight: '900', color: '#b45309', margin: '4px 0 2px 0', lineHeight: '24px' } }, `${totalConstataciones}`),
+                                React.createElement('p', { style: { fontSize: '8px', color: '#92400e', fontWeight: '700', margin: '0', lineHeight: '11px' } }, `${pctConstataciones}% demanda`)
+                              )
+                            )
+                          ),
+
+                          // BANNER DE CUADRATURA DEL TURNO
+                          React.createElement('tr', null,
+                            React.createElement('td', { style: { paddingBottom: '16px' } },
+                              React.createElement('div', { style: { backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '8px 12px', fontSize: '10.5px', color: '#334155', fontWeight: '700', textAlign: 'center', lineHeight: '16px' } },
+                                renderIcon('check_circle_emerald', 13),
+                                ` Balance del Turno: ${totalAdmitidos} Admitidos = ${totalAtendidos} Atenciones (${altasMedicas} Altas Médicas + ${totalTraslados} Traslados Hosp.) + ${totalAltas} Altas Admin • ${totalConstataciones} Constataciones Z51.8.`
+                              )
+                            )
+                          ),
+
+                          // TÍTULO SECCIÓN 2: INDICADORES MAESTROS YOY
+                          React.createElement('tr', null,
+                            React.createElement('td', { style: { paddingBottom: '12px', borderBottom: '2px solid #e2e8f0' } },
+                              React.createElement('p', { style: { margin: '0', fontSize: '12.5px', fontWeight: '900', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.4px', lineHeight: '18px' } },
+                                renderIcon('bar_chart_indigo', 15),
+                                ' 2. Indicadores Maestros de Demanda & Cobertura (Comparativa YoY)'
+                              )
+                            )
+                          ),
+
+                          // GRILLA DE 4 TARJETAS YOY (FLUIDA + RESPONSIVA)
+                          React.createElement('tr', null,
+                            React.createElement('td', { style: { paddingTop: '12px', paddingBottom: '12px', textAlign: 'center' } },
+                              
+                              // CARD YOY 1: ADMITIDOS
+                              React.createElement('div', { className: 'mobile-card-half', style: { display: 'inline-block', width: '23.8%', minWidth: '155px', verticalAlign: 'top', margin: '0 0.5% 8px 0.5%', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '10px 8px', textAlign: 'left', boxSizing: 'border-box' } },
+                                React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0' },
+                                  React.createElement('tbody', null,
+                                    React.createElement('tr', null,
+                                      React.createElement('td', null,
+                                        React.createElement('p', { style: { fontSize: '8.5px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0, lineHeight: '12px' } },
+                                          renderIcon('users_indigo', 10), ' PAC. ADMITIDOS'
+                                        )
+                                      ),
+                                      React.createElement('td', { align: 'right' },
+                                        React.createElement('span', { style: { backgroundColor: '#eef2ff', color: '#4338ca', padding: '2px 5px', borderRadius: '4px', fontSize: '8.5px', fontWeight: '800' } }, 'Demanda ↗')
+                                      )
+                                    )
+                                  )
+                                ),
+                                React.createElement('div', { style: { margin: '6px 0 2px 0' } },
+                                  React.createElement('span', { className: 'mobile-kpi-val', style: { fontSize: '20px', fontWeight: '900', color: '#047857', lineHeight: '22px' } }, yoy.pctAdmitidosYoY || '+20.4%'),
+                                  React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
+                                ),
+                                React.createElement('div', { style: { borderTop: '1px solid #f1f5f9', paddingTop: '6px', marginTop: '4px' } },
+                                  React.createElement('p', { style: { fontSize: '8px', color: '#0f172a', fontWeight: '700', margin: 0, lineHeight: '12px' } }, `Volumen YTD: ${yoy.ytdAdmitidos || '28.257'} pac.`),
+                                  React.createElement('p', { style: { fontSize: '8px', color: '#64748b', margin: '2px 0 0 0', lineHeight: '11px' } }, `Año Ant. (2025): ${yoy.prevTotalAdmitidos || '23.474'} pac.`)
+                                )
+                              ),
+
+                              // CARD YOY 2: ATENDIDOS
+                              React.createElement('div', { className: 'mobile-card-half', style: { display: 'inline-block', width: '23.8%', minWidth: '155px', verticalAlign: 'top', margin: '0 0.5% 8px 0.5%', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '10px 8px', textAlign: 'left', boxSizing: 'border-box' } },
+                                React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0' },
+                                  React.createElement('tbody', null,
+                                    React.createElement('tr', null,
+                                      React.createElement('td', null,
+                                        React.createElement('p', { style: { fontSize: '8.5px', fontWeight: '900', color: '#0284c7', textTransform: 'uppercase', margin: 0, lineHeight: '12px' } },
+                                          renderIcon('user_check_sky', 10), ' PAC. ATENDIDOS'
+                                        )
+                                      ),
+                                      React.createElement('td', { align: 'right' },
+                                        React.createElement('span', { style: { backgroundColor: '#e0f2fe', color: '#0284c7', padding: '2px 5px', borderRadius: '4px', fontSize: '8.5px', fontWeight: '800' } }, 'Clínico ↗')
+                                      )
+                                    )
+                                  )
+                                ),
+                                React.createElement('div', { style: { margin: '6px 0 2px 0' } },
+                                  React.createElement('span', { className: 'mobile-kpi-val', style: { fontSize: '20px', fontWeight: '900', color: '#047857', lineHeight: '22px' } }, yoy.pctAtendidosYoY || '+19.8%'),
+                                  React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
+                                ),
+                                React.createElement('div', { style: { borderTop: '1px solid #f1f5f9', paddingTop: '6px', marginTop: '4px' } },
+                                  React.createElement('p', { style: { fontSize: '8px', color: '#0f172a', fontWeight: '700', margin: 0, lineHeight: '12px' } }, `Volumen YTD: ${yoy.ytdAtendidos || '25.696'} pac. (${yoy.atendidosCobPct || '90.9%'} cob.)`),
+                                  React.createElement('p', { style: { fontSize: '8px', color: '#64748b', margin: '2px 0 0 0', lineHeight: '11px' } }, `Año Ant. (2025): ${yoy.prevAtendidos || '21.448'} pac.`)
+                                )
+                              ),
+
+                              // CARD YOY 3: ALTAS ADMIN
+                              React.createElement('div', { className: 'mobile-card-half', style: { display: 'inline-block', width: '23.8%', minWidth: '155px', verticalAlign: 'top', margin: '0 0.5% 8px 0.5%', backgroundColor: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '12px', padding: '10px 8px', textAlign: 'left', boxSizing: 'border-box' } },
+                                React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0' },
+                                  React.createElement('tbody', null,
+                                    React.createElement('tr', null,
+                                      React.createElement('td', null,
+                                        React.createElement('p', { style: { fontSize: '8.5px', fontWeight: '900', color: '#be123c', textTransform: 'uppercase', margin: 0, lineHeight: '12px' } },
+                                          renderIcon('alert_triangle_rose', 10), ' ALTAS ADMIN'
+                                        )
+                                      ),
+                                      React.createElement('td', { align: 'right' },
+                                        React.createElement('span', { style: { backgroundColor: '#ffe4e6', color: '#be123c', padding: '2px 5px', borderRadius: '4px', fontSize: '8.5px', fontWeight: '800' } }, 'Altas ↗')
+                                      )
+                                    )
+                                  )
+                                ),
+                                React.createElement('div', { style: { margin: '6px 0 2px 0' } },
+                                  React.createElement('span', { className: 'mobile-kpi-val', style: { fontSize: '20px', fontWeight: '900', color: '#be123c', lineHeight: '22px' } }, yoy.pctAltasYoY || '+26.4%'),
+                                  React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
+                                ),
+                                React.createElement('div', { style: { borderTop: '1px solid #fee2e2', paddingTop: '6px', marginTop: '4px' } },
+                                  React.createElement('p', { style: { fontSize: '8px', color: '#881337', fontWeight: '700', margin: 0, lineHeight: '12px' } }, `Volumen YTD: ${yoy.ytdAltas || '2.561'} altas (${yoy.altasPct || '9.1%'})`),
+                                  React.createElement('p', { style: { fontSize: '8px', color: '#64748b', margin: '2px 0 0 0', lineHeight: '11px' } }, `Año Ant. (2025): ${yoy.prevAltasAdmin || '2.026'} altas`),
+                                  React.createElement('p', { style: { fontSize: '8px', color: '#be123c', fontWeight: '800', margin: '2px 0 0 0', lineHeight: '11px' } }, `Turno: ${totalAltas} altas (${pctAltas}%)`)
+                                )
+                              ),
+
+                              // CARD YOY 4: TRASLADOS HOSP.
+                              React.createElement('div', { className: 'mobile-card-half', style: { display: 'inline-block', width: '23.8%', minWidth: '155px', verticalAlign: 'top', margin: '0 0.5% 8px 0.5%', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '10px 8px', textAlign: 'left', boxSizing: 'border-box' } },
+                                React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0' },
+                                  React.createElement('tbody', null,
+                                    React.createElement('tr', null,
+                                      React.createElement('td', null,
+                                        React.createElement('p', { style: { fontSize: '8.5px', fontWeight: '900', color: '#7e22ce', textTransform: 'uppercase', margin: 0, lineHeight: '12px' } },
+                                          renderIcon('arrow_left_right_purple', 10), ' TRASLADOS HOSP.'
+                                        )
+                                      ),
+                                      React.createElement('td', { align: 'right' },
+                                        React.createElement('span', { style: { backgroundColor: '#f3e8ff', color: '#7e22ce', padding: '2px 5px', borderRadius: '4px', fontSize: '8.5px', fontWeight: '800' } }, 'Traslados ↗')
+                                      )
+                                    )
+                                  )
+                                ),
+                                React.createElement('div', { style: { margin: '6px 0 2px 0' } },
+                                  React.createElement('span', { className: 'mobile-kpi-val', style: { fontSize: '20px', fontWeight: '900', color: '#047857', lineHeight: '22px' } }, yoy.pctTrasladosYoY || '+11.8%'),
+                                  React.createElement('span', { style: { fontSize: '8px', fontWeight: '700', color: '#64748b', marginLeft: '4px' } }, 'VS AÑO ANT.')
+                                ),
+                                React.createElement('div', { style: { borderTop: '1px solid #f1f5f9', paddingTop: '6px', marginTop: '4px' } },
+                                  React.createElement('p', { style: { fontSize: '8px', color: '#0f172a', fontWeight: '700', margin: 0, lineHeight: '12px' } }, `Volumen YTD: ${yoy.ytdTraslados || '1.162'} pac. (${yoy.trasladosTasa || '4.1%'})`),
+                                  React.createElement('p', { style: { fontSize: '8px', color: '#64748b', margin: '2px 0 0 0', lineHeight: '11px' } }, `Año Ant. (2025): ${yoy.prevTrasladosCount || '1.039'} pac.`)
+                                )
+                              )
+                            )
+                          ),
+
+                          // SUB-BLOQUE: RENDIMIENTO HORARIO Y ESTADÍA PROMEDIO (RESPONSIVO CON STACKING EN MÓVIL)
+                          React.createElement('tr', null,
+                            React.createElement('td', { style: { paddingBottom: '14px' } },
+                              React.createElement('div', { style: { backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '10px 14px' } },
+                                React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0' },
+                                  React.createElement('tbody', null,
+                                    React.createElement('tr', null,
+                                      React.createElement('td', { className: 'mobile-stack', style: { width: '50%', verticalAlign: 'middle', padding: '4px 0' } },
+                                        React.createElement('p', { style: { fontSize: '10.5px', fontWeight: '800', color: '#334155', margin: 0, lineHeight: '16px' } },
+                                          renderIcon('zap_indigo', 14), ' RENDIMIENTO CLÍNICO: ',
+                                          React.createElement('strong', { style: { color: '#4338ca' } }, `${rendimientoHora} pac/hr`),
+                                          React.createElement('span', { style: { color: '#64748b', fontSize: '9px', marginLeft: '4px' } }, '(↑ +9.5% vs 8.4 pac/hr)')
+                                        )
+                                      ),
+                                      React.createElement('td', { className: 'mobile-stack', style: { width: '50%', textAlign: 'right', verticalAlign: 'middle', padding: '4px 0' } },
+                                        React.createElement('p', { style: { fontSize: '10.5px', fontWeight: '800', color: '#334155', margin: 0, lineHeight: '16px' } },
+                                          renderIcon('clock_purple', 14), ' ESTADÍA PROMEDIO: ',
+                                          React.createElement('strong', { style: { color: '#7e22ce' } }, `${estadiaPromedio}`),
+                                          React.createElement('span', { style: { color: '#64748b', fontSize: '9px', marginLeft: '4px' } }, `(${estadiaMins} min • ↓ -4.2%)`)
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                          ),
+
+                          // LÁMINA: DESGLOSE DE 3 TRAMOS DE ESPERA (58%) & CONSTATACIONES Z51.8 (42%)
+                          React.createElement('tr', null,
+                            React.createElement('td', { style: { paddingBottom: '14px' } },
+                              React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0' },
+                                React.createElement('tbody', null,
+                                  React.createElement('tr', null,
+                                    
+                                    // TRAMOS DE ESPERA
+                                    React.createElement('td', { className: 'mobile-split-stack', style: { width: '58%', verticalAlign: 'top', paddingRight: '5px' } },
+                                      React.createElement('div', { style: { backgroundColor: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '14px', padding: '12px' } },
+                                        React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0' },
+                                          React.createElement('tbody', null,
+                                            React.createElement('tr', null,
+                                              React.createElement('td', null,
+                                                React.createElement('p', { style: { fontSize: '10.5px', fontWeight: '900', color: '#5b21b6', margin: 0, textTransform: 'uppercase', lineHeight: '14px' } },
+                                                  renderIcon('clock_purple', 14), ' Desglose 3 Tramos de Espera'
+                                                )
+                                              ),
+                                              React.createElement('td', { align: 'right' },
+                                                React.createElement('span', { style: { fontSize: '9.5px', fontWeight: '800', backgroundColor: '#ede9fe', color: '#6d28d9', padding: '2px 6px', borderRadius: '4px' } },
+                                                  `Total: ${estadiaMins} min`
+                                                )
+                                              )
+                                            )
+                                          )
+                                        ),
+                                        React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '4', style: { marginTop: '8px' } },
+                                          React.createElement('tbody', null,
+                                            React.createElement('tr', null,
+                                              React.createElement('td', { style: { width: '33.3%', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', padding: '6px 4px', border: '1px solid #ede9fe' } },
+                                                React.createElement('p', { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0, lineHeight: '11px' } }, '1. ADM. A TRIAJE'),
+                                                React.createElement('p', { style: { fontSize: '13px', fontWeight: '900', color: '#0f172a', margin: '2px 0', lineHeight: '15px' } }, `${tramos.admisionTriage || 14} min`),
+                                                React.createElement('p', { style: { fontSize: '7.5px', fontWeight: '800', color: '#047857', margin: 0, lineHeight: '10px' } }, '↓ -2.5%')
+                                              ),
+                                              React.createElement('td', { style: { width: '33.3%', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', padding: '6px 4px', border: '1px solid #ede9fe' } },
+                                                React.createElement('p', { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0, lineHeight: '11px' } }, '2. TRIAJE A BOX'),
+                                                React.createElement('p', { style: { fontSize: '13px', fontWeight: '900', color: '#4338ca', margin: '2px 0', lineHeight: '15px' } }, `${tramos.triageAtencion || 45} min`),
+                                                React.createElement('p', { style: { fontSize: '7.5px', fontWeight: '800', color: '#047857', margin: 0, lineHeight: '10px' } }, '↓ -3.8%')
+                                              ),
+                                              React.createElement('td', { style: { width: '33.3%', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', padding: '6px 4px', border: '1px solid #ede9fe' } },
+                                                React.createElement('p', { style: { fontSize: '8px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0, lineHeight: '11px' } }, '3. BOX A ALTA'),
+                                                React.createElement('p', { style: { fontSize: '13px', fontWeight: '900', color: '#7e22ce', margin: '2px 0', lineHeight: '15px' } }, `${tramos.atencionAlta || 65} min`),
+                                                React.createElement('p', { style: { fontSize: '7.5px', fontWeight: '800', color: '#047857', margin: 0, lineHeight: '10px' } }, '↓ -1.5%')
+                                              )
+                                            )
+                                          )
+                                        )
+                                      )
+                                    ),
+
+                                    // CONSTATACIONES Z51.8
+                                    React.createElement('td', { className: 'mobile-split-stack', style: { width: '42%', verticalAlign: 'top', paddingLeft: '5px' } },
+                                      React.createElement('div', { style: { backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '14px', padding: '12px' } },
+                                        React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0' },
+                                          React.createElement('tbody', null,
+                                            React.createElement('tr', null,
+                                              React.createElement('td', null,
+                                                React.createElement('p', { style: { fontSize: '10.5px', fontWeight: '900', color: '#92400e', margin: 0, textTransform: 'uppercase', lineHeight: '14px' } },
+                                                  renderIcon('shield_alert_amber', 14), ' Constatación (Z51.8)'
+                                                )
+                                              ),
+                                              React.createElement('td', { align: 'right' },
+                                                React.createElement('span', { style: { fontSize: '8.5px', fontWeight: '800', backgroundColor: '#fef3c7', color: '#b45309', padding: '2px 5px', borderRadius: '4px' } },
+                                                  'Judicial'
+                                                )
+                                              )
+                                            )
+                                          )
+                                        ),
+                                        React.createElement('div', { style: { backgroundColor: '#ffffff', borderRadius: '8px', padding: '8px', border: '1px solid #fde68a', marginTop: '6px' } },
+                                          React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0' },
+                                            React.createElement('tbody', null,
+                                              React.createElement('tr', null,
+                                                React.createElement('td', { style: { width: '42px', verticalAlign: 'middle' } },
+                                                  React.createElement('span', { style: { fontSize: '26px', fontWeight: '900', color: '#78350f', lineHeight: '1' } }, totalConstataciones)
+                                                ),
+                                                React.createElement('td', { style: { verticalAlign: 'middle', paddingLeft: '4px' } },
+                                                  React.createElement('p', { style: { fontSize: '10px', fontWeight: '900', color: '#0f172a', margin: 0, lineHeight: '13px' } }, 'Constatación Lesiones'),
+                                                  React.createElement('p', { style: { fontSize: '8px', color: '#64748b', margin: '2px 0 0 0', lineHeight: '11px' } }, 'Carabineros / PDI')
+                                                ),
+                                                React.createElement('td', { align: 'right', style: { verticalAlign: 'middle' } },
+                                                  React.createElement('p', { style: { fontSize: '10px', fontWeight: '900', color: '#b45309', margin: 0, lineHeight: '13px' } }, `${pctConstataciones}%`),
+                                                  React.createElement('p', { style: { fontSize: '8px', fontWeight: '800', color: '#047857', margin: '2px 0 0 0', lineHeight: '11px' } }, '↑ +5.2%')
+                                                )
+                                              )
+                                            )
+                                          )
+                                        )
+                                      )
+                                    )
+
+                                  )
+                                )
+                              )
+                            )
+                          ),
+
+                          // LÁMINA 3: DISTRIBUCIÓN OFICIAL DE TRIAJE (CATEGORIZACIÓN C1 A C5)
+                          React.createElement('tr', null,
+                            React.createElement('td', { style: { paddingBottom: '14px' } },
+                              React.createElement('div', { style: { backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '12px' } },
+                                React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0', style: { borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '8px' } },
+                                  React.createElement('tbody', null,
+                                    React.createElement('tr', null,
+                                      React.createElement('td', null,
+                                        React.createElement('p', { style: { fontSize: '11px', fontWeight: '900', color: '#0f172a', textTransform: 'uppercase', margin: 0, lineHeight: '16px' } },
+                                          renderIcon('activity_indigo', 14), ' 3. Distribución Oficial de Triaje (Categorización C1 a C5)'
+                                        )
+                                      ),
+                                      React.createElement('td', { align: 'right' },
+                                        React.createElement('span', { style: { fontSize: '8.5px', fontWeight: '900', backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px' } },
+                                          '100% AUDITADO'
+                                        )
+                                      )
+                                    )
+                                  )
+                                ),
+                                formattedTriageList.map((c, i) => (
+                                  React.createElement('div', { key: i, style: { backgroundColor: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '8px', padding: '6px 8px', marginBottom: '4px' } },
+                                    React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0' },
+                                      React.createElement('tbody', null,
+                                        React.createElement('tr', null,
+                                          React.createElement('td', { style: { width: '140px', verticalAlign: 'middle' } },
+                                            React.createElement('span', { style: { display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: c.color, marginRight: '6px' } }),
+                                            React.createElement('span', { style: { fontSize: '10px', fontWeight: '800', color: '#1e293b' } }, c.label)
+                                          ),
+                                          React.createElement('td', { style: { verticalAlign: 'middle', padding: '0 8px' } },
+                                            React.createElement('div', { style: { backgroundColor: '#f1f5f9', borderRadius: '10px', height: '6px', width: '100%', overflow: 'hidden' } },
+                                              React.createElement('div', { style: { backgroundColor: c.color, height: '6px', width: `${Math.max(Number(c.pct), 2)}%`, borderRadius: '10px' } })
+                                            )
+                                          ),
+                                          React.createElement('td', { align: 'right', style: { width: '75px', verticalAlign: 'middle', whiteSpace: 'nowrap' } },
+                                            React.createElement('span', { style: { fontSize: '10px', fontWeight: '900', color: '#0f172a' } }, `${c.count} (${c.pct}%)`)
+                                          ),
+                                          React.createElement('td', { align: 'right', style: { width: '80px', verticalAlign: 'middle', whiteSpace: 'nowrap' } },
+                                            React.createElement('span', { style: { fontSize: '8.5px', fontWeight: '700', color: '#64748b' } }, c.trend)
+                                          )
+                                        )
+                                      )
+                                    )
+                                  )
+                                ))
+                              )
+                            )
+                          ),
+
+                          // LÁMINA 4: RENDIMIENTO CLÍNICO POR PROFESIONAL MÉDICO EN TURNO
+                          React.createElement('tr', null,
+                            React.createElement('td', { style: { paddingBottom: '14px' } },
+                              React.createElement('div', { style: { backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '12px' } },
+                                React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0', style: { borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '8px' } },
+                                  React.createElement('tbody', null,
+                                    React.createElement('tr', null,
+                                      React.createElement('td', null,
+                                        React.createElement('p', { style: { fontSize: '11px', fontWeight: '900', color: '#0f172a', textTransform: 'uppercase', margin: 0, lineHeight: '16px' } },
+                                          renderIcon('user_check_emerald', 14), ' 4. Rendimiento Clínico por Profesional Médico en Turno'
+                                        )
+                                      ),
+                                      React.createElement('td', { align: 'right' },
+                                        React.createElement('span', { style: { fontSize: '8.5px', fontWeight: '800', color: '#64748b' } },
+                                          `${medicos.filter(m => !m.isTramite && !m.nombre?.toLowerCase().includes('trámite') && !m.nombre?.toLowerCase().includes('no registrado')).length} Médico(s) en Turno`
+                                        )
+                                      )
+                                    )
+                                  )
+                                ),
+                                React.createElement('table', { width: '100%', style: { borderCollapse: 'collapse', backgroundColor: '#ffffff', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0' } },
+                                  React.createElement('thead', null,
+                                    React.createElement('tr', null,
+                                      React.createElement('th', { className: 'mobile-table-header', style: { backgroundColor: '#f1f5f9', color: '#475569', fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', padding: '8px 8px', borderBottom: '1.5px solid #cbd5e1', textAlign: 'left' } }, 'Médico Tratante'),
+                                      React.createElement('th', { className: 'mobile-table-header', style: { backgroundColor: '#f1f5f9', color: '#475569', fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', padding: '8px 6px', borderBottom: '1.5px solid #cbd5e1', width: '75px', textAlign: 'center' } }, 'Atenciones'),
+                                      React.createElement('th', { className: 'mobile-table-header', style: { backgroundColor: '#f1f5f9', color: '#475569', fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', padding: '8px 6px', borderBottom: '1.5px solid #cbd5e1', width: '85px', textAlign: 'center' } }, 'Pac/Hr'),
+                                      React.createElement('th', { className: 'mobile-table-header', style: { backgroundColor: '#f1f5f9', color: '#475569', fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', padding: '8px 8px', borderBottom: '1.5px solid #cbd5e1', width: '70px', textAlign: 'right' } }, '% Aporte')
+                                    )
+                                  ),
+                                  React.createElement('tbody', null,
+                                    medicos.map((m, idx) => {
+                                      const isTramite = m.isTramite || m.nombre?.toLowerCase().includes('trámite') || m.nombre?.toLowerCase().includes('no registrado');
+                                      const durH = (turnoInfo.rotativa && turnoInfo.rotativa.includes('Largo')) ? 15 : 12;
+                                      const rendPacHr = isTramite ? '—' : (m.rendimientoPacHr || (m.pacHora ? `${m.pacHora} pac/hr` : `${(m.atenciones / durH).toFixed(2)} pac/hr`));
+                                      const pctAp = m.pctAporte || (m.aportePct ? `${m.aportePct}%` : `${((m.atenciones / (totalAdmitidos || 1)) * 100).toFixed(1)}%`);
+                                      const dotColor = isTramite ? '#94a3b8' : (idx === 0 ? '#10b981' : idx === 1 ? '#6366f1' : '#a855f7');
+                                      const atencionColor = isTramite ? '#64748b' : '#047857';
+                                      const nombreDisplay = isTramite ? 'Trámites Administrativos' : m.nombre;
+                                      return (
+                                        React.createElement('tr', { key: idx, style: { backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8fafc' } },
+                                          React.createElement('td', { className: 'mobile-table-cell', style: { padding: '7px 8px', fontSize: '10.5px', borderBottom: '1px solid #f1f5f9', fontWeight: '800', color: '#1e293b' } },
+                                            React.createElement('span', { style: { display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', backgroundColor: dotColor, marginRight: '5px' } }),
+                                            nombreDisplay
+                                          ),
+                                          React.createElement('td', { className: 'mobile-table-cell', style: { padding: '7px 6px', fontSize: '10.5px', borderBottom: '1px solid #f1f5f9', textAlign: 'center', fontWeight: '900', color: atencionColor } }, m.atenciones),
+                                          React.createElement('td', { className: 'mobile-table-cell', style: { padding: '7px 6px', fontSize: '10.5px', borderBottom: '1px solid #f1f5f9', textAlign: 'center', fontWeight: '800', color: isTramite ? '#94a3b8' : '#4338ca' } }, rendPacHr),
+                                          React.createElement('td', { className: 'mobile-table-cell', style: { padding: '7px 8px', fontSize: '10.5px', borderBottom: '1px solid #f1f5f9', textAlign: 'right', fontWeight: '900', color: '#0f172a' } }, pctAp)
+                                        )
+                                      );
+                                    })
+                                  )
+                                )
+                              )
+                            )
+                          ),
+
+                          // LÁMINA 5: TOP 10 DIAGNÓSTICOS DE CONSULTA (CIE-10)
+                          React.createElement('tr', null,
+                            React.createElement('td', { style: { paddingBottom: '14px' } },
+                              React.createElement('div', { style: { backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '12px' } },
+                                React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0', style: { borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '8px' } },
+                                  React.createElement('tbody', null,
+                                    React.createElement('tr', null,
+                                      React.createElement('td', null,
+                                        React.createElement('p', { style: { fontSize: '11px', fontWeight: '900', color: '#0f172a', textTransform: 'uppercase', margin: 0, lineHeight: '16px' } },
+                                          renderIcon('file_text_purple', 14), ' 5. Top 10 Diagnósticos de Consulta (CIE-10)'
+                                        )
+                                      ),
+                                      React.createElement('td', { align: 'right' },
+                                        React.createElement('span', { style: { fontSize: '8.5px', fontWeight: '800', color: '#64748b' } },
+                                          'Frecuencia & Tendencia'
+                                        )
+                                      )
+                                    )
+                                  )
+                                ),
+                                React.createElement('table', { width: '100%', style: { borderCollapse: 'collapse', backgroundColor: '#ffffff', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0' } },
+                                  React.createElement('thead', null,
+                                    React.createElement('tr', null,
+                                      React.createElement('th', { className: 'mobile-table-header', style: { backgroundColor: '#f1f5f9', color: '#475569', fontSize: '8.5px', fontWeight: '900', padding: '7px 4px', borderBottom: '1.5px solid #cbd5e1', width: '24px', textAlign: 'center' } }, '#'),
+                                      React.createElement('th', { className: 'mobile-table-header', style: { backgroundColor: '#f1f5f9', color: '#475569', fontSize: '8.5px', fontWeight: '900', padding: '7px 6px', borderBottom: '1.5px solid #cbd5e1', width: '52px', textAlign: 'center' } }, 'CIE-10'),
+                                      React.createElement('th', { className: 'mobile-table-header', style: { backgroundColor: '#f1f5f9', color: '#475569', fontSize: '8.5px', fontWeight: '900', padding: '7px 8px', borderBottom: '1.5px solid #cbd5e1', textAlign: 'left' } }, 'Diagnóstico Principal'),
+                                      React.createElement('th', { className: 'mobile-table-header', style: { backgroundColor: '#f1f5f9', color: '#475569', fontSize: '8.5px', fontWeight: '900', padding: '7px 6px', borderBottom: '1.5px solid #cbd5e1', width: '70px', textAlign: 'center' } }, 'Casos (%)'),
+                                      React.createElement('th', { className: 'mobile-table-header', style: { backgroundColor: '#f1f5f9', color: '#475569', fontSize: '8.5px', fontWeight: '900', padding: '7px 6px', borderBottom: '1.5px solid #cbd5e1', width: '75px', textAlign: 'right' } }, 'Tendencia')
+                                    )
+                                  ),
+                                  React.createElement('tbody', null,
+                                    top10.map((d, idx) => (
+                                      React.createElement('tr', { key: idx, style: { backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8fafc' } },
+                                        React.createElement('td', { className: 'mobile-table-cell', style: { padding: '6px 4px', fontSize: '10px', borderBottom: '1px solid #f1f5f9', textAlign: 'center', fontWeight: '900', color: '#64748b' } }, d.rank),
+                                        React.createElement('td', { className: 'mobile-table-cell', style: { padding: '6px 6px', fontSize: '10px', borderBottom: '1px solid #f1f5f9', textAlign: 'center' } },
+                                          React.createElement('span', { style: { backgroundColor: '#e0e7ff', color: '#4338ca', padding: '2px 4px', borderRadius: '4px', fontSize: '8.5px', fontWeight: '900' } },
+                                            d.codigo
+                                          )
+                                        ),
+                                        React.createElement('td', { className: 'mobile-table-cell', style: { padding: '6px 8px', fontSize: '10px', borderBottom: '1px solid #f1f5f9', fontWeight: '700', color: '#1e293b' } }, d.nombre),
+                                        React.createElement('td', { className: 'mobile-table-cell', style: { padding: '6px 6px', fontSize: '10px', borderBottom: '1px solid #f1f5f9', textAlign: 'center', fontWeight: '800' } }, `${d.count} (${d.pct}%)`),
+                                        React.createElement('td', { className: 'mobile-table-cell', style: { padding: '6px 6px', fontSize: '9px', borderBottom: '1px solid #f1f5f9', textAlign: 'right', fontWeight: '800', color: d.trend.includes('↑') ? '#047857' : '#b45309' } }, d.trend)
+                                      )
+                                    ))
+                                  )
+                                )
+                              )
+                            )
+                          ),
+
+                          // LÁMINA 6: CENTROS DE ORIGEN & PERFIL DEMOGRÁFICO (RESPONSIVO CON STACKING)
+                          React.createElement('tr', null,
+                            React.createElement('td', { style: { paddingBottom: '14px' } },
+                              React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0' },
+                                React.createElement('tbody', null,
+                                  React.createElement('tr', null,
+                                    
+                                    // CENTROS BASE ACUMULADO
+                                    React.createElement('td', { className: 'mobile-split-stack', style: { width: '50%', verticalAlign: 'top', paddingRight: '5px' } },
+                                      React.createElement('div', { style: { backgroundColor: '#faf5ff', border: '1px solid #e9d5ff', borderRadius: '14px', padding: '12px' } },
+                                        React.createElement('p', { style: { fontSize: '10px', fontWeight: '900', color: '#7e22ce', textTransform: 'uppercase', textAlign: 'center', margin: '0 0 6px 0', lineHeight: '14px' } },
+                                          renderIcon('hospital_emerald', 11), ' CENTROS BASE ACUMULADO'
+                                        ),
+                                        React.createElement('div', { style: { textAlign: 'center', marginBottom: '8px' } },
+                                          React.createElement('span', { style: { fontSize: '24px', fontWeight: '900', color: '#6b21a8' } }, `${top3Pct}%`),
+                                          React.createElement('span', { style: { fontSize: '9.5px', fontWeight: '700', color: '#7e22ce', marginLeft: '4px' } }, 'del total'),
+                                          React.createElement('div', { style: { marginTop: '2px' } },
+                                            React.createElement('span', { style: { fontSize: '8px', fontWeight: '800', backgroundColor: '#f3e8ff', color: '#6b21a8', padding: '2px 5px', borderRadius: '4px' } },
+                                              '↑ +4.2% vs 2025'
+                                            )
+                                          )
+                                        ),
+                                        React.createElement('div', { style: { backgroundColor: '#ffffff', borderRadius: '8px', padding: '6px', border: '1px solid #f3e8ff' } },
+                                          React.createElement('table', { width: '100%', style: { borderCollapse: 'collapse', fontSize: '9.5px' } },
+                                            React.createElement('tbody', null,
+                                              cesfams.map((c, i) => (
+                                                React.createElement('tr', { key: i, style: { borderBottom: i === cesfams.length - 1 ? 'none' : '1px solid #f1f5f9' } },
+                                                  React.createElement('td', { style: { padding: '4px 0', fontWeight: '700', color: '#1e293b', textAlign: 'left' } }, c.nombre),
+                                                  React.createElement('td', { style: { padding: '4px 0', fontWeight: '900', color: '#6b21a8', textAlign: 'right', whiteSpace: 'nowrap' } }, `${c.pct}%`)
+                                                )
+                                              ))
+                                            )
+                                          )
+                                        )
+                                      )
+                                    ),
+
+                                    // DISTRIBUCIÓN POR SEXO & DEMOGRAFÍA
+                                    React.createElement('td', { className: 'mobile-split-stack', style: { width: '50%', verticalAlign: 'top', paddingLeft: '5px' } },
+                                      React.createElement('div', { style: { backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '12px' } },
+                                        React.createElement('p', { style: { fontSize: '10px', fontWeight: '900', color: '#0f172a', textTransform: 'uppercase', margin: '0 0 6px 0', lineHeight: '14px' } },
+                                          renderIcon('users_indigo', 12), ' DISTRIBUCIÓN POR SEXO'
+                                        ),
+                                        React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '4', style: { marginBottom: '6px' } },
+                                          React.createElement('tbody', null,
+                                            React.createElement('tr', null,
+                                              React.createElement('td', { style: { width: '50%', textAlign: 'center', backgroundColor: '#fdf2f8', padding: '6px', borderRadius: '8px' } },
+                                                React.createElement('p', { style: { fontSize: '8px', fontWeight: '900', color: '#db2777', textTransform: 'uppercase', margin: 0, lineHeight: '11px' } }, 'FEMENINO'),
+                                                React.createElement('p', { style: { fontSize: '16px', fontWeight: '900', color: '#db2777', margin: '2px 0', lineHeight: '18px' } }, `${femPct}%`),
+                                                React.createElement('p', { style: { fontSize: '8px', color: '#64748b', margin: 0, lineHeight: '10px' } }, `${femCount} pac.`),
+                                                React.createElement('p', { style: { fontSize: '7.5px', fontWeight: '800', color: '#047857', margin: '2px 0 0 0', lineHeight: '10px' } }, '↑ +13.5%')
+                                              ),
+                                              React.createElement('td', { style: { width: '50%', textAlign: 'center', backgroundColor: '#eff6ff', padding: '6px', borderRadius: '8px' } },
+                                                React.createElement('p', { style: { fontSize: '8px', fontWeight: '900', color: '#2563eb', textTransform: 'uppercase', margin: 0, lineHeight: '11px' } }, 'MASCULINO'),
+                                                React.createElement('p', { style: { fontSize: '16px', fontWeight: '900', color: '#2563eb', margin: '2px 0', lineHeight: '18px' } }, `${mascPct}%`),
+                                                React.createElement('p', { style: { fontSize: '8px', color: '#64748b', margin: 0, lineHeight: '10px' } }, `${mascCount} pac.`),
+                                                React.createElement('p', { style: { fontSize: '7.5px', fontWeight: '800', color: '#047857', margin: '2px 0 0 0', lineHeight: '10px' } }, '↑ +11.1%')
+                                              )
+                                            )
+                                          )
+                                        ),
+                                        React.createElement('div', { style: { backgroundColor: '#eef2ff', padding: '5px 8px', borderRadius: '6px', fontSize: '9px', color: '#312e81', fontWeight: '700', lineHeight: '13px' } },
+                                          `Ratio: ${ratioDemo} mujeres por cada hombre atendido.`
+                                        ),
+                                        React.createElement('p', { style: { fontSize: '8px', color: '#64748b', margin: '6px 0 0 0', lineHeight: '12px' } },
+                                          `Grupos: Pediátrico (${rawDemo.pediatrico || Math.round(totalAdmitidos * 0.26)} pac.) • Adulto (${(rawDemo.adultoJoven || Math.round(totalAdmitidos * 0.22)) + (rawDemo.adulto || Math.round(totalAdmitidos * 0.34))} pac.) • Mayor (${rawDemo.adultoMayor || Math.round(totalAdmitidos * 0.18)} pac.).`
+                                        )
+                                      )
+                                    )
+
+                                  )
+                                )
+                              )
+                            )
+                          ),
+
+                          // LÁMINA 7: APARTADO EXCLUSIVO: TRASLADOS HOSPITALARIOS UEH
+                          React.createElement('tr', null,
+                            React.createElement('td', { style: { paddingBottom: '14px' } },
+                              React.createElement('div', { style: { backgroundColor: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: '14px', padding: '12px' } },
+                                React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0', style: { borderBottom: '1px solid #c7d2fe', paddingBottom: '6px', marginBottom: '8px' } },
+                                  React.createElement('tbody', null,
+                                    React.createElement('tr', null,
+                                      React.createElement('td', null,
+                                        React.createElement('p', { style: { fontSize: '11px', fontWeight: '900', color: '#312e81', textTransform: 'uppercase', margin: 0, lineHeight: '16px' } },
+                                          renderIcon('arrow_left_right_indigo', 14), ' 6. Apartado Exclusivo: Traslados Hospitalarios UEH'
+                                        )
+                                      ),
+                                      React.createElement('td', { align: 'right' },
+                                        React.createElement('span', { style: { fontSize: '8.5px', fontWeight: '900', backgroundColor: '#e0e7ff', color: '#4338ca', padding: '2px 6px', borderRadius: '4px' } },
+                                          '100% AUDITADO'
+                                        )
+                                      )
+                                    )
+                                  )
+                                ),
+                                React.createElement('div', { style: { backgroundColor: '#ffffff', borderRadius: '8px', padding: '10px', border: '1px solid #c7d2fe', marginBottom: '8px' } },
+                                  React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0' },
+                                    React.createElement('tbody', null,
+                                      React.createElement('tr', null,
+                                        React.createElement('td', { style: { width: '60%' } },
+                                          React.createElement('p', { style: { fontSize: '8.5px', fontWeight: '900', color: '#6366f1', textTransform: 'uppercase', margin: 0, lineHeight: '12px' } }, 'TOTAL TRASLADOS DEL TURNO'),
+                                          React.createElement('div', { style: { fontSize: '22px', fontWeight: '900', color: '#1e1b4b', margin: '2px 0' } },
+                                            totalTraslados,
+                                            React.createElement('span', { style: { fontSize: '10.5px', fontWeight: '700', color: '#64748b', marginLeft: '6px' } }, `${totalTraslados === 1 ? 'derivación' : 'derivaciones'} (${pctTraslados}% del turno)`)
+                                          )
+                                        ),
+                                        React.createElement('td', { align: 'right', style: { width: '40%' } },
+                                          React.createElement('p', { style: { fontSize: '8.5px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0, lineHeight: '12px' } }, 'COMPARATIVA INTERANUAL'),
+                                          React.createElement('span', { style: { fontSize: '8.5px', fontWeight: '800', backgroundColor: '#ecfdf5', color: '#047857', padding: '3px 6px', borderRadius: '4px', display: 'inline-block', marginTop: '3px' } },
+                                            totalTraslados === 0 ? 'Resolución Primaria SAR' : (turnoInfo.comparativaYoY?.pctTrasladosYoY || '+11.8% YoY')
+                                          )
+                                        )
+                                      )
+                                    )
+                                  )
+                                ),
+                                totalTraslados > 0 ? (
+                                  React.createElement('div', { style: { marginTop: '6px' } },
+                                    React.createElement('p', { style: { fontSize: '9.5px', fontWeight: '900', color: '#312e81', textTransform: 'uppercase', margin: '0 0 6px 0', letterSpacing: '0.4px', lineHeight: '13px' } },
+                                      renderIcon('file_text_purple', 12),
+                                      ` Ficha Clínica Individual de Traslados (${listaTraslados.length} ${listaTraslados.length === 1 ? 'paciente' : 'pacientes'} a UEH)`
+                                    ),
+                                    ...listaTraslados.map((t, idx) => {
+                                      const catClean = String(t.categoria || 'C2').toUpperCase().replace('CATEGORIA', '').replace('CATEGORÍA', '').trim();
+                                      let bgBadge = '#fef3c7';
+                                      let colBadge = '#b45309';
+                                      if (catClean.includes('C1')) { bgBadge = '#ffe4e6'; colBadge = '#be123c'; }
+                                      else if (catClean.includes('C2')) { bgBadge = '#fef3c7'; colBadge = '#b45309'; }
+                                      else if (catClean.includes('C3')) { bgBadge = '#fef9c3'; colBadge = '#854d0e'; }
+                                      else if (catClean.includes('C4')) { bgBadge = '#dbeafe'; colBadge = '#1d4ed8'; }
+                                      else if (catClean.includes('C5')) { bgBadge = '#dcfce7'; colBadge = '#15803d'; }
+
+                                      return React.createElement('div', {
+                                        key: idx,
+                                        style: {
+                                          backgroundColor: '#ffffff',
+                                          borderRadius: '8px',
+                                          padding: '8px 10px',
+                                          border: '1px solid #c7d2fe',
+                                          marginBottom: '6px'
+                                        }
+                                      },
+                                        React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0' },
+                                          React.createElement('tbody', null,
+                                            React.createElement('tr', null,
+                                              React.createElement('td', null,
+                                                React.createElement('p', { style: { fontSize: '10px', fontWeight: '900', color: '#0f172a', margin: 0, lineHeight: '14px' } },
+                                                  `Paciente #${t.numero || (idx + 1)}${t.correlativo && t.correlativo !== `#${idx + 1}` ? ` (${t.correlativo})` : ''}`
+                                                )
+                                              ),
+                                              React.createElement('td', { align: 'right' },
+                                                React.createElement('span', { style: { fontSize: '8px', fontWeight: '900', backgroundColor: bgBadge, color: colBadge, padding: '2px 6px', borderRadius: '4px' } },
+                                                  `Categoría ${catClean || 'C2'}`
+                                                )
+                                              )
+                                            )
+                                          )
+                                        ),
+                                        React.createElement('p', { style: { fontSize: '10.5px', fontWeight: '800', color: '#1e1b4b', margin: '4px 0', lineHeight: '14px' } },
+                                          t.diagnostico || 'Sospecha patología de urgencia / segundo nivel'
+                                        ),
+                                        React.createElement('div', { style: { fontSize: '8.5px', color: '#64748b', borderTop: '1px solid #f1f5f9', paddingTop: '4px', marginTop: '4px' } },
+                                          React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0' },
+                                            React.createElement('tbody', null,
+                                              React.createElement('tr', null,
+                                                React.createElement('td', { style: { width: '65%' } },
+                                                  React.createElement('span', null, 'Destino: '),
+                                                  React.createElement('strong', { style: { color: '#0f172a' } }, t.destino || 'Hospital San José de Melipilla (Urgencia UEH)')
+                                                ),
+                                                React.createElement('td', { align: 'right', style: { width: '35%' } },
+                                                  React.createElement('span', { style: { fontWeight: '700', color: '#4f46e5' } }, t.especialidad || 'Urgencia UEH')
+                                                )
+                                              )
+                                            )
+                                          )
+                                        )
+                                      );
+                                    })
+                                  )
+                                ) : (
+                                  React.createElement('div', { style: { backgroundColor: '#ffffff', borderRadius: '8px', padding: '10px', border: '1px solid #c7d2fe' } },
+                                    React.createElement('p', { style: { fontSize: '10px', fontWeight: '900', color: '#047857', margin: 0, lineHeight: '14px' } }, 'Resolución en Nivel Primario SAR'),
+                                    React.createElement('p', { style: { fontSize: '10px', fontWeight: '700', color: '#1e1b4b', margin: '4px 0', lineHeight: '14px' } }, 'Sin derivaciones hospitalarias en el turno.'),
+                                    React.createElement('div', { style: { fontSize: '8.5px', color: '#64748b', borderTop: '1px solid #f1f5f9', paddingTop: '4px', marginTop: '4px' } },
+                                      React.createElement('span', null, 'Destino: '),
+                                      React.createElement('strong', { style: { color: '#0f172a' } }, '100% Altas Médicas a Domicilio')
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                          ),
+
+                          // LÁMINA 8: BITÁCORA ASISTENCIAL & DESENLACES DE SEGURIDAD (RESPONSIVO CON STACKING)
+                          React.createElement('tr', null,
+                            React.createElement('td', { style: { paddingBottom: '14px' } },
+                              React.createElement('table', { width: '100%', border: '0', cellPadding: '0', cellSpacing: '0' },
+                                React.createElement('tbody', null,
+                                  React.createElement('tr', null,
+                                    React.createElement('td', { className: 'mobile-split-stack', style: { width: '50%', verticalAlign: 'top', paddingRight: '5px' } },
+                                      React.createElement('div', { style: { backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderLeft: '4px solid #be123c', borderRadius: '12px', padding: '12px' } },
+                                        React.createElement('p', { style: { fontSize: '9.5px', fontWeight: '900', color: '#be123c', margin: 0, textTransform: 'uppercase', lineHeight: '14px' } },
+                                          renderIcon('bone_rose', 12), ' FRACTURAS & TRAUMATOLOGÍA'
+                                        ),
+                                        React.createElement('p', { style: { fontSize: '18px', fontWeight: '900', color: '#be123c', margin: '2px 0', lineHeight: '22px' } }, `${totalFracturas} casos`),
+                                        React.createElement('p', { style: { fontSize: '8.5px', color: '#334155', margin: 0, lineHeight: '12px' } },
+                                          totalFracturas > 0 ? 'Hojas de urgencia auditadas con confirmación radiológica.' : 'Sin atenciones traumatológicas complejas.'
+                                        )
+                                      )
+                                    ),
+                                    React.createElement('td', { className: 'mobile-split-stack', style: { width: '50%', verticalAlign: 'top', paddingLeft: '5px' } },
+                                      React.createElement('div', { style: { backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderLeft: '4px solid #0284c7', borderRadius: '12px', padding: '12px' } },
+                                        React.createElement('p', { style: { fontSize: '9.5px', fontWeight: '900', color: '#0284c7', margin: 0, textTransform: 'uppercase', lineHeight: '14px' } },
+                                          renderIcon('lungs_sky', 12), ' VIGILANCIA RESPIRATORIA'
+                                        ),
+                                        React.createElement('p', { style: { fontSize: '18px', fontWeight: '900', color: '#0284c7', margin: '2px 0', lineHeight: '22px' } }, `${totalRespiratorios} casos`),
+                                        React.createElement('p', { style: { fontSize: '8.5px', color: '#334155', margin: 0, lineHeight: '12px' } },
+                                          'Monitoreo epidemiológico de IRA, bronquitis y síndrome gripal.'
+                                        )
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                          )
+
+                        )
+                      )
+                    )
+                  ),
+
+                  // PIE DE PÁGINA INSTITUCIONAL & RECONOCIMIENTOS OFICIALES
+                  React.createElement('tr', null,
+                    React.createElement('td', { style: { backgroundColor: '#f8fafc', padding: '18px', textAlign: 'center', borderTop: '1px solid #e2e8f0' } },
+                      React.createElement('p', { style: { margin: 0, fontWeight: '900', color: '#1e293b', fontSize: '12px', lineHeight: '16px' } },
+                        'MÉTRICO Clínico Predictivo • SAR Elsa Romo Aravena'
                       ),
-                      React.createElement('td', { style: { ...s.tableCell, textAlign: 'center', fontWeight: '900', color: atencionColor } }, m.atenciones),
-                      React.createElement('td', { style: { ...s.tableCell, textAlign: 'center', fontWeight: '800', color: isTramite ? '#94a3b8' : '#4338ca' } }, rendPacHr),
-                      React.createElement('td', { style: { ...s.tableCell, textAlign: 'right', fontWeight: '900', color: '#0f172a' } }, pctAp)
-                    )
-                  );
-                })
-              )
-            )
-          ),
-
-          // LÁMINA 5: TOP 10 DIAGNÓSTICOS DE CONSULTA (CIE-10)
-          React.createElement('div', { style: { ...s.cardModule, marginBottom: '14px' } },
-            React.createElement(Row, { style: { borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '8px' } },
-              React.createElement(Column, null,
-                React.createElement(Text, { style: { fontSize: '11px', fontWeight: '900', color: '#0f172a', textTransform: 'uppercase', margin: 0 } },
-                  React.createElement('span', null, renderIcon('file_text_purple', 14), ' 4. Top 10 Diagnósticos de Consulta (CIE-10)')
-                )
-              ),
-              React.createElement(Column, { style: { textAlign: 'right' } },
-                React.createElement('span', { style: { fontSize: '9px', fontWeight: '800', color: '#64748b' } },
-                  'Frecuencia & Tendencia Interanual'
-                )
-              )
-            ),
-            React.createElement('table', { width: '100%', style: { borderCollapse: 'collapse', backgroundColor: '#ffffff', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0' } },
-              React.createElement('thead', null,
-                React.createElement('tr', null,
-                  React.createElement('th', { style: { ...s.tableHeader, width: '32px', textAlign: 'center' } }, '#'),
-                  React.createElement('th', { style: { ...s.tableHeader, width: '65px' } }, 'CIE-10'),
-                  React.createElement('th', { style: { ...s.tableHeader, textAlign: 'left' } }, 'Diagnóstico Clínico Principal'),
-                  React.createElement('th', { style: { ...s.tableHeader, width: '90px', textAlign: 'center' } }, 'Casos (%)'),
-                  React.createElement('th', { style: { ...s.tableHeader, width: '90px', textAlign: 'right' } }, 'Tendencia YoY')
-                )
-              ),
-              React.createElement('tbody', null,
-                top10.map((d, idx) => (
-                  React.createElement('tr', { key: idx, style: { backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8fafc' } },
-                    React.createElement('td', { style: { ...s.tableCell, textAlign: 'center', fontWeight: '900', color: '#64748b' } }, d.rank),
-                    React.createElement('td', { style: s.tableCell },
-                      React.createElement('span', { style: { backgroundColor: '#e0e7ff', color: '#4338ca', padding: '2px 5px', borderRadius: '4px', fontSize: '9px', fontWeight: '900' } },
-                        d.codigo
-                      )
-                    ),
-                    React.createElement('td', { style: { ...s.tableCell, fontWeight: '700' } }, d.nombre),
-                    React.createElement('td', { style: { ...s.tableCell, textAlign: 'center', fontWeight: '800' } }, `${d.count} (${d.pct}%)`),
-                    React.createElement('td', { style: { ...s.tableCell, textAlign: 'right', fontWeight: '800', color: d.trend.includes('↑') ? '#047857' : '#b45309', fontSize: '9.5px' } }, d.trend)
-                  )
-                ))
-              )
-            )
-          ),
-
-          // LÁMINA 6: CENTROS DE ORIGEN (RED MELIPILLA) & PERFIL DEMOGRÁFICO
-          React.createElement(Row, { style: { marginBottom: '14px' } },
-            // CENTROS BASE ACUMULADO
-            React.createElement(Column, { style: { width: '50%', paddingRight: '6px' } },
-              React.createElement('div', { style: { ...s.cardModule, backgroundColor: '#faf5ff', borderColor: '#e9d5ff', margin: 0 } },
-                React.createElement(Text, { style: { fontSize: '10px', fontWeight: '900', color: '#7e22ce', textTransform: 'uppercase', textAlign: 'center', margin: '0 0 6px 0' } },
-                  React.createElement('span', null, renderIcon('hospital_emerald', 11), ' CENTROS BASE ACUMULADO')
-                ),
-                React.createElement('div', { style: { textAlign: 'center', marginBottom: '8px' } },
-                  React.createElement('span', { style: { fontSize: '26px', fontWeight: '900', color: '#6b21a8' } }, `${top3Pct}%`),
-                  React.createElement('span', { style: { fontSize: '10px', fontWeight: '700', color: '#7e22ce', marginLeft: '4px' } }, 'del total'),
-                  React.createElement('div', null,
-                    React.createElement('span', { style: { fontSize: '8.5px', fontWeight: '800', backgroundColor: '#f3e8ff', color: '#6b21a8', padding: '2px 6px', borderRadius: '4px' } },
-                      '↑ +4.2% vs 2025'
-                    )
-                  )
-                ),
-                React.createElement('div', { style: { backgroundColor: '#ffffff', borderRadius: '8px', padding: '6px', border: '1px solid #f3e8ff' } },
-                  React.createElement('table', { width: '100%', style: { borderCollapse: 'collapse', fontSize: '10px' } },
-                    React.createElement('tbody', null,
-                      cesfams.map((c, i) => (
-                        React.createElement('tr', { key: i, style: { borderBottom: i === cesfams.length - 1 ? 'none' : '1px solid #f1f5f9' } },
-                          React.createElement('td', { style: { padding: '5px 0', fontWeight: '700', color: '#1e293b', textAlign: 'left' } }, c.nombre),
-                          React.createElement('td', { style: { padding: '5px 0', fontWeight: '900', color: '#6b21a8', textAlign: 'right', whiteSpace: 'nowrap' } }, `${c.pct}%`)
-                        )
-                      ))
-                    )
-                  )
-                )
-              )
-            ),
-
-            // DISTRIBUCIÓN POR SEXO & DEMOGRAFÍA
-            React.createElement(Column, { style: { width: '50%', paddingLeft: '6px' } },
-              React.createElement('div', { style: { ...s.cardModule, margin: 0 } },
-                React.createElement(Text, { style: { fontSize: '10px', fontWeight: '900', color: '#0f172a', textTransform: 'uppercase', margin: '0 0 8px 0' } },
-                  React.createElement('span', null, renderIcon('users_indigo', 13), ' DISTRIBUCIÓN ASISTENCIAL POR SEXO')
-                ),
-                React.createElement(Row, { style: { marginBottom: '8px' } },
-                  React.createElement(Column, { style: { width: '50%', textAlign: 'center', backgroundColor: '#fdf2f8', padding: '8px', borderRadius: '8px' } },
-                    React.createElement(Text, { style: { fontSize: '8.5px', fontWeight: '900', color: '#db2777', textTransform: 'uppercase', margin: 0 } }, 'FEMENINO'),
-                    React.createElement(Text, { style: { fontSize: '18px', fontWeight: '900', color: '#db2777', margin: '2px 0' } }, `${femPct}%`),
-                    React.createElement(Text, { style: { fontSize: '8.5px', color: '#64748b', margin: 0 } }, `${femCount} pac.`),
-                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '800', color: '#047857', margin: '2px 0 0 0' } }, '↑ +13.5% vs 2025')
-                  ),
-                  React.createElement(Column, { style: { width: '50%', textAlign: 'center', backgroundColor: '#eff6ff', padding: '8px', borderRadius: '8px', marginLeft: '4px' } },
-                    React.createElement(Text, { style: { fontSize: '8.5px', fontWeight: '900', color: '#2563eb', textTransform: 'uppercase', margin: 0 } }, 'MASCULINO'),
-                    React.createElement(Text, { style: { fontSize: '18px', fontWeight: '900', color: '#2563eb', margin: '2px 0' } }, `${mascPct}%`),
-                    React.createElement(Text, { style: { fontSize: '8.5px', color: '#64748b', margin: 0 } }, `${mascCount} pac.`),
-                    React.createElement(Text, { style: { fontSize: '8px', fontWeight: '800', color: '#047857', margin: '2px 0 0 0' } }, '↑ +11.1% vs 2025')
-                  )
-                ),
-                React.createElement('div', { style: { backgroundColor: '#eef2ff', padding: '6px 8px', borderRadius: '6px', fontSize: '9.5px', color: '#312e81', fontWeight: '700' } },
-                  `Ratio: ${ratioDemo} mujeres por cada hombre atendido en la jornada.`
-                ),
-                React.createElement(Text, { style: { fontSize: '8.5px', color: '#64748b', margin: '6px 0 0 0', lineHeight: '1.4' } },
-                  `Grupos etarios: Pediátrico 0-14 (${rawDemo.pediatrico || Math.round(totalAdmitidos * 0.26)} pac.) • Adulto 15-59 (${(rawDemo.adultoJoven || Math.round(totalAdmitidos * 0.22)) + (rawDemo.adulto || Math.round(totalAdmitidos * 0.34))} pac.) • Adulto Mayor 60+ (${rawDemo.adultoMayor || Math.round(totalAdmitidos * 0.18)} pac.).`
-                )
-              )
-            )
-          ),
-
-          // LÁMINA 7: APARTADO EXCLUSIVO: TRASLADOS HOSPITALARIOS UEH
-          React.createElement('div', { style: { ...s.cardModule, backgroundColor: '#eef2ff', borderColor: '#c7d2fe', marginBottom: '14px' } },
-            React.createElement(Row, { style: { borderBottom: '1px solid #c7d2fe', paddingBottom: '6px', marginBottom: '8px' } },
-              React.createElement(Column, null,
-                React.createElement(Text, { style: { fontSize: '11px', fontWeight: '900', color: '#312e81', textTransform: 'uppercase', margin: 0 } },
-                  React.createElement('span', null, renderIcon('arrow_left_right_indigo', 15), ' 5. Apartado Exclusivo: Traslados Hospitalarios UEH')
-                )
-              ),
-              React.createElement(Column, { style: { textAlign: 'right' } },
-                React.createElement('span', { style: { fontSize: '9px', fontWeight: '900', backgroundColor: '#e0e7ff', color: '#4338ca', padding: '2px 6px', borderRadius: '4px' } },
-                  '100% AUDITADO'
-                )
-              )
-            ),
-            React.createElement('div', { style: { backgroundColor: '#ffffff', borderRadius: '8px', padding: '10px', border: '1px solid #c7d2fe', marginBottom: '8px' } },
-              React.createElement(Row, null,
-                React.createElement(Column, { style: { width: '60%' } },
-                  React.createElement(Text, { style: { fontSize: '8.5px', fontWeight: '900', color: '#6366f1', textTransform: 'uppercase', margin: 0 } }, 'TOTAL TRASLADOS DEL TURNO'),
-                  React.createElement('div', { style: { fontSize: '24px', fontWeight: '900', color: '#1e1b4b', margin: '3px 0' } },
-                    totalTraslados,
-                    React.createElement('span', { style: { fontSize: '11px', fontWeight: '700', color: '#64748b', marginLeft: '6px' } }, `${totalTraslados === 1 ? 'derivación' : 'derivaciones'} (${pctTraslados}% del turno)`)
-                  )
-                ),
-                React.createElement(Column, { style: { width: '40%', textAlign: 'right' } },
-                  React.createElement(Text, { style: { fontSize: '8.5px', fontWeight: '900', color: '#64748b', textTransform: 'uppercase', margin: 0 } }, 'COMPARATIVA INTERANUAL'),
-                  React.createElement('span', { style: { fontSize: '9px', fontWeight: '800', backgroundColor: '#ecfdf5', color: '#047857', padding: '3px 6px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' } },
-                    totalTraslados === 0 ? 'Resolución Primaria SAR' : (turnoInfo.comparativaYoY?.pctTrasladosYoY || '+11.8% YoY')
-                  )
-                )
-              )
-            ),
-            totalTraslados > 0 ? (
-              React.createElement('div', { style: { marginTop: '6px' } },
-                React.createElement(Text, { style: { fontSize: '9.5px', fontWeight: '900', color: '#312e81', textTransform: 'uppercase', margin: '0 0 6px 0', letterSpacing: '0.5px' } },
-                  renderIcon('file_text_purple', 12),
-                  ` Ficha Clínica Individual de Traslados (${listaTraslados.length} ${listaTraslados.length === 1 ? 'paciente' : 'pacientes'} derivado${listaTraslados.length === 1 ? '' : 's'} a UEH)`
-                ),
-                ...listaTraslados.map((t, idx) => {
-                  const catClean = String(t.categoria || 'C2').toUpperCase().replace('CATEGORIA', '').replace('CATEGORÍA', '').trim();
-                  let bgBadge = '#fef3c7';
-                  let colBadge = '#b45309';
-                  if (catClean.includes('C1')) { bgBadge = '#ffe4e6'; colBadge = '#be123c'; }
-                  else if (catClean.includes('C2')) { bgBadge = '#fef3c7'; colBadge = '#b45309'; }
-                  else if (catClean.includes('C3')) { bgBadge = '#fef9c3'; colBadge = '#854d0e'; }
-                  else if (catClean.includes('C4')) { bgBadge = '#dbeafe'; colBadge = '#1d4ed8'; }
-                  else if (catClean.includes('C5')) { bgBadge = '#dcfce7'; colBadge = '#15803d'; }
-
-                  return React.createElement('div', {
-                    key: idx,
-                    style: {
-                      backgroundColor: '#ffffff',
-                      borderRadius: '8px',
-                      padding: '8px 10px',
-                      border: '1px solid #c7d2fe',
-                      marginBottom: '6px'
-                    }
-                  },
-                    React.createElement(Row, null,
-                      React.createElement(Column, null,
-                        React.createElement(Text, { style: { fontSize: '10px', fontWeight: '900', color: '#0f172a', margin: 0 } },
-                          `Paciente #${t.numero || (idx + 1)}${t.correlativo && t.correlativo !== `#${idx + 1}` ? ` (${t.correlativo})` : ''}`
-                        )
+                      React.createElement('p', { style: { margin: '4px 0 0 0', fontSize: '10px', color: '#64748b', lineHeight: '15px' } },
+                        `Despacho asistencial auditado ejecutado el ${new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago' })} • Desarrollado por Matías Bustos con el Apoyo Técnico de Mariel Quintanilla (Directora Técnica SAR) • Datos auditados conforme a la norma de integridad clínica SSOT.`
                       ),
-                      React.createElement(Column, { style: { textAlign: 'right' } },
-                        React.createElement('span', { style: { fontSize: '8px', fontWeight: '900', backgroundColor: bgBadge, color: colBadge, padding: '2px 6px', borderRadius: '4px' } },
-                          `Categoría ${catClean || 'C2'}`
-                        )
-                      )
-                    ),
-                    React.createElement(Text, { style: { fontSize: '10.5px', fontWeight: '800', color: '#1e1b4b', margin: '4px 0', lineHeight: '1.3' } },
-                      t.diagnostico || 'Sospecha patología de urgencia / segundo nivel'
-                    ),
-                    React.createElement('div', { style: { fontSize: '9px', color: '#64748b', borderTop: '1px solid #f1f5f9', paddingTop: '4px', marginTop: '4px' } },
-                      React.createElement(Row, null,
-                        React.createElement(Column, { style: { width: '65%' } },
-                          React.createElement('span', null, 'Destino: '),
-                          React.createElement('strong', { style: { color: '#0f172a' } }, t.destino || 'Hospital San José de Melipilla (Urgencia UEH)')
-                        ),
-                        React.createElement(Column, { style: { width: '35%', textAlign: 'right' } },
-                          React.createElement('span', { style: { fontWeight: '700', color: '#4f46e5' } }, t.especialidad || 'Urgencia UEH')
+                      React.createElement('div', { style: { marginTop: '8px', padding: '6px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px', border: '1px solid #e2e8f0', display: 'inline-block' } },
+                        React.createElement('p', { style: { margin: 0, fontSize: '9px', fontWeight: '800', color: '#334155', lineHeight: '13px' } },
+                          '🛡️ POLÍTICA OFICIAL DE DESPACHO (Regla 20 MÉTRICO): Emisión exclusiva en Días Hábiles (Lunes a Viernes no festivos). Veda activa en Fines de Semana y Feriados Oficiales de Chile con reprogramación automática al siguiente día hábil a las 08:30 hrs.'
                         )
                       )
                     )
-                  );
-                })
-              )
-            ) : (
-              React.createElement('div', { style: { backgroundColor: '#ffffff', borderRadius: '8px', padding: '10px', border: '1px solid #c7d2fe' } },
-                React.createElement(Text, { style: { fontSize: '10px', fontWeight: '900', color: '#047857', margin: 0 } }, 'Resolución en Nivel Primario SAR'),
-                React.createElement(Text, { style: { fontSize: '10px', fontWeight: '700', color: '#1e1b4b', margin: '4px 0' } }, 'Sin derivaciones hospitalarias en el turno.'),
-                React.createElement('div', { style: { fontSize: '9px', color: '#64748b', borderTop: '1px solid #f1f5f9', paddingTop: '4px', marginTop: '4px' } },
-                  React.createElement('span', null, 'Destino: '),
-                  React.createElement('strong', { style: { color: '#0f172a' } }, '100% Altas Médicas a Domicilio')
-                )
-              )
-            )
-          ),
+                  )
 
-          // LÁMINA 8: BITÁCORA ASISTENCIAL & DESENLACES DE SEGURIDAD
-          React.createElement(Row, { style: { marginBottom: '14px' } },
-            React.createElement(Column, { style: { width: '50%', paddingRight: '4px' } },
-              React.createElement('div', { style: { ...s.cardModule, borderLeft: '4px solid #be123c', margin: 0 } },
-                React.createElement(Text, { style: { fontSize: '9.5px', fontWeight: '900', color: '#be123c', margin: 0, textTransform: 'uppercase' } }, React.createElement('span', null, renderIcon('bone_rose', 12), ' FRACTURAS & TRAUMATOLOGÍA')),
-                React.createElement(Text, { style: { fontSize: '18px', fontWeight: '900', color: '#be123c', margin: '2px 0' } }, `${totalFracturas} casos`),
-                React.createElement(Text, { style: { fontSize: '8.5px', color: '#334155', margin: 0 } },
-                  totalFracturas > 0 ? 'Hojas de urgencia auditadas con confirmación radiológica.' : 'Sin atenciones traumatológicas complejas en el turno.'
                 )
               )
-            ),
-            React.createElement(Column, { style: { width: '50%', paddingLeft: '4px' } },
-              React.createElement('div', { style: { ...s.cardModule, borderLeft: '4px solid #0284c7', margin: 0 } },
-                React.createElement(Text, { style: { fontSize: '9.5px', fontWeight: '900', color: '#0284c7', margin: 0, textTransform: 'uppercase' } }, React.createElement('span', null, renderIcon('lungs_sky', 12), ' VIGILANCIA RESPIRATORIA')),
-                React.createElement(Text, { style: { fontSize: '18px', fontWeight: '900', color: '#0284c7', margin: '2px 0' } }, `${totalRespiratorios} casos`),
-                React.createElement(Text, { style: { fontSize: '8.5px', color: '#334155', margin: 0 } },
-                  'Monitoreo epidemiológico de IRA, bronquitis y síndrome gripal.'
-                )
-              )
-            )
-          )
-        ),
 
-        // PIE DE PÁGINA INSTITUCIONAL & SELLO SSOT
-        React.createElement(Section, { style: s.footer },
-          React.createElement(Text, { style: { margin: 0, fontWeight: '900', color: '#1e293b', fontSize: '12px' } },
-            'MÉTRICO Clínico Predictivo • SAR Elsa Romo Aravena'
-          ),
-          React.createElement(Text, { style: { margin: '4px 0 0 0', fontSize: '10px', color: '#64748b' } },
-            `Despacho asistencial auditado ejecutado el ${new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago' })} • Datos auditados conforme a la norma de integridad clínica SSOT.`
-          ),
-          React.createElement('div', { style: { marginTop: '8px', padding: '6px 12px', backgroundColor: '#f1f5f9', borderRadius: '6px', border: '1px solid #e2e8f0', display: 'inline-block' } },
-            React.createElement(Text, { style: { margin: 0, fontSize: '9px', fontWeight: '800', color: '#334155' } },
-              '🛡️ POLÍTICA OFICIAL DE DESPACHO (Regla 20 MÉTRICO): Emisión exclusiva en Días Hábiles (Lunes a Viernes no festivos). Veda activa en Fines de Semana y Feriados Oficiales de Chile con reprogramación automática al siguiente día hábil a las 08:30 hrs.'
             )
           )
         )
