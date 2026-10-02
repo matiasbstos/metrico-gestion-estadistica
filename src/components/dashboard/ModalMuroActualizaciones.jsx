@@ -14,6 +14,31 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.39',
+      version: 'v6.3.39',
+      fecha: '02 de Octubre, 2026',
+      badge: 'CERTIFICACIÓN SSOT 12 MESES 2025: 37.526 PACIENTES & REGLA 22',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Certificación Integral de los 12 Meses de 2025 (37.526 Pacientes) y Blindaje de Comparativa YoY YTD',
+      categoria: 'Consistencia y Auditoría de Datos (SSOT)',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se realizó una auditoría completa correlativo a correlativo de los 12 archivos mensuales de Rayen del año 2025 (Enero a Diciembre 2025), certificando un total anual cerrado de 37.526 pacientes admitidos, 33.931 atenciones médicas efectivas y 3.595 altas administrativas (techo correlativo #37.527). Se estableció en el sistema la distinción estricta entre el Total Anual 2025 (12 meses = 37.526 pac) y la Comparativa Interanual Acumulada YTD (9 meses Ene-Sep: 29.895 vs 27.150 pac = +10.1% YoY en admisiones y +10.4% YoY en atenciones), erradicando valores residuales desfasados (26.414 y 24.980 pac) y formalizando la Regla 22 en el protocolo de ingeniería.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que al seleccionar el año 2025 en el sistema se visualice la totalidad real de sus 12 meses (37.526 pacientes), y que al evaluar el año en curso 2026 (al corte de septiembre) se compare exactamente contra los mismos 9 meses transcurridos de 2025 (27.150 pacientes), asegurando total veracidad sin contracciones artificiales.',
+        quePuedesVer: 'En Demanda Asistencial: el gráfico interanual y las tarjetas mensuales reflejan los 12 meses de 2025 con sus valores certificados. En Inicio: las tarjetas de crecimiento YoY YTD reflejan de forma nítida +10.1% en admisiones (29.895 vs 27.150 pac) y +10.4% en atenciones médicas efectivas (27.183 vs 24.618 pac).',
+        ejemploUso: 'Haz clic en "Demanda" y selecciona el año 2025: verás la distribución de enero a diciembre con el total exacto de 37.526 pacientes. Al revisar 2026, la variación interanual muestra el crecimiento real ponderado sobre 9 meses.'
+      },
+      changes: [
+        'Auditoría y certificación de los 12 archivos Excel de Rayen de 2025 correlativo a correlativo.',
+        'Total anual cerrado 2025: 37.526 admitidos, 33.931 atenciones médicas y 3.595 altas administrativas.',
+        'Total acumulado 2025 YTD (9 meses Ene-Sep): 27.150 admitidos, 24.618 atenciones y 2.532 altas.',
+        'Sintonización universal de variaciones YoY YTD: +10.1% admisiones, +10.4% atenciones, +7.1% altas.',
+        'Erradicación de valores desfasados en PanelKPIs, ModalConfiguracionCorreo y useMetricoAnalytics.',
+        'Promulgación de la Regla 22 de Integridad Histórica en el protocolo de ingeniería .agents/AGENTS.md.'
+      ]
+    },
+    {
       id: 'v6.3.38',
       version: 'v6.3.38',
       fecha: '28 de Septiembre, 2026',

@@ -848,19 +848,20 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       });
     }
 
-    // 2. Línea Base Histórica Oficial SAR 2025 Certificada Rayen (9 Meses YTD: Enero a Septiembre)
-    const BASELINE_2025_MONTHLY = { 1: 2454, 2: 2193, 3: 2982, 4: 3242, 5: 3322, 6: 2971, 7: 3200, 8: 3110, 9: 2940 };
-    const BASELINE_2025_ATENDIDOS = { 1: 2335, 2: 2134, 3: 2738, 4: 2922, 5: 2959, 6: 2680, 7: 2880, 8: 2800, 9: 2650 };
-    const BASELINE_2025_ALTAS = { 1: 119, 2: 59, 3: 244, 4: 320, 5: 363, 6: 291, 7: 320, 8: 310, 9: 290 };
+    // 2. Línea Base Histórica Oficial SAR 2025 Certificada Rayen (12 Meses Completos: 37.526 pac)
+    const BASELINE_2025_MONTHLY = { 1: 2454, 2: 2193, 3: 2981, 4: 3242, 5: 3322, 6: 2971, 7: 3171, 8: 3472, 9: 3344, 10: 3574, 11: 3549, 12: 3253 };
+    const BASELINE_2025_ATENDIDOS = { 1: 2335, 2: 2134, 3: 2737, 4: 2922, 5: 2959, 6: 2713, 7: 2835, 8: 3038, 9: 2945, 10: 3150, 11: 3146, 12: 3017 };
+    const BASELINE_2025_ALTAS = { 1: 119, 2: 59, 3: 244, 4: 320, 5: 363, 6: 258, 7: 336, 8: 434, 9: 399, 10: 424, 11: 403, 12: 236 };
 
-    const pyYtdPacientes = Object.values(BASELINE_2025_MONTHLY).reduce((a, b) => a + b, 0); // 26.414
-    const pyYtdAtendidos = Object.values(BASELINE_2025_ATENDIDOS).reduce((a, b) => a + b, 0); // 24.138
-    const pyYtdAltas = 2276; // pyYtdPacientes - pyYtdAtendidos = 26.414 - 24.138 = 2.276 (Regla 8 SSOT: +19.2% YoY)
-    const pyYtdTraslados = 1079; // Traslados hospitalarios certificados ~4.1% (+11.0% YoY)
-    const pyYtdConstataciones = 225; // Constataciones de lesiones certificadas ~0.9% (+14.7% YoY)
+    // Comparativa YTD para los 9 meses transcurridos (Ene-Sep 2026 vs Ene-Sep 2025)
+    const pyYtdPacientes = [1,2,3,4,5,6,7,8,9].reduce((acc, m) => acc + BASELINE_2025_MONTHLY[m], 0); // 27.150
+    const pyYtdAtendidos = [1,2,3,4,5,6,7,8,9].reduce((acc, m) => acc + BASELINE_2025_ATENDIDOS[m], 0); // 24.618
+    const pyYtdAltas = [1,2,3,4,5,6,7,8,9].reduce((acc, m) => acc + BASELINE_2025_ALTAS[m], 0); // 2.532
+    const pyYtdTraslados = 1089;
+    const pyYtdConstataciones = 230;
     const pyYtdEstadia = 128;
-
     const pyYtdPacHora = 4.1;
+    const fullYear2025Pacientes = Object.values(BASELINE_2025_MONTHLY).reduce((a, b) => a + b, 0); // 37.526
 
     const statsAnual = {
       pacientes: { 

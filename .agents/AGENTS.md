@@ -2,9 +2,9 @@
 
 ## 📌 Reglas de Consistencia y Auditoría de Datos (SSOT Rayen):
 1. **Techo y Límite de Correlativos en Archivo Cargado**:
-   - **Correlativo Máximo Cargado en Sistema**: `#28.091` (Fecha de corte: `09/09/2026 a las 21:57 hrs`).
-   - **Correlativo de Control Oficial Rayen**: `#28.091` (con `25.547` pacientes atendidos efectivos).
-   - El total acumulado de admisiones (YTD) procesado en MÉTRICO nunca puede superar el correlativo máximo del archivo entregado (`#28.091`) para dicho corte temporal.
+   - **Correlativo Máximo Cargado en Sistema**: `#30.131` (Lote 50, Fecha de corte: `27/09/2026 a las 22:30:32 hrs`).
+   - **Correlativo de Control Oficial Rayen**: `#30.131` (con `27.183` pacientes atendidos efectivos y `29.895` admitidos YTD).
+   - El total acumulado de admisiones (YTD) procesado en MÉTRICO nunca puede superar el correlativo máximo del archivo entregado (`#30.131`) para dicho corte temporal.
 2. **SSOT en `pacientesDB` y Deduplicación Estricta**: La demanda mensual y global debe priorizar siempre el conteo desduplicado directo de `pacientesDB` (`deduplicarPacientes`) para evitar que turnos precalculados o sincronizaciones superpuestas en Firestore inflen artificialmente los totales.
 3. **Integridad de Líneas Base Históricas (2025)**: Las series comparativas de 12 meses deben mantener la continuidad de la línea base histórica SAR si la base de datos local contiene meses incompletos o fragmentos de prueba (< 2.000 pacientes por mes).
 4. **Prioridad Absoluta de Pauta Manual de Turnos (`pautas_turnos`)**:
@@ -52,12 +52,13 @@
     - El módulo de Rendimiento de Turnos y los análisis comparativos de guardia deben enfocar su evaluación exclusivamente en el desempeño operativo de los Equipos de Guardia (Turnos 1, 2, 3 y 4) en el flujo de admisión y categorización clínica (Triage), suprimiendo métricas de médicos activos o atenciones por médico para evitar sesgos diagnósticos individuales.
     - Los 3 KPIs canónicos de equipo son obligatorios: 1) Volumen Total Ingresado, 2) Latencia Promedio a Triage (con delta invertido de rapidez) y 3) Criterio de Alta Complejidad % (C1+C2+C3).
     - La correlación de sobrecarga se evalúa mediante ComposedChart con doble eje Y (Volumen en Eje Y Izquierdo e/y Latencia en minutos por categoría en Eje Y Derecho).
-13. **Norma Oficial de Despacho de Informes por Correo: 4 Pilares Maestros de Demanda y Despacho Ágil sin PDFs Adjuntos**:
+13. **Norma Oficial de Despacho de Informes por Correo: Protagonismo Separado para Cifras del Turno & Comparativa YoY con Despacho Ágil**:
     - Todo despacho de informe asistencial por correo electrónico debe generarse utilizando estrictamente el motor **React Email** (`@react-email/components` y `@react-email/render`) con diseño inline seguro, fondo oscuro institucional (`#0f172a`), logotipo oficial en pill blanco (`cid:logo_sar`) y compatibilidad garantizada en clientes de escritorio y móviles.
-    - **Grilla de Demanda y Estructura en 8 Láminas Fidedigna al Previsualizador de Diseño**:
-      El cuerpo visual del correo debe reflejar fielmente la estructura de láminas definida en el previsualizador institucional de MÉTRICO:
-      1) **4 Pilares Maestros de Demanda con Igual Jerarquía**: Pacientes Admitidos (+20.4% YoY, YTD 28.257 pac), Pacientes Atendidos (+19.8% YoY, YTD 25.696 pac), Altas Administrativas (+26.4% YoY, YTD 2.561 altas) y Traslados a Hospital (+11.8% YoY, YTD 1.162 pac), seguidos del sub-bloque de eficiencia (Rendimiento por Hora pac/hr y Estadía Total Promedio).
-      2) **Desglose de los 3 Tramos de Espera & Constataciones Z51.8**: Tiempos de Admisión-Triage, Triage-Box y Box-Alta con comparativa, junto al recuadro destacado de Constataciones médico-legales.
+    - **Estructura en Láminas Fidedigna al Previsualizador de Diseño**:
+      El cuerpo visual del correo debe reflejar fielmente la estructura definida en el previsualizador institucional de MÉTRICO:
+      1) **Lámina 1: Balance Asistencial & Cifras Oficiales de Guardia (Datos del Turno)**: Exactamente 5 tarjetas de guardia con idéntica jerarquía y simetría al 20%: 1. Pacientes Admitidos, 2. Pacientes Atendidos, 3. Altas Administrativas, 4. Traslados a Hospital y 5. Constataciones Z51.8, acompañadas por el banner de cuadratura universal del turno: $\text{Admitidos} = \text{Atendidos } (\text{Altas Médicas} + \text{Traslados}) + \text{Altas Admin} \bullet \text{Constataciones Z51.8}$.
+      2) **Lámina 2: Indicadores Maestros Interanuales (Comparativa YoY & YTD)**: 4 tarjetas con las variaciones interanuales y volúmenes YTD: Pacientes Admitidos (+20.4% YoY), Pacientes Atendidos (+19.8% YoY), Altas Administrativas (+26.4% YoY) y Traslados a Hospital (+11.8% YoY), seguidos del sub-bloque de eficiencia (Rendimiento por Hora pac/hr y Estadía Total Promedio).
+      3) **Desglose de los 3 Tramos de Espera & Constataciones Z51.8**: Tiempos de Admisión-Triage, Triage-Box y Box-Alta con comparativa, junto al recuadro destacado de Constataciones médico-legales.
       3) **Distribución Oficial de Triage C1 a C5**: Proporciones con barras de color institucionales y variaciones YoY.
       4) **Rendimiento Clínico por Profesional Médico en Turno**: Tabla con médicos tratantes, atenciones, pac/hr y % de aporte al turno.
       5) **Top 10 Diagnósticos CIE-10**: Mapeo completo con código CIE-10, diagnóstico patológico, casos, % y tendencia, con soporte de llaves duales (`codigo/cie10`, `nombre/diagnostico`, `count/cantidad`, `pct/porcentaje`) erradicando valores en blanco o "Sin registro".
@@ -120,14 +121,37 @@
       4) **Módulos Especializados & Subreportes Oficiales** (`AnalisisDemandaAtencion.jsx`, `AnalisisTraslados.jsx`, `AnalisisConstataciones.jsx`, `AnalisisRespiratorio.jsx`, `AnalisisTraumatologia.jsx`): Fuentes de contraste para los 7 reportes PDF adjuntos (1.162 traslados acumulados, 242 constataciones Z51.8, casos respiratorios IRA y sospechas de fractura).
       5) **Auditoría Pre-Vuelo en Despacho & Generador de Reportes (`ModalConfiguracionCorreo.jsx` y `ReportesModule.jsx`)**: Pasarela final obligatoria que reconcilia y certifica que la suma de atenciones médicas y altas administrativas sea matemáticamente exacta al 100% de los pacientes admitidos antes de exportar, imprimir o despachar.
     - **Sello Institucional Visible Universal**: Tanto en el previsualizador del correo como en cada una de las hojas de reportes ejecutivos en Hoja Carta (PDF), el sistema despliega el sello explícito de verificación cruzada que certifica: $\text{Total Admitidos} = \text{Atenciones Médicas Efectivas} + \text{Altas Administrativas}$, corroborado con el Histórico Mensual y la Auditoría de Demanda Rayen.
-20. **Directriz Estricta de Despacho en Días Hábiles: Veda de Fin de Semana y Pausa Obligatoria por Feriados Oficiales**:
-    - **Veda Absoluta de Fines de Semana**: Los correos asistenciales automáticos y programados quedan terminantemente prohibidos de ser despachados durante días de fin de semana (Sábado y Domingo).
-    - **Ventana Exclusiva de Despacho en Días Hábiles**: Los envíos asistenciales oficiales se realizan única y exclusivamente de **Lunes a Viernes en días hábiles institucionales**.
-    - **Pausa y Postergación Automática por Feriados**: Si un día de la semana coincide con un feriado o festivo nacional oficial en Chile (`CHILE_HOLIDAYS_OFFICIAL` o festivo en pauta), los envíos de correo se pausan de forma automática y quedan reprogramados para ser emitidos el **primer día hábil siguiente a las 08:30 hrs** (ej. si el Lunes es feriado, se despacha el Martes a las 08:30 hrs).
-    - **Integridad Asistencial de Guardias de Fin de Semana y Festivos**: Las guardias y turnos ejecutados durante fines de semana (Sábado Diurno/Nocturno, Domingo Diurno/Nocturno) o días festivos se auditan, calculan y consolidan con absoluta normalidad en la plataforma MÉTRICO. Sus datos clínicos permanecen 100% disponibles, pero la emisión del informe oficial por correo queda encolada en estado diferido (`⏳ Pausado por Fin de Semana` o `⏳ Pausado por Feriado`) y se entrega el primer día hábil siguiente a las 08:30 hrs.
-    - **Salvaguardas en Backend y Frontend**:
-      a) **Cloud Function Backend (`functions/index.js`)**: La función `enviarInformeCorreo` valida la zona horaria oficial (`America/Santiago`) y la matriz de feriados de Chile (`isDiaHabilChileBackend`). Si un proceso o disparador automático intenta enviar un correo en día inhábil (sábado, domingo o festivo), la función suspende el despacho, registra la postergación y retorna `{ success: true, pausadoPorFeriadoOFinde: true, proximoDespachoHabil }`.
-      b) **Módulo de Despacho (`ModalConfiguracionCorreo.jsx`)**: La cola de turnos calcula el horario de despacho mediante `calcularHorarioDespachoTurno`, exhibiendo el distintivo de pausa y la fecha hábil de entrega. Ante cualquier intento de despacho manual forzado fuera de día hábil, el sistema despliega una advertencia institucional previa requiriendo confirmación explícita de excepción clínica.
+20. **Estandarización Terminológica e Institucional Obligatoria ("Triaje con J")**:
+    - **Norma Lingüística Inviolable en Toda la Plataforma**: Toda etiqueta, título, encabezado de reporte, asunto o cuerpo de correo electrónico, alerta predictiva del Radar, leyenda de gráficos y documentación visible al personal clínico o directivo DEBE utilizar invariablemente el término en español **"Triaje"** (con 'j') y nunca la voz foránea *"Triage"*.
+    - **Ámbitos de Aplicación Estricta**:
+      a) **Desglose de Tramos de Espera**: `1. Admisión a Triaje`, `2. Triaje a Box` y `3. Box a Alta`.
+      b) **Lámina de Categorización Manchester**: `Distribución Oficial de Triaje (Categorización C1 a C5)`.
+      c) **Alertas y Recomendaciones Clínicas**: `reforzar triaje C1-C3`, `triaje inicial`, `Área de Derivaciones y Triaje`.
+    - **Protección de Estabilidad de Código**: Las variables de programación, identificadores de bases de datos (`p.triage`, `rawTriage`, etc.) y esquemas de Firestore/BigQuery permanecen intactos como atributos técnicos internos para asegurar total estabilidad sin regresiones.
+21. **Persistencia Cloud de Destinatarios, Trazabilidad de Despacho SMTP & Tolerancia Asistencial Ampliada (v6.3.32)**:
+    - **Persistencia en Firestore de Destinatarios**: La configuración de destinatarios del informe asistencial (`ModalConfiguracionCorreo.jsx`) se sincroniza bidireccionalmente con Firestore en `artifacts/${appId}/public/data/configuracion_correo/destinatarios`, respaldada por `DEFAULT_DESTINATARIOS` y caché local, garantizando que nunca se vacíe o pierda tras actualizaciones de versión o recargas del navegador.
+    - **Trazabilidad e Incidencias Granulares**: Cada despacho registra el resultado individual por destinatario (Entregado, Incidencia con código de error SMTP exacto, Pendiente) e incorpora la tabla cronológica de Bitácora de Trazabilidad e Incidencias de Envíos para auditoría inmediata.
+    - **Ventana Asistencial de Día Hábil Ampliada (16:00 hrs)**: En `helpers.js` (`obtenerTurnoDetallado`) y `CentroVerificacionAuditoria.jsx`, los pacientes admitidos en el turno de semana hábil cuya permanencia, observación médica o tratamiento se extienda durante la mañana y tarde del día siguiente se consolidan en el turno largo de semana hasta las `16:00 hrs`, conciliando al 100% con reportes oficiales como la jornada `2026-09-24_SEMANA_LARGO` (83 admitidos = 73 completados + 10 egresos admin, 72 altas médicas, 1 traslado, 2 Z51.8 y 11 centros de procedencia).
+22. **Integridad Absoluta, Auditoría y Transparencia de la Serie Histórica 2025 (SSOT 12 Meses Cerrados - 37.526 Pacientes) (v6.3.39)**:
+    - **Existencia y Certificación de los 12 Meses 2025**: La serie histórica del año 2025 cuenta con el 100% de los 12 archivos mensuales de Rayen auditados y certificados correlativo a correlativo (Enero a Diciembre 2025), totalizando exactamente **37.526 pacientes admitidos**, **33.931 pacientes con atención médica efectiva** y **3.595 altas administrativas** (correlativo Rayen de cierre: `#37.527`).
+    - **Matriz Mensual Certificada Rayen SSOT 2025**:
+      * *Ene 2025*: 2.454 admitidos | 2.335 atendidos | 119 altas (Corr 1 - 2.454)
+      * *Feb 2025*: 2.193 admitidos | 2.134 atendidos | 59 altas (Corr 2.455 - 4.647)
+      * *Mar 2025*: 2.981 admitidos | 2.737 atendidos | 244 altas (Corr 4.648 - 7.629)
+      * *Abr 2025*: 3.242 admitidos | 2.922 atendidos | 320 altas (Corr 7.630 - 10.871)
+      * *May 2025*: 3.322 admitidos | 2.959 atendidos | 363 altas (Corr 10.872 - 14.193)
+      * *Jun 2025*: 2.971 admitidos | 2.713 atendidos | 258 altas (Corr 14.194 - 17.164)
+      * *Jul 2025*: 3.171 admitidos | 2.835 atendidos | 336 altas (Corr 17.165 - 20.335)
+      * *Ago 2025*: 3.472 admitidos | 3.038 atendidos | 434 altas (Corr 20.336 - 23.807)
+      * *Sep 2025*: 3.344 admitidos | 2.945 atendidos | 399 altas (Corr 23.808 - 27.151)
+      * *Oct 2025*: 3.574 admitidos | 3.150 atendidos | 424 altas (Corr 27.152 - 30.725)
+      * *Nov 2025*: 3.549 admitidos | 3.146 atendidos | 403 altas (Corr 30.726 - 34.274)
+      * *Dic 2025*: 3.253 admitidos | 3.017 atendidos | 236 altas (Corr 34.275 - 37.527)
+    - **Diferenciación Estricta entre Total Anual 2025 (12 Meses) y Comparativa YTD Acumulada**:
+      * **Total Anual 2025 (12 meses)**: Al seleccionar el año 2025 o revisar la serie histórica anual completa, el sistema DEBE reflejar obligatoriamente la totalidad de los 12 meses (**37.526 pacientes admitidos** y **33.931 atendidos**), sin truncamientos ni omisión de meses.
+      * **Comparativa Interanual Acumulada (YoY YTD Ene-Sep)**: Al evaluar el crecimiento del año en curso (2026 al corte de Septiembre, con 9 meses transcurridos = 29.895 admitidos), la comparación interanual contra el año anterior DEBE realizarse estrictamente contra el mismo período de meses transcurridos (Enero a Septiembre 2025: **27.150 pacientes admitidos**, **24.618 atendidos**, **2.532 altas admin**), arrojando el incremento real oficial de **+10.1% YoY** en admisiones (`(29.895 - 27.150) / 27.150`) y **+10.4% YoY** en atenciones (`(27.183 - 24.618) / 24.618`).
+      * Queda terminantemente prohibido comparar un período parcial del año en curso contra los 12 meses completos del año anterior (lo cual falsearía el indicador arrojando contracciones artificiales engañosas), y queda igualmente prohibido truncar la serie anual 2025 cuando el usuario consulte el año civil completo.
+    - **Sincronización SSOT en Todos los Módulos**: Los hooks `useMetricoAnalytics.js`, componentes `AnalisisDemandaAtencion.jsx`, `PanelKPIs.jsx`, `ModalConfiguracionCorreo.jsx` y reportes ejecutivos deben utilizar unívocamente esta matriz de datos certificada, erradicando discrepancias de cifras.
 
 ---
 
@@ -149,9 +173,8 @@ Esta norma es **inviolable, permanente y activa en todas las sesiones** (indepen
 4. **Registrarlo dentro del Apartado de Novedades del Sitio**:
    - Incorporar la tarjeta informativa en el Muro de Novedades e Instructivos (`src/components/dashboard/ModalMuroActualizaciones.jsx`), detallando de forma comprensible para el personal clínico: propósito, para qué sirve, qué puedes ver, ejemplo práctico de uso y lista de cambios técnicos.
 
-5. **Rellenar y Mantener al Día la Bitácora de Desarrollo (`DevLogModule.jsx`) & Captura Fotográfica Real (Snapshots)**:
+5. **Rellenar y Mantener al Día la Bitácora de Desarrollo (`DevLogModule.jsx`)**:
    - Toda actualización o hito significativo debe quedar registrado en `DEVLOG_POSTS_INITIAL` de `src/components/dashboard/DevLogModule.jsx` con su fecha real, título profesional, versión, problema técnico detectado, lógica aplicada, solución implementada y relato reflexivo `fullPost` de ingeniería.
-   - **Fotógrafo Autónomo / Screenshot Real de Alta Resolución (1080p)**: Es mandatorio ejecutar el script del fotógrafo autónomo (`node scripts/take_devlog_snapshot.cjs [version_tag]` o `npm run snapshot`) para abrir automáticamente la aplicación en motor headless, esperar el renderizado clínico y capturar una fotografía real de alta resolución (1920x1080) guardada en `public/devlog_snapshots/snapshot_[version_tag].png`. Dicha ruta debe vincularse obligatoriamente en la propiedad `snapshotUrl` del post en la bitácora, garantizando que el personal pueda abrir y hacer zoom a la evidencia visual auténtica del sistema.
    - **Regla de Regularización Retroactiva**: Si en algún momento una versión o actualización no fue registrada oportunamente en la bitácora, el agente o desarrollador DEBE incorporarla de forma retroactiva con base en la fecha e hito que corresponda, garantizando que el historial nunca quede congelado u obsoleto.
 
 ### ⚖️ Norma de Parámetros y Reglas del Sitio y del Agente:

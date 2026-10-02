@@ -644,18 +644,18 @@ export const buildTurnoInfoPayload = (selectedShiftObj, combinedPacientes = [], 
   const anualSSOT = statsKPI?.anual;
 
   const ytdAdm = Number(anualSSOT?.pacientes?.current || 29895);
-  const prevAdm = Number(anualSSOT?.pacientes?.prevYear || 26414);
-  const pctAdmVal = anualSSOT?.pacientes?.growthYear !== undefined ? Number(anualSSOT.pacientes.growthYear) : 13.2;
+  const prevAdm = Number(anualSSOT?.pacientes?.prevYear || 27150);
+  const pctAdmVal = anualSSOT?.pacientes?.growthYear !== undefined ? Number(anualSSOT.pacientes.growthYear) : 10.1;
   const pctAdm = pctAdmVal > 0 ? `+${pctAdmVal.toFixed(1)}%` : `${pctAdmVal.toFixed(1)}%`;
 
   const ytdAtn = Number(anualSSOT?.atendidos?.current || 27183);
-  const prevAtn = Number(anualSSOT?.atendidos?.prevYear || 24138);
-  const pctAtnVal = anualSSOT?.atendidos?.growthYear !== undefined ? Number(anualSSOT.atendidos.growthYear) : 12.6;
+  const prevAtn = Number(anualSSOT?.atendidos?.prevYear || 24618);
+  const pctAtnVal = anualSSOT?.atendidos?.growthYear !== undefined ? Number(anualSSOT.atendidos.growthYear) : 10.4;
   const pctAtn = pctAtnVal > 0 ? `+${pctAtnVal.toFixed(1)}%` : `${pctAtnVal.toFixed(1)}%`;
 
   const ytdAlt = Number(anualSSOT?.altasAdmin?.current || 2712);
-  const prevAlt = Number(anualSSOT?.altasAdmin?.prevYear || 2276);
-  const pctAltVal = anualSSOT?.altasAdmin?.growthYear !== undefined ? Number(anualSSOT.altasAdmin.growthYear) : 19.2;
+  const prevAlt = Number(anualSSOT?.altasAdmin?.prevYear || 2532);
+  const pctAltVal = anualSSOT?.altasAdmin?.growthYear !== undefined ? Number(anualSSOT.altasAdmin.growthYear) : 7.1;
   const pctAlt = pctAltVal > 0 ? `+${pctAltVal.toFixed(1)}%` : `${pctAltVal.toFixed(1)}%`;
 
   const ytdTra = Number(anualSSOT?.traslados?.current || 1198);

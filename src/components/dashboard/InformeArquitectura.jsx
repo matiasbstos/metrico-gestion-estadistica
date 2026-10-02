@@ -10,6 +10,33 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.39',
+    version_tag: 'v6.3.39',
+    fecha: '02 de Octubre, 2026',
+    fecha_despliegue: '02 de Octubre, 2026',
+    proposito_actualizacion: 'Certificación Integral de los 12 Meses 2025 (37.526 Pacientes SSOT), Blindaje de Comparativa YTD (+10.1% YoY) y Promulgación de la Regla 22.',
+    medios_y_stack: [
+      'AnalisisDemandaAtencion.jsx (Certificación de BASELINE_SAR_2025 con los 12 meses exactos auditados de Rayen: 37.526 admitidos y 33.931 atenciones médicas; y sincronización de totAdmitidosCompareElapsed en 27.150 para comparar 9 meses transcurridos exactos)',
+      'useMetricoAnalytics.js (Actualización de BASELINE_2025_MONTHLY, BASELINE_2025_ATENDIDOS y BASELINE_2025_ALTAS para los 12 meses completos, fijando fullYear2025Pacientes en 37.526 y pyYtdPacientes en 27.150)',
+      'PanelKPIs.jsx & ModalConfiguracionCorreo.jsx (Sincronización de fallbacks de período previo con 27.150 admisiones, 24.618 atenciones, 2.532 altas y +10.1% YoY en admisiones)',
+      'Dashboard.jsx (Sincronización de CURRENT_APP_VERSION a v6.3.39 y armonización de fallbacks previos)',
+      '.agents/AGENTS.md (Promulgación de la Regla 22 SSOT: Integridad Absoluta, Auditoría y Transparencia de la Serie Histórica 2025 de 12 meses cerrados)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Certificación de 12 Meses 2025 (Regla 22 SSOT): El año 2025 cuenta con sus 12 archivos mensuales auditados correlativo a correlativo, totalizando 37.526 admisiones, 33.931 atenciones efectivas y 3.595 altas admin (techo correlativo #37.527). 2) Distinción Estricta Anual vs YTD: Al consultar el año 2025 completo se reflejan los 37.526 pacientes. Al comparar el año en curso 2026 YTD (9 meses, 29.895 admitidos), la comparación interanual se efectúa estrictamente contra los mismos 9 meses transcurridos de 2025 (27.150 admitidos), resultando en un crecimiento verídico de +10.1% YoY en admisiones y +10.4% YoY en atenciones (+7.1% en altas). 3) Erradicación de Discrepancias: Se eliminaron los valores desfasados de 26.414 y 24.980.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Mapeo hash mensual en O(1) y constancia de baseline histórico sin dependencias volátiles.'
+    },
+    modulos_afectados: ['AnalisisDemandaAtencion.jsx', 'useMetricoAnalytics.js', 'PanelKPIs.jsx', 'ModalConfiguracionCorreo.jsx', 'Dashboard.jsx', '.agents/AGENTS.md'],
+    detalles_tecnicos: [
+      'Auditoría y certificación de los 12 archivos Excel mensuales de 2025 en Downloads (Enero a Diciembre 2025).',
+      'Desglose certificado mes a mes: Ene (2.454), Feb (2.193), Mar (2.981), Abr (3.242), May (3.322), Jun (2.971), Jul (3.171), Ago (3.472), Sep (3.344), Oct (3.574), Nov (3.549), Dic (3.253). Total: 37.526.',
+      'Alineación matemática de variaciones YoY YTD: +10.1% admisiones (29.895 vs 27.150), +10.4% atenciones (27.183 vs 24.618), +7.1% altas (2.712 vs 2.532).',
+      'Incorporación de la Regla 22 en las directrices maestras del sistema en .agents/AGENTS.md.',
+      'Actualización oficial de versión del sistema a v6.3.39.'
+    ]
+  },
+  {
     id: 'v6.3.38',
     version_tag: 'v6.3.38',
     fecha: '28 de Septiembre, 2026',

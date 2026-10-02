@@ -366,15 +366,15 @@ export default function PanelKPIs({
         {/* Banner Ejecutivo de Tendencias de Demanda Global y Metas Asistenciales */}
         {(() => {
           const pacAnual = statsKPI.anual?.pacientes?.current || 29895;
-          const pacPrevYear = statsKPI.anual?.pacientes?.prevYear || 26414;
+          const pacPrevYear = statsKPI.anual?.pacientes?.prevYear || 27150;
           const pacGrowthYear = statsKPI.anual?.pacientes?.growthYear;
 
           const ateAnual = statsKPI.anual?.atendidos?.current || 27183;
-          const atePrevYear = statsKPI.anual?.atendidos?.prevYear || 24138;
+          const atePrevYear = statsKPI.anual?.atendidos?.prevYear || 24618;
           const ateGrowthYear = statsKPI.anual?.atendidos?.growthYear;
 
           const altasAnual = statsKPI.anual?.altasAdmin?.current || 2712;
-          const altasPrevYear = statsKPI.anual?.altasAdmin?.prevYear || 2276;
+          const altasPrevYear = statsKPI.anual?.altasAdmin?.prevYear || 2532;
           const altasGrowthYear = statsKPI.anual?.altasAdmin?.growthYear;
 
           const trasAnual = statsKPI.anual?.traslados?.current || 1198;
@@ -417,7 +417,7 @@ export default function PanelKPIs({
                       <TooltipWrapper
                         title="Crecimiento Interanual (YoY)"
                         text={`Variación de admisiones respecto al mismo período del año 2025 (${pacAnual?.toLocaleString('es-CL')} vs ${pacPrevYear?.toLocaleString('es-CL')} pacientes acumulados).`}
-                        highlight={`${pacGrowthYear !== undefined && pacGrowthYear >= 0 ? '+' : ''}${pacGrowthYear !== undefined ? pacGrowthYear.toFixed(1) : '14.2'}%`}
+                        highlight={`${pacGrowthYear !== undefined && pacGrowthYear >= 0 ? '+' : ''}${pacGrowthYear !== undefined ? pacGrowthYear.toFixed(1) : '10.1'}%`}
                         position="top"
                       >
                         <span 
@@ -425,7 +425,7 @@ export default function PanelKPIs({
                             pacGrowthYear !== undefined && pacGrowthYear >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                           }`}
                         >
-                          {isLoading ? '...' : `${pacGrowthYear !== undefined && pacGrowthYear >= 0 ? '+' : ''}${pacGrowthYear !== undefined ? pacGrowthYear.toFixed(1) : '14.2'}%`}
+                          {isLoading ? '...' : `${pacGrowthYear !== undefined && pacGrowthYear >= 0 ? '+' : ''}${pacGrowthYear !== undefined ? pacGrowthYear.toFixed(1) : '10.1'}%`}
                         </span>
                       </TooltipWrapper>
                       <span className="text-[10px] md:text-[11px] font-bold text-secondary-custom uppercase tracking-wider">

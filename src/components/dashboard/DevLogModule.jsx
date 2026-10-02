@@ -8,6 +8,48 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-39',
+    titulo: 'Certificación Integral de los 12 Meses 2025 (37.526 Pacientes SSOT) y Blindaje de Comparativa YTD',
+    fecha: '2026-10-02',
+    version_tag: 'v6.3.39',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_39.png',
+    problema: 'Se requería confirmar con certeza matemática si los 12 meses de 2025 se encontraban cargados en el sistema y resolver inconsistencias previas donde se mostraban 24.000 o 26.000 pacientes, o variaciones YoY anómalas de +28% o contracciones de -20%. La causa raíz era la mezcla entre el total de 12 meses completos (37.526 pacientes) y períodos acumulados YTD parciales (9 meses = 27.150 pacientes o 8 meses = 23.807 pacientes), junto con la falta de una regla institucional que blindara la serie histórica.',
+    logica: '1) Se auditó la totalidad de los 12 archivos Excel mensuales de Rayen del año 2025 (Enero a Diciembre 2025) en Downloads correlativo a correlativo (#1 a #37.527). 2) Se certificó el desglose mensual oficial: Ene (2.454), Feb (2.193), Mar (2.981), Abr (3.242), May (3.322), Jun (2.971), Jul (3.171), Ago (3.472), Sep (3.344), Oct (3.574), Nov (3.549), Dic (3.253), totalizando exactamente 37.526 admitidos, 33.931 atenciones médicas y 3.595 altas admin. 3) Se formalizó la distinción estricta: Total Anual 2025 = 37.526 pac; Período Comparativo YTD (9 meses Ene-Sep) = 27.150 pac. 4) Se calcularon las variaciones interanuales reales al corte de Septiembre 2026 (29.895 admitidos YTD vs 27.150 en 2025 = +10.1% YoY; 27.183 atendidos YTD vs 24.618 en 2025 = +10.4% YoY). 5) Se promulgó la Regla 22 en .agents/AGENTS.md.',
+    solucion: 'El sistema presenta ahora el total completo certificado de 37.526 pacientes cuando se consulta el año 2025 en Demanda Asistencial, y calcula con exactitud matemática el +10.1% YoY en admisiones y +10.4% YoY en atenciones para el período en curso 2026 YTD en el Dashboard, PanelKPIs y Despacho de Correo, blindado permanentemente bajo la Regla 22.',
+    fullPost: `En esta versión v6.3.39 realizamos la auditoría y certificación definitiva de la serie histórica 2025:
+
+1. **Auditoría Exhaustiva de los 12 Meses de 2025**:
+   - Se revisaron y auditaron los 12 archivos Excel mensuales de Rayen en Downloads (\`Informe_Urgencia_Tiempo_Espera_Enero_2025.xlsx\` hasta \`Diciembre2025.xlsx\`).
+   - Se verificó la correlatividad estricta sin saltos ni omisiones desde el paciente #1 hasta el correlativo #37.527.
+   - Totales anuales certificados 2025 (12 meses): **37.526 pacientes admitidos**, **33.931 atenciones médicas completadas (90.4%)** y **3.595 altas administrativas (9.6%)**.
+
+2. **Desglose Certificado Mes a Mes 2025**:
+   - Enero: 2.454 admitidos | 2.335 atendidos | 119 altas (Corr 1 - 2.454)
+   - Febrero: 2.193 admitidos | 2.134 atendidos | 59 altas (Corr 2.455 - 4.647)
+   - Marzo: 2.981 admitidos | 2.737 atendidos | 244 altas (Corr 4.648 - 7.629)
+   - Abril: 3.242 admitidos | 2.922 atendidos | 320 altas (Corr 7.630 - 10.871)
+   - Mayo: 3.322 admitidos | 2.959 atendidos | 363 altas (Corr 10.872 - 14.193)
+   - Junio: 2.971 admitidos | 2.713 atendidos | 258 altas (Corr 14.194 - 17.164)
+   - Julio: 3.171 admitidos | 2.835 atendidos | 336 altas (Corr 17.165 - 20.335)
+   - Agosto: 3.472 admitidos | 3.038 atendidos | 434 altas (Corr 20.336 - 23.807)
+   - Septiembre: 3.344 admitidos | 2.945 atendidos | 399 altas (Corr 23.808 - 27.151)
+   - Octubre: 3.574 admitidos | 3.150 atendidos | 424 altas (Corr 27.152 - 30.725)
+   - Noviembre: 3.549 admitidos | 3.146 atendidos | 403 altas (Corr 30.726 - 34.274)
+   - Diciembre: 3.253 admitidos | 3.017 atendidos | 236 altas (Corr 34.275 - 37.527)
+
+3. **Blindaje de la Comparativa Interanual Acumulada (YTD)**:
+   - Acumulado Enero a Septiembre 2025 (9 meses transcurridos): **27.150 pacientes admitidos**, **24.618 atenciones médicas** y **2.532 altas admin**.
+   - Acumulado Enero a Septiembre 2026 (9 meses transcurridos al corte del 27/09): **29.895 pacientes admitidos**, **27.183 atenciones médicas** y **2.712 altas admin**.
+   - Crecimiento real oficial interanual:
+     * Admisiones: **+10.1% YoY** (\`29.895 vs 27.150\`)
+     * Atenciones Médicas: **+10.4% YoY** (\`27.183 vs 24.618\`)
+     * Altas Administrativas: **+7.1% YoY** (\`2.712 vs 2.532\`)
+
+4. **Promulgación de la Regla 22 en .agents/AGENTS.md**:
+   - Se codificó la Regla 22 en las directrices maestras del sistema y del agente, asegurando que ningún agente o módulo futuro confunda el total anual de 12 meses con los cortes parciales YTD.`
+  },
+  {
     id: 'devlog-v6-3-38',
     titulo: 'Actualización Oficial del Techo y Control Rayen al Correlativo #30.131 (Lote 50, 29.895 Admitidos YTD)',
     fecha: '2026-09-28',

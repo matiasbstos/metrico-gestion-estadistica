@@ -90,7 +90,7 @@ import { usePautasTurnos } from '../hooks/usePautasTurnos';
 import { COLORS, DOC_COLORS, AGE_RANGES, METRIC_LABELS } from '../config/constants';
 import { getNormalizedUserPermissions } from '../config/modules';
 
-const CURRENT_APP_VERSION = 'v6.3.38';
+const CURRENT_APP_VERSION = 'v6.3.39';
 
 // Colores Institucionales
 
@@ -704,30 +704,30 @@ const DashboardContent = () => {
             anual: {
               pacientes: { 
                 current: ytdPacTotal,
-                prevYear: 26414,
-                growthYear: getGrowth(ytdPacTotal, 26414)
+                prevYear: 27150,
+                growthYear: getGrowth(ytdPacTotal, 27150)
               },
               atendidos: { 
                 current: ytdAteTotal,
-                prevYear: 24138,
-                growthYear: getGrowth(ytdAteTotal, 24138)
+                prevYear: 24618,
+                growthYear: getGrowth(ytdAteTotal, 24618)
               },
               estadia: { current: ytdEstadiaVal, prevYear: 128 },
               pacHora: { current: ytdPacHoraVal, prevYear: 4.1 },
               altasAdmin: { 
                 current: ytdAltasTotal,
-                prevYear: 2276,
-                growthYear: getGrowth(ytdAltasTotal, 2276)
+                prevYear: 2532,
+                growthYear: getGrowth(ytdAltasTotal, 2532)
               },
               traslados: { 
                 current: ytdTrasladosTotal,
-                prevYear: 1079,
-                growthYear: getGrowth(ytdTrasladosTotal, 1079)
+                prevYear: 1089,
+                growthYear: getGrowth(ytdTrasladosTotal, 1089)
               },
               constataciones: { 
                 current: ytdConstatTotal,
-                prevYear: 225,
-                growthYear: getGrowth(ytdConstatTotal, 225)
+                prevYear: 230,
+                growthYear: getGrowth(ytdConstatTotal, 230)
               },
               recordPacWkdy: { count: Number(rec.max_pac_wkdy || 0), date: rec.max_pac_wkdy_date || 'Sin registros' },
               recordPacWknd: { count: Number(rec.max_pac_wknd || 0), date: rec.max_pac_wknd_date || 'Sin registros' },

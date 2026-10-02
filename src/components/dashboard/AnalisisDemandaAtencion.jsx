@@ -11,21 +11,21 @@ import {
 } from 'recharts';
 import { isAltaAdmin, deduplicarPacientes, isSinAtencionMedica, isEgresoAdministrativo, parseLocalDateStr } from '../../utils/helpers';
 
-// Línea Base Histórica Certificada SAR Elsa Romo Aravena (Reportes Oficiales Rayen 2025)
-// Evaluado en Mes Civil Completo (00:00 a 23:59 del último día) - Total 9 Meses YTD = 26.414 pac.
+// Línea Base Histórica Certificada SAR Elsa Romo Aravena (Reportes Oficiales Rayen 2025 Auditados al 100%)
+// 12 Meses Completos: Correlativos #1 a #37.527 - Total Anual 2025 = 37.526 pac. (33.931 atendidos, 3.595 altas)
 const BASELINE_SAR_2025 = {
-  '01': { admitidos: 2454, atendidos: 2335, altas: 119, sinAtencion: 81, egresoAdmin: 38, turnosCount: 31 },
-  '02': { admitidos: 2193, atendidos: 2134, altas: 59, sinAtencion: 32, egresoAdmin: 27, turnosCount: 28 },
-  '03': { admitidos: 2982, atendidos: 2738, altas: 244, sinAtencion: 80, egresoAdmin: 164, turnosCount: 31 },
-  '04': { admitidos: 3242, atendidos: 2922, altas: 320, sinAtencion: 144, egresoAdmin: 176, turnosCount: 30 },
-  '05': { admitidos: 3322, atendidos: 2959, altas: 363, sinAtencion: 167, egresoAdmin: 196, turnosCount: 31 },
-  '06': { admitidos: 2971, atendidos: 2680, altas: 291, turnosCount: 30 },
-  '07': { admitidos: 3200, atendidos: 2880, altas: 320, turnosCount: 31 },
-  '08': { admitidos: 3110, atendidos: 2800, altas: 310, turnosCount: 31 },
-  '09': { admitidos: 2940, atendidos: 2650, altas: 290, turnosCount: 30 },
-  '10': { admitidos: 2890, atendidos: 2600, altas: 290, turnosCount: 31 },
-  '11': { admitidos: 2760, atendidos: 2480, altas: 280, turnosCount: 30 },
-  '12': { admitidos: 2850, atendidos: 2560, altas: 290, turnosCount: 31 }
+  '01': { admitidos: 2454, atendidos: 2335, altas: 119, turnosCount: 31 },
+  '02': { admitidos: 2193, atendidos: 2134, altas: 59, turnosCount: 28 },
+  '03': { admitidos: 2981, atendidos: 2737, altas: 244, turnosCount: 31 },
+  '04': { admitidos: 3242, atendidos: 2922, altas: 320, turnosCount: 30 },
+  '05': { admitidos: 3322, atendidos: 2959, altas: 363, turnosCount: 31 },
+  '06': { admitidos: 2971, atendidos: 2713, altas: 258, turnosCount: 30 },
+  '07': { admitidos: 3171, atendidos: 2835, altas: 336, turnosCount: 31 },
+  '08': { admitidos: 3472, atendidos: 3038, altas: 434, turnosCount: 31 },
+  '09': { admitidos: 3344, atendidos: 2945, altas: 399, turnosCount: 30 },
+  '10': { admitidos: 3574, atendidos: 3150, altas: 424, turnosCount: 31 },
+  '11': { admitidos: 3549, atendidos: 3146, altas: 403, turnosCount: 30 },
+  '12': { admitidos: 3253, atendidos: 3017, altas: 236, turnosCount: 31 }
 };
 
 // Benchmarks Mensuales Oficiales SAR 2026 Auditados Rayen (Correlativo #1 a #30.131)
@@ -437,8 +437,8 @@ export default function AnalisisDemandaAtencion({
         totAtendidos: ssotAte?.current || totAtendidos,
         totAltas: ssotAlt?.current || totAltas,
         peakMonth,
-        totalGrowth: growthVal !== undefined ? Number(growthVal).toFixed(1) : (totAdmitidosCompareElapsed > 0 ? (((totAdmitidos - totAdmitidosCompareElapsed) / totAdmitidosCompareElapsed) * 100).toFixed(1) : '13.2'),
-        totAdmitidosCompareElapsed: ssotPac.prevYear || 26414,
+        totalGrowth: growthVal !== undefined ? Number(growthVal).toFixed(1) : (totAdmitidosCompareElapsed > 0 ? (((totAdmitidos - totAdmitidosCompareElapsed) / totAdmitidosCompareElapsed) * 100).toFixed(1) : '10.1'),
+        totAdmitidosCompareElapsed: ssotPac.prevYear || 27150,
         elapsedMonthsCount: elapsedMonthsCount || 9
       };
     }
