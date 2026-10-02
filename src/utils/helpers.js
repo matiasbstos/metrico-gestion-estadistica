@@ -326,16 +326,33 @@ export const calcularHorarioDespachoTurno = (item, modoCargaMasiva = 'NORMAL', i
       const h = Math.floor(totalMins / 60) % 24;
       const mins = totalMins % 60;
       const horaStr = `${String(h).padStart(2, '0')}:${String(mins).padStart(2, '0')} hrs`;
+      let schedMs = 0;
+      if (proxHabil && proxHabil.fechaIso) {
+        const [py, pm, pd] = proxHabil.fechaIso.split('-').map(Number);
+        const pDate = new Date(py, pm - 1, pd, 0, 0, 0);
+        pDate.setMinutes(totalMins);
+        schedMs = pDate.getTime();
+      }
       return {
         horarioTexto: `${nombreDia} ${fechaCorta} a las ${horaStr} (Escalonado)`,
+        scheduledTimestampMs: schedMs,
+        debeDispararAhora: false,
         esPausado: true,
         motivoPausa: motivo,
         proximoHabilTexto: `${nombreDia} ${fechaCorta} a las ${horaStr}`
       };
     } else {
       const proxTexto = proxHabil ? `${proxHabil.nombreDia} ${proxHabil.fechaFormateada.substring(0, 5)} a las 08:30 hrs` : 'Próximo día hábil 08:30 hrs';
+      let schedMs = 0;
+      if (proxHabil && proxHabil.fechaIso) {
+        const [py, pm, pd] = proxHabil.fechaIso.split('-').map(Number);
+        const pDate = new Date(py, pm - 1, pd, 8, 30, 0);
+        schedMs = pDate.getTime();
+      }
       return {
         horarioTexto: `${proxTexto}`,
+        scheduledTimestampMs: schedMs,
+        debeDispararAhora: false,
         esPausado: true,
         motivoPausa: motivo,
         proximoHabilTexto: proxHabil?.textoCompleto || proxTexto
@@ -352,9 +369,17 @@ export const calcularHorarioDespachoTurno = (item, modoCargaMasiva = 'NORMAL', i
     const dayOfWeekNatural = fechaDespachoNatural.getDay();
     const esFinde = (dayOfWeekNatural === 0 || dayOfWeekNatural === 6);
     const motivo = esFinde ? 'Pausado por Fin de Semana' : 'Pausado por Feriado';
+    let schedMs = 0;
+    if (proxHabil && proxHabil.fechaIso) {
+      const [py, pm, pd] = proxHabil.fechaIso.split('-').map(Number);
+      const pDate = new Date(py, pm - 1, pd, 8, 30, 0);
+      schedMs = pDate.getTime();
+    }
 
     return {
       horarioTexto: `${proxTexto}`,
+      scheduledTimestampMs: schedMs,
+      debeDispararAhora: false,
       esPausado: true,
       motivoPausa: motivo,
       proximoHabilTexto: proxHabil?.textoCompleto || proxTexto
@@ -363,30 +388,67 @@ export const calcularHorarioDespachoTurno = (item, modoCargaMasiva = 'NORMAL', i
 
   // Si hoy es día hábil: se puede despachar hoy
   if (modoCargaMasiva === 'RAFAGA_MISMO_DIA') {
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-    const startBaseMinutes = (currentHour < 9) ? (9 * 60) : (currentHour * 60 + currentMinute + 5);
-    const totalMins = startBaseMinutes + (idx * Number(intervaloMinutos || 20));
-    const h = Math.floor(totalMins / 60) % 24;
-    const mins = totalMins % 60;
-    const dayLabel = Math.floor(totalMins / (24 * 60)) > 0 ? 'Mañana' : 'Hoy';
+    // Horario anclado en memoria o sessionStorage para evitar que se desplace 5 minutos en cada re-render
+    let scheduledMs = 0;
+    const storageKey = `metrico_sched_ts_${item.shiftKey || item.fecha || 'default'}`;
+    try {
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        const savedTs = window.sessionStorage.getItem(storageKey);
+        if (savedTs && Number(savedTs) > 0) {
+          scheduledMs = Number(savedTs);
+        }
+      }
+    } catch(e) {}
+
+    // Si no está anclado o si expiró hace más de 3 horas, anclar a partir de ahora + offset por índice
+    if (!scheduledMs || scheduledMs < (Date.now() - 3 * 3600000)) {
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      // El primer turno de la cola se programa para 1 minuto en el futuro (o ahora si se desea); los siguientes cada intervaloMinutos
+      const offsetMins = (idx === 0) ? 1 : (1 + idx * Number(intervaloMinutos || 20));
+      const targetDate = new Date(now.getTime() + offsetMins * 60000);
+      scheduledMs = targetDate.getTime();
+      try {
+        if (typeof window !== 'undefined' && window.sessionStorage) {
+          window.sessionStorage.setItem(storageKey, String(scheduledMs));
+        }
+      } catch(e) {}
+    }
+
+    const schedDate = new Date(scheduledMs);
+    const h = schedDate.getHours();
+    const mins = schedDate.getMinutes();
+    const isToday = schedDate.getDate() === now.getDate() && schedDate.getMonth() === now.getMonth();
+    const dayLabel = isToday ? 'Hoy' : 'Mañana';
+    const isDue = Date.now() >= scheduledMs;
+    const horaStr = `${String(h).padStart(2, '0')}:${String(mins).padStart(2, '0')} hrs`;
+
     return {
-      horarioTexto: `${dayLabel} ${String(h).padStart(2, '0')}:${String(mins).padStart(2, '0')} hrs (Escalonado)`,
+      horarioTexto: isDue ? `Hoy ${horaStr} (Listo para emisión)` : `${dayLabel} ${horaStr} (Escalonado)`,
+      scheduledTimestampMs: scheduledMs,
+      debeDispararAhora: isDue,
       esPausado: false,
       motivoPausa: null,
       proximoHabilTexto: null
     };
   } else if (modoCargaMasiva === 'CONSOLIDADO_MULTIDIA') {
+    const today2030 = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 20, 30, 0).getTime();
     return {
       horarioTexto: 'Consolidado Único (20:30 hrs)',
+      scheduledTimestampMs: today2030,
+      debeDispararAhora: Date.now() >= today2030,
       esPausado: false,
       motivoPausa: null,
       proximoHabilTexto: null
     };
   } else {
+    let naturalSchedMs = fechaDespachoNatural.getTime();
+    const isDue = Date.now() >= naturalSchedMs;
     const label = isDiurno ? 'Mismo día 20:30 hrs' : 'Día siguiente 08:30 hrs';
     return {
       horarioTexto: label,
+      scheduledTimestampMs: naturalSchedMs,
+      debeDispararAhora: isDue,
       esPausado: false,
       motivoPausa: null,
       proximoHabilTexto: null

@@ -15,6 +15,31 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.43',
+      version: 'v6.3.43',
+      fecha: '02 de Octubre, 2026',
+      badge: 'AUTOMATIZACIÓN & SSOT RAYEN: MOTOR AUTÓNOMO DE CORREOS Y DESPACHO EN VIVO',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Activación del Motor Autónomo de Despacho de Correos, Ticker en Vivo y Despacho Inmediato',
+      categoria: 'Automatización & Comunicaciones',
+      icon: Mail,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se resolvió la causa por la cual los correos asistenciales programados no se emitían automáticamente. Se integró un ticker activo cada 5 segundos en el cliente, anclaje temporal estable en helpers.js que previene deslizamientos de hora, botón maestro "Despachar Informe Ahora" para emisión inmediata de turnos cerrados, y se certificó punto a punto la cuadratura clínica del turno 27/09/2026 con 88 admitidos = 82 atendidos (81 altas médicas + 1 traslado) + 6 altas admin conforme a las Reglas SSOT Rayen.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que el sistema de monitoreo en vivo realmente ejecute el envío de correos vía SMTP al cumplirse el horario programado, permitiendo además disparar el informe en espera con un solo clic sin bloqueos ni esperas.',
+        quePuedesVer: 'En "Reportes por Correo" -> "1. Programados": Verás el nuevo botón "Despachar Informe Ahora", el contador regresivo en vivo ("Emisión autónoma en Xm Ys") y el badge "⚡ Despacho Inminente" cuando esté listo.',
+        ejemploUso: 'Abre "Reportes por Correo". Si deseas enviar el turno cerrado de inmediato a la lista de destinatarios, presiona el botón morado "Despachar Informe Ahora".'
+      },
+      changes: [
+        'Ticker activo de monitoreo en segundo plano cada 5s en ModalConfiguracionCorreo.jsx.',
+        'Soporte de despacho desatendido en handleDespacharTurnoFila sin confirms bloqueantes.',
+        'Incorporación del botón maestro "Despachar Informe Ahora" en el banner en vivo.',
+        'Anclaje estable de tiempo proyectado en helpers.js (sessionStorage) para evitar deslizamientos de hora.',
+        'Contador regresivo en tiempo real y badge de emisión inminente en la tarjeta de horario.',
+        'Certificación de entrega SMTP física con Google Nodemailer y concordancia con Reglas 5, 11, 13, 16 y 20.'
+      ]
+    },
+    {
       id: 'v6.3.42',
       version: 'v6.3.42',
       fecha: '02 de Octubre, 2026',

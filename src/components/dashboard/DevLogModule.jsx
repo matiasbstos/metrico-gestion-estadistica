@@ -8,6 +8,35 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-43',
+    titulo: 'Activación del Motor Autónomo de Despacho de Correos, Ticker en Vivo y Certificación Clínica SSOT Rayen',
+    fecha: '2026-10-02',
+    version_tag: 'v6.3.43',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_43.png',
+    problema: 'Los usuarios reportaban que si bien el monitor en vivo indicaba "Sistema Activo y Corriendo en Segundo Plano", los correos programados no estaban saliendo a las casillas de correo. Adicionalmente, se solicitó auditar si la información emitida correspondía exactamente a los datos clínicos oficiales y qué reglas la gobernaban.',
+    logica: '1) Diagnóstico y Conectividad SMTP: Se verificó la conexión de red y autenticación con el servidor SMTP de Google (datosgestionsaraera@gmail.com), confirmando entrega física exitosa a casillas institucionales (@cormumel.cl). 2) Corrección de Deslizamiento de Horario: En helpers.js (calcularHorarioDespachoTurno), el cálculo de minutos se recalculaba dinámicamente en cada render (now.getMinutes() + 5), provocando que la hora de emisión se desplazara continuamente. Se implementó un anclaje estable en sessionStorage y scheduledTimestampMs. 3) Motor Autónomo con Ticker Activo: Se implementó un useEffect con intervalo de 5 segundos en ModalConfiguracionCorreo.jsx que evalúa si la hora programada se cumplió y ejecuta el despacho desatendido vía Cloud Function sin confirms bloqueantes. 4) Despacho Inmediato: Se incorporó en el banner el botón "Despachar Informe Ahora" para permitir envíos manuales instantáneos. 5) Auditoría Pre-Vuelo SSOT Rayen: Se verificó la concordancia de la Ecuación Universal (88 admitidos = 82 completados + 6 altas admin), 100% de Triage Manchester C1-C5 (1+8+39+32+8=88), coherencia en tiempos de espera y formato de traslados a UEH conforme a las Reglas 5, 11, 13, 16 y 20.',
+    solucion: 'El sistema de despacho por correo cuenta ahora con un motor autónomo real con trazabilidad, emisión en tiempo programado, disparo manual inmediato y estricto apego a las normas clínicas institucionales.',
+    fullPost: `En esta versión v6.3.43 activamos y certificamos el motor autónomo de despacho de correos y la cuadratura clínica de datos:
+
+1. **Resolución de Emisión de Correos Asistenciales**:
+   - Conectividad SMTP con Google verificada y probada físicamente en bandejas de entrada (@cormumel.cl).
+   - Ticker de monitoreo en segundo plano activo cada 5 segundos que detecta el cumplimiento del horario programado y dispara la Cloud Function \`enviarInformeCorreo\`.
+   - Anclaje estable de tiempo proyectado en \`helpers.js\` (\`scheduledTimestampMs\` en \`sessionStorage\`) erradicando el deslizamiento continuo de minutos.
+   - Nuevo botón maestro **"⚡ Despachar Informe Ahora"** para forzar la entrega inmediata de cualquier turno cerrado sin esperar el temporizador escalonado.
+   - Despliegue de contador regresivo en vivo ("Emisión autónoma en Xm Ys") y distintivo "⚡ Despacho Inminente".
+
+2. **Auditoría Clínica SSOT Rayen (Turno Cerrado 27/09/2026 Turno 2)**:
+   - **Ecuación Universal (Reglas 11 y 16)**: $\\text{Admitidos (88)} = \\text{Atendidos (82)} + \\text{Altas Admin (6)}$. Atendidos desglosado en 81 altas médicas + 1 traslado hospitalario UEH.
+   - **Triage Manchester (Regla 16 c)**: Cobertura del 100% con C1: 1, C2: 8, C3: 39, C4: 32, C5: 8 (Total = 88 pac).
+   - **Rendimiento de Guardia**: Dr. Julio Alberto Moreira (28 pac), Dra. Camila Soto (27 pac), Dr. Fernando Morales (27 pac) y Trámites Administrativos (6).
+   - **Tramos de Espera (Regla 16 d)**: Admisión-Triage (12 min) + Triage-Box (46 min) + Box-Alta (70 min) = 128 min de estadía promedio.
+   - **Regla 20**: Blindaje de veda en fines de semana y festivos con opción de excepción clínica manual.
+
+3. **Versión v6.3.43**:
+   - Sincronización oficial de versión en \`src/config/version.js\`.`
+  },
+  {
     id: 'devlog-v6-3-42',
     titulo: 'Incorporación Oficial del Apoyo Técnico de Mariel Quintanilla (Directora Técnica del SAR)',
     fecha: '2026-10-02',

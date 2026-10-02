@@ -10,6 +10,31 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.43',
+    version_tag: 'v6.3.43',
+    fecha: '02 de Octubre, 2026',
+    fecha_despliegue: '02 de Octubre, 2026',
+    proposito_actualizacion: 'Activación del Motor Autónomo de Despacho de Correos, Ticker en Vivo, Despacho Inmediato y Certificación Clínica SSOT Rayen.',
+    medios_y_stack: [
+      'ModalConfiguracionCorreo.jsx (Ticker autónomo en vivo cada 5s, soporte de despacho desatendido en handleDespacharTurnoFila sin confirms bloqueantes, nuevo botón maestro "Despachar Informe Ahora", y countdown regresivo en tiempo real)',
+      'helpers.js (Anclaje estable de horario proyectado en sessionStorage para evitar desplazamientos continuos de tiempo en RAFAGA_MISMO_DIA, y exportación de scheduledTimestampMs y debeDispararAhora)',
+      'version.js (Sincronización oficial a v6.3.43)',
+      'DevLogModule.jsx (Publicación devlog v6.3.43 con auditoría clínica de reglas)',
+      'ModalMuroActualizaciones.jsx (Ficha en muro de novedades)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Motor Autónomo Activo: El monitor en vivo ahora cuenta con un ticker real que ejecuta el despacho vía Cloud Function enviando correo SMTP al cumplirse el horario programado. 2) Despacho Inmediato: Incorporación del botón "Despachar Informe Ahora" para forzar la emisión manual sin esperar el tiempo escalonado. 3) Auditoría SSOT Rayen: Certificación de la Ecuación Universal 88 = 82 (81 médicas + 1 traslado) + 6 altas admin, 100% de Triage Manchester C1-C5, y consistencia en tramos de espera.',
+      firestore_collections: ['mail', 'envios_correos', 'configuracion_correo', 'system_architecture_log'],
+      query_optimization: 'Evaluación ligera en memoria O(1) con persistencia estable en sessionStorage.'
+    },
+    modulos_afectados: ['ModalConfiguracionCorreo.jsx', 'helpers.js', 'version.js', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx', 'InformeArquitectura.jsx'],
+    detalles_tecnicos: [
+      'Resolución de issue donde los correos no se enviaban por falta de ticker activo en cliente y deslizamiento de horario en helpers.js.',
+      'Verificación y prueba física de entrega SMTP con Google Nodemailer a casillas institucionales.',
+      'Despliegue oficial v6.3.43 en Firebase Hosting.'
+    ]
+  },
+  {
     id: 'v6.3.42',
     version_tag: 'v6.3.42',
     fecha: '02 de Octubre, 2026',

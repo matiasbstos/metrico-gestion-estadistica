@@ -1515,6 +1515,9 @@ export default function ModalConfiguracionCorreo({
     return {};
   });
 
+  // Contador regresivo en segundos para el próximo despacho autónomo
+  const [segundosRestantes, setSegundosRestantes] = useState(null);
+
   // Mapa de Turnos Cancelados u Omitidos manualmente por el usuario
   const [cancelledShiftsMap, setCancelledShiftsMap] = useState(() => {
     try {
@@ -2005,6 +2008,8 @@ export default function ModalConfiguracionCorreo({
           isSent,
           isCancelled,
           horarioProyectado,
+          scheduledTimestampMs: infoDespacho.scheduledTimestampMs,
+          debeDispararAhora: infoDespacho.debeDispararAhora,
           esPausado,
           motivoPausa,
           proximoHabilTexto
@@ -2535,37 +2540,50 @@ export default function ModalConfiguracionCorreo({
     }
   };
 
-  // Despacho Inmediato de Informe Oficial de Turno Auditado (Directo por fila o desde previsualizador)
+  // Despacho Inmediato o Programado de Informe Oficial de Turno Auditado (Directo por fila o autónomo)
   const [despachandoTurno, setDespachandoTurno] = useState(false);
 
-  const handleDespacharTurnoFila = async (shiftRow) => {
+  const handleDespacharTurnoFila = async (shiftRow, { esAutomatico = false, forzarEnvio = true } = {}) => {
     if (!shiftRow) return;
     const target = activeEmailsString;
     if (!target) {
-      if (showNotif) showNotif('No hay destinatarios activos configurados en la lista de correos.', 'error');
+      if (showNotif && !esAutomatico) showNotif('No hay destinatarios activos configurados en la lista de correos.', 'error');
       return;
     }
 
     const isCompleto = shiftRow.isCompleto !== undefined ? shiftRow.isCompleto : (shiftRow.esTurnoCompleto !== undefined ? shiftRow.esTurnoCompleto : true);
 
-    if (isCompleto === false) {
-      if (!window.confirm(`⚠️ ADVERTENCIA DE INTEGRIDAD CLÍNICA (Regla 5 SSOT Rayen):\n\nEl turno seleccionado (${shiftRow.textoCompleto}) figura como "EN CURSO / PARCIAL" con ${shiftRow.pacientes || shiftRow.totalAdmitidos} pacientes.\n\nPor protocolo oficial, el despacho asistencial requiere que el turno esté 100% cerrado y concluido.\n\n¿Deseas forzar el envío para este turno parcial de todas formas?`)) {
+    if (!esAutomatico) {
+      if (isCompleto === false) {
+        if (!window.confirm(`⚠️ ADVERTENCIA DE INTEGRIDAD CLÍNICA (Regla 5 SSOT Rayen):\n\nEl turno seleccionado (${shiftRow.textoCompleto}) figura como "EN CURSO / PARCIAL" con ${shiftRow.pacientes || shiftRow.totalAdmitidos} pacientes.\n\nPor protocolo oficial, el despacho asistencial requiere que el turno esté 100% cerrado y concluido.\n\n¿Deseas forzar el envío para este turno parcial de todas formas?`)) {
+          return;
+        }
+      }
+
+      // Regla 20 MÉTRICO: Advertencia de política asistencial en fin de semana o feriado oficial
+      const hoyEsHabil = isDiaHabilChile(new Date(), pautasDB);
+      if (!hoyEsHabil && !forzarEnvio) {
+        const proxHabil = getProximoDiaHabilChile(new Date(), pautasDB);
+        const avisoHabil = `🛡️ POLÍTICA INSTITUCIONAL DE DESPACHO (Regla 20 MÉTRICO):\n\nHoy no es un día hábil (fin de semana o feriado nacional oficial en Chile).\nPor directriz oficial, los correos asistenciales se encuentran pausados hasta el próximo día hábil:\n\n📅 ${proxHabil?.textoCompleto || 'Lunes a las 08:30 hrs'}.\n\n¿Deseas autorizar una excepción clínica manual y emitir el correo de todas formas?`;
+        if (!window.confirm(avisoHabil)) {
+          return;
+        }
+      }
+
+      if (!window.confirm(`¿Confirmas el despacho inmediato del informe oficial para el siguiente turno auditado?\n\n${shiftRow.textoCompleto}\n\nDestinatarios: ${target}`)) {
         return;
       }
-    }
-
-    // Regla 20 MÉTRICO: Advertencia de política asistencial en fin de semana o feriado oficial
-    const hoyEsHabil = isDiaHabilChile(new Date(), pautasDB);
-    if (!hoyEsHabil) {
-      const proxHabil = getProximoDiaHabilChile(new Date(), pautasDB);
-      const avisoHabil = `🛡️ POLÍTICA INSTITUCIONAL DE DESPACHO (Regla 20 MÉTRICO):\n\nHoy no es un día hábil (fin de semana o feriado nacional oficial en Chile).\nPor directriz oficial, los correos asistenciales se encuentran pausados hasta el próximo día hábil:\n\n📅 ${proxHabil?.textoCompleto || 'Lunes a las 08:30 hrs'}.\n\n¿Deseas autorizar una excepción clínica manual y emitir el correo de todas formas?`;
-      if (!window.confirm(avisoHabil)) {
+    } else {
+      // Modo autónomo programado: salvaguardas silenciosas
+      if (isCompleto === false) {
+        console.log('[Despacho Autónomo] Turno en curso/parcial omitido por Regla 5 SSOT:', shiftRow.textoCompleto);
         return;
       }
-    }
-
-    if (!window.confirm(`¿Confirmas el despacho inmediato del informe oficial para el siguiente turno auditado?\n\n${shiftRow.textoCompleto}\n\nDestinatarios: ${target}`)) {
-      return;
+      const hoyEsHabil = isDiaHabilChile(new Date(), pautasDB);
+      if (!hoyEsHabil && !forzarEnvio) {
+        console.log('[Despacho Autónomo] Hoy es día inhábil (Regla 20). Envío programado en pausa.');
+        return;
+      }
     }
 
     setDespachandoRowKey(shiftRow.shiftKey);
@@ -2585,7 +2603,8 @@ export default function ModalConfiguracionCorreo({
         destinatarios: target,
         tipoEnvio: 'INFORME_DIARIO_TURNO',
         turnoAuditado: shiftPayload,
-        forzarEnvio: true
+        esAutomatico,
+        forzarEnvio: esAutomatico ? forzarEnvio : true
       });
 
       if (res && res.data && res.data.success) {
@@ -2621,7 +2640,9 @@ export default function ModalConfiguracionCorreo({
         tipo: `Informe Oficial de Turno (${shiftRow.tipo || shiftRow.horario || 'Guardia'})`,
         destinatario: target,
         estado: 'EXITOSO',
-        detalles: `Despacho oficial entregado para ${shiftRow.textoCompleto}.`
+        detalles: esAutomatico
+          ? `⚡ [Despacho Autónomo] Despacho oficial entregado para ${shiftRow.textoCompleto}.`
+          : `Despacho oficial manual entregado para ${shiftRow.textoCompleto}.`
       };
       setTestLogs(prev => [newLog, ...prev.slice(0, 29)]);
 
@@ -2641,7 +2662,14 @@ export default function ModalConfiguracionCorreo({
       });
       persistDestinatarios(updatedAfterDispatch);
 
-      if (showNotif) showNotif(`✔ Informe oficial de ${shiftRow.textoCompleto} despachado exitosamente a: ${target}`, 'success');
+      if (showNotif) {
+        showNotif(
+          esAutomatico
+            ? `⚡ [Despacho Autónomo] Informe oficial de ${shiftRow.textoCompleto} entregado vía SMTP a: ${target}`
+            : `✔ Informe oficial de ${shiftRow.textoCompleto} despachado exitosamente a: ${target}`,
+          'success'
+        );
+      }
     } else {
       playErrorChime();
       const newLog = {
@@ -2675,9 +2703,34 @@ export default function ModalConfiguracionCorreo({
     setDespachandoTurno(false);
   };
 
-  const handleDespacharTurnoAuditado = () => {
-    handleDespacharTurnoFila(selectedShiftObj || turnoInfo);
+  const handleDespacharTurnoAuditado = (opts = {}) => {
+    handleDespacharTurnoFila(selectedShiftObj || turnoInfo, opts);
   };
+
+  // Motor de Despacho Autónomo Activo en Vivo (Ticker de Monitoreo Continuo)
+  useEffect(() => {
+    if (!confirmarEnvioAutomatico) return;
+
+    const autonomousTicker = setInterval(() => {
+      if (despachandoTurno || despachandoRowKey) return;
+      if (!proximoTurnoPendiente || !proximoTurnoPendiente.esTurnoCompleto) return;
+      if (proximoTurnoPendiente.isSent || proximoTurnoPendiente.isCancelled) return;
+      if (proximoTurnoPendiente.esPausado) return; // Respeta Regla 20 de veda fin de semana/feriado
+
+      const targetMs = proximoTurnoPendiente.scheduledTimestampMs;
+      if (targetMs) {
+        const diffSecs = Math.max(0, Math.floor((targetMs - Date.now()) / 1000));
+        setSegundosRestantes(diffSecs);
+
+        if (diffSecs <= 0 || proximoTurnoPendiente.debeDispararAhora) {
+          console.log('[Motor Autónomo MÉTRICO] Horario programado cumplido. Despachando turno:', proximoTurnoPendiente.textoCompleto);
+          handleDespacharTurnoFila(proximoTurnoPendiente, { esAutomatico: true, forzarEnvio: false });
+        }
+      }
+    }, 5000); // Evalúa cada 5 segundos
+
+    return () => clearInterval(autonomousTicker);
+  }, [confirmarEnvioAutomatico, proximoTurnoPendiente, despachandoTurno, despachandoRowKey, activeEmailsString]);
 
   if (!isOpen) return null;
 
@@ -2799,8 +2852,21 @@ export default function ModalConfiguracionCorreo({
                 </div>
               </div>
 
-              {/* Botón Maestro de Pausar / Cancelar / Reanudar */}
-              <div className="flex items-center gap-2 shrink-0">
+              {/* Botón Maestro de Pausar / Cancelar / Reanudar + Despacho Inmediato */}
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                {proximoTurnoPendiente && (
+                  <button
+                    type="button"
+                    disabled={despachandoTurno}
+                    onClick={() => handleDespacharTurnoFila(proximoTurnoPendiente, { esAutomatico: false, forzarEnvio: true })}
+                    className="px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer shadow-md bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white shadow-indigo-600/30 active:scale-95 disabled:opacity-50"
+                    title="Despachar inmediatamente el informe del turno cerrado en espera a los destinatarios configurados"
+                  >
+                    <Zap className="w-4 h-4 text-amber-300" />
+                    <span>{despachandoTurno ? 'Despachando...' : 'Despachar Informe Ahora'}</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={() => {
@@ -2897,11 +2963,22 @@ export default function ModalConfiguracionCorreo({
                     <p className={`text-xs font-black ${proximoTurnoPendiente.esPausado ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                       {proximoTurnoPendiente.horarioProyectado || 'Próximo día hábil 08:30 hrs'}
                     </p>
-                    <p className="text-[10.5px] text-secondary-custom font-medium mt-1">
-                      {proximoTurnoPendiente.esPausado 
-                        ? `⏸ Pausa por Veda Fin de Semana: Emite ${proximoTurnoPendiente.proximoHabilTexto || 'Lunes 08:30 hrs'}`
-                        : '⚡ En espera de cumplimiento del horario para emisión autónoma.'}
-                    </p>
+                    
+                    {proximoTurnoPendiente.esPausado ? (
+                      <p className="text-[10.5px] text-amber-600 dark:text-amber-400 font-medium mt-1">
+                        ⏸ Pausa por Veda Fin de Semana: Emite {proximoTurnoPendiente.proximoHabilTexto || 'Lunes 08:30 hrs'}
+                      </p>
+                    ) : (segundosRestantes !== null && segundosRestantes > 0) ? (
+                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-500/15 text-indigo-500 dark:text-indigo-300 border border-indigo-500/30 text-[10px] font-black mt-1">
+                        <Clock className="w-3 h-3 animate-spin" />
+                        <span>Emisión autónoma en {Math.floor(segundosRestantes / 60)}m {segundosRestantes % 60}s</span>
+                      </div>
+                    ) : (
+                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-black mt-1 animate-pulse">
+                        <Zap className="w-3 h-3 text-amber-500" />
+                        <span>⚡ Despacho Inminente (Listo para emisión)</span>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <p className="text-xs font-semibold text-secondary-custom">Sin fechas pendientes</p>
