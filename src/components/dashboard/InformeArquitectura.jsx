@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.42',
+    version_tag: 'v6.3.42',
+    fecha: '02 de Octubre, 2026',
+    fecha_despliegue: '02 de Octubre, 2026',
+    proposito_actualizacion: 'Incorporación Oficial del Apoyo Técnico de Mariel Quintanilla (Directora Técnica SAR) en Módulo "Sobre MÉTRICO".',
+    medios_y_stack: [
+      'ModalAcercaDe.jsx (Ficha ejecutiva de honor para Mariel Quintanilla como Directora Técnica SAR y Apoyo Técnico Asistencial, actualización de pestaña a "Creador & Dirección Técnica", y sintonización de footer institucional)',
+      'version.js (Sincronización a v6.3.42)',
+      'ModalMuroActualizaciones.jsx (Registro de actualización v6.3.42)',
+      'DevLogModule.jsx (Publicación devlog v6.3.42)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Reconocimiento de Liderazgo Clínico: Se visibiliza formalmente el apoyo técnico asistencial brindado por la Directora Técnica Mariel Quintanilla en el SAR Elsa Romo Aravena. 2) Complementariedad Operativa: Integración sinérgica entre la arquitectura de datos de Matías Bustos y la validación asistencial y supervisión clínica de la Dirección Técnica.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Sin impacto en bundle principal; optimización de layout en chunk diferido.'
+    },
+    modulos_afectados: ['ModalAcercaDe.jsx', 'version.js', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx', 'InformeArquitectura.jsx'],
+    detalles_tecnicos: [
+      'Nueva tarjeta institucional en ModalAcercaDe.jsx con acento esmeralda.',
+      'Sincronización de etiquetas y subtítulos con estándares de gestión asistencial.',
+      'Actualización oficial a versión v6.3.42.'
+    ]
+  },
+  {
     id: 'v6.3.41',
     version_tag: 'v6.3.41',
     fecha: '02 de Octubre, 2026',

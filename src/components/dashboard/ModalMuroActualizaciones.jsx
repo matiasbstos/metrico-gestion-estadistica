@@ -15,6 +15,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.42',
+      version: 'v6.3.42',
+      fecha: '02 de Octubre, 2026',
+      badge: 'LIDERAZGO Y GESTIÓN ASISTENCIAL: APOYO TÉCNICO DIRECTORA TÉCNICA MARIEL QUINTANILLA',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Incorporación Oficial del Apoyo Técnico de Mariel Quintanilla (Directora Técnica del SAR)',
+      categoria: 'Arquitectura & Plataforma',
+      icon: Stethoscope,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'A requerimiento de la jefatura asistencial, se incorporó formalmente en el módulo institucional "Sobre MÉTRICO" la ficha ejecutiva y reconocimiento al apoyo técnico brindado por Mariel Quintanilla, Directora Técnica del SAR Elsa Romo Aravena. Se destaca su liderazgo asistencial en la definición de requerimientos clínicos de urgencia, supervisión de procesos de Triage Manchester (C1-C5), auditoría de tiempos de estadía y respaldo directivo continuo. Asimismo, la pestaña se actualizó a "Creador & Dirección Técnica", se fortaleció la sección del equipo con la Dirección Técnica SAR y se sincronizó el pie institucional del modal.',
+      instructivo: {
+        paraQueSirve: 'Reconoce de forma transparente la alianza estratégica entre la arquitectura técnica de datos de Matías Bustos y la conducción asistencial de Mariel Quintanilla para garantizar la máxima resolutividad y rigor clínico en el SAR Elsa Romo Aravena.',
+        quePuedesVer: 'En "Sobre MÉTRICO" -> "Creador & Dirección Técnica": se exhiben dos fichas de honor en paralelo (Matías Bustos como Creador y Mariel Quintanilla como Directora Técnica), junto con la mención de apoyo técnico en el pie del modal y en la pestaña de Comunidad Asistencial.',
+        ejemploUso: 'Haz clic en "Sobre MÉTRICO" en la barra lateral para revisar las fichas de liderazgo técnico y asistencial del establecimiento.'
+      },
+      changes: [
+        'Incorporación de la ficha de Mariel Quintanilla (Directora Técnica SAR) en ModalAcercaDe.jsx.',
+        'Actualización del selector a "Creador & Dirección Técnica" con icono institucional.',
+        'Refuerzo de la tarjeta de Dirección Técnica en la pestaña de Equipo & Red Asistencial.',
+        'Actualización del pie institucional: Desarrollado por Matías Bustos con el Apoyo Técnico de Mariel Quintanilla.',
+        'Sincronización oficial de versión v6.3.42 en version.js, DevLogModule y arquitectura.'
+      ]
+    },
+    {
       id: 'v6.3.41',
       version: 'v6.3.41',
       fecha: '02 de Octubre, 2026',

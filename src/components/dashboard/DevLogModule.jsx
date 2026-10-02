@@ -8,6 +8,29 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-42',
+    titulo: 'Incorporación Oficial del Apoyo Técnico de Mariel Quintanilla (Directora Técnica del SAR)',
+    fecha: '2026-10-02',
+    version_tag: 'v6.3.42',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_42.png',
+    problema: 'Se requería formalizar y visibilizar en la ventana institucional "Sobre MÉTRICO" el liderazgo y apoyo técnico asistencial otorgado por Mariel Quintanilla en su calidad de Directora Técnica del SAR Elsa Romo Aravena, reconociendo su rol indispensable en la validación clínica, definición de flujos de urgencia y supervisión operativa.',
+    logica: '1) Se diseñó e integró en ModalAcercaDe.jsx una tarjeta ejecutiva paralela de reconocimiento para Mariel Quintanilla con insignia "Directora Técnica SAR", detallando su labor en validación de requerimientos de urgencia, supervisión de procesos de Triage Manchester (C1 a C5), control de tiempos de espera y respaldo institucional para MÉTRICO. 2) Se renombró la pestaña a "Creador & Dirección Técnica". 3) Se reforzó la tarjeta de Dirección Técnica en la sección de Red Asistencial. 4) Se actualizó el pie institucional del modal: "Desarrollado por Matías Bustos con el Apoyo Técnico de Mariel Quintanilla (Directora Técnica) para SAR Elsa Romo Aravena". 5) Se sincronizó la versión v6.3.42.',
+    solucion: 'El sistema refleja de forma transparente y fidedigna la complementariedad entre la ingeniería de datos y la conducción clínica asistencial del SAR Elsa Romo Aravena.',
+    fullPost: `En esta versión v6.3.42 incorporamos el reconocimiento formal a la Dirección Técnica:
+
+1. **Reconocimiento a Mariel Quintanilla (Directora Técnica SAR)**:
+   - Ficha ejecutiva con insignias oficiales en la pestaña **"Creador & Dirección Técnica"**.
+   - Detalle de su apoyo técnico en validación de protocolos de urgencia, categorización clínica Manchester y auditoría de calidad asistencial.
+
+2. **Refuerzo en Estructura Institucional**:
+   - Tarjeta destacada de Dirección Técnica en la pestaña de Comunidad Asistencial.
+   - Sintonización del pie institucional del modal acreditando el desarrollo y apoyo técnico.
+
+3. **Versión v6.3.42**:
+   - Sincronización oficial de versión en \`src/config/version.js\`.`
+  },
+  {
     id: 'devlog-v6-3-41',
     titulo: 'Incorporación Oficial del Módulo y Acceso "Sobre MÉTRICO" (Sistema, Creador & Equipo)',
     fecha: '2026-10-02',

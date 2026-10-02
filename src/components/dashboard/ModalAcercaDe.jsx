@@ -74,7 +74,7 @@ export default function ModalAcercaDe({ isOpen, onClose }) {
           <div className="flex items-center gap-2 mt-6 overflow-x-auto pb-1 scrollbar-none relative z-10">
             {[
               { id: 'sistema', label: '¿Qué es el Sistema?', icon: Sparkles },
-              { id: 'creador', label: 'Creador & Arquitectura', icon: Code },
+              { id: 'creador', label: 'Creador & Dirección Técnica', icon: Award },
               { id: 'equipo', label: 'Equipo & Red Asistencial', icon: Users },
               { id: 'stack', label: 'Ficha Técnica & Seguridad', icon: Cpu }
             ].map(tab => {
@@ -202,10 +202,10 @@ export default function ModalAcercaDe({ isOpen, onClose }) {
             </div>
           )}
 
-          {/* PESTAÑA 2: CREADOR & ARQUITECTURA */}
+          {/* PESTAÑA 2: CREADOR & DIRECCIÓN TÉCNICA */}
           {activeTab === 'creador' && (
             <div className="space-y-6 animate-fade-in">
-              {/* FICHA BIOGRÁFICA Y DE AUTORÍA */}
+              {/* FICHA 1: CREADOR & DESARROLLADOR */}
               <div className="bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 text-white p-6 rounded-3xl border border-indigo-500/30 shadow-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -247,14 +247,59 @@ export default function ModalAcercaDe({ isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* PROPÓSITO DEL DESARROLLO */}
+              {/* FICHA 2: DIRECCIÓN TÉCNICA & APOYO ASISTENCIAL */}
+              <div className="bg-gradient-to-br from-emerald-950 via-slate-900 to-slate-950 text-white p-6 rounded-3xl border border-emerald-500/30 shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-sky-400 p-1 shadow-lg shadow-emerald-500/40 flex-shrink-0">
+                    <div className="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center">
+                      <Stethoscope className="w-10 h-10 text-emerald-400" />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5 flex-1">
+                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                      <h3 className="text-xl font-black text-white">Mariel Quintanilla</h3>
+                      <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-600 text-white shadow-sm">
+                        Directora Técnica SAR
+                      </span>
+                    </div>
+                    <p className="text-xs text-emerald-300 font-bold uppercase tracking-wider">
+                      Apoyo Técnico, Validación Asistencial & Gestión Clínica SAR Elsa Romo Aravena
+                    </p>
+                    <p className="text-xs text-slate-300 leading-relaxed pt-2">
+                      Liderazgo técnico y conducción asistencial en la definición de requerimientos clínicos de urgencia, auditoría de tiempos de espera, protocolos de Triage Manchester (C1 a C5), supervisión de calidad y respaldo institucional fundamental para la conceptualización e implementación del sistema <strong className="text-white font-bold">MÉTRICO</strong>.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-5 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center sm:text-left">
+                  <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <span className="block text-[10px] text-slate-400 uppercase font-black">Cargo Directivo</span>
+                    <span className="text-xs font-bold text-slate-200">Directora Técnica SAR</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <span className="block text-[10px] text-slate-400 uppercase font-black">Apoyo Técnico</span>
+                    <span className="text-xs font-bold text-emerald-400">Validación de Flujos Clínicos</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800">
+                    <span className="block text-[10px] text-slate-400 uppercase font-black">Centro Asistencial</span>
+                    <span className="text-xs font-bold text-sky-400">SAR Elsa Romo (CORMUMEL)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* PROPÓSITO DEL DESARROLLO Y ALIANZA TÉCNICA */}
               <div className="space-y-3">
                 <h4 className="text-xs font-black uppercase tracking-wider text-secondary-custom flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-indigo-500" /> Filosofía de Ingeniería y Propósito
+                  <Terminal className="w-4 h-4 text-indigo-500" /> Alianza Técnica, Rigor Clínico y Propósito
                 </h4>
                 <div className="bg-input-custom/50 p-5 rounded-2xl border border-card-custom space-y-3 text-secondary-custom text-xs leading-relaxed">
                   <p>
-                    El proyecto MÉTRICO nació de la necesidad urgente y sentida en el SAR Elsa Romo Aravena de contar con una herramienta ágil, confiable y 100% verídica que permitiera auditar en segundos lo que antes tomaba horas o días de cruce manual de planillas Excel.
+                    El proyecto MÉTRICO nació de la necesidad urgente y sentida en el <strong className="text-primary-custom">SAR Elsa Romo Aravena</strong> de contar con una herramienta ágil, confiable y 100% verídica que permitiera auditar en segundos lo que antes tomaba horas o días de cruce manual de planillas Excel.
+                  </p>
+                  <p>
+                    La sinergia entre el desarrollo de arquitectura de software y algoritmos liderado por <strong className="text-primary-custom">Matías Bustos</strong> junto con el apoyo técnico, validación asistencial y supervisión de procesos de la Directora Técnica <strong className="text-primary-custom">Mariel Quintanilla</strong>, permitió diseñar una solución adaptada exactamente a la dinámica operativa real de las guardias médicas y de enfermería de urgencia.
                   </p>
                   <p>
                     Cada módulo, fórmula de cálculo y gráfico fue programado desde cero bajo rigurosos protocolos de consistencia matemática (norma de oro: <strong className="text-primary-custom">ningún informe puede emitirse si no concilia al 100% con los datos de Rayen</strong>). Toda la evolución del sistema se encuentra documentada en la <strong className="text-indigo-600 dark:text-indigo-400">Bitácora de Desarrollo (DevLog)</strong> del panel lateral.
@@ -301,9 +346,21 @@ export default function ModalAcercaDe({ isOpen, onClose }) {
                   </p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-card-custom border border-card-custom shadow-sm space-y-2">
+                <div className="p-4 rounded-2xl bg-card-custom border border-emerald-500/30 shadow-sm space-y-2 bg-emerald-500/5">
                   <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
                     <Stethoscope className="w-4 h-4" />
+                    <h5 className="font-black text-xs uppercase tracking-wide">
+                      Dirección Técnica SAR
+                    </h5>
+                  </div>
+                  <p className="text-xs text-secondary-custom leading-relaxed">
+                    Conducción técnica y asistencial liderada por <strong className="text-primary-custom">Mariel Quintanilla</strong>, Directora Técnica del SAR. Supervisión continua de calidad, auditoría de tiempos clínicos y enlace estratégico con los equipos de guardia y la red comunal.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-card-custom border border-card-custom shadow-sm space-y-2">
+                  <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400">
+                    <Users className="w-4 h-4" />
                     <h5 className="font-black text-xs uppercase tracking-wide">
                       Equipos de Guardia (Turnos 1, 2, 3 y 4)
                     </h5>
@@ -325,7 +382,7 @@ export default function ModalAcercaDe({ isOpen, onClose }) {
                   </p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-card-custom border border-card-custom shadow-sm space-y-2">
+                <div className="p-4 rounded-2xl bg-card-custom border border-card-custom shadow-sm space-y-2 md:col-span-2">
                   <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400">
                     <HeartPulse className="w-4 h-4" />
                     <h5 className="font-black text-xs uppercase tracking-wide">
@@ -451,7 +508,7 @@ export default function ModalAcercaDe({ isOpen, onClose }) {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="font-semibold">
-              MÉTRICO {CURRENT_APP_VERSION} • Diseñado & Desarrollado por Matías Bustos para SAR Elsa Romo Aravena
+              MÉTRICO {CURRENT_APP_VERSION} • Desarrollado por Matías Bustos con el Apoyo Técnico de Mariel Quintanilla (Directora Técnica) para SAR Elsa Romo Aravena
             </span>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
