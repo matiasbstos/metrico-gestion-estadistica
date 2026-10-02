@@ -10,6 +10,32 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.41',
+    version_tag: 'v6.3.41',
+    fecha: '02 de Octubre, 2026',
+    fecha_despliegue: '02 de Octubre, 2026',
+    proposito_actualizacion: 'Incorporación Oficial del Módulo y Acceso "Sobre MÉTRICO" (Sistema, Creador & Equipo Asistencial) en Barra Lateral y Muro de Actualizaciones.',
+    medios_y_stack: [
+      'ModalAcercaDe.jsx (Nuevo componente con 4 vistas navegables: Qué es el Sistema, Creador & Arquitectura Matías Bustos, Equipo & Red Asistencial SAR Elsa Romo Aravena / CORMUMEL, y Ficha Técnica & Seguridad)',
+      'Dashboard.jsx (Integración del botón "Sobre MÉTRICO" en la barra lateral inferior, menú de navegación principal, y lazy load del modal)',
+      'ModalMuroActualizaciones.jsx (Acceso directo desde el encabezado hacia Sobre MÉTRICO y sincronización de versión)',
+      'version.js (Centralización de la constante canónica CURRENT_APP_VERSION = v6.3.41)',
+      'DevLogModule.jsx (Registro oficial de autoría y bitácora de actualización)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Transparencia y Accesibilidad: Cualquier usuario clínico, directivo o administrativo puede consultar en cualquier momento la definición, autoría y respaldo asistencial del sistema desde la barra lateral. 2) Reconocimiento de Autoría y Equipo: Crédito unívoco a Matías Bustos (Arquitectura de Datos y Desarrollo Full-Stack) y al Equipo de Guardia del SAR Elsa Romo Aravena (Turnos 1 a 4 y Red APS CORMUMEL). 3) Privacidad y Seguridad: Formalización de los protocolos de la Ley 20.584 y arquitectura cero-confianza.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Carga perezosa (lazy loading) de ModalAcercaDe.jsx sin impacto en el bundle principal (<26kB en chunk separado).'
+    },
+    modulos_afectados: ['ModalAcercaDe.jsx', 'Dashboard.jsx', 'ModalMuroActualizaciones.jsx', 'src/config/version.js', 'DevLogModule.jsx', 'InformeArquitectura.jsx'],
+    detalles_tecnicos: [
+      'Diseño de interfaz con tabs ejecutivos e iconografía Lucide.',
+      'Soporte completo de modo Claro/Oscuro y contraste normativo.',
+      'Centralización de versión en version.js para evitar inconsistencias de versión.',
+      'Despliegue y validación en producción.'
+    ]
+  },
+  {
     id: 'v6.3.40',
     version_tag: 'v6.3.40',
     fecha: '02 de Octubre, 2026',

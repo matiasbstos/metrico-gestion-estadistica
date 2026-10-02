@@ -4,15 +4,40 @@ import {
   HelpCircle, BookOpen, Lightbulb, Eye, Mail, Volume2, Lock, Activity, ShieldCheck, Database, FileSpreadsheet, 
   BarChart3, LineChart, ArrowLeftRight, Send, Award, Users, TrendingUp, CheckCircle, Zap, UserCheck, Cloud, 
   ExternalLink, Search, Printer, FileText, RefreshCw, UploadCloud, Compass, Flame, Maximize2, Wind,
-  Building2, Stethoscope, Gauge, Workflow
+  Building2, Stethoscope, Gauge, Workflow, Info
 } from 'lucide-react';
+import { CURRENT_APP_VERSION } from '../../config/version';
 
-export default function ModalMuroActualizaciones({ isOpen, onClose }) {
+export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcercaDe }) {
   const [selectedCat, setSelectedCat] = useState('TODOS');
 
   if (!isOpen) return null;
 
   const updatesList = [
+    {
+      id: 'v6.3.41',
+      version: 'v6.3.41',
+      fecha: '02 de Octubre, 2026',
+      badge: 'VISIBILIDAD INSTITUCIONAL: MÓDULO Y ACCESO "SOBRE MÉTRICO & EQUIPO"',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Incorporación Oficial del Módulo y Acceso "Sobre MÉTRICO" (Sistema, Creador & Equipo)',
+      categoria: 'Arquitectura & Plataforma',
+      icon: Sparkles,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'A solicitud de la jefatura asistencial, se habilitó un acceso directo y permanente en la barra lateral para transparentar qué es MÉTRICO, su autoría y el equipo humano de urgencia. Se diseñó el nuevo modal interactivo ModalAcercaDe.jsx con navegación por pestañas: 1) Definición del Sistema, significado de MÉTRICO y pilares asistenciales (Cuadratura Rayen 100%, Triage Manchester, Despacho de Informes de Guardia y Alertas Epidemiológicas); 2) Creador & Arquitectura (Matías Bustos, diseño de arquitectura de datos clínicos, modelos SSOT y desarrollo full-stack); 3) Comunidad Asistencial (SAR Elsa Romo Aravena, Equipos de Guardia 1, 2, 3 y 4, Red APS CORMUMEL y Hospital San José de Melipilla); y 4) Ficha Técnica (Stack tecnológico, directrices de privacidad y Ley 20.584). El botón se encuentra disponible en la barra lateral tanto en modo expandido como colapsado, y en el encabezado del Muro de Novedades.',
+      instructivo: {
+        paraQueSirve: 'Permite a cualquier profesional médico, de enfermería, directivo o administrativo consultar en cualquier momento la procedencia institucional, el propósito clínico y el soporte técnico del sistema con un solo clic.',
+        quePuedesVer: 'En la barra lateral: un botón destacado "Sobre MÉTRICO" con insignia "SISTEMA" y otro en la lista de módulos bajo "Bitácora de Desarrollo". Al hacer clic, se abre una ventana ejecutiva de 4 secciones con toda la información detallada.',
+        ejemploUso: 'Haz clic en "Sobre MÉTRICO" en la parte inferior izquierda de la pantalla para conocer al creador, al equipo asistencial de guardia y las especificaciones técnicas del SAR Elsa Romo Aravena.'
+      },
+      changes: [
+        'Creación del componente institucional ModalAcercaDe.jsx con 4 pestañas navegables.',
+        'Integración del botón "Sobre MÉTRICO" en la barra lateral inferior y menú de navegación.',
+        'Vínculo de acceso directo en el Muro de Actualizaciones (ModalMuroActualizaciones.jsx).',
+        'Centralización de versión en src/config/version.js (v6.3.41).',
+        'Reconocimiento de autoría para Matías Bustos y crédito al Equipo de Guardia del SAR Elsa Romo Aravena / CORMUMEL.'
+      ]
+    },
     {
       id: 'v6.3.40',
       version: 'v6.3.40',
@@ -4545,13 +4570,22 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
               <Megaphone className="w-7 h-7" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
                   Histórico de Versiones & Instructivos
                 </span>
                 <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                  v3.1.0 (Activa)
+                  {CURRENT_APP_VERSION || 'v6.3.40'} (Activa)
                 </span>
+                {onOpenAcercaDe && (
+                  <button
+                    onClick={() => { onClose(); onOpenAcercaDe(); }}
+                    className="text-[10px] font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-500/15 hover:bg-indigo-500/25 px-2.5 py-0.5 rounded-full border border-indigo-500/30 transition-all flex items-center gap-1 cursor-pointer"
+                  >
+                    <Info className="w-3 h-3 text-indigo-500" />
+                    <span>Sobre el Sistema & Creador</span>
+                  </button>
+                )}
               </div>
               <h2 className="text-xl md:text-2xl font-black text-primary-custom tracking-tight mt-1">
                 Muro de Novedades e Instructivos del Sistema MÉTRICO

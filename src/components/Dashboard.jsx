@@ -57,6 +57,7 @@ const GestionUsuarios = safeLazy(() => import('./dashboard/GestionUsuarios'));
 const ModalVerificacionSesion = safeLazy(() => import('./dashboard/ModalVerificacionSesion'));
 const ModalMuroActualizaciones = safeLazy(() => import('./dashboard/ModalMuroActualizaciones'));
 const ModalConfiguracionCorreo = safeLazy(() => import('./dashboard/ModalConfiguracionCorreo'));
+const ModalAcercaDe = safeLazy(() => import('./dashboard/ModalAcercaDe'));
 const Radar = safeLazy(() => import('./dashboard/Radar'));
 const InformeArquitectura = safeLazy(() => import('./dashboard/InformeArquitectura'));
 const DevLogModule = safeLazy(() => import('./dashboard/DevLogModule'));
@@ -72,7 +73,7 @@ import {
   CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
   BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
   Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
-  HeartPulse, Shield, ShieldCheck, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail, BookOpen, Terminal, SlidersHorizontal, Wind, Workflow, Cpu
+  HeartPulse, Shield, ShieldCheck, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail, BookOpen, Terminal, SlidersHorizontal, Wind, Workflow, Cpu, Info
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
@@ -90,7 +91,7 @@ import { usePautasTurnos } from '../hooks/usePautasTurnos';
 import { COLORS, DOC_COLORS, AGE_RANGES, METRIC_LABELS } from '../config/constants';
 import { getNormalizedUserPermissions } from '../config/modules';
 
-const CURRENT_APP_VERSION = 'v6.3.40';
+import { CURRENT_APP_VERSION } from '../config/version';
 
 // Colores Institucionales
 
@@ -132,6 +133,7 @@ const DashboardContent = () => {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [showMuroModal, setShowMuroModal] = useState(false);
   const [showCorreoModal, setShowCorreoModal] = useState(false);
+  const [showAcercaDeModal, setShowAcercaDeModal] = useState(false);
   const [centroActivo, setCentroActivo] = useState(localStorage.getItem('metrico_centro') || 'SAR Elsa Romo Aravena');
   
   const [manualForm, setManualForm] = useState({
@@ -1483,7 +1485,18 @@ const DashboardContent = () => {
       {/* MODAL DE MURO DE ACTUALIZACIONES & NOVEDADES */}
       {showMuroModal && (
         <React.Suspense fallback={null}>
-          <ModalMuroActualizaciones isOpen={showMuroModal} onClose={() => setShowMuroModal(false)} />
+          <ModalMuroActualizaciones 
+            isOpen={showMuroModal} 
+            onClose={() => setShowMuroModal(false)} 
+            onOpenAcercaDe={() => setShowAcercaDeModal(true)}
+          />
+        </React.Suspense>
+      )}
+
+      {/* MODAL ACERCA DE MÉTRICO (SISTEMA, CREADOR & EQUIPO) */}
+      {showAcercaDeModal && (
+        <React.Suspense fallback={null}>
+          <ModalAcercaDe isOpen={showAcercaDeModal} onClose={() => setShowAcercaDeModal(false)} />
         </React.Suspense>
       )}
       
@@ -2026,6 +2039,12 @@ const DashboardContent = () => {
                     className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'devlog' ? 'accent-bg-custom text-white font-bold' : 'bg-transparent text-secondary-custom hover:text-emerald-400 hover:bg-emerald-400/10'}`}>
                     <Terminal className="w-4 h-4 flex-shrink-0 text-emerald-400" />
                   </button>
+                  <button 
+                    onClick={() => setShowAcercaDeModal(true)} 
+                    title="Sobre MÉTRICO (Sistema, Creador & Equipo)"
+                    className="flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center bg-transparent text-secondary-custom hover:text-indigo-400 hover:bg-indigo-500/10 cursor-pointer">
+                    <Info className="w-4 h-4 flex-shrink-0 text-indigo-400" />
+                  </button>
                 </>
               ) : (
                 <div className="space-y-1 w-full">
@@ -2098,6 +2117,19 @@ const DashboardContent = () => {
                     <Terminal className="w-4 h-4 flex-shrink-0 text-emerald-400" />
                     <span className="animate-fade-in truncate">Bitácora de Desarrollo</span>
                   </button>
+
+                  <button 
+                    onClick={() => { setShowAcercaDeModal(true); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
+                    title="Sobre MÉTRICO — Qué es el sistema, Creador & Equipo Asistencial"
+                    className="w-full flex items-center justify-between px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 bg-transparent text-secondary-custom hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-500/10 cursor-pointer">
+                    <div className="flex items-center gap-3">
+                      <Info className="w-4 h-4 flex-shrink-0 text-indigo-500" />
+                      <span className="animate-fade-in truncate">Sobre MÉTRICO</span>
+                    </div>
+                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 shrink-0">
+                      EQUIPO
+                    </span>
+                  </button>
                 </div>
               )
             )}
@@ -2105,9 +2137,23 @@ const DashboardContent = () => {
         </div>
         <div className={`p-3.5 border-t border-card-custom/60 space-y-2.5 ${sidebarCollapsed ? 'flex flex-col items-center' : ''}`}>
           
-          {/* BOTÓN DE HERRAMIENTAS INFERIOR: NOVEDADES */}
+          {/* BOTÓN DE HERRAMIENTAS INFERIOR: SOBRE MÉTRICO & NOVEDADES */}
           {!sidebarCollapsed ? (
-            <div className="w-full">
+            <div className="w-full space-y-2">
+              <button
+                onClick={() => setShowAcercaDeModal(true)}
+                title="Sobre MÉTRICO: Qué es el sistema, Creador & Equipo Asistencial"
+                className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-gradient-to-r from-indigo-500/15 to-sky-500/10 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/20 transition-all font-bold text-xs cursor-pointer group shadow-sm"
+              >
+                <div className="flex items-center gap-2">
+                  <Info className="w-4 h-4 text-indigo-500 group-hover:scale-110 transition-transform" />
+                  <span>Sobre MÉTRICO</span>
+                </div>
+                <span className="text-[9px] font-black uppercase bg-indigo-600 text-white px-1.5 py-0.5 rounded-md shadow-xs">
+                  SISTEMA
+                </span>
+              </button>
+
               <button
                 onClick={() => setShowMuroModal(true)}
                 title="Muro de Novedades e Instructivos"
@@ -2124,6 +2170,13 @@ const DashboardContent = () => {
             </div>
           ) : (
             <div className="flex flex-col items-center gap-1.5 w-full">
+              <button
+                onClick={() => setShowAcercaDeModal(true)}
+                title="Sobre MÉTRICO (Sistema, Creador & Equipo)"
+                className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 hover:bg-indigo-500/20 transition-all cursor-pointer"
+              >
+                <Info className="w-4 h-4" />
+              </button>
               <button
                 onClick={() => setShowMuroModal(true)}
                 title={`Actualizaciones (${CURRENT_APP_VERSION})`}

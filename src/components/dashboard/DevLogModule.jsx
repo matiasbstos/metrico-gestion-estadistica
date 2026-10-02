@@ -8,6 +8,31 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-41',
+    titulo: 'Incorporación Oficial del Módulo y Acceso "Sobre MÉTRICO" (Sistema, Creador & Equipo)',
+    fecha: '2026-10-02',
+    version_tag: 'v6.3.41',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_41.png',
+    problema: 'Se requería visibilizar de forma institucional y accesible para todos los usuarios clínicos, directivos y administrativos la información acerca de qué es el sistema MÉTRICO, su autoría y el equipo humano de urgencia involucrado, evitando que estos antecedentes quedaran únicamente en el código o dispersos en bitácoras técnicas.',
+    logica: '1) Se creó el componente dedicado ModalAcercaDe.jsx con interfaz de alto impacto visual (dark/light, glassmorphism, responsive) estructurado en 4 secciones navegables: "¿Qué es el Sistema?", "Creador & Arquitectura" (reconocimiento formal a Matías Bustos como diseñador de arquitectura de datos clínicos, algoritmos SSOT y desarrollo full-stack), "Equipo & Red Asistencial" (SAR Elsa Romo Aravena, Equipos de Guardia 1-4, Red APS CORMUMEL y Hospital San José) y "Ficha Técnica & Seguridad" (stack React/Vite/Tailwind/Firebase/BigQuery y protocolos de la Ley 20.584). 2) Se ubicaron botones de acceso directo permanentes en la barra lateral (tanto en vista colapsada con ícono Info como en vista expandida con badge "SISTEMA") y en el menú de navegación lateral. 3) Se interconectó con el Muro de Actualizaciones (ModalMuroActualizaciones.jsx) y se centralizó el control de versiones en src/config/version.js.',
+    solucion: 'El sistema dispone ahora de un acceso transparente, profesional y de primer nivel para que cualquier usuario conozca al instante el origen, alcance, autoría y soporte asistencial de la plataforma MÉTRICO en el SAR Elsa Romo Aravena.',
+    fullPost: `En esta versión v6.3.41 presentamos el módulo y ventana institucional "Sobre MÉTRICO":
+
+1. **Visibilidad Transparente & Acceso Permanente**:
+   - Se añadió un botón institucional **"Sobre MÉTRICO"** en el pie de la barra lateral (junto a "Novedades") y en la lista de navegación principal.
+   - Accesible en pantalla ancha y dispositivos móviles en modo colapsado o expandido.
+
+2. **4 Secciones Informativas Maestras**:
+   - **¿Qué es MÉTRICO?**: Definición como Módulo Estadístico de Trazabilidad, Rendimiento e Inteligencia Clínica Operativa, y sus 4 pilares: Cuadratura Rayen 100%, Triage Manchester, Despacho de Informes de Turno y Vigilancia Epidemiológica.
+   - **Creador & Arquitectura**: Reconocimiento a **Matías Bustos** (Diseño de Arquitectura de Datos Clínicos, Algoritmos SSOT y Desarrollo Full-Stack).
+   - **Comunidad Asistencial**: SAR Elsa Romo Aravena, Equipos de Guardia 1, 2, 3 y 4, Red CORMUMEL (CESFAM Florencia, Boris Soler, Elgueta) y enlace UEH Melipilla.
+   - **Ficha Técnica & Seguridad**: Stack tecnológico moderno y cumplimiento de la Ley 20.584 de protección de datos de salud.
+
+3. **Arquitectura Centralizada de Versión**:
+   - Centralización oficial de la versión activa en \`src/config/version.js\` (\`v6.3.41\`).`
+  },
+  {
     id: 'devlog-v6-3-40',
     titulo: 'Principio Universal y Transversal de Comparabilidad Interanual Homóloga & Cierre Anual SSOT (Regla 22)',
     fecha: '2026-10-02',
