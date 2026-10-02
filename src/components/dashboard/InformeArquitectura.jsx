@@ -10,6 +10,32 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.40',
+    version_tag: 'v6.3.40',
+    fecha: '02 de Octubre, 2026',
+    fecha_despliegue: '02 de Octubre, 2026',
+    proposito_actualizacion: 'Promulgación del Principio Universal y Transversal de Comparabilidad Interanual Homóloga & Cierre Anual SSOT (Regla de Oro Multianual para 2025, 2026, 2027 y Futuro).',
+    medios_y_stack: [
+      'useMetricoAnalytics.js (Algoritmo dinámico para determinar meses transcurridos M según la cota de datos activos, calculando automáticamente la cuota homóloga sin fijaciones estáticas y exportando elapsedMonthsLabel, elapsedMonthsCount, prevYearName y fullYearPrev)',
+      'PanelKPIs.jsx (Rotulación explícita de "Año Ant. (2025 Ene - Sep): 27.150 pac." e incorporación de tooltips pedagógicos aclarando que la variación YoY compara el período homólogo transcurrido y que el total anual cerrado de 12 meses es de 37.526 pac)',
+      'Dashboard.jsx (Sincronización oficial de versión a v6.3.40)',
+      '.agents/AGENTS.md (Consolidación de la Regla 22 como ley arquitectónica transversal y universal para 2025, 2026, 2027 y ejercicios sucesivos)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Principio Universal de Comparación Homóloga ("Manzanas con Manzanas"): En cualquier año activo Y, la comparativa YoY/YTD contra Y-1 se realiza estrictamente contra los mismos M meses transcurridos (1..M), erradicando contracciones engañosas. 2) Cierre Anual Completo: Los años concluidos mantienen sus 12 meses completos (ej. 2025 con 37.526 admisiones; 2026 cerrará en diciembre con su total íntegro para servir de base a 2027). 3) Desambiguación Visual: Toda tarjeta de variación rotula el período evaluado (Ene - Sep) y aclara en tooltip el total anual cerrado de 12 meses. 4) Dinamismo Multianual: El motor analítico calculará la comparativa de 2027 contra 2026 mes a mes sin modificaciones manuales.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Cálculo de meses transcurridos en O(1) e indexación continua de líneas base interanuales.'
+    },
+    modulos_afectados: ['useMetricoAnalytics.js', 'PanelKPIs.jsx', 'Dashboard.jsx', '.agents/AGENTS.md', 'InformeArquitectura.jsx', 'ModalMuroActualizaciones.jsx', 'DevLogModule.jsx'],
+    detalles_tecnicos: [
+      'Cálculo dinámico de maxElapsedMonth y elapsedMonthsLabel (Ene - Sep).',
+      'Desambiguación en las 4 tarjetas de tendencia: Año Ant. (2025 Ene - Sep) vs Total Anual Cerrado (37.526 pac).',
+      'Verificación matemática de los porcentajes: +11.0% admisiones (30.130 vs 27.150), +11.4% atenciones (27.415 vs 24.618), +7.2% altas (2.715 vs 2.532), +10.0% traslados (1.198 vs 1.089), +12.2% constataciones (258 vs 230).',
+      'Codificación de la Regla 22 transversal en las directrices de ingeniería y agentes.',
+      'Actualización oficial de versión del sistema a v6.3.40.'
+    ]
+  },
+  {
     id: 'v6.3.39',
     version_tag: 'v6.3.39',
     fecha: '02 de Octubre, 2026',

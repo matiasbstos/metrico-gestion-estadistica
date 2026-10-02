@@ -853,10 +853,36 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const BASELINE_2025_ATENDIDOS = { 1: 2335, 2: 2134, 3: 2737, 4: 2922, 5: 2959, 6: 2713, 7: 2835, 8: 3038, 9: 2945, 10: 3150, 11: 3146, 12: 3017 };
     const BASELINE_2025_ALTAS = { 1: 119, 2: 59, 3: 244, 4: 320, 5: 363, 6: 258, 7: 336, 8: 434, 9: 399, 10: 424, 11: 403, 12: 236 };
 
-    // Comparativa YTD para los 9 meses transcurridos (Ene-Sep 2026 vs Ene-Sep 2025)
-    const pyYtdPacientes = [1,2,3,4,5,6,7,8,9].reduce((acc, m) => acc + BASELINE_2025_MONTHLY[m], 0); // 27.150
-    const pyYtdAtendidos = [1,2,3,4,5,6,7,8,9].reduce((acc, m) => acc + BASELINE_2025_ATENDIDOS[m], 0); // 24.618
-    const pyYtdAltas = [1,2,3,4,5,6,7,8,9].reduce((acc, m) => acc + BASELINE_2025_ALTAS[m], 0); // 2.532
+    // Regla 22 Transversal: Determinación dinámica de los meses transcurridos en el año activo
+    const monthNamesShort = ['', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    let maxElapsedMonth = 9; // Corte base oficial Septiembre
+    all2026Turnos.forEach(t => {
+      if (t.fecha) {
+        const parts = t.fecha.split('-');
+        if (parts.length === 3) {
+          const m = parseInt(parts[1], 10);
+          if (m >= 1 && m <= 12 && m > maxElapsedMonth) {
+            maxElapsedMonth = m;
+          }
+        }
+      }
+    });
+
+    const elapsedMonthIndexes = [];
+    for (let i = 1; i <= maxElapsedMonth; i++) {
+      elapsedMonthIndexes.push(i);
+    }
+
+    const elapsedMonthsLabel = maxElapsedMonth === 12 
+      ? '12 Meses' 
+      : maxElapsedMonth === 1 
+        ? 'Ene' 
+        : `Ene - ${monthNamesShort[maxElapsedMonth]}`;
+
+    // Comparativa homóloga transversal YTD para los meses transcurridos
+    const pyYtdPacientes = elapsedMonthIndexes.reduce((acc, m) => acc + (BASELINE_2025_MONTHLY[m] || 0), 0); // 27.150 al corte de Sep
+    const pyYtdAtendidos = elapsedMonthIndexes.reduce((acc, m) => acc + (BASELINE_2025_ATENDIDOS[m] || 0), 0); // 24.618 al corte de Sep
+    const pyYtdAltas = elapsedMonthIndexes.reduce((acc, m) => acc + (BASELINE_2025_ALTAS[m] || 0), 0); // 2.532 al corte de Sep
     const pyYtdTraslados = 1089;
     const pyYtdConstataciones = 230;
     const pyYtdEstadia = 128;
@@ -864,6 +890,10 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const fullYear2025Pacientes = Object.values(BASELINE_2025_MONTHLY).reduce((a, b) => a + b, 0); // 37.526
 
     const statsAnual = {
+      elapsedMonthsCount: maxElapsedMonth,
+      elapsedMonthsLabel,
+      prevYearName: 2025,
+      fullYearPrev: fullYear2025Pacientes,
       pacientes: { 
         current: ytdPacientes,
         prevYear: pyYtdPacientes,

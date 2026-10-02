@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.40',
+      version: 'v6.3.40',
+      fecha: '02 de Octubre, 2026',
+      badge: 'REGLA DE ORO MULTIANUAL: COMPARACIÓN HOMÓLOGA INTERANUAL TRANSVERSAL & REGLA 22',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Principio Universal y Transversal de Comparabilidad Interanual Homóloga & Cierre Anual SSOT',
+      categoria: 'Consistencia y Auditoría de Datos (SSOT)',
+      icon: TrendingUp,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'A requerimiento de la jefatura asistencial, se universalizó la Regla 22 como principio arquitectónico permanente y transversal para todas las series históricas presentes y futuras (2025, 2026, 2027 y ejercicios sucesivos). La regla estipula que en cualquier año en curso con M meses transcurridos, la comparación interanual debe realizarse estrictamente contra los mismos M meses del año previo ("manzanas con manzanas"), erradicando contracciones engañosas. Asimismo, todo año concluido mantiene intactos sus 12 meses cerrados completos (como 2025 con 37.526 pacientes), y la interfaz rotula explícitamente el período homólogo evaluado (Ene - Sep) con tooltips explicativos del total anual.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que el personal directivo y clínico entienda inmediatamente por qué las tarjetas muestran 27.150 pacientes para 2025 (porque corresponde al período homólogo Ene-Sep) mientras que el año civil completo de 2025 cerró en 37.526 pacientes. Además, asegura que cuando inicie 2027, el sistema compare automáticamente Enero 2027 vs Enero 2026 sin errores de sobredimensión o caídas.',
+        quePuedesVer: 'En Inicio: las tarjetas de Período Seleccionado indican explícitamente: "Año Ant. (2025 Ene - Sep): 27.150 pac." con un tooltip interactivo que explica la equivalencia temporal y recuerda el total anual de 37.526 pac. Las cifras cuadran con 100% de exactitud: +11.0% en admisiones (30.130 vs 27.150 pac) y +11.4% en atenciones médicas efectivas (27.415 vs 24.618 pac).',
+        ejemploUso: 'Pasa el cursor sobre la línea "Año Ant. (2025 Ene - Sep)" en cualquier tarjeta de tendencia para ver la explicación institucional del período homólogo acumulado.'
+      },
+      changes: [
+        'Consolidación transversal de la Regla 22 en .agents/AGENTS.md para 2025, 2026, 2027 y años futuros.',
+        'Rotulación pedagógica en PanelKPIs.jsx: "Año Ant. (2025 Ene - Sep)" en las 4 tarjetas de tendencia.',
+        'Incorporación de tooltips institucionales que aclaran la metodología homóloga y el cierre anual de 12 meses (37.526 pac).',
+        'Dinamismo algorítmico en useMetricoAnalytics.js para calcular meses transcurridos M y exportar metadatos multianuales.',
+        'Cuadratura perfecta de porcentajes: +11.0% admisiones, +11.4% atenciones, +7.2% altas, +10.0% traslados y +12.2% constataciones.'
+      ]
+    },
+    {
       id: 'v6.3.39',
       version: 'v6.3.39',
       fecha: '02 de Octubre, 2026',

@@ -8,6 +8,39 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-40',
+    titulo: 'Principio Universal y Transversal de Comparabilidad Interanual Homóloga & Cierre Anual SSOT (Regla 22)',
+    fecha: '2026-10-02',
+    version_tag: 'v6.3.40',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_40.png',
+    problema: 'Se requería garantizar que la Regla 22 no quedara confinada como una excepción puntual de 2025 vs 2026, sino como un principio institucional transversal y universal para todos los ejercicios presentes y futuros (incluyendo la transición a 2027 y 2028). Además, en la interfaz del Dashboard (PanelKPIs.jsx) la línea "Año Ant. (2025): 27.150 pac." generaba dudas legítimas en los usuarios respecto a si los 27.150 correspondían a los meses transcurridos mes a mes o al total anual de 37.526 pacientes.',
+    logica: '1) Se elevó la Regla 22 a Principio Universal y Transversal de Comparabilidad Interanual Homóloga en .agents/AGENTS.md: para cualquier año en curso Y con M meses transcurridos, la comparativa interanual se efectúa estrictamente contra los mismos M meses del año previo Y-1 ("manzanas con manzanas"), mientras que los años cerrados mantienen intactos sus 12 meses completos (como 2025 con 37.526 pac). 2) Se implementó en useMetricoAnalytics.js la determinación dinámica de los meses transcurridos (maxElapsedMonth) a partir de los datos activos, exportando elapsedMonthsLabel, elapsedMonthsCount, prevYearName y fullYearPrev. 3) En PanelKPIs.jsx se rotuló de forma pedagógica "Año Ant. (2025 Ene - Sep): 27.150 pac." en las 4 tarjetas de tendencia (Admitidos, Atendidos, Altas y Traslados) e incorporó tooltips explicativos interactivos.',
+    solucion: 'El sistema ofrece ahora una total transparencia pedagógica: los usuarios directivos y clínicos comprenden con total claridad que 27.150 pac. corresponde al período acumulado Ene-Sep de 2025, cuadrando exactamente con el +11.0% de aumento en admisiones (30.130 vs 27.150) y +11.4% en atenciones médicas (27.415 vs 24.618), y el motor analítico queda completamente preparado para el inicio de 2027.',
+    fullPost: `En esta versión v6.3.40 formalizamos el Principio Universal y Transversal de Comparabilidad Interanual Homóloga (Regla 22):
+
+1. **La Regla de Oro Universal ("Manzanas con Manzanas")**:
+   - Todo año activo $Y$ que se encuentra en curso (con $M$ meses transcurridos, $1 \le M \le 12$) compara sus indicadores acumulados única y exclusivamente contra los mismos $M$ meses transcurridos del año previo $Y-1$.
+   - **Caso Actual 2026 ($M=9$)**:
+     * Admisiones: 30.130 pac. vs 27.150 pac. de 2025 Ene-Sep (**+11.0% YoY**).
+     * Atenciones Médicas: 27.415 pac. vs 24.618 pac. de 2025 Ene-Sep (**+11.4% YoY**).
+     * Altas Administrativas: 2.715 altas vs 2.532 altas de 2025 Ene-Sep (**+7.2% YoY**).
+     * Traslados: 1.198 pac. vs 1.089 pac. de 2025 Ene-Sep (**+10.0% YoY**).
+     * Constataciones Z51.8: 258 pac. vs 230 pac. de 2025 Ene-Sep (**+12.2% YoY**).
+   - **Transversalidad Futura (2027)**:
+     * Cuando inicie Enero 2027 ($M=1$), comparará Ene 2027 vs Ene 2026.
+     * En Febrero 2027 ($M=2$), comparará Ene-Feb 2027 vs Ene-Feb 2026.
+     * Al cierre de Diciembre 2027 ($M=12$), comparará los 12 meses de 2027 contra los 12 meses de 2026.
+
+2. **Integridad del Cierre Anual Completo (12 Meses SSOT)**:
+   - Todo año civil cerrado consolida en el sistema sus **12 meses completos** (2025 con 37.526 admisiones y 33.931 atendidos).
+   - Cuando el usuario consulta la serie histórica de 12 meses o el preset "Año" de un año concluido, se muestra el 100% de los 12 meses sin recortes.
+
+3. **Transparencia Visual en PanelKPIs.jsx**:
+   - Se rotuló explícitamente: \`Año Ant. (2025 Ene - Sep): 27.150 pac.\`
+   - Los tooltips aclaran que se compara el período homólogo transcurrido y recuerdan que el cierre anual de 12 meses de 2025 es de 37.526 pacientes.`
+  },
+  {
     id: 'devlog-v6-3-39',
     titulo: 'Certificación Integral de los 12 Meses 2025 (37.526 Pacientes SSOT) y Blindaje de Comparativa YTD',
     fecha: '2026-10-02',

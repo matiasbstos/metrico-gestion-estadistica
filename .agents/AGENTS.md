@@ -132,26 +132,28 @@
     - **Persistencia en Firestore de Destinatarios**: La configuración de destinatarios del informe asistencial (`ModalConfiguracionCorreo.jsx`) se sincroniza bidireccionalmente con Firestore en `artifacts/${appId}/public/data/configuracion_correo/destinatarios`, respaldada por `DEFAULT_DESTINATARIOS` y caché local, garantizando que nunca se vacíe o pierda tras actualizaciones de versión o recargas del navegador.
     - **Trazabilidad e Incidencias Granulares**: Cada despacho registra el resultado individual por destinatario (Entregado, Incidencia con código de error SMTP exacto, Pendiente) e incorpora la tabla cronológica de Bitácora de Trazabilidad e Incidencias de Envíos para auditoría inmediata.
     - **Ventana Asistencial de Día Hábil Ampliada (16:00 hrs)**: En `helpers.js` (`obtenerTurnoDetallado`) y `CentroVerificacionAuditoria.jsx`, los pacientes admitidos en el turno de semana hábil cuya permanencia, observación médica o tratamiento se extienda durante la mañana y tarde del día siguiente se consolidan en el turno largo de semana hasta las `16:00 hrs`, conciliando al 100% con reportes oficiales como la jornada `2026-09-24_SEMANA_LARGO` (83 admitidos = 73 completados + 10 egresos admin, 72 altas médicas, 1 traslado, 2 Z51.8 y 11 centros de procedencia).
-22. **Integridad Absoluta, Auditoría y Transparencia de la Serie Histórica 2025 (SSOT 12 Meses Cerrados - 37.526 Pacientes) (v6.3.39)**:
-    - **Existencia y Certificación de los 12 Meses 2025**: La serie histórica del año 2025 cuenta con el 100% de los 12 archivos mensuales de Rayen auditados y certificados correlativo a correlativo (Enero a Diciembre 2025), totalizando exactamente **37.526 pacientes admitidos**, **33.931 pacientes con atención médica efectiva** y **3.595 altas administrativas** (correlativo Rayen de cierre: `#37.527`).
-    - **Matriz Mensual Certificada Rayen SSOT 2025**:
-      * *Ene 2025*: 2.454 admitidos | 2.335 atendidos | 119 altas (Corr 1 - 2.454)
-      * *Feb 2025*: 2.193 admitidos | 2.134 atendidos | 59 altas (Corr 2.455 - 4.647)
-      * *Mar 2025*: 2.981 admitidos | 2.737 atendidos | 244 altas (Corr 4.648 - 7.629)
-      * *Abr 2025*: 3.242 admitidos | 2.922 atendidos | 320 altas (Corr 7.630 - 10.871)
-      * *May 2025*: 3.322 admitidos | 2.959 atendidos | 363 altas (Corr 10.872 - 14.193)
-      * *Jun 2025*: 2.971 admitidos | 2.713 atendidos | 258 altas (Corr 14.194 - 17.164)
-      * *Jul 2025*: 3.171 admitidos | 2.835 atendidos | 336 altas (Corr 17.165 - 20.335)
-      * *Ago 2025*: 3.472 admitidos | 3.038 atendidos | 434 altas (Corr 20.336 - 23.807)
-      * *Sep 2025*: 3.344 admitidos | 2.945 atendidos | 399 altas (Corr 23.808 - 27.151)
-      * *Oct 2025*: 3.574 admitidos | 3.150 atendidos | 424 altas (Corr 27.152 - 30.725)
-      * *Nov 2025*: 3.549 admitidos | 3.146 atendidos | 403 altas (Corr 30.726 - 34.274)
-      * *Dic 2025*: 3.253 admitidos | 3.017 atendidos | 236 altas (Corr 34.275 - 37.527)
-    - **Diferenciación Estricta entre Total Anual 2025 (12 Meses) y Comparativa YTD Acumulada**:
-      * **Total Anual 2025 (12 meses)**: Al seleccionar el año 2025 o revisar la serie histórica anual completa, el sistema DEBE reflejar obligatoriamente la totalidad de los 12 meses (**37.526 pacientes admitidos** y **33.931 atendidos**), sin truncamientos ni omisión de meses.
-      * **Comparativa Interanual Acumulada (YoY YTD Ene-Sep)**: Al evaluar el crecimiento del año en curso (2026 al corte de Septiembre, con 9 meses transcurridos = 29.895 admitidos), la comparación interanual contra el año anterior DEBE realizarse estrictamente contra el mismo período de meses transcurridos (Enero a Septiembre 2025: **27.150 pacientes admitidos**, **24.618 atendidos**, **2.532 altas admin**), arrojando el incremento real oficial de **+10.1% YoY** en admisiones (`(29.895 - 27.150) / 27.150`) y **+10.4% YoY** en atenciones (`(27.183 - 24.618) / 24.618`).
-      * Queda terminantemente prohibido comparar un período parcial del año en curso contra los 12 meses completos del año anterior (lo cual falsearía el indicador arrojando contracciones artificiales engañosas), y queda igualmente prohibido truncar la serie anual 2025 cuando el usuario consulte el año civil completo.
-    - **Sincronización SSOT en Todos los Módulos**: Los hooks `useMetricoAnalytics.js`, componentes `AnalisisDemandaAtencion.jsx`, `PanelKPIs.jsx`, `ModalConfiguracionCorreo.jsx` y reportes ejecutivos deben utilizar unívocamente esta matriz de datos certificada, erradicando discrepancias de cifras.
+22. **Principio Universal y Transversal de Comparabilidad Interanual Homóloga & Cierre Anual SSOT (Regla de Oro Multianual: Año Activo vs Año Previo) (v6.3.40)**:
+    - **Regla Universal de Comparación Temporal Homóloga ("Manzanas con Manzanas" / Mes a Mes Acumulado)**:
+      * En cualquier año civil activo o en curso ($Y$), donde hayan transcurrido $M$ meses ($1 \le M \le 12$), toda comparación interanual (YoY / YTD) contra el año previo ($Y-1$) DEBE contrastarse única y exclusivamente contra los mismos $M$ meses transcurridos del año previo ($1..M$).
+      * **Aplicación Transversal Inviolable**:
+        a) *Año Activo 2026 (al corte de Septiembre, $M=9$)*: Se compara estrictamente Ene-Sep 2026 contra Ene-Sep 2025 (**27.150 admitidos**, **24.618 atendidos**, **2.532 altas admin**), arrojando el crecimiento real oficial de **+11.0% YoY** en admisiones (30.130 vs 27.150) y **+11.4% YoY** en atenciones (27.415 vs 24.618).
+        b) *Transición a 2027 y Años Posteriores*: Cuando inicie el año asistencial 2027, la regla operará con idéntica lógica dinámica sin fijaciones estáticas:
+           - En *Enero 2027 ($M=1$)*: el sistema comparará Ene 2027 vs Ene 2026.
+           - En *Febrero 2027 ($M=2$)*: comparará Ene-Feb 2027 vs Ene-Feb 2026 acumulado.
+           - En *Diciembre 2027 ($M=12$)*: comparará los 12 meses de 2027 contra los 12 meses de 2026.
+      * **Prohibición Terminante**: Queda estrictamente prohibido comparar un año civil en curso que tiene meses pendientes de transcurrir contra los 12 meses completos del año anterior, lo cual produciría caídas artificiales alarmantes y falsas (ej. -20% o contracciones engañosas).
+    - **Principio de Integridad del Cierre Anual Completo (12 Meses SSOT)**:
+      * Todo año civil concluido ($Y-1, Y-2, \dots$) consolida en el sistema sus **12 meses completos cerrados**:
+        - *Año 2025*: Cuenta con sus 12 archivos mensuales certificados de Rayen (#1 a #37.527), con **37.526 admitidos**, **33.931 atendidos** y **3.595 altas admin**.
+        - *Año 2026*: Al cierre del 31 de Diciembre consolidará su total anual de 12 meses, constituyendo la nueva línea base oficial para 2027.
+      * Cuando el usuario consulte el año civil completo (preset "Año" o serie histórica de 12 meses), la plataforma DEBE mostrar el 100% de sus 12 meses sin recortes.
+    - **Transparencia Visual e Indicio Explicativo en la Interfaz (UI)**:
+      * Toda tarjeta o banner de crecimiento interanual en el Dashboard (`PanelKPIs.jsx`), en Demanda y en informes DEBE explicitar el rango exacto de meses evaluado:
+        Ejemplo: `Año Ant. (2025 Ene - Sep): 27.150 pac.`
+      * El tooltip interactivo debe aclarar de forma transparente:
+        `El cálculo interanual compara exclusivamente los meses equivalentes transcurridos (Ene a Sep) entre 2025 y el año en curso para evitar distorsiones. Total anual cerrado de 2025 (12 meses): 37.526 pacientes.`
+    - **Dinamismo Algorítmico sin Años ni Meses Hardcodeados**:
+      * El motor analítico (`useMetricoAnalytics.js`, `AnalisisDemandaAtencion.jsx`, `PanelKPIs.jsx`) calcula automáticamente los meses transcurridos $M$ a partir de la fecha de corte de los datos activos, garantizando continuidad multianual sin requerir refactorizaciones manuales de código cada fin de año.
 
 ---
 

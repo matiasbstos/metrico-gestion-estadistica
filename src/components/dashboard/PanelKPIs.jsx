@@ -381,6 +381,10 @@ export default function PanelKPIs({
           const trasPrevYear = statsKPI.anual?.traslados?.prevYear || 1079;
           const trasGrowthYear = statsKPI.anual?.traslados?.growthYear;
 
+          const elapsedLabel = statsKPI.anual?.elapsedMonthsLabel || 'Ene - Sep';
+          const prevYearNum = statsKPI.anual?.prevYearName || 2025;
+          const fullYearPrevVal = statsKPI.anual?.fullYearPrev || 37526;
+
           const altasPctGlobal = pacAnual > 0 ? (altasAnual / pacAnual) * 100 : 0;
           const altasCumpleMeta = altasPctGlobal <= 5.0;
           const ateCoberturaPct = pacAnual > 0 ? (ateAnual / pacAnual) * 100 : 0;
@@ -415,8 +419,8 @@ export default function PanelKPIs({
                   <div>
                     <div className="flex items-baseline gap-2">
                       <TooltipWrapper
-                        title="Crecimiento Interanual (YoY)"
-                        text={`Variación de admisiones respecto al mismo período del año 2025 (${pacAnual?.toLocaleString('es-CL')} vs ${pacPrevYear?.toLocaleString('es-CL')} pacientes acumulados).`}
+                        title={`Crecimiento Interanual (${elapsedLabel})`}
+                        text={`Variación de admisiones respecto al mismo período homólogo de ${prevYearNum} (${pacAnual?.toLocaleString('es-CL')} vs ${pacPrevYear?.toLocaleString('es-CL')} pacientes acumulados). Total anual cerrado ${prevYearNum} (12 meses): ${fullYearPrevVal.toLocaleString('es-CL')} pac.`}
                         highlight={`${pacGrowthYear !== undefined && pacGrowthYear >= 0 ? '+' : ''}${pacGrowthYear !== undefined ? pacGrowthYear.toFixed(1) : '10.1'}%`}
                         position="top"
                       >
@@ -436,9 +440,16 @@ export default function PanelKPIs({
                       <p className="text-secondary-custom font-semibold">
                         Volumen YTD: <strong className="text-primary-custom font-black">{isLoading ? '...' : pacAnual?.toLocaleString('es-CL')} pac.</strong>
                       </p>
-                      <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1">
-                        Año Ant. (2025): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : pacPrevYear?.toLocaleString('es-CL')} pac.</strong>
-                      </p>
+                      <TooltipWrapper
+                        title={`Período Homólogo Acumulado (${elapsedLabel})`}
+                        text={`El cálculo interanual compara exclusivamente los meses equivalentes transcurridos (${elapsedLabel}) entre ${prevYearNum} y el año en curso para evitar distorsiones. El total anual cerrado de ${prevYearNum} (12 meses) es de ${fullYearPrevVal.toLocaleString('es-CL')} pacientes.`}
+                        highlight={`${pacPrevYear?.toLocaleString('es-CL')} pac.`}
+                        position="bottom"
+                      >
+                        <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1 cursor-help hover:text-primary-custom transition-colors">
+                          Año Ant. ({prevYearNum} {elapsedLabel}): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : pacPrevYear?.toLocaleString('es-CL')} pac.</strong>
+                        </p>
+                      </TooltipWrapper>
                     </div>
                   </div>
                 </div>
@@ -467,9 +478,9 @@ export default function PanelKPIs({
                   <div>
                     <div className="flex items-baseline gap-2">
                       <TooltipWrapper
-                        title="Crecimiento Interanual (YoY)"
-                        text={`Variación de atenciones médicas efectivas respecto al año 2025 (${ateAnual?.toLocaleString('es-CL')} vs ${atePrevYear?.toLocaleString('es-CL')} pacientes).`}
-                        highlight={`${ateGrowthYear !== undefined && ateGrowthYear >= 0 ? '+' : ''}${ateGrowthYear !== undefined ? ateGrowthYear.toFixed(1) : '13.6'}%`}
+                        title={`Crecimiento Interanual (${elapsedLabel})`}
+                        text={`Variación de atenciones médicas efectivas respecto a los mismos meses (${elapsedLabel}) de ${prevYearNum} (${ateAnual?.toLocaleString('es-CL')} vs ${atePrevYear?.toLocaleString('es-CL')} pacientes). Total anual cerrado de atenciones ${prevYearNum} (12 meses): 33.931 pacientes.`}
+                        highlight={`${ateGrowthYear !== undefined && ateGrowthYear >= 0 ? '+' : ''}${ateGrowthYear !== undefined ? ateGrowthYear.toFixed(1) : '10.4'}%`}
                         position="top"
                       >
                         <span 
@@ -477,7 +488,7 @@ export default function PanelKPIs({
                             ateGrowthYear !== undefined && ateGrowthYear >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                           }`}
                         >
-                          {isLoading ? '...' : `${ateGrowthYear !== undefined && ateGrowthYear >= 0 ? '+' : ''}${ateGrowthYear !== undefined ? ateGrowthYear.toFixed(1) : '13.6'}%`}
+                          {isLoading ? '...' : `${ateGrowthYear !== undefined && ateGrowthYear >= 0 ? '+' : ''}${ateGrowthYear !== undefined ? ateGrowthYear.toFixed(1) : '10.4'}%`}
                         </span>
                       </TooltipWrapper>
                       <span className="text-[10px] md:text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
@@ -499,9 +510,16 @@ export default function PanelKPIs({
                           </span>
                         </TooltipWrapper>
                       </p>
-                      <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1">
-                        Año Ant. (2025): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : atePrevYear?.toLocaleString('es-CL')} pac.</strong>
-                      </p>
+                      <TooltipWrapper
+                        title={`Período Homólogo Acumulado (${elapsedLabel})`}
+                        text={`Atenciones médicas efectivas en los mismos meses transcurridos (${elapsedLabel}) de ${prevYearNum}. Total anual cerrado de atenciones ${prevYearNum} (12 meses): 33.931 pacientes.`}
+                        highlight={`${atePrevYear?.toLocaleString('es-CL')} pac.`}
+                        position="bottom"
+                      >
+                        <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1 cursor-help hover:text-primary-custom transition-colors">
+                          Año Ant. ({prevYearNum} {elapsedLabel}): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : atePrevYear?.toLocaleString('es-CL')} pac.</strong>
+                        </p>
+                      </TooltipWrapper>
                     </div>
                   </div>
                 </div>
@@ -544,9 +562,9 @@ export default function PanelKPIs({
                   <div>
                     <div className="flex items-baseline gap-2">
                       <TooltipWrapper
-                        title="Variación Interanual de Altas (YoY)"
-                        text={`Variación de altas administrativas respecto al año 2025 (${altasAnual?.toLocaleString('es-CL')} vs ${altasPrevYear?.toLocaleString('es-CL')} altas registradas).`}
-                        highlight={`${altasGrowthYear !== undefined && altasGrowthYear >= 0 ? '+' : ''}${altasGrowthYear !== undefined ? altasGrowthYear.toFixed(1) : '19.7'}%`}
+                        title={`Variación Interanual de Altas (${elapsedLabel})`}
+                        text={`Variación de altas administrativas respecto a los mismos meses (${elapsedLabel}) de ${prevYearNum} (${altasAnual?.toLocaleString('es-CL')} vs ${altasPrevYear?.toLocaleString('es-CL')} altas registradas). Total anual cerrado de altas ${prevYearNum} (12 meses): 3.595 altas.`}
+                        highlight={`${altasGrowthYear !== undefined && altasGrowthYear >= 0 ? '+' : ''}${altasGrowthYear !== undefined ? altasGrowthYear.toFixed(1) : '7.1'}%`}
                         position="top"
                       >
                         <span 
@@ -554,7 +572,7 @@ export default function PanelKPIs({
                             altasGrowthYear !== undefined && altasGrowthYear <= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                           }`}
                         >
-                          {isLoading ? '...' : `${altasGrowthYear !== undefined && altasGrowthYear >= 0 ? '+' : ''}${altasGrowthYear !== undefined ? altasGrowthYear.toFixed(1) : '19.7'}%`}
+                          {isLoading ? '...' : `${altasGrowthYear !== undefined && altasGrowthYear >= 0 ? '+' : ''}${altasGrowthYear !== undefined ? altasGrowthYear.toFixed(1) : '7.1'}%`}
                         </span>
                       </TooltipWrapper>
                       <span className="text-[10px] md:text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
@@ -576,9 +594,16 @@ export default function PanelKPIs({
                           </span>
                         </TooltipWrapper>
                       </p>
-                      <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1">
-                        Año Ant. (2025): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : altasPrevYear?.toLocaleString('es-CL')} altas</strong>
-                      </p>
+                      <TooltipWrapper
+                        title={`Período Homólogo Acumulado (${elapsedLabel})`}
+                        text={`Altas administrativas en los mismos meses transcurridos (${elapsedLabel}) de ${prevYearNum}. Total anual cerrado de altas ${prevYearNum} (12 meses): 3.595 altas.`}
+                        highlight={`${altasPrevYear?.toLocaleString('es-CL')} altas`}
+                        position="bottom"
+                      >
+                        <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1 cursor-help hover:text-primary-custom transition-colors">
+                          Año Ant. ({prevYearNum} {elapsedLabel}): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : altasPrevYear?.toLocaleString('es-CL')} altas</strong>
+                        </p>
+                      </TooltipWrapper>
                     </div>
                   </div>
                 </div>
@@ -607,17 +632,17 @@ export default function PanelKPIs({
                   <div>
                     <div className="flex items-baseline gap-2">
                       <TooltipWrapper
-                        title="Variación Interanual de Traslados (YoY)"
-                        text={`Variación de derivaciones hospitalarias respecto al año 2025 (${trasAnual?.toLocaleString('es-CL')} vs ${trasPrevYear?.toLocaleString('es-CL')} traslados).`}
-                        highlight={`${trasGrowthYear !== undefined && trasGrowthYear >= 0 ? '+' : ''}${trasGrowthYear !== undefined ? trasGrowthYear.toFixed(1) : '11.8'}%`}
+                        title={`Variación de Traslados (${elapsedLabel})`}
+                        text={`Variación de derivaciones hospitalarias respecto a los mismos meses (${elapsedLabel}) de ${prevYearNum} (${trasAnual?.toLocaleString('es-CL')} vs ${trasPrevYear?.toLocaleString('es-CL')} traslados).`}
+                        highlight={`${trasGrowthYear !== undefined && trasGrowthYear >= 0 ? '+' : ''}${trasGrowthYear !== undefined ? trasGrowthYear.toFixed(1) : '10.0'}%`}
                         position="top"
                       >
                         <span 
                           className={`text-4xl md:text-5xl font-black tracking-tight leading-none cursor-help ${
-                            trasGrowthYear !== undefined && trasGrowthYear >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                            trasGrowthYear !== undefined && trasGrowthYear >= 0 ? 'text-purple-600 dark:text-purple-400' : 'text-emerald-600 dark:text-emerald-400'
                           }`}
                         >
-                          {isLoading ? '...' : `${trasGrowthYear !== undefined && trasGrowthYear >= 0 ? '+' : ''}${trasGrowthYear !== undefined ? trasGrowthYear.toFixed(1) : '11.8'}%`}
+                          {isLoading ? '...' : `${trasGrowthYear !== undefined && trasGrowthYear >= 0 ? '+' : ''}${trasGrowthYear !== undefined ? trasGrowthYear.toFixed(1) : '10.0'}%`}
                         </span>
                       </TooltipWrapper>
                       <span className="text-[10px] md:text-[11px] font-bold text-secondary-custom uppercase tracking-wider">
@@ -639,9 +664,16 @@ export default function PanelKPIs({
                           </span>
                         </TooltipWrapper>
                       </p>
-                      <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1">
-                        Año Ant. (2025): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : trasPrevYear?.toLocaleString('es-CL')} pac.</strong>
-                      </p>
+                      <TooltipWrapper
+                        title={`Período Homólogo Acumulado (${elapsedLabel})`}
+                        text={`Traslados a centros de mayor complejidad en los mismos meses transcurridos (${elapsedLabel}) de ${prevYearNum}.`}
+                        highlight={`${trasPrevYear?.toLocaleString('es-CL')} pac.`}
+                        position="bottom"
+                      >
+                        <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1 cursor-help hover:text-primary-custom transition-colors">
+                          Año Ant. ({prevYearNum} {elapsedLabel}): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : trasPrevYear?.toLocaleString('es-CL')} pac.</strong>
+                        </p>
+                      </TooltipWrapper>
                     </div>
                   </div>
                 </div>
