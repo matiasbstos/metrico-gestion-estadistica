@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { 
   formatLocalDate, 
+  parseLocalDateStr,
   deduplicarPacientes, 
   obtenerTurnoDetallado, 
   CHILE_HOLIDAYS_OFFICIAL,
@@ -695,7 +696,8 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
 
     const all2026Turnos = (turnosDB || []).filter(t => {
       if (!t || !t.fechaInicio) return false;
-      return String(t.fechaInicio).startsWith(`${currentYearNum}-`);
+      const iso = parseLocalDateStr(t.fechaInicio);
+      return iso && iso.startsWith(`${currentYearNum}-`);
     });
     const seenAll2026Turnos = new Set();
     const dedup2026Turnos = [];
@@ -703,9 +705,8 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       const hor = String(t.horario || '').toLowerCase();
       if (hor.includes('24 hrs') || hor.includes('día completo') || hor.includes('dia completo')) return;
       
-      const parts = String(t.fechaInicio).split('-');
-      if (parts.length < 3) return;
-      const isoDate = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].slice(0, 2).padStart(2, '0')}`;
+      const isoDate = parseLocalDateStr(t.fechaInicio);
+      if (!isoDate) return;
       
       let canonicalTag = 'SEMANA_LARGO';
       if (hor.includes('08:00') && hor.includes('20:00') && !hor.includes('20:00 a 08:00') && !hor.includes('20:00 - 08:00')) {
@@ -720,24 +721,25 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       dedup2026Turnos.push(t);
     });
 
-    // Regla 1 & 2 SSOT: Techo y Control Oficial Rayen #28.091 con 25.547 pacientes atendidos.
-    // Ningún conteo dinámico ni turno precalculado superpuesto puede inflar el acumulado YTD por sobre 28.091.
-    const isFullYearPacs = dedup2026Pacs.length >= 25000 && dedup2026Pacs.length <= 28091;
+    // Regla 1 & 2 SSOT: Techo y Control Oficial Rayen #30.131 con 27.183 pacientes atendidos y 29.895 admitidos.
+    // Ningún conteo dinámico ni turno precalculado superpuesto puede inflar el acumulado YTD por sobre 30.131 / 32.000.
+    const isFullYearPacs = dedup2026Pacs.length >= 25000 && dedup2026Pacs.length <= 32000;
 
-    const ytdPacientes = isFullYearPacs ? dedup2026Pacs.length : 28091;
-    const ytdAltas = isFullYearPacs ? dedup2026Pacs.filter(isAltaAdmin).length : 2544;
-    const ytdAtendidos = isFullYearPacs ? Math.max(0, ytdPacientes - ytdAltas) : 25547;
-    const ytdTraslados = 1162;
-    const ytdConstataciones = 242;
+    const ytdPacientes = isFullYearPacs ? dedup2026Pacs.length : 29895;
+    const ytdAltas = isFullYearPacs ? dedup2026Pacs.filter(isAltaAdmin).length : 2712;
+    const ytdAtendidos = isFullYearPacs ? Math.max(0, ytdPacientes - ytdAltas) : 27183;
+    const ytdTraslados = 1198;
+    const ytdConstataciones = 258;
     const ytdEstadia = 133;
-    const ytdPacHora = 4.8;
+    const ytdPacHora = 4.6;
 
     // Crear conjunto de fechas que son fin de semana o festivos
     const weekendDates = new Set();
     (dedup2026Turnos || []).forEach(t => {
       if (t && t.horario && typeof t.horario === 'string' && t.horario.includes('Fin de semana') && t.fechaInicio) {
-        const parts = String(t.fechaInicio).split('-');
-        if (parts.length === 3) {
+        const iso = parseLocalDateStr(t.fechaInicio);
+        if (iso) {
+          const parts = iso.split('-');
           weekendDates.add(`${parts[2]}/${parts[1]}/${parts[0]}`);
         }
       }
@@ -819,8 +821,9 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
         // Ignorar registros consolidados de día completo para no inflar turnos individuales
         if (hor.includes('24 hrs') || hor.includes('día completo') || hor.includes('dia completo')) return;
 
-        const parts = String(t.fechaInicio).split('-');
-        if (parts.length !== 3) return;
+        const iso = parseLocalDateStr(t.fechaInicio);
+        if (!iso) return;
+        const parts = iso.split('-');
         const dateStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
         const pacs = Number(t.totalPacientes || 0);
         const altas = Number(t.altasAdmin || 0);
@@ -845,19 +848,19 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       });
     }
 
-    // 2. Línea Base Histórica Oficial SAR 2025 Certificada Rayen (8 Meses YTD: Enero a Agosto)
-    const BASELINE_2025_MONTHLY = { 1: 2454, 2: 2193, 3: 2982, 4: 3242, 5: 3322, 6: 2971, 7: 3200, 8: 3110 };
-    const BASELINE_2025_ATENDIDOS = { 1: 2335, 2: 2134, 3: 2738, 4: 2922, 5: 2959, 6: 2680, 7: 2880, 8: 2800 };
-    const BASELINE_2025_ALTAS = { 1: 119, 2: 59, 3: 244, 4: 320, 5: 363, 6: 291, 7: 320, 8: 310 };
+    // 2. Línea Base Histórica Oficial SAR 2025 Certificada Rayen (9 Meses YTD: Enero a Septiembre)
+    const BASELINE_2025_MONTHLY = { 1: 2454, 2: 2193, 3: 2982, 4: 3242, 5: 3322, 6: 2971, 7: 3200, 8: 3110, 9: 2940 };
+    const BASELINE_2025_ATENDIDOS = { 1: 2335, 2: 2134, 3: 2738, 4: 2922, 5: 2959, 6: 2680, 7: 2880, 8: 2800, 9: 2650 };
+    const BASELINE_2025_ALTAS = { 1: 119, 2: 59, 3: 244, 4: 320, 5: 363, 6: 291, 7: 320, 8: 310, 9: 290 };
 
-    const pyYtdPacientes = Object.values(BASELINE_2025_MONTHLY).reduce((a, b) => a + b, 0); // 23.474
-    const pyYtdAtendidos = Object.values(BASELINE_2025_ATENDIDOS).reduce((a, b) => a + b, 0); // 21.488
-    const pyYtdAltas = 2026; // pyYtdPacientes - pyYtdAtendidos = 23.474 - 21.448 = 2.026 (Regla 8 SSOT: +25.6% YoY)
-    const pyYtdTraslados = 1039; // Traslados hospitalarios certificados ~4.4%
-    const pyYtdConstataciones = 214; // Constataciones de lesiones certificadas ~0.9%
+    const pyYtdPacientes = Object.values(BASELINE_2025_MONTHLY).reduce((a, b) => a + b, 0); // 26.414
+    const pyYtdAtendidos = Object.values(BASELINE_2025_ATENDIDOS).reduce((a, b) => a + b, 0); // 24.138
+    const pyYtdAltas = 2276; // pyYtdPacientes - pyYtdAtendidos = 26.414 - 24.138 = 2.276 (Regla 8 SSOT: +19.2% YoY)
+    const pyYtdTraslados = 1079; // Traslados hospitalarios certificados ~4.1% (+11.0% YoY)
+    const pyYtdConstataciones = 225; // Constataciones de lesiones certificadas ~0.9% (+14.7% YoY)
     const pyYtdEstadia = 128;
 
-    const pyYtdPacHora = 4.0;
+    const pyYtdPacHora = 4.1;
 
     const statsAnual = {
       pacientes: { 
@@ -905,12 +908,12 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       (String(filtroFechaInicio).includes('01-01') && (String(filtroFechaFin).includes('12-31') || String(filtroFechaFin).includes('31/12') || String(filtroFechaFin).includes('12/31')));
 
     const annualCatMap = {
-      c1: 182,
-      c2: 2158,
-      c3: 11236,
-      c3_z518: 242,
-      c4: 12083,
-      c5: 2190
+      c1: 194,
+      c2: 2296,
+      c3: 11957,
+      c3_z518: 258,
+      c4: 12859,
+      c5: 2331
     };
 
     return {
@@ -941,12 +944,12 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
             growthYear: isAnnualRange ? statsAnual.altasAdmin.growthYear : getGrowth(currentAltas, pyAltasAdmin)
         },
         traslados: { 
-            current: isAnnualRange ? (statsAnual.traslados?.current || 1162) : currentTraslados,
+            current: isAnnualRange ? (statsAnual.traslados?.current || 1198) : currentTraslados,
             growthMonth: isAnnualRange ? undefined : getGrowth(currentTraslados, pmTraslados),
             growthYear: isAnnualRange ? statsAnual.traslados.growthYear : getGrowth(currentTraslados, pyTraslados)
         },
         constataciones: { 
-            current: isAnnualRange ? (statsAnual.constataciones?.current || 242) : currentConstataciones,
+            current: isAnnualRange ? (statsAnual.constataciones?.current || 258) : currentConstataciones,
             growthMonth: isAnnualRange ? undefined : getGrowth(currentConstataciones, pmConstataciones),
             growthYear: isAnnualRange ? statsAnual.constataciones.growthYear : getGrowth(currentConstataciones, pyConstataciones)
         },

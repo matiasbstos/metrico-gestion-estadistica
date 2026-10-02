@@ -643,24 +643,24 @@ export const buildTurnoInfoPayload = (selectedShiftObj, combinedPacientes = [], 
 
   const anualSSOT = statsKPI?.anual;
 
-  const ytdAdm = Number(anualSSOT?.pacientes?.current || 28257);
-  const prevAdm = Number(anualSSOT?.pacientes?.prevYear || 23474);
-  const pctAdmVal = anualSSOT?.pacientes?.growthYear !== undefined ? Number(anualSSOT.pacientes.growthYear) : 20.4;
+  const ytdAdm = Number(anualSSOT?.pacientes?.current || 29895);
+  const prevAdm = Number(anualSSOT?.pacientes?.prevYear || 26414);
+  const pctAdmVal = anualSSOT?.pacientes?.growthYear !== undefined ? Number(anualSSOT.pacientes.growthYear) : 13.2;
   const pctAdm = pctAdmVal > 0 ? `+${pctAdmVal.toFixed(1)}%` : `${pctAdmVal.toFixed(1)}%`;
 
-  const ytdAtn = Number(anualSSOT?.atendidos?.current || 25696);
-  const prevAtn = Number(anualSSOT?.atendidos?.prevYear || 21448);
-  const pctAtnVal = anualSSOT?.atendidos?.growthYear !== undefined ? Number(anualSSOT.atendidos.growthYear) : 19.8;
+  const ytdAtn = Number(anualSSOT?.atendidos?.current || 27183);
+  const prevAtn = Number(anualSSOT?.atendidos?.prevYear || 24138);
+  const pctAtnVal = anualSSOT?.atendidos?.growthYear !== undefined ? Number(anualSSOT.atendidos.growthYear) : 12.6;
   const pctAtn = pctAtnVal > 0 ? `+${pctAtnVal.toFixed(1)}%` : `${pctAtnVal.toFixed(1)}%`;
 
-  const ytdAlt = Number(anualSSOT?.altasAdmin?.current || 2561);
-  const prevAlt = Number(anualSSOT?.altasAdmin?.prevYear || 2026);
-  const pctAltVal = anualSSOT?.altasAdmin?.growthYear !== undefined ? Number(anualSSOT.altasAdmin.growthYear) : 26.4;
+  const ytdAlt = Number(anualSSOT?.altasAdmin?.current || 2712);
+  const prevAlt = Number(anualSSOT?.altasAdmin?.prevYear || 2276);
+  const pctAltVal = anualSSOT?.altasAdmin?.growthYear !== undefined ? Number(anualSSOT.altasAdmin.growthYear) : 19.2;
   const pctAlt = pctAltVal > 0 ? `+${pctAltVal.toFixed(1)}%` : `${pctAltVal.toFixed(1)}%`;
 
-  const ytdTra = Number(anualSSOT?.traslados?.current || 1162);
-  const prevTra = Number(anualSSOT?.traslados?.prevYear || 1039);
-  const pctTraVal = anualSSOT?.traslados?.growthYear !== undefined ? Number(anualSSOT.traslados.growthYear) : 11.8;
+  const ytdTra = Number(anualSSOT?.traslados?.current || 1198);
+  const prevTra = Number(anualSSOT?.traslados?.prevYear || 1079);
+  const pctTraVal = anualSSOT?.traslados?.growthYear !== undefined ? Number(anualSSOT.traslados.growthYear) : 11.0;
   const pctTra = pctTraVal > 0 ? `+${pctTraVal.toFixed(1)}%` : `${pctTraVal.toFixed(1)}%`;
 
   const comparativaYoY = {

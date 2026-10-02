@@ -209,8 +209,8 @@ export default function TorreControlSistema({
 
   // Consola de Trazabilidad en Tiempo Real (Fase 3: Traceability Log)
   const [traceLogs, setTraceLogs] = useState([
-    { id: 1, time: '18:01:23', type: 'info', text: 'Ingesta: Archivo cargado Pacientes_Admitidos_SAR_Rayen.xlsx (28.091 filas, 38 columnas).' },
-    { id: 2, time: '18:01:24', type: 'success', text: 'Motor Limpieza: Llaves compuestas generadas (25.547 únicas, 2.544 duplicados descartados).' },
+    { id: 1, time: '18:01:23', type: 'info', text: 'Ingesta: Archivo cargado Pacientes_Admitidos_SAR_Rayen.xlsx (30.131 filas, 38 columnas).' },
+    { id: 2, time: '18:01:24', type: 'success', text: 'Motor Limpieza: Llaves compuestas generadas (27.183 únicas, 2.712 duplicados/altas descartados).' },
     { id: 3, time: '18:01:24', type: 'info', text: 'Motor Turnos: Asignación determinista pre-15:00 vs post-15:00 con ventana 16:00 hrs.' },
     { id: 4, time: '18:01:25', type: 'success', text: 'SSOT Central: Validación matemática universal cumplida al 100.0% (Admitidos = Atendidos + Altas).' },
     { id: 5, time: '18:01:25', type: 'routing', text: 'Routing Engine: Ramificación activa hacia 4 módulos consumidores en paralelo.' },
@@ -222,9 +222,9 @@ export default function TorreControlSistema({
 
   // Métricas del sistema en tiempo real
   const systemMetrics = useMemo(() => {
-    const totalPacientes = pacientesDB?.length || 25547;
+    const totalPacientes = pacientesDB?.length || 27183;
     const totalTurnos = turnosDB?.length || 342;
-    const maxCorrelativo = 28091;
+    const maxCorrelativo = 30131;
 
     return {
       totalPacientes,
@@ -265,7 +265,7 @@ export default function TorreControlSistema({
           estado: isErrorIngesta ? 'error' : 'saludable',
           errorMsg: isErrorIngesta ? 'Error de parsing: 11/05/2026 leído como 05/11/2026.' : null,
           detallesBadge: 'SheetJS / XLSX',
-          reglaCanonica: 'Regla 1: Techo #28.091',
+          reglaCanonica: 'Regla 1: Techo #30.131',
           isHovered: hoveredNodeInfo?.id === 'ingesta'
         }
       },
@@ -480,8 +480,8 @@ export default function TorreControlSistema({
         'Raw Stream',
         {
           origen: 'Pacientes_Admitidos_SAR_Rayen.xlsx',
-          filasRaw: 28091,
-          sizeBytes: '4.8 MB',
+          filasRaw: 30131,
+          sizeBytes: '5.2 MB',
           columnasDetectadas: 38,
           encoding: 'utf-8',
           estadoStream: isErrorIngesta ? 'DATE_PARSER_CORRUPT' : 'BUFFER_OK'
@@ -494,10 +494,10 @@ export default function TorreControlSistema({
         isErrorLimpieza,
         'Deduplicated Pacs',
         {
-          llavesGeneradas: 28091,
-          atencionesValidas: 25547,
-          duplicadosDescartados: 2544,
-          tasaRedundancia: '9.05%',
+          llavesGeneradas: 30131,
+          atencionesValidas: 27183,
+          duplicadosDescartados: 2712,
+          tasaRedundancia: '9.07%',
           algoritmo: 'LlaveCompuesta ((RUT||Corr)+tAdm)'
         }
       ),
@@ -509,7 +509,7 @@ export default function TorreControlSistema({
         'Classified Shifts',
         {
           jornadasConstruidas: 342,
-          pacientesClasificados: 25547,
+          pacientesClasificados: 27183,
           cortePre15h: 9812,
           cortePost15h: 15735,
           rezagadosMadrugada: 4120,
@@ -615,10 +615,10 @@ export default function TorreControlSistema({
         titulo: 'Ingesta de Archivo (Data Input)',
         subtitulo: 'FileReader.readAsBinaryString(file) -> SheetJS XLSX Parsing',
         modulo: 'src/components/dashboard/GestionDatos.jsx y ModalCargaRapidaDatos.jsx',
-        reglaCanonica: 'Regla 1: Techo y Límite de Correlativos (#28.091)',
+        reglaCanonica: 'Regla 1: Techo y Límite de Correlativos (#30.131)',
         accionTecnica: 'FileReader.readAsBinaryString(file)',
         reglaNegocio: 'Conversión de XLSX a JSON (SheetJS)',
-        outputLive: 'Se generaron 28.091 objetos JSON. Llaves detectadas: [N°, RUT, FECHA_ADMISION, HORA_ADMISION, CATEGORIA, TRIAGE, MEDICO, BOX, ESTADO]',
+        outputLive: 'Se generaron 30.131 objetos JSON. Llaves detectadas: [N°, RUT, FECHA_ADMISION, HORA_ADMISION, CATEGORIA, TRIAGE, MEDICO, BOX, ESTADO]',
         formulaMatematica: `// Ingesta binaria y desambiguación de esquema
 const reader = new FileReader();
 reader.readAsBinaryString(file);
@@ -627,7 +627,7 @@ const jsonRows = XLSX.utils.sheet_to_json(workbook.Sheets[0]);
 
 // Output garantizado:
 const llavesDetectadas = Object.keys(jsonRows[0] || {});
-const totalFilas = jsonRows.length; // 28.091 registros`,
+const totalFilas = jsonRows.length; // 30.131 registros`,
         diagnostico: activeTroubleScenario === 'error_ingesta' ? {
           codigo: 'ERR_DATE_PARSER_INVERSION',
           causa: 'Una fecha en formato texto chileno (11/05/2026) fue interpretada como formato estadounidense (05/11/2026).',

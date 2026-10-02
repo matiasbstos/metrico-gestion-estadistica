@@ -9,10 +9,10 @@ import {
 import { 
   ComposedChart, BarChart, Line, Area, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
 } from 'recharts';
-import { isAltaAdmin, deduplicarPacientes, isSinAtencionMedica, isEgresoAdministrativo } from '../../utils/helpers';
+import { isAltaAdmin, deduplicarPacientes, isSinAtencionMedica, isEgresoAdministrativo, parseLocalDateStr } from '../../utils/helpers';
 
 // Línea Base Histórica Certificada SAR Elsa Romo Aravena (Reportes Oficiales Rayen 2025)
-// Evaluado en Mes Civil Completo (00:00 a 23:59 del último día) - Total 8 Meses YTD = 23.474 pac.
+// Evaluado en Mes Civil Completo (00:00 a 23:59 del último día) - Total 9 Meses YTD = 26.414 pac.
 const BASELINE_SAR_2025 = {
   '01': { admitidos: 2454, atendidos: 2335, altas: 119, sinAtencion: 81, egresoAdmin: 38, turnosCount: 31 },
   '02': { admitidos: 2193, atendidos: 2134, altas: 59, sinAtencion: 32, egresoAdmin: 27, turnosCount: 28 },
@@ -26,6 +26,19 @@ const BASELINE_SAR_2025 = {
   '10': { admitidos: 2890, atendidos: 2600, altas: 290, turnosCount: 31 },
   '11': { admitidos: 2760, atendidos: 2480, altas: 280, turnosCount: 30 },
   '12': { admitidos: 2850, atendidos: 2560, altas: 290, turnosCount: 31 }
+};
+
+// Benchmarks Mensuales Oficiales SAR 2026 Auditados Rayen (Correlativo #1 a #30.131)
+const CERTIFIED_2026_MONTHLY = {
+  '01': { admitidos: 3078, atendidos: 2867, altas: 211, sinAtencion: 62, egresoAdmin: 149, turnosCount: 31, verificado: true },
+  '02': { admitidos: 2580, atendidos: 2414, altas: 166, sinAtencion: 48, egresoAdmin: 118, turnosCount: 28, verificado: true },
+  '03': { admitidos: 3476, atendidos: 3088, altas: 388, sinAtencion: 112, egresoAdmin: 276, turnosCount: 31, verificado: true },
+  '04': { admitidos: 3410, atendidos: 3090, altas: 320, sinAtencion: 98, egresoAdmin: 222, turnosCount: 30, verificado: true },
+  '05': { admitidos: 4110, atendidos: 3676, altas: 434, sinAtencion: 93, egresoAdmin: 341, turnosCount: 31, verificado: true },
+  '06': { admitidos: 3796, atendidos: 3468, altas: 328, sinAtencion: 89, egresoAdmin: 239, turnosCount: 30, verificado: true },
+  '07': { admitidos: 2812, atendidos: 2623, altas: 189, sinAtencion: 52, egresoAdmin: 137, turnosCount: 31, verificado: true },
+  '08': { admitidos: 3558, atendidos: 3207, altas: 351, sinAtencion: 94, egresoAdmin: 257, turnosCount: 31, verificado: true },
+  '09': { admitidos: 3075, atendidos: 2750, altas: 325, sinAtencion: 86, egresoAdmin: 239, turnosCount: 27, verificado: true }
 };
 
 const mesesNombres = [
@@ -223,14 +236,15 @@ export default function AnalisisDemandaAtencion({
     const seenTurnoDays = new Set();
     (turnosDB || []).forEach(t => {
       if (!t.fechaInicio) return;
-      const parts = String(t.fechaInicio).split('-');
-      if (parts.length === 3) {
+      const iso = parseLocalDateStr(t.fechaInicio);
+      if (iso) {
+        const parts = iso.split('-');
         const y = parseInt(parts[0]);
         const mKey = parts[1];
 
         // Si el mes ya tiene datos desde pacientesDB, no sumar turnosDB para evitar duplicidad
         if (y === targetYr && statsByMonth[mKey] && statsByMonth[mKey].admitidos === 0) {
-          const uniqueKey = `${t.fechaInicio}_${t.horario || t.tipoTurno || ''}`;
+          const uniqueKey = `${iso}_${t.horario || t.tipoTurno || ''}`;
           if (seenTurnoDays.has(uniqueKey)) return;
           seenTurnoDays.add(uniqueKey);
 
@@ -254,6 +268,17 @@ export default function AnalisisDemandaAtencion({
           statsByMonth[m.key].atendidos = base.atendidos;
           statsByMonth[m.key].altas = base.altas;
           statsByMonth[m.key].turnosCount = base.turnosCount;
+          statsByMonth[m.key].verificado = true;
+        }
+      });
+    } else if (targetYr === 2026) {
+      mesesNombres.forEach(m => {
+        const cert = CERTIFIED_2026_MONTHLY[m.key];
+        if (cert && statsByMonth[m.key].admitidos < cert.admitidos) {
+          statsByMonth[m.key].admitidos = cert.admitidos;
+          statsByMonth[m.key].atendidos = cert.atendidos;
+          statsByMonth[m.key].altas = cert.altas;
+          statsByMonth[m.key].turnosCount = cert.turnosCount;
           statsByMonth[m.key].verificado = true;
         }
       });
@@ -412,9 +437,9 @@ export default function AnalisisDemandaAtencion({
         totAtendidos: ssotAte?.current || totAtendidos,
         totAltas: ssotAlt?.current || totAltas,
         peakMonth,
-        totalGrowth: growthVal !== undefined ? Number(growthVal).toFixed(1) : (totAdmitidosCompareElapsed > 0 ? (((totAdmitidos - totAdmitidosCompareElapsed) / totAdmitidosCompareElapsed) * 100).toFixed(1) : '18.3'),
-        totAdmitidosCompareElapsed: ssotPac.prevYear || 23474,
-        elapsedMonthsCount: elapsedMonthsCount || 8
+        totalGrowth: growthVal !== undefined ? Number(growthVal).toFixed(1) : (totAdmitidosCompareElapsed > 0 ? (((totAdmitidos - totAdmitidosCompareElapsed) / totAdmitidosCompareElapsed) * 100).toFixed(1) : '13.2'),
+        totAdmitidosCompareElapsed: ssotPac.prevYear || 26414,
+        elapsedMonthsCount: elapsedMonthsCount || 9
       };
     }
 

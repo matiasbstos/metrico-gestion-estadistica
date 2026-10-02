@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose }) {
 
   const updatesList = [
     {
+      id: 'v6.3.38',
+      version: 'v6.3.38',
+      fecha: '28 de Septiembre, 2026',
+      badge: 'ACTUALIZACIÓN OFICIAL RAYEN: CORRELATIVO #30.131 (LOTE 50) & 29.895 PACIENTES YTD',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Actualización Oficial del Techo y Control Rayen al Correlativo #30.131 (29.895 Pacientes YTD)',
+      categoria: 'Consistencia y Auditoría de Datos (SSOT)',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se identificó que el sistema retenía un techo estricto preexistente de #28.091 correlativos (correspondiente al corte del 09/09/2026), lo que impedía contabilizar las atenciones del Lote 50 (#30.131 al corte del 27/09/2026 22:30 hrs) en los KPIs anuales y causaba que Septiembre mostrara cifras parciales. Se actualizó el techo oficial a #30.131 correlativos, certificando 29.895 pacientes admitidos, 27.183 atenciones médicas efectivas (+12.6% YoY), 2.712 altas administrativas (+19.2% YoY), 1.198 traslados hospitalarios y 258 constataciones Z51.8. Asimismo, Septiembre consolida íntegramente sus 3.075 admisiones y 2.750 atendidos en Demanda Asistencial.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que toda la plataforma (Inicio, Período Seleccionado, Demanda Asistencial, Torre de Control y Despacho de Correo) reconozca exactamente el 100% de los pacientes del Lote 50 (#30.131), erradicando el bloqueo a 28.091 y los fragmentos incompletos de Septiembre.',
+        quePuedesVer: 'En Inicio: Las tarjetas de Global Anual (Year-to-Date) muestran 29.895 pacientes admitidos (+13.2% YoY), 27.183 atendidos (+12.6%), 2.712 altas admin (+19.2%), 1.198 traslados y 258 constataciones. En Demanda: Septiembre muestra sus 3.075 pacientes certificados con comparativa interanual consistente.',
+        ejemploUso: 'Al seleccionar el filtro "Año" o el mes de "Septiembre 2026", verás reflejadas inmediatamente las cifras completas y exactas de la planilla Rayen.'
+      },
+      changes: [
+        'Actualización del techo canónico oficial Rayen a #30.131 correlativos (29.895 admitidos, 27.183 atendidos, 2.712 altas).',
+        'Normalización universal de fechas mediante parseLocalDateStr en useMetricoAnalytics.js y AnalisisDemandaAtencion.jsx.',
+        'Eliminación de la cota de verificación preexistente a 28.091, ampliando el rango admisible hasta 32.000 pacientes.',
+        'Consolidación certificada de Septiembre 2026 en Demanda Asistencial (3.075 admitidos y 2.750 atenciones).',
+        'Sintonización de la línea base comparativa 2025 de 9 meses (26.414 admisiones y 24.138 atendidos).'
+      ]
+    },
+    {
       id: 'v6.3.37',
       version: 'v6.3.37',
       fecha: '28 de Septiembre, 2026',

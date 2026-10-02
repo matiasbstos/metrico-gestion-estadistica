@@ -365,20 +365,20 @@ export default function PanelKPIs({
 
         {/* Banner Ejecutivo de Tendencias de Demanda Global y Metas Asistenciales */}
         {(() => {
-          const pacAnual = statsKPI.anual?.pacientes?.current || 26796;
-          const pacPrevYear = statsKPI.anual?.pacientes?.prevYear || 23474;
+          const pacAnual = statsKPI.anual?.pacientes?.current || 29895;
+          const pacPrevYear = statsKPI.anual?.pacientes?.prevYear || 26414;
           const pacGrowthYear = statsKPI.anual?.pacientes?.growthYear;
 
-          const ateAnual = statsKPI.anual?.atendidos?.current || 24419;
-          const atePrevYear = statsKPI.anual?.atendidos?.prevYear || 21488;
+          const ateAnual = statsKPI.anual?.atendidos?.current || 27183;
+          const atePrevYear = statsKPI.anual?.atendidos?.prevYear || 24138;
           const ateGrowthYear = statsKPI.anual?.atendidos?.growthYear;
 
-          const altasAnual = statsKPI.anual?.altasAdmin?.current || 2377;
-          const altasPrevYear = statsKPI.anual?.altasAdmin?.prevYear || 1986;
+          const altasAnual = statsKPI.anual?.altasAdmin?.current || 2712;
+          const altasPrevYear = statsKPI.anual?.altasAdmin?.prevYear || 2276;
           const altasGrowthYear = statsKPI.anual?.altasAdmin?.growthYear;
 
-          const trasAnual = statsKPI.anual?.traslados?.current || 1162;
-          const trasPrevYear = statsKPI.anual?.traslados?.prevYear || 1039;
+          const trasAnual = statsKPI.anual?.traslados?.current || 1198;
+          const trasPrevYear = statsKPI.anual?.traslados?.prevYear || 1079;
           const trasGrowthYear = statsKPI.anual?.traslados?.growthYear;
 
           const altasPctGlobal = pacAnual > 0 ? (altasAnual / pacAnual) * 100 : 0;

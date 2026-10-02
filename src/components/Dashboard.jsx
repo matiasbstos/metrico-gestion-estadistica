@@ -90,7 +90,7 @@ import { usePautasTurnos } from '../hooks/usePautasTurnos';
 import { COLORS, DOC_COLORS, AGE_RANGES, METRIC_LABELS } from '../config/constants';
 import { getNormalizedUserPermissions } from '../config/modules';
 
-const CURRENT_APP_VERSION = 'v6.3.37';
+const CURRENT_APP_VERSION = 'v6.3.38';
 
 // Colores Institucionales
 
@@ -692,11 +692,11 @@ const DashboardContent = () => {
           const ytdPacHora = ytdHours > 0 ? ytdData.totalAtenciones / ytdHours : 0;
 
           const isBqYtdValid = Number(ytdData.totalAtenciones || 0) >= 5000;
-          const ytdPacTotal = isBqYtdValid ? ytdData.totalAtenciones : 28091;
-          const ytdAltasTotal = isBqYtdValid ? ytdData.totalAltas : 2544;
-          const ytdAteTotal = isBqYtdValid ? (ytdData.totalAtenciones - ytdData.totalAltas) : 25547;
-          const ytdTrasladosTotal = isBqYtdValid && ytdData.totalTraslados > 0 ? ytdData.totalTraslados : 1162;
-          const ytdConstatTotal = isBqYtdValid && ytdData.totalConstataciones > 0 ? ytdData.totalConstataciones : 242;
+          const ytdPacTotal = isBqYtdValid ? ytdData.totalAtenciones : 29895;
+          const ytdAltasTotal = isBqYtdValid ? ytdData.totalAltas : 2712;
+          const ytdAteTotal = isBqYtdValid ? (ytdData.totalAtenciones - ytdData.totalAltas) : 27183;
+          const ytdTrasladosTotal = isBqYtdValid && ytdData.totalTraslados > 0 ? ytdData.totalTraslados : 1198;
+          const ytdConstatTotal = isBqYtdValid && ytdData.totalConstataciones > 0 ? ytdData.totalConstataciones : 258;
           const ytdEstadiaVal = isBqYtdValid && ytdData.avgEstadia > 0 ? ytdData.avgEstadia : 133;
           const ytdPacHoraVal = ytdHours > 0 ? ytdPacTotal / ytdHours : 4.6;
 
@@ -704,30 +704,30 @@ const DashboardContent = () => {
             anual: {
               pacientes: { 
                 current: ytdPacTotal,
-                prevYear: 23474,
-                growthYear: getGrowth(ytdPacTotal, 23474)
+                prevYear: 26414,
+                growthYear: getGrowth(ytdPacTotal, 26414)
               },
               atendidos: { 
                 current: ytdAteTotal,
-                prevYear: 21488,
-                growthYear: getGrowth(ytdAteTotal, 21488)
+                prevYear: 24138,
+                growthYear: getGrowth(ytdAteTotal, 24138)
               },
               estadia: { current: ytdEstadiaVal, prevYear: 128 },
-              pacHora: { current: ytdPacHoraVal, prevYear: 4.0 },
+              pacHora: { current: ytdPacHoraVal, prevYear: 4.1 },
               altasAdmin: { 
                 current: ytdAltasTotal,
-                prevYear: 2026,
-                growthYear: getGrowth(ytdAltasTotal, 2026)
+                prevYear: 2276,
+                growthYear: getGrowth(ytdAltasTotal, 2276)
               },
               traslados: { 
                 current: ytdTrasladosTotal,
-                prevYear: 1039,
-                growthYear: getGrowth(ytdTrasladosTotal, 1039)
+                prevYear: 1079,
+                growthYear: getGrowth(ytdTrasladosTotal, 1079)
               },
               constataciones: { 
                 current: ytdConstatTotal,
-                prevYear: 214,
-                growthYear: getGrowth(ytdConstatTotal, 214)
+                prevYear: 225,
+                growthYear: getGrowth(ytdConstatTotal, 225)
               },
               recordPacWkdy: { count: Number(rec.max_pac_wkdy || 0), date: rec.max_pac_wkdy_date || 'Sin registros' },
               recordPacWknd: { count: Number(rec.max_pac_wknd || 0), date: rec.max_pac_wknd_date || 'Sin registros' },
@@ -786,9 +786,9 @@ const DashboardContent = () => {
     const fonasaPercent = demografiaStats?.total ? (fonasaVal / demografiaStats.total) * 100 : (base?.demo?.fonasaPercent || 0);
     const meliPercent = demografiaStats?.total ? ((demografiaStats.comunas['MELIPILLA'] || 0) / demografiaStats.total) * 100 : (base?.demo?.meliPercent || 0);
 
-    const ssotAnual = (statsKPI?.anual?.pacientes?.current >= 5000 && statsKPI.anual.pacientes.current <= 28091 ? statsKPI.anual : null) || 
-                      (kpisBigQuery?.anual?.pacientes?.current >= 5000 && kpisBigQuery.anual.pacientes.current <= 28091 ? kpisBigQuery.anual : null) || 
-                      (statsKPI?.anual?.pacientes?.current <= 28091 ? statsKPI?.anual : null) || 
+    const ssotAnual = (statsKPI?.anual?.pacientes?.current >= 5000 && statsKPI.anual.pacientes.current <= 32000 ? statsKPI.anual : null) || 
+                      (kpisBigQuery?.anual?.pacientes?.current >= 5000 && kpisBigQuery.anual.pacientes.current <= 32000 ? kpisBigQuery.anual : null) || 
+                      (statsKPI?.anual?.pacientes?.current <= 32000 ? statsKPI?.anual : null) || 
                       base?.anual;
 
     const fInit = new Date(filtroFechaInicio);
@@ -798,19 +798,19 @@ const DashboardContent = () => {
       (String(filtroFechaInicio).includes('01-01') && (String(filtroFechaFin).includes('12-31') || String(filtroFechaFin).includes('31/12') || String(filtroFechaFin).includes('12/31')));
 
     if (isAnnualFilter && ssotAnual) {
-      const annualPacientes = (statsKPI?.pacientes?.current && statsKPI.pacientes.current >= 5000 && statsKPI.pacientes.current <= 28091) 
+      const annualPacientes = (statsKPI?.pacientes?.current && statsKPI.pacientes.current >= 5000 && statsKPI.pacientes.current <= 32000) 
         ? statsKPI.pacientes.current 
-        : (ssotAnual.pacientes?.current && ssotAnual.pacientes.current <= 28091 ? ssotAnual.pacientes.current : 28091);
-      const annualAtendidos = (statsKPI?.atendidos?.current && statsKPI.atendidos.current >= 5000 && statsKPI.atendidos.current <= 28091) 
+        : (ssotAnual.pacientes?.current && ssotAnual.pacientes.current <= 32000 ? ssotAnual.pacientes.current : 29895);
+      const annualAtendidos = (statsKPI?.atendidos?.current && statsKPI.atendidos.current >= 5000 && statsKPI.atendidos.current <= 32000) 
         ? statsKPI.atendidos.current 
-        : (ssotAnual.atendidos?.current && ssotAnual.atendidos.current <= 28091 ? ssotAnual.atendidos.current : 25547);
-      const annualAltas = (statsKPI?.altasAdmin?.current && statsKPI.altasAdmin.current >= 500 && statsKPI.altasAdmin.current <= 3000) 
+        : (ssotAnual.atendidos?.current && ssotAnual.atendidos.current <= 32000 ? ssotAnual.atendidos.current : 27183);
+      const annualAltas = (statsKPI?.altasAdmin?.current && statsKPI.altasAdmin.current >= 500 && statsKPI.altasAdmin.current <= 4000) 
         ? statsKPI.altasAdmin.current 
-        : (ssotAnual.altasAdmin?.current && ssotAnual.altasAdmin.current <= 3000 ? ssotAnual.altasAdmin.current : 2544);
-      const annualPacHora = ssotAnual.pacHora?.current || 4.8;
+        : (ssotAnual.altasAdmin?.current && ssotAnual.altasAdmin.current <= 4000 ? ssotAnual.altasAdmin.current : 2712);
+      const annualPacHora = ssotAnual.pacHora?.current || 4.6;
       const annualEstadia = ssotAnual.estadia?.current || 133;
-      const annualTraslados = ssotAnual.traslados?.current || 1162;
-      const annualConstat = ssotAnual.constataciones?.current || 242;
+      const annualTraslados = ssotAnual.traslados?.current || 1198;
+      const annualConstat = ssotAnual.constataciones?.current || 258;
 
       return {
         ...base,

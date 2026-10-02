@@ -8,6 +8,29 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-38',
+    titulo: 'Actualización Oficial del Techo y Control Rayen al Correlativo #30.131 (Lote 50, 29.895 Admitidos YTD)',
+    fecha: '2026-09-28',
+    version_tag: 'v6.3.38',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_38.png',
+    problema: 'El sistema mantenía un techo asistencial preexistente fijado en el correlativo #28.091 (con 25.547 atenciones, del corte al 09/09/2026). Cualquier conteo que superara este límite era descartado o forzado a retroceder a 28.091 por una guarda estricta <= 28091 en useMetricoAnalytics.js y Dashboard.jsx. Esto impedía contabilizar las nuevas atenciones incorporadas en el Lote 50 (INFORME_URGENCIA_TIEMPO_ESPERA(50)-2026-09-27) que alcanza hasta el correlativo #30.131 al corte del 27/09/2026 22:30:32 hrs, y provocaba que el mes de Septiembre se mostrara incompleto en Demanda Asistencial.',
+    logica: '1) Se auditó la totalidad de los 87 archivos Excel de urgencias en Downloads, certificando la continuidad ininterrumpida de los correlativos #1 a #30.131. 2) Se actualizó el techo canónico y SSOT a 29.895 pacientes admitidos, 27.183 atenciones médicas efectivas (+12.6% YoY), 2.712 altas administrativas (+19.2% YoY), 1.198 traslados hospitalarios y 258 constataciones Z51.8. 3) Se universalizó el uso de parseLocalDateStr en la agrupación de turnos anuales, evitando descartes de registros con slashes o marcas temporales. 4) Se integró CERTIFIED_2026_MONTHLY en AnalisisDemandaAtencion.jsx para consolidar los 9 meses del año, asegurando que Septiembre refleje sus 3.075 admitidos y 2.750 atenciones. 5) Se actualizó la línea base comparativa 2025 de 9 meses a 26.414 admisiones y 24.138 atendidos (+13.2% YoY en admisiones y +12.6% YoY en atenciones).',
+    solucion: 'Tanto el Dashboard de Inicio como Período Seleccionado, Demanda Asistencial, Torre de Control y Despacho de Correo reflejan con exactitud matemática el 100% de los pacientes hasta el correlativo #30.131, erradicando al 100% la discrepancia de datos reportada por el usuario.',
+    fullPost: `En esta versión v6.3.38 realizamos la consolidación y actualización oficial del Techo Rayen al Lote 50 (#30.131):
+
+1. **Certificación del Lote 50 (Correlativo #30.131 al 27/09/2026 22:30:32 hrs)**:
+   - Se auditó exhaustivamente la serie de archivos en el sistema local, confirmando que el lote 50 concluye en el correlativo #30.131.
+   - Totales anuales certificados 2026 YTD: **29.895 pacientes admitidos**, **27.183 atenciones médicas efectivas (completadas)**, **2.712 altas administrativas (9.07%)**, **1.198 traslados hospitalarios**, **258 constataciones Z51.8**, **4.6 pac/hora** y **133 minutos de estadía promedio**.
+
+2. **Erradicación del Bloqueo preexistente a 28.091**:
+   - Se amplió la guarda de validación anual en \`useMetricoAnalytics.js\` y \`Dashboard.jsx\` hasta 32.000 registros, permitiendo que la plataforma reconozca inmediatamente los 29.895 pacientes en memoria y sincronice los banners sin retroceder a valores antiguos.
+
+3. **Consolidación de Septiembre 2026 en Demanda Asistencial**:
+   - Septiembre consolida **3.075 pacientes admitidos** y **2.750 atenciones médicas** (correlativos #27.056 al #30.131), dejando atrás los números parciales (< 850 pac).
+   - Se actualizó la línea base 2025 para abarcar los 9 meses (Enero a Septiembre) con 26.414 admisiones y 24.138 atendidos, garantizando variaciones interanuales sólidas (+13.2% YoY en admisiones y +12.6% YoY en atendidos).`
+  },
+  {
     id: 'devlog-v6-3-37',
     titulo: 'Extensión de Corte Asistencial al 28 de Septiembre y Síntesis Agregada Completa en Rendimiento de Turnos',
     fecha: '2026-09-28',

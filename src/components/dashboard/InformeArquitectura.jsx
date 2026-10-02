@@ -10,6 +10,35 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.38',
+    version_tag: 'v6.3.38',
+    fecha: '28 de Septiembre, 2026',
+    fecha_despliegue: '28 de Septiembre, 2026',
+    proposito_actualizacion: 'Actualización Oficial del Techo y Control Rayen al Correlativo #30.131 (Lote 50, 29.895 Admitidos YTD) y Blindaje Universal de Métricas Mensuales.',
+    medios_y_stack: [
+      'useMetricoAnalytics.js (Actualización del techo oficial Rayen a #30.131 correlativos, 29.895 admitidos, 27.183 atenciones médicas efectivas, 2.712 altas administrativas, 1.198 traslados hospitalarios y 258 constataciones Z51.8)',
+      'useMetricoAnalytics.js (Normalización de fechas con parseLocalDateStr en la deduplicación de all2026Turnos, erradicando descarte de turnos con formato de fecha chilena o slashes)',
+      'useMetricoAnalytics.js & Dashboard.jsx (Expansión de la cota de verificación hasta 32.000 pacientes, erradicando el clamp preexistente a 28.091)',
+      'Dashboard.jsx (Sintonización de statsKPIFinal y fallbacks de BigQuery con 29.895 pacientes YTD y línea base comparativa 2025 de 9 meses: 26.414 admisiones y 24.138 atendidos)',
+      'AnalisisDemandaAtencion.jsx (Incorporación de CERTIFIED_2026_MONTHLY para los 9 meses certificados, asegurando que Septiembre refleje 3.075 admitidos y 2.750 atendidos sin fragmentaciones)',
+      'TorreControlSistema.jsx (Actualización de los nodos del pipeline a 30.131 registros brutos, 27.183 atenciones válidas y 2.712 altas/duplicados)',
+      'ModalConfiguracionCorreo.jsx & PanelKPIs.jsx (Actualización de fallbacks de guardia anual a 29.895 pacientes y línea base comparativa 2025)',
+      '.agents/AGENTS.md (Actualización de la Regla 1 SSOT fijando el techo oficial en el Correlativo #30.131 al corte del 27/09/2026 22:30:32 hrs)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Techo Oficial Rayen #30.131 (Regla 1 SSOT): El acumulado YTD 2026 se actualiza a 29.895 admisiones, 27.183 atenciones médicas efectivas (+12.6% YoY) y 2.712 altas admin (+19.2% YoY). 2) Integridad de Septiembre 2026: El mes de Septiembre consolida 3.075 admitidos y 2.750 atendidos, erradicando conteos parciales. 3) Conciliación Universal YoY (Regla 8 SSOT): Comparativa de 9 meses transcurridos con la línea base oficial 2025 (26.414 admisiones y 24.138 atendidos).',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'pautas_turnos', 'system_architecture_log'],
+      query_optimization: 'Parseo unificado de fechas mediante parseLocalDateStr e indexación hash O(1).'
+    },
+    modulos_afectados: ['useMetricoAnalytics.js', 'Dashboard.jsx', 'AnalisisDemandaAtencion.jsx', 'TorreControlSistema.jsx', 'PanelKPIs.jsx', 'ModalConfiguracionCorreo.jsx', '.agents/AGENTS.md'],
+    detalles_tecnicos: [
+      'Eliminación del bloqueo a 28.091 que impedía reflejar el Lote 50 (#30.131).',
+      'Desglose certificado de Triaje Manchester para los 29.895 pacientes (C1: 194, C2: 2.296, C3: 11.957, C3_Z518: 258, C4: 12.859, C5: 2.331).',
+      'Corrección de Septiembre en Demanda Asistencial reflejando el mes con 3.075 admisiones.',
+      'Actualización oficial de versión del sistema a v6.3.38.'
+    ]
+  },
+  {
     id: 'v6.3.37',
     version_tag: 'v6.3.37',
     fecha: '28 de Septiembre, 2026',
