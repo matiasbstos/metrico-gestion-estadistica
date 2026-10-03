@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { 
   Calendar, TrendingUp, TrendingDown, Clock, Activity, 
   AlertTriangle, ShieldCheck, Users, Edit3, CheckCircle2, 
-  Gauge, Zap, RefreshCw, Layers, Award, Flame, ShieldAlert, 
+  Gauge, Zap, RefreshCw, Layers, Award, Trophy, Flame, ShieldAlert, 
   Timer, BarChart2, Crown, Target, HeartPulse, UserCheck, 
   AlertCircle, HelpCircle, ChevronRight, Stethoscope, Sparkles, Info
 } from 'lucide-react';
@@ -853,7 +853,8 @@ export default function AnalisisComparativoTriple({
     return rankedList.map((item, idx) => ({
       ...item,
       rank: idx + 1,
-      rankBadge: idx === 0 ? '🥇 #1 Líder Operativo' : idx === 1 ? '🥈 #2 Desempeño Alto' : '🥉 #3 Operación Estable',
+      rankTitle: idx === 0 ? '#1 Líder Operativo' : idx === 1 ? '#2 Desempeño Alto' : '#3 Operación Estable',
+      rankBadge: idx === 0 ? '#1 Líder Operativo' : idx === 1 ? '#2 Desempeño Alto' : '#3 Operación Estable',
       rankClass: idx === 0 
         ? 'border-amber-500/50 bg-amber-500/5 shadow-amber-500/10' 
         : idx === 1 
@@ -1025,25 +1026,30 @@ export default function AnalisisComparativoTriple({
       const ret = 100 - Number(stats.pctAltasAdmin || 10);
       const vol = stats.totalPacientes || 0;
 
-      let archetypeTitle = '⚡ Perfil Balanceado';
+      let archetypeTitle = 'Perfil Balanceado';
       let archetypeDesc = 'Equilibrio operativo entre agilidad de flujo y resolución clínica.';
+      let archetypeIcon = Activity;
       let badgeColor = 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30';
 
       if (wait <= 20 && comp < 60) {
-        archetypeTitle = '⚡ Perfil Ágil & Rápido';
+        archetypeTitle = 'Perfil Ágil & Rápido';
         archetypeDesc = 'Óptimo para descongestionar sala de espera y absorber picos masivos de baja y mediana complejidad.';
+        archetypeIcon = Zap;
         badgeColor = 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30';
       } else if (comp >= 65) {
-        archetypeTitle = '🔥 Perfil Alta Complejidad';
+        archetypeTitle = 'Perfil Alta Complejidad';
         archetypeDesc = 'Especializado en contención y estabilización de pacientes graves (C1-C3), absorbiendo alta carga asistencial.';
+        archetypeIcon = Flame;
         badgeColor = 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30';
       } else if (ret >= 94) {
-        archetypeTitle = '🛡️ Perfil Alta Retención';
+        archetypeTitle = 'Perfil Alta Retención';
         archetypeDesc = 'Excelente tasa resolutiva con mínima fuga de pacientes en espera, garantizando fidelización asistencial.';
+        archetypeIcon = ShieldCheck;
         badgeColor = 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30';
       } else if (vol > (globalAggregates.avgTotalPac * 1.15)) {
-        archetypeTitle = '📦 Perfil Alta Capacidad';
+        archetypeTitle = 'Perfil Alta Capacidad';
         archetypeDesc = 'Mayor volumen total absorbido con alto rendimiento horario continuo durante turnos de alta demanda.';
+        archetypeIcon = Layers;
         badgeColor = 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30';
       }
 
@@ -1052,6 +1058,7 @@ export default function AnalisisComparativoTriple({
         stats,
         archetypeTitle,
         archetypeDesc,
+        archetypeIcon,
         badgeColor
       };
     });
@@ -1333,29 +1340,33 @@ export default function AnalisisComparativoTriple({
         {/* Presets Rápidos */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider flex items-center gap-1 mr-1">
+            <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider flex items-center gap-1.5 mr-1">
               <Zap className="w-3.5 h-3.5 text-indigo-500" /> Presets Rápidos:
             </span>
             {[
-              { id: 'ultimos_3_meses', label: '⚡ Últimos 3 Meses' },
-              { id: 'ano_2026', label: '📅 Año 2026 Completo' },
-              { id: 'ultimos_30_dias', label: '🗓️ Últimos 30 Días' },
-              { id: 'ultimos_7_dias', label: '⏱️ Últimos 7 Días' },
-              { id: 'agosto_2026', label: '📊 Agosto 2026' },
-              { id: 'septiembre_2026', label: '🍂 Septiembre 2026' },
-            ].map(p => (
-              <button
-                key={p.id}
-                onClick={() => handleApplyPreset(p.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs ${
-                  activePreset === p.id
-                    ? 'bg-indigo-600 text-white font-black shadow-md'
-                    : 'bg-black/5 dark:bg-white/5 text-secondary-custom hover:text-primary-custom hover:bg-black/10'
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
+              { id: 'ultimos_3_meses', label: 'Últimos 3 Meses', icon: Zap },
+              { id: 'ano_2026', label: 'Año 2026 Completo', icon: Calendar },
+              { id: 'ultimos_30_dias', label: 'Últimos 30 Días', icon: Clock },
+              { id: 'ultimos_7_dias', label: 'Últimos 7 Días', icon: Timer },
+              { id: 'agosto_2026', label: 'Agosto 2026', icon: BarChart2 },
+              { id: 'septiembre_2026', label: 'Septiembre 2026', icon: Activity },
+            ].map(p => {
+              const IconComp = p.icon;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => handleApplyPreset(p.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs ${
+                    activePreset === p.id
+                      ? 'bg-indigo-600 text-white font-black shadow-md'
+                      : 'bg-black/5 dark:bg-white/5 text-secondary-custom hover:text-primary-custom hover:bg-black/10'
+                  }`}
+                >
+                  <IconComp className="w-3.5 h-3.5" />
+                  <span>{p.label}</span>
+                </button>
+              );
+            })}
           </div>
 
           <div className="text-[11px] font-bold text-secondary-custom flex items-center gap-2">
@@ -1372,8 +1383,8 @@ export default function AnalisisComparativoTriple({
       {/* ========================================================================= */}
       {veredictoGerencial && (
         <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/60 to-blue-50/90 dark:from-blue-950/30 dark:via-indigo-950/20 dark:to-blue-950/30 border-l-4 border-blue-600 dark:border-blue-500 p-4 md:p-5 rounded-2xl md:rounded-3xl shadow-xs border border-blue-100 dark:border-blue-900/40 flex items-start gap-3.5 transition-all">
-          <div className="p-2.5 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5">
-            <Award className="w-5 h-5" />
+          <div className="p-2.5 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shrink-0 mt-0.5">
+            <Trophy className="w-5 h-5 text-amber-500" />
           </div>
           <div className="space-y-1 text-xs md:text-sm text-slate-700 dark:text-slate-200 leading-relaxed w-full">
             <div className="flex items-center gap-2 flex-wrap">
@@ -1385,9 +1396,13 @@ export default function AnalisisComparativoTriple({
               </span>
             </div>
             <p className="font-medium text-xs md:text-sm leading-relaxed">
-              <strong className="text-primary-custom font-black">🏆 Veredicto del Período:</strong> El <strong className="text-blue-600 dark:text-blue-400 font-black">{veredictoGerencial.leaderAlias}</strong> lidera el rendimiento operativo global (<span className="font-black text-primary-custom">{veredictoGerencial.leaderScore} pts</span>) impulsado por {veredictoGerencial.fortalezaTexto}.{' '}
+              <strong className="text-primary-custom font-black inline-flex items-center gap-1.5">
+                <Trophy className="w-4 h-4 text-amber-500 inline shrink-0" /> Veredicto del Período:
+              </strong> El <strong className="text-blue-600 dark:text-blue-400 font-black">{veredictoGerencial.leaderAlias}</strong> lidera el rendimiento operativo global (<span className="font-black text-primary-custom">{veredictoGerencial.leaderScore} pts</span>) impulsado por {veredictoGerencial.fortalezaTexto}.{' '}
               <span className="inline-block mt-1 sm:mt-0">
-                <strong className="text-amber-600 dark:text-amber-400 font-black">⚠️ Recomendación Gerencial:</strong> Se recomienda evaluar el flujo del <strong className="text-rose-600 dark:text-rose-400 font-black">{veredictoGerencial.laggingAlias}</strong>, el cual presenta el puntaje más bajo (<span className="font-black text-primary-custom">{veredictoGerencial.laggingScore} pts</span>) con oportunidades de mejora en <span className="font-bold text-rose-600 dark:text-rose-400">{veredictoGerencial.oportunidadTexto}</span>.
+                <strong className="text-amber-600 dark:text-amber-400 font-black inline-flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4 text-amber-500 inline shrink-0" /> Recomendación Gerencial:
+                </strong> Se recomienda evaluar el flujo del <strong className="text-rose-600 dark:text-rose-400 font-black">{veredictoGerencial.laggingAlias}</strong>, el cual presenta el puntaje más bajo (<span className="font-black text-primary-custom">{veredictoGerencial.laggingScore} pts</span>) con oportunidades de mejora en <span className="font-bold text-rose-600 dark:text-rose-400">{veredictoGerencial.oportunidadTexto}</span>.
               </span>
             </p>
           </div>
@@ -1770,8 +1785,15 @@ export default function AnalisisComparativoTriple({
                         }`}>
                           {row.scoreFinal} <span className="text-[10px] font-bold">pts</span>
                         </span>
-                        <span className="text-[9px] font-bold text-secondary-custom mt-0.5">
-                          {row.rankBadge.replace(/^[^s]+s/, '')}
+                        <span className="text-[9px] font-bold text-secondary-custom mt-0.5 inline-flex items-center gap-1">
+                          {row.rank === 1 ? (
+                            <Trophy className="w-2.5 h-2.5 text-amber-500 inline shrink-0" />
+                          ) : row.rank === 2 ? (
+                            <Award className="w-2.5 h-2.5 text-slate-400 inline shrink-0" />
+                          ) : (
+                            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500 inline shrink-0" />
+                          )}
+                          <span>{row.rankTitle || row.rankBadge}</span>
                         </span>
                       </div>
                     </td>
@@ -2290,8 +2312,9 @@ export default function AnalisisComparativoTriple({
                     <span className="text-xs font-black text-primary-custom flex items-center gap-1.5">
                       {team.alias}
                     </span>
-                    <span className={`text-[9.5px] font-black px-2 py-0.5 rounded-md border ${team.badgeColor}`}>
-                      {team.archetypeTitle}
+                    <span className={`text-[9.5px] font-black px-2 py-0.5 rounded-md border inline-flex items-center gap-1 ${team.badgeColor}`}>
+                      {React.createElement(team.archetypeIcon || Activity, { className: 'w-3 h-3 shrink-0' })}
+                      <span>{team.archetypeTitle}</span>
                     </span>
                   </div>
                   <p className="text-[11px] text-secondary-custom font-medium">
@@ -2413,9 +2436,15 @@ export default function AnalisisComparativoTriple({
             <div className="p-2.5 rounded-xl bg-black/5 dark:bg-white/5 border border-card-custom/30 text-[10px] text-secondary-custom">
               <strong className="text-primary-custom block mb-0.5">¿Supone Riesgo Operativo?</strong>
               {globalAggregates.avgTasaFuga > 6 ? (
-                <span className="text-rose-500 font-bold">⚠️ Alerta: Riesgo de descompensación de pacientes en sala de espera.</span>
+                <span className="text-rose-500 font-bold inline-flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-rose-500" />
+                  <span>Alerta: Riesgo de descompensación de pacientes en sala de espera.</span>
+                </span>
               ) : (
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold">✅ Fuga contenida dentro de parámetros seguros del SAR.</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold inline-flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+                  <span>Fuga contenida dentro de parámetros seguros del SAR.</span>
+                </span>
               )}
             </div>
           </div>
@@ -2486,9 +2515,15 @@ export default function AnalisisComparativoTriple({
             <div className="p-2.5 rounded-xl bg-black/5 dark:bg-white/5 border border-card-custom/30 text-[10px] text-secondary-custom">
               <strong className="text-primary-custom block mb-0.5">¿Supone Riesgo Clínico?</strong>
               {globalAggregates.avgTasaReingreso > 4.5 ? (
-                <span className="text-amber-500 font-bold">⚠️ Evaluar posible falla resolutiva o altas precoces.</span>
+                <span className="text-amber-500 font-bold inline-flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-500" />
+                  <span>Evaluar posible falla resolutiva o altas precoces.</span>
+                </span>
               ) : (
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold">✅ Resolución médica efectiva de primer contacto.</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold inline-flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-500" />
+                  <span>Resolución médica efectiva de primer contacto.</span>
+                </span>
               )}
             </div>
           </div>

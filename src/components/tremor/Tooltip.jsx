@@ -119,7 +119,9 @@ export default function KPITooltip({
         />
         {displayTitle && (
           <span className="flex items-center gap-1.5 mb-1.5 border-b border-slate-700/60 pb-1.5">
-            <span className="w-2 h-2 rounded-full bg-indigo-400 shrink-0 inline-block" />
+            <span className="p-0.5 rounded-md bg-indigo-500/20 text-indigo-400 shrink-0 inline-flex items-center justify-center">
+              <Info className="w-3 h-3" />
+            </span>
             <span className="font-black text-indigo-300 text-xs tracking-tight leading-tight block">
               {displayTitle}
             </span>
