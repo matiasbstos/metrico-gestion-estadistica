@@ -10,6 +10,25 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.48',
+    version_tag: 'v6.3.48',
+    fecha: '03 de Octubre, 2026',
+    fecha_despliegue: '03 de Octubre, 2026',
+    proposito_actualizacion: 'Transformación del Módulo Rendimiento de Turnos en Dashboard Ejecutivo: Scorecard Matricial con Ranking Ponderado, RadarChart de Competencias Recharts, ComposedChart Manchester C1-C5 de Alto Contraste y Minería de Datos Clínica para Mitigación de Riesgos Operativos.',
+    medios_y_stack: [
+      'AnalisisComparativoTriple.jsx (Refactorización arquitectónica total: Scorecard Matricial de 4 KPIs clave, RadarChart Recharts de 5 ejes de competencias, arquetipos directivos de guardia, ComposedChart con barras agrupadas/apiladas sin solape y curvas de latencia de alto contraste, y 4 tarjetas de minería clínica y riesgo operativo con MiniSparklines SVG y barras semáforo)',
+      'Dashboard.jsx (Soporte integral de parámetros tab y view para navegación e inspección directa de Rendimiento de Turnos)',
+      'version.js (Sincronización a v6.3.48)',
+      'DevLogModule.jsx (Publicación devlog v6.3.48 con capturas de alta resolución)',
+      'ModalMuroActualizaciones.jsx (Ficha en muro de novedades)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Fase 1 Scorecard Ejecutivo: Erradicación de las 3 columnas tabulares verticales largas; adopción de una tabla matricial superior que clasifica los 3 turnos con Ranking (#1 Líder Operativo, #2 Desempeño Alto, #3 Operación Estable), Score Global (0-100 pts) y semaforización verde/amarillo/rojo con flechas de tendencia (🔺/🔻) en Volumen Total, Latencia Triaje, Lead Time Global y Tasa Resolutiva. 2) Fase 2 Visualización Radial: Integración de RadarChart de Recharts con 5 competencias normalizadas (0 a 100): Agilidad Triaje, Absorción, Resolutividad C1-C3, Retención Asistencial y Velocidad de Box, complementado por diagnóstico de arquetipos de guardia. 3) Fase 3 ComposedChart: Triaje Manchester C1 a C5 con espaciado calibrado (barGap=4, barSize=18) para evitar solapes y líneas de espera de alto contraste luminosas. 4) Fase 4 Minería de Datos Clínica: Incorporación de 4 indicadores de seguridad asistencial orientados a la decisión directiva (Tasa de Fuga, Tasa de Reingreso <48h, Rescate Crítico C1/C2 y Demografía Dependiente) provistos de Sparklines de tendencia y barras semáforo.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'pautas_turnos', 'system_architecture_log'],
+      documentos_afectados: ['src/components/dashboard/AnalisisComparativoTriple.jsx', 'src/components/Dashboard.jsx', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx']
+    }
+  },
+  {
     id: 'v6.3.47',
     version_tag: 'v6.3.47',
     fecha: '03 de Octubre, 2026',

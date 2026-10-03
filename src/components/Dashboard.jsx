@@ -224,7 +224,7 @@ const DashboardContent = () => {
       } else if (modalParam === 'muro') {
         setShowMuroModal(true);
       }
-      const viewParam = params.get('view');
+      const viewParam = params.get('view') || params.get('tab');
       if (viewParam) {
         setActiveTab(viewParam);
       }

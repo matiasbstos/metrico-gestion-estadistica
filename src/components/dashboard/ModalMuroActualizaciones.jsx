@@ -15,6 +15,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.48',
+      version: 'v6.3.48',
+      fecha: '03 de Octubre, 2026',
+      badge: 'DASHBOARD EJECUTIVO: SCORECARD DE TURNOS, RADARCHART & MINERÍA CLÍNICA DE RIESGO',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Refactorización Integral de Rendimiento de Turnos en Dashboard Ejecutivo con Scorecard Matricial y Visualización Radial',
+      categoria: 'Inteligencia Sanitaria & Gestión Operativa',
+      icon: Gauge,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se transformó por completo el módulo "Rendimiento de Turnos" sustituyendo las tres columnas tabulares tradicionales por un Dashboard Ejecutivo orientado a la decisión gerencial: 1) Scorecard Matricial superior con sistema de puntaje (0-100 pts), ranking (#1, #2, #3), semaforización verde/amarillo/rojo y deltas con flechas (🔺/🔻) en 4 KPIs clave (Volumen, Latencia Triaje, Lead Time Global y Tasa Resolutiva). 2) Visualización Radial de Competencias (RadarChart de Recharts) con 5 ejes normalizados y arquetipos directivos. 3) ComposedChart optimizado de Triaje Manchester y Latencia con barras agrupadas/apiladas sin solape y líneas de alto contraste. 4) Minería de Datos Clínica y Gestión de Riesgo Operativo con 4 tarjetas de decisión (Tasa de Fuga, Reingreso <48h, Rescate Crítico y Extremos de la Vida) provistas de Sparklines y barras semáforo.',
+      instructivo: {
+        paraQueSirve: 'Optimiza la toma de decisiones gerencial en la asignación de refuerzos, dotación médica y vigilancia de seguridad asistencial comparando el desempeño operativo de los tres turnos de guardia.',
+        quePuedesVer: '1. En la parte superior: Matriz Scorecard con ranking #1, #2, #3, Score Global ponderado y semáforos de Volumen, Latencia, Lead Time y Tasa Resolutiva. 2. Gráfico Radial de 5 ejes que superpone los perfiles de los tres turnos junto al panel de Arquetipos Operativos. 3. ComposedChart de Triaje Manchester con conmutador de barras agrupadas/apiladas y curvas de espera luminosas. 4. Panel de Minería Clínica con Sparklines y semáforos de Fuga, Reingreso <48h, Traslados Críticos y Extremos de la Vida.',
+        ejemploUso: 'Selecciona cualquier rango temporal o preset (ej. "Últimos 3 Meses") y examina instantáneamente qué turno lidera en agilidad de triaje o si algún equipo presenta alerta operativa en fuga o reingresos.'
+      },
+      changes: [
+        'Eliminación de las 3 columnas tabulares verticales y sustitución por Scorecard Matricial ejecutivo con Ranking (#1, #2, #3) y Score ponderado.',
+        'Implementación del RadarChart de Recharts con 5 ejes de competencias (Agilidad Triaje, Absorción, Resolutividad C1-C3, Retención Asistencial y Velocidad de Box) y arquetipos directivos.',
+        'Refinamiento del ComposedChart de Triaje Manchester (C1 a C5) con espaciado sin solape, líneas de latencia de alto contraste y toggle agrupadas/apiladas.',
+        'Módulo autónomo de Minería Clínica y Gestión de Riesgo con Sparklines de tendencia, barras semáforo y evaluación de riesgo operativo (Fugas, Reingresos <48h, Rescate Crítico y Demografía Dependiente).',
+        'Actualización a versión institucional v6.3.48.'
+      ]
+    },
+    {
       id: 'v6.3.47',
       version: 'v6.3.47',
       fecha: '03 de Octubre, 2026',

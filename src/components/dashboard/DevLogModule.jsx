@@ -8,6 +8,46 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-48',
+    titulo: 'Transformación de Rendimiento de Turnos en Dashboard Ejecutivo: Scorecard Matricial, RadarChart de Competencias y Minería Clínica de Riesgo Operativo',
+    fecha: '2026-10-03',
+    version_tag: 'v6.3.48',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_48.png',
+    problema: 'El módulo anterior "Rendimiento de Turnos" presentaba una estructura vertical densa de 3 columnas largas con tarjetas aisladas, lo que dificultaba a la dirección y jefatura médica contrastar instantáneamente el desempeño entre turnos, identificar fortalezas operativas específicas (agilidad vs absorción de complejidad) y detectar tempranamente riesgos clínicos como fugas en sala o reingresos precoces.',
+    logica: '1) Fase 1 Scorecard: Eliminación de las columnas largas y creación de una matriz ejecutiva superior con Ranking (#1, #2, #3), Score Global ponderado (0-100 pts) y semaforización verde/amarillo/rojo con deltas de tendencia (🔺/🔻) en Volumen Atendido, Latencia Triaje, Lead Time Global y Tasa Resolutiva. 2) Fase 2 RadarChart: Implementación de gráfico radial Recharts con 5 competencias normalizadas (Agilidad Triaje, Capacidad Absorción, Resolutividad C1-C3, Retención Asistencial y Velocidad de Box) acompañado de arquetipos directivos de guardia. 3) Fase 3 ComposedChart: Triaje Manchester C1-C5 con barras agrupadas/apiladas sin solape y curvas de latencia en contraste. 4) Fase 4 Minería Clínica: 4 widgets de decisión directiva (Fugas, Reingresos <48h, Rescate Crítico C1/C2 y Demografía Dependiente) provistos de Sparklines de tendencia y barras semáforo.',
+    solucion: 'El nuevo Dashboard Ejecutivo permite a la dirección evaluar de un solo vistazo la eficiencia de los equipos de guardia, optimizar la asignación estratégica de dotación y responder al instante a la pregunta de seguridad clínica y riesgo asistencial.',
+    fullPost: `En esta versión v6.3.48 transformamos completamente el módulo Rendimiento de Turnos en un Dashboard Ejecutivo de clase mundial:
+
+1. **Fase 1: Matriz de Clasificación de Desempeño (Scorecard)**:
+   - Erradicación de las 3 columnas verticales densas.
+   - Nueva tabla matricial superior con Ranking (#1 Líder Operativo, #2 Desempeño Alto, #3 Operación Estable).
+   - Score Global compuesto (0 a 100 pts) ponderado según estándares de urgencia: 30% Tasa Resolutiva, 30% Latencia Triaje, 20% Lead Time Global y 20% Volumen.
+   - Semaforización instantánea (Verde para el mejor rendimiento, Amarillo para el intermedio, Naranja/Rojo para el más bajo) con íconos de tendencia (🔺/🔻) comparados contra la media del grupo.
+
+2. **Fase 2: Visualización Radial de Competencias (Radar Chart de Recharts)**:
+   - Superposición de 3 polígonos de colores diferenciados evaluando 5 competencias clínicas y operativas normalizadas de 0 a 100:
+     * Agilidad de Triaje (menor tiempo de espera = mayor puntaje)
+     * Capacidad de Absorción (volumen atendido relativo al pico)
+     * Resolutividad C1-C3 (proporción de alta complejidad atendida)
+     * Retención Asistencial (menor fuga/egreso administrativo)
+     * Velocidad de Box (menor tiempo de permanencia médica)
+   - Panel anexo de Arquetipos y Perfiles de Guardia para asignación estratégica de refuerzos.
+
+3. **Fase 3: Refinamiento del ComposedChart (Triaje y Latencia)**:
+   - Espaciado calibrado entre barras por nivel Manchester (C1 a C5) con \`barGap={4}\` y \`barSize={18}\`, eliminando solapamientos.
+   - Curvas de latencia con colores luminosos de alto contraste y nodos con halos para máxima legibilidad.
+   - Conmutador interactivo entre Barras Agrupadas y Barras Apiladas (Stacked).
+
+4. **Fase 4: Minería de Datos Clínica & Gestión de Riesgo Operativo**:
+   - Detección y visualización autónoma de 4 indicadores de seguridad asistencial:
+     * Tasa de Fuga / Abandono Pre-Atención (Egresos antes de evaluación médica en box)
+     * Tasa de Reingreso Precoz (< 48 hrs)
+     * Derivaciones Críticas UEH (Uso de ambulancia y emergencia vital C1/C2)
+     * Saturación Demográfica de Extremos de la Vida (Pediátricos y Geriatría)
+   - Regla estricta sin tablas de texto plano: empleo de MiniSparklines de tendencia, barras de progreso semaforizadas y dictamen directo a la pregunta gerencial de riesgo asistencial.`
+  },
+  {
     id: 'devlog-v6-3-47',
     titulo: 'Consagración de Regla 23 (Fidelidad de Imagen Externa), Re-encolado Dinámico y Restauración del Turno del 27',
     fecha: '2026-10-03',
