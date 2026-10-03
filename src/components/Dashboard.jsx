@@ -123,7 +123,14 @@ function AnimatedRadarIcon({ className = "w-5 h-5", hasAlert = true }) {
 
 
 const DashboardContent = () => {
-  const [activeTab, setActiveTab] = useState('resumen');
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('tab') || 'resumen';
+    } catch (e) {
+      return 'resumen';
+    }
+  });
   const [subTabEspecifico, setSubTabEspecifico] = useState('fracturas'); // 'fracturas' | 'altas' | 'constataciones'
   const [isEspecificosOpen, setIsEspecificosOpen] = useState(false);
   const [isGestionOpen, setIsGestionOpen] = useState(false);
@@ -132,7 +139,14 @@ const DashboardContent = () => {
   const [editModal, setEditModal] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [showMuroModal, setShowMuroModal] = useState(false);
-  const [showCorreoModal, setShowCorreoModal] = useState(false);
+  const [showCorreoModal, setShowCorreoModal] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('modal') === 'correo';
+    } catch (e) {
+      return false;
+    }
+  });
   const [showAcercaDeModal, setShowAcercaDeModal] = useState(false);
   const [centroActivo, setCentroActivo] = useState(localStorage.getItem('metrico_centro') || 'SAR Elsa Romo Aravena');
   

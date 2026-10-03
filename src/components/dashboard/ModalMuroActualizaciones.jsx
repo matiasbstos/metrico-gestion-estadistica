@@ -15,6 +15,34 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.51',
+      version: 'v6.3.51',
+      fecha: '03 de Octubre, 2026',
+      badge: 'RADAR PREDICTIVO 2.0 • NIXTLA STATSFORECAST (AUTOARIMA) & REZAGOS METEOROLÓGICOS',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Migración del Motor Predictivo a Microservicio Python con Nixtla StatsForecast, Feriados y Rezagos Climáticos',
+      categoria: 'IA & Radar',
+      icon: TrendingUp,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se migró el motor del "Radar Predictivo de Demanda Asistencial" hacia un microservicio desacoplado en Python (/api-predictiva) basado en la librería de clase mundial Nixtla StatsForecast: 1) Modelado con AutoARIMA y AutoETS considerando estacionalidad semanal obligatoria (season_length=7). 2) Ingesta histórica de 598 días estandarizada (unique_id, ds, y) con detección de feriados oficiales chilenos vía holidays.CL() como variable dummy. 3) Feature Engineering de rezagos climáticos Open-Meteo Melipilla (temp_min_lag48 y precip_lag72) que modelan la incubación clínica de cuadros respiratorios y descompensación cardiopulmonar. 4) Intervalos de Predicción al 90% (lo-90 y hi-90) para el Corredor Nixtla. 5) Cálculo y exhibición de dotación médica requerida con escenarios optimista y pesimista (Min: Xh y Max: Yh a 3.8 pac/hora) y conexión reactiva con fallback automático.',
+      instructivo: {
+        paraQueSirve: 'Permite a los directivos y jefes de guardia proyectar con rigor estadístico y probabilístico la afluencia de pacientes para los próximos 7 días, visualizando el corredor de confianza al 90% y estimando con precisión la dotación médica requerida tanto en el escenario óptimo como en el peor caso.',
+        quePuedesVer: '1. Distintivo "Microservicio Python Activo • IC 90%" en la cabecera del Radar. 2. Tarjeta de Rango Esperado con Intervalo de Confianza al 90% (ej. 114 - 157 pac.). 3. Tarjeta de Dotación Médica Requerida con escenarios extremos "Min: 30.0h" y "Max: 41.3h". 4. Gráfico Recharts con la banda de proyección y el Corredor Nixtla (IC 90%).',
+        ejemploUso: 'Ingresa al módulo "Radar Predictivo (IA)" en el menú lateral. Observa la dotación médica requerida para el turno entrante: revisa el escenario mínimo y máximo de horas box para planificar refuerzos de guardia médica según las alertas climáticas de helada o lluvia retardada.'
+      },
+      changes: [
+        'Scaffold y configuración del microservicio independiente en Python (/api-predictiva) montado sobre FastAPI y Uvicorn con CORS.',
+        'Implementación del módulo de ingesta y feature engineering (data_processor.py) con estándar canónico Nixtla (unique_id, ds, y).',
+        'Integración de feriados oficiales chilenos con holidays.CL() como covariable dummy es_feriado.',
+        'Extracción y cálculo de covariables exógenas retardadas de Open-Meteo Melipilla: temp_min_lag48 y precip_lag72 para simulación de incubación respiratoria.',
+        'Entrenamiento probabilístico con AutoARIMA y AutoETS de Nixtla StatsForecast con season_length=7 e intervalos al 90%.',
+        'Exposición de endpoint REST GET /api/forecast/7days con respuesta JSON enriquecida para el flujo asistencial SAR.',
+        'Conexión asíncrona en Radar.jsx con fallback automático a radarPredictivoEngine.js en caso de desconexión del microservicio.',
+        'Incorporación en UI del Rango Esperado IC 90% y dotación médica mínima/máxima en la tarjeta ejecutiva.',
+        'Actualización de leyendas y gráficos Recharts a "Corredor Nixtla (IC 90%)".'
+      ]
+    },
+    {
       id: 'v6.3.50',
       version: 'v6.3.50',
       fecha: '03 de Octubre, 2026',

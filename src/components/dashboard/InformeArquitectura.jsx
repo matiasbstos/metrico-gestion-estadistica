@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.51',
+    version_tag: 'v6.3.51',
+    fecha: '03 de Octubre, 2026',
+    fecha_despliegue: '03 de Octubre, 2026',
+    proposito_actualizacion: 'Institución de Regla 24: Migración del Motor Predictivo de Demanda Asistencial a Microservicio Python con Nixtla StatsForecast (AutoARIMA/AutoETS), Exógenas de Calendario (holidays.CL) y Rezagos de Incubación Meteorológica (Open-Meteo Melipilla: 48h y 72h).',
+    medios_y_stack: [
+      '/api-predictiva (Microservicio desacoplado en FastAPI con entorno virtual Python independiente, CORS universal y motor Nixtla StatsForecast)',
+      'data_processor.py (Ingesta de 598 días históricos en formato Nixtla unique_id, ds, y; dummy de feriados holidays.CL() y extracción retardada Open-Meteo Melipilla temp_min_lag48 y precip_lag72)',
+      'forecaster.py (Modelos AutoARIMA y AutoETS con estacionalidad semanal season_length=7, horizonte a 7 días e Intervalos de Predicción al 90% lo-90/hi-90, con cálculo de escenarios optimista y pesimista de dotación médica a 3.8 pac/hora)',
+      'Radar.jsx (Conexión asíncrona a GET /api/forecast/7days con fallback automático a radarPredictivoEngine.js; badge oficial de microservicio activo; UI de Rango Esperado IC 90% y Dotación Médica Requerida Min/Max)',
+      'radarPredictivoEngine.js (Paridad de interfaces con horasMedicasMin y horasMedicasMax para respaldo resiliente)',
+      'version.js (Sincronización a v6.3.51)',
+      'AGENTS.md y .agents/AGENTS.md (Consagración de la Regla 24)',
+      'DevLogModule.jsx (Publicación devlog v6.3.51 con snapshot de alta resolución)',
+      'ModalMuroActualizaciones.jsx (Ficha en muro de novedades)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Regla 24 SSOT: El Radar Predictivo opera sobre un microservicio Python con Nixtla StatsForecast (AutoARIMA/AutoETS) con estacionalidad semanal (s=7). 2) Exógenas de Calendario y Meteorología: Consideración estricta de feriados chilenos oficiales (holidays.CL) y rezagos de incubación clínica respiratoria a 48h (frío) y 72h (lluvia) de Melipilla. 3) Intervalos al 90%: Proyección probabilística obligatoria con corredor de confianza lo-90 y hi-90. 4) Escenarios de Dotación: Exhibición explícita de horas médicas requeridas en escenario optimista (Min) y pesimista (Max) a 3.8 pac/hora. 5) Graceful Degradation: Conmutación transparente a motor JS ante indisponibilidad del servicio sin interrupción clínica.',
+      firestore_collections: ['system_architecture_log', 'configuracion_radar'],
+      documentos_afectados: ['api-predictiva/main.py', 'api-predictiva/forecaster.py', 'api-predictiva/data_processor.py', 'src/components/dashboard/Radar.jsx', 'src/utils/radarPredictivoEngine.js', 'src/config/version.js', '.agents/AGENTS.md', 'AGENTS.md']
+    }
+  },
+  {
     id: 'v6.3.50',
     version_tag: 'v6.3.50',
     fecha: '03 de Octubre, 2026',

@@ -8,6 +8,44 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-51',
+    titulo: 'Migración del Radar Predictivo a Microservicio en Python con Nixtla StatsForecast (AutoARIMA), Feriados Chilenos y Rezagos Meteorológicos',
+    fecha: '2026-10-03',
+    version_tag: 'v6.3.51',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_51.png',
+    problema: 'El motor predictivo previo requería evolucionar hacia un modelo estocástico de series de tiempo de alta precisión capaz de capturar formalmente la estacionalidad semanal de urgencias SAR (season_length=7), el impacto de feriados oficiales chilenos y el fenómeno clínico de rezago en la demanda por incubación respiratoria post-lluvia y heladas, proporcionando intervalos de predicción probabilísticos al 90% (lo-90 y hi-90) para el dimensionamiento de dotación médica.',
+    logica: '1) Fase 1 Scaffold Microservicio: Construcción de un microservicio desacoplado en /api-predictiva con FastAPI y Python venv independiente, con soporte CORS y endpoints REST (/api/forecast/7days). 2) Fase 2 Ingesta y Feature Engineering: Formateo de 598 días históricos al estándar Nixtla (unique_id, ds, y), generación de variable dummy es_feriado con holidays.CL(), y consumo de Open-Meteo Melipilla para construir covariables retardadas (temp_min_lag48 y precip_lag72) que modelan la incubación clínica de cuadros respiratorios obstructivos y descompensaciones. 3) Fase 3 StatsForecast Probabilístico: Entrenamiento de modelos AutoARIMA y AutoETS con season_length=7 e intervalos de predicción al 90% (lo-90, hi-90). 4) Fase 4 Conexión Frontend: Conexión asíncrona en Radar.jsx a GET /api/forecast/7days con fallback local transparente. Mapeo del "Rango Esperado IC 90%", cálculo de escenarios optimista y pesimista en "Dotación Médica Requerida" (Min: Xh y Max: Yh a 3.8 pac/hora) y actualización de leyendas al "Corredor Nixtla (IC 90%)".',
+    solucion: 'Integración end-to-end de inteligencia predictiva estado del arte con Nixtla StatsForecast que entrega a la dirección médica certidumbre probabilística y proyección de dotación médica para los próximos 7 días con soporte meteorológico retardado.',
+    fullPost: `En esta versión v6.3.51 consolidamos la migración del Radar Predictivo de Demanda Asistencial hacia un microservicio desacoplado en Python con Nixtla StatsForecast:
+
+1. **Fase 1: Scaffold del Microservicio Predictivo (Python / FastAPI)**:
+   - Directorio independiente \`/api-predictiva\` provisto de entorno virtual propio (\`venv\`).
+   - Servidor ligero de alta velocidad montado sobre FastAPI y Uvicorn con CORS universal habilitado.
+   - Dependencias centrales instaladas: \`statsforecast\`, \`pandas\`, \`holidays\`, \`httpx\` y \`uvicorn\`.
+
+2. **Fase 2: Ingesta Histórica y Feature Engineering (Estándar Nixtla, Feriados y Rezagos Climáticos)**:
+   - Dataset histórico de atenciones SAR de 598 días formateado con el esquema canónico de Nixtla: \`unique_id\` (\`"SAR_General"\`), \`ds\` (fecha) e \`y\` (volumen de admisiones).
+   - **Variable Dummy de Festivos**: Uso de \`holidays.CL()\` para marcar automáticamente feriados oficiales en Chile (\`es_feriado\`), permitiendo que el modelo aprenda la alteración de demanda en días festivos y vísperas.
+   - **Rezagos Climáticos de Incubación (Open-Meteo Melipilla)**:
+     * \`temp_min_lag48\`: Temperatura mínima con 48 horas de retardo.
+     * \`precip_lag72\`: Precipitación acumulada con 72 horas de retardo.
+     * Simulación matemática del período de incubación y sobrecarga tardía por patologías respiratorias obstructivas (IRA/SBO) y descompensación de patologías crónicas.
+
+3. **Fase 3: Entrenamiento y Pronóstico Probabilístico (AutoARIMA / AutoETS con IC 90%)**:
+   - Modelado con \`AutoARIMA\` y \`AutoETS\` fijando estacionalidad semanal (\`season_length = 7\`).
+   - Predicción a 7 días calendario continuos con cálculo mandatorio de Intervalos de Predicción al 90% (\`lo-90\` y \`hi-90\`).
+   - Generación de desgloses asistenciales específicos de urgencias SAR: Diurno (72%) vs Nocturno (28%) en fines de semana, Manchester C1-C5 y Horas Médicas necesarias a razón estándar de 3.8 pacientes/hora.
+
+4. **Fase 4: Conexión con el Frontend de React e Indicadores de Dotación**:
+   - Endpoint \`GET /api/forecast/7days?base_date=\` expuesto en \`http://127.0.0.1:8000\`.
+   - Consulta reactiva desde \`Radar.jsx\` con conmutación autónoma y fallback transparente a \`radarPredictivoEngine.js\` en caso de desconexión.
+   - **UI de Escenarios de Dotación**: Visualización del *Rango Esperado (IC 90%)* y desglose explícito de dotación médica en la tarjeta ejecutiva:
+     * **Escenario Optimista (Mínimo)**: \`Min: X.Xh\` calculadas con el límite inferior \`lo-90\`.
+     * **Escenario Pesimista (Máximo)**: \`Max: Y.Yh\` calculadas con el límite superior \`hi-90\`.
+   - Actualización de gráficos Recharts y leyendas institucionales a *"Corredor Nixtla (IC 90%)"* y badge oficial *"Microservicio Python Activo • IC 90%"*.`
+  },
+  {
     id: 'devlog-v6-3-50',
     titulo: 'Veredicto Gerencial Automático en Cabecera y Glosario Interactivo con Tooltips Informativos en Rendimiento de Turnos',
     fecha: '2026-10-03',
