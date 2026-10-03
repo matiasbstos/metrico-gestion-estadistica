@@ -15,6 +15,31 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.50',
+      version: 'v6.3.50',
+      fecha: '03 de Octubre, 2026',
+      badge: 'RESUMEN GERENCIAL: VEREDICTO DE PERÍODO & GLOSARIO INTERACTIVO CON TOOLTIPS',
+      badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20',
+      title: 'Veredicto Ejecutivo Dinámico y Trazabilidad de Métricas con Tooltips de Hover en Rendimiento de Turnos',
+      categoria: 'Usabilidad Ejecutiva & Gobernanza Clínica',
+      icon: Award,
+      iconBg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+      summary: 'Se refinó la usabilidad y experiencia directiva del Dashboard de Rendimiento de Turnos con dos innovaciones clave: 1) Componente Callout de Veredicto Gerencial Automático en la cabecera (inmediatamente bajo los filtros temporales) que traduce el ranking a un resumen ejecutivo en lenguaje natural (máx. 2 líneas), destacando al turno líder con sus fortalezas y emitiendo recomendaciones directivas para el turno rezagado con su oportunidad de mejora más crítica. 2) Glosario Interactivo con KPITooltip por hover e iconografía de ayuda (ⓘ) en cada KPI clave (Score Global, Volumen Total, Latencia Admisión-Triaje con estándar ≤15 min, Lead Time Global, Tasa Resolutiva, Tasa de Fuga, Reingreso <48h, Rescate Crítico, Extremos de la Vida y Tracker Horario), transparentando la fórmula y el estándar institucional de cada indicador.',
+      instructivo: {
+        paraQueSirve: 'Permite a la jefatura y dirección obtener una conclusión ejecutiva en 3 segundos sin necesidad de interpretar tablas complejas, al tiempo que transparenta la metodología de cálculo y estándares clínicos mediante hover en cualquier indicador.',
+        quePuedesVer: '1. Banner Callout azul en la cima con veredicto automático: turno líder con sus atributos y recomendación gerencial para el turno con menor puntaje. 2. Íconos de ayuda (ⓘ) en gris claro junto al nombre de cada KPI. 3. Tooltips flotantes oscuros de alta definición al pasar el cursor con título, fórmula de cálculo y criterio institucional.',
+        ejemploUso: 'Revisa el banner superior para conocer el veredicto gerencial del período. Si tienes dudas sobre cómo se calculó la "Tasa Resolutiva" o qué mide el "Lead Time", pasa el cursor sobre el ícono (ⓘ) para ver la fórmula y el estándar SAR.'
+      },
+      changes: [
+        'Creación del componente Callout de Veredicto Gerencial Automático en la cabecera con análisis dinámico del ranking y fortalezas/oportunidades de mejora en lenguaje natural.',
+        'Desarrollo e integración del componente KPITooltip (src/components/tremor/Tooltip.jsx) con popover flotante oscuro (z-9999) y flecha indicadora.',
+        'Incorporación de íconos de información (ⓘ) en text-slate-400 y cursor-help en cada indicador.',
+        'Implementación del Diccionario Obligatorio de Glosario: Score Global, Latencia Admisión-Triaje, Lead Time Global, Tasa Resolutiva, Tasa de Fuga y Reingreso <48h.',
+        'Cobertura de tooltips en tarjetas Tremor, cabeceras de la Matriz Scorecard y widgets de Minería de Datos Clínica.',
+        'Blindaje de etiquetas HTML mediante elementos inline (span) para garantizar conformidad semántica HTML5 estricta.'
+      ]
+    },
+    {
       id: 'v6.3.49',
       version: 'v6.3.49',
       fecha: '03 de Octubre, 2026',

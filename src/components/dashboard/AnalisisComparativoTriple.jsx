@@ -19,7 +19,8 @@ import {
   Tracker as TremorTracker, 
   BarList as TremorBarList, 
   DonutChart as TremorDonutChart, 
-  BarChart as TremorBarChart 
+  BarChart as TremorBarChart,
+  KPITooltip
 } from '../tremor';
 import { 
   formatLocalDate, 
@@ -861,6 +862,79 @@ export default function AnalisisComparativoTriple({
     }));
   }, [teamsConfig, teamMetrics]);
 
+  // Veredicto Gerencial Automático (Fase 1: Top Banner Resumen de Decisión en Lenguaje Natural)
+  const veredictoGerencial = useMemo(() => {
+    if (!scorecardRanking || scorecardRanking.length === 0) return null;
+
+    const leader = scorecardRanking[0];
+    const lagging = scorecardRanking[scorecardRanking.length - 1];
+
+    // Determinar fortalezas del líder
+    const leaderStrengths = [];
+    if (leader.isBestVol) leaderStrengths.push('su alta capacidad de absorción y volumen atendido');
+    if (leader.isBestLat) leaderStrengths.push('agilidad y rapidez en categorización de triaje');
+    if (leader.isBestRes) leaderStrengths.push('retención clínica y alta resolutividad');
+    if (leader.isBestLead) leaderStrengths.push('menor permanencia y velocidad de box');
+
+    let fortalezaTexto = 'su equilibrio operativo y resolutividad asistencial';
+    if (leaderStrengths.length >= 2) {
+      fortalezaTexto = `${leaderStrengths[0]} y ${leaderStrengths[1]}`;
+    } else if (leaderStrengths.length === 1) {
+      fortalezaTexto = leaderStrengths[0];
+    }
+
+    // Determinar oportunidad de mejora del turno con menor puntaje
+    const laggingStats = lagging.stats || {};
+    const oportunidades = [];
+
+    const fuga = Number(laggingStats.tasaFuga || 0);
+    const avgFuga = globalAggregates.avgTasaFuga || 5.0;
+    if (fuga > avgFuga || fuga >= 5.0) {
+      oportunidades.push({ text: `Tasa de Fuga (${fuga}%)`, gap: (fuga - avgFuga) * 2 + 10 });
+    }
+
+    const lat = lagging.latencia || 0;
+    const avgLat = globalAggregates.avgEsperaTriage || 15;
+    if (lat > avgLat) {
+      oportunidades.push({ text: `latencia a triaje (${lat} min)`, gap: (lat - avgLat) * 2 });
+    }
+
+    const lead = lagging.leadTime || 0;
+    const avgLead = globalAggregates.avgEstadiaTotal || 100;
+    if (lead > avgLead) {
+      oportunidades.push({ text: `estadía global (${formatTime(lead)})`, gap: lead - avgLead });
+    }
+
+    const res = lagging.resolutiva || 0;
+    const avgRes = globalAggregates.avgTasaResolutiva || 90;
+    if (res < avgRes) {
+      oportunidades.push({ text: `tasa resolutiva (${res}%)`, gap: (avgRes - res) * 2 });
+    }
+
+    const reing = Number(laggingStats.pctReingreso48h || 0);
+    const avgReing = globalAggregates.avgPctReingreso48h || 3.0;
+    if (reing > avgReing) {
+      oportunidades.push({ text: `reingresos <48h (${reing}%)`, gap: (reing - avgReing) * 3 });
+    }
+
+    oportunidades.sort((a, b) => b.gap - a.gap);
+
+    const oportunidadTexto = oportunidades.length > 0 
+      ? oportunidades[0].text 
+      : 'flujo de box y tiempos de espera';
+
+    return {
+      leaderAlias: leader.alias,
+      leaderScore: leader.scoreFinal,
+      leaderColor: leader.color,
+      fortalezaTexto,
+      laggingAlias: lagging.alias,
+      laggingScore: lagging.scoreFinal,
+      laggingColor: lagging.color,
+      oportunidadTexto
+    };
+  }, [scorecardRanking, globalAggregates]);
+
   // FASE 2: DATASET NORMALIZADO PARA RADARCHART DE COMPETENCIAS (5 EJES 0 A 100)
   const radarData = useMemo(() => {
     const sA = teamMetrics[equipoColA] || {};
@@ -1294,6 +1368,33 @@ export default function AnalisisComparativoTriple({
       </div>
 
       {/* ========================================================================= */}
+      {/* FASE 1: VEREDICTO GERENCIAL AUTOMÁTICO (TOP BANNER CALLOUT EN LENGUAJE NATURAL) */}
+      {/* ========================================================================= */}
+      {veredictoGerencial && (
+        <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/60 to-blue-50/90 dark:from-blue-950/30 dark:via-indigo-950/20 dark:to-blue-950/30 border-l-4 border-blue-600 dark:border-blue-500 p-4 md:p-5 rounded-2xl md:rounded-3xl shadow-xs border border-blue-100 dark:border-blue-900/40 flex items-start gap-3.5 transition-all">
+          <div className="p-2.5 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5">
+            <Award className="w-5 h-5" />
+          </div>
+          <div className="space-y-1 text-xs md:text-sm text-slate-700 dark:text-slate-200 leading-relaxed w-full">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-blue-600 text-white shadow-xs">
+                Veredicto del Período
+              </span>
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                Resumen Ejecutivo de Decisión Inmediata
+              </span>
+            </div>
+            <p className="font-medium text-xs md:text-sm leading-relaxed">
+              <strong className="text-primary-custom font-black">🏆 Veredicto del Período:</strong> El <strong className="text-blue-600 dark:text-blue-400 font-black">{veredictoGerencial.leaderAlias}</strong> lidera el rendimiento operativo global (<span className="font-black text-primary-custom">{veredictoGerencial.leaderScore} pts</span>) impulsado por {veredictoGerencial.fortalezaTexto}.{' '}
+              <span className="inline-block mt-1 sm:mt-0">
+                <strong className="text-amber-600 dark:text-amber-400 font-black">⚠️ Recomendación Gerencial:</strong> Se recomienda evaluar el flujo del <strong className="text-rose-600 dark:text-rose-400 font-black">{veredictoGerencial.laggingAlias}</strong>, el cual presenta el puntaje más bajo (<span className="font-black text-primary-custom">{veredictoGerencial.laggingScore} pts</span>) con oportunidades de mejora en <span className="font-bold text-rose-600 dark:text-rose-400">{veredictoGerencial.oportunidadTexto}</span>.
+              </span>
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
       {/* FASE 2: SCORECARD GERENCIAL CON COMPONENTES TREMOR (3 COLUMNAS EJECUTIVAS) */}
       {/* ========================================================================= */}
       <div className="space-y-4">
@@ -1395,7 +1496,9 @@ export default function AnalisisComparativoTriple({
                   {/* 1. Carga Operativa (Volumen Total) */}
                   <div className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-card-custom/40 space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <TremorText>Carga Operativa Asistencial</TremorText>
+                      <TremorText>
+                        <KPITooltip kpiKey="volumenTotal">Carga Operativa Asistencial</KPITooltip>
+                      </TremorText>
                       <TremorBadgeDelta
                         deltaType={deltaVol.deltaType}
                         isIncreasePositive={deltaVol.isIncreasePositive}
@@ -1421,7 +1524,9 @@ export default function AnalisisComparativoTriple({
                   {/* 2. Latencia Admisión - Triaje */}
                   <div className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-card-custom/40 space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <TremorText>Latencia Admisión - Triaje</TremorText>
+                      <TremorText>
+                        <KPITooltip kpiKey="latenciaTriage">Latencia Admisión - Triaje</KPITooltip>
+                      </TremorText>
                       <TremorBadgeDelta
                         deltaType={deltaLat.deltaType}
                         isIncreasePositive={deltaLat.isIncreasePositive}
@@ -1449,9 +1554,9 @@ export default function AnalisisComparativoTriple({
                     <div className="flex items-center justify-between">
                       <div>
                         <TremorText className="font-bold text-primary-custom text-xs">
-                          Monitor Horario de Espera a Triaje
+                          <KPITooltip kpiKey="trackerHorario">Monitor Horario de Espera a Triaje</KPITooltip>
                         </TremorText>
-                        <span className="text-[10px] text-secondary-custom font-semibold">
+                        <span className="text-[10px] text-secondary-custom font-semibold block">
                           Semáforo intradiario (12 horas de guardia)
                         </span>
                       </div>
@@ -1478,7 +1583,9 @@ export default function AnalisisComparativoTriple({
                   {/* 4. Lead Time Global (Estadía Total) */}
                   <div className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-card-custom/40 space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <TremorText>Lead Time Global (Estadía Total)</TremorText>
+                      <TremorText>
+                        <KPITooltip kpiKey="leadTime">Lead Time Global (Estadía Total)</KPITooltip>
+                      </TremorText>
                       <TremorBadgeDelta
                         deltaType={deltaLead.deltaType}
                         isIncreasePositive={deltaLead.isIncreasePositive}
@@ -1507,9 +1614,9 @@ export default function AnalisisComparativoTriple({
                     <div className="flex items-center justify-between">
                       <div>
                         <TremorText className="font-black text-primary-custom text-xs uppercase tracking-wider">
-                          Resolutividad & Altas Admin
+                          <KPITooltip kpiKey="tasaResolutiva">Resolutividad & Altas Admin</KPITooltip>
                         </TremorText>
-                        <span className="text-[10px] font-bold text-secondary-custom">
+                        <span className="text-[10px] font-bold text-secondary-custom block">
                           Desglose de egresos clínicos vs administrativos
                         </span>
                       </div>
@@ -1544,7 +1651,9 @@ export default function AnalisisComparativoTriple({
 
                 {/* Footer de Tarjeta con Score Global */}
                 <div className="pt-3 border-t border-card-custom/40 flex items-center justify-between text-xs">
-                  <span className="text-secondary-custom font-bold">Puntaje Global Compuesto:</span>
+                  <KPITooltip kpiKey="scoreGlobal">
+                    <span className="text-secondary-custom font-bold">Puntaje Global Compuesto:</span>
+                  </KPITooltip>
                   <span className="font-black text-primary-custom text-sm">
                     {ranked.scoreFinal || 85.0} <span className="text-[10px] text-secondary-custom font-bold">pts</span>
                   </span>
@@ -1586,11 +1695,21 @@ export default function AnalisisComparativoTriple({
             <thead>
               <tr className="border-b border-card-custom/40 text-[10px] font-black uppercase text-secondary-custom tracking-wider">
                 <th className="pb-3 px-3">Ranking & Equipo</th>
-                <th className="pb-3 px-3 text-center">Score Global</th>
-                <th className="pb-3 px-3">1. Volumen Total</th>
-                <th className="pb-3 px-3">2. Latencia Triaje</th>
-                <th className="pb-3 px-3">3. Lead Time Global</th>
-                <th className="pb-3 px-3">4. Tasa Resolutiva</th>
+                <th className="pb-3 px-3 text-center">
+                  <KPITooltip kpiKey="scoreGlobal">Score Global</KPITooltip>
+                </th>
+                <th className="pb-3 px-3">
+                  <KPITooltip kpiKey="volumenTotal">1. Volumen Total</KPITooltip>
+                </th>
+                <th className="pb-3 px-3">
+                  <KPITooltip kpiKey="latenciaTriage">2. Latencia Triaje</KPITooltip>
+                </th>
+                <th className="pb-3 px-3">
+                  <KPITooltip kpiKey="leadTime">3. Lead Time Global</KPITooltip>
+                </th>
+                <th className="pb-3 px-3">
+                  <KPITooltip kpiKey="tasaResolutiva">4. Tasa Resolutiva</KPITooltip>
+                </th>
                 <th className="pb-3 px-3 text-right">Configuración</th>
               </tr>
             </thead>
@@ -2232,9 +2351,11 @@ export default function AnalisisComparativoTriple({
           <div className="p-5 rounded-3xl bg-black/5 dark:bg-white/5 border border-card-custom/60 flex flex-col justify-between space-y-4">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-secondary-custom uppercase tracking-wider flex items-center gap-1.5">
-                  <UserCheck className="w-3.5 h-3.5 text-rose-500" /> Tasa de Fuga
-                </span>
+                <KPITooltip kpiKey="tasaFuga">
+                  <span className="text-[10px] font-black text-secondary-custom uppercase tracking-wider flex items-center gap-1.5">
+                    <UserCheck className="w-3.5 h-3.5 text-rose-500" /> Tasa de Fuga
+                  </span>
+                </KPITooltip>
                 <MiniSparkline 
                   data={[
                     teamMetrics[equipoColA]?.tasaFuga || 0,
@@ -2303,9 +2424,11 @@ export default function AnalisisComparativoTriple({
           <div className="p-5 rounded-3xl bg-black/5 dark:bg-white/5 border border-card-custom/60 flex flex-col justify-between space-y-4">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-secondary-custom uppercase tracking-wider flex items-center gap-1.5">
-                  <HeartPulse className="w-3.5 h-3.5 text-amber-500" /> Reingreso &lt;48h
-                </span>
+                <KPITooltip kpiKey="reingreso48h">
+                  <span className="text-[10px] font-black text-secondary-custom uppercase tracking-wider flex items-center gap-1.5">
+                    <HeartPulse className="w-3.5 h-3.5 text-amber-500" /> Reingreso &lt;48h
+                  </span>
+                </KPITooltip>
                 <MiniSparkline 
                   data={[
                     teamMetrics[equipoColA]?.tasaReingreso || 0,
@@ -2374,9 +2497,11 @@ export default function AnalisisComparativoTriple({
           <div className="p-5 rounded-3xl bg-black/5 dark:bg-white/5 border border-card-custom/60 flex flex-col justify-between space-y-4">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-secondary-custom uppercase tracking-wider flex items-center gap-1.5">
-                  <Flame className="w-3.5 h-3.5 text-purple-500" /> Rescate Crítico
-                </span>
+                <KPITooltip kpiKey="trasladosCriticos">
+                  <span className="text-[10px] font-black text-secondary-custom uppercase tracking-wider flex items-center gap-1.5">
+                    <Flame className="w-3.5 h-3.5 text-purple-500" /> Rescate Crítico
+                  </span>
+                </KPITooltip>
                 <MiniSparkline 
                   data={[
                     teamMetrics[equipoColA]?.pctTrasladosCriticos || 0,
@@ -2437,9 +2562,11 @@ export default function AnalisisComparativoTriple({
           <div className="p-5 rounded-3xl bg-black/5 dark:bg-white/5 border border-card-custom/60 flex flex-col justify-between space-y-4">
             <div>
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-secondary-custom uppercase tracking-wider flex items-center gap-1.5">
-                  <Users className="w-3.5 h-3.5 text-blue-500" /> Extremos de la Vida
-                </span>
+                <KPITooltip kpiKey="extremosVida">
+                  <span className="text-[10px] font-black text-secondary-custom uppercase tracking-wider flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-blue-500" /> Extremos de la Vida
+                  </span>
+                </KPITooltip>
                 <MiniSparkline 
                   data={[
                     teamMetrics[equipoColA]?.pctExtremosVida || 0,

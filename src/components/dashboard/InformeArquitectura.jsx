@@ -10,6 +10,26 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.50',
+    version_tag: 'v6.3.50',
+    fecha: '03 de Octubre, 2026',
+    fecha_despliegue: '03 de Octubre, 2026',
+    proposito_actualizacion: 'Refinamiento de Usabilidad en Dashboard de Rendimiento de Turnos: Veredicto Gerencial Automático (Top Banner Callout) en Lenguaje Natural y Glosario Interactivo con KPITooltips por Hover e Iconografía de Ayuda (ⓘ) en Métricas Clave.',
+    medios_y_stack: [
+      'src/components/tremor/Tooltip.jsx (Desarrollo del componente analítico KPITooltip con diccionario GLOSARIO_KPIS, popover flotante z-[9999] y marcado HTML5 inline estricto)',
+      'src/components/tremor/index.js (Exportación de Tooltip, KPITooltip y GLOSARIO_KPIS para la suite Tremor)',
+      'AnalisisComparativoTriple.jsx (Integración del Top Banner Callout de Veredicto Gerencial y cobertura completa de Tooltips en tarjetas Tremor, tabla Scorecard y widgets de Minería Clínica)',
+      'version.js (Sincronización a v6.3.50)',
+      'DevLogModule.jsx (Publicación devlog v6.3.50 con capturas del veredicto y tooltips)',
+      'ModalMuroActualizaciones.jsx (Ficha en muro de novedades)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Fase 1 Veredicto Gerencial: Callout destacado posicionado bajo los filtros de fecha que evalúa el estado de la Matriz de Clasificación (scorecardRanking) para generar una síntesis en lenguaje natural destacando las fortalezas del turno líder y emitiendo recomendaciones directivas accionables para el turno rezagado con su oportunidad de mejora más relevante. 2) Fase 2 Glosario Interactivo: Integración de KPITooltip con las 6 definiciones obligatorias del diccionario clínico-operativo (Score Global, Latencia Admisión-Triaje con meta ≤15m, Lead Time Global, Tasa Resolutiva, Tasa de Fuga y Reingreso <48h). 3) Fase 3 Iconografía de Ayuda: Ícono (ⓘ) en text-slate-400 con cursor-help junto a cada métrica activa. 4) Preservación Lógica: 100% de la lógica analítica de turnos y pacientes intacta.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'pautas_turnos', 'system_architecture_log'],
+      documentos_afectados: ['src/components/tremor/Tooltip.jsx', 'src/components/tremor/index.js', 'src/components/dashboard/AnalisisComparativoTriple.jsx', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx']
+    }
+  },
+  {
     id: 'v6.3.49',
     version_tag: 'v6.3.49',
     fecha: '03 de Octubre, 2026',

@@ -6,3 +6,4 @@ export { default as Tracker } from './Tracker';
 export { default as BarList } from './BarList';
 export { default as DonutChart } from './DonutChart';
 export { default as BarChart } from './BarChart';
+export { default as Tooltip, default as KPITooltip, GLOSARIO_KPIS } from './Tooltip';

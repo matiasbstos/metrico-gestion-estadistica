@@ -8,6 +8,42 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-50',
+    titulo: 'Veredicto Gerencial Automático en Cabecera y Glosario Interactivo con Tooltips Informativos en Rendimiento de Turnos',
+    fecha: '2026-10-03',
+    version_tag: 'v6.3.50',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_50.png',
+    problema: 'A pesar del poder analítico del dashboard con componentes Tremor, los directivos y jefaturas necesitaban una conclusión ejecutiva inmediata (en menos de 3 segundos) sin tener que interpretar gráficos o tablas, además de requerir plena trazabilidad metodológica de las fórmulas y criterios de cada KPI mediante ayuda contextual interactiva.',
+    logica: '1) Fase 1 Veredicto Gerencial Dinámico: Creación de un banner Callout azul con borde izquierdo prominente bajo los filtros de fecha, que evalúa automáticamente la Matriz de Clasificación (scorecardRanking), identificando al turno líder con sus principales fortalezas operativas (volumen, agilidad de triaje o retención) y generando una recomendación gerencial para el turno con menor puntuación basada en su mayor brecha de mejora. 2) Fase 2 Glosario Interactivo: Creación del componente KPITooltip en src/components/tremor/Tooltip.jsx con el diccionario de fórmulas canónicas y estándares institucionales (Score Global, Volumen, Latencia Admisión-Triaje ≤15m, Lead Time, Tasa Resolutiva, Tasa de Fuga y Reingreso <48h). 3) Fase 3 Iconografía de Ayuda: Adición de ícono (ⓘ) en gris claro (text-slate-400) con cursor-help junto al título de cada métrica con tooltip activo. 4) Preservación Lógica: Cero alteraciones en las funciones analíticas y motores de guardia.',
+    solucion: 'Experiencia ejecutiva perfeccionada: síntesis gerencial en lenguaje natural accesible al instante en la parte más alta de la vista y glosario flotante de alta fidelidad que transparenta la fórmula exacta de cada indicador.',
+    fullPost: `En esta versión v6.3.50 refinamos la usabilidad del Dashboard de Rendimiento de Turnos incorporando síntesis ejecutiva en lenguaje natural y trazabilidad completa de métricas:
+
+1. **Fase 1: Componente de Veredicto Gerencial Automático (Top Banner Callout)**:
+   - Posicionado inmediatamente debajo de la barra de filtros temporales y presets.
+   - Analiza en tiempo real el estado de la *Matriz de Clasificación de Desempeño* (\`scorecardRanking\`).
+   - Traduce el ranking matemático a una síntesis ejecutiva en lenguaje natural (máximo 2 líneas):
+     * **Líder Operativo**: Identifica al turno #1, su puntaje global (\`scoreFinal pts\`) y sus fortalezas motrices (alta capacidad de absorción, agilidad en triaje, o resolutividad).
+     * **Recomendación Gerencial**: Identifica al turno en última posición, su puntaje y el indicador con mayor oportunidad de mejora (tasa de fuga, latencia a triaje, estadía global o reingresos <48h).
+   - Diseñado con estética de Callout corporativo de alto contraste: degradado suave, borde izquierdo azul institucional (\`border-l-4 border-blue-600\`), ícono \`Award\` y badge de decisión inmediata.
+
+2. **Fase 2: Reincorporación de Glosario Interactivo (Tooltips por Hover)**:
+   - Se implementó el componente \`KPITooltip\` en \`src/components/tremor/Tooltip.jsx\` con popover flotante oscuro (\`bg-[#0f172a]\`), sombra profunda (\`shadow-2xl\`), flecha indicadora y \`z-[9999]\`.
+   - **Diccionario de Integración Obligatoria**:
+     * **Score Global**: "Índice ponderado: 30% Tasa Resolutiva + 30% Agilidad Triage + 20% Estadía Global + 20% Volumen Absorbido."
+     * **Latencia Admisión - Triaje**: "Tiempo transcurrido desde que el paciente es ingresado en ventanilla (Admisión) hasta que se le asigna una categoría (C1-C5). Estándar institucional: ≤ 15 minutos."
+     * **Lead Time Global**: "Tiempo total de permanencia en el recinto. Mide desde la hora de categorización en Triage hasta el egreso final (Alta o Derivación)."
+     * **Tasa Resolutiva**: "Porcentaje de pacientes que completaron su atención médica. Fórmula: (Altas Médicas + Traslados + Constataciones) / Total Admitidos."
+     * **Tasa de Fuga**: "Riesgo Operativo: Pacientes que abandonan el recinto antes de ser evaluados por un médico en box. Se asocia a saturación de la sala de espera."
+     * **Reingreso < 48H**: "Riesgo Clínico: Pacientes que vuelven a consultar por el mismo o peor cuadro clínico dentro de 2 días. Permite auditar la calidad del alta de primer contacto."
+     * Indicadores complementarios: *Rescate Crítico UEH (C1/C2)*, *Demografía Dependiente (Extremos de la Vida)* y *Monitor de Triaje (Tracker Horario)*.
+
+3. **Fase 3: Ajuste de UI e Iconografía de Ayuda (ⓘ)**:
+   - Se incorporó el glifo informativo (ⓘ) en color gris claro (\`text-slate-400\`) con \`cursor-help\` al lado del nombre de cada KPI con tooltip activo.
+   - Marcado HTML5 inline estricto (\`<span>\`) garantizando cumplimiento semántico dentro de los componentes tipográficos de Tremor.
+   - Cobertura completa: Tarjetas Tremor de columnas, encabezados de tabla (\`<th>\`) de la Matriz Scorecard y widgets de Minería de Datos Clínica.`
+  },
+  {
     id: 'devlog-v6-3-49',
     titulo: 'Migración a Componentes Analíticos Tremor en Rendimiento de Turnos: Cards con Decoración Superior, BadgeDelta Invertido, Tracker Horario de 12 Bloques y Gráficos Compactos',
     fecha: '2026-10-03',
