@@ -1910,7 +1910,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
               </div>
 
               <div className="h-64 w-full pt-2">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                   <ComposedChart data={selectedIntradayDay.curvaHoraria || []} margin={{ top: 10, right: 10, bottom: 20, left: -20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.2)" vertical={false} />
                     <XAxis 
