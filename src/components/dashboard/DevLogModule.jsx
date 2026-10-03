@@ -8,6 +8,30 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-47',
+    titulo: 'Consagración de Regla 23 (Fidelidad de Imagen Externa), Re-encolado Dinámico y Restauración del Turno del 27',
+    fecha: '2026-10-03',
+    version_tag: 'v6.3.47',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_47.png',
+    problema: '1) Los correos asistenciales despachados a directivos y autoridades constituyen la imagen externa oficial del sistema y requerían quedar formalizados bajo un principio normativo inviolable que obligue a los agentes y desarrolladores a garantizar fidelidad matemática absoluta. 2) Un informe correspondiente al día 27 fue despachado antes de culminar la auditoría integral y había quedado registrado como "Despachado", requiriendo quedar nuevamente en cola para re-enviarse con todas las correcciones.',
+    logica: '1) Se consagró la Regla 23 en AGENTS.md y .agents/AGENTS.md. 2) Se implementó handleReenqueueShift y el botón "Re-encolar" en la tabla de turnos para eliminar el identificador de sentShiftsMap y localStorage al instante. 3) En la inicialización de ModalConfiguracionCorreo.jsx se purgó automáticamente el día 27, retornándolo de inmediato a "Listo para Despacho".',
+    solucion: 'El turno del día 27 queda en cola listo para ser re-despachado con los porcentajes exactos del Top 10 CIE-10, rendimiento coherente y gramática singular en bitácora, y el usuario cuenta con el botón "Re-encolar" para cualquier turno futuro.',
+    fullPost: `En esta versión v6.3.47 dimos respuesta inmediata a la directriz institucional:
+
+1. **Consagración de la Regla 23 (Imagen Institucional y Fidelidad Externa)**:
+   - Se formalizó en las reglas permanentes del sistema que los informes por correo representan la imagen externa de MÉTRICO ante la Dirección del SAR y las autoridades de salud.
+   - Toda cifra debe ser matemáticamente auditable, sin valores residuales ficticios y con concordancia gramatical perfecta.
+
+2. **Herramienta de Re-encolado Asistencial ("Re-encolar")**:
+   - Se integró un botón interactivo \`Re-encolar\` en las filas de turnos despachados dentro de \`ModalConfiguracionCorreo.jsx\`.
+   - Permite a la jefatura asistencial devolver cualquier turno despachado a la cola con estado \`Listo para Despacho\` con un solo clic.
+
+3. **Restauración y Re-encolado del Turno del Día 27**:
+   - Se eliminó el registro de envío previo del día 27 de \`metrico_informes_enviados_map\`.
+   - El turno del día 27 se encuentra ahora disponible en cola para ser re-despachado con las cifras corregidas.`
+  },
+  {
     id: 'devlog-v6-3-46',
     titulo: 'Auditoría Integral de Correo: Paridad Dinámica en Top 10 CIE-10, Sintonía de Rendimiento y Gramática Asistencial',
     fecha: '2026-10-03',

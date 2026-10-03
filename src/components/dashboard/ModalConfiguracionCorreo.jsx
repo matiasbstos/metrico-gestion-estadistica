@@ -1558,7 +1558,22 @@ export default function ModalConfiguracionCorreo({
   const [sentShiftsMap, setSentShiftsMap] = useState(() => {
     try {
       const s = localStorage.getItem('metrico_informes_enviados_map');
-      if (s) return JSON.parse(s);
+      if (s) {
+        const parsed = JSON.parse(s);
+        let changed = false;
+        // Purgar de inmediato registros del día 27 (27/09 o 27/11) para que regrese a la cola de despacho
+        Object.keys(parsed).forEach(k => {
+          if (k.includes('27-09') || k.includes('27/09') || k.includes('2026-09-27') || k.includes('27-11') || k.includes('27/11') || k.includes('2026-11-27')) {
+            delete parsed[k];
+            changed = true;
+          }
+        });
+        if (changed) {
+          localStorage.setItem('metrico_informes_enviados_map', JSON.stringify(parsed));
+          console.log('[MÉTRICO Re-encolado]: Registro del día 27 restablecido a la cola para re-envío.');
+        }
+        return parsed;
+      }
     } catch(e) {}
     return {};
   });
@@ -1592,6 +1607,37 @@ export default function ModalConfiguracionCorreo({
           : `Envío de este informe restaurado a la programación.`,
         willBeCancelled ? 'warning' : 'success'
       );
+    }
+  };
+
+  const handleReenqueueShift = (shiftRow) => {
+    if (!shiftRow) return;
+    const key = shiftRow.shiftKey;
+    const fIso = shiftRow.fecha;
+    const fTurno = shiftRow.fechaTurno;
+    const txt = shiftRow.textoCompleto;
+
+    setSentShiftsMap(prev => {
+      const next = { ...prev };
+      if (key) delete next[key];
+      if (fIso) delete next[fIso];
+      if (fTurno) delete next[fTurno];
+      if (txt) delete next[txt];
+
+      Object.keys(next).forEach(k => {
+        if ((fIso && k.includes(fIso)) || (fTurno && k.includes(fTurno)) || (key && k.includes(key))) {
+          delete next[k];
+        }
+      });
+
+      try {
+        localStorage.setItem('metrico_informes_enviados_map', JSON.stringify(next));
+      } catch(e) {}
+      return next;
+    });
+
+    if (showNotif) {
+      showNotif(`Turno ${shiftRow.textoCompleto || fTurno || 'seleccionado'} restablecido a la cola ("Listo para Despacho").`, 'success');
     }
   };
 
@@ -3661,6 +3707,19 @@ export default function ModalConfiguracionCorreo({
                                       </>
                                     )}
                                   </button>
+
+                                  {/* BOTÓN RE-ENCOLAR SI YA FUE ENVIADO */}
+                                  {d.isSent && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleReenqueueShift(d)}
+                                      className="px-2.5 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all cursor-pointer flex items-center gap-1 shadow-2xs shrink-0 bg-sky-500/10 hover:bg-sky-500 hover:text-white text-sky-600 dark:text-sky-400 border border-sky-500/20"
+                                      title="Restablecer este turno a la cola ('Listo para Despacho') para su re-envío programado o manual"
+                                    >
+                                      <RotateCcw className="w-3.5 h-3.5" />
+                                      <span>Re-encolar</span>
+                                    </button>
+                                  )}
 
                                   {/* BOTÓN 3: CANCELAR O RESTAURAR ENVÍO */}
                                   <button

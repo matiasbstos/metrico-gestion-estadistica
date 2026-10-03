@@ -157,6 +157,17 @@
 
 ---
 
+23. **Fidelidad Absoluta, Imagen Institucional Externa y Veracidad Rigurosa en Informes Asistenciales por Correo Electrónico (v6.3.47)**:
+    - **Principio Fundamental de Imagen Asistencial Externa**: Los correos electrónicos emitidos por MÉTRICO constituyen la cara visible e imagen oficial de la plataforma ante las máximas autoridades de salud (Dirección del SAR, Dirección de Salud Comunal, Jefaturas Clínicas y Médicas). Por ende, cada informe que aterriza en una bandeja de entrada externa debe ser **estrictamente fiel, intachable y matemáticamente exacto**, sin excepciones.
+    - **Prohibición Terminante de Cifras Estáticas Residuales o Ficticias**:
+      * En el **Top 10 Diagnósticos CIE-10**, queda terminantemente prohibido calcular porcentajes dividiendo por bases arbitrarias o antiguas (como 111 pacientes); el porcentaje de cada patología se calcula única y dinámicamente dividiendo los casos por el total de pacientes admitidos del turno: $\text{pct} = \frac{\text{casos}}{\text{totalAdmitidos}} \times 100$.
+      * En los **Indicadores de Rendimiento y Espera**, las comparativas de velocidad o productividad horaria (pac/hr) deben comparar unívocamente contra líneas base institucionales coherentes (`vs 2025`), erradicando cualquier contradicción que muestre un incremento numérico ante un valor superior.
+      * En la **Bitácora de Seguridad (Fracturas y Vigilancia Respiratoria)** y en la **Categorización de Triaje (C1 a C5)**, rige una estricta concordancia gramatical: valores unitarios se expresan invariablemente en singular (`1 caso`, `+1 caso`) y valores superiores en plural (`casos`).
+    - **Simetría Espejo Inviolable entre Previsualizador y Despacho SMTP**: La previsualización interactiva de `ModalConfiguracionCorreo.jsx` y el cuerpo React Email recibido en Gmail/Outlook deben presentar idéntica estructura y láminas (incluyendo las tarjetas de Bitácora Asistencial de Fracturas y Vigilancia Respiratoria).
+    - **Mecanismo de Re-encolado y Re-envío Transparente**: Todo turno asistencial (incluyendo el turno de corte del día 27) puede ser re-encolado o reenviado a voluntad por el usuario mediante botones dedicados en la cola de despacho, asegurando que ante correcciones del sistema cualquier turno ya emitido pueda ser restaurado al estado de "Listo para Despacho" y emitido nuevamente con las cifras auditadas.
+
+---
+
 ## 🚀 Protocolo Institucional y Obligatorio de Despliegue, Novedades & Bitácora de Desarrollo:
 Esta norma es **inviolable, permanente y activa en todas las sesiones** (independientemente de si el usuario inicia un nuevo chat o lo continúa, o si el entorno se reinicia o cierra). Ante **cualquier nuevo elemento, modificación, corrección o actualización del sitio**, el proceso obligatorio a ejecutar es estrictamente el siguiente:
 

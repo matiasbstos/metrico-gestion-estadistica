@@ -10,6 +10,25 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.47',
+    version_tag: 'v6.3.47',
+    fecha: '03 de Octubre, 2026',
+    fecha_despliegue: '03 de Octubre, 2026',
+    proposito_actualizacion: 'Institución de Regla 23 de Fidelidad Asistencial Externa, Mecanismo de Re-encolado de Turnos Emitidos y Purga Automática del Día 27.',
+    medios_y_stack: [
+      'AGENTS.md y .agents/AGENTS.md (Formalización de la Regla 23: Fidelidad Absoluta, Imagen Institucional Externa y Veracidad Rigurosa en Informes Asistenciales por Correo Electrónico)',
+      'ModalConfiguracionCorreo.jsx (Auto-purga del turno del 27 de metrico_informes_enviados_map; incorporación de handleReenqueueShift y botón Re-encolar en acciones de fila)',
+      'version.js (Sincronización a v6.3.47)',
+      'DevLogModule.jsx (Publicación devlog v6.3.47)',
+      'ModalMuroActualizaciones.jsx (Ficha en muro de novedades)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Regla 23 SSOT: Los correos enviados representan la cara visible del sistema ante la dirección y autoridades de salud; toda cifra debe ser matemáticamente exacta y gramaticalmente impecable. 2) Re-encolado Asistencial: Cualquier turno previamente enviado puede ser restablecido al estado "Listo para Despacho" mediante el nuevo botón interactivo Re-encolar. 3) Re-envío del Turno del 27: Se purgó el estado enviado del día 27, retornándolo de inmediato a la cola activa.',
+      firestore_collections: ['envios_correos', 'configuracion_correo', 'system_architecture_log'],
+      documentos_afectados: ['AGENTS.md', '.agents/AGENTS.md', 'src/components/dashboard/ModalConfiguracionCorreo.jsx', 'src/config/version.js']
+    }
+  },
+  {
     id: 'v6.3.46',
     version_tag: 'v6.3.46',
     fecha: '03 de Octubre, 2026',

@@ -15,6 +15,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.47',
+      version: 'v6.3.47',
+      fecha: '03 de Octubre, 2026',
+      badge: 'FIDELIDAD ASISTENCIAL EXTERNA (REGLA 23) & RE-ENCOLADO DE TURNOS',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Formalización de la Regla 23, Mecanismo de Re-encolado y Re-habilitación del Turno del 27',
+      categoria: 'Políticas Institucionales & Despacho',
+      icon: Mail,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'A requerimiento de la dirección asistencial, se consagró en las normas maestras del agente (Regla 23) el principio inviolable de fidelidad de imagen externa: los correos emitidos representan a la institución y deben ser matemáticamente intachables. Asimismo, se incorporó la función de "Re-encolar" en la tabla de despacho para retornar cualquier turno enviado a estado "Listo para Despacho", y se purgó automáticamente el corte del día 27 para su re-emisión auditada.',
+      instructivo: {
+        paraQueSirve: 'Permite re-encolar cualquier turno emitido con anterioridad para despacharlo de nuevo con las mejoras y correcciones instituidas en el sistema.',
+        quePuedesVer: 'En la tabla de Programados y Turnos: En cada fila con estado "Despachado" aparece el botón azul "Re-encolar". Al presionarlo, el turno vuelve inmediatamente a "Listo para Despacho" y entra nuevamente a la cola. El turno del día 27 ya se encuentra en cola listo para enviar.',
+        ejemploUso: 'Haz clic en "Re-encolar" en el turno del día 27 o en cualquier otro para que vuelva a estar en la cola de salida.'
+      },
+      changes: [
+        'Consagración formal de la Regla 23 en AGENTS.md y .agents/AGENTS.md sobre fidelidad de imagen externa.',
+        'Implementación del botón y función "Re-encolar" (handleReenqueueShift) en ModalConfiguracionCorreo.jsx.',
+        'Auto-purga inmediata de los registros del día 27 en el mapa de informes enviados para restaurarlo a la cola activa.',
+        'Sincronización a versión institucional v6.3.47.'
+      ]
+    },
+    {
       id: 'v6.3.46',
       version: 'v6.3.46',
       fecha: '03 de Octubre, 2026',
