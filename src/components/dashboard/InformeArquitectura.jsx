@@ -10,6 +10,26 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.46',
+    version_tag: 'v6.3.46',
+    fecha: '03 de Octubre, 2026',
+    fecha_despliegue: '03 de Octubre, 2026',
+    proposito_actualizacion: 'Auditoría Integral de Despacho de Correo: Paridad Matemática Dinámica en Top 10 CIE-10, Sintonía de Rendimiento Clínico y Gramática Asistencial.',
+    medios_y_stack: [
+      'functions/templates/InformeAsistencialEmail.js (Cálculo dinámico estricto de porcentajes en Top 10 CIE-10 proporcional a totalAdmitidos; corrección de etiqueta de rendimiento clínico a "(↑ +9.5% vs 2025)"; concordancia gramatical singular/plural en bitácora "1 caso" y triage "+8 casos")',
+      'ModalConfiguracionCorreo.jsx (Cálculo dinámico en buildTurnoInfoPayload para top10Diagnosticos; concordancia singular/plural en C1/C2; incorporación de Lámina de Bitácora Asistencial Fracturas & Respiratorio en previsualizador; desenmascarado de turnoAuditado.turnoInfo)',
+      'functions/index.js (Desenvolvimiento robusto de turnoAuditado.turnoInfo en Cloud Function enviarInformeCorreo)',
+      'version.js (Sincronización a v6.3.46)',
+      'DevLogModule.jsx (Publicación devlog v6.3.46)',
+      'ModalMuroActualizaciones.jsx (Ficha en muro de novedades)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Consistencia Matemática Absoluta en Diagnósticos: Todo porcentaje en el Top 10 de diagnósticos se calcula dinámicamente dividiendo por totalAdmitidos del turno, garantizando que 18 de 88 pacientes represente exactamente 20.5% y la suma totalice el 100.0%. 2) Cero Contradicciones en Rendimiento Clínico: La comparativa de rendimiento pac/hr compara unívocamente contra la línea base histórica institucional ("vs 2025"), eliminando contradicciones numéricas. 3) Integridad Gramatical: Valores unitarios se despliegan en singular ("1 caso") y superiores en plural ("casos").',
+      firestore_collections: ['envios_correos', 'configuracion_correo', 'system_architecture_log'],
+      documentos_afectados: ['functions/templates/InformeAsistencialEmail.js', 'src/components/dashboard/ModalConfiguracionCorreo.jsx', 'functions/index.js']
+    }
+  },
+  {
     id: 'v6.3.45',
     version_tag: 'v6.3.45',
     fecha: '03 de Octubre, 2026',

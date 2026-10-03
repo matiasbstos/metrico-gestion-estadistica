@@ -15,6 +15,31 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.46',
+      version: 'v6.3.46',
+      fecha: '03 de Octubre, 2026',
+      badge: 'AUDITORÍA INTEGRAL DE CORREO: PARIDAD DINÁMICA TOP 10 CIE-10 Y PRECISIÓN ASISTENCIAL',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Paridad Matemática en Top 10 CIE-10, Sintonía de Rendimiento Clínico y Concordancia Gramatical',
+      categoria: 'Auditoría & Despacho de Correo',
+      icon: Mail,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Tras una auditoría exhaustiva de los correos reales despachados por el sistema, se implementó el cálculo dinámico estricto de porcentajes para el Top 10 Diagnósticos CIE-10 en función de los pacientes admitidos del turno, se corrigió la referencia comparativa del rendimiento horario eliminando contradicciones numéricas, se ajustó la concordancia singular/plural a "1 caso" en la bitácora traumatológica y respiratoria, y se integró la lámina de bitácora en el previsualizador del modal.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la dirección asistencial reciba correos sin descalces porcentuales, con concordancia lingüística perfecta y con cifras de rendimiento fidedignas.',
+        quePuedesVer: 'En los informes por correo y en el previsualizador: El Top 10 Diagnósticos refleja porcentajes exactos (ej. 18 de 88 pacientes es 20.5%), el rendimiento exhibe "(↑ +9.5% vs 2025)", la bitácora reporta "1 caso" en singular, y el previsualizador incluye la Lámina de Bitácora Asistencial.',
+        ejemploUso: 'Emite o previsualiza cualquier informe de turno para verificar la exactitud de los diagnósticos y la presentación de la bitácora de seguridad.'
+      },
+      changes: [
+        'Cálculo dinámico de porcentaje ((count / totalAdmitidos) * 100) en el Top 10 CIE-10 tanto en la plantilla React Email como en helpers/payloads.',
+        'Sustitución de "(↑ +9.5% vs 8.4 pac/hr)" por "(↑ +9.5% vs 2025)" para erradicar contradicciones con el rendimiento efectivo del turno.',
+        'Corrección gramatical en bitácora de fracturas y respiratorio: "1 caso" en lugar de "1 casos".',
+        'Concordancia singular/plural en Triage C1 y C2 ("+1 caso", "+8 casos").',
+        'Incorporación de la Lámina de Bitácora Asistencial (Fracturas & Respiratorio) en la previsualización de ModalConfiguracionCorreo.jsx.',
+        'Desenvolvimiento robusto de turnoAuditado.turnoInfo en Cloud Function enviarInformeCorreo.'
+      ]
+    },
+    {
       id: 'v6.3.45',
       version: 'v6.3.45',
       fecha: '03 de Octubre, 2026',

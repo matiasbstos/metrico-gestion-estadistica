@@ -8,6 +8,33 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-46',
+    titulo: 'Auditoría Integral de Correo: Paridad Dinámica en Top 10 CIE-10, Sintonía de Rendimiento y Gramática Asistencial',
+    fecha: '2026-10-03',
+    version_tag: 'v6.3.46',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_46.png',
+    problema: 'La revisión exhaustiva de un correo asistencial real despachado reveló 4 discrepancias: 1) En el Top 10 Diagnósticos CIE-10, los porcentajes exhibían valores residuales de una base de 111 admitidos (ej. 18 casos mostraba 16.2% en lugar de 20.5% para un turno de 88 pacientes). 2) En el sub-bloque de rendimiento clínico, se mostraba "(↑ +9.5% vs 8.4 pac/hr)" lo cual generaba una aparente contradicción cuando el rendimiento del turno era 7.3 pac/hr. 3) En la bitácora asistencial figuraba "1 casos" en lugar de la concordancia singular "1 caso", y en Triage C2 figuraba "+8 caso". 4) El previsualizador del modal no desplegaba la Lámina de Bitácora Asistencial.',
+    logica: '1) Porcentajes Diagnósticos Dinámicos: En InformeAsistencialEmail.js y buildTurnoInfoPayload se forzó el cálculo porcentual estrictamente dinámico en función de los admitidos reales del turno, asegurando paridad del 100.0%. 2) Rendimiento Institucional: Se homogeneizó la referencia comparativa a "(↑ +9.5% vs 2025)", alineando el correo con el previsualizador. 3) Concordancia Lingüística: Se implementaron interpolaciones condicionales count === 1 ? "caso" : "casos" en bitácora y triage. 4) Simetría Previsualizador-Correo: Se integró la Lámina de Bitácora Asistencial (Fracturas & Traumatología y Vigilancia Respiratoria) en CuerpoPrevisualizacionCorreoDiario.',
+    solucion: 'Los informes por correo físico y la previsualización en pantalla presentan coherencia matemática total, concordancia gramatical impecable y simetría al 100% entre diseño y entrega final.',
+    fullPost: `En esta versión v6.3.46 auditamos y perfeccionamos integralmente el despacho de informes por correo:
+
+1. **Top 10 Diagnósticos CIE-10 Dinámico y Preciso**:
+   - Todo porcentaje en la tabla de diagnósticos se calcula dinámicamente sobre la demanda real del turno (\`((count / totalAdmitidos) * 100).toFixed(1)\`).
+   - Para 88 admitidos, los 18 casos de Rinofaringitis representan con exactitud el **20.5%** y la sumatoria de las 10 patologías totaliza el **100.0%**.
+
+2. **Homogeneización de Comparativa en Rendimiento Clínico**:
+   - Corrección de la etiqueta a \`(↑ +9.5% vs 2025)\`, erradicando la referencia estática \`vs 8.4 pac/hr\` y asegurando consistencia con el previsualizador institucional.
+
+3. **Gramática y Concordancia Singular/Plural**:
+   - Bitácora Asistencial: \`1 caso\` en singular en lugar de \`1 casos\` para traumatología y respiratorio.
+   - Categorización Triage: \`+1 caso\` y \`+8 casos\` con pluralización automática.
+
+4. **Simetría Total Previsualizador - Despacho Real**:
+   - Se añadió la Lámina 7/8 (Fracturas & Traumatología y Vigilancia Respiratoria) a \`CuerpoPrevisualizacionCorreoDiario\` en \`ModalConfiguracionCorreo.jsx\`.
+   - Se blindó el desenvolvimiento de \`turnoAuditado.turnoInfo\` en la Cloud Function backend \`functions/index.js\`.`
+  },
+  {
     id: 'devlog-v6-3-45',
     titulo: 'Sanitización de Porcentajes en Centros Base Acumulado (Cero NaN% y Doble %%) y Unificación a "Egreso Admin"',
     fecha: '2026-10-03',

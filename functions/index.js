@@ -1324,7 +1324,7 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
   let logoHtml = '<img src="cid:logo_sar" alt="SAR Elsa Romo Aravena" style="max-height: 52px; width: auto; display: block;" />';
   const logoPath = path.join(__dirname, 'assets/LogoSAR.png');
 
-  const rawTurno = turnoAuditado || {
+  const rawTurno = (turnoAuditado && turnoAuditado.turnoInfo) ? turnoAuditado.turnoInfo : (turnoAuditado || {
     fechaTurno: '05/08/2026',
     turnoNum: 2,
     equipo: 'Equipo 1',
@@ -1351,7 +1351,7 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
       prevTrasladosCount: 1,
       pctDiffAdmitidos: '-27.2%'
     }
-  };
+  });
 
   // 0. AUDITORÍA PRE-VUELO OBLIGATORIA (Regla 16 MÉTRICO)
   // Garantizar paridad matemática universal: Admitidos = Atendidos + Altas Administrativas
