@@ -1,5 +1,13 @@
 import asyncio
 import json
+import sys
+
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 from forecaster import run_statsforecast_7days
 
 async def main():
