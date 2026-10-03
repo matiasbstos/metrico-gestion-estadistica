@@ -399,6 +399,8 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
 
       // Cálculo de Horas Médico Requeridas (Rendimiento estándar SAR: 3.8 pac/hora)
       const horasMedicasRequeridas = Number((adjustedEstimate / 3.8).toFixed(1));
+      const horasMedicasMin = Number((lowerBound / 3.8).toFixed(1));
+      const horasMedicasMax = Number((upperBound / 3.8).toFixed(1));
 
       // Curva Horaria Intradía
       const curvaHoraria = generateHourlyCurve(isFindeOFeriado, adjustedEstimate);
@@ -406,8 +408,14 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
       proyecciones.push({
         fecha_predicha: fechaStr,
         atenciones_estimadas: adjustedEstimate,
+        yhat: adjustedEstimate,
         limite_inferior: lowerBound,
         limite_superior: upperBound,
+        lo_90: lowerBound,
+        hi_90: upperBound,
+        prediction_interval_lower_bound: lowerBound,
+        prediction_interval_upper_bound: upperBound,
+        rangoConfianza: [lowerBound, upperBound],
         tipoJornada,
         tagTipoJornada,
         isFindeOFeriado,
@@ -425,6 +433,8 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
         c4_c5_estimados: c4_c5,
         alertaAltaComplejidad,
         horasMedicasRequeridas,
+        horasMedicasMin,
+        horasMedicasMax,
         curvaHoraria,
         weatherMultiplier: Number(weatherMultiplier.toFixed(2)),
         weatherReason,
@@ -533,44 +543,78 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
       }
 
       let data = null;
-      if (app) {
+      const baseDateIso = effectiveBaseDate.toISOString().split('T')[0];
+      const predictiveApiBase = import.meta.env.VITE_PREDICTIVE_API_URL || 'http://127.0.0.1:8000';
+
+      // 1. Consulta al microservicio en Python (Nixtla StatsForecast: AutoARIMA/AutoETS + Feriados CL + Rezagos climáticos)
+      try {
+        const resp = await fetch(`${predictiveApiBase}/api/forecast/7days?base_date=${baseDateIso}`, {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (resp.ok) {
+          data = await resp.json();
+          console.info("[Radar] Pronóstico probabilístico obtenido exitosamente desde microservicio StatsForecast (Nixtla).");
+        }
+      } catch (microErr) {
+        console.warn("[Radar] Microservicio StatsForecast no disponible, activando fallback:", microErr.message);
+      }
+
+      // 2. Fallback a Cloud Function legacy si el microservicio local no responde
+      if (!data && app) {
         try {
           const functions = getFunctions(app);
           const callProyeccion = httpsCallable(functions, 'obtenerProyeccionVolumen');
           const res = await callProyeccion({ 
             horizon: 7, 
-            confidenceLevel: 0.95,
-            baseDate: effectiveBaseDate.toISOString().split('T')[0]
+            confidenceLevel: 0.90,
+            baseDate: baseDateIso
           });
           data = res.data;
         } catch (e) {
-          // Fallback autónomo
+          // Fallback autónomo local
         }
       }
 
       if (data && data.proyecciones && Array.isArray(data.proyecciones) && data.proyecciones.length > 0) {
         // Enriquecer cada proyección con la lógica oficial SAR (Turnos Diurno/Nocturno, Triage C1-C5 y Horas Médicas)
         const enrichedList = data.proyecciones.map(p => {
-          const fechaStr = p.fecha_predicha;
-          const tipoJornada = determinarTipoJornada(fechaStr);
-          const isFindeOFeriado = tipoJornada === 'FINDE_FERIADO';
-          const isOfficialChileHoliday = CHILE_HOLIDAYS_OFFICIAL && CHILE_HOLIDAYS_OFFICIAL.has(fechaStr);
-          const tagTipoJornada = isFindeOFeriado ? (isOfficialChileHoliday ? '🎉 Feriado Oficial SAR' : 'Fin de Semana SAR') : 'Día Hábil SAR';
-          const esquemaTurno = isFindeOFeriado ? 'Fin de Semana / Festivo (08:00 a 20:00 y 20:00 a 08:00)' : 'Turno Largo Semana (17:00 a 08:00)';
+          const fechaStr = p.fecha_predicha || p.ds;
+          const tipoJornada = p.tipoJornada || determinarTipoJornada(fechaStr);
+          const isFindeOFeriado = p.isFindeOFeriado !== undefined ? p.isFindeOFeriado : (tipoJornada === 'FINDE_FERIADO');
+          const isOfficialChileHoliday = p.esFeriadoOficial !== undefined ? p.esFeriadoOficial : (CHILE_HOLIDAYS_OFFICIAL && CHILE_HOLIDAYS_OFFICIAL.has(fechaStr));
+          const tagTipoJornada = p.tagTipoJornada || (isFindeOFeriado ? (isOfficialChileHoliday ? '🎉 Feriado Oficial SAR' : 'Fin de Semana SAR') : 'Día Hábil SAR');
+          const esquemaTurno = p.esquemaTurno || (isFindeOFeriado ? 'Fin de Semana / Festivo (08:00 a 20:00 y 20:00 a 08:00)' : 'Turno Largo Semana (17:00 a 08:00)');
           
-          const totalPacs = Number(p.atenciones_estimadas || 85);
-          const atencionesDiurno = isFindeOFeriado ? Math.round(totalPacs * 0.72) : 0;
-          const atencionesNocturno = isFindeOFeriado ? Math.max(0, totalPacs - atencionesDiurno) : totalPacs;
+          const totalPacs = Number(p.yhat ?? p.atenciones_estimadas ?? 85);
+          const lowerBound = Number(p.limite_inferior ?? p.lo_90 ?? p.prediction_interval_lower_bound ?? Math.round(totalPacs * 0.78));
+          const upperBound = Number(p.limite_superior ?? p.hi_90 ?? p.prediction_interval_upper_bound ?? Math.round(totalPacs * 1.22));
 
-          const c1_c2 = Math.max(1, Math.round(totalPacs * 0.04));
-          const c3 = Math.round(totalPacs * 0.49);
-          const altaComplejidad = c1_c2 + c3;
-          const c4_c5 = Math.max(0, totalPacs - altaComplejidad);
-          const horasMedicas = Number((totalPacs / 3.8).toFixed(1));
-          const curva = generateHourlyCurve(isFindeOFeriado, totalPacs);
+          const atencionesDiurno = p.atenciones_diurno !== undefined ? p.atenciones_diurno : (isFindeOFeriado ? Math.round(totalPacs * 0.72) : 0);
+          const atencionesNocturno = p.atenciones_nocturno !== undefined ? p.atenciones_nocturno : (isFindeOFeriado ? Math.max(0, totalPacs - atencionesDiurno) : totalPacs);
+
+          const c1_c2 = p.c1_c2_estimados !== undefined ? p.c1_c2_estimados : Math.max(1, Math.round(totalPacs * 0.04));
+          const c3 = p.c3_estimados !== undefined ? p.c3_estimados : Math.round(totalPacs * 0.49);
+          const altaComplejidad = p.alta_complejidad_total !== undefined ? p.alta_complejidad_total : (c1_c2 + c3);
+          const c4_c5 = p.c4_c5_estimados !== undefined ? p.c4_c5_estimados : Math.max(0, totalPacs - altaComplejidad);
+          
+          const horasMedicas = p.horasMedicasRequeridas !== undefined ? p.horasMedicasRequeridas : Number((totalPacs / 3.8).toFixed(1));
+          const horasMedicasMin = p.horasMedicasMin !== undefined ? p.horasMedicasMin : Number((lowerBound / 3.8).toFixed(1));
+          const horasMedicasMax = p.horasMedicasMax !== undefined ? p.horasMedicasMax : Number((upperBound / 3.8).toFixed(1));
+
+          const curva = p.curvaHoraria || generateHourlyCurve(isFindeOFeriado, totalPacs);
 
           return {
             ...p,
+            fecha_predicha: fechaStr,
+            yhat: totalPacs,
+            atenciones_estimadas: totalPacs,
+            limite_inferior: lowerBound,
+            limite_superior: upperBound,
+            lo_90: lowerBound,
+            hi_90: upperBound,
+            prediction_interval_lower_bound: lowerBound,
+            prediction_interval_upper_bound: upperBound,
+            rangoConfianza: [lowerBound, upperBound],
             tipoJornada,
             tagTipoJornada,
             isFindeOFeriado,
@@ -578,16 +622,18 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
             esquemaTurno,
             atenciones_diurno: atencionesDiurno,
             atenciones_nocturno: atencionesNocturno,
-            limite_inferior_diurno: isFindeOFeriado ? Math.round(p.limite_inferior * 0.72) : 0,
-            limite_superior_diurno: isFindeOFeriado ? Math.round(p.limite_superior * 0.72) : 0,
-            limite_inferior_nocturno: isFindeOFeriado ? Math.round(p.limite_inferior * 0.28) : p.limite_inferior,
-            limite_superior_nocturno: isFindeOFeriado ? Math.round(p.limite_superior * 0.28) : p.limite_superior,
+            limite_inferior_diurno: isFindeOFeriado ? Math.round(lowerBound * 0.72) : 0,
+            limite_superior_diurno: isFindeOFeriado ? Math.round(upperBound * 0.72) : 0,
+            limite_inferior_nocturno: isFindeOFeriado ? Math.round(lowerBound * 0.28) : lowerBound,
+            limite_superior_nocturno: isFindeOFeriado ? Math.round(upperBound * 0.28) : upperBound,
             c1_c2_estimados: c1_c2,
             c3_estimados: c3,
             alta_complejidad_total: altaComplejidad,
             c4_c5_estimados: c4_c5,
             alertaAltaComplejidad: altaComplejidad >= 45,
             horasMedicasRequeridas: horasMedicas,
+            horasMedicasMin,
+            horasMedicasMax,
             curvaHoraria: curva,
             tagClima: p.tagClima || 'Normal',
             weatherReason: p.weatherReason || 'Condiciones normales de demanda asistencial'
@@ -802,11 +848,11 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
               <span className="font-black text-sm text-white">{data.atenciones_estimadas} pac.</span>
             </div>
 
-            {/* Corredor de Confianza 95% (BigQuery ML) */}
+            {/* Corredor de Confianza 90% (Nixtla StatsForecast) */}
             <div className="flex items-center justify-between gap-2 text-indigo-300 font-semibold text-[11px] bg-indigo-500/10 px-2 py-1 rounded-lg border border-indigo-500/20">
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
-                Banda Confianza (95%):
+                Corredor Nixtla (IC 90%):
               </span>
               <span className="font-mono font-bold text-white">
                 [{data.prediction_interval_lower_bound ?? data.limite_inferior} - {data.prediction_interval_upper_bound ?? data.limite_superior}] pac.
@@ -844,11 +890,17 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
               <span className="font-bold text-slate-300">{data.c4_c5_estimados} pac.</span>
             </div>
 
-            {/* Horas Médico Sugeridas */}
+            {/* Horas Médico Sugeridas (Escenarios Optimista y Pesimista) */}
             <div className="flex items-center justify-between gap-2 text-[10px] text-emerald-300 font-bold pt-1 border-t border-slate-700/60">
               <span>Dotación Médica Óptima:</span>
               <span>{data.horasMedicasRequeridas} hrs médico</span>
             </div>
+            {(data.horasMedicasMin || data.horasMedicasMax) && (
+              <div className="flex items-center justify-between text-[10px] text-slate-300 px-1">
+                <span className="text-emerald-400 font-bold">🟢 Min: {data.horasMedicasMin}h</span>
+                <span className="text-rose-400 font-bold">🔴 Max: {data.horasMedicasMax}h</span>
+              </div>
+            )}
 
             {data.tagClima && (
               <div className="pt-2 border-t border-slate-700/60 text-[11px] text-sky-300 font-medium">
@@ -870,11 +922,11 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
         <div className="space-y-3 z-10">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shadow-xs">
-              <Sparkles className="w-3.5 h-3.5 animate-pulse" /> Radar Clínico Predictivo SAR (Urgencia)
+              <Sparkles className="w-3.5 h-3.5 animate-pulse" /> Radar Predictivo StatsForecast Nixtla (AutoARIMA s=7)
             </span>
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-              Modelo Activo • Calibración Continua
+              Microservicio Python Activo • IC 90%
             </span>
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30">
               Base: {effectiveBaseDate.toLocaleDateString('es-CL')} (7 días siguientes)
@@ -888,7 +940,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
             <TrendingUp className="w-8 h-8 accent-text-custom" /> Radar Predictivo de Demanda Asistencial
           </h2>
           <p className="text-sm text-secondary-custom font-medium max-w-3xl">
-            Proyección automatizada para los próximos 7 días con calibración continua retrospectiva, cruce meteorológico retardado (Open-Meteo Melipilla), desagregación por turnos SAR (Diurno/Nocturno) y severidad Triage C1-C5.
+            Proyección probabilística automatizada para los próximos 7 días mediante microservicio en Python con Nixtla StatsForecast (AutoARIMA), modelando estacionalidad semanal SAR, feriados chilenos (holidays.CL) y rezagos meteorológicos de incubación (Open-Meteo Melipilla: 48h y 72h).
           </p>
 
           {/* Selector de Controles Asistenciales */}
@@ -1061,9 +1113,11 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
               </div>
               <div className="h-9 w-px bg-card-custom mx-1 hidden sm:block"></div>
               <div className="text-right">
-                <span className="text-[10px] font-bold text-secondary-custom uppercase block">Rango Esperado</span>
+                <span className="text-[10px] font-bold text-secondary-custom uppercase flex items-center gap-1 justify-end">
+                  Rango Esperado <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-mono font-bold">IC 90%</span>
+                </span>
                 <span className="text-sm font-black text-secondary-custom font-mono">
-                  {proximoTurno.limite_inferior} - {proximoTurno.limite_superior}
+                  {proximoTurno.limite_inferior} - {proximoTurno.limite_superior} <span className="text-[11px] font-semibold text-secondary-custom">pac.</span>
                 </span>
               </div>
             </div>
@@ -1134,10 +1188,10 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
               </p>
             </div>
 
-            {/* 4. Dotación Asistencial y Horas Médicas */}
+            {/* 4. Dotación Asistencial y Horas Médicas con Escenarios Optimista y Pesimista */}
             <div className="bg-card-custom/80 dark:bg-card-custom/50 p-4 rounded-2xl border border-card-custom shadow-xs space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider">Horas Médicas Necesarias</span>
+                <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider">Dotación Médica Requerida</span>
                 <Activity className="w-4 h-4 text-indigo-500" />
               </div>
               <div className="flex items-baseline justify-between">
@@ -1146,6 +1200,16 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
                 </span>
                 <span className="text-xs font-bold text-secondary-custom">
                   (3.8 pac/hr)
+                </span>
+              </div>
+              <div className="pt-1.5 border-t border-card-custom/60 flex items-center justify-between text-[10px] font-bold">
+                <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1" title="Escenario optimista: Dotación calculada para el límite inferior del IC 90%">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Min: {proximoTurno.horasMedicasMin || Number((proximoTurno.limite_inferior / 3.8).toFixed(1))}h
+                </span>
+                <span className="text-rose-600 dark:text-rose-400 flex items-center gap-1" title="Escenario pesimista: Dotación calculada para el límite superior del IC 90%">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                  Max: {proximoTurno.horasMedicasMax || Number((proximoTurno.limite_superior / 3.8).toFixed(1))}h
                 </span>
               </div>
               <p className="text-[10px] text-secondary-custom font-medium leading-relaxed">
@@ -1481,7 +1545,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-3 rounded bg-indigo-500/25 border border-indigo-500/40 inline-block"></span>
-                  <span>Corredor Confianza (95%)</span>
+                  <span>Corredor Nixtla (IC 90%)</span>
                 </div>
               </>
             ) : (
@@ -1492,7 +1556,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-3 rounded bg-indigo-500/20 border border-indigo-500/40 inline-block"></span>
-                  <span>Banda 95%</span>
+                  <span>Corredor Nixtla (IC 90%)</span>
                 </div>
               </>
             )}
@@ -1537,7 +1601,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
                       dataKey="rangoConfianza" 
                       stroke="none" 
                       fill="url(#colorConfidence)" 
-                      name="Corredor de Confianza (95%)"
+                      name="Corredor Nixtla (IC 90%)"
                     />
                     <Bar 
                       dataKey="atenciones_diurno" 
@@ -1572,7 +1636,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
                       dataKey="rangoConfianza" 
                       stroke="none" 
                       fill="url(#colorConfidence)" 
-                      name="Banda de Confianza (95%)"
+                      name="Corredor Nixtla (IC 90%)"
                     />
                     <Line 
                       type="monotone" 

@@ -164,6 +164,8 @@ export const generateDynamicProyeccion = (baseDate, liveWeather = null, calibrat
 
     // Horas Médicas Requeridas (Rendimiento estándar SAR: 3.8 pac/hora)
     const horasMedicasRequeridas = Number((adjustedEstimate / 3.8).toFixed(1));
+    const horasMedicasMin = Number((lowerBound / 3.8).toFixed(1));
+    const horasMedicasMax = Number((upperBound / 3.8).toFixed(1));
 
     // Curva Horaria Intradía
     const curvaHoraria = generateHourlyCurve(isFindeOFeriado, adjustedEstimate);
@@ -171,8 +173,11 @@ export const generateDynamicProyeccion = (baseDate, liveWeather = null, calibrat
     proyecciones.push({
       fecha_predicha: fechaStr,
       atenciones_estimadas: adjustedEstimate,
+      yhat: adjustedEstimate,
       limite_inferior: lowerBound,
       limite_superior: upperBound,
+      lo_90: lowerBound,
+      hi_90: upperBound,
       prediction_interval_lower_bound: lowerBound,
       prediction_interval_upper_bound: upperBound,
       rangoConfianza: [lowerBound, upperBound],
@@ -193,6 +198,8 @@ export const generateDynamicProyeccion = (baseDate, liveWeather = null, calibrat
       c4_c5_estimados: c4_c5,
       alertaAltaComplejidad,
       horasMedicasRequeridas,
+      horasMedicasMin,
+      horasMedicasMax,
       curvaHoraria,
       weatherMultiplier: Number(weatherMultiplier.toFixed(2)),
       weatherReason,
