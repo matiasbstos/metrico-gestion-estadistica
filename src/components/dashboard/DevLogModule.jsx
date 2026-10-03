@@ -8,6 +8,40 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-49',
+    titulo: 'Migración a Componentes Analíticos Tremor en Rendimiento de Turnos: Cards con Decoración Superior, BadgeDelta Invertido, Tracker Horario de 12 Bloques y Gráficos Compactos',
+    fecha: '2026-10-03',
+    version_tag: 'v6.3.49',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_49.png',
+    problema: 'El módulo requería una evolución estética de vanguardia inspirada en la librería de diseño analítico Tremor (tremorlabs/tremor-npm) para elevar el estándar de presentación ejecutiva, sustituyendo cajas de texto plano y tablas estáticas por componentes analíticos ricos, con semaforización horaria de cuellos de botella y deltas comparativos automáticos sin alterar la lógica de cálculo interna.',
+    logica: '1) Fase 1 Arquitectura Tremor: Creación de componentes analíticos nativos de alta fidelidad en src/components/tremor/ (Card con decoration superior, Metric, Text, BadgeDelta, Tracker, BarList, DonutChart, BarChart) blindados para React 19 y Tailwind. 2) Fase 2 Mapeo Scorecard: Card con barra superior institucional por turno, Metric/Text para volumen y latencia, BadgeDelta con semaforización invertida (disminución de latencia = decrease/verde, incremento = increase/rojo), y Tracker horario de 12 bloques con semáforo intradiario (esmeralda ≤15 min, rosa >15 min). 3) Fase 3 Gráficos de Profundidad: DonutChart con valor central y BarList para resolutividad y egresos administrativos, junto a BarChart agrupado Tremor para categorización Manchester C1-C5. 4) Fase 4 Validación: Integridad reactiva 100% preservada con los selectores de fecha y filtros de guardia.',
+    solucion: 'Dashboard de clase mundial con el lenguaje visual de Tremor que permite a la jefatura directiva auditar tanto la carga agregada como las horas críticas de saturación intradiaria de un solo vistazo.',
+    fullPost: `En esta versión v6.3.49 concretamos la migración de la capa visual de Rendimiento de Turnos hacia el sistema analítico de Tremor:
+
+1. **Fase 1: Análisis e Integración Segura de Componentes Tremor**:
+   - Para garantizar compatibilidad total con React 19 y Vite sin conflictos de dependencias heredadas, se construyó una suite nativa de componentes Tremor en \`src/components/tremor/\`:
+     * \`Card.jsx\` (con soporte \`decoration="top"\`, \`decorationColor\` por turno y elevación suave).
+     * \`Metric.jsx\` y \`Text.jsx\` (tipografía ejecutiva institucional).
+     * \`BadgeDelta.jsx\` (con soporte para deltas positivos y semaforización invertida en tiempos).
+     * \`Tracker.jsx\` (franja de bloques con tooltips interactivos por hora).
+     * \`BarList.jsx\` (barras proporcionales de alto contraste).
+     * \`DonutChart.jsx\` (gráfico de dona con valor porcentual central).
+     * \`BarChart.jsx\` (gráfico de barras agrupadas con temática Tremor).
+
+2. **Fase 2: Mapeo y Sustitución de Componentes (Scorecard Gerencial)**:
+   - **Métricas Principales**: Carga Operativa y Tiempos de Flujo sustituidos por \`Metric\` y \`Text\` dentro de Tremor \`Card\` con decoración superior azul (Turno 1), esmeralda (Turno 2) y púrpura (Turno 3).
+   - **BadgeDelta con Semaforización Invertida**: Las desviaciones respecto a la media se muestran con \`BadgeDelta\`. Para las latencias de triaje y tiempos de estadía, una disminución (-14.3%) se semaforiza en verde ("decrease") y un aumento (+15.2%) en rojo ("increase").
+   - **Monitor de Triaje (Tracker Horario de 12 Bloques)**: Bloque intradiario por cada hora del turno con semáforo esmeralda si promedió ≤ 15 min y rosa si superó el estándar, visualizando instantáneamente los cuellos de botella intradiarios.
+
+3. **Fase 3: Gráficos Compactos de Profundidad**:
+   - **Resolutividad y Altas Admin**: Eliminación de texto plano mediante un \`DonutChart\` con tasa resolutiva central y un \`BarList\` horizontal de proporciones.
+   - **Categorización Manchester C1 a C5**: Integración de \`BarChart\` agrupado Tremor con la paleta de colores corporativa para un contraste visual impecable entre turnos.
+
+4. **Fase 4: Regla de Preservación Lógica y Regresión Visual**:
+   - 100% de los parsers, funciones de tiempos, agregaciones y filtros de fecha operan con absoluta normalidad e integridad.`
+  },
+  {
     id: 'devlog-v6-3-48',
     titulo: 'Transformación de Rendimiento de Turnos en Dashboard Ejecutivo: Scorecard Matricial, RadarChart de Competencias y Minería Clínica de Riesgo Operativo',
     fecha: '2026-10-03',

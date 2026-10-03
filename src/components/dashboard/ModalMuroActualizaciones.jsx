@@ -15,6 +15,32 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.49',
+      version: 'v6.3.49',
+      fecha: '03 de Octubre, 2026',
+      badge: 'MIGRACIÓN VISUAL TREMOR: CARDS, BADGEDELTA, TRACKER HORARIO, BARLIST & DONUTCHART',
+      badgeColor: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-300 border-cyan-500/20',
+      title: 'Adopción Integral del Framework Analítico Tremor en el Dashboard de Rendimiento de Turnos',
+      categoria: 'Diseño Ejecutivo & Componentes Tremor',
+      icon: Gauge,
+      iconBg: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
+      summary: 'Se refactorizó la capa de presentación de Rendimiento de Turnos incorporando la arquitectura de componentes analíticos de Tremor: 1) Tremor Cards con barra decorativa superior (decoration="top") por turno (Turno 1 Azul, Turno 2 Esmeralda, Turno 3 Púrpura). 2) Métricas y Textos Tremor para Carga Operativa y Tiempos de Flujo. 3) BadgeDelta de Tremor con semaphorización invertida estricta para latencias (variaciones negativas son decrease/verde, positivas son increase/rojo). 4) Tracker Horario intradiario de 12 bloques con semáforo por hora (esmeralda ≤15 min, rosa >15 min) para detección instantánea de cuellos de botella intradiarios. 5) BarList y DonutChart Tremor de alta densidad para Resolutividad y Altas Administrativas. 6) BarChart agrupado Tremor para la comparativa de categorización Manchester C1 a C5.',
+      instructivo: {
+        paraQueSirve: 'Brinda una experiencia visual ejecutiva de alto impacto al contrastar los equipos de guardia, permitiendo identificar al instante variaciones porcentuales, cuellos de botella por hora en triaje y distribución diagnóstica Manchester.',
+        quePuedesVer: '1. Tres tarjetas Tremor con decoración superior por turno. 2. Métricas y deltas semaforizados con BadgeDelta. 3. Monitor Tracker de 12 bloques horarios con semáforo verde/rosa según meta de 15 min. 4. Distribución de resolutividad con DonutChart y BarList interactivo. 5. BarChart agrupado Tremor de Manchester C1 a C5.',
+        ejemploUso: 'Revisa las tarjetas de cada turno: observa el Tracker horario para detectar a qué hora de la noche o tarde se produjo mayor saturación en triaje y compara con el BadgeDelta si el equipo fue más rápido que la media institucional.'
+      },
+      changes: [
+        'Integración del ecosistema de componentes Tremor en src/components/tremor/ (Card, Metric, Text, BadgeDelta, Tracker, BarList, DonutChart, BarChart).',
+        'Sustitución de cajas de texto de Carga Operativa y Tiempos de Flujo por Metric, Text y BadgeDelta de Tremor.',
+        'Semaforización invertida en BadgeDelta para latencias de triaje y estadía (disminución en verde "decrease", aumento en rojo "increase").',
+        'Implementación del Tracker Horario intradiario de 12 bloques con tooltips interactivos y semáforo esmeralda (≤15 min) / rosa (>15 min).',
+        'Sustitución de texto plano de Resolutividad por DonutChart con valor central y BarList proporcional.',
+        'Visualización comparativa de niveles Manchester C1-C5 con BarChart agrupado Tremor y paleta corporativa.',
+        'Preservación del 100% de la lógica analítica, parsers y estados del módulo.'
+      ]
+    },
+    {
       id: 'v6.3.48',
       version: 'v6.3.48',
       fecha: '03 de Octubre, 2026',

@@ -10,6 +10,25 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.49',
+    version_tag: 'v6.3.49',
+    fecha: '03 de Octubre, 2026',
+    fecha_despliegue: '03 de Octubre, 2026',
+    proposito_actualizacion: 'Migración Visual del Módulo Rendimiento de Turnos a Componentes Analíticos Tremor: Card con Decoration Superior, Metric, Text, BadgeDelta con Semáforo Invertido, Tracker Horario Intradiario de 12 Bloques, DonutChart y BarList para Resolutividad, y BarChart Agrupado Tremor para Manchester C1-C5.',
+    medios_y_stack: [
+      'src/components/tremor/ (Creación de suite de componentes analíticos nativos compatibles con React 19 y Vite: Card, Metric, Text, BadgeDelta, Tracker, BarList, DonutChart, BarChart)',
+      'AnalisisComparativoTriple.jsx (Migración de la capa de renderizado a componentes Tremor respetando estrictamente el 100% de la lógica de datos, parsers y estados)',
+      'version.js (Sincronización a v6.3.49)',
+      'DevLogModule.jsx (Publicación devlog v6.3.49 con captura de alta definición)',
+      'ModalMuroActualizaciones.jsx (Ficha en muro de novedades)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Fase 1 Integración Tremor: Arquitectura nativa de componentes analíticos sin colisiones de dependencias con React 19/Recharts. 2) Fase 2 Scorecard Tremor: Mapeo de métricas principales con Card (decoration="top"), Metric y Text. BadgeDelta con semáforo invertido para latencias (variaciones negativas son decrease/verde, positivas son increase/rojo). Tracker intradiario de 12 bloques con semáforo verde ≤15 min y rosa >15 min. 3) Fase 3 Gráficos Compactos: DonutChart con valor central y BarList horizontal para Resolutividad y Altas Administrativas. BarChart agrupado Tremor para distribución Manchester C1-C5. 4) Preservación Lógica: 100% de las funciones de cálculo, agregaciones y filtros de fecha intactos.',
+      firestore_collections: ['turnos', 'pacientes_urgencia', 'pautas_turnos', 'system_architecture_log'],
+      documentos_afectados: ['src/components/tremor/index.js', 'src/components/dashboard/AnalisisComparativoTriple.jsx', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx']
+    }
+  },
+  {
     id: 'v6.3.48',
     version_tag: 'v6.3.48',
     fecha: '03 de Octubre, 2026',

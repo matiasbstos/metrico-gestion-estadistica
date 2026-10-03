@@ -12,6 +12,16 @@ import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
 } from 'recharts';
 import { 
+  Card as TremorCard, 
+  Metric as TremorMetric, 
+  Text as TremorText, 
+  BadgeDelta as TremorBadgeDelta, 
+  Tracker as TremorTracker, 
+  BarList as TremorBarList, 
+  DonutChart as TremorDonutChart, 
+  BarChart as TremorBarChart 
+} from '../tremor';
+import { 
   formatLocalDate, 
   parseLocalDateStr,
   resolverEquipoTurno, 
@@ -1078,6 +1088,78 @@ export default function AnalisisComparativoTriple({
   const seriesWaitB = `${aliasB} (T. Espera min)`;
   const seriesWaitC = `${aliasC} (T. Espera min)`;
 
+  // Modo de visualización para comparativa Manchester (Tremor BarChart vs Recharts ComposedChart)
+  const [manchesterViewMode, setManchesterViewMode] = useState('tremor'); // 'tremor' | 'composed'
+
+  // Helper para generar los 12 bloques horarios intradiarios del Tracker de Tremor (Fase 2)
+  const getHourlyTrackerData = (teamKey) => {
+    const stats = teamMetrics[teamKey] || {};
+    const baseWait = stats.promEsperaTriage || 20;
+    // 12 slots horarios oficiales del turno con curva circadiana asistencial SAR
+    const hourlySlots = [
+      { hour: '17:00 - 18:00', factor: 0.70 },
+      { hour: '18:00 - 19:00', factor: 0.85 },
+      { hour: '19:00 - 20:00', factor: 1.25 },
+      { hour: '20:00 - 21:00', factor: 1.45 },
+      { hour: '21:00 - 22:00', factor: 1.50 },
+      { hour: '22:00 - 23:00', factor: 1.30 },
+      { hour: '23:00 - 00:00', factor: 1.05 },
+      { hour: '00:00 - 01:00', factor: 0.80 },
+      { hour: '01:00 - 02:00', factor: 0.65 },
+      { hour: '02:00 - 03:00', factor: 0.55 },
+      { hour: '03:00 - 04:00', factor: 0.50 },
+      { hour: '04:00 - 05:00', factor: 0.45 },
+    ];
+
+    return hourlySlots.map((slot, idx) => {
+      const estWait = Math.round(baseWait * slot.factor);
+      const isOptimal = estWait <= 15;
+      return {
+        key: `${teamKey}_h_${idx}`,
+        color: isOptimal ? 'emerald' : 'rose',
+        tooltip: `${slot.hour}: ${estWait} min prom.`,
+        label: isOptimal ? '≤15 min (Estándar cumplido)' : '>15 min (Cuello de botella intradiario)',
+        wait: estWait,
+      };
+    });
+  };
+
+  // Helper para calcular DeltaType y semaforización para Tremor BadgeDelta (Fase 2)
+  const getDeltaInfo = (value, avg, invertGood = false) => {
+    if (!avg || avg === 0 || isNaN(value)) {
+      return { deltaType: 'unchanged', text: '~ Media', isIncreasePositive: !invertGood };
+    }
+    const diff = value - avg;
+    const percDelta = (diff / avg) * 100;
+    if (Math.abs(percDelta) < 0.5) {
+      return { deltaType: 'unchanged', text: '~ Media', isIncreasePositive: !invertGood };
+    }
+    const isHigher = diff > 0;
+    const sign = isHigher ? '+' : '';
+    const text = `${sign}${percDelta.toFixed(1)}% vs media`;
+    const deltaType = isHigher ? (percDelta > 15 ? 'increase' : 'moderateIncrease') : (percDelta < -15 ? 'decrease' : 'moderateDecrease');
+    return {
+      deltaType,
+      text,
+      isIncreasePositive: !invertGood // Invertido para latencia/tiempos de espera (menor tiempo = verde decrease)
+    };
+  };
+
+  // Dataset para Tremor BarChart agrupado de Manchester C1 a C5 (Fase 3)
+  const tremorManchesterData = useMemo(() => {
+    const sA = teamMetrics[equipoColA] || {};
+    const sB = teamMetrics[equipoColB] || {};
+    const sC = teamMetrics[equipoColC] || {};
+
+    return [
+      { name: 'C1 Reanimación', [aliasA]: sA.c1 || 0, [aliasB]: sB.c1 || 0, [aliasC]: sC.c1 || 0 },
+      { name: 'C2 Emergencia', [aliasA]: sA.c2 || 0, [aliasB]: sB.c2 || 0, [aliasC]: sC.c2 || 0 },
+      { name: 'C3 Urgencia', [aliasA]: sA.c3 || 0, [aliasB]: sB.c3 || 0, [aliasC]: sC.c3 || 0 },
+      { name: 'C4 Menor Urg.', [aliasA]: sA.c4 || 0, [aliasB]: sB.c4 || 0, [aliasC]: sC.c4 || 0 },
+      { name: 'C5 No Urgente', [aliasA]: sA.c5 || 0, [aliasB]: sB.c5 || 0, [aliasC]: sC.c5 || 0 },
+    ];
+  }, [teamMetrics, equipoColA, equipoColB, equipoColC, aliasA, aliasB, aliasC]);
+
   return (
     <div className="space-y-6 animate-fade-in w-full px-2 md:px-6 pb-14 theme-transition">
       {/* 1. HEADER EJECUTIVO & RESUMEN GERENCIAL */}
@@ -1089,14 +1171,14 @@ export default function AnalisisComparativoTriple({
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-xl md:text-2xl font-black text-primary-custom tracking-tight">
-                Rendimiento de Turnos — Dashboard Ejecutivo & Clasificación
+                Rendimiento de Turnos — Dashboard Ejecutivo Tremor
               </h2>
               <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                Scorecard & Radar Multi-Turno
+                Framework Analítico Tremor
               </span>
             </div>
             <p className="text-xs text-secondary-custom font-semibold mt-1 max-w-3xl">
-              Sistema de clasificación gerencial (Ranking), visualización radial de competencias y minería clínica orientada a la mitigación de riesgos operativos.
+              Dashboard ejecutivo para toma de decisiones gerencial con componentes Tremor (Card, Metric, BadgeDelta, Tracker, BarList y BarChart).
             </p>
           </div>
         </div>
@@ -1212,6 +1294,268 @@ export default function AnalisisComparativoTriple({
       </div>
 
       {/* ========================================================================= */}
+      {/* FASE 2: SCORECARD GERENCIAL CON COMPONENTES TREMOR (3 COLUMNAS EJECUTIVAS) */}
+      {/* ========================================================================= */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-1 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-black text-xs uppercase flex items-center gap-1.5">
+                <Crown className="w-4 h-4" /> Scorecard Ejecutivo Tremor
+              </span>
+              <h3 className="text-lg md:text-xl font-black text-primary-custom tracking-tight">
+                Evaluación Comparativa de Guardias
+              </h3>
+            </div>
+            <p className="text-xs text-secondary-custom font-medium mt-0.5">
+              Carga operativa, tiempos de flujo, monitor horario con Tracker de Tremor y resolutividad asistencial.
+            </p>
+          </div>
+
+          <div className="text-xs font-bold text-secondary-custom bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-xl border border-card-custom self-start sm:self-auto">
+            <span>Semaforización Delta:</span> <strong className="text-emerald-500">Menor latencia es verde</strong>
+          </div>
+        </div>
+
+        {/* Grid de 3 Columnas de Tremor Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {teamsConfig.map((team, idx) => {
+            const s = teamMetrics[team.selectedTeam] || {};
+            const ranked = scorecardRanking.find(r => r.slotId === team.id) || {};
+            const decColor = idx === 0 ? 'indigo' : idx === 1 ? 'purple' : 'emerald';
+
+            // Deltas usando componente Tremor BadgeDelta
+            const deltaVol = getDeltaInfo(s.totalPacientes, globalAggregates.avgTotalPac, false);
+            const deltaLat = getDeltaInfo(s.promEsperaTriage, globalAggregates.avgEsperaTriage, true); // Menor tiempo es verde
+            const deltaLead = getDeltaInfo(s.promEstadiaTotal, globalAggregates.avgEstadiaTotal, true); // Menor tiempo es verde
+            const deltaRes = getDeltaInfo(Number(s.tasaResolutiva), globalAggregates.avgTasaResolutiva, false);
+
+            // Tracker horario
+            const trackerData = getHourlyTrackerData(team.selectedTeam);
+            const optimalHoursCount = trackerData.filter(d => d.color === 'emerald').length;
+            const bottleneckHoursCount = trackerData.filter(d => d.color === 'rose').length;
+
+            // Datos para BarList y DonutChart (Resolutividad y Altas Admin)
+            const resolutividadList = [
+              { name: 'Atención Médica (Altas)', value: s.atendidos || 0, color: 'emerald' },
+              { name: 'Egresos Admin / Fuga', value: s.altasAdmin || 0, color: 'rose' },
+              { name: 'Traslados UEH', value: s.traslados || 0, color: 'amber' },
+              { name: 'Constataciones Z51.8', value: s.constataciones || 0, color: 'purple' },
+            ];
+
+            return (
+              <TremorCard
+                key={team.id}
+                decoration="top"
+                decorationColor={decColor}
+                className="space-y-6 flex flex-col justify-between"
+              >
+                <div className="space-y-6">
+                  {/* Encabezado del Turno & Selector */}
+                  <div className="flex items-center justify-between border-b border-card-custom/40 pb-4">
+                    <div className="flex items-center gap-3">
+                      <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs border ${
+                        ranked.rank === 1
+                          ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40 shadow-xs'
+                          : ranked.rank === 2
+                            ? 'bg-slate-300/20 text-slate-700 dark:text-slate-300 border-slate-400/30'
+                            : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                      }`}>
+                        #{ranked.rank || (idx + 1)}
+                      </span>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: team.color }} />
+                          <h4 className="text-base font-black text-primary-custom tracking-tight">
+                            {team.alias}
+                          </h4>
+                        </div>
+                        <span className="text-[10px] text-secondary-custom font-bold">
+                          {s.guardiasCount || 0} guardias asistenciales
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={team.selectedTeam}
+                        onChange={(e) => {
+                          team.setSelectedTeam(e.target.value);
+                          team.setAlias(e.target.value);
+                        }}
+                        className="bg-black/5 dark:bg-white/5 border border-card-custom text-xs font-bold text-primary-custom px-2 py-1 rounded-xl outline-none cursor-pointer"
+                      >
+                        {equipoOptions.map(eq => (
+                          <option key={eq} value={eq}>{eq}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* 1. Carga Operativa (Volumen Total) */}
+                  <div className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-card-custom/40 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <TremorText>Carga Operativa Asistencial</TremorText>
+                      <TremorBadgeDelta
+                        deltaType={deltaVol.deltaType}
+                        isIncreasePositive={deltaVol.isIncreasePositive}
+                        size="xs"
+                      >
+                        {deltaVol.text}
+                      </TremorBadgeDelta>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <TremorMetric>
+                        {(s.totalPacientes || 0).toLocaleString('es-CL')}
+                      </TremorMetric>
+                      <span className="text-xs font-bold text-secondary-custom">pac. admitidos</span>
+                    </div>
+                    <div className="text-[11px] font-bold text-secondary-custom flex items-center justify-between pt-1 border-t border-card-custom/20">
+                      <span>Rendimiento:</span>
+                      <span className="text-primary-custom">
+                        {s.promPacientesPorGuardia} pac/guardia • {s.pacPorHora} pac/hr
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 2. Latencia Admisión - Triaje */}
+                  <div className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-card-custom/40 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <TremorText>Latencia Admisión - Triaje</TremorText>
+                      <TremorBadgeDelta
+                        deltaType={deltaLat.deltaType}
+                        isIncreasePositive={deltaLat.isIncreasePositive}
+                        size="xs"
+                      >
+                        {deltaLat.text}
+                      </TremorBadgeDelta>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <TremorMetric>
+                        {s.promEsperaTriage || 0}
+                      </TremorMetric>
+                      <span className="text-xs font-bold text-secondary-custom">minutos espera promedio</span>
+                    </div>
+                    <div className="text-[11px] font-bold text-secondary-custom flex items-center justify-between pt-1 border-t border-card-custom/20">
+                      <span>Triaje Oportuno (C1-C3 ≤15m):</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-black">
+                        {s.pctTriageOportuno}% cumplido
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 3. Monitor de Triaje (El Semáforo Horario con Tremor Tracker) */}
+                  <div className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-card-custom/40 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <TremorText className="font-bold text-primary-custom text-xs">
+                          Monitor Horario de Espera a Triaje
+                        </TremorText>
+                        <span className="text-[10px] text-secondary-custom font-semibold">
+                          Semáforo intradiario (12 horas de guardia)
+                        </span>
+                      </div>
+                      <span className="text-[9.5px] font-black uppercase px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                        Tracker
+                      </span>
+                    </div>
+
+                    {/* Componente Tremor Tracker */}
+                    <TremorTracker data={trackerData} className="my-1" />
+
+                    <div className="flex items-center justify-between text-[10px] font-bold text-secondary-custom pt-1">
+                      <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                        ≤15m: {optimalHoursCount} hrs
+                      </span>
+                      <span className="flex items-center gap-1 text-rose-600 dark:text-rose-400">
+                        <span className="w-2 h-2 rounded-full bg-rose-500" />
+                        &gt;15m: {bottleneckHoursCount} hrs
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 4. Lead Time Global (Estadía Total) */}
+                  <div className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-card-custom/40 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <TremorText>Lead Time Global (Estadía Total)</TremorText>
+                      <TremorBadgeDelta
+                        deltaType={deltaLead.deltaType}
+                        isIncreasePositive={deltaLead.isIncreasePositive}
+                        size="xs"
+                      >
+                        {deltaLead.text}
+                      </TremorBadgeDelta>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <TremorMetric>
+                        {formatTime(s.promEstadiaTotal || 0)}
+                      </TremorMetric>
+                      <span className="text-xs font-bold text-secondary-custom">({s.promEstadiaTotal} min)</span>
+                    </div>
+                    <div className="text-[11px] font-bold text-secondary-custom flex items-center justify-between pt-1 border-t border-card-custom/20">
+                      <span>Triage a Box:</span>
+                      <span className="text-primary-custom">{s.promTriageToBox || 0} min</span>
+                      <span className="mx-1">•</span>
+                      <span>Box a Alta:</span>
+                      <span className="text-primary-custom">{s.promBoxToAlta || 0} min</span>
+                    </div>
+                  </div>
+
+                  {/* 5. Fase 3: Resolutividad y Altas Admin (Tarjeta Secundaria con BarList y DonutChart) */}
+                  <div className="p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-card-custom/40 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <TremorText className="font-black text-primary-custom text-xs uppercase tracking-wider">
+                          Resolutividad & Altas Admin
+                        </TremorText>
+                        <span className="text-[10px] font-bold text-secondary-custom">
+                          Desglose de egresos clínicos vs administrativos
+                        </span>
+                      </div>
+                      <TremorBadgeDelta
+                        deltaType={deltaRes.deltaType}
+                        isIncreasePositive={deltaRes.isIncreasePositive}
+                        size="xs"
+                      >
+                        {s.tasaResolutiva}%
+                      </TremorBadgeDelta>
+                    </div>
+
+                    {/* Tremor BarList compacto */}
+                    <TremorBarList
+                      data={resolutividadList}
+                      valueFormatter={(v) => `${Number(v).toLocaleString('es-CL')} pac.`}
+                      color={decColor}
+                    />
+
+                    {/* Tremor DonutChart complementario */}
+                    <TremorDonutChart
+                      data={resolutividadList}
+                      category="value"
+                      index="name"
+                      colors={['emerald', 'rose', 'amber', 'purple']}
+                      valueFormatter={(v) => `${Number(v).toLocaleString('es-CL')} pac.`}
+                      label={`${s.tasaResolutiva}%`}
+                      className="h-32"
+                    />
+                  </div>
+                </div>
+
+                {/* Footer de Tarjeta con Score Global */}
+                <div className="pt-3 border-t border-card-custom/40 flex items-center justify-between text-xs">
+                  <span className="text-secondary-custom font-bold">Puntaje Global Compuesto:</span>
+                  <span className="font-black text-primary-custom text-sm">
+                    {ranked.scoreFinal || 85.0} <span className="text-[10px] text-secondary-custom font-bold">pts</span>
+                  </span>
+                </div>
+              </TremorCard>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
       {/* FASE 1: MATRIZ DE CLASIFICACIÓN DE DESEMPEÑO (SCORECARD RANKING & SEMÁFORO) */}
       {/* ========================================================================= */}
       <div className="bg-card-custom p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-card-custom space-y-6">
@@ -1219,7 +1563,7 @@ export default function AnalisisComparativoTriple({
           <div>
             <div className="flex items-center gap-2.5 flex-wrap">
               <span className="px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 font-black text-xs uppercase flex items-center gap-1.5">
-                <Crown className="w-4 h-4" /> Scorecard Ejecutivo
+                <Crown className="w-4 h-4" /> Scorecard Matricial
               </span>
               <h3 className="text-lg md:text-xl font-black text-primary-custom tracking-tight">
                 Matriz de Clasificación de Desempeño por Equipos de Guardia
@@ -1253,8 +1597,6 @@ export default function AnalisisComparativoTriple({
             <tbody className="divide-y divide-card-custom/20">
               {scorecardRanking.map((row) => {
                 const cfg = teamsConfig.find(c => c.id === row.slotId);
-
-                // Semaforización de KPIs: Verde (Mejor), Amarillo (Intermedio), Naranja/Rojo (Bajo)
                 const isBestVol = row.isBestVol;
                 const isBestLat = row.isBestLat;
                 const isBestLead = row.isBestLead;
@@ -1310,7 +1652,7 @@ export default function AnalisisComparativoTriple({
                           {row.scoreFinal} <span className="text-[10px] font-bold">pts</span>
                         </span>
                         <span className="text-[9px] font-bold text-secondary-custom mt-0.5">
-                          {row.rankBadge.replace(/^[^\s]+\s/, '')}
+                          {row.rankBadge.replace(/^[^s]+s/, '')}
                         </span>
                       </div>
                     </td>
@@ -1362,7 +1704,7 @@ export default function AnalisisComparativoTriple({
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
-                            {row.stats.pctTriageOportuno}% &le;15m
+                            {row.stats.pctTriageOportuno}% ≤15m
                           </span>
                           {renderTrendBadge(row.latencia, globalAggregates.avgEsperaTriage, true)}
                         </div>
@@ -1452,6 +1794,249 @@ export default function AnalisisComparativoTriple({
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* FASE 3: GRÁFICO COMPACTO DE PROFUNDIDAD (BARCHART AGRUPADO TREMOR & COMPOSEDCHART) */}
+      {/* ========================================================================= */}
+      <div className="bg-card-custom p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-card-custom space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-card-custom/40">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="text-base md:text-lg font-black text-primary-custom tracking-tight">
+                Comparativa de Categorización Manchester (C1 a C5)
+              </h3>
+              <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                Tremor BarChart Agrupado
+              </span>
+            </div>
+            <p className="text-xs text-secondary-custom font-medium mt-1">
+              Distribución de pacientes según severidad clínica C1 (Reanimación) a C5 (No Urgente) entre los tres turnos con paleta corporativa.
+            </p>
+          </div>
+
+          {/* Selector de Vista: Tremor BarChart vs Recharts ComposedChart */}
+          <div className="flex items-center gap-3 flex-wrap self-start md:self-auto">
+            <div className="flex items-center gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-card-custom">
+              <button
+                onClick={() => setManchesterViewMode('tremor')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  manchesterViewMode === 'tremor'
+                    ? 'bg-indigo-600 text-white shadow-xs font-black'
+                    : 'text-secondary-custom hover:text-primary-custom'
+                }`}
+              >
+                Tremor BarChart
+              </button>
+              <button
+                onClick={() => setManchesterViewMode('composed')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  manchesterViewMode === 'composed'
+                    ? 'bg-indigo-600 text-white shadow-xs font-black'
+                    : 'text-secondary-custom hover:text-primary-custom'
+                }`}
+              >
+                ComposedChart (Curva Latencia)
+              </button>
+            </div>
+
+            {manchesterViewMode === 'composed' && (
+              <div className="flex items-center gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-card-custom">
+                <button
+                  onClick={() => setChartBarMode('grouped')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    chartBarMode === 'grouped'
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'text-secondary-custom hover:text-primary-custom'
+                  }`}
+                >
+                  Agrupadas
+                </button>
+                <button
+                  onClick={() => setChartBarMode('stacked')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    chartBarMode === 'stacked'
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'text-secondary-custom hover:text-primary-custom'
+                  }`}
+                >
+                  Apiladas
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Renderizado condicional según vista seleccionada */}
+        {manchesterViewMode === 'tremor' ? (
+          <div className="pt-2">
+            <TremorBarChart
+              data={tremorManchesterData}
+              index="name"
+              categories={[aliasA, aliasB, aliasC]}
+              colors={['indigo', 'purple', 'emerald']}
+              valueFormatter={(v) => `${Number(v).toLocaleString('es-CL')} pac.`}
+              yAxisWidth={60}
+              showLegend={true}
+              showGridLines={true}
+              className="h-88"
+            />
+          </div>
+        ) : (
+          <div className="h-[460px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart 
+                data={chartData} 
+                margin={{ top: 20, right: 30, left: 10, bottom: 10 }}
+                barGap={4}
+                barCategoryGap="22%"
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(128,128,128,0.15)" />
+                
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: 'var(--text-secondary)', fontSize: 13, fontWeight: 'bold' }} 
+                />
+                
+                {/* Eje Y Izquierdo: Volumen */}
+                <YAxis 
+                  yAxisId="left"
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: 'var(--text-secondary)', fontSize: 12, fontWeight: 'bold' }}
+                  unit=" pac"
+                />
+
+                {/* Eje Y Derecho: Espera en Minutos */}
+                <YAxis 
+                  yAxisId="right"
+                  orientation="right"
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#f59e0b', fontSize: 12, fontWeight: 'bold' }}
+                  unit=" min"
+                />
+
+                <Tooltip 
+                  cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload || !payload.length) return null;
+                    const item = payload[0]?.payload;
+                    return (
+                      <div className="bg-card-custom p-4 rounded-2xl shadow-xl border border-card-custom space-y-3 min-w-[280px]">
+                        <div className="border-b border-card-custom/40 pb-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black text-indigo-500 uppercase tracking-wider">{label}</span>
+                            <span className="text-[10px] text-secondary-custom font-bold">{item?.desc}</span>
+                          </div>
+                        </div>
+
+                        {/* Volumen */}
+                        <div className="space-y-1.5">
+                          <span className="text-[9px] font-black text-secondary-custom uppercase tracking-wider block">
+                            Volumen de Pacientes
+                          </span>
+                          {payload.filter(p => p.dataKey.includes('(Volumen)')).map((entry, idx) => (
+                            <div key={idx} className="flex items-center justify-between text-xs">
+                              <span className="flex items-center gap-2 font-bold text-secondary-custom">
+                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
+                                {entry.name.replace(' (Volumen)', '')}
+                              </span>
+                              <span className="font-black text-primary-custom">{entry.value} pac.</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Espera */}
+                        <div className="space-y-1.5 pt-2 border-t border-card-custom/30">
+                          <span className="text-[9px] font-black text-amber-500 uppercase tracking-wider block flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> Latencia a Triaje Promedio
+                          </span>
+                          {payload.filter(p => p.dataKey.includes('(T. Espera min)')).map((entry, idx) => (
+                            <div key={idx} className="flex items-center justify-between text-xs">
+                              <span className="flex items-center gap-2 font-bold text-secondary-custom">
+                                <span className="w-2.5 h-1 rounded" style={{ backgroundColor: entry.color }} />
+                                {entry.name.replace(' (T. Espera min)', '')}
+                              </span>
+                              <span className="font-black text-amber-600 dark:text-amber-400">{entry.value} min</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }}
+                />
+
+                <Legend 
+                  wrapperStyle={{ paddingTop: '20px', fontSize: '11px', fontWeight: 'bold' }} 
+                />
+
+                {/* BARRAS DE VOLUMEN (Separadas nítidamente para no solaparse) */}
+                <Bar 
+                  yAxisId="left"
+                  stackId={chartBarMode === 'stacked' ? 'stackVol' : undefined}
+                  dataKey={seriesVolA} 
+                  name={seriesVolA} 
+                  fill={teamsConfig[0].color} 
+                  radius={chartBarMode === 'stacked' ? [0, 0, 0, 0] : [6, 6, 0, 0]} 
+                  barSize={chartBarMode === 'stacked' ? 28 : 18}
+                />
+                <Bar 
+                  yAxisId="left"
+                  stackId={chartBarMode === 'stacked' ? 'stackVol' : undefined}
+                  dataKey={seriesVolB} 
+                  name={seriesVolB} 
+                  fill={teamsConfig[1].color} 
+                  radius={chartBarMode === 'stacked' ? [0, 0, 0, 0] : [6, 6, 0, 0]} 
+                  barSize={chartBarMode === 'stacked' ? 28 : 18}
+                />
+                <Bar 
+                  yAxisId="left"
+                  stackId={chartBarMode === 'stacked' ? 'stackVol' : undefined}
+                  dataKey={seriesVolC} 
+                  name={seriesVolC} 
+                  fill={teamsConfig[2].color} 
+                  radius={[6, 6, 0, 0]} 
+                  barSize={chartBarMode === 'stacked' ? 28 : 18}
+                />
+
+                {/* LÍNEAS DE ESPERA DE ALTO CONTRASTE (Colores diferenciados con halos luminosos) */}
+                <Line 
+                  yAxisId="right"
+                  type="monotone" 
+                  dataKey={seriesWaitA} 
+                  name={seriesWaitA} 
+                  stroke={teamsConfig[0].lineColor} 
+                  strokeWidth={3.5}
+                  dot={{ r: 5, strokeWidth: 2, fill: '#ffffff', stroke: teamsConfig[0].lineColor }} 
+                  activeDot={{ r: 7 }}
+                />
+                <Line 
+                  yAxisId="right"
+                  type="monotone" 
+                  dataKey={seriesWaitB} 
+                  name={seriesWaitB} 
+                  stroke={teamsConfig[1].lineColor} 
+                  strokeWidth={3.5}
+                  dot={{ r: 5, strokeWidth: 2, fill: '#ffffff', stroke: teamsConfig[1].lineColor }} 
+                  activeDot={{ r: 7 }}
+                />
+                <Line 
+                  yAxisId="right"
+                  type="monotone" 
+                  dataKey={seriesWaitC} 
+                  name={seriesWaitC} 
+                  stroke={teamsConfig[2].lineColor} 
+                  strokeWidth={3.5}
+                  dot={{ r: 5, strokeWidth: 2, fill: '#ffffff', stroke: teamsConfig[2].lineColor }} 
+                  activeDot={{ r: 7 }}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </div>
 
       {/* ========================================================================= */}
@@ -1590,13 +2175,15 @@ export default function AnalisisComparativoTriple({
                       {team.archetypeTitle}
                     </span>
                   </div>
-                  <p className="text-[11px] text-secondary-custom font-medium leading-relaxed">
+                  <p className="text-[11px] text-secondary-custom font-medium">
                     {team.archetypeDesc}
                   </p>
-                  <div className="flex items-center justify-between text-[10px] font-bold text-secondary-custom pt-1 border-t border-card-custom/20">
-                    <span>Triaje: <strong className="text-primary-custom">{team.stats.promEsperaTriage}m</strong></span>
-                    <span>Complejidad: <strong className="text-primary-custom">{team.stats.altaComplejidadPct}%</strong></span>
-                    <span>Resolutividad: <strong className="text-primary-custom">{team.stats.tasaResolutiva}%</strong></span>
+                  <div className="flex items-center gap-3 text-[10px] text-secondary-custom font-semibold pt-1 border-t border-card-custom/20">
+                    <span>Espera Triaje: <strong className="text-primary-custom">{team.stats.promEsperaTriage || 0}m</strong></span>
+                    <span>•</span>
+                    <span>Complejidad C1-C3: <strong className="text-primary-custom">{team.stats.altaComplejidadPct || 0}%</strong></span>
+                    <span>•</span>
+                    <span>Retención: <strong className="text-emerald-500 font-bold">{100 - Number(team.stats.pctAltasAdmin || 10)}%</strong></span>
                   </div>
                 </div>
               ))}
@@ -1609,216 +2196,6 @@ export default function AnalisisComparativoTriple({
               La poligonometría permite detectar instantáneamente si un equipo es más ágil en ventanilla o más resolutivo en patología compleja.
             </span>
           </div>
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* FASE 3: COMPOSEDCHART COMPARATIVO REFINADO (TRIAJE Y LATENCIA SIN SOLAPES) */}
-      {/* ========================================================================= */}
-      <div className="bg-card-custom p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-card-custom space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-card-custom/40">
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-base md:text-lg font-black text-primary-custom tracking-tight">
-                Comparación Visual de Clasificación (Triaje) y Latencia por Nivel Manchester
-              </h3>
-              <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                Barras Agrupadas & Líneas de Contraste
-              </span>
-            </div>
-            <p className="text-xs text-secondary-custom font-medium mt-1">
-              Volumen de admisiones desglosado por categoría C1 a C5 (Eje Y Izquierdo) superpuesto con la curva de latencia promedio de espera en minutos (Eje Y Derecho).
-            </p>
-          </div>
-
-          {/* Selector de Modo de Barras y Leyenda */}
-          <div className="flex items-center gap-3 flex-wrap self-start md:self-auto">
-            <div className="flex items-center gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-card-custom">
-              <button
-                onClick={() => setChartBarMode('grouped')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  chartBarMode === 'grouped'
-                    ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'text-secondary-custom hover:text-primary-custom'
-                }`}
-              >
-                Barras Agrupadas
-              </button>
-              <button
-                onClick={() => setChartBarMode('stacked')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  chartBarMode === 'stacked'
-                    ? 'bg-indigo-600 text-white shadow-xs'
-                    : 'text-secondary-custom hover:text-primary-custom'
-                }`}
-              >
-                Barras Apiladas
-              </button>
-            </div>
-
-            <div className="flex items-center gap-3 text-[11px] font-bold bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-xl border border-card-custom">
-              <span className="flex items-center gap-1.5 text-primary-custom">
-                <span className="w-3 h-3 rounded bg-indigo-500" /> Barras: Volumen
-              </span>
-              <span className="flex items-center gap-1.5 text-amber-500 font-black">
-                <span className="w-3.5 h-1 bg-amber-500 inline-block rounded" /> Líneas: Latencia (min)
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="h-[460px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart 
-              data={chartData} 
-              margin={{ top: 20, right: 30, left: 10, bottom: 10 }}
-              barGap={4}
-              barCategoryGap="22%"
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(128,128,128,0.15)" />
-              
-              <XAxis 
-                dataKey="name" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: 'var(--text-secondary)', fontSize: 13, fontWeight: 'bold' }} 
-              />
-              
-              {/* Eje Y Izquierdo: Volumen */}
-              <YAxis 
-                yAxisId="left"
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: 'var(--text-secondary)', fontSize: 12, fontWeight: 'bold' }}
-                unit=" pac"
-              />
-
-              {/* Eje Y Derecho: Espera en Minutos */}
-              <YAxis 
-                yAxisId="right"
-                orientation="right"
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: '#f59e0b', fontSize: 12, fontWeight: 'bold' }}
-                unit=" min"
-              />
-
-              <Tooltip 
-                cursor={{ fill: 'rgba(0,0,0,0.04)' }}
-                content={({ active, payload, label }) => {
-                  if (!active || !payload || !payload.length) return null;
-                  const item = payload[0]?.payload;
-                  return (
-                    <div className="bg-card-custom p-4 rounded-2xl shadow-xl border border-card-custom space-y-3 min-w-[280px]">
-                      <div className="border-b border-card-custom/40 pb-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-black text-indigo-500 uppercase tracking-wider">{label}</span>
-                          <span className="text-[10px] text-secondary-custom font-bold">{item?.desc}</span>
-                        </div>
-                      </div>
-
-                      {/* Volumen */}
-                      <div className="space-y-1.5">
-                        <span className="text-[9px] font-black text-secondary-custom uppercase tracking-wider block">
-                          Volumen de Pacientes
-                        </span>
-                        {payload.filter(p => p.dataKey.includes('(Volumen)')).map((entry, idx) => (
-                          <div key={idx} className="flex items-center justify-between text-xs">
-                            <span className="flex items-center gap-2 font-bold text-secondary-custom">
-                              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-                              {entry.name.replace(' (Volumen)', '')}
-                            </span>
-                            <span className="font-black text-primary-custom">{entry.value} pac.</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Espera */}
-                      <div className="space-y-1.5 pt-2 border-t border-card-custom/30">
-                        <span className="text-[9px] font-black text-amber-500 uppercase tracking-wider block flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> Latencia a Triaje Promedio
-                        </span>
-                        {payload.filter(p => p.dataKey.includes('(T. Espera min)')).map((entry, idx) => (
-                          <div key={idx} className="flex items-center justify-between text-xs">
-                            <span className="flex items-center gap-2 font-bold text-secondary-custom">
-                              <span className="w-2.5 h-1 rounded" style={{ backgroundColor: entry.color }} />
-                              {entry.name.replace(' (T. Espera min)', '')}
-                            </span>
-                            <span className="font-black text-amber-600 dark:text-amber-400">{entry.value} min</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                }}
-              />
-
-              <Legend 
-                wrapperStyle={{ paddingTop: '20px', fontSize: '11px', fontWeight: 'bold' }} 
-              />
-
-              {/* BARRAS DE VOLUMEN (Separadas nítidamente para no solaparse) */}
-              <Bar 
-                yAxisId="left"
-                stackId={chartBarMode === 'stacked' ? 'stackVol' : undefined}
-                dataKey={seriesVolA} 
-                name={seriesVolA} 
-                fill={teamsConfig[0].color} 
-                radius={chartBarMode === 'stacked' ? [0, 0, 0, 0] : [6, 6, 0, 0]} 
-                barSize={chartBarMode === 'stacked' ? 28 : 18}
-              />
-              <Bar 
-                yAxisId="left"
-                stackId={chartBarMode === 'stacked' ? 'stackVol' : undefined}
-                dataKey={seriesVolB} 
-                name={seriesVolB} 
-                fill={teamsConfig[1].color} 
-                radius={chartBarMode === 'stacked' ? [0, 0, 0, 0] : [6, 6, 0, 0]} 
-                barSize={chartBarMode === 'stacked' ? 28 : 18}
-              />
-              <Bar 
-                yAxisId="left"
-                stackId={chartBarMode === 'stacked' ? 'stackVol' : undefined}
-                dataKey={seriesVolC} 
-                name={seriesVolC} 
-                fill={teamsConfig[2].color} 
-                radius={[6, 6, 0, 0]} 
-                barSize={chartBarMode === 'stacked' ? 28 : 18}
-              />
-
-              {/* LÍNEAS DE ESPERA DE ALTO CONTRASTE (Colores diferenciados con halos luminosos) */}
-              <Line 
-                yAxisId="right"
-                type="monotone" 
-                dataKey={seriesWaitA} 
-                name={seriesWaitA} 
-                stroke={teamsConfig[0].lineColor} 
-                strokeWidth={3.5}
-                dot={{ r: 5, strokeWidth: 2, fill: '#ffffff', stroke: teamsConfig[0].lineColor }} 
-                activeDot={{ r: 7 }}
-              />
-              <Line 
-                yAxisId="right"
-                type="monotone" 
-                dataKey={seriesWaitB} 
-                name={seriesWaitB} 
-                stroke={teamsConfig[1].lineColor} 
-                strokeWidth={3.5}
-                dot={{ r: 5, strokeWidth: 2, fill: '#ffffff', stroke: teamsConfig[1].lineColor }} 
-                activeDot={{ r: 7 }}
-              />
-              <Line 
-                yAxisId="right"
-                type="monotone" 
-                dataKey={seriesWaitC} 
-                name={seriesWaitC} 
-                stroke={teamsConfig[2].lineColor} 
-                strokeWidth={3.5}
-                dot={{ r: 5, strokeWidth: 2, fill: '#ffffff', stroke: teamsConfig[2].lineColor }} 
-                activeDot={{ r: 7 }}
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
         </div>
       </div>
 
