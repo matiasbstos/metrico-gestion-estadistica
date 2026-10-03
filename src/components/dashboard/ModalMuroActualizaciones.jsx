@@ -15,6 +15,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.45',
+      version: 'v6.3.45',
+      fecha: '03 de Octubre, 2026',
+      badge: 'INTEGRIDAD CLÍNICA & FORMATO VISUAL: CERO NaN% Y UNIFICACIÓN A EGRESO ADMIN',
+      badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-300 border-purple-500/20',
+      title: 'Normalización de Porcentajes en Centros Base Acumulado y Estándar Oficial de "Egreso Admin"',
+      categoria: 'Auditoría & Calidad de Datos',
+      icon: Mail,
+      iconBg: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+      summary: 'Se corrigió la anomalía visual observada en la lámina de Centros Base Acumulado, donde porcentajes preformateados como texto provocaban que la suma del top 3 de centros se evaluara en NaN% y que los valores individuales se desplegaran con doble símbolo porcentual (%%). Asimismo, atendiendo la observación de la dirección clínica respecto a la ambigüedad del término "Ventanilla", se unificó la nomenclatura oficial de la tarjeta de Altas Administrativas a "Egreso Admin" en toda la suite de correos y previsualización.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la concentración territorial de pacientes (CESFAM Florencia, Boris Soler, Elgueta y Otros) siempre muestre cifras porcentuales legibles y precisas, y clarifica técnicamente la naturaleza de las altas no clínicas.',
+        quePuedesVer: 'En los correos y en el previsualizador: "Centros Base Acumulado" muestra la suma real del top 3 (ej. 80.7% del total) sin NaN ni dobles %, y la tarjeta de Altas Admin exhibe la pastilla "Egreso Admin".',
+        ejemploUso: 'Revisa cualquier reporte de guardia o el previsualizador para constatar el cálculo armónico de centros y la etiqueta institucional Egreso Admin.'
+      },
+      changes: [
+        'Sanitización de cadenas porcentuales en InformeAsistencialEmail.js para erradicar NaN% en el acumulado del top 3.',
+        'Eliminación del doble signo porcentual (%%) en las filas de CESFAMs emisores.',
+        'Sustitución de la etiqueta "Ventanilla" por "Egreso Admin" en el balance de guardia del correo.',
+        'Armonización de "Egreso por Retiro" a "Egreso Admin" en ModalConfiguracionCorreo.jsx.',
+        'Blindaje de fallbacks YoY en la plantilla React Email para consistencia con los 4 pilares interanuales.'
+      ]
+    },
+    {
       id: 'v6.3.44',
       version: 'v6.3.44',
       fecha: '02 de Octubre, 2026',

@@ -490,10 +490,10 @@ export const buildTurnoInfoPayload = (selectedShiftObj, combinedPacientes = [], 
       centro: c.centro,
       nombre: c.centro,
       name: c.centro,
-      count: c.cantidad,
-      casos: c.cantidad,
-      pct: String(c.porcentaje).replace('%', ''),
-      porcentaje: String(c.porcentaje).replace('%', ''),
+      count: c.cantidad !== undefined ? c.cantidad : (c.count || c.casos || 0),
+      casos: c.cantidad !== undefined ? c.cantidad : (c.count || c.casos || 0),
+      pct: String(c.porcentaje || c.pct || '0').replace(/%/g, '').trim(),
+      porcentaje: String(c.porcentaje || c.pct || '0').replace(/%/g, '').trim(),
       trend: 'Oficial Rayen'
     }));
   } else if (pacsTurno && pacsTurno.length > 0) {
@@ -807,7 +807,7 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
                   <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> ALTAS ADMIN
                 </span>
                 <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200">
-                  Egreso por Retiro
+                  Egreso Admin
                 </span>
               </div>
               <div className="flex items-baseline gap-1">
@@ -817,7 +817,7 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
                 <span className="text-[10px] font-bold text-rose-500">altas</span>
               </div>
               <p className="text-[10px] font-semibold text-rose-700 dark:text-rose-300 border-t border-rose-200/60 dark:border-rose-900/40 pt-1">
-                {pctAltasAdminTurno}% de Demanda (Egreso por Retiro)
+                {pctAltasAdminTurno}% de Demanda (Egreso Admin)
               </p>
             </div>
 
@@ -1251,7 +1251,7 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
               <div className="text-center mb-4 space-y-1">
                 <div className="flex items-baseline justify-center gap-1.5">
                   <span className="text-4xl font-black text-purple-700 dark:text-purple-300">
-                    {((turnoInfo.distribucionCesfam || []).slice(0, 3).reduce((acc, cur) => acc + Number(cur.pct || 0), 0)).toFixed(1)}%
+                    {((turnoInfo.distribucionCesfam || []).slice(0, 3).reduce((acc, cur) => acc + (parseFloat(String(cur.pct || cur.porcentaje || 0).replace(/%/g, '')) || 0), 0)).toFixed(1)}%
                   </span>
                   <span className="text-xs font-bold text-purple-600 dark:text-purple-400">del total</span>
                 </div>
@@ -1266,7 +1266,7 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
                   <div key={idx} className="flex items-center justify-between p-2.5 bg-white dark:bg-slate-900/80 rounded-xl border border-purple-200/60 dark:border-purple-500/20">
                     <span className="font-bold text-purple-950 dark:text-purple-200">{c.nombre || c.centro}</span>
                     <div className="flex items-center gap-2">
-                      <span className="font-black text-purple-700 dark:text-purple-300 font-mono text-sm">{c.pct}%</span>
+                      <span className="font-black text-purple-700 dark:text-purple-300 font-mono text-sm">{String(c.pct || c.porcentaje || '0').replace(/%/g, '')}%</span>
                       <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded-md">{c.trend || '↑ +1.2%'}</span>
                     </div>
                   </div>
@@ -1277,7 +1277,7 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
             <div className="mt-3 pt-2.5 border-t border-purple-200/60 dark:border-purple-500/20 flex items-center justify-between text-[11px] font-bold text-purple-900 dark:text-purple-300">
               <span>Otros Centros / Población Flotante:</span>
               <span>
-                {Math.max(0, (100 - (turnoInfo.distribucionCesfam || []).slice(0, 3).reduce((acc, cur) => acc + Number(cur.pct || 0), 0))).toFixed(1)}% (↓ -4.2% vs 2025)
+                {Math.max(0, (100 - (turnoInfo.distribucionCesfam || []).slice(0, 3).reduce((acc, cur) => acc + (parseFloat(String(cur.pct || cur.porcentaje || 0).replace(/%/g, '')) || 0), 0))).toFixed(1)}% (↓ -4.2% vs 2025)
               </span>
             </div>
           </div>

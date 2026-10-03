@@ -8,6 +8,30 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-45',
+    titulo: 'Sanitización de Porcentajes en Centros Base Acumulado (Cero NaN% y Doble %%) y Unificación a "Egreso Admin"',
+    fecha: '2026-10-03',
+    version_tag: 'v6.3.45',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_45.png',
+    problema: 'En la lámina de Centros Base Acumulado del correo asistencial y del modal de configuración, los porcentajes individuales provenientes de datos formateados con el símbolo "%" causaban que Number() evaluara a NaN, mostrando "NaN% del total" en el top 3, y los renglones individuales mostraban doble porcentaje (ej. "35.2%%"). Adicionalmente, el término "Ventanilla" en la cabecera de Altas Administrativas resultaba ambiguo para la dirección clínica.',
+    logica: '1) Sanitización Regex Universal: Se aplicó .replace(/%/g, "").trim() y parseFloat() en la recepción y mapeo de centros de origen (InformeAsistencialEmail.js y ModalConfiguracionCorreo.jsx), asegurando que los porcentajes numéricos sumen de manera exacta y nunca produzcan NaN. 2) Cero Doble Símbolo Porcentual: Se aseguró que al concatenar "%" la cadena base no contenga ya el carácter. 3) Unificación Terminológica: Se sustituyó "Ventanilla" y "Egreso por Retiro" por la denominación oficial "Egreso Admin" en la cabecera de la tarjeta y en la leyenda de demanda.',
+    solucion: 'Tanto en la previsualización del informe como en los correos electrónicos enviados a la dirección, los Centros Base Acumulado se despliegan con cálculo matemático perfecto (ej. 80.7% del total) y la tarjeta de Altas Admin exhibe de forma unívoca el distintivo "Egreso Admin".',
+    fullPost: `En esta versión v6.3.45 resolvimos dos observaciones clave en la suite de informes asistenciales:
+
+1. **Resolución de Cálculos en Centros Base Acumulado**:
+   - Corrección del acumulador del Top 3 de CESFAMs emisores (Florencia, Boris Soler, Elgueta), sanitizando valores string contra el símbolo '%' antes de la suma aritmética.
+   - Erradicación definitiva de \`NaN% del total\`.
+   - Normalización de filas individuales de centros para evitar la duplicación del carácter porcentual (\`35.2%\` en vez de \`35.2%%\`).
+
+2. **Unificación Oficial de la Etiqueta "Egreso Admin"**:
+   - Sustitución de la etiqueta coloquial \`Ventanilla\` en la plantilla de correo \`InformeAsistencialEmail.js\` por \`Egreso Admin\`.
+   - Armonización de la pastilla \`Egreso por Retiro\` en \`ModalConfiguracionCorreo.jsx\` a \`Egreso Admin\` y leyenda porcentual \`{pctAltasAdminTurno}% de Demanda (Egreso Admin)\`.
+
+3. **Sintonía y Consistencia de Fallbacks Interanuales (YoY)**:
+   - Preservación y blindaje de las referencias institucionales de los 4 pilares (+20.4% en admitidos, +19.8% en atendidos, +26.4% en altas admin y +11.8% en traslados).`
+  },
+  {
     id: 'devlog-v6-3-44',
     titulo: 'Arquitectura Móvil Responsiva de Informes de Correo, Cero Colisión de Textos y Tarjetas en 2 Columnas',
     fecha: '2026-10-02',

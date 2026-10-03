@@ -144,19 +144,23 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
 
   // Centros de origen (tolerante a múltiples nomenclaturas de llaves)
   const rawCesfams = turnoInfo.distribucionCesfam || [];
-  const cesfams = rawCesfams.length > 0 ? rawCesfams.slice(0, 5).map(c => ({
-    nombre: c.centro || c.nombre || c.name || 'CESFAM',
-    count: c.count !== undefined ? c.count : (c.casos !== undefined ? c.casos : 0),
-    pct: c.pct !== undefined ? c.pct : (c.porcentaje !== undefined ? c.porcentaje : '0.0'),
-    trend: c.trend || '↑ +1.5% vs 2025'
-  })) : [
+  const cesfams = (rawCesfams && Array.isArray(rawCesfams) && rawCesfams.length > 0) ? rawCesfams.slice(0, 5).map(c => {
+    const rawVal = c.pct !== undefined ? c.pct : (c.porcentaje !== undefined ? c.porcentaje : '0.0');
+    const cleanPct = String(rawVal).replace(/%/g, '').trim();
+    return {
+      nombre: c.centro || c.nombre || c.name || 'CESFAM',
+      count: c.count !== undefined ? c.count : (c.casos !== undefined ? c.casos : (c.cantidad !== undefined ? c.cantidad : 0)),
+      pct: cleanPct,
+      trend: c.trend || '↑ +1.5% vs 2025'
+    };
+  }) : [
     { nombre: 'CESFAM Florencia', count: Math.round(totalAdmitidos * 0.234), pct: '23.4', trend: '↑ +1.8% vs 2025' },
     { nombre: 'CESFAM Boris Soler', count: Math.round(totalAdmitidos * 0.234), pct: '23.4', trend: '↑ +2.1% vs 2025' },
     { nombre: 'CESFAM Elgueta', count: Math.round(totalAdmitidos * 0.27), pct: '27.0', trend: '↑ +0.3% vs 2025' },
     { nombre: 'CESFAM San Manuel / Rurales', count: Math.round(totalAdmitidos * 0.15), pct: '15.0', trend: '↓ -1.2% vs 2025' },
   ];
 
-  const top3Pct = cesfams.slice(0, 3).reduce((acc, c) => acc + Number(c.pct || 0), 0).toFixed(1);
+  const top3Pct = cesfams.slice(0, 3).reduce((acc, c) => acc + (parseFloat(c.pct) || 0), 0).toFixed(1);
 
   // Perfil demográfico
   const rawDemo = turnoInfo.distribucionDemografia || {};
@@ -324,7 +328,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                                 React.createElement('p', { style: { fontSize: '8.5px', fontWeight: '900', color: '#be123c', textTransform: 'uppercase', margin: '0 0 2px 0', lineHeight: '12px' } },
                                   renderIcon('alert_triangle_rose', 11), ' ALTAS ADMIN'
                                 ),
-                                React.createElement('span', { style: { backgroundColor: '#ffe4e6', color: '#be123c', borderRadius: '6px', padding: '2px 5px', fontSize: '8.5px', fontWeight: '800', display: 'inline-block' } }, 'Ventanilla'),
+                                React.createElement('span', { style: { backgroundColor: '#ffe4e6', color: '#be123c', borderRadius: '6px', padding: '2px 5px', fontSize: '8.5px', fontWeight: '800', display: 'inline-block' } }, 'Egreso Admin'),
                                 React.createElement('p', { className: 'mobile-kpi-val', style: { fontSize: '22px', fontWeight: '900', color: '#be123c', margin: '4px 0 2px 0', lineHeight: '24px' } }, `${totalAltas}`),
                                 React.createElement('p', { style: { fontSize: '8px', color: '#881337', fontWeight: '700', margin: '0', lineHeight: '11px' } }, `${pctAltas}% demanda`)
                               ),
@@ -790,7 +794,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                                               cesfams.map((c, i) => (
                                                 React.createElement('tr', { key: i, style: { borderBottom: i === cesfams.length - 1 ? 'none' : '1px solid #f1f5f9' } },
                                                   React.createElement('td', { style: { padding: '4px 0', fontWeight: '700', color: '#1e293b', textAlign: 'left' } }, c.nombre),
-                                                  React.createElement('td', { style: { padding: '4px 0', fontWeight: '900', color: '#6b21a8', textAlign: 'right', whiteSpace: 'nowrap' } }, `${c.pct}%`)
+                                                  React.createElement('td', { style: { padding: '4px 0', fontWeight: '900', color: '#6b21a8', textAlign: 'right', whiteSpace: 'nowrap' } }, `${String(c.pct).replace(/%/g, '')}%`)
                                                 )
                                               ))
                                             )

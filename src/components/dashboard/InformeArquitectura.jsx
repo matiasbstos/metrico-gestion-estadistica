@@ -10,6 +10,25 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.45',
+    version_tag: 'v6.3.45',
+    fecha: '03 de Octubre, 2026',
+    fecha_despliegue: '03 de Octubre, 2026',
+    proposito_actualizacion: 'Normalización y Sanitización de Porcentajes en Centros Base Acumulado (Cero NaN% y Cero Doble %%) y Unificación Terminológica Oficial a "Egreso Admin" en Correo Asistencial y Suite de Configuración.',
+    medios_y_stack: [
+      'functions/templates/InformeAsistencialEmail.js (Sanitización regex de strings con % en distribucionCesfam para erradicar NaN% en top3Pct y eliminar el doble %% en las filas de centros de origen; sustitución unívoca de "Ventanilla" por "Egreso Admin" en la cabecera de Altas Admin)',
+      'ModalConfiguracionCorreo.jsx (Normalización de porcentajes en centrosCalculados a partir de selectedShiftObj.centros; blindaje numérico en cálculo de top3Pct y población flotante; unificación de "Egreso por Retiro" a "Egreso Admin" en el badge de guardia)',
+      'version.js (Sincronización a v6.3.45)',
+      'DevLogModule.jsx (Publicación devlog v6.3.45)',
+      'ModalMuroActualizaciones.jsx (Ficha en muro de novedades)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Robustez en Porcentajes de Centros Base: Todo porcentaje proveniente de Rayen o de cálculos asistenciales se sanitiza eliminando símbolos duplicados antes de sumar o formatear, garantizando que top3Pct nunca caiga en NaN. 2) Rigor Terminológico Asistencial: La tarjeta de ALTAS ADMIN utiliza unívocamente la etiqueta "Egreso Admin", evitando confusiones operativas entre la ventanilla de admisión/triage y las deserciones o cancelaciones administrativas.',
+      firestore_collections: ['envios_correos', 'configuracion_correo', 'system_architecture_log'],
+      documentos_afectados: ['functions/templates/InformeAsistencialEmail.js', 'src/components/dashboard/ModalConfiguracionCorreo.jsx']
+    }
+  },
+  {
     id: 'v6.3.44',
     version_tag: 'v6.3.44',
     fecha: '02 de Octubre, 2026',
