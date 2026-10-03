@@ -300,17 +300,18 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
     let prevDayHadRain = false;
 
     for (let i = 1; i <= 7; i++) {
-      const targetDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + i);
+      const targetDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + i, 12, 0, 0);
       const yStr = targetDate.getFullYear();
       const mStr = String(targetDate.getMonth() + 1).padStart(2, '0');
       const dStr = String(targetDate.getDate()).padStart(2, '0');
       const fechaStr = `${yStr}-${mStr}-${dStr}`;
       const dayOfWeek = targetDate.getDay();
 
-      // Reconocimiento de Jornada SAR & Feriados Oficiales de Chile
-      const tipoJornada = determinarTipoJornada(fechaStr);
-      const isOfficialChileHoliday = CHILE_HOLIDAYS_OFFICIAL && CHILE_HOLIDAYS_OFFICIAL.has(fechaStr);
-      const isFindeOFeriado = tipoJornada === 'FINDE_FERIADO';
+      // Reconocimiento de Jornada SAR & Feriados Oficiales de Chile (Reglas 4, 9, 17, 24)
+      const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+      const isOfficialChileHoliday = Boolean(CHILE_HOLIDAYS_OFFICIAL && CHILE_HOLIDAYS_OFFICIAL.has(fechaStr));
+      const tipoJornada = (isWeekend || isOfficialChileHoliday) ? 'FINDE_FERIADO' : determinarTipoJornada(fechaStr);
+      const isFindeOFeriado = isWeekend || isOfficialChileHoliday || tipoJornada === 'FINDE_FERIADO';
 
       // Si es feriado oficial o fin de semana en día hábil, la línea base se asimila a fin de semana
       let baseExpected = isFindeOFeriado && (dayOfWeek >= 1 && dayOfWeek <= 5)
@@ -543,7 +544,10 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
       }
 
       let data = null;
-      const baseDateIso = effectiveBaseDate.toISOString().split('T')[0];
+      const baseYear = effectiveBaseDate.getFullYear();
+      const baseMonth = String(effectiveBaseDate.getMonth() + 1).padStart(2, '0');
+      const baseDay = String(effectiveBaseDate.getDate()).padStart(2, '0');
+      const baseDateIso = `${baseYear}-${baseMonth}-${baseDay}`;
       const predictiveApiBase = import.meta.env.VITE_PREDICTIVE_API_URL || 'http://127.0.0.1:8000';
 
       // 1. Consulta al microservicio en Python (Nixtla StatsForecast: AutoARIMA/AutoETS + Feriados CL + Rezagos climáticos)
@@ -579,11 +583,18 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
         // Enriquecer cada proyección con la lógica oficial SAR (Turnos Diurno/Nocturno, Triage C1-C5 y Horas Médicas)
         const enrichedList = data.proyecciones.map(p => {
           const fechaStr = p.fecha_predicha || p.ds;
-          const tipoJornada = p.tipoJornada || determinarTipoJornada(fechaStr);
-          const isFindeOFeriado = p.isFindeOFeriado !== undefined ? p.isFindeOFeriado : (tipoJornada === 'FINDE_FERIADO');
-          const isOfficialChileHoliday = p.esFeriadoOficial !== undefined ? p.esFeriadoOficial : (CHILE_HOLIDAYS_OFFICIAL && CHILE_HOLIDAYS_OFFICIAL.has(fechaStr));
-          const tagTipoJornada = p.tagTipoJornada || (isFindeOFeriado ? (isOfficialChileHoliday ? '🎉 Feriado Oficial SAR' : 'Fin de Semana SAR') : 'Día Hábil SAR');
-          const esquemaTurno = p.esquemaTurno || (isFindeOFeriado ? 'Fin de Semana / Festivo (08:00 a 20:00 y 20:00 a 08:00)' : 'Turno Largo Semana (17:00 a 08:00)');
+          let pDayOfWeek = -1;
+          if (fechaStr && typeof fechaStr === 'string' && fechaStr.includes('-')) {
+            const [py, pm, pd] = fechaStr.split('-').map(Number);
+            const pDate = new Date(py, pm - 1, pd, 12, 0, 0);
+            pDayOfWeek = pDate.getDay();
+          }
+          const isWeekend = pDayOfWeek === 0 || pDayOfWeek === 6;
+          const isOfficialChileHoliday = Boolean((CHILE_HOLIDAYS_OFFICIAL && CHILE_HOLIDAYS_OFFICIAL.has(fechaStr)) || p.esFeriadoOficial);
+          const isFindeOFeriado = isWeekend || isOfficialChileHoliday || p.isFindeOFeriado === true;
+          const tipoJornada = isFindeOFeriado ? 'FINDE_FERIADO' : 'HABIL';
+          const tagTipoJornada = isOfficialChileHoliday ? '🎉 Feriado Oficial SAR' : (isFindeOFeriado ? 'Fin de Semana SAR' : 'Día Hábil SAR');
+          const esquemaTurno = isFindeOFeriado ? 'Fin de Semana / Festivo (08:00 a 20:00 y 20:00 a 08:00)' : 'Turno Largo Semana (17:00 a 08:00)';
           
           const totalPacs = Number(p.yhat ?? p.atenciones_estimadas ?? 85);
           const lowerBound = Number(p.limite_inferior ?? p.lo_90 ?? p.prediction_interval_lower_bound ?? Math.round(totalPacs * 0.78));
@@ -687,8 +698,9 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
     const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
     const diasCortos = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
-    return rawData.slice(0, 7).map((item, idx) => {
-      const targetDt = new Date(effectiveBaseDate.getFullYear(), effectiveBaseDate.getMonth(), effectiveBaseDate.getDate() + idx + 1);
+    const result = [];
+    for (let idx = 0; idx < 7; idx++) {
+      const targetDt = new Date(effectiveBaseDate.getFullYear(), effectiveBaseDate.getMonth(), effectiveBaseDate.getDate() + idx + 1, 12, 0, 0);
       const year = targetDt.getFullYear();
       const month = targetDt.getMonth();
       const day = targetDt.getDate();
@@ -696,18 +708,53 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
       const mStr = String(month + 1).padStart(2, '0');
       const dStr = String(day).padStart(2, '0');
       const formattedFecha = `${yStr}-${mStr}-${dStr}`;
+      const dayOfWeek = targetDt.getDay(); // 0=Dom, 1=Lun, ..., 6=Sáb
 
-      const nombreDia = diasSemana[targetDt.getDay()] || '';
-      const diaCorto = diasCortos[targetDt.getDay()] || '';
+      // 1. Vincular el registro buscando por coincidencia exacta de fecha
+      let item = rawData.find(p => (p.fecha_predicha === formattedFecha || p.ds === formattedFecha));
+      if (!item) {
+        item = rawData[idx] || rawData[0] || {};
+      }
+
+      const nombreDia = diasSemana[dayOfWeek] || '';
+      const diaCorto = diasCortos[dayOfWeek] || '';
       const fechaCorta = `${dStr}/${mStr}`;
 
+      const totalPacs = Number(item.yhat ?? item.atenciones_estimadas ?? 85);
+      const lowerBound = Math.round(Number(item.prediction_interval_lower_bound ?? item.limite_inferior ?? (totalPacs * 0.78)));
+      const upperBound = Math.round(Number(item.prediction_interval_upper_bound ?? item.limite_superior ?? (totalPacs * 1.22)));
+
+      // 2. SSOT: Encasillamiento estricto e inviolable del Régimen SAR (Reglas 4, 9, 17, 24)
+      const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+      const isOfficialChileHoliday = Boolean((CHILE_HOLIDAYS_OFFICIAL && CHILE_HOLIDAYS_OFFICIAL.has(formattedFecha)) || item.esFeriadoOficial);
+      const isFindeOFeriado = isWeekend || isOfficialChileHoliday;
+      const tipoJornada = isFindeOFeriado ? 'FINDE_FERIADO' : 'HABIL';
+      const tagTipoJornada = isOfficialChileHoliday ? '🎉 Feriado Oficial SAR' : (isFindeOFeriado ? 'Fin de Semana SAR' : 'Día Hábil SAR');
+      const esquemaTurno = isFindeOFeriado ? 'Fin de Semana / Festivo (08:00 a 20:00 y 20:00 a 08:00)' : 'Turno Largo Semana (17:00 a 08:00)';
+
+      let atencionesDiurno = 0;
+      let atencionesNocturno = totalPacs;
+      let limInfDiurno = 0;
+      let limSupDiurno = 0;
+      let limInfNocturno = lowerBound;
+      let limSupNocturno = upperBound;
+
+      if (isFindeOFeriado) {
+        atencionesDiurno = (item.atenciones_diurno && item.atenciones_diurno > 0) ? item.atenciones_diurno : Math.round(totalPacs * 0.72);
+        atencionesNocturno = Math.max(0, totalPacs - atencionesDiurno);
+        limInfDiurno = Math.round(lowerBound * 0.72);
+        limSupDiurno = Math.round(upperBound * 0.72);
+        limInfNocturno = Math.round(lowerBound * 0.28);
+        limSupNocturno = Math.round(upperBound * 0.28);
+      }
+
       let estadoCarga = 'Normal';
-      if (item.atenciones_estimadas >= 115) estadoCarga = 'Crítico';
-      else if (item.atenciones_estimadas >= 95) estadoCarga = 'Elevado';
+      if (totalPacs >= 115) estadoCarga = 'Crítico';
+      else if (totalPacs >= 95) estadoCarga = 'Elevado';
 
       // Vincular el pronóstico meteorológico real de Melipilla para este día
       const wMatch = (climaData && climaData.length > 0)
-        ? (climaData.find(c => c.fecha === formattedFecha || c.fecha === item.fecha_predicha) || climaData[idx])
+        ? (climaData.find(c => c.fecha === formattedFecha) || climaData[idx])
         : null;
 
       const climaFinal = item.clima || wMatch || {
@@ -717,24 +764,58 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
         precipitacionMm: idx === 4 ? 3.3 : 0
       };
 
-      const lowerBound = Math.round(Number(item.prediction_interval_lower_bound ?? item.limite_inferior ?? (item.atenciones_estimadas * 0.85)));
-      const upperBound = Math.round(Number(item.prediction_interval_upper_bound ?? item.limite_superior ?? (item.atenciones_estimadas * 1.15)));
+      const c1_c2 = item.c1_c2_estimados !== undefined ? item.c1_c2_estimados : Math.max(1, Math.round(totalPacs * 0.04));
+      const c3 = item.c3_estimados !== undefined ? item.c3_estimados : Math.round(totalPacs * 0.49);
+      const altaComplejidad = item.alta_complejidad_total !== undefined ? item.alta_complejidad_total : (c1_c2 + c3);
+      const c4_c5 = item.c4_c5_estimados !== undefined ? item.c4_c5_estimados : Math.max(0, totalPacs - altaComplejidad);
+      
+      const horasMedicas = item.horasMedicasRequeridas !== undefined ? item.horasMedicasRequeridas : Number((totalPacs / 3.8).toFixed(1));
+      const horasMedicasMin = item.horasMedicasMin !== undefined ? item.horasMedicasMin : Number((lowerBound / 3.8).toFixed(1));
+      const horasMedicasMax = item.horasMedicasMax !== undefined ? item.horasMedicasMax : Number((upperBound / 3.8).toFixed(1));
 
-      return {
+      const curvaHoraria = generateHourlyCurve(isFindeOFeriado, totalPacs);
+
+      result.push({
         ...item,
         clima: climaFinal,
         fecha_predicha: formattedFecha,
         fechaStr: `${diaCorto} ${fechaCorta}`,
         fechaCompletaStr: `${nombreDia} ${fechaCorta}/${year}`,
+        yhat: totalPacs,
+        atenciones_estimadas: totalPacs,
         prediction_interval_lower_bound: lowerBound,
         prediction_interval_upper_bound: upperBound,
         limite_inferior: lowerBound,
         limite_superior: upperBound,
+        lo_90: lowerBound,
+        hi_90: upperBound,
         rangoConfianza: [lowerBound, upperBound],
         rangoDiferencia: Math.max(0, upperBound - lowerBound),
-        estadoCarga
-      };
-    });
+        estadoCarga,
+        tipoJornada,
+        tagTipoJornada,
+        isFindeOFeriado,
+        esFeriadoOficial: isOfficialChileHoliday,
+        esquemaTurno,
+        atenciones_diurno: atencionesDiurno,
+        atenciones_nocturno: atencionesNocturno,
+        limite_inferior_diurno: limInfDiurno,
+        limite_superior_diurno: limSupDiurno,
+        limite_inferior_nocturno: limInfNocturno,
+        limite_superior_nocturno: limSupNocturno,
+        c1_c2_estimados: c1_c2,
+        c3_estimados: c3,
+        alta_complejidad_total: altaComplejidad,
+        c4_c5_estimados: c4_c5,
+        alertaAltaComplejidad: altaComplejidad >= 45,
+        horasMedicasRequeridas: horasMedicas,
+        horasMedicasMin,
+        horasMedicasMax,
+        curvaHoraria
+      });
+    }
+
+    return result;
   }, [proyeccionData, effectiveBaseDate, climaData, calibracionHistorica.factorAjuste]);
 
   // Identificar el día pico de máxima demanda proyectada

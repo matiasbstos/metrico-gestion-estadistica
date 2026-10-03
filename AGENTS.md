@@ -177,6 +177,10 @@
       * En `Radar.jsx`, la plataforma consume el endpoint `GET /api/forecast/7days?base_date=${baseDateIso}`.
       * Si el microservicio local de Python no estuviera accesible, el frontend conmuta automáticamente e imperceptiblemente a la calibración de `radarPredictivoEngine.js`, garantizando continuidad operativa sin bloquear jamás la pantalla ni disparar fallos en el navegador.
       * Toda leyenda y elemento visual adopta la nomenclatura institucional: *"Corredor Nixtla (IC 90%)"* y *"Rango Esperado IC 90%"*.
+    - **Cuadratura y Blindaje de Régimen de Turnos SAR (Fines de Semana vs Días Hábiles en Tablas Predictivas)**:
+      * **Erradicación de Desfases UTC en `baseDate`**: La fecha base enviada a los modelos predictivos DEBE formatearse obligatoriamente mediante extracción de fecha local (`getFullYear()`, `getMonth() + 1`, `getDate()`) y fijarse a las `12:00:00`, quedando estrictamente prohibido el uso de `toISOString().split('T')[0]` que bajo el huso horario chileno (UTC-3) adelanta la jornada en +1 día durante las horas nocturnas (ej. 22:30:32).
+      * **Vinculación por Fecha Exacta en `chartData`**: Todo emparejamiento de series de pronóstico debe vincularse por coincidencia estricta de fecha (`item.fecha_predicha === formattedFecha`), suprimiéndose el mapeo ciego por índice array (`rawData[idx]`).
+      * **SSOT Inviolable de Régimen SAR (Reglas 4, 9, 17)**: Todo día de proyección con `targetDt.getDay() === 0` (Domingo) o `6` (Sábado) DEBE ser catalogado forzosamente como **Fin de Semana SAR** con partición diurna (72%) y nocturna (28%) y curva intradiaria de 24 horas. Todo día hábil (Lunes a Viernes no festivo) DEBE ser catalogado forzosamente como **Día Hábil SAR** con **Turno Largo Semana (17:00 a 08:00)** y 0 atenciones diurnas.
 
 ---
 

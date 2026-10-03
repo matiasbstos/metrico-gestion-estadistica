@@ -15,6 +15,31 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.52',
+      version: 'v6.3.52',
+      fecha: '03 de Octubre, 2026',
+      badge: 'RADAR PREDICTIVO • CUADRATURA ESTRICTA DE TURNOS (FIN DE SEMANA VS HÁBIL)',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Corrección de Cuadratura de Turnos SAR y Sincronización Local de Fechas en Radar Predictivo',
+      categoria: 'IA & Radar',
+      icon: CheckCircle,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se subsanó el desfase de 1 día que provocaba la clasificación errónea de domingos como días hábiles y viernes como fines de semana en la tabla "Desglose Detallado del Pronóstico SAR & Dotación Óptima": 1) Formateo local canónico de baseDateIso sustituyendo toISOString() para erradicar desfases provocados por el huso horario chileno (UTC-3). 2) Fijación a mediodía (12:00:00) en todos los constructores de fechas tanto en cliente como en Cloud Function. 3) Búsqueda y vinculación por fecha exacta en chartData erradicando desalineaciones ordinales por índice de array. 4) Guardia matemática SSOT (Reglas 4, 9, 17, 24) que garantiza que sábados y domingos siempre operen con el régimen dual de Fin de Semana SAR (Diurno 72% y Nocturno 28%) y los días hábiles con Turno Largo Semana (17:00 a 08:00).',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la tabla de pronóstico diario y dotación médica refleje con 100% de exactitud el régimen asistencial SAR para cada día de la semana sin posibilidad de que un fin de semana sea catalogado como día hábil o viceversa.',
+        quePuedesVer: '1. Domingo 04/10/2026 y Sábado 10/10/2026 correctamente encasillados como "Fin de Semana SAR" con desglose de turnos Diurno (☀️) y Nocturno (🌙). 2. Días hábiles (Lunes a Viernes) correctamente identificados como "Día Hábil SAR" con "Turno Largo 17-08h". 3. Horas médicas y curva horaria intradiaria 100% concordantes con el régimen de cada día.',
+        ejemploUso: 'Dirígete al "Radar Predictivo" en el menú lateral. En la tabla inferior "Desglose Detallado del Pronóstico SAR & Dotación Óptima", verifica que los fines de semana presentan el desglose diurno/nocturno y haz clic en "Curva Horaria" para ver el perfil de afluencia de 24 horas.'
+      },
+      changes: [
+        'Sustitución universal de toISOString() por extracción local getFullYear/getMonth/getDate en Radar.jsx, neutralizando desfases por huso horario UTC-3.',
+        'Fijación horaria a mediodía (12:00:00) en targetDate, baseDt y futureDt en frontend y Cloud Function para inmunidad ante cambios de hora.',
+        'Mapeo reactivo por fecha exacta (formattedFecha) en chartData en lugar de vinculación ciega por índice de array.',
+        'Blindaje SSOT del Régimen SAR: Sábados y Domingos invariablemente forzados a Fin de Semana SAR con turnos Diurno (72%) y Nocturno (28%).',
+        'Días hábiles no festivos forzados a Turno Largo Semana (17:00 a 08:00) con 0 admisiones diurnas y curva intradía de guardia.',
+        'Sincronización instantánea de curvas horarias modales según el régimen final verificado de la jornada.'
+      ]
+    },
+    {
       id: 'v6.3.51',
       version: 'v6.3.51',
       fecha: '03 de Octubre, 2026',

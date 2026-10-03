@@ -20,7 +20,7 @@ async function runDevLogPhotographer() {
     targetUrl = `${baseUrl}/?snapshot_mode=true&modal=correo`;
   } else if (rawTag.includes('v6.3.37') || rawTag.includes('v6.3.48') || rawTag.includes('v6.3.49') || rawTag.includes('v6.3.50')) {
     targetUrl = `${baseUrl}/?snapshot_mode=true&tab=comparativo`;
-  } else if (rawTag.includes('v6.3.51')) {
+  } else if (rawTag.includes('v6.3.51') || rawTag.includes('v6.3.52')) {
     targetUrl = `${baseUrl}/?snapshot_mode=true&tab=radar`;
   }
   

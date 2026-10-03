@@ -10,6 +10,26 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.52',
+    version_tag: 'v6.3.52',
+    fecha: '03 de Octubre, 2026',
+    fecha_despliegue: '03 de Octubre, 2026',
+    proposito_actualizacion: 'Corrección de Cuadratura de Turnos SAR (Fin de Semana vs Hábil) y Sincronización Local de Fechas en la Tabla Predictiva del Radar.',
+    medios_y_stack: [
+      'Radar.jsx (Sustitución de toISOString() por extracción local canónica getFullYear/getMonth/getDate en baseDateIso; vinculación por coincidencia de fecha exacta en chartData y blindaje SSOT para encasillamiento forzoso de fines de semana y días hábiles)',
+      'radarPredictivoEngine.js (Fijación de hora a las 12:00:00 en targetDate y blindaje de isFindeOFeriado para Sábado y Domingo)',
+      'functions/index.js (Fijación a mediodía 12:00:00 en baseDt y futureDt y enriquecimiento de proyecciones con turnos Diurno y Nocturno)',
+      'version.js (Sincronización a v6.3.52)',
+      'DevLogModule.jsx (Publicación devlog v6.3.52 con snapshot de alta resolución)',
+      'ModalMuroActualizaciones.jsx (Ficha en muro de novedades)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Erradicación de Desfases UTC: La fecha base del Radar se obtiene exclusivamente mediante componentes locales (getFullYear, getMonth + 1, getDate), impidiendo que horas nocturnas (22:30:32 UTC-3) deriven en un día posterior. 2) Mapeo por Fecha Exacta: chartData vincula registros por formattedFecha, erradicando desalineaciones ordinales por índice. 3) SSOT Encasillamiento Inviolable de Régimen SAR (Reglas 4, 9, 17, 24): Sábados y Domingos SIEMPRE se clasifican como Fin de Semana SAR con turnos Diurno (72%) y Nocturno (28%), y Lunes a Viernes no festivos SIEMPRE como Día Hábil SAR con Turno Largo Semana (17:00 a 08:00) y 0 admisiones diurnas.',
+      firestore_collections: ['system_architecture_log', 'configuracion_radar'],
+      documentos_afectados: ['src/components/dashboard/Radar.jsx', 'src/utils/radarPredictivoEngine.js', 'functions/index.js', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx']
+    }
+  },
+  {
     id: 'v6.3.51',
     version_tag: 'v6.3.51',
     fecha: '03 de Octubre, 2026',

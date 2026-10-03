@@ -66,17 +66,18 @@ export const generateDynamicProyeccion = (baseDate, liveWeather = null, calibrat
   let prevDayHadRain = false;
 
   for (let i = 1; i <= 7; i++) {
-    const targetDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + i);
+    const targetDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() + i, 12, 0, 0);
     const yStr = targetDate.getFullYear();
     const mStr = String(targetDate.getMonth() + 1).padStart(2, '0');
     const dStr = String(targetDate.getDate()).padStart(2, '0');
     const fechaStr = `${yStr}-${mStr}-${dStr}`;
     const dayOfWeek = targetDate.getDay();
 
-    // Reconocimiento de Jornada SAR & Feriados Oficiales de Chile
-    const tipoJornada = determinarTipoJornada(fechaStr);
-    const isOfficialChileHoliday = CHILE_HOLIDAYS_OFFICIAL && CHILE_HOLIDAYS_OFFICIAL.has(fechaStr);
-    const isFindeOFeriado = tipoJornada === 'FINDE_FERIADO';
+    // Reconocimiento de Jornada SAR & Feriados Oficiales de Chile (Reglas 4, 9, 17, 24)
+    const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+    const isOfficialChileHoliday = Boolean(CHILE_HOLIDAYS_OFFICIAL && CHILE_HOLIDAYS_OFFICIAL.has(fechaStr));
+    const tipoJornada = (isWeekend || isOfficialChileHoliday) ? 'FINDE_FERIADO' : determinarTipoJornada(fechaStr);
+    const isFindeOFeriado = isWeekend || isOfficialChileHoliday || tipoJornada === 'FINDE_FERIADO';
 
     // Si es feriado oficial o fin de semana en día hábil, la línea base se asimila a fin de semana
     let baseExpected = isFindeOFeriado && (dayOfWeek >= 1 && dayOfWeek <= 5)

@@ -314,12 +314,12 @@ exports.obtenerProyeccionVolumen = functions.https.onCall(async (dataReq, contex
 
     const [rows] = await bigquery.query(options);
 
-    // Base date para calcular los 7 días posteriores
+    // Base date para calcular los 7 días posteriores (fijado a las 12:00 para evitar desfases por huso horario)
     let baseDt = new Date();
     if (data.baseDate && typeof data.baseDate === 'string') {
       const bParts = data.baseDate.split('-');
       if (bParts.length === 3) {
-        baseDt = new Date(parseInt(bParts[0]), parseInt(bParts[1]) - 1, parseInt(bParts[2]));
+        baseDt = new Date(parseInt(bParts[0], 10), parseInt(bParts[1], 10) - 1, parseInt(bParts[2], 10), 12, 0, 0);
       }
     }
 
@@ -327,7 +327,7 @@ exports.obtenerProyeccionVolumen = functions.https.onCall(async (dataReq, contex
     // Calibrado con la demanda real asistencial de fines de semana SAR Elsa Romo (Sáb: 168, Dom: 162)
     const proyecciones = [];
     for (let i = 1; i <= horizon; i++) {
-      const futureDt = new Date(baseDt.getFullYear(), baseDt.getMonth(), baseDt.getDate() + i);
+      const futureDt = new Date(baseDt.getFullYear(), baseDt.getMonth(), baseDt.getDate() + i, 12, 0, 0);
       const yStr = futureDt.getFullYear();
       const mStr = String(futureDt.getMonth() + 1).padStart(2, '0');
       const dStr = String(futureDt.getDate()).padStart(2, '0');
@@ -342,13 +342,27 @@ exports.obtenerProyeccionVolumen = functions.https.onCall(async (dataReq, contex
       const lowerBound = matchedRow && matchedRow.limite_inferior ? Number(matchedRow.limite_inferior) : Math.round(estimacionVal * 0.85);
       const upperBound = matchedRow && matchedRow.limite_superior ? Number(matchedRow.limite_superior) : Math.round(estimacionVal * 1.15);
 
+      const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+      const isFindeOFeriado = isWeekend;
+      const tipoJornada = isFindeOFeriado ? 'FINDE_FERIADO' : 'HABIL';
+      const tagTipoJornada = isFindeOFeriado ? 'Fin de Semana SAR' : 'Día Hábil SAR';
+      const esquemaTurno = isFindeOFeriado ? 'Fin de Semana / Festivo (08:00 a 20:00 y 20:00 a 08:00)' : 'Turno Largo Semana (17:00 a 08:00)';
+      const atencionesDiurno = isFindeOFeriado ? Math.round(estimacionVal * 0.72) : 0;
+      const atencionesNocturno = isFindeOFeriado ? Math.max(0, estimacionVal - atencionesDiurno) : estimacionVal;
+
       proyecciones.push({
         fecha_predicha: targetDateStr,
         atenciones_estimadas: estimacionVal,
         limite_inferior: lowerBound,
         limite_superior: upperBound,
         prediction_interval_lower_bound: lowerBound,
-        prediction_interval_upper_bound: upperBound
+        prediction_interval_upper_bound: upperBound,
+        isFindeOFeriado,
+        tipoJornada,
+        tagTipoJornada,
+        esquemaTurno,
+        atenciones_diurno: atencionesDiurno,
+        atenciones_nocturno: atencionesNocturno
       });
     }
 

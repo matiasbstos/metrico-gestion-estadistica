@@ -8,6 +8,32 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-52',
+    titulo: 'Corrección de Cuadratura de Turnos SAR (Fin de Semana vs Hábil) y Sincronización Local de Fechas en la Tabla Predictiva',
+    fecha: '2026-10-03',
+    version_tag: 'v6.3.52',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_52.png',
+    problema: 'En la tabla del Radar Predictivo ("Desglose Detallado del Pronóstico SAR & Dotación Óptima"), el día Domingo 04/10/2026 se mostraba erróneamente clasificado como "Día Hábil SAR" / "Turno Largo Semana (17:00 a 08:00)" con un solo turno, y el Viernes 02/10/2026 figuraba erróneamente como "Fin de Semana SAR", a causa de una desincronización de 1 día provocada por la conversión de effectiveBaseDate mediante toISOString() en el huso horario chileno (UTC-3), aunado a un mapeo por índice de array en chartData que conservaba etiquetas previas sin corroborar el día civil en curso.',
+    logica: '1) Normalización de Fechas Locales: Sustitución de toISOString() por extracción canónica local (getFullYear, getMonth + 1, getDate) en Radar.jsx y fijación a las 12:00:00 en Cloud Function obtenerProyeccionVolumen y radarPredictivoEngine.js, evitando cualquier desfase por cambio de día en horario nocturno o UTC. 2) Vinculación por Fecha Exacta en chartData: Implementación de búsqueda por coincidencia estricta de fecha (item.fecha_predicha === formattedFecha || item.ds === formattedFecha) erradicando la desalineación por índice ordinal. 3) Encasillamiento Inviolable SSOT de Régimen SAR (Reglas 4, 9, 17, 24): Validación matemática donde Sábado y Domingo SIEMPRE adoptan el régimen dual de "Fin de Semana SAR" (08:00 a 20:00 diurno al 72% y 20:00 a 08:00 nocturno al 28%), y Lunes a Viernes no festivos adoptan el "Turno Largo Semana (17:00 a 08:00)" con 0 atenciones diurnas y curva horaria correspondiente. 4) Validación cruzada mediante pipeline automatizado de pruebas y fotógrafo autónomo con captura real.',
+    solucion: 'Cuadratura asistencial blindada al 100%: los domingos y sábados quedan matemáticamente protegidos como fin de semana con régimen diurno/nocturno, y los días hábiles se presentan sin posibilidad de confusión con turno largo.',
+    fullPost: `En esta versión v6.3.52 subsanamos de raíz la desincronización de regímenes de turno en la tabla del Radar Predictivo:
+
+1. **Diagnóstico y Causa Raíz**:
+   - Al generarse la fecha base desde \`effectiveBaseDate\` (ej. \`27-09-2026 22:30:32\` hora de Chile, UTC-3), el uso de \`toISOString().split('T')[0]\` calculaba \`2026-09-28\` (UTC), introduciendo un adelanto de +1 día hacia los servicios de pronóstico.
+   - En la construcción de \`chartData\`, los elementos se emparejaban mediante índice ordinal (\`idx\`) sobrescribiendo la fecha pero conservando los metadatos de jornada del día desplazado, lo que derivaba en que el Viernes 02/10 absorbiera la etiqueta de Sábado y el Domingo 04/10 absorbiera la etiqueta de Lunes.
+
+2. **Resolución en Tres Niveles de Blindaje**:
+   - **Nivel 1 (Formateo Local Invariable)**: Reemplazo universal por la extracción de componentes de fecha local (\`getFullYear()\`, \`getMonth() + 1\`, \`getDate()\`) y fijación horaria a mediodía (\`12:00:00\`) tanto en frontend como en backend, erradicando distorsiones horarias.
+   - **Nivel 2 (Búsqueda por Fecha Exacta)**: \`chartData\` busca prioritariamente el registro que coincida de forma unívoca con \`formattedFecha\`, evitando arrastre por desfase de arrays.
+   - **Nivel 3 (Guardia Inviolable de Régimen SAR - Reglas 4, 9, 17 y 24)**:
+     * Si \`targetDt.getDay() === 0\` (Domingo) o \`6\` (Sábado): El sistema fuerza inexorablemente \`tipoJornada = 'FINDE_FERIADO'\`, \`tagTipoJornada = 'Fin de Semana SAR'\`, esquema \`08:00 a 20:00 y 20:00 a 08:00\`, con partición \`72% Diurno\` y \`28% Nocturno\`, y curva horaria de 24 horas.
+     * Si es día hábil (Lunes a Viernes no festivo): El sistema fuerza \`tipoJornada = 'HABIL'\`, \`tagTipoJornada = 'Día Hábil SAR'\`, esquema \`Turno Largo Semana (17:00 a 08:00)\`, con \`0 pacientes diurnos\` y curva horaria nocturna de urgencia (17h a 08h).
+
+3. **Verificación y Certificación**:
+   - Pruebas automatizadas en Node.js y validación con Puppeteer confirman que Domingo 04/10/2026 y Sábado 10/10/2026 se desglosan fielmente en turnos Diurno y Nocturno de Fin de Semana SAR, y Lunes a Viernes operan con Turno Largo de Semana.`
+  },
+  {
     id: 'devlog-v6-3-51',
     titulo: 'Migración del Radar Predictivo a Microservicio en Python con Nixtla StatsForecast (AutoARIMA), Feriados Chilenos y Rezagos Meteorológicos',
     fecha: '2026-10-03',
