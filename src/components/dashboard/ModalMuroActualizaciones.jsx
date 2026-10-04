@@ -15,6 +15,33 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.53',
+      version: 'v6.3.53',
+      fecha: '04 de Octubre, 2026',
+      badge: 'RADAR PREDICTIVO • VARIABLE EXÓGENA RED HOSPITALARIA & REBOTE UEH MELIPILLA',
+      badgeColor: 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20',
+      title: 'Integración de Contingencia Hospitalaria UEH Melipilla, Rebote C4/C5 y Calibración Retrospectiva',
+      categoria: 'IA & Radar',
+      icon: Building2,
+      iconBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+      summary: 'Se incorporó la variable exógena del estado operativo de la Unidad de Emergencia Hospitalaria (UEH) del Hospital San José de Melipilla (@hospitaldemelipilla) al modelo predictivo: 1) Modelado matemático del "Efecto Rebote Asistencial": incremento de +20% en volumen diario proyectado (+18 a +28 pac/día) cuando el hospital emite alertas de saturación. 2) Redistribución focalizada de complejidad clínica en Triage Manchester: el 80% del exceso de demanda se imputa a categorías ambulatorias (C4 y C5) y 20% a C3, recalculando dinámicamente la dotación médica (+4.5h a +6.5h de cobertura médica). 3) Conmutador de 1 clic en la barra superior [🟢 Flujo Normal | 🚨 Saturada / Alerta Roja (+20% C4/C5)] con banner de contingencia destacado. 4) Ampliación a la "Matriz de 7 Fuentes de Información Cruzadas" sumando la Red Hospitalaria UEH Melipilla. 5) Monitoreo continuo de calibración retrospectiva (MAPE, MAE, R²) contrastando predicciones pasadas vs demanda real de turnosDB.',
+      instructivo: {
+        paraQueSirve: 'Permite anticipar y absorber ordenadamente la migración de pacientes de baja complejidad (C4/C5) que desisten de esperar en el Hospital de Melipilla tras avisos de colapso, ajustando en 1 clic la dotación médica y el triage del SAR.',
+        quePuedesVer: '1. Selector "UEH Hosp. Melipilla: [🟢 Flujo Normal | 🚨 Saturada / Alerta Roja]" en la cabecera del Radar. 2. Banner de contingencia rojo con el dictamen de red asistencial y exceso proyectado (+18 a +28 pac/día). 3. Ajuste instantáneo en la curva horaria, Triage Manchester C4/C5 y dotación médica requerida. 4. Fuente 7 ("Red Hospitalaria") en el modal de informe técnico detallado.',
+        ejemploUso: 'Cuando el Hospital de Melipilla publique avisos de alta espera o el equipo de turno reciba aviso de colapso de la UEH vía WhatsApp/teléfono, haz clic en "🚨 Saturada / Alerta Roja" en la barra superior del Radar: el sistema recalculará inmediatamente la dotación médica y el dimensionamiento de salas de espera para los 7 días de la semana.'
+      },
+      changes: [
+        'Adición de la variable exógena alerta_hospital_melipilla en el pipeline de Nixtla StatsForecast (data_processor.py y forecaster.py).',
+        'Modelado de +20% de volumen de contingencia con asignación del 80% a C4/C5 y 20% a C3 en Triage Manchester.',
+        'Recálculo probabilístico automático de horas médicas requeridas (+4.5h a +6.5h) para absorción ambulatoria.',
+        'Soporte idéntico en el motor local autónomo radarPredictivoEngine.js para continuidad operativa off-line.',
+        'Conmutador segmented en cabecera de Radar.jsx: [🟢 Flujo Normal | 🚨 Saturada / Alerta Roja (+20% C4/C5)].',
+        'Banner operativo de contingencia hospitalaria con indicadores de exceso de afluencia.',
+        'Ampliación del informe técnico causa-efecto a la "Matriz de 7 Fuentes de Información Cruzadas".',
+        'Seguimiento transparente de calibración retrospectiva (MAPE dinámico, MAE ±pac. y R² Varianza Explicada).'
+      ]
+    },
+    {
       id: 'v6.3.52',
       version: 'v6.3.52',
       fecha: '03 de Octubre, 2026',

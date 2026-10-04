@@ -32,7 +32,9 @@ import {
   CheckCircle,
   Eye,
   Layers,
-  ChevronRight
+  ChevronRight,
+  Building2,
+  AlertOctagon
 } from 'lucide-react';
 import AgenteRadarAdmin from './AgenteRadarAdmin';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -63,6 +65,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
   const [horizonMode, setHorizonMode] = useState('db_corte'); // 'db_corte' | 'nowcast'
   const [vistaTurnoMode, setVistaTurnoMode] = useState('turnos'); // 'turnos' (Diurno/Nocturno) | 'consolidado' (24h)
   const [selectedIntradayDay, setSelectedIntradayDay] = useState(null);
+  const [alertaHospitalMelipilla, setAlertaHospitalMelipilla] = useState(false);
 
   const [calidadAire, setCalidadAire] = useState({
     pm25Promedio: 46.5,
@@ -356,8 +359,16 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
         tagClima = `❄️ Helada (${tMin}°C)`;
       }
 
-      // Aplicar factor de calibración dinámico
-      const adjustedEstimate = Math.round(baseExpected * weatherMultiplier * calibrationFactor);
+      // Si la alerta del Hospital de Melipilla está activa: +20% rebote asistencial (C4/C5)
+      const hospitalMultiplier = alertaHospitalMelipilla ? 1.20 : 1.0;
+      const tagHospital = alertaHospitalMelipilla ? ' 🚨 Rebote Hosp. Melipilla (+20%)' : '';
+      let effectiveWeatherReason = weatherReason;
+      if (alertaHospitalMelipilla) {
+        effectiveWeatherReason += ` + Alerta Hospital San José Melipilla: Rebote ambulatorio C4/C5 por saturación en UEH (+20%).`;
+      }
+
+      // Aplicar factor de calibración dinámico y multiplicador hospitalario
+      const adjustedEstimate = Math.round(baseExpected * weatherMultiplier * hospitalMultiplier * calibrationFactor);
       const lowerBound = Math.round(adjustedEstimate * 0.76);
       const upperBound = Math.round(adjustedEstimate * 1.25);
 
@@ -392,10 +403,21 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
       }
 
       // Desglose de Complejidad por Triage Manchester
-      const c1_c2 = Math.max(1, Math.round(adjustedEstimate * 0.04));
-      const c3 = Math.round(adjustedEstimate * 0.49);
-      const altaComplejidad = c1_c2 + c3;
-      const c4_c5 = Math.max(0, adjustedEstimate - altaComplejidad);
+      // Con alerta de Hospital Melipilla, el 80% del exceso son C4/C5 no graves
+      let c1_c2, c3, c4_c5, altaComplejidad;
+      if (alertaHospitalMelipilla) {
+        const pacsBaseNorm = Math.round(baseExpected * weatherMultiplier * calibrationFactor);
+        const excesoPacs = Math.max(0, adjustedEstimate - pacsBaseNorm);
+        c1_c2 = Math.max(1, Math.round(pacsBaseNorm * 0.04));
+        c3 = Math.round(pacsBaseNorm * 0.49 + excesoPacs * 0.20);
+        altaComplejidad = c1_c2 + c3;
+        c4_c5 = Math.max(0, adjustedEstimate - altaComplejidad);
+      } else {
+        c1_c2 = Math.max(1, Math.round(adjustedEstimate * 0.04));
+        c3 = Math.round(adjustedEstimate * 0.49);
+        altaComplejidad = c1_c2 + c3;
+        c4_c5 = Math.max(0, adjustedEstimate - altaComplejidad);
+      }
       const alertaAltaComplejidad = altaComplejidad >= 45;
 
       // Cálculo de Horas Médico Requeridas (Rendimiento estándar SAR: 3.8 pac/hora)
@@ -438,8 +460,10 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
         horasMedicasMax,
         curvaHoraria,
         weatherMultiplier: Number(weatherMultiplier.toFixed(2)),
-        weatherReason,
-        tagClima,
+        hospitalMultiplier: Number(hospitalMultiplier.toFixed(2)),
+        weatherReason: effectiveWeatherReason,
+        tagClima: `${tagClima}${tagHospital}`.trim(),
+        alertaHospitalariaActiva: alertaHospitalMelipilla,
         clima: weatherToday
       });
     }
@@ -550,9 +574,9 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
       const baseDateIso = `${baseYear}-${baseMonth}-${baseDay}`;
       const predictiveApiBase = import.meta.env.VITE_PREDICTIVE_API_URL || 'http://127.0.0.1:8000';
 
-      // 1. Consulta al microservicio en Python (Nixtla StatsForecast: AutoARIMA/AutoETS + Feriados CL + Rezagos climáticos)
+      // 1. Consulta al microservicio en Python (Nixtla StatsForecast: AutoARIMA/AutoETS + Feriados CL + Rezagos climáticos + Alerta Hospital Melipilla)
       try {
-        const resp = await fetch(`${predictiveApiBase}/api/forecast/7days?base_date=${baseDateIso}`, {
+        const resp = await fetch(`${predictiveApiBase}/api/forecast/7days?base_date=${baseDateIso}&alerta_hospital=${alertaHospitalMelipilla}`, {
           headers: { 'Accept': 'application/json' }
         });
         if (resp.ok) {
@@ -687,7 +711,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
 
   useEffect(() => {
     fetchProyeccion();
-  }, [effectiveBaseDate, calibracionHistorica.factorAjuste]);
+  }, [effectiveBaseDate, calibracionHistorica.factorAjuste, alertaHospitalMelipilla]);
 
   // 7. Formatear datos para Recharts y visualizaciones
   const chartData = useMemo(() => {
@@ -816,7 +840,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
     }
 
     return result;
-  }, [proyeccionData, effectiveBaseDate, climaData, calibracionHistorica.factorAjuste]);
+  }, [proyeccionData, effectiveBaseDate, climaData, calibracionHistorica.factorAjuste, alertaHospitalMelipilla]);
 
   // Identificar el día pico de máxima demanda proyectada
   const peakDay = useMemo(() => {
@@ -883,13 +907,19 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
 
   // Alerta cognitiva adaptativa garantizada
   const alertaCognitivaDisplay = useMemo(() => {
-    if (!peakDay) return alertaCognitivaText;
-    // Si no hay alerta o la alerta menciona fechas pasadas obsoletas (como 07/08/2026 o 2026-08-07), regenerarla con las fechas futuras reales
-    if (!alertaCognitivaText || alertaCognitivaText.includes('2026-08-07') || alertaCognitivaText.includes('07/08') || alertaCognitivaText.includes('2026-08-03')) {
-      return `⚠️ Alerta Operativa Preventiva SAR Elsa Romo [Estación Invierno ❄️]:\nSe prevé pico asistencial para el ${peakDay.fechaCompletaStr} con ${peakDay.atenciones_estimadas} atenciones esperadas en Melipilla.\nEl análisis multivariable muestra alzas históricas por heladas (<5°C: ${multivariableClimatico?.reglaHeladasFrio?.variacionPct || 18.5}%) y rebote post-lluvia (+${multivariableClimatico?.reglaPostLluvia?.variacionPct || 28.2}%), que sumado a bajas temperaturas (Calidad del aire: ${airQualitySimple?.label || 'Regular / Moderada'}) elevarán la demanda asistencial.\nSe recomienda reforzar dotación médica/enfermería en triaje C1-C3 e insumos clínicos.`;
+    let baseAlert = alertaCognitivaText;
+    if (!baseAlert || baseAlert.includes('2026-08-07') || baseAlert.includes('07/08') || baseAlert.includes('2026-08-03')) {
+      if (peakDay) {
+        baseAlert = `⚠️ Alerta Operativa Preventiva SAR Elsa Romo [Estación Invierno ❄️]:\nSe prevé pico asistencial para el ${peakDay.fechaCompletaStr} con ${peakDay.atenciones_estimadas} atenciones esperadas en Melipilla.\nEl análisis multivariable muestra alzas históricas por heladas (<5°C: ${multivariableClimatico?.reglaHeladasFrio?.variacionPct || 18.5}%) y rebote post-lluvia (+${multivariableClimatico?.reglaPostLluvia?.variacionPct || 28.2}%), que sumado a bajas temperaturas (Calidad del aire: ${airQualitySimple?.label || 'Regular / Moderada'}) elevarán la demanda asistencial.\nSe recomienda reforzar dotación médica/enfermería en triaje C1-C3 e insumos clínicos.`;
+      } else {
+        baseAlert = alertaCognitivaText;
+      }
     }
-    return alertaCognitivaText;
-  }, [alertaCognitivaText, peakDay, multivariableClimatico, airQualitySimple]);
+    if (alertaHospitalMelipilla && baseAlert && !baseAlert.includes('Hospital San José de Melipilla')) {
+      baseAlert = `🚨 ALERTA OPERATIVA: SATURACIÓN EN HOSPITAL SAN JOSÉ DE MELIPILLA (RED DE URGENCIA)\nSe detectó alta demanda / saturación en la Unidad de Emergencia Hospitalaria (UEH Melipilla). El modelo proyecta un rebote asistencial de +20% en consultas no graves (C4 y C5) hacia el SAR Elsa Romo Aravena. Se sugiere reforzar triage y habilitar 1 médico adicional en ventanilla/box ambulatorio.\n\n` + baseAlert;
+    }
+    return baseAlert;
+  }, [alertaCognitivaText, peakDay, multivariableClimatico, airQualitySimple, alertaHospitalMelipilla]);
 
   // Totales y promedios predictivos
   const stats = useMemo(() => {
@@ -1083,6 +1113,47 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
                 Consolidado 24 Horas
               </button>
             </div>
+
+            {/* 3. Selector de Estado Operativo Hospital San José de Melipilla (Rebote UEH) */}
+            <div className="flex items-center gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-2xl border border-card-custom text-xs">
+              <span className="text-[11px] font-bold text-secondary-custom px-2 flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-indigo-500" />
+                <span className="hidden sm:inline">UEH Hosp. Melipilla:</span>
+                <span className="sm:hidden">Hosp:</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setAlertaHospitalMelipilla(false)}
+                className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                  !alertaHospitalMelipilla
+                    ? 'bg-emerald-600 text-white font-black shadow-sm'
+                    : 'text-secondary-custom hover:text-primary-custom'
+                }`}
+                title="Hospital de Melipilla operando en flujo normal"
+              >
+                <span>🟢</span>
+                <span className="hidden md:inline">Flujo Normal</span>
+                <span className="md:hidden">Normal</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAlertaHospitalMelipilla(true)}
+                className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                  alertaHospitalMelipilla
+                    ? 'bg-rose-600 text-white font-black shadow-md shadow-rose-600/30 animate-pulse'
+                    : 'text-secondary-custom hover:text-rose-500'
+                }`}
+                title="Alerta de saturación o alta demanda emitida por Hospital de Melipilla (@hospitaldemelipilla). Aplica +20% rebote ambulatorio C4/C5 en SAR."
+              >
+                <span>🚨</span>
+                <span className="font-bold">Saturada / Alerta Roja</span>
+                {alertaHospitalMelipilla && (
+                  <span className="px-1.5 py-0.5 rounded-md bg-white/20 text-[10px] font-black tracking-wider uppercase ml-1">
+                    +20% C4/C5
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1155,7 +1226,40 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
 
           <div className="pt-2 border-t border-red-500/20 text-[10px] font-bold text-red-700/80 dark:text-red-300/80 flex items-center gap-1.5">
             <Info className="w-3 h-3 text-red-500 flex-shrink-0" />
-            <span>Diagnóstico dinámico generado integrando BigQuery ML, Open-Meteo, Calidad del Aire, efecto retardo de heladas post-lluvia y calibración retrospectiva.</span>
+            <span>Diagnóstico dinámico generado integrando BigQuery ML, Open-Meteo, Calidad del Aire, efecto retardo de heladas post-lluvia, alerta de red hospitalaria y calibración retrospectiva.</span>
+          </div>
+        </div>
+      )}
+
+      {/* BANNER OPERATIVO: REBOTE ASISTENCIAL POR SATURACIÓN EN HOSPITAL DE MELIPILLA */}
+      {alertaHospitalMelipilla && (
+        <div className="relative p-5 md:p-6 rounded-3xl bg-rose-500/15 dark:bg-rose-950/50 border-2 border-rose-500/50 shadow-xl overflow-hidden animate-fade-in space-y-3">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="p-3 bg-rose-500/20 rounded-2xl border border-rose-500/30 text-rose-600 dark:text-rose-400 flex-shrink-0 animate-bounce">
+                <AlertOctagon className="w-7 h-7" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-rose-600 text-white shadow-xs">
+                    🚨 Contingencia de Red Asistencial
+                  </span>
+                  <span className="text-xs font-bold text-rose-700 dark:text-rose-300">
+                    Hospital San José de Melipilla (@hospitaldemelipilla)
+                  </span>
+                </div>
+                <h4 className="text-sm md:text-base font-black text-rose-950 dark:text-rose-100">
+                  Efecto Rebote Hospitalario Activo: +20% en Consultas Ambulatorias C4 y C5 en SAR Elsa Romo
+                </h4>
+                <p className="text-xs text-rose-800 dark:text-rose-200 font-medium max-w-3xl leading-relaxed">
+                  Ante la saturación informada por la UEH Hospitalaria, usuarios con patologías de menor complejidad migran al SAR. El modelo predictivo ha incrementado la proyección en un <strong>+20% de volumen</strong>, redistribuyendo el 80% del excedente hacia categorías C4/C5 y recalculando la dotación médica recomendada (+4.5h a +6.5h de cobertura médica).
+                </p>
+              </div>
+            </div>
+            <div className="self-end md:self-center flex-shrink-0 bg-rose-500/20 border border-rose-500/30 px-4 py-2.5 rounded-2xl text-center">
+              <span className="text-[10px] uppercase font-bold text-rose-700 dark:text-rose-300 block">Exceso Proyectado</span>
+              <span className="text-lg font-black text-rose-600 dark:text-rose-200 font-mono">+18 a +28 pac/día</span>
+            </div>
           </div>
         </div>
       )}
@@ -2017,13 +2121,13 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
               </p>
             </div>
 
-            {/* SECCIÓN 2: LAS 6 FUENTES DE DATOS ANALIZADAS */}
+            {/* SECCIÓN 2: LAS 7 FUENTES DE DATOS ANALIZADAS */}
             <div className="space-y-3">
               <h3 className="text-xs font-black uppercase tracking-wider text-secondary-custom flex items-center gap-2">
-                <BarChart2 className="w-4 h-4 text-indigo-500" /> Matriz de Fuentes de Datos Cruzadas
+                <BarChart2 className="w-4 h-4 text-indigo-500" /> Matriz de 7 Fuentes de Información Cruzadas
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 
                 {/* Fuente 1: BigQuery ML */}
                 <div className="bg-slate-50 dark:bg-slate-800/90 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1.5">
@@ -2107,6 +2211,24 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
                   <div className="space-y-0.5 text-xs">
                     <p className="font-bold text-slate-900 dark:text-white truncate">Alerta Sanitaria</p>
                     <p className="text-[9px] text-rose-600 dark:text-rose-400 font-black">Vigilancia de Invierno</p>
+                  </div>
+                </div>
+
+                {/* Fuente 7: Red Hospitalaria UEH Melipilla */}
+                <div className="bg-slate-50 dark:bg-slate-800/90 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase text-rose-600 dark:text-rose-400">7. Red Hospitalaria</span>
+                    <Building2 className="w-3.5 h-3.5 text-rose-500" />
+                  </div>
+                  <div className="space-y-0.5 text-xs">
+                    <p className="font-bold text-slate-900 dark:text-white truncate">UEH Hosp. Melipilla</p>
+                    <p className="text-[9px] font-black">
+                      {alertaHospitalMelipilla ? (
+                        <span className="text-rose-600 dark:text-rose-400">🚨 Saturada (+20% C4/C5 en SAR)</span>
+                      ) : (
+                        <span className="text-emerald-600 dark:text-emerald-400">🟢 Flujo Normal Regular</span>
+                      )}
+                    </p>
                   </div>
                 </div>
 

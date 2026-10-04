@@ -155,8 +155,6 @@
     - **Dinamismo Algorítmico sin Años ni Meses Hardcodeados**:
       * El motor analítico (`useMetricoAnalytics.js`, `AnalisisDemandaAtencion.jsx`, `PanelKPIs.jsx`) calcula automáticamente los meses transcurridos $M$ a partir de la fecha de corte de los datos activos, garantizando continuidad multianual sin requerir refactorizaciones manuales de código cada fin de año.
 
----
-
 23. **Fidelidad Absoluta, Imagen Institucional Externa y Veracidad Rigurosa en Informes Asistenciales por Correo Electrónico (v6.3.47)**:
     - **Principio Fundamental de Imagen Asistencial Externa**: Los correos electrónicos emitidos por MÉTRICO constituyen la cara visible e imagen oficial de la plataforma ante las máximas autoridades de salud (Dirección del SAR, Dirección de Salud Comunal, Jefaturas Clínicas y Médicas). Por ende, cada informe que aterriza en una bandeja de entrada externa debe ser **estrictamente fiel, intachable y matemáticamente exacto**, sin excepciones.
     - **Prohibición Terminante de Cifras Estáticas Residuales o Ficticias**:
@@ -165,6 +163,38 @@
       * En la **Bitácora de Seguridad (Fracturas y Vigilancia Respiratoria)** y en la **Categorización de Triaje (C1 a C5)**, rige una estricta concordancia gramatical: valores unitarios se expresan invariablemente en singular (`1 caso`, `+1 caso`) y valores superiores en plural (`casos`).
     - **Simetría Espejo Inviolable entre Previsualizador y Despacho SMTP**: La previsualización interactiva de `ModalConfiguracionCorreo.jsx` y el cuerpo React Email recibido en Gmail/Outlook deben presentar idéntica estructura y láminas (incluyendo las tarjetas de Bitácora Asistencial de Fracturas y Vigilancia Respiratoria).
     - **Mecanismo de Re-encolado y Re-envío Transparente**: Todo turno asistencial (incluyendo el turno de corte del día 27) puede ser re-encolado o reenviado a voluntad por el usuario mediante botones dedicados en la cola de despacho, asegurando que ante correcciones del sistema cualquier turno ya emitido pueda ser restaurado al estado de "Listo para Despacho" y emitido nuevamente con las cifras auditadas.
+
+24. **Modelado Probabilístico Asistencial con Nixtla StatsForecast, Exógenas de Calendario y Rezagos de Incubación Meteorológica (Radar Predictivo v2.0 - v6.3.51)**:
+    - **Arquitectura de Microservicio Desacoplada (`/api-predictiva`)**: El motor de inteligencia predictiva del Radar opera mediante un microservicio independiente en Python montado sobre FastAPI (`http://127.0.0.1:8000`), ejecutando modelos de series temporales de la librería **Nixtla StatsForecast** (`AutoARIMA` y `AutoETS`) con estacionalidad semanal obligatoria (`season_length = 7`).
+    - **Feature Engineering y Estándar Nixtla de Ingesta**:
+      * Los datos históricos de urgencias SAR se organizan bajo el estándar canónico de Nixtla con columnas: `unique_id` (ej. `"SAR_General"`), `ds` (fecha/hora ISO) y `y` (volumen diario de pacientes).
+      * **Feriados Oficiales Chilenos**: Incorporación mandatoria de la librería `holidays.CL()` para construir una variable dummy binaria (`es_feriado`), diferenciando automáticamente días hábiles de fines de semana y festivos en el comportamiento asistencial.
+      * **Rezagos Climáticos de Incubación Respiratoria**: Ingesta automatizada de la API de Open-Meteo Melipilla con variables exógenas desplazadas: `temp_min_lag48` (temperatura mínima de hace 48 horas) y `precip_lag72` (lluvia acumulada de hace 72 horas), modelando matemáticamente el rezago clínico en la consulta por infecciones respiratorias agudas (IRA) y descompensación cardiopulmonar.
+    - **Intervalos de Predicción al 90% (lo-90 / hi-90) y Dotación Médica Requerida**:
+      * Toda proyección a 7 días DEBE calcular forzosamente el intervalo de predicción al 90% de nivel de confianza (`lo_90` y `hi_90`), delimitando el corredor probabilístico asistencial.
+      * **Escenarios Optimista y Pesimista de Horas Médicas**: Con base en el estándar oficial SAR (rendimiento de 3.8 pacientes/hora médica), el sistema calcula y exhibe tanto el valor central como los escenarios extremos: $\text{Horas Min} = \frac{\text{lo\_90}}{3.8}$ y $\text{Horas Max} = \frac{\text{hi\_90}}{3.8}$, permitiendo a la jefatura directiva dimensionar contingencias de cobertura de guardia.
+    - **Conexión Frontend y Resiliencia sin Fisuras (Graceful Degradation)**:
+      * En `Radar.jsx`, la plataforma consume el endpoint `GET /api/forecast/7days?base_date=${baseDateIso}`.
+      * Si el microservicio local de Python no estuviera accesible, el frontend conmuta automáticamente e imperceptiblemente a la calibración de `radarPredictivoEngine.js`, garantizando continuidad operativa sin bloquear jamás la pantalla ni disparar fallos en el navegador.
+      * Toda leyenda y elemento visual adopta la nomenclatura institucional: *"Corredor Nixtla (IC 90%)"* y *"Rango Esperado IC 90%"*.
+    - **Cuadratura y Blindaje de Régimen de Turnos SAR (Fines de Semana vs Días Hábiles en Tablas Predictivas)**:
+      * **Erradicación de Desfases UTC en `baseDate`**: La fecha base enviada a los modelos predictivos DEBE formatearse obligatoriamente mediante extracción de fecha local (`getFullYear()`, `getMonth() + 1`, `getDate()`) y fijarse a las `12:00:00`, quedando estrictamente prohibido el uso de `toISOString().split('T')[0]` que bajo el huso horario chileno (UTC-3) adelanta la jornada en +1 día durante las horas nocturnas (ej. 22:30:32).
+      * **Vinculación por Fecha Exacta en `chartData`**: Todo emparejamiento de series de pronóstico debe vincularse por coincidencia estricta de fecha (`item.fecha_predicha === formattedFecha`), suprimiéndose el mapeo ciego por índice array (`rawData[idx]`).
+      * **SSOT Inviolable de Régimen SAR (Reglas 4, 9, 17)**: Todo día de proyección con `targetDt.getDay() === 0` (Domingo) o `6` (Sábado) DEBE ser catalogado forzosamente como **Fin de Semana SAR** con partición diurna (72%) y nocturna (28%) y curva intradiaria de 24 horas. Todo día hábil (Lunes a Viernes no festivo) DEBE ser catalogado forzosamente como **Día Hábil SAR** con **Turno Largo Semana (17:00 a 08:00)** y 0 atenciones diurnas.
+
+25. **Variable Exógena de Red Hospitalaria UEH Melipilla, Efecto Rebote Ambulatorio C4/C5 y Calibración Retrospectiva Continua (Radar Predictivo v6.3.53)**:
+    - **Fundamento Clínico y Dinámica de Red**: Ante eventos de saturación crítica o colapso en la Unidad de Emergencia Hospitalaria (UEH) del Hospital San José de Melipilla (difundidos en redes oficiales como `@hospitaldemelipilla` o comunicados radiales/telefónicos), los usuarios con patologías de menor gravedad (categorías Manchester C4 y C5) que afrontan tiempos de espera excesivos migran masivamente hacia la atención primaria de urgencia, generando un **efecto rebote asistencial** directo hacia el SAR Elsa Romo Aravena.
+    - **Modelado Matemático en Nixtla StatsForecast y Fallback Autónomo**:
+      * **Multiplicador de Contingencia Hospitalaria**: Cuando la alerta hospitalaria está encendida (`alerta_hospital = true`), el modelo aplica un factor multiplicador de **`+20%`** sobre el volumen diario de atenciones proyectadas (+18 a +28 pacientes por jornada).
+      * **Focalización por Triage Manchester**: El **`80%`** del excedente proyectado se asigna automáticamente a las categorías ambulatorias leves/moderadas (**C4 y C5**), y el **`20%`** restante a patologías intermedias (**C3**), manteniendo las categorías críticas (**C1 y C2**) desacopladas de esta variación conductual.
+      * **Ajuste Dinámico de Horas Médicas**: El dimensionamiento de dotación médica requerida (a razón de 3.8 pac/hora médica) se incrementa automáticamente en **`+4.5h a +6.5h de cobertura médica`** para garantizar la absorción oportuna en box de atención ambulatoria.
+    - **Conmutador de 1 Clic y Visibilidad UI Inmediata**:
+      * En la cabecera del Radar Predictivo (`Radar.jsx`), se provee un conmutador segmented de alta visibilidad: `[🟢 Flujo Normal | 🚨 Saturada / Alerta Roja (+20% C4/C5)]`, permitiendo a la jefatura de guardia o al equipo administrativo activar la contingencia en 1 segundo.
+      * **Banner Operativo Destacado**: Al activarse la alerta, se renderiza un banner de contingencia que resume la causa de la saturación hospitalaria, el impacto proyectado y las directrices de dotación médica.
+    - **Matriz de 7 Fuentes de Información Cruzadas**: El informe técnico detallado causa-efecto se amplía oficialmente a 7 fuentes: 1) BigQuery ML, 2) Clima Open-Meteo Melipilla, 3) Calibración Dinámica Retrospectiva, 4) Calidad del Aire (AQI/PM2.5), 5) Turnos SAR (Largo vs Finde), 6) Feed MINSAL Alerta Sanitaria, y **7) Red Hospitalaria UEH Melipilla (@hospitaldemelipilla)**.
+    - **Calibración Retrospectiva Continua y Gobernanza del Error**:
+      * El Radar evalúa de forma continua los últimos 7 días con datos reales de `turnosDB` contrastados contra la predicción base, exhibiendo en vivo el **MAPE** (Mean Absolute Percentage Error), **MAE** (Mean Absolute Error en ±pacientes) y el coeficiente de determinación **R²** (Varianza Explicada).
+      * El factor de autoajuste retrospectivo (`factorAjuste`) modula de manera autónoma el horizonte predictivo para evitar derivas o sesgos acumulativos.
 
 ---
 

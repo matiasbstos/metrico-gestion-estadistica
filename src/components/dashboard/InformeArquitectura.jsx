@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.53',
+    version_tag: 'v6.3.53',
+    fecha: '04 de Octubre, 2026',
+    fecha_despliegue: '04 de Octubre, 2026',
+    proposito_actualizacion: 'Consagración de la Regla 25: Incorporación de la Variable Exógena de Red Hospitalaria UEH Melipilla, Efecto Rebote Ambulatorio C4/C5 y Calibración Retrospectiva Continua en el Radar Predictivo.',
+    medios_y_stack: [
+      'api-predictiva/data_processor.py & forecaster.py (Incorporación de variable binaria alerta_hospital_melipilla en datasets de entrenamiento y futuro; multiplicador de contingencia +20% con imputación del 80% del exceso a categorías Manchester C4/C5 y recálculo de dotación médica +4.5h a +6.5h)',
+      'api-predictiva/main.py (Exposición del parámetro alerta_hospital en GET /api/forecast/7days con dictamen cognitivo hospitalario)',
+      'Radar.jsx (Conmutador segmented de 1 clic [🟢 Flujo Normal | 🚨 Saturada / Alerta Roja (+20% C4/C5)] en toolbar superior; banner de contingencia destacado; modal ampliado a 7 Fuentes de Información Cruzadas y seguimiento de calibración retrospectiva)',
+      'radarPredictivoEngine.js (Paridad de modelado hospitalario y rebote asistencial en fallback JS)',
+      'version.js (Sincronización de versión a v6.3.53)',
+      'AGENTS.md & .agents/AGENTS.md (Consagración de la Regla 25)',
+      'DevLogModule.jsx (Publicación devlog v6.3.53 con snapshot de alta resolución)',
+      'ModalMuroActualizaciones.jsx (Ficha en muro de novedades)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Regla 25 SSOT: Inclusión del estado operativo de la UEH del Hospital San José de Melipilla (@hospitaldemelipilla) como variable exógena clínica. 2) Efecto Rebote Asistencial: Ante colapso hospitalario, el modelo aplica un factor de +20% sobre el volumen proyectado (+18 a +28 pac/día). 3) Focalización Manchester C4/C5: El 80% de la sobredemanda se asigna a patologías leves/moderadas no graves, manteniendo C1/C2 independientes y recalculando la dotación médica box. 4) Conmutación Inmediata de 1 Clic: La guardia puede activar o desactivar la contingencia en 1 segundo ante publicaciones en redes sociales o avisos telefónicos. 5) Calibración Retrospectiva Continua: Evaluación de MAPE, MAE y R² frente a la demanda real de turnosDB para gobernanza del error predictivo.',
+      firestore_collections: ['system_architecture_log', 'configuracion_radar'],
+      documentos_afectados: ['api-predictiva/data_processor.py', 'api-predictiva/forecaster.py', 'api-predictiva/main.py', 'src/components/dashboard/Radar.jsx', 'src/utils/radarPredictivoEngine.js', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx', '.agents/AGENTS.md', 'AGENTS.md']
+    }
+  },
+  {
     id: 'v6.3.52',
     version_tag: 'v6.3.52',
     fecha: '03 de Octubre, 2026',

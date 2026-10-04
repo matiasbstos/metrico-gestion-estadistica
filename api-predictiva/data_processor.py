@@ -176,11 +176,13 @@ def compute_climate_lags(weather_df: pd.DataFrame) -> pd.DataFrame:
 async def prepare_training_and_future_datasets(
     base_date_str: Optional[str] = None,
     horizon: int = 7,
-    unique_id: str = "SAR_General"
+    unique_id: str = "SAR_General",
+    alerta_hospital: bool = False,
+    hospital_alert_days: Optional[List[str]] = None
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Construye los DataFrames completos listos para StatsForecast:
-    1) train_df: DataFrame histórico con unique_id, ds, y, es_feriado, temp_min_lag48, precip_lag72.
+    1) train_df: DataFrame histórico con unique_id, ds, y, es_feriado, temp_min_lag48, precip_lag72, alerta_hospital_melipilla.
     2) future_x_df: DataFrame de covariables exógenas para los próximos 'horizon' días.
     3) weather_forecast_df: Datos climáticos crudos de los próximos 'horizon' días.
     """
@@ -222,6 +224,9 @@ async def prepare_training_and_future_datasets(
     # Feature Engineering de Feriados Chilenos
     train_df["es_feriado"] = train_df["ds"].dt.date.apply(lambda d: is_chile_holiday(d, cl_holidays))
 
+    # Variable Exógena de Red Hospitalaria: Saturación Hospital San José de Melipilla (0 por defecto en histórico)
+    train_df["alerta_hospital_melipilla"] = 0
+
     # Construir conjunto de fechas futuras
     future_dates = [base_dt + timedelta(days=i) for i in range(1, horizon + 1)]
     future_x_list = []
@@ -231,6 +236,9 @@ async def prepare_training_and_future_datasets(
         f_str = fdt.strftime("%Y-%m-%d")
         f_date = fdt.date()
         feriado_flag = is_chile_holiday(f_date, cl_holidays)
+
+        # Evaluar si aplica alerta de saturación de hospital para esta fecha
+        hospital_flag = 1 if (alerta_hospital or (hospital_alert_days and f_str in hospital_alert_days)) else 0
 
         # Buscar clima correspondiente
         w_match = weather_lags[weather_lags["ds"].dt.strftime("%Y-%m-%d") == f_str]
@@ -253,7 +261,8 @@ async def prepare_training_and_future_datasets(
             "ds": fdt,
             "es_feriado": feriado_flag,
             "temp_min_lag48": t_lag48,
-            "precip_lag72": p_lag72
+            "precip_lag72": p_lag72,
+            "alerta_hospital_melipilla": hospital_flag
         })
 
         weather_forecast_list.append({
@@ -263,7 +272,8 @@ async def prepare_training_and_future_datasets(
             "precipitacionMm": round(prec, 1),
             "temp_min_lag48": round(t_lag48, 1),
             "precip_lag72": round(p_lag72, 1),
-            "es_feriado": feriado_flag
+            "es_feriado": feriado_flag,
+            "alerta_hospital_melipilla": hospital_flag
         })
 
     future_x_df = pd.DataFrame(future_x_list)

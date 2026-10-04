@@ -65,7 +65,7 @@ def health_check():
         "status": "healthy",
         "motor": "StatsForecast (AutoARIMA/AutoETS)",
         "framework": "FastAPI",
-        "exogenas": ["holidays.CL()", "temp_min_lag48", "precip_lag72"]
+        "exogenas": ["holidays.CL()", "temp_min_lag48", "precip_lag72", "alerta_hospital_melipilla"]
     }
 
 
@@ -73,7 +73,8 @@ def health_check():
 async def get_forecast_7days(
     base_date: Optional[str] = Query(None, description="Fecha base de corte YYYY-MM-DD. Si se omite, usa la fecha más reciente."),
     model: Optional[str] = Query("AutoARIMA", description="Modelo a evaluar: AutoARIMA o AutoETS"),
-    refresh: Optional[bool] = Query(False, description="Forzar re-entrenamiento y bypass de caché")
+    refresh: Optional[bool] = Query(False, description="Forzar re-entrenamiento y bypass de caché"),
+    alerta_hospital: Optional[bool] = Query(False, description="Alerta de saturación de la Unidad de Emergencia Hospital San José de Melipilla")
 ):
     """
     Endpoint principal para el Radar de React.
@@ -84,7 +85,8 @@ async def get_forecast_7days(
         resultado = await run_statsforecast_7days(
             base_date_str=base_date,
             preferred_model=model,
-            use_cache=not refresh
+            use_cache=not refresh,
+            alerta_hospital=bool(alerta_hospital)
         )
         return resultado
     except Exception as e:

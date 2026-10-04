@@ -55,9 +55,10 @@ export const generateHourlyCurve = (isFindeOFeriado, totalPacientes) => {
  * @param {Array} liveWeather
  * @param {number} calibrationFactor
  * @param {Array<number>} customBaselines - [Dom, Lun, Mar, Mie, Jue, Vie, Sab]
+ * @param {boolean} alertaHospitalMelipilla - Saturación en la Urgencia del Hospital San José de Melipilla
  * @returns {Array}
  */
-export const generateDynamicProyeccion = (baseDate, liveWeather = null, calibrationFactor = 1.0, customBaselines = null) => {
+export const generateDynamicProyeccion = (baseDate, liveWeather = null, calibrationFactor = 1.0, customBaselines = null, alertaHospitalMelipilla = false) => {
   const proyecciones = [];
   const weatherList = liveWeather || [];
   // Línea base semanal calibrada con el estándar asistencial real SAR Elsa Romo (Domingo: 162 pac, Sábado: 168 pac)
@@ -122,9 +123,13 @@ export const generateDynamicProyeccion = (baseDate, liveWeather = null, calibrat
       tagClima = `❄️ Helada (${tMin}°C)`;
     }
 
-    const adjustedEstimate = Math.round(baseExpected * weatherMultiplier * calibrationFactor);
+    // Efecto Rebote / Saturación Hospital San José de Melipilla (+20% afluencia C4/C5)
+    const hospitalMultiplier = alertaHospitalMelipilla ? 1.20 : 1.0;
+    const totalMultiplier = weatherMultiplier * hospitalMultiplier;
+
+    const adjustedEstimate = Math.round(baseExpected * totalMultiplier * calibrationFactor);
     const lowerBound = Math.round(adjustedEstimate * 0.76);
-    const upperBound = Math.round(adjustedEstimate * 1.25);
+    const upperBound = Math.round(adjustedEstimate * (alertaHospitalMelipilla ? 1.28 : 1.25));
 
     // Desglose oficial de turnos SAR (Día vs Noche)
     let atencionesDiurno = 0;
@@ -156,9 +161,9 @@ export const generateDynamicProyeccion = (baseDate, liveWeather = null, calibrat
       limiteSupNocturno = upperBound;
     }
 
-    // Desglose de Complejidad por Triage Manchester
+    // Desglose de Complejidad por Triage Manchester (Saturación hospitalaria aporta +80% a C4/C5 leves)
     const c1_c2 = Math.max(1, Math.round(adjustedEstimate * 0.04));
-    const c3 = Math.round(adjustedEstimate * 0.49);
+    const c3 = Math.round(adjustedEstimate * (alertaHospitalMelipilla ? 0.45 : 0.49));
     const altaComplejidad = c1_c2 + c3;
     const c4_c5 = Math.max(0, adjustedEstimate - altaComplejidad);
     const alertaAltaComplejidad = altaComplejidad >= 45;
@@ -205,6 +210,8 @@ export const generateDynamicProyeccion = (baseDate, liveWeather = null, calibrat
       weatherMultiplier: Number(weatherMultiplier.toFixed(2)),
       weatherReason,
       tagClima,
+      alertaHospitalariaActiva: alertaHospitalMelipilla,
+      tagHospital: alertaHospitalMelipilla ? '🚨 Saturación Hospital San José de Melipilla (+20% C4/C5)' : '🟢 Flujo Hospitalario Regular',
       clima: weatherToday
     });
   }

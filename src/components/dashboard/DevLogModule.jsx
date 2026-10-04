@@ -8,6 +8,35 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-53',
+    titulo: 'Integración de Variable Exógena de Red Hospitalaria UEH Melipilla, Rebote Asistencial y Calibración Retrospectiva',
+    fecha: '2026-10-04',
+    version_tag: 'v6.3.53',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_53.png',
+    problema: 'Cuando la Unidad de Emergencia Hospitalaria (UEH) del Hospital San José de Melipilla colapsa o emite alertas de alta demanda en canales institucionales (@hospitaldemelipilla), los pacientes ambulatorios y no graves (C4 y C5) optan por desviar su consulta hacia el SAR Elsa Romo Aravena ("efecto rebote asistencial"). El modelo predictivo carecía de esta variable exógena hospitalaria para anticipar dicha sobredemanda y ajustar proactivamente la dotación médica y el triage, requiriendo además transparentar el análisis de predicciones pasadas vs demanda real (calibración retrospectiva continua).',
+    logica: '1) Feature Engineering en Microservicio Nixtla: Se incorporó la variable binaria alerta_hospital_melipilla en el pipeline de entrenamiento y horizonte futuro (data_processor.py y forecaster.py), aplicando un multiplicador de contingencia de +20% en volumen diario (+18 a +28 pac/día) y asignando el 80% del exceso a categorías C4/C5 de Triage Manchester con recálculo dinámico de horas médico requeridas (+4.5h a +6.5h). 2) Endpoint REST y Parámetro Query: Se expuso el parámetro alerta_hospital en GET /api/forecast/7days con respuesta probabilística e informe cognitivo adaptativo. 3) Fallback Local Autónomo: Se actualizó radarPredictivoEngine.js con el mismo modelado estocástico hospitalario para garantizar resiliencia en caso de desconexión. 4) Controles UI y Matriz de 7 Fuentes: En Radar.jsx se implementó un conmutador de 1 clic en la barra superior [🟢 Flujo Normal | 🚨 Saturada / Alerta Roja], un banner ejecutivo de contingencia y la ampliación de la matriz causa-efecto a 7 fuentes de información cruzadas (incorporando la Red Hospitalaria UEH Melipilla). 5) Calibración Retrospectiva: Panel de control con MAPE dinámico, MAE (±pac.) y Varianza Explicada (R²) que compara los días evaluados contra la demanda real de turnosDB para autoajustar el factor multiplicador continuo.',
+    solucion: 'Integración integral de la variable exógena hospitalaria y rebote asistencial en el Radar Predictivo, permitiendo a la dirección del SAR activar alertas de contingencia en 1 clic y anticipar la sobrecarga ambulatoria C4/C5.',
+    fullPost: `En esta versión v6.3.53 introducimos en el Radar Predictivo la integración de la variable exógena de saturación hospitalaria y el efecto rebote asistencial de la red de urgencias de Melipilla:
+
+1. **Dinámica Clínica y Fundamento Operativo**:
+   - En la red de salud local, ante eventos de saturación crítica en la Unidad de Emergencia Hospitalaria (UEH) del Hospital San José de Melipilla, el hospital difunde comunicados y alertas en canales públicos y redes (@hospitaldemelipilla) recomendando acudir a la atención primaria de urgencia.
+   - Esto desencadena un **efecto rebote asistencial** hacia el SAR Elsa Romo Aravena: pacientes con patologías de menor gravedad (categorías Manchester C4 y C5) que se enfrentan a esperas de 4 a 6 horas en el hospital se trasladan voluntariamente al SAR.
+
+2. **Modelado Matemático en Nixtla StatsForecast y Motor Local**:
+   - **Multiplicador de Contingencia Hospitalaria**: Se definió un incremento del \`+20%\` sobre la línea base ajustada del turno (+18 a +28 pacientes por jornada).
+   - **Composición Específica de Triage**: El \`80%\` del volumen excedente se redistribuye hacia categorías ambulatorias (C4 y C5), mientras que el \`20%\` restante absorbe casos de complejidad intermedia (C3). Las categorías de reanimación (C1-C2) se preservan desacopladas de esta migración.
+   - **Ajuste de Dotación Médica**: El modelo incrementa automáticamente la dotación sugerida en \`+4.5h a +6.5h de cobertura médica\` en box de atención general para evitar colapso de ventanilla y sala de espera.
+
+3. **Interfaz de Control de 1 Clic y Matriz de 7 Fuentes de Información**:
+   - En la barra de herramientas del Radar se integró el selector institucional: \`[🟢 Flujo Normal | 🚨 Saturada / Alerta Roja (+20% C4/C5)]\`.
+   - Se despliega un banner de contingencia destacado con el dictamen operativo cuando la alerta está encendida.
+   - Se actualizó el informe técnico a la **"Matriz de 7 Fuentes de Información Cruzadas"**, sumando formalmente la **Fuente 7: Red Hospitalaria UEH Melipilla**.
+
+4. **Calibración Retrospectiva y Retroalimentación Continua**:
+   - El sistema analiza retrospectivamente las predicciones de los últimos 7 días frente a los registros reales en \`turnosDB\`, calculando el MAPE (Error Porcentual Absoluto Medio), MAE (Error Absoluto Medio) y R² (Varianza Explicada), adaptando de forma autónoma el factor de calibración (\`factorAjuste\`).`
+  },
+  {
     id: 'devlog-v6-3-52',
     titulo: 'Corrección de Cuadratura de Turnos SAR (Fin de Semana vs Hábil) y Sincronización Local de Fechas en la Tabla Predictiva',
     fecha: '2026-10-03',
