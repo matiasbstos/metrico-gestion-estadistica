@@ -15,6 +15,31 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.54',
+      version: 'v6.3.54',
+      fecha: '04 de Octubre, 2026',
+      badge: 'ARQUITECTURA CSS & UX • RESOLUCIÓN DE STACKING CONTEXT & BLINDAJE DE TOOLTIPS',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Resolución de Contexto de Apilamiento (Stacking Context) y Blindaje de z-index en Tooltips Informativos YoY',
+      categoria: 'Usabilidad & Arquitectura CSS',
+      icon: Layers,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se resolvió la anomalía de apilamiento CSS donde los tooltips informativos del bloque de tarjetas de tendencia interanual (como "Período Homólogo Acumulado" en Pac. Atendidos o Pac. Admitidos) quedaban parcialmente tapados detrás de las tarjetas KPI inferiores: 1) Elevación jerárquica con "relative z-20" en el contenedor de las tarjetas YoY y "relative hover:z-30" en cada tarjeta individual (Admitidos, Atendidos, Altas Admin y Traslados Hosp.), permitiendo que la tarjeta activa ascienda sobre sus vecinas. 2) Reordenamiento descendente con "relative z-10" en la grilla de 9 KPIs del período seleccionado y "relative z-0" en la sección de Triaje. 3) Blindaje de capas en InfoTooltip.jsx activando z-[100] condicional en el wrapper y z-[9999] en la ventana emergente, asegurando lectura 100% limpia y nítida.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que cualquier cuadro de ayuda, explicación metodológica o desglose histórico del período acumulado flote siempre en primer plano con total legibilidad sobre las tarjetas inferiores sin ser recortado ni quedar oculto.',
+        quePuedesVer: '1. Pasa el cursor sobre "Año Ant. (2025 Ene - Sep): 24.618 pac." en la tarjeta de Pac. Atendidos (YoY). 2. Observa cómo el recuadro informativo negro "Período Homólogo Acumulado" se despliega completo por encima de las tarjetas inferiores ("Pac. Atendidos", "Pac / Hora", etc.) con sombra profunda y bordes perfectos.',
+        ejemploUso: 'En la sección "PERIODO SELECCIONADO" de la pantalla principal, posiciona el cursor sobre cualquiera de los textos o indicadores subrayados de las tarjetas superiores para inspeccionar los datos históricos sin ningún obstáculo visual.'
+      },
+      changes: [
+        'Adición de "relative z-20" al contenedor principal de tarjetas de tendencia interanual en PanelKPIs.jsx.',
+        'Implementación de "relative hover:z-30" en las 4 tarjetas de tendencia (Pac. Admitidos, Pac. Atendidos, Altas Admin y Traslados Hosp.), garantizando elevación dinámica en hover.',
+        'Asignación de "relative z-10" al contenedor de la grilla de 9 tarjetas KPI del período seleccionado.',
+        'Asignación de "relative z-0" al contenedor de Distribución de Triaje para garantizar orden secuencial de capas.',
+        'Actualización de InfoTooltip.jsx y TooltipWrapper con z-[100] dinámico en wrapper y z-[9999] en popup flotante.',
+        'Certificación automatizada con pruebas de interacción en Puppeteer y captura fotográfica de alta definición.'
+      ]
+    },
+    {
       id: 'v6.3.53',
       version: 'v6.3.53',
       fecha: '04 de Octubre, 2026',

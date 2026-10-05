@@ -391,12 +391,12 @@ export default function PanelKPIs({
           const trasPctGlobal = pacAnual > 0 ? (trasAnual / pacAnual) * 100 : 0;
 
           return (
-            <div className="space-y-2.5 mb-4">
+            <div className="space-y-2.5 mb-4 relative z-20">
               {/* Tarjetas de Tendencia Global YTD con Protagonismo Visual en el Porcentaje */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 
                 {/* 1. Demanda Total / Admitidos */}
-                <div className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-3 theme-transition hover:border-indigo-500/50">
+                <div className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-3 theme-transition relative hover:z-30 hover:border-indigo-500/50">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider flex items-center gap-1.5">
                       <div className="w-5 h-5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
@@ -455,7 +455,7 @@ export default function PanelKPIs({
                 </div>
 
                 {/* 2. Atendidos Médicos */}
-                <div className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-3 theme-transition hover:border-sky-500/50">
+                <div className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-3 theme-transition relative hover:z-30 hover:border-sky-500/50">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider flex items-center gap-1.5">
                       <div className="w-5 h-5 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-600 dark:text-sky-400 shrink-0">
@@ -525,7 +525,7 @@ export default function PanelKPIs({
                 </div>
 
                 {/* 3. Altas Administrativas */}
-                <div className={`p-4 rounded-2xl border shadow-xs flex flex-col justify-between gap-3 theme-transition ${
+                <div className={`p-4 rounded-2xl border shadow-xs flex flex-col justify-between gap-3 theme-transition relative hover:z-30 ${
                   !altasCumpleMeta ? 'bg-rose-500/10 border-rose-500/30' : 'bg-card-custom border-card-custom hover:border-amber-500/50'
                 }`}>
                   <div className="flex items-center justify-between">
@@ -609,7 +609,7 @@ export default function PanelKPIs({
                 </div>
 
                 {/* 4. Traslados Hospitalarios */}
-                <div className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-3 theme-transition hover:border-purple-500/50">
+                <div className="bg-card-custom p-4 rounded-2xl border border-card-custom shadow-xs flex flex-col justify-between gap-3 theme-transition relative hover:z-30 hover:border-purple-500/50">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase text-secondary-custom tracking-wider flex items-center gap-1.5">
                       <div className="w-5 h-5 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-600 dark:text-purple-400 shrink-0">
@@ -683,7 +683,7 @@ export default function PanelKPIs({
           );
         })()}
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-4 relative z-10">
           {renderKPICard('Pac. Admitidos', statsKPI.pacientes.current, statsKPI.pacientes.growthMonth, statsKPI.pacientes.growthYear, '', '', false, null, false)}
           {renderKPICard('Pac. Atendidos', statsKPI.atendidos.current, statsKPI.atendidos.growthMonth, statsKPI.atendidos.growthYear, '', '', false, null, false)}
           {renderKPICard('Pac / Hora', statsKPI.pacHora.current.toFixed(1), statsKPI.pacHora.growthMonth, statsKPI.pacHora.growthYear, '', '', false, null, false)}
@@ -704,7 +704,7 @@ export default function PanelKPIs({
         const isAltasAlert = periodPct > 5;
         
         return (
-          <div className="bg-card-custom p-6 flex flex-col md:flex-row items-center gap-6 mb-6 theme-transition border border-card-custom rounded-2xl shadow-sm">
+          <div className="bg-card-custom p-6 flex flex-col md:flex-row items-center gap-6 mb-6 theme-transition border border-card-custom rounded-2xl shadow-sm relative z-0">
             <div className="flex flex-col gap-1 items-center md:items-start">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-black text-primary-custom tracking-wider uppercase">Distribución de Triaje</span>

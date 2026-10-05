@@ -196,7 +196,17 @@
       * El Radar evalúa de forma continua los últimos 7 días con datos reales de `turnosDB` contrastados contra la predicción base, exhibiendo en vivo el **MAPE** (Mean Absolute Percentage Error), **MAE** (Mean Absolute Error en ±pacientes) y el coeficiente de determinación **R²** (Varianza Explicada).
       * El factor de autoajuste retrospectivo (`factorAjuste`) modula de manera autónoma el horizonte predictivo para evitar derivas o sesgos acumulativos.
 
+26. **Resolución de Contexto de Apilamiento CSS (Stacking Context) y Blindaje de Jerarquía Visual de Popovers y Tooltips (Regla de Integridad de Capas v6.3.54)**:
+    - **Principio CSS Stacking Context (Specification Appendix E)**: En conformidad con el estándar W3C, los elementos hermanos definidos posteriormente en el árbol DOM que utilicen `position: relative` se pintan siempre por encima de elementos previos con `position: static` o contextos de apilamiento con `z-index: auto`, independientemente del valor de `z-index` de los elementos hijos anidados dentro de ellos.
+    - **Jerarquía Descendente Obligatoria en Paneles de Control (`PanelKPIs.jsx`)**:
+      * **Bloque Superior (Tarjetas de Tendencia Interanual YoY)**: Debe poseer obligatoriamente `relative z-20` en su contenedor raíz y `relative hover:z-30` en cada una de sus 4 tarjetas individuales (Admitidos, Atendidos, Altas Admin y Traslados Hosp.), permitiendo que la tarjeta activa sobre la que se posa el cursor se eleve dinámicamente sobre sus vecinas.
+      * **Bloque Intermedio (Grilla de 9 KPIs del Período Seleccionado)**: Debe declararse formalmente con `relative z-10`, garantizando que cualquier popover o tooltip proyectado hacia abajo desde el bloque superior flote limpiamente por encima de los KPIs inferiores sin ser ocluido ni recortado.
+      * **Bloque Inferior (Distribución de Triaje y Tablas)**: Debe declararse con `relative z-0` para mantener la secuencia canónica de profundidad visual.
+    - **Blindaje en Componentes Base de Tooltip (`InfoTooltip.jsx` / `TooltipWrapper`)**:
+      * Todo tooltip flotante desplegable por hover debe activar dinámicamente elevación en su contenedor wrapper (`show ? 'z-[100]' : ''`) y utilizar `z-[9999]` en su ventana emergente (`div`), asegurando visibilidad total e inmediata ante cualquier interacción.
+
 ---
+
 
 ## 🚀 Protocolo Institucional y Obligatorio de Despliegue, Novedades & Bitácora de Desarrollo:
 Esta norma es **inviolable, permanente y activa en todas las sesiones** (independientemente de si el usuario inicia un nuevo chat o lo continúa, o si el entorno se reinicia o cierra). Ante **cualquier nuevo elemento, modificación, corrección o actualización del sitio**, el proceso obligatorio a ejecutar es estrictamente el siguiente:

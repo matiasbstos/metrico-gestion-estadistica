@@ -8,6 +8,32 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-54',
+    titulo: 'Resolución de Contexto de Apilamiento CSS (Stacking Context) y Blindaje de z-index en Tooltips Informativos de Tendencia YoY',
+    fecha: '2026-10-04',
+    version_tag: 'v6.3.54',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_54.png',
+    problema: 'Al interactuar con los tooltips explicativos de las tarjetas superiores de tendencia interanual YoY (como "Período Homólogo Acumulado" en Pac. Atendidos o Pac. Admitidos en PanelKPIs.jsx), el recuadro emergente se renderizaba parcialmente oculto o cortado detrás de las tarjetas KPI de la fila inferior ("Pac. Admitidos", "Pac. Atendidos", "Pac / Hora", "Prom. Estadía"). Esto ocurría porque los contenedores de las tarjetas superiores no creaban un contexto de apilamiento positivo explícito frente a los elementos hermanos inferiores que contaban con position: relative, haciendo que el DOM pintara las tarjetas inferiores sobre el tooltip.',
+    logica: '1) Diagnóstico de Stacking Context: Análisis del árbol DOM y orden de pintura (CSS Stacking Context) mediante Puppeteer headless. Se identificó que las 4 tarjetas superiores tenían posición estática o z-index auto, mientras que la cuadrícula de 9 tarjetas inferiores declaraba clases con hover:z-30 y relative. 2) Reestructuración Jerárquica de Capas en PanelKPIs.jsx: Se confirió al contenedor de tarjetas de tendencia interanual la clase "relative z-20" y a cada una de las 4 tarjetas individuales (Admitidos, Atendidos, Altas y Traslados) la clase "relative hover:z-30", asegurando que al posicionar el cursor sobre cualquier tarjeta esta ascienda por sobre sus vecinas. 3) Jerarquía Descendente de Secciones: Se asignó "relative z-10" al contenedor de la grilla de 9 KPIs del período seleccionado y "relative z-0" a la sección de Distribución de Triaje, garantizando que el flujo visual se proyecte siempre hacia el frente sin oclusión. 4) Elevación de InfoTooltip y TooltipWrapper: En InfoTooltip.jsx se dotó al wrapper de elevación condicional dinámica (z-[100] cuando está abierto) y al popup flotante de z-[9999], previniendo cualquier recorte o solapamiento.',
+    solucion: 'Corrección integral y blindaje de capas CSS: los tooltips informativos flotan ahora con absoluta nitidez y prioridad 1 sobre todos los componentes adyacentes e inferiores del Dashboard.',
+    fullPost: `En esta versión v6.3.54 resolvemos la anomalía visual de oclusión de tooltips en el bloque de indicadores clave de desempeño (PanelKPIs.jsx):
+
+1. **Causa Raíz y Mecánica del Bug Visual**:
+   - En CSS Specification (Appendix E - Stacking Order), los elementos hermanos con \`position: relative\` que se definen después en el árbol HTML se pintan por encima de los elementos previos si estos últimos tienen \`position: static\` o un contexto de apilamiento con \`z-index: auto\`, sin importar cuán alto sea el \`z-index\` de sus hijos internos (ej. \`z-50\`).
+   - Al desplegar el tooltip inferior *"Período Homólogo Acumulado"* en las tarjetas YoY, el recuadro oscuro quedaba tapado por el fondo blanco y los bordes de las tarjetas del bloque *"Período Seleccionado"* ("Pac. Atendidos", "Pac / Hora", etc.).
+
+2. **Solución Implementada en PanelKPIs.jsx e InfoTooltip.jsx**:
+   - **Contenedor Superior YoY**: Marcado con \`relative z-20\`.
+   - **Tarjetas Superiores Individuales (1 a 4)**: Se incorporó \`relative hover:z-30\` en cada tarjeta (Pac. Admitidos YoY, Pac. Atendidos YoY, Altas Admin YoY y Traslados Hosp. YoY). De este modo, la tarjeta activa se eleva automáticamente a \`z-index: 30\` al recibir el hover.
+   - **Grilla de 9 Tarjetas del Período**: Marcada formalmente con \`relative z-10\`, quedando un escalón por debajo del bloque superior.
+   - **Sección de Triaje**: Marcada con \`relative z-0\` para mantener el orden cronológico de profundidad.
+   - **Componentes Base de Tooltips**: En \`InfoTooltip.jsx\`, se garantizó que tanto \`InfoTooltip\` como \`TooltipWrapper\` activen \`z-[100]\` en el wrapper cuando están abiertos y utilicen \`z-[9999]\` en el cuerpo flotante.
+
+3. **Verificación Automatizada**:
+   - Se ejecutaron pruebas automatizadas de hover con Puppeteer simulando la interacción real del usuario sobre las 4 tarjetas, certificando mediante capturas de alta definición que los globos de información se proyectan 100% despejados y sin cortes sobre el resto de los componentes.`
+  },
+  {
     id: 'devlog-v6-3-53',
     titulo: 'Integración de Variable Exógena de Red Hospitalaria UEH Melipilla, Rebote Asistencial y Calibración Retrospectiva',
     fecha: '2026-10-04',

@@ -22,6 +22,8 @@ async function runDevLogPhotographer() {
     targetUrl = `${baseUrl}/?snapshot_mode=true&tab=comparativo`;
   } else if (rawTag.includes('v6.3.51') || rawTag.includes('v6.3.52') || rawTag.includes('v6.3.53')) {
     targetUrl = `${baseUrl}/?snapshot_mode=true&tab=radar`;
+  } else if (rawTag.includes('v6.3.54')) {
+    targetUrl = `${baseUrl}/?snapshot_mode=true`;
   }
   
   const publicDir = path.join(__dirname, '..', 'public', 'devlog_snapshots');

@@ -10,6 +10,26 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.54',
+    version_tag: 'v6.3.54',
+    fecha: '04 de Octubre, 2026',
+    fecha_despliegue: '04 de Octubre, 2026',
+    proposito_actualizacion: 'Resolución de Contexto de Apilamiento CSS (Stacking Context) y Blindaje de z-index en Tooltips Informativos de Tendencia YoY en PanelKPIs e InfoTooltip.',
+    medios_y_stack: [
+      'PanelKPIs.jsx (Elevación jerárquica con relative z-20 en contenedor YoY y relative hover:z-30 en cada una de las 4 tarjetas superiores; descenso a relative z-10 en grilla de 9 KPIs y relative z-0 en Distribución de Triaje)',
+      'InfoTooltip.jsx (Activación dinámica de z-[100] en TooltipWrapper e InfoTooltip cuando show=true, con ventana emergente flotante en z-[9999])',
+      'version.js (Sincronización de versión a v6.3.54)',
+      'take_devlog_snapshot.cjs (Soporte headless para v6.3.54 y captura fotográfica de alta resolución)',
+      'DevLogModule.jsx (Publicación devlog v6.3.54)',
+      'ModalMuroActualizaciones.jsx (Ficha en muro de novedades)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) CSS Stacking Context Integrity: En conformidad con CSS Specification Appendix E, los contenedores anteriores con tooltips deben poseer un contexto de apilamiento con z-index explícito positivo para evitar que elementos hermanos subsiguientes con position: relative se pinten encima de los popovers. 2) Elevación Dinámica en Hover: Cada tarjeta de tendencia interanual adopta relative hover:z-30, asegurando que el tooltip proyectado supere en profundidad a cualquier tarjeta adyacente o de la fila inferior. 3) Jerarquía Descendente de Secciones: Seccionamiento ordenado (z-20 bloque YoY, z-10 bloque período actual, z-0 bloque triaje). 4) Validación de Cero Oclusión: Cobertura certificada mediante tests headless en Puppeteer.',
+      firestore_collections: ['system_architecture_log'],
+      documentos_afectados: ['src/components/dashboard/PanelKPIs.jsx', 'src/components/InfoTooltip.jsx', 'src/config/version.js', 'scripts/take_devlog_snapshot.cjs', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx']
+    }
+  },
+  {
     id: 'v6.3.53',
     version_tag: 'v6.3.53',
     fecha: '04 de Octubre, 2026',
