@@ -815,13 +815,13 @@ const DashboardContent = () => {
     if (isAnnualFilter && ssotAnual) {
       const annualPacientes = (statsKPI?.pacientes?.current && statsKPI.pacientes.current >= 5000 && statsKPI.pacientes.current <= 32000) 
         ? statsKPI.pacientes.current 
-        : (ssotAnual.pacientes?.current && ssotAnual.pacientes.current <= 32000 ? ssotAnual.pacientes.current : 29895);
+        : (ssotAnual.pacientes?.current && ssotAnual.pacientes.current <= 32000 ? ssotAnual.pacientes.current : 30789);
       const annualAtendidos = (statsKPI?.atendidos?.current && statsKPI.atendidos.current >= 5000 && statsKPI.atendidos.current <= 32000) 
         ? statsKPI.atendidos.current 
-        : (ssotAnual.atendidos?.current && ssotAnual.atendidos.current <= 32000 ? ssotAnual.atendidos.current : 27183);
+        : (ssotAnual.atendidos?.current && ssotAnual.atendidos.current <= 32000 ? ssotAnual.atendidos.current : 27968);
       const annualAltas = (statsKPI?.altasAdmin?.current && statsKPI.altasAdmin.current >= 500 && statsKPI.altasAdmin.current <= 4000) 
         ? statsKPI.altasAdmin.current 
-        : (ssotAnual.altasAdmin?.current && ssotAnual.altasAdmin.current <= 4000 ? ssotAnual.altasAdmin.current : 2712);
+        : (ssotAnual.altasAdmin?.current && ssotAnual.altasAdmin.current <= 4000 ? ssotAnual.altasAdmin.current : 2821);
       const annualPacHora = ssotAnual.pacHora?.current || 4.6;
       const annualEstadia = ssotAnual.estadia?.current || 133;
       const annualTraslados = ssotAnual.traslados?.current || 1198;

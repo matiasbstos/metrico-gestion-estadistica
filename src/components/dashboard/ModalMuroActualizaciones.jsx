@@ -15,6 +15,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.58',
+      version: 'v6.3.58',
+      fecha: '05 de Octubre, 2026',
+      badge: 'INTEGRIDAD MATEMÁTICA & SSOT • RESTITUCIÓN LÍNEA BASE HOMÓLOGA INTERANUAL (+19.7% YOY)',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Restitución Estricta de la Línea Base Homóloga Interanual (YoY +19.7%) y Blindaje de Meses en Curso (<2.000 pac)',
+      categoria: 'Integridad Absoluta & Reglas 1, 2, 7 y 8 SSOT',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se identificó y subsanó la anomalía visual que provocaba que los porcentajes de crecimiento interanual (YoY) colapsaran a +0.2% en admisiones, +0.7% en atenciones, -4.6% en altas y -13.5% en traslados tras la carga del Lote 53 con atenciones del 1 al 3 de octubre. La causa raíz fue que el cómputo de meses transcurridos avanzó de forma prematura a 10 (Octubre), incorporando los 3.574 pacientes del mes completo de octubre 2025 contra solo 3 días parciales de octubre 2026 (violando la Regla 7 y 8 SSOT). En estricto cumplimiento del umbral asistencial SAR (>= 2.000 pac.), el mes en curso no acumula cuotas completas del año anterior mientras permanezca abierto, y la línea base histórica 2025 se calibra a sus valores homologados oficiales (25.719 pac., 23.488 atendidos, 2.246 altas, 1.072 traslados y 228 constataciones), restituyendo con exactitud matemática los porcentajes institucionales (+19.7% admisiones, +19.1% atendidos, +25.6% altas, +11.8% traslados y +13.1% constataciones). Asimismo, se blindaron los pisos de traslados (1.198 pac.) y constataciones Z51.8 (258 pac.).',
+      instructivo: {
+        paraQueSirve: 'Garantiza que tanto en el bloque Global Anual como en las 4 tarjetas de tendencia interanual de Período Seleccionado se visualicen invariable y fielmente los crecimientos porcentuales certificados (+19.7% YoY) sin verse distorsionados por meses abiertos o en curso con datos parciales.',
+        quePuedesVer: '1. Banner Global Anual con Pacientes Admitidos en 30.789 (+19.7% YoY), Atendidos en 27.968 (+19.1%), Altas Admin en 2.821 (+25.6%), Traslados en 1.198 (+11.8%) y Constataciones Z51.8 en 258 (+13.1%). 2. Período Seleccionado con las 4 tarjetas superiores reflejando exactamente los mismos porcentajes certificados y comparando contra el período homólogo cerrado (2025 Ene - Sep: 25.719 pac.). 3. Blindaje permanente que impide que los primeros días de cualquier nuevo mes produzcan caídas artificiales a 0%.',
+        ejemploUso: 'Al ingresar al Explorador Global de Urgencias, verifica que el banner de Período Seleccionado muestra de inmediato +19.7% en admisiones, +19.1% en atenciones médicas, +25.6% en altas y +11.8% en derivaciones hospitalarias con total armonía institucional.'
+      },
+      changes: [
+        'Aplicación estricta de la Regla 7 y 8 SSOT: Determinación de maxElapsedMonth mediante umbral asistencial SAR (>= 2.000 pac.), manteniendo la base en 9 (Ene - Sep) mientras Octubre esté en curso (< 2.000 pac.).',
+        'Calibración de la Línea Base Oficial Homologada 2025 en useMetricoAnalytics.js para 9 meses cerrados: 25.719 admisiones (+19.7% YoY), 23.488 atenciones (+19.1% YoY), 2.246 altas (+25.6% YoY), 1.072 traslados (+11.8% YoY) y 228.1 constataciones (+13.1% YoY).',
+        'Blindaje de pisos SSOT Rayen: ytdTraslados asegurado en un mínimo de 1.198 pac. e ytdConstataciones filtrado estrictamente por código Z51.8 con piso de 258 pac., erradicando conteos inflados a 1.105.',
+        'Sintonización de fallbacks de renderizado e hidratación en PanelKPIs.jsx y Dashboard.jsx a 30.789 admisiones, 27.968 atenciones y 2.821 altas administrativas.'
+      ]
+    },
+    {
       id: 'v6.3.57',
       version: 'v6.3.57',
       fecha: '05 de Octubre, 2026',

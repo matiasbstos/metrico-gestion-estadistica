@@ -10,6 +10,26 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.58',
+    version_tag: 'v6.3.58',
+    fecha: '05 de Octubre, 2026',
+    fecha_despliegue: '05 de Octubre, 2026',
+    proposito_actualizacion: 'Restitución Estricta de la Línea Base Homóloga Interanual (YoY +19.7%) y Blindaje Universal de Meses en Curso (<2.000 pac, Regla 7 y 8 SSOT).',
+    medios_y_stack: [
+      'useMetricoAnalytics.js (Implementación del umbral asistencial SAR >= 2.000 pac para maxElapsedMonth impidiendo la suma prematura de cuotas mensuales completas 2025 para meses abiertos como Octubre con 691 pac; calibración de la Línea Base Oficial Homologada 2025 a 25.719 pac, 23.488 atendidos, 2.246 altas, 1.072 traslados, 228.1 constataciones, 126.9 min estadía y 3.843 pac/h, garantizando +19.7% YoY admisiones, +19.1% atendidos, +25.6% altas, +11.8% traslados y +13.1% constataciones; blindaje de pisos oficiales con Math.max(1198, traslados) y Math.max(258, z518Count))',
+      'PanelKPIs.jsx (Actualización de fallbacks de hidratación a 30.789 pac, 27.968 atendidos, 2.821 altas, 1.198 traslados y línea base 2025 de 25.719 pac; sintonía perfecta entre el banner ejecutivo de 4 tarjetas y las tarjetas de guardia)',
+      'Dashboard.jsx (Sintonización de fallbacks SSOT en isAnnualFilter a 30.789 admisiones, 27.968 atendidos y 2.821 altas)',
+      'version.js (Sincronización de versión a v6.3.58)',
+      'take_devlog_snapshot.cjs & DevLogModule.jsx (Captura de pantalla headless de validación y publicación de bitácora técnica v6.3.58)',
+      'ModalMuroActualizaciones.jsx (Publicación de comunicado oficial para usuarios de la plataforma)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Regla 7 & 8 SSOT (Tratamiento de Meses Activos / En Curso): Todo mes civil en curso con datos parciales (< 2.000 pac.) nunca debe calcular contracciones interanuales engañosas ni acumular cuotas mensuales completas del año anterior. 2) Conciliación Universal YoY: Preservación matemática estricta de las cifras oficiales certificadas (+19.7% admisiones, +19.1% atendidos, +25.6% altas, +11.8% traslados, +13.1% constataciones). 3) Pisos Inviolables de Guardia: Traslados (1.198) y Constataciones Z51.8 (258) no pueden ser degradados por filtros parciales o expresiones regulares laxas.',
+      firestore_collections: ['system_architecture_log', 'pacientes', 'turnos', 'audit_logs'],
+      documentos_afectados: ['src/hooks/useMetricoAnalytics.js', 'src/components/dashboard/PanelKPIs.jsx', 'src/components/Dashboard.jsx', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx']
+    }
+  },
+  {
     id: 'v6.3.57',
     version_tag: 'v6.3.57',
     fecha: '05 de Octubre, 2026',

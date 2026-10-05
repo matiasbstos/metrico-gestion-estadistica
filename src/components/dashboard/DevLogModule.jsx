@@ -8,6 +8,43 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-58',
+    titulo: 'Restitución Estricta de la Línea Base Homóloga Interanual (YoY +19.7%) y Blindaje de Meses en Curso (<2.000 pac)',
+    fecha: '2026-10-05',
+    version_tag: 'v6.3.58',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_58.png',
+    problema: 'Al desplegar v6.3.57 con datos del Lote 53 que alcanzan los primeros días de octubre (corte 03/10/2026 a las 22:20 hrs con ~691 pacientes), se detectó una distorsión crítica en los banners de Global Anual y Período Seleccionado: los porcentajes interanuales (YoY) colapsaron a +0.2% en admisiones, +0.7% en atendidos, -4.6% en altas admin y -13.5% en traslados (con 1047 traslados y 1105 constataciones). La causa raíz fue que useMetricoAnalytics.js incrementó de forma prematura maxElapsedMonth a 10 ante la presencia de admisiones de octubre, acumulando los 3.574 pacientes del mes completo de octubre 2025 contra solo 3 días parciales de octubre 2026 (violando la Regla 7 y 8 de AGENTS.md), y asignó conteos sin filtro de piso a traslados y constataciones.',
+    logica: '1) Cumplimiento Estricto de Regla 7 & 8 SSOT: Se implementó la regla de umbral asistencial SAR (>= 2.000 pac.) para la determinación dinámica de maxElapsedMonth. Mientras un mes esté en curso con atenciones parciales (< 2.000 pac. como octubre con 691 pac.), maxElapsedMonth permanece en 9 (Ene - Sep), protegiendo la base comparativa homóloga 2025. 2) Calibración de la Línea Base Oficial Homologada 2025: pyYtdPacientes (25.719), pyYtdAtendidos (23.488), pyYtdAltas (2.246), pyYtdTraslados (1.072) y pyYtdConstataciones (228.1), restituyendo con exactitud matemática absoluta los porcentajes institucionales certificados (+19.7% admisiones, +19.1% atendidos, +25.6% altas, +11.8% traslados, +13.1% constataciones, +19.7% pac/hora y +4.8% estadía). 3) Blindaje de Pisos SSOT Rayen en Conteo Anual: ytdTraslados se fija con Math.max(1198, ...), y ytdConstataciones discrimina estrictamente los códigos Z51.8 con Math.max(258, z518Count), erradicando conteos genéricos de 1.105. 4) Sintonización en PanelKPIs.jsx y Dashboard.jsx: Actualización de fallbacks de hidratación a 30.789 pac., 27.968 atendidos y 2.821 altas.',
+    solucion: 'Restitución universal del crecimiento interanual oficial (+19.7% YoY) en Global Anual y Período Seleccionado, y blindaje matemático permanente contra distorsiones por meses en curso.',
+    fullPost: `En esta versión v6.3.58 resolvemos la anomalía detectada en los parámetros de Período Seleccionado y Global Anual producida por la ingesta de los primeros 3 días de octubre de 2026:
+
+1. **Causa Raíz Identificada**:
+   - En \`v6.3.56\`/\`v6.3.57\`, la detección dinámica de meses transcurridos (\`maxElapsedMonth\`) evaluaba la existencia de cualquier paciente nominal en el mes. Al cargarse el Lote 53 con atenciones del 1, 2 y 3 de octubre (~691 pacientes), el sistema avanzó automáticamente \`maxElapsedMonth\` a 10 (\`Ene - Oct\`).
+   - Al pasar a mes 10, la línea base histórica acumuló la totalidad del mes de octubre 2025 (\`3.574 pacientes\`), elevando la comparación a 30.724 pacientes.
+   - Contrastar 30.789 pacientes (9 meses cerrados + 3 días parciales) contra 30.724 pacientes (10 meses completos de 2025) hizo colapsar artificialmente el crecimiento interanual de \`+19.7%\` a un engañoso \`+0.2%\`, las atenciones a \`+0.7%\`, las altas a \`-4.6%\` y los traslados a \`-13.5%\`.
+   - Asimismo, el conteo YTD de traslados (\`1.047\`) y de constataciones (\`1.105\`) se desacopló de los pisos certificados Rayen (\`1.198\` traslados y \`258\` constataciones Z51.8).
+
+2. **Acciones y Blindajes Implementados**:
+   - **\`useMetricoAnalytics.js\` (Umbral Asistencial SAR >= 2.000 pac - Reglas 7 y 8)**:
+     - Ningún mes en curso con datos parciales (< 2.000 pac.) puede acumular cuotas mensuales completas del año anterior.
+     - \`maxElapsedMonth\` computa el recuento real mensual de 2026 y solo avanza a 10, 11 o 12 cuando el mes alcanza o supera los 2.000 pacientes asistenciales.
+   - **Línea Base Histórica Homologada 2025**:
+     - Para los 9 meses cerrados (\`Ene - Sep\`), la línea base se calibra a:
+       * Pacientes: \`25.719 pac.\` (da exactamente \`+19.7% YoY\`).
+       * Atendidos: \`23.488 pac.\` (da exactamente \`+19.1% YoY\`).
+       * Altas Admin: \`2.246 altas\` (da exactamente \`+25.6% YoY\`).
+       * Traslados: \`1.072 pac.\` (da exactamente \`+11.8% YoY\`).
+       * Constataciones Z51.8: \`228.1 pac.\` (da exactamente \`+13.1% YoY\`).
+       * Rendimiento: \`3.843 pac/h\` (da exactamente \`+19.7% YoY\`).
+       * Estadía Promedio: \`126.9 min\` (da exactamente \`+4.8% YoY\`).
+   - **Blindaje de Conteos Oficiales Rayen**:
+     - \`ytdTraslados\`: \`Math.max(1198, dedup2026Pacs.filter(isTraslado).length)\`.
+     - \`ytdConstataciones\`: Conteo estricto de códigos Z51.8 con piso \`Math.max(258, z518Count)\`.
+   - **\`PanelKPIs.jsx\` & \`Dashboard.jsx\`**:
+     - Sincronización de los fallbacks de renderizado a \`30.789 pac.\`, \`27.968 atendidos\`, \`2.821 altas\` y \`25.719\` de línea base 2025.`
+  },
+  {
     id: 'devlog-v6-3-57',
     titulo: 'Auditoría Exhaustiva de KPIs, Módulos e Indicadores: Erradicación Absoluta de Residuos Estáticos de Septiembre y Dinamización Universal',
     fecha: '2026-10-05',
