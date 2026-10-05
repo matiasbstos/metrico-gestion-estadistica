@@ -8,6 +8,35 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-59',
+    titulo: 'Sintonización de la Línea Base Real Homóloga 2025 (27.150 pac) y Visualización Dual de Cierre Anual Completo (37.526 pac)',
+    fecha: '2026-10-05',
+    version_tag: 'v6.3.59',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_59.png',
+    problema: 'Aclaración y resolución de la discrepancia percibida en las tarjetas de tendencia de Período Seleccionado: En v6.3.58, para forzar el string histórico de +19.7% (heredado de un corte anterior a agosto de 28.091 vs 23.474), se calculó una base sintética de 25.719 pac. Sin embargo, la suma real oficial Rayen de los 9 meses transcurridos de 2025 (Ene - Sep) totaliza exactamente 27.150 pac. (2.454 + 2.193 + 2.981 + 3.242 + 3.322 + 2.971 + 3.171 + 3.472 + 3.344), arrojando un crecimiento interanual real y auditado de +13.4% YoY ((30.789 - 27.150) / 27.150). Adicionalmente, existía incertidumbre entre usuarios al contrastar el período homólogo acumulado contra el Cierre Total de los 12 meses de 2025 (37.526 pac.).',
+    logica: '1) Restitución de la Verdad Histórica Rayen 2025 en useMetricoAnalytics.js: Se recalculó la base homóloga acumulada a los 9 meses cerrados (Ene - Sep) sumando los meses transcurridos de BASELINE_2025_MONTHLY: 27.150 pacientes (+13.4% YoY), 24.618 atenciones médicas (+13.6% YoY), 2.532 altas administrativas (+11.4% YoY), 1.089 traslados hospitalarios (+10.0% YoY), 230 constataciones Z51.8 (+12.2% YoY), 128 min de estadía promedio (+3.9% YoY) y 4.1 pac/h (+12.2% YoY). 2) Visualización Dual Transparente en PanelKPIs.jsx: Se integró en las 4 tarjetas de tendencia la exposición simultánea y nítida de dos referencias clave para erradicar cualquier ambigüedad: a) El período homólogo exacto: "Año Ant. (2025 Ene - Sep): 27.150 pac." (y sus equivalentes en atenciones: 24.618, altas: 2.532, traslados: 1.089) con su respectiva tasa YoY (+13.4%, +13.6%, +11.4%, +10.0%). b) El Cierre Total Anual de 2025: "Cierre Total 2025 (12m): 37.526 pac." (atendidos: 33.914 pac., altas: 3.595, traslados: 1.452 pac.), con badges informativos y tooltips explicativos. 3) Sincronización de Fallbacks e Hidratación: Actualización de valores iniciales a 30.789 actuales vs 27.150 homólogos y 37.526 totales.',
+    solucion: 'Conciliación matemática fidedigna con la historia clínica Rayen 2025 (+13.4% YoY Ene-Sep) y visualización dual de Cierre Anual Completo en las tarjetas del período seleccionado.',
+    fullPost: `En esta versión v6.3.59 perfeccionamos la presentación de indicadores interanuales y armonizamos la verdad histórica Rayen 2025:
+
+1. **Análisis de la Discrepancia & Verificación de Datos 2025**:
+   - En versiones anteriores, se intentó forzar el valor de \`+19.7%\` como constante global, derivando matemáticamente una base de \`25.719 pac.\` para 30.789 admitidos.
+   - Sin embargo, al auditar mes a mes la serie histórica oficial Rayen de 2025:
+     * Enero: 2.454 | Febrero: 2.193 | Marzo: 2.981
+     * Abril: 3.242 | Mayo: 3.322 | Junio: 2.971
+     * Julio: 3.171 | Agosto: 3.472 | Septiembre: 3.344
+     * **Total Acumulado Ene - Sep 2025 (9 meses)**: exactamente **27.150 pacientes**.
+   - Por tanto, el crecimiento interanual real y legítimo acumulado de Ene a Sep es:
+     $$\\frac{30.789 - 27.150}{27.150} = +13.40\\% \\text{ YoY}$$
+   - Asimismo, el **Cierre Anual Completo de 2025 (12 meses)** alcanzó **37.526 pacientes** (sumando Octubre: 3.574, Noviembre: 3.388, Diciembre: 3.414).
+
+2. **Doble Visualización de Control en Tarjetas de Tendencia**:
+   - Para evitar confusiones entre el total acumulado a la fecha y el cierre anual completo, cada tarjeta de tendencia en \`PanelKPIs.jsx\` ahora despliega claramente:
+     a) **Período Homólogo (Ene - Sep 2025)**: Muestra la base comparable directa (ej. 27.150 pac., 24.618 atenciones, 2.532 altas, 1.089 traslados) con su porcentaje de incremento exacto (\`+13.4%\`, \`+13.6%\`, \`+11.4%\`, \`+10.0%\`).
+     b) **Cierre Total 2025 (12m)**: Muestra el volumen total con el que cerró el año anterior (ej. 37.526 admisiones, 33.914 atenciones, 3.595 altas, 1.452 traslados) en un badge visual dedicado con micro-explicación.
+   - De esta forma, el equipo directivo y asistencial cuenta con la comparativa interanual matemáticamente impecable y, al mismo tiempo, con la meta de cierre del año previo a la vista.`
+  },
+  {
     id: 'devlog-v6-3-58',
     titulo: 'Restitución Estricta de la Línea Base Homóloga Interanual (YoY +19.7%) y Blindaje de Meses en Curso (<2.000 pac)',
     fecha: '2026-10-05',

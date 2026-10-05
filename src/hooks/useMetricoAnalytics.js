@@ -886,32 +886,28 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
         ? 'Ene' 
         : `Ene - ${monthNamesShort[maxElapsedMonth]}`;
 
-    // Comparativa homóloga transversal YTD para los meses transcurridos (Base SSOT Certificada Regla 8)
-    let pyYtdPacientes = 25719; // +19.7% YoY al corte de Sep (#30.789 vs 25.719)
-    let pyYtdAtendidos = 23488; // +19.1% YoY al corte de Sep (#27.968 vs 23.488)
-    let pyYtdAltas = 2246;      // +25.6% YoY al corte de Sep (#2.821 vs 2.246)
-    let pyYtdTraslados = 1072;  // +11.8% YoY al corte de Sep (#1.198 vs 1.072)
-    let pyYtdConstataciones = 228.1; // +13.1% YoY al corte de Sep (#258 vs 228)
-    let pyYtdEstadia = 126.9;   // +4.8% YoY (#133 vs 127 min)
-    let pyYtdPacHora = 3.843;   // +19.7% YoY (#4.6 vs 3.84 pac/h)
-
-    if (maxElapsedMonth > 9) {
-      for (let m = 10; m <= maxElapsedMonth; m++) {
-        pyYtdPacientes += (BASELINE_2025_MONTHLY[m] || 0);
-        pyYtdAtendidos += (BASELINE_2025_ATENDIDOS[m] || 0);
-        pyYtdAltas += (BASELINE_2025_ALTAS[m] || 0);
-        pyYtdTraslados += Math.round(1452 / 12);
-        pyYtdConstataciones += Math.round(307 / 12);
-      }
-    }
+    // Comparativa homóloga transversal YTD para los meses transcurridos (Base SSOT Real Rayen 2025)
+    const pyYtdPacientes = elapsedMonthIndexes.reduce((acc, m) => acc + (BASELINE_2025_MONTHLY[m] || 0), 0); // 27.150 al corte de Sep
+    const pyYtdAtendidos = elapsedMonthIndexes.reduce((acc, m) => acc + (BASELINE_2025_ATENDIDOS[m] || 0), 0); // 24.618 al corte de Sep
+    const pyYtdAltas = elapsedMonthIndexes.reduce((acc, m) => acc + (BASELINE_2025_ALTAS[m] || 0), 0); // 2.532 al corte de Sep
+    const pyYtdTraslados = Math.round((1452 / 12) * maxElapsedMonth); // 1.089 al corte de Sep
+    const pyYtdConstataciones = Math.round((307 / 12) * maxElapsedMonth); // 230 al corte de Sep
+    const pyYtdEstadia = 128;
+    const pyYtdPacHora = 4.1;
 
     const fullYear2025Pacientes = Object.values(BASELINE_2025_MONTHLY).reduce((a, b) => a + b, 0); // 37.526
+    const fullYear2025Atendidos = Object.values(BASELINE_2025_ATENDIDOS).reduce((a, b) => a + b, 0); // 33.914
+    const fullYear2025Altas = Object.values(BASELINE_2025_ALTAS).reduce((a, b) => a + b, 0); // 3.595
+    const fullYear2025Traslados = 1452;
 
     const statsAnual = {
       elapsedMonthsCount: maxElapsedMonth,
       elapsedMonthsLabel,
       prevYearName: 2025,
       fullYearPrev: fullYear2025Pacientes,
+      fullYearPrevAtendidos: fullYear2025Atendidos,
+      fullYearPrevAltas: fullYear2025Altas,
+      fullYearPrevTraslados: fullYear2025Traslados,
       pacientes: { 
         current: ytdPacientes,
         prevYear: pyYtdPacientes,

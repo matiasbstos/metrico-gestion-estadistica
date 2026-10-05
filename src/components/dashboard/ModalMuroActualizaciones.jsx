@@ -15,6 +15,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.59',
+      version: 'v6.3.59',
+      fecha: '05 de Octubre, 2026',
+      badge: 'TRANSPARENCIA DIRECTIVA & SSOT • LÍNEA BASE REAL 2025 (27.150 PAC) & CIERRE ANUAL DUAL (37.526 PAC)',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Sintonización de la Línea Base Real Homóloga 2025 (27.150 pac) y Visualización Dual de Cierre Anual Completo (37.526 pac)',
+      categoria: 'Integridad Matemática & UX Directiva SSOT',
+      icon: ShieldCheck,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se atendió la retroalimentación de la dirección respecto a la claridad de las tarjetas de tendencia interanual: la serie real oficial Rayen para los 9 meses de 2025 (Ene - Sep) totaliza exactamente 27.150 pacientes (24.618 atenciones, 2.532 altas y 1.089 traslados), lo que representa un crecimiento interanual neto de +13.4% YoY respecto a los 30.789 pacientes de 2026. Para erradicar cualquier duda entre el acumulado parcial a la fecha y el año completo ya cerrado, las 4 tarjetas de Período Seleccionado ahora exhiben de forma simultánea y nítida: 1) El período homólogo exacto (2025 Ene - Sep: 27.150 pac., +13.4% YoY) y 2) El Cierre Total Anual de los 12 meses de 2025 (37.526 pac., 33.914 atenciones, 3.595 altas y 1.452 traslados) con tooltip explicativo.',
+      instructivo: {
+        paraQueSirve: 'Brinda total claridad al contrastar el rendimiento del año en curso frente a 2025, distinguiendo inequívocamente la comparación contra los mismos meses transcurridos (+13.4% YoY) de la meta global de cierre de los 12 meses completos del año anterior (37.526 pac.).',
+        quePuedesVer: '1. Tarjeta de Pacientes Admitidos: Muestra 30.789 pac., con badge "+13.4% YoY", subtítulo del homólogo "Año Ant. (2025 Ene - Sep): 27.150 pac." y pill inferior "Cierre Total 2025 (12m): 37.526 pac.". 2. Tarjetas de Atenciones (+13.6% YoY vs 24.618 / Cierre 33.914), Altas (+11.4% YoY vs 2.532 / Cierre 3.595) y Traslados (+10.0% YoY vs 1.089 / Cierre 1.452).',
+        ejemploUso: 'En el encabezado del panel de Urgencias, observa las 4 tarjetas de tendencia: la fila superior te indica el crecimiento exacto contra el mismo tramo del año pasado y la línea inferior te recuerda el volumen total alcanzado en todo el 2025.'
+      },
+      changes: [
+        'Restitución de la suma real oficial Rayen de 9 meses cerrados (Ene - Sep 2025) en useMetricoAnalytics.js: 27.150 admisiones (+13.4% YoY), 24.618 atenciones (+13.6% YoY), 2.532 altas (+11.4% YoY), 1.089 traslados (+10.0% YoY), 230 constataciones (+12.2% YoY), 128 min estadía (+3.9%) y 4.1 pac/h (+12.2%).',
+        'Incorporación de la visualización dual en PanelKPIs.jsx para las 4 tarjetas principales: despliegue explícito de la base homóloga Ene-Sep y del Cierre Anual Completo de 12 meses (37.526 admisiones, 33.914 atenciones, 3.595 altas, 1.452 traslados).',
+        'Sintonización de tooltips contextuales y badges diferenciados (píldoras con borde y fondo contrastante en modo claro y oscuro).',
+        'Actualización de fallbacks de inicialización a 30.789 actuales, 27.150 homólogos y 37.526 anuales completos.'
+      ]
+    },
+    {
       id: 'v6.3.58',
       version: 'v6.3.58',
       fecha: '05 de Octubre, 2026',

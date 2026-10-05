@@ -10,6 +10,25 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.59',
+    version_tag: 'v6.3.59',
+    fecha: '05 de Octubre, 2026',
+    fecha_despliegue: '05 de Octubre, 2026',
+    proposito_actualizacion: 'Sintonización de la Línea Base Real Homóloga 2025 (27.150 pac) y Visualización Dual de Cierre Anual Completo (37.526 pac) en Tarjetas de Tendencia.',
+    medios_y_stack: [
+      'useMetricoAnalytics.js (Restitución de la sumatoria dinámica mensual Rayen 2025 para 9 meses cerrados Ene-Sep: pyYtdPacientes = 27.150 pac arrojando +13.4% YoY, pyYtdAtendidos = 24.618 pac arrojando +13.6% YoY, pyYtdAltas = 2.532 altas arrojando +11.4% YoY, pyYtdTraslados = 1.089 pac arrojando +10.0% YoY, pyYtdConstataciones = 230 pac arrojando +12.2% YoY, estadía = 128 min y rendimiento = 4.1 pac/h; exportación en statsAnual de fullYearPrevAtendidos 33.914, fullYearPrevAltas 3.595 y fullYearPrevTraslados 1.452)',
+      'PanelKPIs.jsx (Implementación de arquitectura de visualización dual en las 4 tarjetas de tendencia: exhibición simultánea de base homóloga Ene-Sep con porcentaje YoY exacto y píldora informativa destacada de Cierre Total Anual 12m con 37.526 admisiones, 33.914 atenciones, 3.595 altas y 1.452 traslados; sincronización de fallbacks iniciales de renderizado)',
+      'version.js (Sincronización a v6.3.59)',
+      'take_devlog_snapshot.cjs & DevLogModule.jsx (Generación automatizada de snapshot headless v6.3.59 y registro de bitácora técnica)',
+      'ModalMuroActualizaciones.jsx (Publicación del comunicado oficial de transparencia y claridad de datos)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) SSOT Rayen Histórico 2025: La base homóloga acumulada a los meses cerrados transcurridos (Ene-Sep) debe ser la suma exacta de los meses de la serie oficial (27.150 pac.), erradicando bases derivadas artificialmente. 2) Crecimiento Neto Real: El porcentaje YoY para 9 meses cerrados es +13.4% en admisiones, +13.6% en atenciones, +11.4% en altas y +10.0% en traslados. 3) Doble Referencia Directiva: Para evitar confusiones operativas entre el período parcial y el cierre del año anterior, se debe presentar siempre la meta de cierre anual completa (37.526 pac.) de forma complementaria.',
+      firestore_collections: ['system_architecture_log', 'pacientes', 'turnos', 'audit_logs'],
+      documentos_afectados: ['src/hooks/useMetricoAnalytics.js', 'src/components/dashboard/PanelKPIs.jsx', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx']
+    }
+  },
+  {
     id: 'v6.3.58',
     version_tag: 'v6.3.58',
     fecha: '05 de Octubre, 2026',

@@ -366,24 +366,27 @@ export default function PanelKPIs({
         {/* Banner Ejecutivo de Tendencias de Demanda Global y Metas Asistenciales */}
         {(() => {
           const pacAnual = statsKPI.anual?.pacientes?.current || 30789;
-          const pacPrevYear = statsKPI.anual?.pacientes?.prevYear || 25719;
+          const pacPrevYear = statsKPI.anual?.pacientes?.prevYear || 27150;
           const pacGrowthYear = statsKPI.anual?.pacientes?.growthYear;
 
           const ateAnual = statsKPI.anual?.atendidos?.current || 27968;
-          const atePrevYear = statsKPI.anual?.atendidos?.prevYear || 23488;
+          const atePrevYear = statsKPI.anual?.atendidos?.prevYear || 24618;
           const ateGrowthYear = statsKPI.anual?.atendidos?.growthYear;
 
           const altasAnual = statsKPI.anual?.altasAdmin?.current || 2821;
-          const altasPrevYear = statsKPI.anual?.altasAdmin?.prevYear || 2246;
+          const altasPrevYear = statsKPI.anual?.altasAdmin?.prevYear || 2532;
           const altasGrowthYear = statsKPI.anual?.altasAdmin?.growthYear;
 
           const trasAnual = statsKPI.anual?.traslados?.current || 1198;
-          const trasPrevYear = statsKPI.anual?.traslados?.prevYear || 1072;
+          const trasPrevYear = statsKPI.anual?.traslados?.prevYear || 1089;
           const trasGrowthYear = statsKPI.anual?.traslados?.growthYear;
 
           const elapsedLabel = statsKPI.anual?.elapsedMonthsLabel || 'Ene - Sep';
           const prevYearNum = statsKPI.anual?.prevYearName || 2025;
           const fullYearPrevVal = statsKPI.anual?.fullYearPrev || 37526;
+          const fullYearPrevAte = statsKPI.anual?.fullYearPrevAtendidos || 33914;
+          const fullYearPrevAlt = statsKPI.anual?.fullYearPrevAltas || 3595;
+          const fullYearPrevTras = statsKPI.anual?.fullYearPrevTraslados || 1452;
 
           const altasPctGlobal = pacAnual > 0 ? (altasAnual / pacAnual) * 100 : 0;
           const altasCumpleMeta = altasPctGlobal <= 5.0;
@@ -440,16 +443,21 @@ export default function PanelKPIs({
                       <p className="text-secondary-custom font-semibold">
                         Volumen YTD: <strong className="text-primary-custom font-black">{isLoading ? '...' : pacAnual?.toLocaleString('es-CL')} pac.</strong>
                       </p>
-                      <TooltipWrapper
-                        title={`Período Homólogo Acumulado (${elapsedLabel})`}
-                        text={`El cálculo interanual compara exclusivamente los meses equivalentes transcurridos (${elapsedLabel}) entre ${prevYearNum} y el año en curso para evitar distorsiones. El total anual cerrado de ${prevYearNum} (12 meses) es de ${fullYearPrevVal.toLocaleString('es-CL')} pacientes.`}
-                        highlight={`${pacPrevYear?.toLocaleString('es-CL')} pac.`}
-                        position="bottom"
-                      >
-                        <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1 cursor-help hover:text-primary-custom transition-colors">
-                          Año Ant. ({prevYearNum} {elapsedLabel}): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : pacPrevYear?.toLocaleString('es-CL')} pac.</strong>
+                      <div className="border-t border-card-custom/40 pt-1 space-y-0.5">
+                        <TooltipWrapper
+                          title={`Período Homólogo Acumulado (${elapsedLabel})`}
+                          text={`El cálculo interanual compara exclusivamente los meses equivalentes transcurridos (${elapsedLabel}) entre ${prevYearNum} y el año en curso para evitar distorsiones. El total anual cerrado de ${prevYearNum} (12 meses) es de ${fullYearPrevVal.toLocaleString('es-CL')} pacientes.`}
+                          highlight={`${pacPrevYear?.toLocaleString('es-CL')} pac.`}
+                          position="bottom"
+                        >
+                          <p className="text-[11px] text-secondary-custom/85 font-medium cursor-help hover:text-primary-custom transition-colors">
+                            Año Ant. ({prevYearNum} {elapsedLabel}): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : pacPrevYear?.toLocaleString('es-CL')} pac.</strong>
+                          </p>
+                        </TooltipWrapper>
+                        <p className="text-[10px] text-secondary-custom/65 font-medium">
+                          Cierre Total {prevYearNum} (12m): <span className="font-bold text-secondary-custom/90">{isLoading ? '...' : fullYearPrevVal.toLocaleString('es-CL')} pac.</span>
                         </p>
-                      </TooltipWrapper>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -479,7 +487,7 @@ export default function PanelKPIs({
                     <div className="flex items-baseline gap-2">
                       <TooltipWrapper
                         title={`Crecimiento Interanual (${elapsedLabel})`}
-                        text={`Variación de atenciones médicas efectivas respecto a los mismos meses (${elapsedLabel}) de ${prevYearNum} (${ateAnual?.toLocaleString('es-CL')} vs ${atePrevYear?.toLocaleString('es-CL')} pacientes). Total anual cerrado de atenciones ${prevYearNum} (12 meses): 33.931 pacientes.`}
+                        text={`Variación de atenciones médicas efectivas respecto a los mismos meses (${elapsedLabel}) de ${prevYearNum} (${ateAnual?.toLocaleString('es-CL')} vs ${atePrevYear?.toLocaleString('es-CL')} pacientes). Total anual cerrado de atenciones ${prevYearNum} (12 meses): ${fullYearPrevAte.toLocaleString('es-CL')} pacientes.`}
                         highlight={`${ateGrowthYear !== undefined && ateGrowthYear >= 0 ? '+' : ''}${ateGrowthYear !== undefined ? ateGrowthYear.toFixed(1) : '10.4'}%`}
                         position="top"
                       >
@@ -510,16 +518,21 @@ export default function PanelKPIs({
                           </span>
                         </TooltipWrapper>
                       </p>
-                      <TooltipWrapper
-                        title={`Período Homólogo Acumulado (${elapsedLabel})`}
-                        text={`Atenciones médicas efectivas en los mismos meses transcurridos (${elapsedLabel}) de ${prevYearNum}. Total anual cerrado de atenciones ${prevYearNum} (12 meses): 33.931 pacientes.`}
-                        highlight={`${atePrevYear?.toLocaleString('es-CL')} pac.`}
-                        position="bottom"
-                      >
-                        <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1 cursor-help hover:text-primary-custom transition-colors">
-                          Año Ant. ({prevYearNum} {elapsedLabel}): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : atePrevYear?.toLocaleString('es-CL')} pac.</strong>
+                      <div className="border-t border-card-custom/40 pt-1 space-y-0.5">
+                        <TooltipWrapper
+                          title={`Período Homólogo Acumulado (${elapsedLabel})`}
+                          text={`Atenciones médicas efectivas en los mismos meses transcurridos (${elapsedLabel}) de ${prevYearNum}. Total anual cerrado de atenciones ${prevYearNum} (12 meses): ${fullYearPrevAte.toLocaleString('es-CL')} pacientes.`}
+                          highlight={`${atePrevYear?.toLocaleString('es-CL')} pac.`}
+                          position="bottom"
+                        >
+                          <p className="text-[11px] text-secondary-custom/85 font-medium cursor-help hover:text-primary-custom transition-colors">
+                            Año Ant. ({prevYearNum} {elapsedLabel}): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : atePrevYear?.toLocaleString('es-CL')} pac.</strong>
+                          </p>
+                        </TooltipWrapper>
+                        <p className="text-[10px] text-secondary-custom/65 font-medium">
+                          Cierre Total {prevYearNum} (12m): <span className="font-bold text-secondary-custom/90">{isLoading ? '...' : fullYearPrevAte.toLocaleString('es-CL')} pac.</span>
                         </p>
-                      </TooltipWrapper>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -563,7 +576,7 @@ export default function PanelKPIs({
                     <div className="flex items-baseline gap-2">
                       <TooltipWrapper
                         title={`Variación Interanual de Altas (${elapsedLabel})`}
-                        text={`Variación de altas administrativas respecto a los mismos meses (${elapsedLabel}) de ${prevYearNum} (${altasAnual?.toLocaleString('es-CL')} vs ${altasPrevYear?.toLocaleString('es-CL')} altas registradas). Total anual cerrado de altas ${prevYearNum} (12 meses): 3.595 altas.`}
+                        text={`Variación de altas administrativas respecto a los mismos meses (${elapsedLabel}) de ${prevYearNum} (${altasAnual?.toLocaleString('es-CL')} vs ${altasPrevYear?.toLocaleString('es-CL')} altas registradas). Total anual cerrado de altas ${prevYearNum} (12 meses): ${fullYearPrevAlt.toLocaleString('es-CL')} altas.`}
                         highlight={`${altasGrowthYear !== undefined && altasGrowthYear >= 0 ? '+' : ''}${altasGrowthYear !== undefined ? altasGrowthYear.toFixed(1) : '7.1'}%`}
                         position="top"
                       >
@@ -594,16 +607,21 @@ export default function PanelKPIs({
                           </span>
                         </TooltipWrapper>
                       </p>
-                      <TooltipWrapper
-                        title={`Período Homólogo Acumulado (${elapsedLabel})`}
-                        text={`Altas administrativas en los mismos meses transcurridos (${elapsedLabel}) de ${prevYearNum}. Total anual cerrado de altas ${prevYearNum} (12 meses): 3.595 altas.`}
-                        highlight={`${altasPrevYear?.toLocaleString('es-CL')} altas`}
-                        position="bottom"
-                      >
-                        <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1 cursor-help hover:text-primary-custom transition-colors">
-                          Año Ant. ({prevYearNum} {elapsedLabel}): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : altasPrevYear?.toLocaleString('es-CL')} altas</strong>
+                      <div className="border-t border-card-custom/40 pt-1 space-y-0.5">
+                        <TooltipWrapper
+                          title={`Período Homólogo Acumulado (${elapsedLabel})`}
+                          text={`Altas administrativas en los mismos meses transcurridos (${elapsedLabel}) de ${prevYearNum}. Total anual cerrado de altas ${prevYearNum} (12 meses): ${fullYearPrevAlt.toLocaleString('es-CL')} altas.`}
+                          highlight={`${altasPrevYear?.toLocaleString('es-CL')} altas`}
+                          position="bottom"
+                        >
+                          <p className="text-[11px] text-secondary-custom/85 font-medium cursor-help hover:text-primary-custom transition-colors">
+                            Año Ant. ({prevYearNum} {elapsedLabel}): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : altasPrevYear?.toLocaleString('es-CL')} altas</strong>
+                          </p>
+                        </TooltipWrapper>
+                        <p className="text-[10px] text-secondary-custom/65 font-medium">
+                          Cierre Total {prevYearNum} (12m): <span className="font-bold text-secondary-custom/90">{isLoading ? '...' : fullYearPrevAlt.toLocaleString('es-CL')} altas</span>
                         </p>
-                      </TooltipWrapper>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -664,16 +682,21 @@ export default function PanelKPIs({
                           </span>
                         </TooltipWrapper>
                       </p>
-                      <TooltipWrapper
-                        title={`Período Homólogo Acumulado (${elapsedLabel})`}
-                        text={`Traslados a centros de mayor complejidad en los mismos meses transcurridos (${elapsedLabel}) de ${prevYearNum}.`}
-                        highlight={`${trasPrevYear?.toLocaleString('es-CL')} pac.`}
-                        position="bottom"
-                      >
-                        <p className="text-[11px] text-secondary-custom/75 font-medium border-t border-card-custom/40 pt-1 cursor-help hover:text-primary-custom transition-colors">
-                          Año Ant. ({prevYearNum} {elapsedLabel}): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : trasPrevYear?.toLocaleString('es-CL')} pac.</strong>
+                      <div className="border-t border-card-custom/40 pt-1 space-y-0.5">
+                        <TooltipWrapper
+                          title={`Período Homólogo Acumulado (${elapsedLabel})`}
+                          text={`Traslados a centros de mayor complejidad en los mismos meses transcurridos (${elapsedLabel}) de ${prevYearNum}. Total anual cerrado de traslados ${prevYearNum} (12 meses): ${fullYearPrevTras.toLocaleString('es-CL')} pac.`}
+                          highlight={`${trasPrevYear?.toLocaleString('es-CL')} pac.`}
+                          position="bottom"
+                        >
+                          <p className="text-[11px] text-secondary-custom/85 font-medium cursor-help hover:text-primary-custom transition-colors">
+                            Año Ant. ({prevYearNum} {elapsedLabel}): <strong className="font-bold text-secondary-custom">{isLoading ? '...' : trasPrevYear?.toLocaleString('es-CL')} pac.</strong>
+                          </p>
+                        </TooltipWrapper>
+                        <p className="text-[10px] text-secondary-custom/65 font-medium">
+                          Cierre Total {prevYearNum} (12m): <span className="font-bold text-secondary-custom/90">{isLoading ? '...' : fullYearPrevTras.toLocaleString('es-CL')} pac.</span>
                         </p>
-                      </TooltipWrapper>
+                      </div>
                     </div>
                   </div>
                 </div>
