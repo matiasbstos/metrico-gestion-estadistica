@@ -137,7 +137,11 @@
       * En cualquier año civil activo o en curso ($Y$), donde hayan transcurrido $M$ meses ($1 \le M \le 12$), toda comparación interanual (YoY / YTD) contra el año previo ($Y-1$) DEBE contrastarse única y exclusivamente contra los mismos $M$ meses transcurridos del año previo ($1..M$).
       * **Aplicación Transversal Inviolable**:
         a) *Año Activo 2026 (al corte de Septiembre, $M=9$)*: Se compara estrictamente Ene-Sep 2026 contra Ene-Sep 2025 (**27.150 admitidos**, **24.618 atendidos**, **2.532 altas admin**), arrojando el crecimiento real oficial de **+11.0% YoY** en admisiones (30.130 vs 27.150) y **+11.4% YoY** en atenciones (27.415 vs 24.618).
-        b) *Transición a 2027 y Años Posteriores*: Cuando inicie el año asistencial 2027, la regla operará con idéntica lógica dinámica sin fijaciones estáticas:
+        b) *Principio de Prorrateo Diario Continuo para Meses en Curso (Erradicación de Saltos Bruscos)*:
+           - Cuando el mes en curso ($M$) presenta datos parciales ($1 \le \text{día} < \text{días del mes}$), la cuota del año previo para dicho mes no se suma completa ni se fija en cero; escala de forma continua y estrictamente proporcional a los días transcurridos ($F = \frac{\text{día}}{\text{días del mes}}$).
+           - Base Homóloga Total = $\sum_{m=1}^{M-1} \text{Base Mes Cerrado}[m] + (\text{Base Mes Activo}[M] \times F)$.
+           - Este mecanismo garantiza que a medida que transcurren los días de cualquier nuevo mes (ej. días 1 a 31 de Octubre, Noviembre, o en 2027), la tasa interanual (YoY) evolucione de manera suave, estable y matemáticamente coherente, erradicando por completo caídas artificiales o saltos bruscos día a día.
+        c) *Transición a 2027 y Años Posteriores*: Cuando inicie el año asistencial 2027, la regla operará con idéntica lógica dinámica sin fijaciones estáticas:
            - En *Enero 2027 ($M=1$)*: el sistema comparará Ene 2027 vs Ene 2026.
            - En *Febrero 2027 ($M=2$)*: comparará Ene-Feb 2027 vs Ene-Feb 2026 acumulado.
            - En *Diciembre 2027 ($M=12$)*: comparará los 12 meses de 2027 contra los 12 meses de 2026.

@@ -8,6 +8,37 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-60',
+    titulo: 'Principio Institucional de Prorrateo Diario Continuo: Erradicación Absoluta de Saltos Bruscos en Indicadores Interanuales (YoY)',
+    fecha: '2026-10-05',
+    version_tag: 'v6.3.60',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_60.png',
+    problema: 'A medida que el año avanza y se cargan lotes con días parciales de un nuevo mes (ej. Lote 53 con días 1 al 3 de Octubre de 2026 con ~691 pacientes), existía el riesgo latente de saltos bruscos o discrepancias en las tasas de crecimiento interanual (YoY): si la base del año anterior incorpora el mes completo de golpe (3.574 pac. de octubre 2025), el porcentaje se derrumba artificialmente (de +13.4% a +0.2%); y si se deja en cero o se activa con un umbral rígido, se genera un escalón artificial. Se requería una regla institucional permanente que garantizara que los porcentajes evolucionen de forma suave, continua y sin quiebres abruptos.',
+    logica: '1) Promulgación de la Regla de Prorrateo Diario Continuo en AGENTS.md (Regla 22-b): Para cualquier mes civil en curso que presente datos parciales (días 1 a 30/31), la base del año anterior para dicho mes no se suma completa ni se fija en cero, sino que escala de forma estrictamente proporcional a los días transcurridos (F = día / días_del_mes). 2) Implementación Matemática en useMetricoAnalytics.js: Se detecta reactivamente el día de corte alcanzado en los datos (ej. día 3 de Octubre de 31 días = 9.68%). La base 2025 suma los 9 meses cerrados al 100% (27.150 pac.) más la cuota proporcional de los 3 días de Octubre (346 pac.), resultando en 27.496 pac. de base homóloga (arrojando +12.0% YoY en admisiones, +12.2% en atenciones, +9.6% en altas y +8.9% en traslados). 3) Rotulación Transparente y Continuidad Universal: La etiqueta se dinamiza como "Ene - Oct (al día 3)" con tooltips pedagógicos, asegurando una transición matemática perfecta e imperceptible a medida que se agregan nuevos días y meses, extensible a 2027.',
+    solucion: 'Integración del Prorrateo Diario Continuo en el motor analítico, eliminando de forma definitiva cualquier salto brusco o discrepancia en el avance cronológico de los indicadores de crecimiento.',
+    fullPost: `En esta versión v6.3.60 formalizamos e implementamos el Principio de Prorrateo Diario Continuo para erradicar cualquier salto brusco en los porcentajes de crecimiento a medida que avanzan los días y meses:
+
+1. **El Desafío de la Continuidad Temporal en el Crecimiento Interanual**:
+   - Al comenzar cualquier nuevo mes civil (como Octubre con sus primeros 3 días en el Lote 53), comparar los 30.789 pacientes acumulados de 2026 contra los 10 meses completos de 2025 (30.724 pac.) habría derrumbado el crecimiento de +13.4% a un engañoso +0.2%.
+   - Por otro lado, mantener la base congelada en Septiembre (27.150 pac.) mientras 2026 suma pacientes día a día en Octubre generaría una inflación progresiva que luego caería de golpe al cerrar el mes.
+
+2. **La Solución Canónica: Prorrateo Diario Continuo (Regla 22-b SSOT)**:
+   - Los meses cerrados al 100% (Enero a Septiembre) aportan su total íntegro certificado: **27.150 pacientes**, **24.618 atenciones** y **2.532 altas**.
+   - El mes en curso (Octubre) aporta exactamente la fracción de días transcurridos ($F = 3 / 31 = 9.68\\%$):
+     * Cuota proporcional Octubre 2025: **346 admisiones**, **305 atenciones** y **41 altas**.
+     * Base homóloga total al corte: **27.496 admisiones**, **24.923 atenciones** y **2.573 altas**.
+   - Las tasas interanuales resultantes:
+     $$\\text{Admisiones: } \\frac{30.789 - 27.496}{27.496} = \\mathbf{+12.0\\% \\text{ YoY}}$$
+     $$\\text{Atenciones: } \\frac{27.968 - 24.923}{24.923} = \\mathbf{+12.2\\% \\text{ YoY}}$$
+     $$\\text{Altas Admin: } \\frac{2.821 - 2.573}{2.573} = \\mathbf{+9.6\\% \\text{ YoY}}$$
+     $$\\text{Traslados: } \\frac{1.198 - 1.100}{1.100} = \\mathbf{+8.9\\% \\text{ YoY}}$$
+
+3. **Beneficio para la Gestión Directiva**:
+   - Cero saltos bruscos: el indicador sube o baja suavemente según el rendimiento real día a día.
+   - Total transparencia: las tarjetas explicitan \`Año Ant. (2025 Ene - Oct (al día 3)): 27.496 pac.\` y recuerdan el \`Cierre Total 2025 (12m): 37.526 pac.\`.`
+  },
+  {
     id: 'devlog-v6-3-59',
     titulo: 'Sintonización de la Línea Base Real Homóloga 2025 (27.150 pac) y Visualización Dual de Cierre Anual Completo (37.526 pac)',
     fecha: '2026-10-05',

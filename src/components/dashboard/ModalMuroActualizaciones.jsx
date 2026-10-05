@@ -15,6 +15,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.60',
+      version: 'v6.3.60',
+      fecha: '05 de Octubre, 2026',
+      badge: 'CONTINUIDAD TEMPORAL & SSOT • PRORRATEO DIARIO CONTINUO (REGLA 22-B ANTI-SALTOS BRUSCOS)',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Principio Institucional de Prorrateo Diario Continuo: Erradicación Absoluta de Saltos Bruscos en Indicadores Interanuales (YoY)',
+      categoria: 'Continuidad Temporal & Algorítmica SSOT',
+      icon: ShieldCheck,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Para responder a la necesidad directiva de que los porcentajes de crecimiento interanual no sufran caídas o saltos bruscos a medida que avanza un nuevo mes civil, se promulgó e implementó la Regla 22-b de Prorrateo Diario Continuo: cuando un mes presenta datos parciales (ej. días 1 al 3 de Octubre con 691 pac.), la cuota del año previo escala de forma exactamente proporcional a los días transcurridos (3 de 31 días = 9.68%, aportando 346 pac. de Octubre 2025). De esta forma, la base homóloga total suma los 9 meses cerrados al 100% (27.150 pac.) más la fracción de los 3 días (346 pac.), resultando en 27.496 pac. de base homóloga y arrojando una tasa estable y armónica de +12.0% YoY en admisiones, +12.2% en atenciones, +9.6% en altas y +8.9% en traslados.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que la evolución de los porcentajes de crecimiento sea suave, natural y continua día a día, eliminando desplomes artificiales al iniciar un mes o escalones bruscos al cargar nuevos lotes.',
+        quePuedesVer: '1. Tarjeta de Pacientes Admitidos: Muestra 30.789 pac., con badge "+12.0% YoY", subtítulo dinámico "Año Ant. (2025 Ene - Oct (al día 3)): 27.496 pac." y píldora "Cierre Total 2025 (12m): 37.526 pac.". 2. Tarjetas de Atenciones (+12.2% YoY vs 24.923), Altas (+9.6% YoY vs 2.573) y Traslados (+8.9% YoY vs 1.100). 3. Transición armónica que avanza día tras día a medida que se cargan nuevos días.',
+        ejemploUso: 'Al consultar las 4 tarjetas de tendencia, observa que la base homóloga indica exactamente el corte alcanzado ("al día 3") y la variación YoY refleja con total fidelidad la productividad del período sin saltos artificiales.'
+      },
+      changes: [
+        'Promulgación de la Regla 22-b en .agents/AGENTS.md: Principio de Prorrateo Diario Continuo para meses civiles en curso con datos parciales.',
+        'Implementación matemática en useMetricoAnalytics.js: detección reactiva del día máximo alcanzado (activeDay / daysInActiveMonth) y ponderación continua de la cuota del año anterior.',
+        'Cálculo de bases prorrateadas: pyYtdPacientes en 27.496 (+12.0% YoY), pyYtdAtendidos en 24.923 (+12.2% YoY), pyYtdAltas en 2.573 (+9.6% YoY) y pyYtdTraslados en 1.100 (+8.9% YoY).',
+        'Dinamización de rótulo a "Ene - Oct (al día 3)" con tooltips pedagógicos contextualizados.',
+        'Sincronización de fallbacks iniciales de renderizado en PanelKPIs.jsx y Dashboard.jsx a las bases prorrateadas del día 3 de Octubre.'
+      ]
+    },
+    {
       id: 'v6.3.59',
       version: 'v6.3.59',
       fecha: '05 de Octubre, 2026',

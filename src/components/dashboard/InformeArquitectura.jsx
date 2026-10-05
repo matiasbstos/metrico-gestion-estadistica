@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.60',
+    version_tag: 'v6.3.60',
+    fecha: '05 de Octubre, 2026',
+    fecha_despliegue: '05 de Octubre, 2026',
+    proposito_actualizacion: 'Principio Institucional de Prorrateo Diario Continuo: Erradicación Absoluta de Saltos Bruscos en Indicadores Interanuales (YoY).',
+    medios_y_stack: [
+      'useMetricoAnalytics.js (Implementación del algoritmo de Prorrateo Diario Continuo: detección de activeDay y daysInActiveMonth en el mes en curso; base homóloga suma meses cerrados al 100% más cuota proporcional del mes activo; pyYtdPacientes = 27.496, pyYtdAtendidos = 24.923, pyYtdAltas = 2.573, pyYtdTraslados = 1.100 y pyYtdConstataciones = 233, arrojando +12.0% YoY admisiones, +12.2% atendidos, +9.6% altas, +8.9% traslados y +10.7% constataciones; dinamización de elapsedMonthsLabel a "Ene - Oct (al día 3)")',
+      'PanelKPIs.jsx (Actualización de fallbacks de hidratación y compatibilidad con rótulo dinámico de días transcurridos; preservación de tooltip contextual)',
+      'Dashboard.jsx (Sincronización de fallbacks iniciales de renderizado a bases prorrateadas del día 3 de Octubre)',
+      '.agents/AGENTS.md & AGENTS.md (Promulgación de la Regla 22-b SSOT: Principio de Prorrateo Diario Continuo para meses en curso)',
+      'version.js (Sincronización a v6.3.60)',
+      'take_devlog_snapshot.cjs & DevLogModule.jsx (Captura de pantalla headless v6.3.60 y publicación en DevLog)',
+      'ModalMuroActualizaciones.jsx (Comunicado oficial en Muro de Novedades)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Regla 22-b SSOT (Prorrateo Diario Continuo): Todo mes civil en curso con datos parciales aporta a la base comparativa una cuota proporcional exacta a sus días transcurridos (F = día / días_del_mes), eliminando saltos bruscos o caídas a 0%. 2) Meses Cerrados: Los meses concluidos aportan el 100% de su valor certificado Rayen. 3) Doble Referencia: Las tarjetas muestran la base prorrateada homóloga al día y la meta de Cierre Total Anual de 12 meses (37.526 pac.).',
+      firestore_collections: ['system_architecture_log', 'pacientes', 'turnos', 'audit_logs'],
+      documentos_afectados: ['src/hooks/useMetricoAnalytics.js', 'src/components/dashboard/PanelKPIs.jsx', 'src/components/Dashboard.jsx', '.agents/AGENTS.md', 'AGENTS.md', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx']
+    }
+  },
+  {
     id: 'v6.3.59',
     version_tag: 'v6.3.59',
     fecha: '05 de Octubre, 2026',

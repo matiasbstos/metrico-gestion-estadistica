@@ -854,44 +854,68 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const BASELINE_2025_ATENDIDOS = { 1: 2335, 2: 2134, 3: 2737, 4: 2922, 5: 2959, 6: 2713, 7: 2835, 8: 3038, 9: 2945, 10: 3150, 11: 3146, 12: 3017 };
     const BASELINE_2025_ALTAS = { 1: 119, 2: 59, 3: 244, 4: 320, 5: 363, 6: 258, 7: 336, 8: 434, 9: 399, 10: 424, 11: 403, 12: 236 };
 
-    // Regla 7 & 8 SSOT: Determinación dinámica de meses cerrados (umbral asistencial SAR >= 2.000 pac.)
-    // Los meses en curso con datos parciales (< 2.000 pac.) no acumulan cuota completa 2025 para evitar contracciones falsas.
+    // Regla de Oro SSOT: Prorrateo Diario Continuo del Mes en Curso (Interpolación Diaria sin Saltos Bruscos)
+    // Para cualquier mes concluido se toma su cuota 100% cerrada.
+    // Para el mes en curso con datos parciales, la cuota del año anterior escala de forma continua y proporcional
+    // a los días transcurridos, erradicando caídas artificiales o saltos bruscos a medida que avanza el calendario.
     const monthNamesShort = ['', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     const pacsCountByMonth2026 = {};
+    let maxDate2026 = null;
+    const nowTolerance = Date.now() + 86400000;
+
     (dedup2026Pacs || []).forEach(p => {
       if (p.tAdmision) {
         const d = new Date(p.tAdmision);
-        if (d.getFullYear() === currentYearNum) {
+        const t = d.getTime();
+        if (!isNaN(t) && t <= nowTolerance && d.getFullYear() === currentYearNum) {
           const m = d.getMonth() + 1;
           pacsCountByMonth2026[m] = (pacsCountByMonth2026[m] || 0) + 1;
+          if (!maxDate2026 || t > maxDate2026.getTime()) {
+            maxDate2026 = d;
+          }
         }
       }
     });
 
-    let maxElapsedMonth = 9; // Ene - Sep son meses completamente cerrados y auditados
-    for (let m = 10; m <= 12; m++) {
-      if ((pacsCountByMonth2026[m] || 0) >= 2000) {
-        maxElapsedMonth = m;
-      }
+    // Mes y día activo de corte alcanzado en los datos
+    const activeMonth = maxDate2026 ? (maxDate2026.getMonth() + 1) : 10;
+    const activeDay = maxDate2026 ? maxDate2026.getDate() : 3;
+    const daysInActiveMonth = new Date(currentYearNum, activeMonth, 0).getDate();
+
+    // Comprobar si el mes activo está formalmente cerrado (superó umbral asistencial >= 2800 pac o llegó al último día del mes)
+    const isMonthFullyClosed = activeDay >= daysInActiveMonth || (pacsCountByMonth2026[activeMonth] || 0) >= 2800;
+    const activeFraction = isMonthFullyClosed ? 1 : Math.min(1, Math.max(0, activeDay / daysInActiveMonth));
+
+    // Base acumulada de meses cerrados anteriores al mes activo
+    let closedBasePacientes = 0;
+    let closedBaseAtendidos = 0;
+    let closedBaseAltas = 0;
+    const closedLimitMonth = isMonthFullyClosed ? activeMonth : activeMonth - 1;
+
+    for (let m = 1; m <= closedLimitMonth; m++) {
+      closedBasePacientes += (BASELINE_2025_MONTHLY[m] || 0);
+      closedBaseAtendidos += (BASELINE_2025_ATENDIDOS[m] || 0);
+      closedBaseAltas += (BASELINE_2025_ALTAS[m] || 0);
     }
 
-    const elapsedMonthIndexes = [];
-    for (let i = 1; i <= maxElapsedMonth; i++) {
-      elapsedMonthIndexes.push(i);
+    // Cuota proporcional prorrateada del mes en curso
+    let activeMonthQuotaPacientes = 0;
+    let activeMonthQuotaAtendidos = 0;
+    let activeMonthQuotaAltas = 0;
+
+    if (!isMonthFullyClosed) {
+      activeMonthQuotaPacientes = Math.round((BASELINE_2025_MONTHLY[activeMonth] || 0) * activeFraction);
+      activeMonthQuotaAtendidos = Math.round((BASELINE_2025_ATENDIDOS[activeMonth] || 0) * activeFraction);
+      activeMonthQuotaAltas = Math.round((BASELINE_2025_ALTAS[activeMonth] || 0) * activeFraction);
     }
 
-    const elapsedMonthsLabel = maxElapsedMonth === 12 
-      ? '12 Meses' 
-      : maxElapsedMonth === 1 
-        ? 'Ene' 
-        : `Ene - ${monthNamesShort[maxElapsedMonth]}`;
+    const pyYtdPacientes = closedBasePacientes + activeMonthQuotaPacientes;
+    const pyYtdAtendidos = closedBaseAtendidos + activeMonthQuotaAtendidos;
+    const pyYtdAltas = closedBaseAltas + activeMonthQuotaAltas;
 
-    // Comparativa homóloga transversal YTD para los meses transcurridos (Base SSOT Real Rayen 2025)
-    const pyYtdPacientes = elapsedMonthIndexes.reduce((acc, m) => acc + (BASELINE_2025_MONTHLY[m] || 0), 0); // 27.150 al corte de Sep
-    const pyYtdAtendidos = elapsedMonthIndexes.reduce((acc, m) => acc + (BASELINE_2025_ATENDIDOS[m] || 0), 0); // 24.618 al corte de Sep
-    const pyYtdAltas = elapsedMonthIndexes.reduce((acc, m) => acc + (BASELINE_2025_ALTAS[m] || 0), 0); // 2.532 al corte de Sep
-    const pyYtdTraslados = Math.round((1452 / 12) * maxElapsedMonth); // 1.089 al corte de Sep
-    const pyYtdConstataciones = Math.round((307 / 12) * maxElapsedMonth); // 230 al corte de Sep
+    const elapsedFractionalMonths = (activeMonth - 1) + (isMonthFullyClosed ? 1 : activeFraction);
+    const pyYtdTraslados = Math.round((1452 / 12) * elapsedFractionalMonths);
+    const pyYtdConstataciones = Math.round((307 / 12) * elapsedFractionalMonths);
     const pyYtdEstadia = 128;
     const pyYtdPacHora = 4.1;
 
@@ -900,8 +924,12 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const fullYear2025Altas = Object.values(BASELINE_2025_ALTAS).reduce((a, b) => a + b, 0); // 3.595
     const fullYear2025Traslados = 1452;
 
+    const elapsedMonthsLabel = isMonthFullyClosed
+      ? (activeMonth === 12 ? '12 Meses' : (activeMonth === 1 ? 'Ene' : `Ene - ${monthNamesShort[activeMonth]}`))
+      : (activeMonth === 1 ? `Ene (al día ${activeDay})` : `Ene - ${monthNamesShort[activeMonth]} (al día ${activeDay})`);
+
     const statsAnual = {
-      elapsedMonthsCount: maxElapsedMonth,
+      elapsedMonthsCount: isMonthFullyClosed ? activeMonth : activeMonth - 1,
       elapsedMonthsLabel,
       prevYearName: 2025,
       fullYearPrev: fullYear2025Pacientes,
