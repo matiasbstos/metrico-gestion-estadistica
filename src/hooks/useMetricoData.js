@@ -167,7 +167,7 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
           const parts = t.fechaInicio.includes('-') ? t.fechaInicio.split('-') : t.fechaInicio.split('/');
           const y = parts[0].length === 4 ? parseInt(parts[0]) : parseInt(parts[2]);
           const m = parts[0].length === 4 ? parseInt(parts[1]) : parseInt(parts[1]);
-          if (y > 2026 || (y === 2026 && m > 9)) return false;
+          if (y > 2026 || (y === 2026 && m > 12)) return false;
           return true;
         })
         .sort((a, b) => {

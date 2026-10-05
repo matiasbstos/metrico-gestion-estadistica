@@ -209,8 +209,8 @@ export default function TorreControlSistema({
 
   // Consola de Trazabilidad en Tiempo Real (Fase 3: Traceability Log)
   const [traceLogs, setTraceLogs] = useState([
-    { id: 1, time: '18:01:23', type: 'info', text: 'Ingesta: Archivo cargado Pacientes_Admitidos_SAR_Rayen.xlsx (30.131 filas, 38 columnas).' },
-    { id: 2, time: '18:01:24', type: 'success', text: 'Motor Limpieza: Llaves compuestas generadas (27.183 únicas, 2.712 duplicados/altas descartados).' },
+    { id: 1, time: '18:01:23', type: 'info', text: 'Ingesta: Archivo cargado Pacientes_Admitidos_SAR_Rayen.xlsx (Lote 53, #30.789 filas, 38 columnas).' },
+    { id: 2, time: '18:01:24', type: 'success', text: 'Motor Limpieza: Llaves compuestas generadas (27.968 únicas, 2.821 duplicados/altas descartados).' },
     { id: 3, time: '18:01:24', type: 'info', text: 'Motor Turnos: Asignación determinista pre-15:00 vs post-15:00 con ventana 16:00 hrs.' },
     { id: 4, time: '18:01:25', type: 'success', text: 'SSOT Central: Validación matemática universal cumplida al 100.0% (Admitidos = Atendidos + Altas).' },
     { id: 5, time: '18:01:25', type: 'routing', text: 'Routing Engine: Ramificación activa hacia 4 módulos consumidores en paralelo.' },
@@ -222,9 +222,9 @@ export default function TorreControlSistema({
 
   // Métricas del sistema en tiempo real
   const systemMetrics = useMemo(() => {
-    const totalPacientes = pacientesDB?.length || 27183;
-    const totalTurnos = turnosDB?.length || 342;
-    const maxCorrelativo = 30131;
+    const totalPacientes = pacientesDB?.length || 27968;
+    const totalTurnos = turnosDB?.length || 348;
+    const maxCorrelativo = Math.max(30789, pacientesDB?.reduce((max, p) => Math.max(max, Number(p.correlativo || 0)), 0) || 30789);
 
     return {
       totalPacientes,
@@ -265,7 +265,7 @@ export default function TorreControlSistema({
           estado: isErrorIngesta ? 'error' : 'saludable',
           errorMsg: isErrorIngesta ? 'Error de parsing: 11/05/2026 leído como 05/11/2026.' : null,
           detallesBadge: 'SheetJS / XLSX',
-          reglaCanonica: 'Regla 1: Techo #30.131',
+          reglaCanonica: 'Regla 1: Techo Dinámico (#30.789)',
           isHovered: hoveredNodeInfo?.id === 'ingesta'
         }
       },

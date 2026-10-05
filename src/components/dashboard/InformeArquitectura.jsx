@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.55',
+    version_tag: 'v6.3.55',
+    fecha: '04 de Octubre, 2026',
+    fecha_despliegue: '04 de Octubre, 2026',
+    proposito_actualizacion: 'Institución de Regla 27: Erradicación de Topes Temporales Rígidos, Principio de Continuidad Temporal Dinámica, Soporte Pleno de Octubre 2026 y Actualización de Control Oficial Rayen a Lote 53 (#30.789).',
+    medios_y_stack: [
+      'helpers.js (Sustitución de OFFICIAL_DATA_CUTOFF_MS por Date.now() + 24 hrs; remoción de filtros estáticos m < 8, dia <= 28, m > 8 y m > 9 en resolverMaxTimestampGlobal y auditarUltimoTurnoCompleto; blindaje en detección de turnos diurnos)',
+      'useMetricoData.js (Eliminación de bloqueo de meses posteriores m > 9 en extracción de turnos Firestore)',
+      'ModalConfiguracionCorreo.jsx (Eliminación de filtros excluyentes 2026-10 y m > 9 en combinedPacientes y colas de despacho de turnos y días auditados)',
+      'AnalisisComparativoTriple.jsx (Cálculo dinámico de MAX_SYSTEM_CUTOFF y soporte nativo de selector Octubre 2026)',
+      'useMetricoAnalytics.js (Ampliación de umbral isFullYearPacs >= 25000 suprimiendo techo rígido de 32k y actualización de fallbacks a Lote 53: 30.789 pac. admitidos, 27.968 atendidos y 2.821 altas)',
+      'TorreControlSistema.jsx & ModalAcercaDe.jsx (Actualización a Lote 53 #30.789)',
+      'version.js (Sincronización de versión a v6.3.55)',
+      'take_devlog_snapshot.cjs & DevLogModule.jsx (Soporte headless y publicación DevLog v6.3.55)',
+      'ModalMuroActualizaciones.jsx (Ficha en muro de novedades)',
+      'AGENTS.md & .agents/AGENTS.md (Consagración de la Regla 27 y actualización de Reglas 1 y 5)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Regla 27 SSOT (Continuidad Temporal Dinámica): Se prohíbe taxativamente la inclusión de fechas o meses de corte codificados de forma rígida en el código fuente (ej. m <= 8, dia <= 28, "2026-10"). El límite superior de fechas válidas se rige exclusivamente por el tiempo real actual dinámico (Date.now() + 24 hrs) para prevenir fechas fantasma por errores de formato (US vs CL) sin impedir el avance cronológico natural. 2) Actualización Canónica a Lote 53: Correlativo oficial máximo elevado a #30.789 (03/10/2026 22:20:20 hrs), con 27.968 atendidos efectivos y 2.821 altas administrativas. 3) Auto-Detección y Cierre de Turno: Reconocimiento inmediato del último turno clínico completo de fin de semana (Sábado 03/10/2026 08:00 a 20:00 hrs con 73 pac.) y sincronización del badge superior "Datos cargados hasta: 03/10/2026 22:20".',
+      firestore_collections: ['system_architecture_log', 'pacientes', 'turnos'],
+      documentos_afectados: ['src/utils/helpers.js', 'src/hooks/useMetricoData.js', 'src/components/dashboard/ModalConfiguracionCorreo.jsx', 'src/components/dashboard/AnalisisComparativoTriple.jsx', 'src/hooks/useMetricoAnalytics.js', 'src/components/dashboard/TorreControlSistema.jsx', 'src/components/dashboard/ModalAcercaDe.jsx', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx', '.agents/AGENTS.md', 'AGENTS.md']
+    }
+  },
+  {
     id: 'v6.3.54',
     version_tag: 'v6.3.54',
     fecha: '04 de Octubre, 2026',

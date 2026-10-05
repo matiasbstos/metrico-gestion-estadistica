@@ -2,9 +2,9 @@
 
 ## 📌 Reglas de Consistencia y Auditoría de Datos (SSOT Rayen):
 1. **Techo y Límite de Correlativos en Archivo Cargado**:
-   - **Correlativo Máximo Cargado en Sistema**: `#30.131` (Lote 50, Fecha de corte: `27/09/2026 a las 22:30:32 hrs`).
-   - **Correlativo de Control Oficial Rayen**: `#30.131` (con `27.183` pacientes atendidos efectivos y `29.895` admitidos YTD).
-   - El total acumulado de admisiones (YTD) procesado en MÉTRICO nunca puede superar el correlativo máximo del archivo entregado (`#30.131`) para dicho corte temporal.
+   - **Correlativo Máximo Cargado en Sistema**: `#30.789` (Lote 53, Fecha de corte: `03/10/2026 a las 22:20:20 hrs`).
+   - **Correlativo de Control Oficial Rayen**: `#30.789` (con `27.968` pacientes atendidos efectivos, `2.821` altas administrativas y `30.789` admitidos YTD).
+   - El total acumulado de admisiones (YTD) procesado en MÉTRICO nunca puede superar el correlativo máximo del archivo entregado (`#30.789`) para dicho corte temporal.
 2. **SSOT en `pacientesDB` y Deduplicación Estricta**: La demanda mensual y global debe priorizar siempre el conteo desduplicado directo de `pacientesDB` (`deduplicarPacientes`) para evitar que turnos precalculados o sincronizaciones superpuestas en Firestore inflen artificialmente los totales.
 3. **Integridad de Líneas Base Históricas (2025)**: Las series comparativas de 12 meses deben mantener la continuidad de la línea base histórica SAR si la base de datos local contiene meses incompletos o fragmentos de prueba (< 2.000 pacientes por mes).
 4. **Prioridad Absoluta de Pauta Manual de Turnos (`pautas_turnos`)**:
@@ -15,7 +15,7 @@
    - **Fines de Semana y Festivos**: Corte formal a las 20:00 hrs para turnos diurnos y a las 08:00 hrs del día siguiente para turnos nocturnos.
    - **Días Hábiles (Turno Largo de Semana)**: Debido a que los pacientes que ingresan a las 08:00 AM en punto (o durante el cambio de guardia) permanecen en box, observación médica y tratamiento, sobrepasando las 09:00 AM, la **ventana asistencial y rango superior de búsqueda de estadía se extiende obligatoriamente hasta las 12:00 PM (mediodía)** del día siguiente. Todo corte de datos de día hábil previo a las 12:00 PM se considera con atenciones y estadías en curso, seleccionando el sistema el turno cerrado anterior.
    - Turnos nocturnos en curso o con fragmentos parciales de datos (ej. corte a las 21:57 hrs con 13 pacientes) nunca deben ser auto-seleccionados como turno completo por defecto; el sistema seleccionará el turno previo ya concluido (ej. Sábado Diurno 08:00 a 20:00 con 97 pacientes).
-   - **Filtro Anti-Fechas Futuras y Desambiguación de Formato de Fecha**: Ningún registro, paciente o turno con timestamp o fecha posterior al tiempo real actual o al mes de corte activo (Septiembre 2026) puede ser auto-seleccionado por el sistema. Las fechas en formato texto chileno (ej. 11 de Mayo `11/05/2026`) deben ser blindadas contra inversiones a formato estadounidense (`05/11` Noviembre), impidiendo que registros anómalos o futuros se posicionen en la cima cronológica.
+   - **Filtro Anti-Fechas Futuras y Continuidad Temporal Dinámica**: Ningún registro, paciente o turno con timestamp o fecha posterior al tiempo real actual dinámico (`Date.now() + 86.400.000 ms` / 24 hrs de tolerancia de sincronización) puede ser auto-seleccionado por el sistema. Las fechas en formato texto chileno (ej. 11 de Mayo `11/05/2026`) deben ser blindadas contra inversiones a formato estadounidense (`05/11` Noviembre), impidiendo que registros anómalos o futuros se posicionen en la cima cronológica. Queda estrictamente prohibido utilizar topes estáticos de mes o día (como septiembre o día 28) que bloqueen la carga natural de nuevos meses o lotes.
 6. **Atribución Continua por Fecha Lógica Asistencial en Cruce de Mes (Cierre Mensual 30/31)**:
    - Todo turno asistencial nocturno que inicie en el último día del mes (ej. día 30 o 31 a las 17:00 o 20:00 hrs) y concluya en la mañana del día 1 del mes siguiente (08:00 hrs) consolida el 100% de sus pacientes (incluyendo las admisiones de madrugada 00:00 a 07:59 del día 1) en el turno y mes que cerró (día 30/31).
    - En el Histórico Mensual y en todos los reportes, el día 1 del nuevo mes sólo contabiliza los turnos que abren a partir de las 08:00 hrs (diurnos) o 17:00/20:00 hrs (nocturnos) del día 1, garantizando integridad sin fragmentar el equipo de guardia.
@@ -205,7 +205,13 @@
     - **Blindaje en Componentes Base de Tooltip (`InfoTooltip.jsx` / `TooltipWrapper`)**:
       * Todo tooltip flotante desplegable por hover debe activar dinámicamente elevación en su contenedor wrapper (`show ? 'z-[100]' : ''`) y utilizar `z-[9999]` en su ventana emergente (`div`), asegurando visibilidad total e inmediata ante cualquier interacción.
 
+27. **Erradicación de Fechas de Corte Estáticas y Principio de Continuidad Temporal Dinámica (Regla de Integridad Temporal v6.3.55)**:
+    - **Principio de Continuidad Temporal Ininterrumpida**: El sistema MÉTRICO está diseñado para la ingesta continua y acumulativa de planillas Rayen a lo largo del tiempo. Queda terminantemente prohibido incorporar en el código fuente comprobaciones, filtros o variables con fechas fijas o meses de corte rígidos (tales como `m <= 8`, `dia <= 28`, `p.fecha.includes('2026-10')`, `m > 9` o constantes estáticas `OFFICIAL_DATA_CUTOFF_MS = 28/09/2026`).
+    - **Gobernanza Dinámica del Límite Temporal**: El límite superior para la validación de registros clínicos debe regirse única y exclusivamente por el tiempo real dinámico (`Date.now() + 24 horas`), previniendo registros futuros anómalos derivados de errores de formato fecha (DD/MM/YYYY vs MM/DD/YYYY) sin impedir jamás que el sistema procese y visualice datos legítimos del presente mes o de meses sucesivos.
+    - **Actualización Canónica y Sincronización Automática de Lotes**: Al cargarse un nuevo lote oficial de datos (ej. Lote 53 con correlativo `#30.789` al `03/10/2026 22:20:20 hrs`), el sistema debe recalcular dinámicamente el badge de cabecera (*"Datos cargados hasta: DD/MM/AAAA HH:mm"*), actualizar los techos de control y auto-seleccionar el último turno asistencial completo cerrado de la serie sin requerir parches ni desbloqueos manuales de código.
+
 ---
+
 
 
 ## 🚀 Protocolo Institucional y Obligatorio de Despliegue, Novedades & Bitácora de Desarrollo:

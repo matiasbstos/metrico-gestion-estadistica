@@ -15,6 +15,31 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.55',
+      version: 'v6.3.55',
+      fecha: '04 de Octubre, 2026',
+      badge: 'INTEGRIDAD DE DATOS & SSOT • CONTINUIDAD TEMPORAL DINÁMICA & LOTE 53',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Erradicación de Fechas de Corte Estáticas, Soporte Pleno Octubre 2026 y Actualización a Lote 53 (#30.789)',
+      categoria: 'Auditoría & Datos SSOT',
+      icon: Database,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se erradicaron definitivamente todos los topes y filtros temporales estáticos que limitaban la carga y el procesamiento de datos al mes de septiembre o al día 28/09/2026: 1) Eliminación de filtros duros "m < 8", "dia <= 28", "2026-10" y reemplazo por el principio dinámico de fecha real "tAdmision <= Date.now() + 24 hrs". 2) Actualización del correlativo y techo de control oficial Rayen a #30.789 (Lote 53, 03/10/2026 22:20:20 hrs), con 27.968 pacientes atendidos efectivos y 2.821 altas administrativas. 3) Desbloqueo y auto-detección del último turno clínico cerrado completo para el fin de semana de octubre (Sábado 03/10/2026 08:00 a 20:00 hrs con 73 pacientes). 4) Actualización del badge superior "Datos cargados hasta: 03/10/2026 22:20" reflejando la fecha y hora exacta del último registro cargado en el sistema.',
+      instructivo: {
+        paraQueSirve: 'Permite que cualquier nueva planilla o lote de datos cargado al sistema (como Octubre 2026 o posteriores) sea procesado inmediatamente sin requerir modificaciones de código ni sufrir bloqueos por fechas de corte predeterminadas.',
+        quePuedesVer: '1. Cabecera principal: "Datos cargados hasta: 03/10/2026 22:20". 2. Tarjeta anual "PAC. ADMITIDOS (TOTAL)": 30.789 pacientes. 3. Selección automática del período: Turno Diurno de Fin de Semana del Sábado 03/10/2026 (08:00 a 20:00). 4. Módulo de análisis comparativo y cola de despacho con soporte nativo de Octubre 2026.',
+        ejemploUso: 'Al ingresar a la plataforma o cargar un nuevo archivo Rayen de octubre, observa cómo el sistema detecta de inmediato el Lote 53, sincroniza los 30.789 pacientes y posiciona el filtro en el último turno cerrado de octubre de forma totalmente autónoma.'
+      },
+      changes: [
+        'Reemplazo de OFFICIAL_DATA_CUTOFF_MS estático por límite temporal dinámico en helpers.js.',
+        'Eliminación de exclusiones duras de octubre ("2026-10", "m > 9", "m > 8") en resolverMaxTimestampGlobal, auditarUltimoTurnoCompleto, useMetricoData y ModalConfiguracionCorreo.',
+        'Actualización de techos y líneas base canónicas al Lote 53 (#30.789 pac. admitidos, 27.968 atendidos y 2.821 altas) en useMetricoAnalytics, TorreControlSistema y ModalAcercaDe.',
+        'Corrección del algoritmo de detección de turnos para distinguir con precisión franjas diurnas (08:00 a 20:00) de nocturnas.',
+        'Incorporación del preset "Octubre 2026" y extensión de rango temporal en AnalisisComparativoTriple.',
+        'Certificación mediante pruebas unitarias automatizadas confirmando la detección exacta del turno 03/10/2026 08:00 a 20:00 hrs.'
+      ]
+    },
+    {
       id: 'v6.3.54',
       version: 'v6.3.54',
       fecha: '04 de Octubre, 2026',

@@ -841,7 +841,7 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
     return { exito: false, esTurnoCompleto: false, mensaje: 'Sin datos para auditar turnos.', turnoInfo: null };
   }
 
-  const ahoraMs = Date.now() + 3600000; // Margen de seguridad de 1 hora respecto a tiempo real
+  const ahoraMs = Date.now() + 86400000; // Margen de seguridad de 24 horas respecto a tiempo real
   
   // Deduplicar y ordenar pacientes por timestamp descendente, excluyendo fechas futuras anómalas
   const listPacs = deduplicarPacientes(pacientesDB)
@@ -850,9 +850,8 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
       if (p.tAdmision > ahoraMs) return false; // Descartar fechas futuras a hoy
       const d = new Date(p.tAdmision);
       const y = d.getFullYear();
-      const m = d.getMonth(); // 0-indexed (8 = Septiembre)
-      // Techo de corte del sistema: no puede ser posterior a septiembre 2026 (mes 8)
-      if (y > 2026 || (y === 2026 && m > 8)) return false;
+      // Validar año consistente (<= 2026)
+      if (y > 2026) return false;
       return true;
     })
     .sort((a, b) => b.tAdmision - a.tAdmision);
@@ -864,9 +863,9 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
   const shiftGroups = {};
   listPacs.forEach(p => {
     const det = obtenerTurnoDetallado(p.tAdmision, pautasDB);
-    // Doble verificación: no agrupar turnos con fechas futuras
+    // Doble verificación: no agrupar turnos con años futuros
     const [dStr, mStr, yStr] = det.fechaTurno.split('/');
-    if (parseInt(yStr) > 2026 || (parseInt(yStr) === 2026 && parseInt(mStr) > 9)) return;
+    if (parseInt(yStr) > 2026) return;
 
     const key = `${det.fechaTurno}_${det.horario}`;
     if (!shiftGroups[key]) {
@@ -1238,20 +1237,19 @@ export const auditarIntegridadTurnoCorreo = (turnoInfo) => {
 /**
  * Resuelve el timestamp máximo registrado en el sistema evaluando tanto turnos como pacientes.
  */
-export const OFFICIAL_DATA_CUTOFF_MS = new Date(2026, 8, 28, 23, 59, 59).getTime(); // 28/09/2026 23:59 hrs
+export const OFFICIAL_DATA_CUTOFF_MS = Date.now() + 86400000; // Margen dinámico hasta tiempo real actual (+24h)
 
 export const resolverMaxTimestampGlobal = (turnosDB = [], pacientesDB = [], allPacientesDB = []) => {
   let maxTime = 0;
-  const maxPermitido = Math.min(Date.now() + 3600000, OFFICIAL_DATA_CUTOFF_MS);
+  const ahoraMax = Date.now() + 86400000;
+  const maxPermitido = Math.max(ahoraMax, OFFICIAL_DATA_CUTOFF_MS);
   const records = (allPacientesDB && allPacientesDB.length > 0) ? allPacientesDB : (pacientesDB || []);
   if (records && records.length > 0) {
     records.forEach(p => {
       if (p.tAdmision && p.tAdmision <= maxPermitido && p.tAdmision > maxTime) {
         const d = new Date(p.tAdmision);
         const y = d.getFullYear();
-        const m = d.getMonth();
-        const dia = d.getDate();
-        if (y < 2026 || (y === 2026 && (m < 8 || (m === 8 && dia <= 28)))) {
+        if (y <= 2026) {
           maxTime = p.tAdmision;
         }
       }
@@ -1279,9 +1277,9 @@ export const resolverMaxTimestampGlobal = (turnosDB = [], pacientesDB = [], allP
           m = parseInt(parts[1]);
           y = parseInt(parts[2]);
         }
-        // Excluir cualquier fecha posterior al corte del 28/09/2026
-        if (y && m && d && (y < 2026 || (y === 2026 && (m < 9 || (m === 9 && d <= 28))))) {
-          const isNight = (String(t.horario).includes('20:00') || String(t.horario).includes('Noche') || String(t.horario).includes('17:00') || String(t.horario).includes('Largo'));
+        if (y && m && d && y <= 2026) {
+          const horStr = String(t.horario || '');
+          const isNight = (horStr.includes('20:00 a 08:00') || horStr.includes('20:00 - 08:00') || horStr.includes('Noche') || horStr.includes('17:00') || horStr.includes('Largo'));
           const h = isNight ? 23 : 20;
           const min = isNight ? 57 : 0;
           const tMs = new Date(y, m - 1, d, h, min, 0).getTime();

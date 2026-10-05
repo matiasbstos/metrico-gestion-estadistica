@@ -79,8 +79,18 @@ export default function AnalisisComparativoTriple({
   setFiltroFechaFin, 
   setActiveTab 
 }) {
-  // Constante de corte máximo de datos del sistema (Regla 1 & 5 SSOT)
-  const MAX_SYSTEM_CUTOFF = '2026-09-28';
+  // Constante de corte de datos del sistema (Regla 1 & 5 SSOT)
+  const MAX_SYSTEM_CUTOFF = useMemo(() => {
+    if (turnosDB && turnosDB.length > 0) {
+      const validT = turnosDB
+        .map(t => parseLocalDateStr(t?.fechaInicio) || (typeof t?.fechaInicio === 'string' ? t.fechaInicio.trim() : null))
+        .filter(fIso => fIso && fIso.startsWith('2026-'))
+        .sort()
+        .reverse();
+      if (validT.length > 0 && validT[0] >= '2026-09-28') return validT[0];
+    }
+    return '2026-10-31';
+  }, [turnosDB]);
 
   // Helper para resolver la fecha máxima con datos válidos
   const getLatestValidDate = useCallback(() => {
@@ -96,7 +106,7 @@ export default function AnalisisComparativoTriple({
       if (validT.length > 0) return validT[0];
     }
     if (pacientesDB && pacientesDB.length > 0) {
-      const ahoraMs = Date.now() + 3600000;
+      const ahoraMs = Date.now() + 86400000;
       let maxD = null;
       for (let i = 0; i < pacientesDB.length; i++) {
         const p = pacientesDB[i];
@@ -109,8 +119,8 @@ export default function AnalisisComparativoTriple({
       }
       if (maxD) return maxD;
     }
-    return '2026-09-28';
-  }, [filtroFechaFin, turnosDB, pacientesDB]);
+    return MAX_SYSTEM_CUTOFF;
+  }, [filtroFechaFin, turnosDB, pacientesDB, MAX_SYSTEM_CUTOFF]);
 
   // Helper para verificar si un rango entrante es amplio (>= 14 días)
   const isBroadRange = (d1, d2) => {
@@ -174,7 +184,11 @@ export default function AnalisisComparativoTriple({
       return;
     } else if (presetKey === 'septiembre_2026') {
       setFechaInicio('2026-09-01');
-      setFechaFin('2026-09-28');
+      setFechaFin('2026-09-30');
+      return;
+    } else if (presetKey === 'octubre_2026') {
+      setFechaInicio('2026-10-01');
+      setFechaFin(MAX_SYSTEM_CUTOFF);
       return;
     }
 

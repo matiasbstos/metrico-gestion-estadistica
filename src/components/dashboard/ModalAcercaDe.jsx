@@ -481,15 +481,15 @@ export default function ModalAcercaDe({ isOpen, onClose }) {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 font-mono text-[11px]">
                   <div className="p-2 rounded-xl bg-card-custom border border-card-custom text-center">
                     <span className="block text-[9px] text-secondary-custom uppercase font-sans">Correlativo Máx</span>
-                    <span className="font-black text-primary-custom">#30.131 (Lote 50)</span>
+                    <span className="font-black text-primary-custom">#30.789 (Lote 53)</span>
                   </div>
                   <div className="p-2 rounded-xl bg-card-custom border border-card-custom text-center">
                     <span className="block text-[9px] text-secondary-custom uppercase font-sans">Admitidos YTD 2026</span>
-                    <span className="font-black text-sky-500">29.895 pac.</span>
+                    <span className="font-black text-sky-500">30.789 pac.</span>
                   </div>
                   <div className="p-2 rounded-xl bg-card-custom border border-card-custom text-center">
                     <span className="block text-[9px] text-secondary-custom uppercase font-sans">Atendidos Efectivos</span>
-                    <span className="font-black text-emerald-500">27.183 pac.</span>
+                    <span className="font-black text-emerald-500">27.968 pac.</span>
                   </div>
                   <div className="p-2 rounded-xl bg-card-custom border border-card-custom text-center">
                     <span className="block text-[9px] text-secondary-custom uppercase font-sans">Histórico 2025</span>

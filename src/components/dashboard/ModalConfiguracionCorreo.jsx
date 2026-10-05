@@ -1843,15 +1843,14 @@ export default function ModalConfiguracionCorreo({
   // Pacientes Deduplicados con Motor SSOT Oficial (Sin duplicación local ni datos obsoletos en caché)
   const combinedPacientes = useMemo(() => {
     const raw = pacientesDB || [];
-    const ahoraMs = Date.now() + 3600000;
+    const ahoraMs = Date.now() + 86400000;
 
     const filtered = raw.filter(p => {
       if (!p) return false;
-      if (p.tAdmision && p.tAdmision > ahoraMs) return false; // Excluir fechas futuras
-      if (p.fecha && (p.fecha.includes('2026-11') || p.fecha.includes('2026-12') || p.fecha.includes('2026-10'))) return false;
+      if (p.tAdmision && p.tAdmision > ahoraMs) return false; // Excluir fechas futuras a hoy
       if (p.tAdmision) {
         const d = new Date(p.tAdmision);
-        if (d.getFullYear() > 2026 || (d.getFullYear() === 2026 && d.getMonth() > 8)) return false;
+        if (d.getFullYear() > 2026) return false;
       }
       return true;
     });
@@ -1872,7 +1871,7 @@ export default function ModalConfiguracionCorreo({
         m = parseInt(parts[1]);
         y = parseInt(parts[2]);
       }
-      if (y > 2026 || (y === 2026 && m > 9)) return false;
+      if (y > 2026 || (y === 2026 && m > 12)) return false;
       return true;
     };
 
@@ -2134,7 +2133,7 @@ export default function ModalConfiguracionCorreo({
         m = parseInt(parts[1]);
         y = parseInt(parts[2]);
       }
-      if (y > 2026 || (y === 2026 && m > 9)) return false;
+      if (y > 2026 || (y === 2026 && m > 12)) return false;
       return true;
     };
 

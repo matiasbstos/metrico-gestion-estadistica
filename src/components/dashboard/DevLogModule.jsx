@@ -8,6 +8,35 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-55',
+    titulo: 'Erradicación de Fechas de Corte Estáticas en helpers.js, Reconocimiento Pleno de Octubre 2026 y Actualización al Lote 53 (#30.789)',
+    fecha: '2026-10-04',
+    version_tag: 'v6.3.55',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_55.png',
+    problema: 'Al cargar el Lote 53 con atenciones hasta el 03/10/2026 (#30.789 correlativos), la plataforma mostraba el badge "Datos cargados hasta: 28/09/2026 23:58" y retenía filtros de septiembre. Esto ocurría debido a fechas de corte estáticas y filtros rígidos heredados (OFFICIAL_DATA_CUTOFF_MS = 28/09/2026, mes <= 8 y exclusiones explícitas de "2026-10") en resolverMaxTimestampGlobal, auditarUltimoTurnoCompleto, ModalConfiguracionCorreo.jsx, useMetricoData.js y AnalisisComparativoTriple.jsx, que bloqueaban cualquier registro posterior al 28 de septiembre.',
+    logica: '1) Sustitución de Cutoffs Rígidos por Ventana Temporal Dinámica: En helpers.js se actualizó OFFICIAL_DATA_CUTOFF_MS para operar en base al tiempo real dinámico (Date.now() + 86400000), suprimiendo los límites fijos a septiembre (mes <= 8 y día <= 28). 2) Resolución Precisa en resolverMaxTimestampGlobal: Los registros individuales de pacientes en memoria determinan el timestamp exacto del último ingreso (03/10/2026 a las 22:20:20 hrs), permitiendo que maxDateLabel exhiba "Datos cargados hasta: 03/10/2026 22:20" y que calcularUltimoTurnoCompleto detecte el turno Sábado Diurno del 03/10/2026 (08:00 a 20:00). 3) Apertura de Octubre en Toda la Plataforma: Se eliminaron los filtros restrictivos en combinedPacientes y diasCompletosAuditados (ModalConfiguracionCorreo.jsx), en useMetricoData.js (turnos de octubre en Firestore) y en AnalisisComparativoTriple.jsx (MAX_SYSTEM_CUTOFF dinámico y preset "Octubre 2026"). 4) Actualización del Techo Rayen Oficial a Lote 53: Conteo consolidado de #30.789 pacientes admitidos, 27.968 atenciones médicas y 2.821 altas administrativas YTD.',
+    solucion: 'El sistema reconoce y procesa automáticamente las atenciones de Octubre 2026 y lotes posteriores sin bloqueos de fecha, exhibiendo fielmente "Datos cargados hasta: 03/10/2026 22:20" con 30.789 admisiones.',
+    fullPost: `En esta versión v6.3.55 realizamos una reingeniería profunda del sistema de fechas de corte para garantizar la continuidad temporal y el reconocimiento inmediato de nuevas cargas de datos:
+
+1. **Diagnóstico y Causa Raíz**:
+   - En versiones previas, se habían introducido salvaguardas temporales duras (\`OFFICIAL_DATA_CUTOFF_MS = 28/09/2026 23:59:59\`, \`m < 8 || (m === 8 && dia <= 28)\`, y exclusiones como \`p.fecha.includes('2026-10')\`) para evitar que fechas mal formateadas en planillas antiguas se interpretaran como meses futuros.
+   - Al cargar el Lote 53 (\`INFORME_URGENCIA_TIEMPO_ESPERA(53)\`) que contiene pacientes hasta el **03/10/2026 a las 22:20:20 hrs** (correlativo #30.789), estas guardas estáticas descartaban los registros de octubre, dejando congelado el badge de cabecera en *"Datos cargados hasta: 28/09/2026 23:58"*.
+
+2. **Resolución y Blindaje Dinámico**:
+   - **\`helpers.js\`**: \`OFFICIAL_DATA_CUTOFF_MS\` pasa a evaluarse dinámicamente frente al tiempo real (\`Date.now() + 86400000\`), admitiendo de forma natural cualquier registro del presente sin necesidad de intervención de código.
+   - **\`resolverMaxTimestampGlobal\`**: Identifica con exactitud matemática el último ingreso asistencial (\`03/10/2026 22:20\`) a partir de \`pacientesDB\`.
+   - **\`calcularUltimoTurnoCompleto\`**: Detecta que al corte del sábado 03/10 a las 22:20 hrs, el turno diurno (08:00 a 20:00) concluyó al 100%, posicionando los selectores de fecha en la jornada correcta.
+   - **\`ModalConfiguracionCorreo.jsx\` & \`useMetricoData.js\`**: Desbloqueo de registros de octubre para la cola de despacho de informes y la sincronización profunda con Firestore.
+   - **\`AnalisisComparativoTriple.jsx\`**: \`MAX_SYSTEM_CUTOFF\` se vuelve reactivo frente a las fechas presentes en la base de datos, incorporando el preset *"Octubre 2026"*.
+
+3. **Consolidación Oficial del Lote 53**:
+   - **Correlativo Máximo**: \`#30.789\`.
+   - **Pacientes Admitidos YTD**: \`30.789 pac.\`
+   - **Atenciones Médicas Efectivas**: \`27.968 pac.\` (90.8% de cobertura médica).
+   - **Altas Administrativas**: \`2.821 altas\` (9.2% del total).`
+  },
+  {
     id: 'devlog-v6-3-54',
     titulo: 'Resolución de Contexto de Apilamiento CSS (Stacking Context) y Blindaje de z-index en Tooltips Informativos de Tendencia YoY',
     fecha: '2026-10-04',

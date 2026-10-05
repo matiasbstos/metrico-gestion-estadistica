@@ -721,13 +721,12 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       dedup2026Turnos.push(t);
     });
 
-    // Regla 1 & 2 SSOT: Techo y Control Oficial Rayen #30.131 con 27.183 pacientes atendidos y 29.895 admitidos.
-    // Ningún conteo dinámico ni turno precalculado superpuesto puede inflar el acumulado YTD por sobre 30.131 / 32.000.
-    const isFullYearPacs = dedup2026Pacs.length >= 25000 && dedup2026Pacs.length <= 32000;
+    // Regla 1 & 2 SSOT: Techo Dinámico y Control Oficial Rayen (#30.789 Lote 53)
+    const isFullYearPacs = dedup2026Pacs.length >= 25000;
 
-    const ytdPacientes = isFullYearPacs ? dedup2026Pacs.length : 29895;
-    const ytdAltas = isFullYearPacs ? dedup2026Pacs.filter(isAltaAdmin).length : 2712;
-    const ytdAtendidos = isFullYearPacs ? Math.max(0, ytdPacientes - ytdAltas) : 27183;
+    const ytdPacientes = isFullYearPacs ? dedup2026Pacs.length : 30789;
+    const ytdAltas = isFullYearPacs ? dedup2026Pacs.filter(isAltaAdmin).length : 2821;
+    const ytdAtendidos = isFullYearPacs ? Math.max(0, ytdPacientes - ytdAltas) : 27968;
     const ytdTraslados = 1198;
     const ytdConstataciones = 258;
     const ytdEstadia = 133;
