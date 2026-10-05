@@ -10,6 +10,31 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.57',
+    version_tag: 'v6.3.57',
+    fecha: '05 de Octubre, 2026',
+    fecha_despliegue: '05 de Octubre, 2026',
+    proposito_actualizacion: 'Auditoría Exhaustiva de Código, Módulos y KPIs: Erradicación Total de Residuos Estáticos de Septiembre y Dinamización Universal de Tablas, Categorías y Subreportes.',
+    medios_y_stack: [
+      'CentroVerificacionAuditoria.jsx (Implementación de mesesAuditoria2026 para cálculo mensual dinámico desde pacientesDB; dinamización de KPI 4 Techo de Correlativos #30.789+ y corte de archivo; generación dinámica de bloques trimestrales de sincronización hasta currentYear + 1 en recalcularTurnos; rayenControl inicializado en 30789; selectores de año dinámicos)',
+      'useMetricoAnalytics.js (Dinamización de annualCatMap enlazado a ytdCats sobre dedup2026Pacs para crecimiento reactivo de C1-C5; escalamiento proporcional homólogo 2025 para traslados ~121/mes y constataciones ~25.6/mes según maxElapsedMonth)',
+      'AnalisisDemandaAtencion.jsx (Sustitución de metadata fija de agosto por comprobación reactiva item.isMonthInProgress)',
+      'AnalisisCurvaDemanda.jsx (Fechas base y de contraste iniciales calculadas dinámicamente según tiempo real o última semana)',
+      'AnalisisComparativoTriple.jsx (Presets temporales ultimos_3_meses, ultimos_30_dias, ultimos_7_dias calculados dinámicamente desde MAX_SYSTEM_CUTOFF e incorporación de preset Octubre 2026)',
+      'AnalisisTraslados.jsx (Dinamización de fallback de mes activo en maxTrasladosMes)',
+      'AnalisisConstataciones.jsx (Cálculo dinámico de ytdConstatacionesCount desvinculado de texto estático)',
+      'Radar.jsx (Alertas predictivas multivariables neutrales y continuas)',
+      'version.js (Sincronización a v6.3.57)',
+      'take_devlog_snapshot.cjs & DevLogModule.jsx (Soporte headless y publicación DevLog v6.3.57)',
+      'ModalMuroActualizaciones.jsx (Ficha en muro de novedades)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Cero Residuos Estáticos: Ningún componente, tabla mensual o cálculo analítico puede depender de arreglos estáticos de meses pasados o constantes fijas de corte temporal. 2) Crecimiento Reactivo de Triage: Las categorías anuales C1 a C5 deben reflejar de forma incremental cada paciente ingresado en el año. 3) Proporcionalidad Homóloga Interanual: Las comparativas históricas de traslados y constataciones deben escalar de forma unívoca con los meses transcurridos en el año activo.',
+      firestore_collections: ['system_architecture_log', 'pacientes', 'turnos', 'audit_logs'],
+      documentos_afectados: ['src/components/dashboard/CentroVerificacionAuditoria.jsx', 'src/hooks/useMetricoAnalytics.js', 'src/components/dashboard/AnalisisDemandaAtencion.jsx', 'src/components/dashboard/AnalisisCurvaDemanda.jsx', 'src/components/dashboard/AnalisisComparativoTriple.jsx', 'src/components/dashboard/AnalisisTraslados.jsx', 'src/components/dashboard/AnalisisConstataciones.jsx', 'src/components/dashboard/Radar.jsx', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx']
+    }
+  },
+  {
     id: 'v6.3.56',
     version_tag: 'v6.3.56',
     fecha: '04 de Octubre, 2026',

@@ -890,8 +890,9 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const pyYtdPacientes = elapsedMonthIndexes.reduce((acc, m) => acc + (BASELINE_2025_MONTHLY[m] || 0), 0); // 27.150 al corte de Sep
     const pyYtdAtendidos = elapsedMonthIndexes.reduce((acc, m) => acc + (BASELINE_2025_ATENDIDOS[m] || 0), 0); // 24.618 al corte de Sep
     const pyYtdAltas = elapsedMonthIndexes.reduce((acc, m) => acc + (BASELINE_2025_ALTAS[m] || 0), 0); // 2.532 al corte de Sep
-    const pyYtdTraslados = 1089;
-    const pyYtdConstataciones = 230;
+    // Escalamiento homologo transversal para traslados (~121/mes) y constataciones (~25.6/mes) segun meses transcurridos
+    const pyYtdTraslados = Math.round((1452 / 12) * maxElapsedMonth);
+    const pyYtdConstataciones = Math.round((307 / 12) * maxElapsedMonth);
     const pyYtdEstadia = 128;
     const pyYtdPacHora = 4.1;
     const fullYear2025Pacientes = Object.values(BASELINE_2025_MONTHLY).reduce((a, b) => a + b, 0); // 37.526
@@ -945,13 +946,19 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const isAnnualRange = daysDiff >= 300 || 
       (String(filtroFechaInicio).includes('01-01') && (String(filtroFechaFin).includes('12-31') || String(filtroFechaFin).includes('31/12') || String(filtroFechaFin).includes('12/31')));
 
+    // Conteo YTD dinamico de categorias clinicas para el anio completo
+    const ytdCats = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
+    if (dedup2026Pacs && dedup2026Pacs.length > 0) {
+      countCategories(dedup2026Pacs, ytdCats);
+    }
+
     const annualCatMap = {
-      c1: 194,
-      c2: 2296,
-      c3: 11957,
-      c3_z518: 258,
-      c4: 12859,
-      c5: 2331
+      c1: ytdCats.c1 > 0 ? ytdCats.c1 : 194,
+      c2: ytdCats.c2 > 0 ? ytdCats.c2 : 2296,
+      c3: ytdCats.c3 > 0 ? ytdCats.c3 : 11957,
+      c3_z518: ytdCats.c3_z518 > 0 ? ytdCats.c3_z518 : 258,
+      c4: ytdCats.c4 > 0 ? ytdCats.c4 : 12859,
+      c5: ytdCats.c5 > 0 ? ytdCats.c5 : 2331
     };
 
     return {

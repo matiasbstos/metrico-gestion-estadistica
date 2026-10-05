@@ -75,13 +75,31 @@ export default function AnalisisCurvaDemanda({
   const [vistaTemporal, setVistaTemporal] = useState('hora'); // 'hora' (24 hrs) | 'dia' (7 días sem.)
   const [metricaEscalaCurva, setMetricaEscalaCurva] = useState('promedio'); // 'promedio' (Promedio Diario) | 'total' (Total Acumulado)
 
-  // Fechas Período Base (por defecto rango del filtro global o última semana completa)
-  const [baseInicio, setBaseInicio] = useState(filtroFechaInicio || '2026-09-07');
-  const [baseFin, setBaseFin] = useState(filtroFechaFin || '2026-09-13');
+  // Fechas Período Base (por defecto rango del filtro global o última semana completa calculada dinámicamente)
+  const [baseInicio, setBaseInicio] = useState(() => {
+    if (filtroFechaInicio) return filtroFechaInicio;
+    const now = new Date();
+    const start = new Date(now);
+    start.setDate(start.getDate() - 7);
+    return `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`;
+  });
+  const [baseFin, setBaseFin] = useState(() => {
+    if (filtroFechaFin) return filtroFechaFin;
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  });
 
-  // Fechas Período Contraste
-  const [contrasteInicio, setContrasteInicio] = useState('2026-08-31');
-  const [contrasteFin, setContrasteFin] = useState('2026-09-06');
+  // Fechas Período Contraste (calculado dinámicamente según duración del período base)
+  const [contrasteInicio, setContrasteInicio] = useState(() => {
+    const bStart = filtroFechaInicio ? new Date(filtroFechaInicio) : new Date();
+    bStart.setDate(bStart.getDate() - 14);
+    return `${bStart.getFullYear()}-${String(bStart.getMonth() + 1).padStart(2, '0')}-${String(bStart.getDate()).padStart(2, '0')}`;
+  });
+  const [contrasteFin, setContrasteFin] = useState(() => {
+    const bEnd = filtroFechaInicio ? new Date(filtroFechaInicio) : new Date();
+    bEnd.setDate(bEnd.getDate() - 8);
+    return `${bEnd.getFullYear()}-${String(bEnd.getMonth() + 1).padStart(2, '0')}-${String(bEnd.getDate()).padStart(2, '0')}`;
+  });
 
   // Estados de datos y carga
   const [curvaData, setCurvaData] = useState({ hourly: [], daily: [] });

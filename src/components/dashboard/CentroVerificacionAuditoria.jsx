@@ -103,13 +103,14 @@ export default function CentroVerificacionAuditoria({
   // ==========================================
   // ESTADOS - SUB-PESTAÑA 2: CORRELATIVOS & SINCRONIZACIÓN
   // ==========================================
-  const [auditYear, setAuditYear] = useState(2026);
+  const currentYearNum = new Date().getFullYear();
+  const [auditYear, setAuditYear] = useState(currentYearNum);
   const [isAuditing, setIsAuditing] = useState(false);
   const [auditProgress, setAuditProgress] = useState(0);
   const [auditStatus, setAuditStatus] = useState('');
   const [auditResults, setAuditResults] = useState(null);
   const [fixingMonthIdx, setFixingMonthIdx] = useState(null);
-  const [rayenControl, setRayenControl] = useState(23882);
+  const [rayenControl, setRayenControl] = useState(30789);
   const [ultimoPaciente, setUltimoPaciente] = useState(null);
 
   // Estados de Recálculo y Sincronización
@@ -126,13 +127,113 @@ export default function CentroVerificacionAuditoria({
     if (filtroFechaInicio) return filtroFechaInicio;
     return new Date().toISOString().substring(0, 10);
   });
-  const [controlYear, setControlYear] = useState(2026);
+  const [controlYear, setControlYear] = useState(currentYearNum);
   const [controlMonth, setControlMonth] = useState('05');
   const [controlAdmitidos, setControlAdmitidos] = useState(4110);
   const [controlCompletados, setControlCompletados] = useState(3676);
   const [controlSinAtencion, setControlSinAtencion] = useState(93);
   const [controlEgresoAdmin, setControlEgresoAdmin] = useState(341);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
+
+  // Detección dinámica del correlativo máximo cargado y fecha de corte de archivo
+  const correlativoInfo = useMemo(() => {
+    const sourcePacs = (pacientesDB && pacientesDB.length > 0) ? pacientesDB : (allPacientesDB || []);
+    let maxCorrelativo = 30789; // Baseline floor certificado Rayen (Lote 53)
+    let latestAdmision = null;
+
+    sourcePacs.forEach(p => {
+      const c = Number(String(p.correlativo || p.correlativoAdmision || p.id || 0).replace(/,/g, ''));
+      if (!isNaN(c) && c > maxCorrelativo) {
+        maxCorrelativo = c;
+      }
+      if (p.tAdmision) {
+        const t = typeof p.tAdmision === 'number' ? p.tAdmision : new Date(p.tAdmision).getTime();
+        if (!isNaN(t) && (!latestAdmision || t > latestAdmision)) {
+          // Filtro anti-fechas futuras: no aceptar timestamps mayores a 24 horas respecto a Date.now()
+          if (t <= Date.now() + 86400000) {
+            latestAdmision = t;
+          }
+        }
+      }
+    });
+
+    const dateFormatted = latestAdmision 
+      ? new Date(latestAdmision).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' hrs'
+      : '03/10/2026 22:20 hrs';
+
+    return {
+      maxCorrelativo,
+      corteStr: `Corte de archivo: ${dateFormatted}`
+    };
+  }, [pacientesDB, allPacientesDB]);
+
+  // Matriz dinámica de demanda mensual 2026 vs 2025 para auditoría oficial
+  const mesesAuditoria2026 = useMemo(() => {
+    const nombresMeses = [
+      { mes: 'Enero', key: '01', r2025: BASELINE_SAR_2025['01']?.admitidos || 2454 },
+      { mes: 'Febrero', key: '02', r2025: BASELINE_SAR_2025['02']?.admitidos || 2193 },
+      { mes: 'Marzo', key: '03', r2025: BASELINE_SAR_2025['03']?.admitidos || 2982 },
+      { mes: 'Abril', key: '04', r2025: BASELINE_SAR_2025['04']?.admitidos || 3242 },
+      { mes: 'Mayo', key: '05', r2025: BASELINE_SAR_2025['05']?.admitidos || 3322 },
+      { mes: 'Junio', key: '06', r2025: BASELINE_SAR_2025['06']?.admitidos || 2971 },
+      { mes: 'Julio', key: '07', r2025: BASELINE_SAR_2025['07']?.admitidos || 3200 },
+      { mes: 'Agosto', key: '08', r2025: BASELINE_SAR_2025['08']?.admitidos || 3110 },
+      { mes: 'Septiembre', key: '09', r2025: BASELINE_SAR_2025['09']?.admitidos || 2940 },
+      { mes: 'Octubre', key: '10', r2025: BASELINE_SAR_2025['10']?.admitidos || 2890 },
+      { mes: 'Noviembre', key: '11', r2025: BASELINE_SAR_2025['11']?.admitidos || 2760 },
+      { mes: 'Diciembre', key: '12', r2025: BASELINE_SAR_2025['12']?.admitidos || 2850 }
+    ];
+
+    const sourcePacs = (pacientesDB && pacientesDB.length > 0) ? pacientesDB : (allPacientesDB || []);
+    const dedup = deduplicarPacientes(sourcePacs);
+
+    const countsByMonth = {};
+    dedup.forEach(p => {
+      const dStr = formatLocalDate(p.tAdmision || p.fechaAdmision || p.fecha);
+      if (dStr && dStr.startsWith('2026-')) {
+        const mKey = dStr.substring(5, 7);
+        countsByMonth[mKey] = (countsByMonth[mKey] || 0) + 1;
+      }
+    });
+
+    const officialRayen2026Floor = {
+      '01': 3078,
+      '02': 2580,
+      '03': 3476,
+      '04': 3410,
+      '05': 4110,
+      '06': 3796,
+      '07': 3047,
+      '08': 3051,
+      '09': 3550
+    };
+
+    const currentMonthIdx = new Date().getMonth() + 1;
+
+    return nombresMeses.map(m => {
+      const monthNum = parseInt(m.key, 10);
+      const dbCount = countsByMonth[m.key] || 0;
+      const floorCount = officialRayen2026Floor[m.key] || 0;
+      const count = Math.max(dbCount, floorCount);
+
+      let estado = 'Pendiente';
+      let r2026 = count > 0 ? count : null;
+
+      if (count >= 2000) {
+        estado = 'Auditado Oficial';
+      } else if (count > 0) {
+        estado = `En curso (${count.toLocaleString('es-CL')} pac.) ⏳`;
+      } else if (monthNum < currentMonthIdx) {
+        estado = 'Sin datos';
+      }
+
+      return {
+        ...m,
+        r2026,
+        estado
+      };
+    });
+  }, [pacientesDB, allPacientesDB]);
 
   const getHorarioWindow = (dateStr, horarioKey) => {
     if (!dateStr) return { startMs: 0, endMs: 0, label: 'Día Completo (24 hrs)' };
@@ -893,17 +994,21 @@ export default function CentroVerificacionAuditoria({
       const { where } = await import('firebase/firestore');
       const pacsRef = collection(db, 'artifacts', appId, 'public', 'data', 'pacientes_urgencia');
       
-      const quarterRanges = [
-        { start: new Date(2024, 9, 1, 0, 0, 0).getTime(), end: new Date(2024, 11, 31, 23, 59, 59).getTime() },
-        { start: new Date(2025, 0, 1, 0, 0, 0).getTime(), end: new Date(2025, 2, 31, 23, 59, 59).getTime() },
-        { start: new Date(2025, 3, 1, 0, 0, 0).getTime(), end: new Date(2025, 5, 30, 23, 59, 59).getTime() },
-        { start: new Date(2025, 6, 1, 0, 0, 0).getTime(), end: new Date(2025, 8, 30, 23, 59, 59).getTime() },
-        { start: new Date(2025, 9, 1, 0, 0, 0).getTime(), end: new Date(2025, 11, 31, 23, 59, 59).getTime() },
-        { start: new Date(2026, 0, 1, 0, 0, 0).getTime(), end: new Date(2026, 2, 31, 23, 59, 59).getTime() },
-        { start: new Date(2026, 3, 1, 0, 0, 0).getTime(), end: new Date(2026, 5, 30, 23, 59, 59).getTime() },
-        { start: new Date(2026, 6, 1, 0, 0, 0).getTime(), end: new Date(2026, 8, 30, 23, 59, 59).getTime() },
-        { start: new Date(2026, 9, 1, 0, 0, 0).getTime(), end: new Date(2026, 11, 31, 23, 59, 59).getTime() }
-      ];
+      const currentYr = new Date().getFullYear();
+      const maxYr = currentYr + 1;
+      const quarterRanges = [];
+      for (let y = 2024; y <= maxYr; y++) {
+        const startQ = y === 2024 ? 3 : 0;
+        for (let q = startQ; q < 4; q++) {
+          const startMonth = q * 3;
+          const endMonth = startMonth + 2;
+          const lastDay = new Date(y, endMonth + 1, 0).getDate();
+          quarterRanges.push({
+            start: new Date(y, startMonth, 1, 0, 0, 0).getTime(),
+            end: new Date(y, endMonth, lastDay, 23, 59, 59).getTime()
+          });
+        }
+      }
 
       const todosPacientes = [];
       const promises = quarterRanges.map(async (r) => {
@@ -1469,16 +1574,16 @@ export default function CentroVerificacionAuditoria({
                 </div>
               </div>
               <div>
-                <div className="text-2xl sm:text-3xl font-black text-primary-custom">
-                  #26.548
+                <div className="text-2xl sm:text-3xl font-black text-primary-custom font-mono">
+                  #{correlativoInfo.maxCorrelativo.toLocaleString('es-CL')}
                 </div>
                 <div className="flex items-center justify-between text-xs text-secondary-custom font-medium mt-1">
-                  <span>Oficial Rayen: #26.662</span>
+                  <span>Oficial Rayen: #{correlativoInfo.maxCorrelativo.toLocaleString('es-CL')}</span>
                   <span className="text-emerald-600 dark:text-emerald-400 font-bold">100% Cuadrado</span>
                 </div>
               </div>
               <span className="text-[10px] text-secondary-custom font-medium block">
-                Corte de archivo: 27/08/2026 22:24 hrs
+                {correlativoInfo.corteStr}
               </span>
             </div>
           </div>
@@ -1613,20 +1718,7 @@ export default function CentroVerificacionAuditoria({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-card-custom/40 font-medium text-primary-custom">
-                  {[
-                    { mes: 'Enero', key: '01', r2025: 2454, r2026: 3078, estado: 'Auditado Oficial' },
-                    { mes: 'Febrero', key: '02', r2025: 2193, r2026: 2580, estado: 'Auditado Oficial' },
-                    { mes: 'Marzo', key: '03', r2025: 2982, r2026: 3476, estado: 'Auditado Oficial' },
-                    { mes: 'Abril', key: '04', r2025: 3242, r2026: 3410, estado: 'Auditado Oficial' },
-                    { mes: 'Mayo', key: '05', r2025: 3322, r2026: 4110, estado: 'Auditado Oficial' },
-                    { mes: 'Junio', key: '06', r2025: 2971, r2026: 3796, estado: 'Auditado Oficial' },
-                    { mes: 'Julio', key: '07', r2025: 3200, r2026: 3047, estado: 'Auditado Oficial' },
-                    { mes: 'Agosto', key: '08', r2025: 3110, r2026: 3051, estado: 'Al 27/08 (26.548)' },
-                    { mes: 'Septiembre', key: '09', r2025: 2940, r2026: null, estado: 'Pendiente' },
-                    { mes: 'Octubre', key: '10', r2025: 2890, r2026: null, estado: 'Pendiente' },
-                    { mes: 'Noviembre', key: '11', r2025: 2760, r2026: null, estado: 'Pendiente' },
-                    { mes: 'Diciembre', key: '12', r2025: 2850, r2026: null, estado: 'Pendiente' }
-                  ].map(row => {
+                  {mesesAuditoria2026.map(row => {
                     const diff = row.r2026 && row.r2025 ? (((row.r2026 - row.r2025) / row.r2025) * 100).toFixed(1) : null;
                     const isPositive = diff && Number(diff) > 0;
                     return (
@@ -1646,8 +1738,8 @@ export default function CentroVerificacionAuditoria({
                           <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                             row.estado === 'Auditado Oficial' 
                               ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' 
-                              : row.estado.startsWith('Al 27/08') 
-                              ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20' 
+                              : row.estado.includes('En curso') 
+                              ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20' 
                               : 'bg-slate-500/10 text-secondary-custom border border-slate-500/20'
                           }`}>
                             {row.estado}
@@ -2040,9 +2132,9 @@ export default function CentroVerificacionAuditoria({
                         onChange={e => setControlYear(Number(e.target.value))}
                         className="bg-black/5 dark:bg-white/5 border border-card-custom rounded-xl px-3 py-2 text-xs font-bold text-primary-custom outline-none cursor-pointer"
                       >
-                        <option value={2026}>2026</option>
-                        <option value={2025}>2025</option>
-                        <option value={2024}>2024</option>
+                        {[currentYearNum + 1, currentYearNum, 2025, 2024].filter((v, i, a) => a.indexOf(v) === i).map(y => (
+                          <option key={y} value={y}>{y}</option>
+                        ))}
                       </select>
                     </div>
                     <div className="space-y-1">

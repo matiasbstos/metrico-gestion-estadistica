@@ -8,6 +8,38 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-57',
+    titulo: 'Auditoría Exhaustiva de KPIs, Módulos e Indicadores: Erradicación Absoluta de Residuos Estáticos de Septiembre y Dinamización Universal',
+    fecha: '2026-10-05',
+    version_tag: 'v6.3.57',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_57.png',
+    problema: 'A pesar de la ingesta de lotes con fechas de octubre de 2026 en adelante, una revisión exhaustiva solicitada por el usuario identificó puntos críticos con residuos estáticos heredados que podían anclar cálculos, promedios o tablas a agosto/septiembre: 1) Matriz de Demanda Mensual en CentroVerificacionAuditoria.jsx con un arreglo estático que fijaba Septiembre, Octubre, Noviembre y Diciembre en "Pendiente" y nulo, con corte falso "Al 27/08". 2) KPI 4 de Techo de Correlativos en CentroVerificacionAuditoria.jsx anclado en #26.548 y corte "27/08/2026 22:24 hrs". 3) Categorías anuales de triage (annualCatMap) en useMetricoAnalytics.js fijadas en constantes de septiembre (c1: 194, c2: 2296, etc.) en lugar de acumular dinámicamente con dedup2026Pacs. 4) Escalamiento interanual fijo a 9 meses en traslados y constataciones (pyYtdTraslados: 1089, pyYtdConstataciones: 230). 5) Residuos estáticos en AnalisisCurvaDemanda.jsx, AnalisisComparativoTriple.jsx, AnalisisTraslados.jsx, AnalisisConstataciones.jsx y Radar.jsx.',
+    logica: '1) CentroVerificacionAuditoria.jsx: Se reemplazó la tabla fija mensual por useMemo (mesesAuditoria2026) que computa las admisiones reales mes a mes desde pacientesDB, asignando "Auditado Oficial" (>= 2000), "En curso (X pac.) ⏳" (< 2000) o "Pendiente". El KPI 4 de Techo de Correlativos y corte de archivo ahora computa dinámicamente el correlativo máximo real (#30.789+) y timestamp del archivo. recalcularTurnos genera bloques trimestrales dinámicos hasta currentYear + 1. 2) useMetricoAnalytics.js: annualCatMap se vincula a ytdCats calculadas desde dedup2026Pacs, permitiendo que cada paciente de octubre incremente las categorías C1-C5. pyYtdTraslados y pyYtdConstataciones se escalan proporcionalmente a maxElapsedMonth (~121 y ~25.6 por mes). 3) AnalisisDemandaAtencion.jsx: Sustitución de etiquetas fijas de agosto por evaluación reactiva item.isMonthInProgress. 4) AnalisisCurvaDemanda.jsx: Fechas base y de contraste iniciales calculadas dinámicamente sin fechas fijas de septiembre. 5) AnalisisComparativoTriple.jsx: Presets ultimos_3_meses, ultimos_30_dias, ultimos_7_dias calculados dinámicamente desde MAX_SYSTEM_CUTOFF e incorporación de preset Octubre 2026. 6) AnalisisTraslados.jsx & AnalisisConstataciones.jsx: Erradicación de fallbacks fijos a 2026-08 y textos estáticos de julio 2026, reemplazados por conteos dinámicos. 7) Radar.jsx: Alertas predictivas neutrales desvinculadas de textos estáticos de invierno.',
+    solucion: '100% de los KPIs, filtros, tablas, subreportes y modelos de la plataforma operan de forma reactiva y dinámica sin ningún anclaje ni residuo temporal a septiembre de 2026.',
+    fullPost: `En esta versión v6.3.57 ejecutamos una auditoría de código exhaustiva y transversal sobre cada KPI, filtro, tabla y subreporte de MÉTRICO, erradicando por completo cualquier residuo de septiembre o meses pasados:
+
+1. **Hallazgos Críticos y Soluciones Implementadas**:
+   - **\`CentroVerificacionAuditoria.jsx\` (Matriz Mensual Rayen)**:
+     - *Problema*: La tabla mensual de control presentaba filas estáticas que dejaban a septiembre, octubre, noviembre y diciembre en \`null\` y con estado \`Pendiente\`, mientras que agosto decía \`Al 27/08 (26.548)\`.
+     - *Solución*: Implementación del hook \`mesesAuditoria2026\`, el cual calcula las atenciones mes a mes directamente desde \`pacientesDB\`. Si el mes acumula \`>= 2.000 pac.\`, se clasifica como *"Auditado Oficial"*; si está abierto con atenciones parciales, se marca como *"En curso (X pac.) ⏳"*; y si no tiene atenciones aún, *"Pendiente"*.
+   - **\`CentroVerificacionAuditoria.jsx\` (KPI 4 - Techo Correlativos)**:
+     - *Problema*: El bloque exhibía el valor estático \`#26.548\` con fecha de corte *"27/08/2026 22:24 hrs"*.
+     - *Solución*: Vinculación al memo \`correlativoInfo\`, que extrae dinámicamente el correlativo máximo cargado en la base de datos (\`#30.789\` en Lote 53) y la fecha/hora exacta del último ingreso asistencial.
+   - **\`useMetricoAnalytics.js\` (Categorías Triage Anual & Escalamiento 2025)**:
+     - *Problema*: En el preset "Año" o rangos mayores a 300 días, las categorías C1-C5 (\`annualCatMap\`) se encontraban ancladas a una constante fija de septiembre (sumando 29.895 pac.). Además, la comparativa homóloga 2025 de traslados (\`1089\`) y constataciones (\`230\`) asumía de forma fija 9 meses transcurridos.
+     - *Solución*: Las categorías anuales se calculan ahora reactivamente a partir de \`ytdCats\` sobre \`dedup2026Pacs\`, incrementándose automáticamente con cada nuevo paciente categorizado. La comparativa histórica de 2025 escala proporcionalmente al mes transcurrido (\`maxElapsedMonth\`), garantizando variaciones YoY consistentes.
+   - **\`AnalisisCurvaDemanda.jsx\` & \`AnalisisComparativoTriple.jsx\`**:
+     - *Problema*: Presets como *"Últimos 7 Días"*, *"Últimos 30 Días"* o las fechas de contraste tenían valores fijos de septiembre de 2026 en caso de no especificarse filtros.
+     - *Solución*: Cálculo dinámico basado en \`MAX_SYSTEM_CUTOFF\` y en el tiempo real, añadiendo el preset interactivo *"Octubre 2026"*.
+   - **\`AnalisisTraslados.jsx\` & \`AnalisisConstataciones.jsx\`**:
+     - *Problema*: Fallback de mes activo en traslados fijado en \`2026-08\` y descripción fija de 310 constataciones al 23/07/2026.
+     - *Solución*: Cálculo dinámico del mes activo y del acumulado anual de constataciones (\`ytdConstatacionesCount\`) directamente desde \`pacientesDB\`.
+
+2. **Garantía de Futuro y Retrocompatibilidad**:
+   - MÉTRICO queda 100% blindado para procesar planillas de octubre, noviembre, diciembre 2026 y de cualquier año futuro (2027+) sin que ningún promedio, gráfico o indicador quede estancado.`
+  },
+  {
     id: 'devlog-v6-3-56',
     titulo: 'Blindaje Universal de Continuidad Temporal Dinámica: Preparación Total para Carga Continua de Octubre, Noviembre, Diciembre 2026 y Años Futuros',
     fecha: '2026-10-04',

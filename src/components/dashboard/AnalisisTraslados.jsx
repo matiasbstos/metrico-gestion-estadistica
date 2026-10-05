@@ -282,7 +282,10 @@ export default function AnalisisTraslados({
   const maxTrasladosMes = useMemo(() => {
     if (!pacientesDB || pacientesDB.length === 0) return { count: 0, det: null, pacientes: [], mesNombre: 'Mes' };
 
-    const activeMonth = (localFechaInicio || '2026-08').substring(0, 7);
+    const fallbackMonth = pacientesDB.length > 0 && pacientesDB[0].tAdmision 
+      ? new Date(pacientesDB[0].tAdmision).toISOString().substring(0, 7)
+      : new Date().toISOString().substring(0, 7);
+    const activeMonth = (localFechaInicio || fallbackMonth).substring(0, 7);
     const pacsMes = pacientesDB.filter(p => {
       if (!p.tAdmision) return false;
       const d = new Date(p.tAdmision);

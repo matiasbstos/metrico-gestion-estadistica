@@ -169,16 +169,24 @@ export default function AnalisisComparativoTriple({
   const handleApplyPreset = (presetKey) => {
     setActivePreset(presetKey);
     const end = MAX_SYSTEM_CUTOFF;
-    let start = '2026-06-01';
+    const endDate = new Date(end + 'T12:00:00');
+    const toIso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    let start = `${endDate.getFullYear()}-01-01`;
 
     if (presetKey === 'ultimos_3_meses') {
-      start = '2026-06-01';
-    } else if (presetKey === 'ano_2026') {
-      start = '2026-01-01';
+      const d = new Date(endDate);
+      d.setMonth(d.getMonth() - 3);
+      start = toIso(d);
+    } else if (presetKey === 'ano_2026' || presetKey === 'ano_actual') {
+      start = `${endDate.getFullYear()}-01-01`;
     } else if (presetKey === 'ultimos_30_dias') {
-      start = '2026-08-10';
+      const d = new Date(endDate);
+      d.setDate(d.getDate() - 30);
+      start = toIso(d);
     } else if (presetKey === 'ultimos_7_dias') {
-      start = '2026-09-21';
+      const d = new Date(endDate);
+      d.setDate(d.getDate() - 7);
+      start = toIso(d);
     } else if (presetKey === 'agosto_2026') {
       setFechaInicio('2026-08-01');
       setFechaFin('2026-08-31');
@@ -1365,6 +1373,7 @@ export default function AnalisisComparativoTriple({
               { id: 'ultimos_7_dias', label: 'Últimos 7 Días', icon: Timer },
               { id: 'agosto_2026', label: 'Agosto 2026', icon: BarChart2 },
               { id: 'septiembre_2026', label: 'Septiembre 2026', icon: Activity },
+              { id: 'octubre_2026', label: 'Octubre 2026', icon: Sparkles },
             ].map(p => {
               const IconComp = p.icon;
               return (

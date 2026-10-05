@@ -1019,11 +1019,11 @@ export default function AnalisisDemandaAtencion({
                       </span>
                     </div>
 
-                    {/* Metadata de corte y correlativo para el mes activo en curso */}
-                    {item.mes === 'Ago' && selectedYear === 2026 && (
+                    {/* Metadata para mes activo en curso */}
+                    {item.isMonthInProgress && (
                       <div className="pt-1 border-t border-card-custom/30 text-[9px] text-secondary-custom flex items-center justify-between font-bold">
-                        <span className="text-indigo-600 dark:text-indigo-400">Corr. máx: #26.548</span>
-                        <span>Corte: 27/08 23:57h</span>
+                        <span className="text-indigo-600 dark:text-indigo-400">Mes en Curso</span>
+                        <span>{item.valCurrent.toLocaleString('es-CL')} pac.</span>
                       </div>
                     )}
                   </div>

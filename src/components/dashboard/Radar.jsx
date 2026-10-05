@@ -910,7 +910,7 @@ export default function Radar({ user, app, showNotif, pacientesDB = [], turnosDB
     let baseAlert = alertaCognitivaText;
     if (!baseAlert || baseAlert.includes('2026-08-07') || baseAlert.includes('07/08') || baseAlert.includes('2026-08-03')) {
       if (peakDay) {
-        baseAlert = `⚠️ Alerta Operativa Preventiva SAR Elsa Romo [Estación Invierno ❄️]:\nSe prevé pico asistencial para el ${peakDay.fechaCompletaStr} con ${peakDay.atenciones_estimadas} atenciones esperadas en Melipilla.\nEl análisis multivariable muestra alzas históricas por heladas (<5°C: ${multivariableClimatico?.reglaHeladasFrio?.variacionPct || 18.5}%) y rebote post-lluvia (+${multivariableClimatico?.reglaPostLluvia?.variacionPct || 28.2}%), que sumado a bajas temperaturas (Calidad del aire: ${airQualitySimple?.label || 'Regular / Moderada'}) elevarán la demanda asistencial.\nSe recomienda reforzar dotación médica/enfermería en triaje C1-C3 e insumos clínicos.`;
+        baseAlert = `⚠️ Alerta Operativa Preventiva SAR Elsa Romo:\nSe prevé pico asistencial para el ${peakDay.fechaCompletaStr} con ${peakDay.atenciones_estimadas} atenciones esperadas en Melipilla.\nEl modelo predictivo multivariable (Calidad del aire: ${airQualitySimple?.label || 'Regular / Moderada'}) proyecta fluctuaciones asistenciales.\nSe recomienda supervisar dotación médica y de enfermería en triaje C1-C3 y stock de insumos clínicos.`;
       } else {
         baseAlert = alertaCognitivaText;
       }

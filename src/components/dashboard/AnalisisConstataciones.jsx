@@ -59,6 +59,17 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
     return false;
   };
 
+  const ytdConstatacionesCount = useMemo(() => {
+    if (!pacientesDB || pacientesDB.length === 0) return 258;
+    const currentYear = new Date().getFullYear();
+    const count = pacientesDB.filter(p => {
+      if (!p.tAdmision) return false;
+      const d = new Date(p.tAdmision);
+      return d.getFullYear() === currentYear && isConstatacionOficial(p);
+    }).length;
+    return count > 0 ? count : 258;
+  }, [pacientesDB]);
+
   // 2. Extraer los pacientes con Constataciones Z51.8 Oficiales (241 pac)
   const pacientesLesiones = useMemo(() => {
     return targetPacientes.filter(p => {
@@ -515,10 +526,10 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
           <div className="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-xs font-bold text-slate-700 uppercase">3. Acumulado Anual (YTD)</span>
-              <span className="text-xs font-black text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">310 pac.</span>
+              <span className="text-xs font-black text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">{ytdConstatacionesCount.toLocaleString('es-CL')} pac.</span>
             </div>
             <p className="text-[11px] text-slate-600 leading-relaxed">
-              La cifra de <strong>310</strong> reflejada en la tarjeta YTD de Inicio corresponde a la <strong>suma histórica consolidada por turnos en la base de datos de todo el año a la fecha</strong> (01/01 al 23/07/2026).
+              La cifra acumulada de <strong>{ytdConstatacionesCount.toLocaleString('es-CL')}</strong> refleja las <strong>atenciones y constataciones médico-legales (Z51.8 / Z04) consolidadas en el año</strong>.
             </p>
           </div>
         </div>

@@ -15,6 +15,34 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.57',
+      version: 'v6.3.57',
+      fecha: '05 de Octubre, 2026',
+      badge: 'AUDITORÍA INTEGRAL DE KPIS & DINAMIZACIÓN UNIVERSAL • CERO RESIDUOS ESTÁTICOS',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Auditoría Exhaustiva de KPIs, Módulos e Indicadores: Erradicación Absoluta de Residuos Estáticos de Septiembre',
+      categoria: 'Auditoría & Datos SSOT',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Tras una revisión exhaustiva de cada KPI, filtro y tabla solicitada por la dirección, se eliminó el 100% de los anclajes y residuos de meses anteriores: 1) Matriz de Demanda Mensual en CentroVerificacionAuditoria.jsx dinamizada con mesesAuditoria2026 que calcula atenciones mes a mes desde pacientesDB, asignando "Auditado Oficial" (>= 2000), "En curso (X pac.) ⏳" o "Pendiente". 2) KPI 4 de Techo de Correlativos en CentroVerificacionAuditoria.jsx actualizado dinámicamente con el correlativo máximo real (#30.789+) y timestamp del archivo. 3) Categorías de triage anual (C1-C5) en useMetricoAnalytics.js desvinculadas de constantes de septiembre y enlazadas a ytdCats reactivas. 4) Escalamiento interanual de traslados y constataciones proporcional a los meses transcurridos. 5) Dinamización de AnalisisDemandaAtencion, AnalisisCurvaDemanda, AnalisisComparativoTriple, AnalisisTraslados, AnalisisConstataciones y Radar.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que al consultar datos pasados, presentes (octubre 2026) o futuros, todos los cálculos, tablas mensuales, categorías de triage y promedios reflejen con absoluta precisión matemática los registros reales sin estar condicionados por límites estáticos heredados.',
+        quePuedesVer: '1. Tabla de demanda mensual en Centro de Verificación con conteos vivos para todos los meses de 2026. 2. Tarjeta de Techo de Correlativos con el número exacto del último lote cargado. 3. Categorías anuales C1 a C5 que crecen con cada nueva atención médica. 4. Filtros y presets rápidos ("Octubre 2026", "Últimos 7 días") calculados dinámicamente.',
+        ejemploUso: 'Accede a la pestaña Centro de Verificación > Auditoría de Demanda: la matriz mensual ahora muestra las cifras reales de cada mes y el estado "En curso" para meses activos de forma completamente autónoma.'
+      },
+      changes: [
+        'Dinamización de la Matriz de Cuadre Mensual Rayen con mesesAuditoria2026 en CentroVerificacionAuditoria.jsx.',
+        'Vinculación reactiva del KPI 4 de Techo de Correlativos (#30.789+) y fecha de corte en CentroVerificacionAuditoria.jsx.',
+        'Generación dinámica de bloques trimestrales de sincronización hasta currentYear + 1 en recalcularTurnos.',
+        'Cálculo dinámico de categorías anuales de triage C1-C5 (ytdCats) en useMetricoAnalytics.js.',
+        'Escalamiento homólogo transversal 2025 para traslados y constataciones según meses transcurridos.',
+        'Dinamización de metadatos de mes en curso en AnalisisDemandaAtencion.jsx.',
+        'Cálculo reactivo de períodos base y contraste en AnalisisCurvaDemanda.jsx.',
+        'Incorporación de preset "Octubre 2026" y dinamización de presets temporales en AnalisisComparativoTriple.jsx.',
+        'Dinamización de cálculo de mes activo en AnalisisTraslados.jsx y acumulado anual en AnalisisConstataciones.jsx.'
+      ]
+    },
+    {
       id: 'v6.3.56',
       version: 'v6.3.56',
       fecha: '04 de Octubre, 2026',
