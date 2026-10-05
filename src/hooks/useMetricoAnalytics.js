@@ -685,8 +685,8 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const meliPercent = demografiaStats.total ? ((demografiaStats.comunas['MELIPILLA'] || 0) / demografiaStats.total) * 100 : 0;
 
     // Comparativa YTD (Año actual) - Siempre usa día completo civil 00:00 a 23:59
-    // 1. Conteo Global Anual YTD 2026 (Todo el año civil en curso de forma absoluta)
-    const currentYearNum = 2026;
+    // 1. Conteo Global Anual YTD (Todo el año civil en curso de forma absoluta)
+    const currentYearNum = new Date().getFullYear();
     const all2026Pacs = (pacientesDB || []).filter(p => {
       if (!p || !p.tAdmision) return false;
       const d = new Date(p.tAdmision);
@@ -724,11 +724,11 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     // Regla 1 & 2 SSOT: Techo Dinámico y Control Oficial Rayen (#30.789 Lote 53)
     const isFullYearPacs = dedup2026Pacs.length >= 25000;
 
-    const ytdPacientes = isFullYearPacs ? dedup2026Pacs.length : 30789;
-    const ytdAltas = isFullYearPacs ? dedup2026Pacs.filter(isAltaAdmin).length : 2821;
-    const ytdAtendidos = isFullYearPacs ? Math.max(0, ytdPacientes - ytdAltas) : 27968;
-    const ytdTraslados = 1198;
-    const ytdConstataciones = 258;
+    const ytdPacientes = isFullYearPacs ? dedup2026Pacs.length : Math.max(30789, dedup2026Pacs.length);
+    const ytdAltas = isFullYearPacs ? dedup2026Pacs.filter(isAltaAdmin).length : Math.max(2821, dedup2026Pacs.filter(isAltaAdmin).length);
+    const ytdAtendidos = isFullYearPacs ? Math.max(0, ytdPacientes - ytdAltas) : Math.max(27968, ytdPacientes - ytdAltas);
+    const ytdTraslados = isFullYearPacs ? dedup2026Pacs.filter(isTraslado).length : Math.max(1198, dedup2026Pacs.filter(isTraslado).length);
+    const ytdConstataciones = isFullYearPacs ? dedup2026Pacs.filter(isConstatacionLesion).length : Math.max(258, dedup2026Pacs.filter(isConstatacionLesion).length);
     const ytdEstadia = 133;
     const ytdPacHora = 4.6;
 
@@ -854,15 +854,23 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
 
     // Regla 22 Transversal: Determinación dinámica de los meses transcurridos en el año activo
     const monthNamesShort = ['', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    let maxElapsedMonth = 9; // Corte base oficial Septiembre
-    all2026Turnos.forEach(t => {
-      if (t.fecha) {
-        const parts = t.fecha.split('-');
-        if (parts.length === 3) {
-          const m = parseInt(parts[1], 10);
-          if (m >= 1 && m <= 12 && m > maxElapsedMonth) {
-            maxElapsedMonth = m;
-          }
+    let maxElapsedMonth = 9; // Corte base oficial mínimo Septiembre
+    (all2026Turnos || []).forEach(t => {
+      const fStr = t.fecha || t.fechaInicio;
+      if (fStr) {
+        const parts = fStr.includes('-') ? fStr.split('-') : fStr.split('/');
+        const m = parts[0].length === 4 ? parseInt(parts[1], 10) : parseInt(parts[1], 10);
+        if (m >= 1 && m <= 12 && m > maxElapsedMonth) {
+          maxElapsedMonth = m;
+        }
+      }
+    });
+    (dedup2026Pacs || []).forEach(p => {
+      if (p.tAdmision) {
+        const d = new Date(p.tAdmision);
+        if (d.getFullYear() === currentYearNum) {
+          const m = d.getMonth() + 1;
+          if (m > maxElapsedMonth) maxElapsedMonth = m;
         }
       }
     });

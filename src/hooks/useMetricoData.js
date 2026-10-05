@@ -166,8 +166,8 @@ export const useMetricoData = (filtroFechaInicio, filtroFechaFin) => {
           if (!t.fechaInicio) return false;
           const parts = t.fechaInicio.includes('-') ? t.fechaInicio.split('-') : t.fechaInicio.split('/');
           const y = parts[0].length === 4 ? parseInt(parts[0]) : parseInt(parts[2]);
-          const m = parts[0].length === 4 ? parseInt(parts[1]) : parseInt(parts[1]);
-          if (y > 2026 || (y === 2026 && m > 12)) return false;
+          const maxAllowedYear = new Date().getFullYear() + 1;
+          if (y < 2024 || y > maxAllowedYear) return false;
           return true;
         })
         .sort((a, b) => {

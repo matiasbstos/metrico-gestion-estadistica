@@ -79,17 +79,18 @@ export default function AnalisisComparativoTriple({
   setFiltroFechaFin, 
   setActiveTab 
 }) {
-  // Constante de corte de datos del sistema (Regla 1 & 5 SSOT)
+  // Constante de corte de datos del sistema (Regla 1, 5 & 27 SSOT Dinámico)
   const MAX_SYSTEM_CUTOFF = useMemo(() => {
+    const ahoraIso = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
     if (turnosDB && turnosDB.length > 0) {
       const validT = turnosDB
         .map(t => parseLocalDateStr(t?.fechaInicio) || (typeof t?.fechaInicio === 'string' ? t.fechaInicio.trim() : null))
-        .filter(fIso => fIso && fIso.startsWith('2026-'))
+        .filter(fIso => fIso && fIso <= ahoraIso)
         .sort()
         .reverse();
-      if (validT.length > 0 && validT[0] >= '2026-09-28') return validT[0];
+      if (validT.length > 0) return validT[0];
     }
-    return '2026-10-31';
+    return ahoraIso;
   }, [turnosDB]);
 
   // Helper para resolver la fecha máxima con datos válidos

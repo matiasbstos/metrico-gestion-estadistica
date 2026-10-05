@@ -842,6 +842,7 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
   }
 
   const ahoraMs = Date.now() + 86400000; // Margen de seguridad de 24 horas respecto a tiempo real
+  const maxAllowedYear = new Date().getFullYear() + 1;
   
   // Deduplicar y ordenar pacientes por timestamp descendente, excluyendo fechas futuras anómalas
   const listPacs = deduplicarPacientes(pacientesDB)
@@ -850,8 +851,8 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
       if (p.tAdmision > ahoraMs) return false; // Descartar fechas futuras a hoy
       const d = new Date(p.tAdmision);
       const y = d.getFullYear();
-      // Validar año consistente (<= 2026)
-      if (y > 2026) return false;
+      // Validar año consistente
+      if (y < 2024 || y > maxAllowedYear) return false;
       return true;
     })
     .sort((a, b) => b.tAdmision - a.tAdmision);
@@ -863,9 +864,10 @@ export const auditarUltimoTurnoCompleto = (turnosDB = [], pacientesDB = [], paut
   const shiftGroups = {};
   listPacs.forEach(p => {
     const det = obtenerTurnoDetallado(p.tAdmision, pautasDB);
-    // Doble verificación: no agrupar turnos con años futuros
+    // Doble verificación: no agrupar turnos con años futuros anómalos
     const [dStr, mStr, yStr] = det.fechaTurno.split('/');
-    if (parseInt(yStr) > 2026) return;
+    const yVal = parseInt(yStr, 10);
+    if (yVal < 2024 || yVal > maxAllowedYear) return;
 
     const key = `${det.fechaTurno}_${det.horario}`;
     if (!shiftGroups[key]) {
@@ -1243,13 +1245,14 @@ export const resolverMaxTimestampGlobal = (turnosDB = [], pacientesDB = [], allP
   let maxTime = 0;
   const ahoraMax = Date.now() + 86400000;
   const maxPermitido = Math.max(ahoraMax, OFFICIAL_DATA_CUTOFF_MS);
+  const maxAllowedYear = new Date().getFullYear() + 1;
   const records = (allPacientesDB && allPacientesDB.length > 0) ? allPacientesDB : (pacientesDB || []);
   if (records && records.length > 0) {
     records.forEach(p => {
       if (p.tAdmision && p.tAdmision <= maxPermitido && p.tAdmision > maxTime) {
         const d = new Date(p.tAdmision);
         const y = d.getFullYear();
-        if (y <= 2026) {
+        if (y >= 2024 && y <= maxAllowedYear) {
           maxTime = p.tAdmision;
         }
       }
@@ -1277,7 +1280,7 @@ export const resolverMaxTimestampGlobal = (turnosDB = [], pacientesDB = [], allP
           m = parseInt(parts[1]);
           y = parseInt(parts[2]);
         }
-        if (y && m && d && y <= 2026) {
+        if (y && m && d && y >= 2024 && y <= maxAllowedYear) {
           const horStr = String(t.horario || '');
           const isNight = (horStr.includes('20:00 a 08:00') || horStr.includes('20:00 - 08:00') || horStr.includes('Noche') || horStr.includes('17:00') || horStr.includes('Largo'));
           const h = isNight ? 23 : 20;

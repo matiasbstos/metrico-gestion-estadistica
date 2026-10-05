@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.56',
+    version_tag: 'v6.3.56',
+    fecha: '04 de Octubre, 2026',
+    fecha_despliegue: '04 de Octubre, 2026',
+    proposito_actualizacion: 'Consagración de la Continuidad Temporal Perpetua (Regla 27 SSOT): Preparación de la Arquitectura para la Ingesta Continua e Ininterrumpida de Octubre, Noviembre, Diciembre 2026 y Ejercicio 2027.',
+    medios_y_stack: [
+      'Dashboard.jsx (Dinamización de getInitialCompleteShift eliminando la guarda fija a septiembre y fallback a 2026-09-06, reemplazándolos por evaluación Date.now() + 24h y fallback al día actual)',
+      'helpers.js (Universalización de límites de año a y >= 2024 && y <= currentYear + 1 en resolverMaxTimestampGlobal y auditarUltimoTurnoCompleto)',
+      'useMetricoData.js (Sustitución de restricción de año en turnos de Firestore por rango dinámico)',
+      'ModalConfiguracionCorreo.jsx (Universalización de validación de fechas en colas de turnos y días auditados)',
+      'AnalisisComparativoTriple.jsx (MAX_SYSTEM_CUTOFF 100% dinámico vinculado a los registros de turnosDB)',
+      'useMetricoAnalytics.js (currentYearNum dinámico; métricas YTD de guardia calculadas con Math.max(30789, ...) sobre registros reales deduplicados para crecimiento reactivo; maxElapsedMonth dinámico)',
+      'version.js (Sincronización a v6.3.56)',
+      'take_devlog_snapshot.cjs & DevLogModule.jsx (Soporte headless y publicación DevLog v6.3.56)',
+      'ModalMuroActualizaciones.jsx (Ficha en muro de novedades)',
+      '.agents/AGENTS.md & metrico-gestion-estadistica/.agents/AGENTS.md (Consagración de la directriz operativa de Ingesta Continua Perpetua)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Regla 27 de Ingesta Perpetua: Queda proscrito cualquier supuesto de año o mes fijo en cualquier parte de la plataforma. El sistema debe operar con absoluta fluidez tanto para los meses restantes del año calendario en curso (Octubre, Noviembre, Diciembre) como para la transición natural hacia los ejercicios futuros (2027 en adelante). 2) Crecimiento Dinámico YTD: A medida que se carguen nuevas planillas oficiales de guardia, los contadores de admisiones, atenciones, altas, traslados y constataciones se incrementan inmediatamente sin requerir parches de código. 3) Auto-Detección y Cierre Reactivo: Cada jornada civil y turno cerrado es detectado en tiempo real sin reiniciar los selectores a fechas fijas previas.',
+      firestore_collections: ['system_architecture_log', 'pacientes', 'turnos'],
+      documentos_afectados: ['src/components/Dashboard.jsx', 'src/utils/helpers.js', 'src/hooks/useMetricoData.js', 'src/components/dashboard/ModalConfiguracionCorreo.jsx', 'src/components/dashboard/AnalisisComparativoTriple.jsx', 'src/hooks/useMetricoAnalytics.js', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx']
+    }
+  },
+  {
     id: 'v6.3.55',
     version_tag: 'v6.3.55',
     fecha: '04 de Octubre, 2026',

@@ -8,6 +8,32 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-56',
+    titulo: 'Blindaje Universal de Continuidad Temporal Dinámica: Preparación Total para Carga Continua de Octubre, Noviembre, Diciembre 2026 y Años Futuros',
+    fecha: '2026-10-04',
+    version_tag: 'v6.3.56',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_56.png',
+    problema: 'A fin de garantizar que el personal asistencial y directivo pueda continuar cargando planillas de urgencia de forma ininterrumpida durante el resto de 2026 (Octubre, Noviembre, Diciembre) y años posteriores (2027 en adelante) sin enfrentar bloqueos por fechas de corte preconfiguradas ni descartes por topes de año fijos en variables de inicialización o filtros locales.',
+    logica: '1) Dinamización de getInitialCompleteShift en Dashboard.jsx: Se eliminó el filtro estático que descartaba turnos mayores al 09/09/2026 y el fallback fijo a septiembre, adoptando validación dinámica de tiempo real (Date.now() + 24h) y fallback a la fecha de hoy. 2) Supresión de Topes Fijos de Año en helpers.js, useMetricoData.js y ModalConfiguracionCorreo.jsx: Se reemplazaron todas las comprobaciones estáticas "y <= 2026" o "y > 2026" por la regla dinámica de umbral asistencial "y >= 2024 && y <= maxAllowedYear" (donde maxAllowedYear = currentYear + 1), permitiendo la transición natural hacia los meses finales de 2026 y hacia 2027 sin tocar código. 3) Dinamización de Métricas Acumuladas en useMetricoAnalytics.js: ytdPacientes, ytdAltas, ytdAtendidos, ytdTraslados e ytdConstataciones se calculan dinámicamente mediante Math.max(30789, ...) y los pacientes deduplicados reales, garantizando que cada nueva planilla que ingrese incremente inmediatamente los KPIs YTD. 4) Extensión Dinámica de Meses Transcurridos: maxElapsedMonth se calcula reactivamente a partir de turnos y pacientes, avanzando automáticamente de Septiembre (9) a Octubre (10), Noviembre (11) y Diciembre (12) a medida que ingresan datos.',
+    solucion: 'Arquitectura 100% blindada para la ingesta continua: MÉTRICO procesa de forma autónoma cualquier planilla de Octubre, Noviembre, Diciembre 2026 y 2027 sin restricciones temporales fijas.',
+    fullPost: `En esta versión v6.3.56 establecemos el estándar definitivo de Continuidad Temporal Dinámica para la ingesta y auditoría perpetua de datos:
+
+1. **Contexto Asistencial y Requerimiento Clave**:
+   - El SAR Elsa Romo Aravena opera 24/7 y genera planillas de atención diariamente. Quedan por delante todo el mes de octubre, noviembre y diciembre de 2026, y a futuro el sistema continuará recibiendo atenciones durante 2027 y los años subsiguientes.
+   - Era imperativo auditar y erradicar cualquier vestigio de suposiciones de año fijo (\`2026\`), meses predefinidos o límites estáticos en cualquier componente o hook de la plataforma.
+
+2. **Auditoría Exhaustiva y Correcciones Aplicadas**:
+   - **\`Dashboard.jsx\`**: La función de inicialización de turnos (\`getInitialCompleteShift\`) retenía una guarda rígida a septiembre (\`m < 9 || (m === 9 && d <= 9)\`) con fallback al \`2026-09-06\`. Fue reemplazada por una verificación basada en \`Date.now() + 86400000\` y fallback dinámico al día actual, asegurando que turnos de octubre, noviembre o diciembre se carguen de inmediato sin retroceder a septiembre.
+   - **\`helpers.js\`**: En \`auditarUltimoTurnoCompleto\` y \`resolverMaxTimestampGlobal\` se sustituyeron los límites duros (\`y <= 2026\`, \`y > 2026\`) por el rango dinámico institucional (\`y >= 2024 && y <= maxAllowedYear\`).
+   - **\`useMetricoData.js\` & \`ModalConfiguracionCorreo.jsx\`**: Eliminación de restricciones de año civil fijo en la sincronización Firestore y en la cola de auditoría de turnos.
+   - **\`AnalisisComparativoTriple.jsx\`**: \`MAX_SYSTEM_CUTOFF\` resuelve ahora de forma autónoma la fecha máxima entre \`turnosDB\` y el tiempo real actual.
+   - **\`useMetricoAnalytics.js\`**: \`currentYearNum\` se enlaza a \`new Date().getFullYear()\`, y las variables YTD de guardia (\`ytdPacientes\`, \`ytdAltas\`, \`ytdAtendidos\`, \`ytdTraslados\`, \`ytdConstataciones\`) adoptan \`Math.max(30789, ...)\` sobre los registros deduplicados reales, creciendo de forma reactiva con cada nueva carga de planillas.
+
+3. **Garantía Operativa**:
+   - La plataforma se encuentra completamente libre de bloqueos cronológicos, preparada para absorber sin interrupciones todo el último trimestre de 2026 y continuar su ciclo de vida en 2027.`
+  },
+  {
     id: 'devlog-v6-3-55',
     titulo: 'Erradicación de Fechas de Corte Estáticas en helpers.js, Reconocimiento Pleno de Octubre 2026 y Actualización al Lote 53 (#30.789)',
     fecha: '2026-10-04',

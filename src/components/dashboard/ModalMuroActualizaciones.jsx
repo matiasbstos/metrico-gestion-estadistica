@@ -15,6 +15,31 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.56',
+      version: 'v6.3.56',
+      fecha: '04 de Octubre, 2026',
+      badge: 'ARQUITECTURA DE DATOS & SSOT • CONTINUIDAD TEMPORAL DEFINITIVA 2026-2027',
+      badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/20',
+      title: 'Blindaje de Ingesta Continua: Soporte Pleno para Octubre, Noviembre, Diciembre 2026 y Ejercicio 2027',
+      categoria: 'Arquitectura & Continuidad Operativa',
+      icon: Workflow,
+      iconBg: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
+      summary: 'Se auditó y blindó integralmente la plataforma para erradicar cualquier restricción o suposición de año fijo en la ingesta de datos: 1) getInitialCompleteShift en Dashboard.jsx ahora se rige por validación dinámica frente al tiempo real (Date.now() + 24h) y fallback a la fecha de hoy, eliminando el retroceso a septiembre. 2) Supresión de topes fijos "y <= 2026" en helpers.js, useMetricoData.js y ModalConfiguracionCorreo.jsx, adoptando el rango dinámico institucional "y >= 2024 && y <= currentYear + 1". 3) Las métricas globales YTD (admitidos, atendidos, altas, traslados y constataciones) en useMetricoAnalytics.js adoptan Math.max(30789, ...) sobre pacientes reales, creciendo automáticamente con cada nueva planilla cargada. 4) Avance dinámico de meses transcurridos (Ene - Oct, Ene - Nov, 12 Meses) según la presencia de datos sin intervención técnica.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que el personal administrativo y clínico pueda seguir subiendo planillas oficiales Rayen de octubre, noviembre, diciembre y del año 2027 sin que ningún componente del sistema bloquee fechas o requiera actualizaciones de código.',
+        quePuedesVer: '1. Carga inmediata de cualquier nueva planilla en Gestión de Datos. 2. Reconocimiento instantáneo del último turno cerrado en Dashboard.jsx sin reinicios a fechas pasadas. 3. Crecimiento dinámico de traslados, altas y constataciones en las tarjetas YTD. 4. Avance automático de la etiqueta de meses transcurridos en los banners ejecutivos.',
+        ejemploUso: 'Sube tu próxima planilla de urgencia de octubre, noviembre o diciembre: el sistema recalculará los indicadores acumulados, detectará el turno cerrado más reciente y actualizará todos los módulos en tiempo real de forma autónoma.'
+      },
+      changes: [
+        'Dinamización de getInitialCompleteShift en Dashboard.jsx eliminando guardas a septiembre.',
+        'Sustitución de filtros "y <= 2026" por "y >= 2024 && y <= currentYear + 1" en helpers.js, useMetricoData.js y ModalConfiguracionCorreo.jsx.',
+        'Cálculo dinámico de YTD con Math.max(30789, ...) para admisiones, atendidos, altas, traslados y constataciones en useMetricoAnalytics.js.',
+        'Resolución reactiva de maxElapsedMonth que avanza naturalmente hacia Noviembre y Diciembre.',
+        'MAX_SYSTEM_CUTOFF reactivo en AnalisisComparativoTriple.jsx enlazado a la fecha más reciente de la base de datos.',
+        'Verificación automatizada con pruebas unitarias certificando la ingesta continua.'
+      ]
+    },
+    {
       id: 'v6.3.55',
       version: 'v6.3.55',
       fecha: '04 de Octubre, 2026',

@@ -1845,12 +1845,14 @@ export default function ModalConfiguracionCorreo({
     const raw = pacientesDB || [];
     const ahoraMs = Date.now() + 86400000;
 
+    const maxAllowedYear = new Date().getFullYear() + 1;
+
     const filtered = raw.filter(p => {
       if (!p) return false;
       if (p.tAdmision && p.tAdmision > ahoraMs) return false; // Excluir fechas futuras a hoy
       if (p.tAdmision) {
         const d = new Date(p.tAdmision);
-        if (d.getFullYear() > 2026) return false;
+        if (d.getFullYear() < 2024 || d.getFullYear() > maxAllowedYear) return false;
       }
       return true;
     });
@@ -1871,7 +1873,8 @@ export default function ModalConfiguracionCorreo({
         m = parseInt(parts[1]);
         y = parseInt(parts[2]);
       }
-      if (y > 2026 || (y === 2026 && m > 12)) return false;
+      const maxAllowedYear = new Date().getFullYear() + 1;
+      if (y < 2024 || y > maxAllowedYear) return false;
       return true;
     };
 
@@ -2133,7 +2136,8 @@ export default function ModalConfiguracionCorreo({
         m = parseInt(parts[1]);
         y = parseInt(parts[2]);
       }
-      if (y > 2026 || (y === 2026 && m > 12)) return false;
+      const maxAllowedYear = new Date().getFullYear() + 1;
+      if (y < 2024 || y > maxAllowedYear) return false;
       return true;
     };
 

@@ -159,28 +159,27 @@ const DashboardContent = () => {
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
   const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().split('T')[0];
   
-  // Obtener el último turno completo guardado o computado por defecto (Regla 5)
+  // Obtener el último turno completo guardado o computado por defecto (Regla 5 & 27 SSOT)
   const getInitialCompleteShift = () => {
     try {
       const saved = localStorage.getItem('metrico_ultimo_turno_completo');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed?.fechaInicio && parsed?.fechaFin) {
-          const parts = parsed.fechaInicio.split('-');
-          const y = Number(parts[0]);
-          const m = Number(parts[1]);
-          const d = Number(parts[2]);
-          // Regla 5: Descartar cualquier fecha que supere el corte de datos (09/09/2026)
-          if (y < 2026 || (y === 2026 && (m < 9 || (m === 9 && d <= 9)))) {
+          const shiftDate = new Date(`${parsed.fechaInicio}T12:00:00`);
+          // Validar que sea una fecha válida y no futura respecto al tiempo real (+24h)
+          if (!isNaN(shiftDate.getTime()) && shiftDate.getTime() <= (Date.now() + 86400000)) {
             return parsed;
           }
         }
       }
     } catch (e) {}
-    // Fallback dinámico al último día cargado conocido
+    // Fallback dinámico continuo basado en la fecha de hoy
+    const now = new Date();
+    const nowIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     return {
-      fechaInicio: '2026-09-06',
-      fechaFin: '2026-09-06',
+      fechaInicio: nowIso,
+      fechaFin: nowIso,
       horaInicio: '08:00',
       horaFin: '20:00',
       preset: 'finde_dia'
