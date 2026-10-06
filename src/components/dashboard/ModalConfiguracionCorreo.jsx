@@ -1596,6 +1596,15 @@ export default function ModalConfiguracionCorreo({
   // Contador regresivo en segundos para el próximo despacho autónomo
   const [segundosRestantes, setSegundosRestantes] = useState(null);
 
+  // Registro del timestamp del último despacho efectuado (SSOT para espaciado horario y recálculo dinámico)
+  const [ultimoDespachoMs, setUltimoDespachoMs] = useState(() => {
+    try {
+      const s = localStorage.getItem('metrico_ultimo_despacho_ts');
+      if (s && Number(s) > 0) return Number(s);
+    } catch(e) {}
+    return 0;
+  });
+
   // Mapa de Turnos Cancelados u Omitidos manualmente por el usuario
   const [cancelledShiftsMap, setCancelledShiftsMap] = useState(() => {
     try {
@@ -1647,7 +1656,9 @@ export default function ModalConfiguracionCorreo({
 
       try {
         localStorage.setItem('metrico_informes_enviados_map', JSON.stringify(next));
+        localStorage.removeItem('metrico_ultimo_despacho_ts');
       } catch(e) {}
+      setUltimoDespachoMs(0);
       return next;
     });
 
@@ -2155,100 +2166,137 @@ export default function ModalConfiguracionCorreo({
       }
     }
 
-    const list = Array.from(shiftsMap.values())
-      .sort((a, b) => {
-        const c = b.fecha.localeCompare(a.fecha);
-        if (c !== 0) return c;
-        return b.horario.localeCompare(a.horario);
-      })
-      .map((item, idx) => {
-        const infoDespacho = calcularHorarioDespachoTurno(item, modoCargaMasiva, idx, intervaloMinutos, pautasDB);
-        const horarioProyectado = infoDespacho.horarioTexto;
-        const esPausado = infoDespacho.esPausado;
-        const motivoPausa = infoDespacho.motivoPausa;
-        const proximoHabilTexto = infoDespacho.proximoHabilTexto;
+    const sortedShifts = Array.from(shiftsMap.values()).sort((a, b) => {
+      const c = b.fecha.localeCompare(a.fecha);
+      if (c !== 0) return c;
+      return b.horario.localeCompare(a.horario);
+    });
 
-        const isSent = Boolean(sentShiftsMap[item.shiftKey] || sentShiftsMap[item.fecha] || sentShiftsMap[item.textoCompleto]);
-        const isCancelled = Boolean(cancelledShiftsMap[item.shiftKey] || cancelledShiftsMap[item.fecha]);
+    // Contador secuencial de slots exclusivamente para turnos PENDIENTES cerrados (SSOT Recálculo Dinámico)
+    let pendingSlotIdx = 0;
 
-        // Cómputo matemático de turno completo cerrado vs turno en curso (Regla 5 SSOT Rayen)
-        const isNightShift = item.tipo?.includes('Noche') || item.tipo?.includes('Largo');
-        const isDiurnoShift = !isNightShift;
+    const list = sortedShifts.map((item) => {
+      const isSent = Boolean(
+        sentShiftsMap[item.shiftKey] || 
+        sentShiftsMap[item.fecha] || 
+        sentShiftsMap[item.fechaTurno] || 
+        sentShiftsMap[item.textoCompleto]
+      );
+      const isCancelled = Boolean(cancelledShiftsMap[item.shiftKey] || cancelledShiftsMap[item.fecha]);
 
-        // Momento teórico en el que concluye formalmente este turno asistencial:
-        // - Turno diurno (08:00 a 20:00 hrs): concluye formalmente a las 20:00 hrs del mismo día
-        // - Turno noche o largo (20:00 a 08:00 o 17:00 a 08:00): concluye formalmente a las 08:00 AM del día siguiente (con ventana de estadía hasta las 12:00 PM)
-        let turnoClosingMs = 0;
-        if (item.fecha && item.fecha.includes('-')) {
-          const parts = item.fecha.split('-').map(Number);
-          if (parts.length === 3) {
-            const [y, m, d] = parts;
-            if (isDiurnoShift) {
-              turnoClosingMs = new Date(y, m - 1, d, 20, 30, 0).getTime();
-            } else {
-              turnoClosingMs = new Date(y, m - 1, d + 1, 12, 0, 0).getTime();
-            }
-          }
-        }
+      // Cómputo matemático de turno completo cerrado vs turno en curso (Regla 5 SSOT Rayen)
+      const isNightShift = item.tipo?.includes('Noche') || item.tipo?.includes('Largo');
+      const isDiurnoShift = !isNightShift;
 
-        // Un turno es histórico/pasado si su cierre formal ocurrió antes del corte temporal de los datos cargados
-        const isPastShift = turnoClosingMs > 0 && (turnoClosingMs <= maxGlobalTimestamp);
-
-        const timeSpanHours = (item.maxTimestamp > 0 && item.minTimestamp < Infinity)
-          ? (item.maxTimestamp - item.minTimestamp) / (1000 * 60 * 60)
-          : 0;
-        const maxDate = item.maxTimestamp > 0 ? new Date(item.maxTimestamp) : null;
-        const minDate = item.minTimestamp < Infinity ? new Date(item.minTimestamp) : null;
-        const maxHours = maxDate ? maxDate.getHours() : 0;
-        const isDifferentDay = Boolean(maxDate && minDate && (maxDate.getDate() !== minDate.getDate() || maxDate.getMonth() !== minDate.getMonth()));
-
-        let isCompleto = false;
-        if (item.forcedCompleto !== undefined) {
-          isCompleto = item.forcedCompleto;
-        } else if (isPastShift) {
-          // TURNOS HISTÓRICOS Y PASADOS (ej. Julio, Agosto, días pasados de Septiembre, año 2025):
-          // Ya concluyeron en el tiempo. Si tienen volumen clínico representativo (>= 10 pacientes), están 100% cerrados.
-          isCompleto = item.pacientes >= 10;
-        } else if (item.pacientesList && item.pacientesList.length > 0) {
-          // TURNO ACTUAL O EN CORTE ACTIVO (coincide con la última fecha/hora de los datos cargados):
-          // Aplica salvaguarda estricta de turno en curso
-          if (isNightShift) {
-            isCompleto = isDifferentDay && timeSpanHours >= 9 && (maxHours >= 5 && maxHours <= 13) && item.pacientes >= 20;
+      // Momento teórico en el que concluye formalmente este turno asistencial:
+      // - Turno diurno (08:00 a 20:00 hrs): concluye formalmente a las 20:00 hrs del mismo día
+      // - Turno noche o largo (20:00 a 08:00 o 17:00 a 08:00): concluye formalmente a las 08:00 AM del día siguiente (con ventana de estadía hasta las 12:00 PM)
+      let turnoClosingMs = 0;
+      if (item.fecha && item.fecha.includes('-')) {
+        const parts = item.fecha.split('-').map(Number);
+        if (parts.length === 3) {
+          const [y, m, d] = parts;
+          if (isDiurnoShift) {
+            turnoClosingMs = new Date(y, m - 1, d, 20, 30, 0).getTime();
           } else {
-            isCompleto = timeSpanHours >= 9 && maxHours >= 19 && item.pacientes >= 25;
+            turnoClosingMs = new Date(y, m - 1, d + 1, 12, 0, 0).getTime();
           }
+        }
+      }
+
+      // Un turno es histórico/pasado si su cierre formal ocurrió antes del corte temporal de los datos cargados
+      const isPastShift = turnoClosingMs > 0 && (turnoClosingMs <= maxGlobalTimestamp);
+
+      const timeSpanHours = (item.maxTimestamp > 0 && item.minTimestamp < Infinity)
+        ? (item.maxTimestamp - item.minTimestamp) / (1000 * 60 * 60)
+        : 0;
+      const maxDate = item.maxTimestamp > 0 ? new Date(item.maxTimestamp) : null;
+      const minDate = item.minTimestamp < Infinity ? new Date(item.minTimestamp) : null;
+      const maxHours = maxDate ? maxDate.getHours() : 0;
+      const isDifferentDay = Boolean(maxDate && minDate && (maxDate.getDate() !== minDate.getDate() || maxDate.getMonth() !== minDate.getMonth()));
+
+      let isCompleto = false;
+      if (item.forcedCompleto !== undefined) {
+        isCompleto = item.forcedCompleto;
+      } else if (isPastShift) {
+        // TURNOS HISTÓRICOS Y PASADOS (ej. Julio, Agosto, días pasados de Septiembre, año 2025):
+        // Ya concluyeron en el tiempo. Si tienen volumen clínico representativo (>= 10 pacientes), están 100% cerrados.
+        isCompleto = item.pacientes >= 10;
+      } else if (item.pacientesList && item.pacientesList.length > 0) {
+        // TURNO ACTUAL O EN CORTE ACTIVO (coincide con la última fecha/hora de los datos cargados):
+        // Aplica salvaguarda estricta de turno en curso
+        if (isNightShift) {
+          isCompleto = isDifferentDay && timeSpanHours >= 9 && (maxHours >= 5 && maxHours <= 13) && item.pacientes >= 20;
         } else {
-          // Turnos históricos consolidados en turnosDB
-          isCompleto = item.pacientes >= 10;
+          isCompleto = timeSpanHours >= 9 && maxHours >= 19 && item.pacientes >= 25;
         }
+      } else {
+        // Turnos históricos consolidados en turnosDB
+        isCompleto = item.pacientes >= 10;
+      }
 
-        // Enlace homólogo del año anterior para turnos de 2026:
-        let turnoHomologo = null;
-        if (item.fecha && item.fecha.startsWith('2026')) {
-          const fPrev = '2025' + item.fecha.slice(4);
-          const kPrev = getCanonicalShiftKey(fPrev, item.horario, item.tipo);
-          turnoHomologo = shiftsMap.get(kPrev) || Array.from(shiftsMap.values()).find(s => s.fecha === fPrev) || null;
-        }
+      // Enlace homólogo del año anterior para turnos de 2026:
+      let turnoHomologo = null;
+      if (item.fecha && item.fecha.startsWith('2026')) {
+        const fPrev = '2025' + item.fecha.slice(4);
+        const kPrev = getCanonicalShiftKey(fPrev, item.horario, item.tipo);
+        turnoHomologo = shiftsMap.get(kPrev) || Array.from(shiftsMap.values()).find(s => s.fecha === fPrev) || null;
+      }
 
-        return {
-          ...item,
-          turnoHomologo,
-          tieneHomologo: Boolean(turnoHomologo),
-          isCompleto,
-          esTurnoCompleto: isCompleto,
-          isSent,
-          isCancelled,
-          horarioProyectado,
-          scheduledTimestampMs: infoDespacho.scheduledTimestampMs,
-          debeDispararAhora: infoDespacho.debeDispararAhora,
-          esPausado: infoDespacho.esPausado,
-          motivoPausa: infoDespacho.motivoPausa,
-          proximoHabilTexto: infoDespacho.proximoHabilTexto
+      // Asignación de proyección horaria con recálculo dinámico inteligente:
+      let infoDespacho;
+      if (isSent) {
+        infoDespacho = {
+          horarioTexto: 'Despachado',
+          scheduledTimestampMs: 0,
+          debeDispararAhora: false,
+          esPausado: false,
+          motivoPausa: null,
+          proximoHabilTexto: null
         };
-      });
+      } else if (isCancelled) {
+        infoDespacho = {
+          horarioTexto: 'Cancelado',
+          scheduledTimestampMs: 0,
+          debeDispararAhora: false,
+          esPausado: false,
+          motivoPausa: null,
+          proximoHabilTexto: null
+        };
+      } else if (!isCompleto) {
+        infoDespacho = {
+          horarioTexto: '⏳ En Curso (Esperando Cierre)',
+          scheduledTimestampMs: 0,
+          debeDispararAhora: false,
+          esPausado: true,
+          motivoPausa: 'Turno no concluido al 100%',
+          proximoHabilTexto: 'Al cerrar formalmente'
+        };
+      } else {
+        // Turno 100% CERRADO y PENDIENTE: consume el slot secuencial correspondiente
+        const currentSlotIdx = pendingSlotIdx++;
+        infoDespacho = calcularHorarioDespachoTurno(item, modoCargaMasiva, currentSlotIdx, intervaloMinutos, pautasDB, ultimoDespachoMs);
+      }
+
+      return {
+        ...item,
+        turnoHomologo,
+        tieneHomologo: Boolean(turnoHomologo),
+        isCompleto,
+        esTurnoCompleto: isCompleto,
+        isSent,
+        isCancelled,
+        horarioProyectado: infoDespacho.horarioTexto,
+        scheduledTimestampMs: infoDespacho.scheduledTimestampMs,
+        debeDispararAhora: infoDespacho.debeDispararAhora,
+        esPausado: infoDespacho.esPausado,
+        motivoPausa: infoDespacho.motivoPausa,
+        proximoHabilTexto: infoDespacho.proximoHabilTexto
+      };
+    });
 
     return list;
-  }, [combinedPacientes, turnosDB, pautasDB, modoCargaMasiva, intervaloMinutos, sentShiftsMap, cancelledShiftsMap]);
+  }, [combinedPacientes, turnosDB, pautasDB, modoCargaMasiva, intervaloMinutos, sentShiftsMap, cancelledShiftsMap, ultimoDespachoMs]);
 
   // 1.0.1 Conteo Analítico de Correos Pendientes por Año (2024, 2025, 2026)
   const conteoPorAno = useMemo(() => {
@@ -3006,6 +3054,13 @@ export default function ModalConfiguracionCorreo({
           console.warn('[Despacho Dual Homólogo Error]:', dualErr);
         }
       }
+
+      // SSOT Recálculo Dinámico: registrar timestamp del despacho para espaciar el siguiente turno
+      const nowMs = Date.now();
+      setUltimoDespachoMs(nowMs);
+      try {
+        localStorage.setItem('metrico_ultimo_despacho_ts', String(nowMs));
+      } catch(e) {}
 
       if (showNotif) {
         showNotif(

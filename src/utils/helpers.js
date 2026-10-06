@@ -276,7 +276,7 @@ export const getProximoDiaHabilChile = (dateInput, pautasDB = null) => {
  * - Feriados Oficiales durante la semana: Se pausa y posterga al próximo día hábil a las 08:30 hrs.
  * - Días Hábiles: Se despacha según el horario formal de cierre asistencial (08:30 hrs del día siguiente).
  */
-export const calcularHorarioDespachoTurno = (item, modoCargaMasiva = 'NORMAL', idx = 0, intervaloMinutos = 20, pautasDB = null) => {
+export const calcularHorarioDespachoTurno = (item, modoCargaMasiva = 'NORMAL', idx = 0, intervaloMinutos = 20, pautasDB = null, ultimoDespachoMs = 0) => {
   if (!item) return { horarioTexto: '08:30 hrs', esPausado: false, motivoPausa: null, proximoHabilTexto: null };
 
   const isDiurno = Boolean(
@@ -389,7 +389,7 @@ export const calcularHorarioDespachoTurno = (item, modoCargaMasiva = 'NORMAL', i
   // Modalidad D (Recomendada SSOT): Despacho Continuo por Hora en Jornada Laboral (08:30 a 17:00 hrs)
   if (modoCargaMasiva === 'DESPACHO_HORA_JORNADA') {
     const slotMins = Number(intervaloMinutos) || 60;
-    const schedDate = calcularSlotJornadaLaboral(now, idx, slotMins, pautasDB);
+    const schedDate = calcularSlotJornadaLaboral(now, idx, slotMins, pautasDB, ultimoDespachoMs);
     const schedMs = schedDate.getTime();
     const isDue = Date.now() >= schedMs;
     const h = schedDate.getHours();
@@ -500,7 +500,7 @@ export const calcularHorarioDespachoTurno = (item, modoCargaMasiva = 'NORMAL', i
  * - Intervalo por defecto: 60 minutos (1 correo/hora).
  * - Si excede las 17:00 hrs, salta automáticamente a las 08:30 hrs del siguiente día hábil.
  */
-export const calcularSlotJornadaLaboral = (nowDate, idx = 0, slotMins = 60, pautasDB = null) => {
+export const calcularSlotJornadaLaboral = (nowDate, idx = 0, slotMins = 60, pautasDB = null, ultimoDespachoMs = 0) => {
   const START_MINS = 8 * 60 + 30; // 08:30 (510 min)
   const END_MINS = 17 * 60;       // 17:00 (1020 min)
 
@@ -522,6 +522,19 @@ export const calcularSlotJornadaLaboral = (nowDate, idx = 0, slotMins = 60, paut
 
   let cur = new Date(nowDate);
   const hoyEsHabil = isDiaHabilChile(cur, pautasDB);
+
+  // Si hubo un despacho reciente (dentro de los últimos slotMins minutos):
+  // El slot 0 debe ser programado slotMins minutos después de ese último despacho
+  if (ultimoDespachoMs && Number(ultimoDespachoMs) > 0) {
+    const msSinceLast = cur.getTime() - Number(ultimoDespachoMs);
+    const minSinceLast = msSinceLast / 60000;
+    if (minSinceLast >= 0 && minSinceLast < slotMins) {
+      const nextAllowed = new Date(Number(ultimoDespachoMs) + slotMins * 60000);
+      if (nextAllowed.getTime() > cur.getTime()) {
+        cur = nextAllowed;
+      }
+    }
+  }
 
   if (!hoyEsHabil) {
     cur = getNextHabilStart(cur);
