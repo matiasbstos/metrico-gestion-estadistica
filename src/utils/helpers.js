@@ -386,6 +386,44 @@ export const calcularHorarioDespachoTurno = (item, modoCargaMasiva = 'NORMAL', i
     };
   }
 
+  // Modalidad D (Recomendada SSOT): Despacho Continuo por Hora en Jornada Laboral (08:30 a 17:00 hrs)
+  if (modoCargaMasiva === 'DESPACHO_HORA_JORNADA') {
+    const slotMins = Number(intervaloMinutos) || 60;
+    const schedDate = calcularSlotJornadaLaboral(now, idx, slotMins, pautasDB);
+    const schedMs = schedDate.getTime();
+    const isDue = Date.now() >= schedMs;
+    const h = schedDate.getHours();
+    const mins = schedDate.getMinutes();
+    const horaStr = `${String(h).padStart(2, '0')}:${String(mins).padStart(2, '0')} hrs`;
+    const diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const diaNombre = diasSemana[schedDate.getDay()];
+    const diaNum = String(schedDate.getDate()).padStart(2, '0');
+    const mesNum = String(schedDate.getMonth() + 1).padStart(2, '0');
+
+    const isToday = schedDate.getDate() === now.getDate() && schedDate.getMonth() === now.getMonth() && schedDate.getFullYear() === now.getFullYear();
+    const dayLabel = isToday ? 'Hoy' : `${diaNombre} ${diaNum}/${mesNum}`;
+
+    const curMinsNow = now.getHours() * 60 + now.getMinutes();
+    const hoyHabil = isDiaHabilChile(now, pautasDB);
+    const enJornadaLaboral = hoyHabil && curMinsNow >= 510 && curMinsNow <= 1020;
+
+    let horarioTexto = '';
+    if (isDue) {
+      horarioTexto = `${dayLabel} ${horaStr} (Listo en Jornada)`;
+    } else {
+      horarioTexto = `${dayLabel} a las ${horaStr} (Jornada 08:30-17:00)`;
+    }
+
+    return {
+      horarioTexto,
+      scheduledTimestampMs: schedMs,
+      debeDispararAhora: isDue && enJornadaLaboral,
+      esPausado: !enJornadaLaboral && isToday,
+      motivoPausa: !enJornadaLaboral ? 'Pausado fuera de jornada laboral (08:30 a 17:00)' : null,
+      proximoHabilTexto: `${dayLabel} a las ${horaStr}`
+    };
+  }
+
   // Si hoy es día hábil: se puede despachar hoy
   if (modoCargaMasiva === 'RAFAGA_MISMO_DIA') {
     // Horario anclado en memoria o sessionStorage para evitar que se desplace 5 minutos en cada re-render
@@ -454,6 +492,62 @@ export const calcularHorarioDespachoTurno = (item, modoCargaMasiva = 'NORMAL', i
       proximoHabilTexto: null
     };
   }
+};
+
+/**
+ * Calcula el slot exacto dentro de la Jornada Laboral Oficial (08:30 a 17:00 hrs)
+ * - Restricciones: Lunes a Viernes no festivos (isDiaHabilChile).
+ * - Intervalo por defecto: 60 minutos (1 correo/hora).
+ * - Si excede las 17:00 hrs, salta automáticamente a las 08:30 hrs del siguiente día hábil.
+ */
+export const calcularSlotJornadaLaboral = (nowDate, idx = 0, slotMins = 60, pautasDB = null) => {
+  const START_MINS = 8 * 60 + 30; // 08:30 (510 min)
+  const END_MINS = 17 * 60;       // 17:00 (1020 min)
+
+  const getNextHabilStart = (baseD) => {
+    const nextHabil = getProximoDiaHabilChile(baseD, pautasDB);
+    if (nextHabil && nextHabil.date) {
+      const d = new Date(nextHabil.date);
+      d.setHours(8, 30, 0, 0);
+      return d;
+    }
+    const d = new Date(baseD);
+    d.setDate(d.getDate() + 1);
+    while (d.getDay() === 0 || d.getDay() === 6 || !isDiaHabilChile(d, pautasDB)) {
+      d.setDate(d.getDate() + 1);
+    }
+    d.setHours(8, 30, 0, 0);
+    return d;
+  };
+
+  let cur = new Date(nowDate);
+  const hoyEsHabil = isDiaHabilChile(cur, pautasDB);
+
+  if (!hoyEsHabil) {
+    cur = getNextHabilStart(cur);
+  } else {
+    const curMins = cur.getHours() * 60 + cur.getMinutes();
+    if (curMins < START_MINS) {
+      cur.setHours(8, 30, 0, 0);
+    } else if (curMins >= END_MINS) {
+      cur = getNextHabilStart(cur);
+    }
+  }
+
+  // Avanzar slots hora a hora respetando la jornada 08:30 - 17:00
+  let slotDate = new Date(cur);
+  for (let i = 0; i < idx; i++) {
+    let candidate = new Date(slotDate.getTime() + slotMins * 60000);
+    const candMins = candidate.getHours() * 60 + candidate.getMinutes();
+    const candHabil = isDiaHabilChile(candidate, pautasDB);
+    if (candMins > END_MINS || !candHabil) {
+      slotDate = getNextHabilStart(slotDate);
+    } else {
+      slotDate = candidate;
+    }
+  }
+
+  return slotDate;
 };
 
 /**
