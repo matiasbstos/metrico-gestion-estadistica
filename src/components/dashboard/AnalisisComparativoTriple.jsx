@@ -4,8 +4,11 @@ import {
   AlertTriangle, ShieldCheck, Users, Edit3, CheckCircle2, 
   Gauge, Zap, RefreshCw, Layers, Award, Trophy, Flame, ShieldAlert, 
   Timer, BarChart2, Crown, Target, HeartPulse, UserCheck, 
-  AlertCircle, HelpCircle, ChevronRight, Stethoscope, Sparkles, Info
+  AlertCircle, HelpCircle, ChevronRight, Stethoscope, Sparkles, Info,
+  FileText, Download, Printer
 } from 'lucide-react';
+import { getKpiExtremes, KPI_POLARITY_DEFINITIONS } from '../../utils/kpiExtremes';
+import ExecutiveReportTemplate from './ExecutiveReportTemplate';
 import { 
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, 
   Tooltip, Legend, ResponsiveContainer,
@@ -162,6 +165,9 @@ export default function AnalisisComparativoTriple({
 
   // Modo de barras para el ComposedChart (agrupadas vs apiladas)
   const [chartBarMode, setChartBarMode] = useState('grouped'); // 'grouped' | 'stacked'
+
+  // FASE 2: Interfaz Dual (Analista vs Ejecutivo)
+  const [modoVista, setModoVista] = useState('analitico'); // 'analitico' (defecto) | 'ejecutivo'
 
   const equipoOptions = ['Turno 1', 'Turno 2', 'Turno 3', 'Turno 4'];
 
@@ -886,6 +892,11 @@ export default function AnalisisComparativoTriple({
     }));
   }, [teamsConfig, teamMetrics]);
 
+  // FASE 2: Extremos de KPIs ordenados por polaridad pura (CANDADO DE DATOS)
+  const kpiExtremes = useMemo(() => {
+    return getKpiExtremes(scorecardRanking);
+  }, [scorecardRanking]);
+
   // Veredicto Gerencial Automático (Fase 1: Top Banner Resumen de Decisión en Lenguaje Natural)
   const veredictoGerencial = useMemo(() => {
     if (!scorecardRanking || scorecardRanking.length === 0) return null;
@@ -1287,16 +1298,47 @@ export default function AnalisisComparativoTriple({
           </div>
         </div>
 
-        {/* Cifras Maestras Globales */}
-        <div className="flex items-center gap-3 self-start md:self-auto bg-black/5 dark:bg-white/5 px-4 py-2.5 rounded-2xl border border-card-custom">
-          <Users className="w-5 h-5 text-indigo-500 flex-shrink-0" />
-          <div className="text-right">
-            <span className="text-[9px] font-black text-secondary-custom uppercase tracking-wider block">
-              Muestra Auditada
-            </span>
-            <span className="text-sm md:text-base font-black text-primary-custom">
-              {globalAggregates.totalGlobalPacientes.toLocaleString('es-CL')} <span className="text-[10px] text-secondary-custom font-bold">pacientes</span>
-            </span>
+        {/* Cifras Maestras Globales y Switch de Interfaz Dual */}
+        <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
+          {/* FASE 2: INTERRUPTOR DUAL (TOGGLE SWITCH): MODO ANALÍTICO VS INFORME EJECUTIVO */}
+          <div className="flex items-center bg-black/5 dark:bg-white/5 p-1 rounded-2xl border border-card-custom shadow-2xs">
+            <button
+              type="button"
+              onClick={() => setModoVista('analitico')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                modoVista === 'analitico'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'
+              }`}
+            >
+              <Activity className="w-3.5 h-3.5" />
+              <span>Modo Analítico</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setModoVista('ejecutivo')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                modoVista === 'ejecutivo'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Modo Informe Ejecutivo</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3 bg-black/5 dark:bg-white/5 px-4 py-2 rounded-2xl border border-card-custom">
+            <Users className="w-5 h-5 text-indigo-500 flex-shrink-0" />
+            <div className="text-right">
+              <span className="text-[9px] font-black text-secondary-custom uppercase tracking-wider block">
+                Muestra Auditada
+              </span>
+              <span className="text-sm md:text-base font-black text-primary-custom">
+                {globalAggregates.totalGlobalPacientes.toLocaleString('es-CL')} <span className="text-[10px] text-secondary-custom font-bold">pacientes</span>
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -1402,10 +1444,22 @@ export default function AnalisisComparativoTriple({
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* FASE 1: VEREDICTO GERENCIAL AUTOMÁTICO (TOP BANNER CALLOUT EN LENGUAJE NATURAL) */}
-      {/* ========================================================================= */}
-      {veredictoGerencial && (
+      {/* RENDERIZADO DUAL SEGÚN MODO SELECCIONADO */}
+      {modoVista === 'ejecutivo' ? (
+        <ExecutiveReportTemplate
+          scorecardRanking={scorecardRanking}
+          globalAggregates={globalAggregates}
+          kpiExtremes={kpiExtremes}
+          fechaInicio={fechaInicio}
+          fechaFin={fechaFin}
+          onBackToAnalytics={() => setModoVista('analitico')}
+        />
+      ) : (
+        <>
+          {/* ========================================================================= */}
+          {/* FASE 1: VEREDICTO GERENCIAL AUTOMÁTICO (TOP BANNER CALLOUT EN LENGUAJE NATURAL) */}
+          {/* ========================================================================= */}
+          {veredictoGerencial && (
         <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/60 to-blue-50/90 dark:from-blue-950/30 dark:via-indigo-950/20 dark:to-blue-950/30 border-l-4 border-blue-600 dark:border-blue-500 p-4 md:p-5 rounded-2xl md:rounded-3xl shadow-xs border border-blue-100 dark:border-blue-900/40 flex items-start gap-3.5 transition-all">
           <div className="p-2.5 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shrink-0 mt-0.5">
             <Trophy className="w-5 h-5 text-amber-500" />
@@ -1958,6 +2012,92 @@ export default function AnalisisComparativoTriple({
               })}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* FASE 3: CUADRÍCULA DE EXTREMOS POR KPI (TREMOR CARDS) */}
+      {/* ========================================================================= */}
+      <div className="bg-card-custom p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-card-custom space-y-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-card-custom/40 pb-4">
+          <div>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <span className="px-2.5 py-1 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-black text-xs uppercase flex items-center gap-1.5">
+                <Target className="w-4 h-4" /> Desglose de Extremos por KPI
+              </span>
+              <h3 className="text-lg md:text-xl font-black text-primary-custom tracking-tight">
+                Líderes y Brechas Operativas por Indicador Clave (Tremor)
+              </h3>
+            </div>
+            <p className="text-xs text-secondary-custom font-medium mt-1">
+              Identificación automática del turno con mayor rendimiento (<span className="text-emerald-500 font-bold">Mejor Desempeño 🟢</span>) y del equipo con oportunidad de mejora (<span className="text-rose-500 font-bold">Turno Rezagado 🔴</span>) según la polaridad asistencial de cada métrica.
+            </p>
+          </div>
+
+          <div className="text-[11px] font-bold text-secondary-custom bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-xl border border-card-custom">
+            <span>7 Métricas Analizadas en Tiempo Real</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {KPI_POLARITY_DEFINITIONS.map(def => {
+            const ext = kpiExtremes[def.key];
+            if (!ext) return null;
+
+            return (
+              <TremorCard
+                key={def.key}
+                decoration="top"
+                decorationColor={def.polarity === 'higher_is_better' ? 'emerald' : 'purple'}
+                className="p-4 space-y-3 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-1 mb-1">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-secondary-custom truncate">
+                      {def.name}
+                    </span>
+                    <span className="text-[8.5px] font-bold px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/5 text-secondary-custom shrink-0">
+                      {def.polarity === 'higher_is_better' ? 'Mayor es Mejor' : 'Menor es Mejor'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-1">
+                  {/* MEJOR TURNO (ESMERALDA) */}
+                  <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-950 dark:text-emerald-200 space-y-0.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9.5px] font-black text-emerald-700 dark:text-emerald-400 flex items-center gap-1 uppercase tracking-wide">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                        Mejor Turno
+                      </span>
+                      <span className="text-xs font-black text-emerald-800 dark:text-emerald-300">
+                        {ext.bestFormatted}
+                      </span>
+                    </div>
+                    <p className="text-[11px] font-black text-emerald-900 dark:text-emerald-100 truncate">
+                      {ext.best?.alias || ext.best?.teamKey || '—'}
+                    </p>
+                  </div>
+
+                  {/* PEOR TURNO (ROSA / ROJO) */}
+                  <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-950 dark:text-rose-200 space-y-0.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9.5px] font-black text-rose-700 dark:text-rose-400 flex items-center gap-1 uppercase tracking-wide">
+                        <AlertCircle className="w-3 h-3 text-rose-600 dark:text-rose-400" />
+                        Turno Rezagado
+                      </span>
+                      <span className="text-xs font-black text-rose-800 dark:text-rose-300">
+                        {ext.worstFormatted}
+                      </span>
+                    </div>
+                    <p className="text-[11px] font-black text-rose-900 dark:text-rose-100 truncate">
+                      {ext.worst?.alias || ext.worst?.teamKey || '—'}
+                    </p>
+                  </div>
+                </div>
+              </TremorCard>
+            );
+          })}
         </div>
       </div>
 
@@ -2680,6 +2820,8 @@ export default function AnalisisComparativoTriple({
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }

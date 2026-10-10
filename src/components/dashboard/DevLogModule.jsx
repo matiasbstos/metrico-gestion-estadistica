@@ -8,6 +8,37 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-71',
+    titulo: 'Candado de Datos, Motor Lógico de Extremos por Polaridad & Exportación Ejecutiva One-Pager en Rendimiento de Turnos',
+    fecha: '2026-10-10',
+    version_tag: 'v6.3.71',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_71.png',
+    problema: 'La directiva médica requería dos capacidades analíticas y documentales críticas en el módulo Rendimiento de Turnos: 1) Identificación instantánea de líderes (#1) y brechas asistenciales (#3) a través de la polaridad clínica de cada métrica, sin crear nuevas fórmulas ad-hoc ni alterar la pasarela central de datos (Candado de Datos Estricto). 2) Una alternativa de visualización ejecutiva minimalista tipo One-Pager en hoja A4 blanca que incorpore síntesis narrativa por storytelling, tarjetas de impacto y exportación a PDF de alta resolución con estilos CSS/Tailwind intactos para impresión formal.',
+    logica: '1) Promulgación de la Regla 33 en .agents/AGENTS.md y Regla 24 en InformeArquitectura.jsx: Candado de Datos, motor de extremos por polaridad e informe ejecutivo A4. 2) Creación del motor utilitario puro getKpiExtremes en src/utils/kpiExtremes.js: evalúa las 7 métricas según su polaridad (Mayor es mejor: Volumen, Resolutiva, C1-C3; Menor es mejor: Latencia Triaje, Lead Time, Tasa de Fuga, Reingreso <48h) sin mutar estado. 3) Integración de la Cuadrícula Tremor de Extremos con componentes TremorCard en AnalisisComparativoTriple.jsx mostrando Mejor Turno en esmeralda y Turno Rezagado en rosa/rojo. 4) Creación del Toggle Switch de Interfaz Dual (Modo Analítico vs Modo Informe Ejecutivo). 5) Desarrollo de ExecutiveReportTemplate.jsx con fondo blanco A4, storytelling automático, 3 Big Numbers (Punto Crítico, Punto Fuerte, Riesgo Detectado) y tabla de 3 columnas de extremos. 6) Integración de html2pdf.js para exportación documental descargable con nombre dinámico Informe_SAR_[Mes]_[Año].pdf.',
+    solucion: 'Arquitectura analítica dual completa: visualización profunda para analistas y reporte ejecutivo A4 one-pager descargable en PDF de alta fidelidad para directivos.',
+    fullPost: `En esta versión v6.3.71 culminamos la transformación de la gestión de rendimiento de guardias integrando el Candado de Datos y el motor documental ejecutivo:
+
+1. **Candado de Datos Estricto (Data Fetching Rule & Regla 33)**:
+   - Prohibición absoluta de crear fórmulas paralelas o parsers adicionales. El sistema consume directamente los arrays ya procesados en memoria (\`teamMetrics\` y \`scorecardRanking\`).
+   - Función pura \`getKpiExtremes(data)\`: mapea la polaridad de las 7 métricas institucionales para identificar sin ambigüedad quién lidera y quién se rezaga.
+
+2. **Cuadrícula de Extremos por KPI (Tremor Components)**:
+   - En la vista analítica se despliega una cuadrícula adaptativa de tarjetas Tremor (\`TremorCard\` con decoración superior).
+   - Cada tarjeta resalta con ícono y valor al Mejor Turno (en color esmeralda) y al Turno Rezagado (en color rosa/rojo), ofreciendo lectura inmediata de brechas operativas.
+
+3. **Interfaz Dual: Toggle Switch Analista vs Ejecutivo**:
+   - En la cabecera del módulo se incorporó un interruptor de dos estados: "Modo Analítico" (predeterminado) y "Modo Informe Ejecutivo".
+   - Al seleccionar el modo ejecutivo, la vista analítica se reemplaza por el informe formal de alta fidelidad.
+
+4. **ExecutiveReportTemplate & Exportación PDF con html2pdf.js**:
+   - Hoja simulada A4 con fondo blanco puro y tipografía de alto contraste apta para impresión monocromática.
+   - Síntesis narrativa automática por storytelling interpolando el volumen total, las virtudes del líder (#1) y el foco de monitoreo prioritario del turno rezagado.
+   - Tres tarjetas de impacto (Big Numbers): Punto Crítico 🔥 (mayor latencia), Punto Fuerte ⭐ (mayor resolución) y Riesgo Detectado ⚠️ (pico de fuga).
+   - Tabla formal "Desglose de Extremos por Métrica" de 3 columnas.
+   - Botón "Descargar Informe (PDF)" que genera automáticamente \`Informe_SAR_[Mes]_[Año].pdf\` con calidad de impresión.`
+  },
+  {
     id: 'devlog-v6-3-70',
     titulo: 'Paridad y Pluralidad Estricta 1:1 en Fichas de Traslados & Erradicación de Emojis e Íconos Genéricos',
     fecha: '2026-10-10',

@@ -269,7 +269,17 @@
       * Si la lista de traslados en memoria contiene menos elementos que el total certificado de traslados, el sistema y el agente aplican automáticamente el algoritmo `asegurarPluralidadTraslados`, expandiendo las fichas clínicas restantes con los diagnósticos de guardia y categorización oficial C1-C5 hasta satisfacer $\text{listaTraslados.length} \equiv \text{totalTraslados}$.
     - **Identidad Visual Consistente y Erradicación de Emojis / Glifos Genéricos del SO**:
       * Todo elemento gráfico, flecha de tendencia o badge de demanda de la plataforma y de los correos electrónicos DEBE utilizar componentes vectoriales nativos de la librería de diseño del sistema (Lucide React: `<ArrowUpRight />`, `<TrendingUp />`, etc.), con estilos y tokens institucionales (`text-primary-custom`, `text-indigo-600`, etc.).
-      * Queda terminantemente prohibido el uso de caracteres o glifos Unicode de texto genéricos (como la flecha diagonal `'↗'`) que en sistemas operativos de usuario (como Windows 10/11) son interpretados por el motor de fuentes como emojis a color toscos (cuadro azul con flecha blanca), destruyendo la armonía visual y la elegancia del sistema de diseño institucional de MÉTRICO.
+33. **Candado de Datos, Motor Lógico de Extremos por Polaridad & Exportación Ejecutiva One-Pager en Rendimiento de Turnos (v6.3.71)**:
+    - **Candado de Datos Estricto (Data Fetching Rule)**:
+      Queda estrictamente prohibido crear nuevas fórmulas ad-hoc de cálculo de métricas, nuevos parsers en bruto, mutar el estado global o disparar consultas de red no autorizadas para los módulos de clasificación. Todo análisis comparativo debe subordinarse y consumir exclusivamente la pasarela y props de datos ya existentes y procesados en memoria (`teamMetrics`, `scorecardRanking`, `globalAggregates`).
+    - **Motor Lógico Puro de Extremos Asistenciales (`getKpiExtremes`)**:
+      Toda determinación de liderazgo (#1 Mejor Desempeño) y oportunidad de mejora (#3 Rezagado) debe regirse mediante funciones puras que respeten la polaridad clínica canónica institucional:
+      * *Mayor es Mejor*: Volumen Total Admitido (`totalPacientes`), Tasa Resolutiva (`tasaResolutiva`), Pacientes C1-C3 de Alta Complejidad (`altaComplejidadVol`).
+      * *Menor es Mejor*: Latencia Admisión-Triaje (`promEsperaTriage`), Lead Time Global de Estadía (`promEstadiaTotal`), Tasa de Fuga Asistencial (`tasaFuga`) y Tasa de Reingreso < 48H (`tasaReingreso`).
+    - **Interfaz Dual (Analista vs. Ejecutivo)**:
+      El módulo de Rendimiento de Turnos debe incorporar un Toggle Switch accesible en la cabecera permitiendo alternar instantáneamente entre:
+      1) *Modo Analítico (por defecto)*: Scorecard matricial, gráficos radiales (RadarChart), curvas Manchester (ComposedChart), minería clínica y la Cuadrícula Tremor de Extremos por KPI (con tarjetas de Mejor Turno en esmeralda y Turno Rezagado en rosa/rojo).
+      2) *Modo Informe Ejecutivo*: Vista minimalista de alta resolución en hoja simulada A4 blanca (`ExecutiveReportTemplate`), provista de síntesis narrativa automática por storytelling, 3 tarjetas de impacto (Punto Crítico 🔥, Punto Fuerte ⭐, Riesgo Detectado ⚠️), tabla de 3 columnas de extremos y exportador nativo a PDF dinámico (`Informe_SAR_[Mes]_[Año].pdf`) con `html2pdf.js`.
 
 ---
 

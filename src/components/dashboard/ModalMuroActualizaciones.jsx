@@ -15,6 +15,31 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.71',
+      version: 'v6.3.71',
+      fecha: '10 de Octubre, 2026',
+      badge: 'CANDADO DE DATOS & EXPORTACIÓN DOCUMENTAL • REGLA 33: MOTOR DE EXTREMOS POR POLARIDAD & INFORME A4 ONE-PAGER',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Candado de Datos, Motor Lógico de Extremos por Polaridad & Exportación Ejecutiva One-Pager en Rendimiento de Turnos',
+      categoria: 'Rendimiento de Turnos & Exportación Ejecutiva',
+      icon: FileText,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se implementó la arquitectura completa de Extremos Asistenciales y Exportación Documental en el módulo Rendimiento de Turnos bajo la Regla 33: 1) Candado de Datos Estricto: Conexión exclusiva a los datos existentes en memoria sin fórmulas ad-hoc ni recálculos. 2) Motor Puro getKpiExtremes: Evaluación de las 7 métricas por polaridad clínica (Mayor es mejor: Volumen, Resolutiva, C1-C3; Menor es mejor: Latencia, Estadía, Fuga, Reingreso <48h). 3) Cuadrícula Tremor de Extremos: Tarjetas visuales TremorCard destacando el Mejor Turno (esmeralda 🟢) y el Turno Rezagado (rosa/rojo 🔴). 4) Interfaz Dual con Toggle Switch: Alternancia instantánea entre el Modo Analítico y el Modo Informe Ejecutivo A4. 5) ExecutiveReportTemplate & html2pdf.js: Hoja blanca A4 con storytelling automático, 3 tarjetas de impacto y descarga en PDF dinámica de alta resolución.',
+      instructivo: {
+        paraQueSirve: 'Permite a los directivos y jefaturas médicas alternar entre un análisis gráfico profundo y un informe ejecutivo minimalista imprimible en formato A4 listo para presentación o archivo formal.',
+        quePuedesVer: 'En Modo Analítico verás la nueva Cuadrícula Tremor con los extremos por cada una de las 7 métricas. Al activar el Toggle "Modo Informe Ejecutivo", verás la hoja A4 simulada con la síntesis narrativa redactada automáticamente y el botón "Descargar Informe (PDF)".',
+        ejemploUso: 'Haz clic en "Modo Informe Ejecutivo" en la cabecera de Rendimiento de Turnos para ver el veredicto en una página A4, o presiona "Descargar Informe (PDF)" para obtener el archivo Informe_SAR_[Mes]_[Año].pdf.'
+      },
+      changes: [
+        'Promulgación de la Regla 33 en .agents/AGENTS.md y Regla 24 en InformeArquitectura.jsx: Candado de datos, motor de extremos por polaridad e informe ejecutivo A4.',
+        'Creación del motor lógico puro getKpiExtremes en src/utils/kpiExtremes.js para mapear las 7 polaridades institucionales.',
+        'Incorporación de la Cuadrícula Tremor de Extremos por KPI en AnalisisComparativoTriple.jsx con tarjetas TremorCard de mejor y peor turno.',
+        'Implementación del Toggle Switch para Interfaz Dual (Modo Analítico vs Modo Informe Ejecutivo) en la cabecera de Rendimiento de Turnos.',
+        'Creación de ExecutiveReportTemplate.jsx con simulación A4 blanca, storytelling dinámico, 3 Big Numbers (Punto Crítico, Punto Fuerte, Riesgo) y tabla de extremos.',
+        'Integración de html2pdf.js para exportación documental pixel-perfect con nombre dinámico Informe_SAR_[Mes]_[Año].pdf.'
+      ]
+    },
+    {
       id: 'v6.3.70',
       version: 'v6.3.70',
       fecha: '10 de Octubre, 2026',

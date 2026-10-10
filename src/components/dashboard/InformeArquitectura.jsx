@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.71',
+    version_tag: 'v6.3.71',
+    fecha: '10 de Octubre, 2026',
+    fecha_despliegue: '10 de Octubre, 2026',
+    proposito_actualizacion: 'Candado de Datos, Motor Lógico de Extremos por Polaridad & Exportación Ejecutiva One-Pager en Rendimiento de Turnos (Regla 33).',
+    medios_y_stack: [
+      '.agents/AGENTS.md (Promulgación de la Regla 33: Candado estricto de datos, polaridad de KPIs en getKpiExtremes, interfaz dual y exportación A4)',
+      'InformeArquitectura.jsx (Incorporación de Regla 24 en catálogo institucional, actualización del contador a 24 Reglas y registro de v6.3.71)',
+      'kpiExtremes.js (Creación de motor utilitario puro getKpiExtremes con polaridad clínica: Mayor es Mejor para volumen/resolución/C1-C3, Menor es Mejor para latencia/lead time/fuga/reingreso)',
+      'AnalisisComparativoTriple.jsx (Integración de Toggle Switch para Interfaz Dual: Modo Analítico vs Modo Informe Ejecutivo, y Cuadrícula Tremor de Extremos por KPI)',
+      'ExecutiveReportTemplate.jsx (Componente minimalista de alta resolución en hoja simulada A4 con storytelling automático, 3 tarjetas de impacto, tabla de 3 columnas de extremos y descarga PDF con html2pdf.js)',
+      'ModalMuroActualizaciones.jsx (Registro de actualización v6.3.71 e instructivo clínico para equipos directivos)',
+      'DevLogModule.jsx (Registro de ingeniería devlog-v6-3-71)',
+      'version.js (Sincronización a v6.3.71)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Candado de datos inviolable (cero fórmulas ad-hoc o mutación de estado), motor puro de ordenamiento de extremos por polaridad, interfaz dual analista/ejecutivo y exportación A4 monocromática.',
+      firestore_collections: ['system_architecture_log', 'turnos_asistenciales', 'pautas_turnos'],
+      documentos_afectados: ['src/utils/kpiExtremes.js', 'src/components/dashboard/ExecutiveReportTemplate.jsx', 'src/components/dashboard/AnalisisComparativoTriple.jsx', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx', '.agents/AGENTS.md']
+    }
+  },
+  {
     id: 'v6.3.70',
     version_tag: 'v6.3.70',
     fecha: '10 de Octubre, 2026',
@@ -5160,6 +5182,22 @@ export const REGLAS_INSTITUCIONALES_METRICO = [
       'Prohibición Absoluta de Glifos Unicode Genéricos (↗): Queda terminantemente prohibido incrustar caracteres como ↗ que en sistemas operativos de usuario (como Windows) se renderizan como emojis toscos (cuadro azul con flecha blanca), degradando la estética y consistencia visual institucional.'
     ],
     normaTecnica: 'listaTraslados.length === totalTraslados (1:1) + Lucide ArrowUpRight / SVG nativo sin glifos ↗'
+  },
+  {
+    id: 24,
+    numero: 'Regla 24',
+    titulo: 'Candado de Datos, Motor Lógico de Extremos por Polaridad & Exportación Ejecutiva One-Pager en Rendimiento de Turnos',
+    categoria: 'Rendimiento & Exportación Ejecutiva',
+    badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+    resumen: 'Principio inviolable de preservación de datos (prohibición estricta de crear nuevas fórmulas o peticiones extra), motor puro de ordenamiento de extremos por polaridad clínica, interfaz dual (Modo Analítico Tremor vs Modo Informe Ejecutivo A4) y exportación documental monocromática de alta resolución mediante html2pdf.js.',
+    directrices: [
+      'Candado de Datos Estricto: Conexión exclusiva a la pasarela central y props existentes (teamMetrics, scorecardRanking, globalAggregates). Prohibición de mutar el estado o crear fórmulas no canónicas.',
+      'Motor Lógico Puro de Extremos (getKpiExtremes): Ordenamiento de las 7 métricas clave según su polaridad (Mayor es mejor: Volumen, Resolutiva, C1-C3; Menor es mejor: Latencia Triaje, Lead Time, Tasa de Fuga, Reingreso < 48H).',
+      'Cuadrícula Tremor de Extremos: Tarjetas analíticas TremorCard con Mejor Turno en esmeralda y Turno Rezagado en rosa/rojo.',
+      'Interfaz Dual y Reporte A4: Toggle Switch en cabecera para alternar entre el Dashboard analítico y el One-Pager Ejecutivo (ExecutiveReportTemplate) con síntesis narrativa automática por storytelling, 3 tarjetas de impacto y tabla de 3 columnas.',
+      'Exportación a PDF con html2pdf.js: Descarga directa de alta fidelidad con nombre dinámico Informe_SAR_[Mes]_[Año].pdf manteniendo íntegros los estilos CSS/Tailwind.'
+    ],
+    normaTecnica: 'getKpiExtremes (polaridad pura) + Toggle Dual + ExecutiveReportTemplate A4 + html2pdf.js'
   }
 ];
 
@@ -5884,11 +5922,11 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
         </div>
       )}
 
-      {/* PESTAÑA 6: NORMATIVA OFICIAL (23 REGLAS SSOT) Y PROTOCOLO DE DESPLIEGUE */}
+      {/* PESTAÑA 6: NORMATIVA OFICIAL (24 REGLAS SSOT) Y PROTOCOLO DE DESPLIEGUE */}
       {(activeTab === 'protocolo' || true) && (
         <div className={`space-y-6 ${activeTab !== 'protocolo' ? 'hidden print:block' : ''}`}>
           
-          {/* BLOQUE MAESTRO: LAS 23 REGLAS CANÓNICAS DE INTEGRIDAD ASISTENCIAL (SSOT RAYEN) */}
+          {/* BLOQUE MAESTRO: LAS 24 REGLAS CANÓNICAS DE INTEGRIDAD ASISTENCIAL (SSOT RAYEN) */}
           <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-sm space-y-6 theme-transition print:border-gray print:bg-white">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-card-custom/50 pb-5">
               <div className="flex items-center gap-3">
@@ -5897,7 +5935,7 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-black text-primary-custom">Normativa Institucional & 23 Reglas Canónicas SSOT</h2>
+                    <h2 className="text-xl font-black text-primary-custom">Normativa Institucional & 24 Reglas Canónicas SSOT</h2>
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">
                       Inviolable & Permanente
                     </span>
@@ -5910,7 +5948,7 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
 
               {/* CONTADOR DE REGLAS */}
               <div className="px-3.5 py-1.5 bg-black/5 dark:bg-white/5 rounded-xl border border-card-custom text-xs font-bold text-primary-custom">
-                23 Reglas Certificadas
+                24 Reglas Certificadas
               </div>
             </div>
 
