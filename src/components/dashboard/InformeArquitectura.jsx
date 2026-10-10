@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.68',
+    version_tag: 'v6.3.68',
+    fecha: '10 de Octubre, 2026',
+    fecha_despliegue: '10 de Octubre, 2026',
+    proposito_actualizacion: 'Calibración Estricta de Auto-Detección de Turno Cerrado: Encasillamiento SAR (16:00 a 12:00 vs 08:00-20:00) & Blindaje de Fechas DD/MM/AAAA.',
+    medios_y_stack: [
+      'helpers.js (Calibración de calcularUltimoTurnoCompleto: cierre a las 12:00 PM para turnos largos de semana hábil y discriminación exacta entre 08:00 a 20:00 y 20:00 a 08:00 en fines de semana)',
+      'FiltrosGlobales.jsx (Implementación de ChileanDatePicker y ChileanTimePicker con representación inmutable en formato DD/MM/AAAA con día de semana y horas 24h, erradicando descalces por locale en-US; actualización de EncasillamientoInfoBadge con soporte dinámico para todas las variantes horarias SAR)',
+      'Dashboard.jsx (Blindaje en getInitialCompleteShift con fallback dinámico continuo y normalización de turnos largos a 12:00; actualización de handleClearFilters con persistencia en localStorage)',
+      'ModalMuroActualizaciones.jsx (Registro de actualización v6.3.68 e instructivo operativo)',
+      'InformeArquitectura.jsx (Documentación técnica institucional de arquitectura y refactorización)',
+      'DevLogModule.jsx (Registro cronológico de ingeniería v6.3.68)',
+      'version.js (Sincronización a v6.3.68)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Auto-detección estricta del último turno clínico 100% completo y cerrado según normativa oficial SAR y erradicación de ambigüedad de formato de fecha estadounidense (Reglas 5 & 9 de AGENTS.md).',
+      firestore_collections: ['system_architecture_log', 'turnos_asistenciales', 'pautas_turnos'],
+      documentos_afectados: ['src/utils/helpers.js', 'src/components/dashboard/FiltrosGlobales.jsx', 'src/components/Dashboard.jsx', 'src/config/version.js', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/DevLogModule.jsx']
+    }
+  },
+  {
     id: 'v6.3.67',
     version_tag: 'v6.3.67',
     fecha: '10 de Octubre, 2026',

@@ -170,12 +170,18 @@ const DashboardContent = () => {
           const shiftDate = new Date(`${parsed.fechaInicio}T12:00:00`);
           // Validar que sea una fecha válida y no futura respecto al tiempo real (+24h)
           if (!isNaN(shiftDate.getTime()) && shiftDate.getTime() <= (Date.now() + 86400000)) {
+            if (parsed.preset === 'largo' || parsed.horario === 'largo' || parsed.horaInicio === '16:00') {
+              parsed.horaFin = '12:00';
+            }
             return parsed;
           }
         }
       }
     } catch (e) {}
-    // Fallback dinámico continuo basado en la fecha de hoy
+    // Fallback dinámico continuo basado en la fecha y hora real del sistema
+    const nowShift = calcularUltimoTurnoCompleto(Date.now(), null);
+    if (nowShift) return nowShift;
+
     const now = new Date();
     const nowIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     return {
@@ -597,7 +603,7 @@ const DashboardContent = () => {
     setIsFiltering(true);
     setTimeout(() => {
       const maxTime = resolverMaxTimestampGlobal(turnosDB, pacientesDB, allPacientesDB);
-      const completeShift = calcularUltimoTurnoCompleto(maxTime, pautasTurnosHook?.pautasDB);
+      const completeShift = calcularUltimoTurnoCompleto(maxTime || Date.now(), pautasTurnosHook?.pautasDB);
 
       if (completeShift) {
         setFiltroFechaInicio(completeShift.fechaInicio);
@@ -605,6 +611,9 @@ const DashboardContent = () => {
         setFiltroHoraInicio(completeShift.horaInicio);
         setFiltroHoraFin(completeShift.horaFin);
         setHorarioPreset(completeShift.preset);
+        try {
+          localStorage.setItem('metrico_ultimo_turno_completo', JSON.stringify(completeShift));
+        } catch (e) {}
       }
       setModoComparativo(false);
       setFiltroFechaInicioB('');

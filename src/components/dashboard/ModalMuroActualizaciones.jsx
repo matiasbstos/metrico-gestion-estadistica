@@ -15,6 +15,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.68',
+      version: 'v6.3.68',
+      fecha: '10 de Octubre, 2026',
+      badge: 'ESTANDARIZACIÓN SAR & BLINDAJE DE FORMATO • AUTO-DETECCIÓN ESTRICTA DEL ÚLTIMO TURNO CERRADO & FORMATO CHILENO (REGLAS 5 & 9)',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Calibración Estricta de Auto-Detección de Turno Cerrado: Encasillamiento SAR (16:00 a 12:00 vs 08:00-20:00) & Blindaje de Fechas DD/MM/AAAA',
+      categoria: 'Consolidación de Datos & Paridad Clínica',
+      icon: Clock,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se optimizó y blindó el motor de selección inicial y auto-detección del último turno clínico 100% completo y cerrado según normativa SAR (Reglas 5 y 9): para días hábiles, ventana asistencial y de estadía oficial de 16:00 a 12:00 PM del día siguiente; para fines de semana, turnos diurno (08:00 a 20:00) y nocturno (20:00 a 08:00). Además, se implementaron los selectores visuales ChileanDatePicker y ChileanTimePicker, erradicando la ambigüedad generada por navegadores con locale en-US (que mostraban erróneamente formato estadounidense MM/DD/YYYY simulando rangos de 31 días) al renderizar de forma visible e inmutable el día de la semana y formato chileno DD/MM/AAAA (ej. Jue 08/10/2026) junto con horas 24h institucionales (16:00 hrs - 12:00 hrs).',
+      instructivo: {
+        paraQueSirve: 'Garantiza que al ingresar a la plataforma o restablecer filtros, el sistema cargue de forma autónoma el último turno clínico cerrado sin intervenciones manuales, visualizando las fechas de forma inequívoca en formato chileno con día de semana y horas oficiales.',
+        quePuedesVer: 'En la barra superior de filtros se muestra claramente el rango del turno con formato DD/MM/AAAA (ej. Jue 08/10/2026 16:00 hrs - Vie 09/10/2026 12:00 hrs) y un badge interactivo explicativo de la normativa SAR.',
+        ejemploUso: 'Al presionar "Limpiar Filtros" o recargar el sitio, se cargará automáticamente el último turno cerrado (16:00 a 12:00 en semana, o 08:00 a 20:00 / 20:00 a 08:00 en fin de semana), sin confusiones de fechas ni meses invertidos.'
+      },
+      changes: [
+        'Calibración de calcularUltimoTurnoCompleto en helpers.js: cierre a las 12:00 PM en turnos largos de semana y discriminación horaria exacta en fines de semana (08:00 a 20:00 y 20:00 a 08:00).',
+        'Implementación de ChileanDatePicker en FiltrosGlobales.jsx: formato visible e inmutable DD/MM/AAAA con día de semana en español (ej. Jue 08/10/2026), erradicando inversiones de formato causadas por el locale del sistema operativo.',
+        'Implementación de ChileanTimePicker en FiltrosGlobales.jsx: formato 24 horas institucional (16:00 hrs, 12:00 hrs, etc.) sin ambigüedad de am/pm.',
+        'Actualización de EncasillamientoInfoBadge con soporte dinámico para turnos largos, fin de semana diurno, fin de semana nocturno y día civil.',
+        'Blindaje en getInitialCompleteShift y handleClearFilters en Dashboard.jsx con persistencia reactiva en localStorage.'
+      ]
+    },
+    {
       id: 'v6.3.67',
       version: 'v6.3.67',
       fecha: '10 de Octubre, 2026',

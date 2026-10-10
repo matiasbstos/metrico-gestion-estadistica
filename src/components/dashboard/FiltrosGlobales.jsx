@@ -39,11 +39,51 @@ function IntegrityAlertBadge({ integrityIncidencesCount, onNavigateTab }) {
   );
 }
 
+const DIAS_SEMANA_CORTO = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
 function EncasillamientoInfoBadge({ horarioPreset }) {
   const [showTooltip, setShowTooltip] = useState(false);
-  const isEncasillamientoLargo = horarioPreset === 'largo';
+  
+  if (!horarioPreset || horarioPreset === 'custom') return null;
 
-  if (!isEncasillamientoLargo) return null;
+  const isLargo = horarioPreset === 'largo';
+  const isFindeDia = horarioPreset === 'finde_dia';
+  const isFindeNoche = horarioPreset === 'finde_noche';
+  const isCivil = horarioPreset === 'civil';
+
+  const badgeTitle = isLargo 
+    ? 'Turno Largo Semana: 17:00 a 08:00 hrs'
+    : isFindeDia 
+    ? 'Finde Diurno: 08:00 a 20:00 hrs'
+    : isFindeNoche 
+    ? 'Finde Nocturno: 20:00 a 08:00 hrs'
+    : isCivil 
+    ? 'Día Civil: 24 Horas' 
+    : 'Turno Clínico';
+
+  const oficialHoras = isLargo 
+    ? '17:00 a 08:00 hrs (Día siguiente)'
+    : isFindeDia 
+    ? '08:00 a 20:00 hrs (Mismo día)'
+    : isFindeNoche 
+    ? '20:00 a 08:00 hrs (Día siguiente)'
+    : '00:00 a 23:59 hrs (24 hrs)';
+
+  const estadiaHoras = isLargo 
+    ? '16:00 a 12:00 PM (Ventana SAR Oficial)'
+    : isFindeDia 
+    ? '08:00 a 20:00 hrs'
+    : isFindeNoche 
+    ? '20:00 a 08:00 hrs'
+    : '00:00 a 23:59 hrs';
+
+  const explicacion = isLargo
+    ? 'Pacientes admitidos a las 08:00 AM en punto permanecen en box, observación y tratamiento, sobrepasando las 09:00 AM y completando su estadía y alta hasta el mediodía (12:00 PM).'
+    : isFindeDia
+    ? 'Jornada diurna continuada de 12 horas en sábados, domingos y festivos oficiales.'
+    : isFindeNoche
+    ? 'Jornada nocturna de 12 horas con cruce de medianoche en fines de semana y festivos.'
+    : 'Jornada de 24 horas continuas del día calendario.';
 
   return (
     <div className="relative inline-block animate-fade-in">
@@ -52,39 +92,40 @@ function EncasillamientoInfoBadge({ horarioPreset }) {
         onClick={() => setShowTooltip(!showTooltip)}
         onMouseEnter={() => setShowTooltip(true)}
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30 text-[10px] font-bold shadow-sm transition-all relative group cursor-pointer"
+        title="Clic para ver el Criterio de Encasillamiento Oficial SAR"
       >
         <span className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
         </span>
-        <Info className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-        <span className="hidden sm:inline">Turno Largo: 17:00 a 08:00 hrs</span>
-        <span className="sm:hidden">Turno Largo</span>
+        <Clock className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+        <span className="hidden sm:inline">{badgeTitle}</span>
+        <span className="sm:hidden">{isLargo ? 'Turno Largo' : isFindeDia ? 'Finde Día' : isFindeNoche ? 'Finde Noche' : '24h'}</span>
       </button>
 
       {showTooltip && (
         <div 
-          className="absolute top-full left-0 mt-2 z-[999] w-72 p-3.5 rounded-2xl bg-slate-900/95 dark:bg-slate-900/95 text-slate-100 border border-indigo-500/40 shadow-2xl backdrop-blur-xl animate-fade-in"
+          className="absolute top-full left-0 mt-2 z-[999] w-80 p-3.5 rounded-2xl bg-slate-900/95 dark:bg-slate-900/95 text-slate-100 border border-indigo-500/40 shadow-2xl backdrop-blur-xl animate-fade-in"
           onMouseLeave={() => setShowTooltip(false)}
         >
           <div className="flex items-center justify-between pb-2 border-b border-indigo-500/20 mb-2">
             <div className="flex items-center gap-1.5 text-xs font-black text-indigo-400 uppercase tracking-wide">
               <Info className="w-4 h-4 text-indigo-400 shrink-0" />
-              <span>Criterio de Encasillamiento</span>
+              <span>Criterio de Turno Oficial SAR</span>
             </div>
             <button onClick={() => setShowTooltip(false)} className="text-slate-400 hover:text-white text-xs font-bold cursor-pointer">✕</button>
           </div>
           <div className="space-y-1.5 text-[11px] font-medium leading-relaxed">
             <div className="flex items-center justify-between bg-white/5 px-2 py-1 rounded-lg">
               <span className="text-slate-400">Horario Oficial:</span>
-              <span className="font-bold text-indigo-300">17:00 a 08:00 hrs</span>
+              <span className="font-bold text-indigo-300">{oficialHoras}</span>
             </div>
             <div className="flex items-center justify-between bg-indigo-500/15 px-2 py-1 rounded-lg border border-indigo-500/30">
               <span className="text-slate-300">Encasillamiento & Estadía:</span>
-              <span className="font-mono font-bold text-emerald-400">16:00 a 12:00 PM</span>
+              <span className="font-mono font-bold text-emerald-400">{estadiaHoras}</span>
             </div>
             <p className="text-[10px] text-slate-400 mt-2 pt-1 border-t border-white/5">
-              💡 <strong>¿Por qué 16:00 a 12:00 PM?</strong> Pacientes admitidos a las 08:00 AM en punto permanecen en box y observación médica, sobrepasando las 09:00 AM y completando su estadía y alta hasta el mediodía.
+              💡 <strong>Regla Oficial SAR:</strong> {explicacion}
             </p>
           </div>
         </div>
@@ -94,22 +135,67 @@ function EncasillamientoInfoBadge({ horarioPreset }) {
 }
 
 function ChileanDatePicker({ id = 'filtro-fecha', name = 'fecha', value, onChange, className = '', onClick, ariaLabel = 'Seleccionar fecha' }) {
+  const formatChileanWithDay = (isoStr) => {
+    if (!isoStr || !isoStr.includes('-')) return '--/--/----';
+    const parts = isoStr.split('-');
+    if (parts.length !== 3) return isoStr;
+    const y = parseInt(parts[0]);
+    const m = parseInt(parts[1]);
+    const d = parseInt(parts[2]);
+    const dateObj = new Date(y, m - 1, d, 12, 0, 0);
+    const dayName = !isNaN(dateObj.getTime()) ? DIAS_SEMANA_CORTO[dateObj.getDay()] : '';
+    const dayStr = String(d).padStart(2, '0');
+    const moStr = String(m).padStart(2, '0');
+    return `${dayName ? dayName + ' ' : ''}${dayStr}/${moStr}/${y}`;
+  };
+
   return (
-    <input 
-      id={id}
-      name={name}
-      aria-label={ariaLabel}
-      type="date" 
-      value={value || ''} 
-      onChange={onChange} 
-      onClick={(e) => {
-        if (onClick) onClick(e);
-        try {
-          if (e.target.showPicker) e.target.showPicker();
-        } catch (err) {}
-      }}
-      className={`text-xs font-bold accent-text-custom outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0 ${className}`} 
-    />
+    <div className={`relative inline-flex items-center group cursor-pointer ${className}`} title="Clic para seleccionar fecha en el calendario">
+      <span className="text-xs font-bold font-mono accent-text-custom tracking-tight pointer-events-none select-none hover:underline whitespace-nowrap">
+        {formatChileanWithDay(value)}
+      </span>
+      <input 
+        id={id}
+        name={name}
+        aria-label={ariaLabel}
+        type="date" 
+        value={value || ''} 
+        onChange={onChange} 
+        onClick={(e) => {
+          if (onClick) onClick(e);
+          try {
+            if (e.target.showPicker) e.target.showPicker();
+          } catch (err) {}
+        }}
+        className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10" 
+      />
+    </div>
+  );
+}
+
+function ChileanTimePicker({ id = 'filtro-hora', name = 'hora', value, onChange, onFocus, onClick, className = '', ariaLabel = 'Seleccionar hora' }) {
+  return (
+    <div className={`relative inline-flex items-center group cursor-pointer ${className}`} title="Clic para cambiar hora de corte">
+      <span className="text-xs font-bold font-mono accent-text-custom tracking-tight pointer-events-none select-none hover:underline whitespace-nowrap">
+        {value ? `${value} hrs` : '--:--'}
+      </span>
+      <input 
+        id={id}
+        name={name}
+        aria-label={ariaLabel}
+        type="time" 
+        value={value || ''} 
+        onFocus={onFocus}
+        onClick={(e) => {
+          if (onClick) onClick(e);
+          try {
+            if (e.target.showPicker) e.target.showPicker();
+          } catch (err) {}
+        }}
+        onChange={onChange} 
+        className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10" 
+      />
+    </div>
   );
 }
 
@@ -280,11 +366,10 @@ export default function FiltrosGlobales({
                   }
                 }}
               />
-              <input 
+              <ChileanTimePicker 
                 id="filtro-hora-inicio"
                 name="filtroHoraInicio"
-                aria-label="Hora de inicio del filtro"
-                type="time" 
+                ariaLabel="Hora de inicio del filtro"
                 value={filtroHoraInicio} 
                 onFocus={() => setShowSuggestionsPopover(true)}
                 onClick={() => setShowSuggestionsPopover(true)}
@@ -293,7 +378,6 @@ export default function FiltrosGlobales({
                   setFiltroHoraInicio(e.target.value);
                   setHorarioPreset('custom');
                 }} 
-                className="text-xs font-bold accent-text-custom outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" 
               />
               <span className="text-secondary-custom font-bold text-xs">-</span>
               <ChileanDatePicker 
@@ -311,11 +395,10 @@ export default function FiltrosGlobales({
                   }
                 }}
               />
-              <input 
+              <ChileanTimePicker 
                 id="filtro-hora-fin"
                 name="filtroHoraFin"
-                aria-label="Hora de fin del filtro"
-                type="time" 
+                ariaLabel="Hora de fin del filtro"
                 value={filtroHoraFin} 
                 onFocus={() => setShowSuggestionsPopover(true)}
                 onClick={() => setShowSuggestionsPopover(true)}
@@ -324,7 +407,6 @@ export default function FiltrosGlobales({
                   setFiltroHoraFin(e.target.value);
                   setHorarioPreset('custom');
                 }} 
-                className="text-xs font-bold accent-text-custom outline-none bg-transparent cursor-pointer border-none p-0 focus:ring-0" 
               />
             </div>
 

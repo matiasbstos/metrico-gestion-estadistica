@@ -2114,17 +2114,32 @@ export const calcularUltimoTurnoCompleto = (maxTime, pautasDB = null) => {
     if (hours >= 20) {
       // Turno diurno de hoy (08:00 a 20:00) ha cerrado 100% completo
       return getShiftObject(maxDate, maxDate, '08:00', '20:00', 'finde_dia');
-    } else if (hours >= 8) {
-      // Turno diurno en curso; último cerrado fue la noche anterior
+    } else if (hours >= 12) {
+      // Entre 12:00 y 19:59 de fin de semana: el turno diurno de hoy está en curso.
+      // El turno cerrado inmediatamente anterior fue:
+      // Si ayer fue fin de semana/festivo: Noche Fin de Semana (20:00 a 08:00).
+      // Si ayer fue día hábil (ej. Viernes): Turno Largo de Semana (16:00 a 12:00 PM de hoy), el cual ya concluyó a las 12:00 PM.
       const prevDate = new Date(y, m, d - 1);
       const isPrevWknd = isWeekendOrHoliday(prevDate);
       return getShiftObject(
         prevDate, 
         maxDate, 
         isPrevWknd ? '20:00' : '16:00', 
-        isPrevWknd ? '08:00' : '09:00', 
+        isPrevWknd ? '08:00' : '12:00', 
         isPrevWknd ? 'finde_noche' : 'largo'
       );
+    } else if (hours >= 8) {
+      // Entre 08:00 y 11:59 de fin de semana:
+      // Si ayer fue fin de semana (ej. Domingo en la mañana): Sábado Noche concluyó a las 08:00 AM.
+      // Si ayer fue día hábil (ej. Sábado en la mañana): Viernes Largo aún tiene pacientes en estadía hasta las 12:00 PM; el último cerrado al 100% es Jueves Largo.
+      const prevDate = new Date(y, m, d - 1);
+      const isPrevWknd = isWeekendOrHoliday(prevDate);
+      if (isPrevWknd) {
+        return getShiftObject(prevDate, maxDate, '20:00', '08:00', 'finde_noche');
+      } else {
+        const prev2Date = new Date(y, m, d - 2);
+        return getShiftObject(prev2Date, prevDate, '16:00', '12:00', 'largo');
+      }
     } else {
       // Madrugada fin de semana (00:00 a 07:59): turno noche en curso
       const prevDate = new Date(y, m, d - 1);
@@ -2133,7 +2148,7 @@ export const calcularUltimoTurnoCompleto = (maxTime, pautasDB = null) => {
         return getShiftObject(prevDate, prevDate, '08:00', '20:00', 'finde_dia');
       } else {
         const prev2Date = new Date(y, m, d - 2);
-        return getShiftObject(prev2Date, prevDate, '16:00', '09:00', 'largo');
+        return getShiftObject(prev2Date, prevDate, '16:00', '12:00', 'largo');
       }
     }
   } else {

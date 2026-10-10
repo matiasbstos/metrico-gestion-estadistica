@@ -8,6 +8,33 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-68',
+    titulo: 'Calibración Estricta de Auto-Detección de Turno Cerrado: Encasillamiento SAR (16:00 a 12:00 vs 08:00-20:00) & Blindaje de Fechas DD/MM/AAAA',
+    fecha: '2026-10-10',
+    version_tag: 'v6.3.68',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_68.png',
+    problema: 'Se identificaron dos requerimientos asistenciales prioritarios: 1) Los navegadores en sistemas operativos con locale en-US renderizaban nativamente los campos de fecha como MM/DD/YYYY, ocasionando que un rango como "08/10/2026 a 09/10/2026" se visualizara como "10/08/2026 a 10/09/2026", simulando engañosamente un intervalo de 31 días (Agosto a Septiembre) en lugar del turno clínico diario. 2) La auto-selección inicial requería calibración estricta según las directrices operativas SAR (Reglas 5 y 9 de AGENTS.md), donde los turnos largos de semana hábil abarcan desde las 16:00 hrs hasta las 12:00 PM del día siguiente (para abarcar pacientes admitidos a las 08:00 AM y su estadía completa en box), mientras que los fines de semana dividen la jornada estrictamente en turno diurno (08:00 a 20:00) y nocturno (20:00 a 08:00).',
+    logica: '1) Creación de los componentes de entrada visual ChileanDatePicker y ChileanTimePicker en FiltrosGlobales.jsx: el input nativo actúa como overlay interactivo transparente mientras una capa tipográfica inmutable en español renderiza siempre "Día DD/MM/AAAA" (ej. Jue 08/10/2026) y horas en formato 24h (16:00 hrs - 12:00 hrs), eliminando cualquier inversión de meses. 2) Calibración de calcularUltimoTurnoCompleto en helpers.js para asegurar que toda jornada larga de semana concluya formalmente a las 12:00 PM y que las franjas de fin de semana discriminen exactamente el corte diurno (20:00 hrs) y nocturno (08:00 hrs). 3) Soporte dinámico en EncasillamientoInfoBadge para desplegar la normativa SAR correspondiente según el preset activo. 4) Normalización inmediata en getInitialCompleteShift y handleClearFilters en Dashboard.jsx con persistencia en localStorage.',
+    solucion: 'Experiencia de usuario 100% clara e institucional: las fechas se leen inequívocamente en formato chileno con día de semana y horas 24h, y la plataforma auto-selecciona el último turno cerrado exacto sin fallos.',
+    fullPost: `En esta versión v6.3.68 blindamos la auto-detección del último turno clínico cerrado y la representación visual de fechas:
+
+1. **La Aparente Discrepancia de Fechas (Formato en-US vs Formato Chileno)**:
+   - Al usar el input nativo \`<input type="date">\`, navegadores con configuración regional en-US mostraban \`10/08/2026\` (8 de Octubre) como si fuese "10 de Agosto" y \`10/09/2026\` (9 de Octubre) como "10 de Septiembre", sugiriendo erróneamente un rango de un mes completo.
+   - Se diseñó **ChileanDatePicker**: un componente que renderiza de forma estricta y visible el formato chileno con día de la semana abreviado (\`Jue 08/10/2026\`), manteniendo el selector nativo de calendario accesible por clic.
+   - De igual manera, **ChileanTimePicker** formatea las horas en estándar 24 hrs institucional (\`16:00 hrs\`, \`12:00 hrs\`, etc.) erradicando la confusión del formato 12h con AM/PM.
+
+2. **Ventanas Asistenciales Oficiales SAR (Reglas 5 & 9)**:
+   - **Semana Hábil (Turno Largo)**: Ventana de admisión ampliada de 16:00 hrs a 08:00 hrs y ventana de estadía/egreso hasta las **12:00 PM** del día siguiente.
+   - **Fines de Semana y Festivos**:
+     * *Turno Diurno*: **08:00 a 20:00 hrs** (12 horas exactas).
+     * *Turno Nocturno*: **20:00 a 08:00 hrs** del día siguiente (12 horas exactas con cruce de medianoche).
+
+3. **Auto-Detección y Restablecimiento Dinámico**:
+   - \`calcularUltimoTurnoCompleto\` en \`helpers.js\` evalúa la hora exacta para discriminar turnos en curso vs cerrados al 100%.
+   - \`Dashboard.jsx\` aplica fallback en tiempo real si el almacenamiento local está vacío o desactualizado, y \`handleClearFilters\` restituye inmediatamente el último turno cerrado certificado.`
+  },
+  {
     id: 'devlog-v6-3-67',
     titulo: 'Optimización de Barra Lateral: Reubicación de Correos, Compactación de Auditoría & Eliminación de Duplicados',
     fecha: '2026-10-10',
