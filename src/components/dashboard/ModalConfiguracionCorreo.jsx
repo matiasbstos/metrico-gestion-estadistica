@@ -63,8 +63,15 @@ export const buildTurnoInfoPayload = (selectedShiftObj, combinedPacientes = [], 
     let sumTriageBox = 0, countTriageBox = 0;
     let sumBoxAlta = 0, countBoxAlta = 0;
     const medicosCount = {};
-    let constataciones = 0;
-    let fracturas = 0;
+    let constataciones = selectedShiftObj.constatacionesCount !== undefined
+      ? selectedShiftObj.constatacionesCount
+      : (selectedShiftObj.constataciones !== undefined ? selectedShiftObj.constataciones : 0);
+    let fracturas = selectedShiftObj.fracturasCount !== undefined
+      ? selectedShiftObj.fracturasCount
+      : (selectedShiftObj.fracturas !== undefined ? selectedShiftObj.fracturas : 0);
+
+    let pacsConstataciones = 0;
+    let pacsFracturas = 0;
 
     pacs.forEach(p => {
       if (!selectedShiftObj.triage) {
@@ -99,12 +106,19 @@ export const buildTurnoInfoPayload = (selectedShiftObj, combinedPacientes = [], 
       }
 
       if (isConstatacionLesion(p)) {
-        constataciones++;
+        pacsConstataciones++;
       }
       if (isFractura(p)) {
-        fracturas++;
+        pacsFracturas++;
       }
     });
+
+    if (pacs.length > 0 && selectedShiftObj.constatacionesCount === undefined && selectedShiftObj.constataciones === undefined) {
+      constataciones = pacsConstataciones;
+    }
+    if (pacs.length > 0 && selectedShiftObj.fracturasCount === undefined && selectedShiftObj.fracturas === undefined) {
+      fracturas = pacsFracturas;
+    }
 
     const sumTriageCalc = (triage.c1 || 0) + (triage.c2 || 0) + (triage.c3 || 0) + (triage.c4 || 0) + (triage.c5 || 0);
     if (sumTriageCalc === 0 && atendidos > 0) {

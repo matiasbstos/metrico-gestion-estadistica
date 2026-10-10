@@ -1016,6 +1016,11 @@ export const OFFICIAL_RAYEN_SHIFT_CONTROLS = {
     altasAdmin: 11,
     egresoAdmin: 10,
     sinAtencionMedica: 1,
+    traslados: 0,
+    trasladosCount: 0,
+    altasMedicas: 83,
+    constataciones: 1,
+    constatacionesCount: 1,
     isCompleto: true,
     centros: [
       { centro: 'CESFAM FLORENCIA', cantidad: 23, porcentaje: '24.5%' },
@@ -1042,6 +1047,11 @@ export const OFFICIAL_RAYEN_SHIFT_CONTROLS = {
     atendidos: 98,
     altas: 8,
     altasAdmin: 8,
+    traslados: 2,
+    trasladosCount: 2,
+    altasMedicas: 96,
+    constataciones: 1,
+    constatacionesCount: 1,
     isCompleto: true
   }
 };

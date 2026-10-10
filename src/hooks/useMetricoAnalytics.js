@@ -738,6 +738,9 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       currentConstataciones = ctlOficial.constataciones;
     }
 
+    const pmConstataciones = deduplicarPacientes(prevMonthPacientes.filter(isConstatacion)).length;
+    const pyConstataciones = deduplicarPacientes(prevYearPacientes.filter(isConstatacion)).length;
+
     const avgEdad = demografiaStats.edadCount ? (demografiaStats.edadSum / demografiaStats.edadCount).toFixed(1) : 0;
     const fontTot = Object.entries(demografiaStats.prevs).filter(([k]) => k.includes('FONASA')).reduce((acc, [_, v]) => acc + v, 0);
     const fonasaPercent = demografiaStats.total ? (fontTot / demografiaStats.total) * 100 : 0;
