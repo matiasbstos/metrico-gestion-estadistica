@@ -134,6 +134,7 @@ const DashboardContent = () => {
   const [subTabEspecifico, setSubTabEspecifico] = useState('fracturas'); // 'fracturas' | 'altas' | 'constataciones'
   const [isEspecificosOpen, setIsEspecificosOpen] = useState(false);
   const [isGestionOpen, setIsGestionOpen] = useState(false);
+  const [isSistemaOpen, setIsSistemaOpen] = useState(false);
   const [notification, setNotification] = useState(null);
   const [pendingUpload, setPendingUpload] = useState(null);
   const [editModal, setEditModal] = useState(null);
@@ -1580,7 +1581,7 @@ const DashboardContent = () => {
       <aside className={`no-print
         h-full bg-sidebar-custom border-r border-card-custom text-primary-custom flex flex-col justify-between flex-shrink-0 z-50 shadow-xl theme-transition
         fixed md:static inset-y-0 left-0 transform transition-all duration-300 ease-in-out
-        ${sidebarCollapsed ? 'translate-x-[-100%] md:translate-x-0 md:w-16 lg:w-20' : 'translate-x-0 w-64 md:w-64'}
+        ${sidebarCollapsed ? 'translate-x-[-100%] md:translate-x-0 md:w-16 lg:w-20' : 'translate-x-0 w-72 md:w-72'}
       `}>
         <div className="overflow-y-auto flex-1 min-h-0 custom-scrollbar pb-4">
           <div className={`p-4 flex flex-col gap-4 border-b border-card-custom/50 theme-transition ${sidebarCollapsed ? 'items-center' : ''}`}>
@@ -1590,18 +1591,10 @@ const DashboardContent = () => {
                 <button
                   type="button"
                   onClick={() => setShowMuroModal(true)}
-                  className="text-[8px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 px-1.5 py-0.5 rounded-md border border-indigo-500/20 cursor-pointer transition-all hover:scale-105"
+                  className="text-[8px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/25 px-1.5 py-0.5 rounded-md border border-indigo-500/20 cursor-pointer transition-all hover:scale-105"
                   title={`Versión oficial ${CURRENT_APP_VERSION}. Clic para ver novedades.`}
                 >
                   {CURRENT_APP_VERSION}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowCorreoModal(true)}
-                  title="Informe por Correo (Despacho de Turno)"
-                  className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/25 hover:bg-indigo-500/20 hover:scale-105 transition-all cursor-pointer shadow-xs"
-                >
-                  <Mail className="w-4 h-4" />
                 </button>
                 <button 
                   onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -1661,26 +1654,6 @@ const DashboardContent = () => {
                 </select>
               </div>
             )}
-
-            {/* BOTÓN PROMINENTE DEBAJO DEL LOGO: INFORME POR CORREO */}
-            {!sidebarCollapsed ? (
-              <button
-                type="button"
-                onClick={() => setShowCorreoModal(true)}
-                title="Configuración y Despacho de Informes Asistenciales por Correo"
-                className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 border border-indigo-500/25 transition-all font-bold text-xs cursor-pointer shadow-xs group animate-fade-in"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded-lg bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
-                    <Mail className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="truncate">Informe por Correo</span>
-                </div>
-                <span className="text-[9px] font-black uppercase bg-indigo-600 text-white px-1.5 py-0.5 rounded-md shadow-xs">
-                  PROG
-                </span>
-              </button>
-            ) : null}
           </div>
 
           {/* Selector de Tema */}
@@ -1851,19 +1824,19 @@ const DashboardContent = () => {
               onMouseEnter={() => prefetchTab('radar')}
               onFocus={() => prefetchTab('radar')}
               title="Radar Predictivo (IA)"
-              className={`flex items-center rounded-xl font-bold text-sm transition-all duration-200 my-1.5 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${
+              className={`flex items-center rounded-xl font-bold text-sm transition-all duration-200 my-1.5 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-3.5 py-2.5'} ${
                 activeTab === 'radar' 
                   ? 'accent-bg-custom text-white shadow-md' 
                   : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/25 hover:bg-purple-500/20 shadow-xs'
               }`}>
               <AnimatedRadarIcon className={`w-5 h-5 flex-shrink-0 ${activeTab !== 'radar' ? 'text-purple-500' : 'text-white'}`} hasAlert={false} />
               {!sidebarCollapsed && (
-                <span className="animate-fade-in truncate flex items-center justify-between w-full">
-                  <span>Radar Predictivo</span>
-                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-500 text-white shadow-xs shrink-0">
+                <div className="animate-fade-in min-w-0 flex items-center justify-between flex-1 gap-2">
+                  <span className="truncate text-left font-bold">Radar Predictivo</span>
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-500 text-white shadow-xs shrink-0 whitespace-nowrap">
                     IA GEMINI
                   </span>
-                </span>
+                </div>
               )}
             </button>
 
@@ -1871,20 +1844,20 @@ const DashboardContent = () => {
               onClick={() => { setActiveTab('flujo'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
               onMouseEnter={() => prefetchTab('flujo')}
               onFocus={() => prefetchTab('flujo')}
-              title="Torre de Control (Flujo Operativo)"
-              className={`flex items-center rounded-xl font-bold text-sm transition-all duration-200 my-1 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-4 py-3'} ${
+              title="Flujo Operativo (React Flow)"
+              className={`flex items-center rounded-xl font-bold text-sm transition-all duration-200 my-1 ${sidebarCollapsed ? 'p-3 justify-center' : 'gap-3 px-3.5 py-2.5'} ${
                 activeTab === 'flujo' 
                   ? 'accent-bg-custom text-white shadow-md' 
                   : 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/25 hover:bg-cyan-500/20 shadow-xs'
               }`}>
               <Workflow className={`w-5 h-5 flex-shrink-0 ${activeTab !== 'flujo' ? 'text-cyan-500' : 'text-white'}`} />
               {!sidebarCollapsed && (
-                <span className="animate-fade-in truncate flex items-center justify-between w-full">
-                  <span>Torre de Control</span>
-                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500 text-white shadow-xs shrink-0">
+                <div className="animate-fade-in min-w-0 flex items-center justify-between flex-1 gap-2">
+                  <span className="truncate text-left font-bold">Flujo Operativo</span>
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500 text-white shadow-xs shrink-0 whitespace-nowrap">
                     REACT FLOW
                   </span>
-                </span>
+                </div>
               )}
             </button>
 
@@ -2023,6 +1996,12 @@ const DashboardContent = () => {
                     <Database className="w-4 h-4 flex-shrink-0" />
                   </button>
                   <button 
+                    onClick={() => setShowCorreoModal(true)} 
+                    title="Informe por Correo (Despacho de Turno)"
+                    className="flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center bg-transparent text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10 cursor-pointer">
+                    <Mail className="w-4 h-4 flex-shrink-0 text-indigo-500" />
+                  </button>
+                  <button 
                     onClick={() => { setActiveTab('pauta'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
                     title="Pauta de Turnos"
                     className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'pauta' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-sky-500 hover:bg-sky-500/10'}`}>
@@ -2042,7 +2021,7 @@ const DashboardContent = () => {
                   </button>
                   <button 
                     onClick={() => { setActiveTab('torre_admin'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
-                    title="Torre de Control (Auditoría de Sistema)"
+                    title="Auditoría de Sistema (Pipeline)"
                     className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'torre_admin' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-cyan-400 hover:bg-cyan-500/10'}`}>
                     <Cpu className="w-4 h-4 flex-shrink-0 text-cyan-400" />
                   </button>
@@ -2061,6 +2040,7 @@ const DashboardContent = () => {
                 </>
               ) : (
                 <div className="space-y-1 w-full">
+                  {/* ACORDEÓN GESTIÓN & CONTROL */}
                   <button 
                     onClick={() => {
                       if (!['reportes', 'data', 'pauta', 'usuarios'].includes(activeTab)) {
@@ -2085,6 +2065,19 @@ const DashboardContent = () => {
                         <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" /> Reporte Ejecutivo
                       </button>
                       <button 
+                        onClick={() => setShowCorreoModal(true)}
+                        className="flex items-center justify-between px-3 py-2 rounded-lg font-bold text-xs transition-all text-secondary-custom hover:text-indigo-500 hover:bg-indigo-500/10 cursor-pointer"
+                        title="Configuración y Despacho de Informes por Correo"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <Mail className="w-3.5 h-3.5 text-indigo-500" />
+                          <span>Informe por Correo</span>
+                        </div>
+                        <span className="text-[9px] font-black uppercase bg-indigo-600 text-white px-1.5 py-0.5 rounded-md shrink-0">
+                          PROG
+                        </span>
+                      </button>
+                      <button 
                         onClick={() => { setActiveTab('data'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
                         className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'data' ? 'bg-teal-500/20 text-teal-500 font-black border border-teal-500/30' : 'text-secondary-custom hover:text-teal-500 hover:bg-teal-500/10'}`}>
                         <Database className="w-3.5 h-3.5 text-teal-500" /> Gestión de Datos
@@ -2102,47 +2095,57 @@ const DashboardContent = () => {
                     </div>
                   )}
 
+                  {/* NUEVO ACORDEÓN COMPACTO: AUDITORÍA & SISTEMA */}
                   <button 
-                    onClick={() => { setActiveTab('auditoria'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
-                    title="Verificación"
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${activeTab === 'auditoria' || activeTab === 'arquitectura' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-                    <ShieldCheck className="w-4 h-4 flex-shrink-0 text-emerald-400" />
-                    <span className="animate-fade-in truncate">Verificación</span>
-                  </button>
-
-                  <button 
-                    onClick={() => { setActiveTab('torre_admin'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
-                    title="Torre de Control (Auditoría de Sistema)"
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 cursor-pointer ${activeTab === 'torre_admin' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                    onClick={() => {
+                      if (!['auditoria', 'arquitectura', 'torre_admin', 'devlog'].includes(activeTab)) {
+                        setIsSistemaOpen(true);
+                      } else {
+                        setIsSistemaOpen(!isSistemaOpen);
+                      }
+                      setActiveTab('auditoria');
+                    }}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 cursor-pointer ${['auditoria', 'arquitectura', 'torre_admin', 'devlog'].includes(activeTab) ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
                     <div className="flex items-center gap-3">
-                      <Cpu className="w-4 h-4 flex-shrink-0 text-cyan-400" />
-                      <span className="animate-fade-in truncate">Torre de Control (Sistema)</span>
+                      <ShieldCheck className="w-4 h-4 text-emerald-400" /> Auditoría & Sistema
                     </div>
-                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-cyan-500 text-white shrink-0">
-                      PIPELINE
-                    </span>
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isSistemaOpen ? 'rotate-180' : ''}`} />
                   </button>
 
-                  <button 
-                    onClick={() => { setActiveTab('devlog'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
-                    title="Bitácora de Desarrollo"
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 ${activeTab === 'devlog' ? 'accent-bg-custom text-white font-bold' : 'bg-transparent text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5'}`}>
-                    <Terminal className="w-4 h-4 flex-shrink-0 text-emerald-400" />
-                    <span className="animate-fade-in truncate">Bitácora de Desarrollo</span>
-                  </button>
-
-                  <button 
-                    onClick={() => { setShowAcercaDeModal(true); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
-                    title="Sobre MÉTRICO — Qué es el sistema, Creador & Equipo Asistencial"
-                    className="w-full flex items-center justify-between px-4 py-3 rounded-lg font-bold text-sm shadow-sm transition-all duration-200 bg-transparent text-secondary-custom hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-500/10 cursor-pointer">
-                    <div className="flex items-center gap-3">
-                      <Info className="w-4 h-4 flex-shrink-0 text-indigo-500" />
-                      <span className="animate-fade-in truncate">Sobre MÉTRICO</span>
+                  {isSistemaOpen && (
+                    <div className="pl-6 flex flex-col gap-1 py-1 transition-all">
+                      <button 
+                        onClick={() => { setActiveTab('auditoria'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'auditoria' || activeTab === 'arquitectura' ? 'bg-emerald-500/20 text-emerald-500 font-black border border-emerald-500/30' : 'text-secondary-custom hover:text-emerald-500 hover:bg-emerald-500/10'}`}>
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Verificación
+                      </button>
+                      <button 
+                        onClick={() => { setActiveTab('torre_admin'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                        className={`flex items-center justify-between px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'torre_admin' ? 'bg-cyan-500/20 text-cyan-400 font-black border border-cyan-500/30' : 'text-secondary-custom hover:text-cyan-400 hover:bg-cyan-500/10'}`}>
+                        <div className="flex items-center gap-2.5">
+                          <Cpu className="w-3.5 h-3.5 text-cyan-400" /> Auditoría de Sistema
+                        </div>
+                        <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-cyan-500 text-white shrink-0">
+                          PIPELINE
+                        </span>
+                      </button>
+                      <button 
+                        onClick={() => { setActiveTab('devlog'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'devlog' ? 'bg-emerald-500/20 text-emerald-400 font-black border border-emerald-500/30' : 'text-secondary-custom hover:text-emerald-400 hover:bg-emerald-400/10'}`}>
+                        <Terminal className="w-3.5 h-3.5 text-emerald-400" /> Bitácora de Desarrollo
+                      </button>
+                      <button 
+                        onClick={() => { setShowAcercaDeModal(true); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                        className="flex items-center justify-between px-3 py-2 rounded-lg font-bold text-xs transition-all text-secondary-custom hover:text-indigo-400 hover:bg-indigo-500/10 cursor-pointer">
+                        <div className="flex items-center gap-2.5">
+                          <Info className="w-3.5 h-3.5 text-indigo-400" /> Sobre MÉTRICO
+                        </div>
+                        <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 shrink-0">
+                          EQUIPO
+                        </span>
+                      </button>
                     </div>
-                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 shrink-0">
-                      EQUIPO
-                    </span>
-                  </button>
+                  )}
                 </div>
               )
             )}
@@ -2150,23 +2153,9 @@ const DashboardContent = () => {
         </div>
         <div className={`p-3.5 border-t border-card-custom/60 space-y-2.5 ${sidebarCollapsed ? 'flex flex-col items-center' : ''}`}>
           
-          {/* BOTÓN DE HERRAMIENTAS INFERIOR: SOBRE MÉTRICO & NOVEDADES */}
+          {/* BOTÓN DE HERRAMIENTAS INFERIOR: NOVEDADES */}
           {!sidebarCollapsed ? (
             <div className="w-full space-y-2">
-              <button
-                onClick={() => setShowAcercaDeModal(true)}
-                title="Sobre MÉTRICO: Qué es el sistema, Creador & Equipo Asistencial"
-                className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-gradient-to-r from-indigo-500/15 to-sky-500/10 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/20 transition-all font-bold text-xs cursor-pointer group shadow-sm"
-              >
-                <div className="flex items-center gap-2">
-                  <Info className="w-4 h-4 text-indigo-500 group-hover:scale-110 transition-transform" />
-                  <span>Sobre MÉTRICO</span>
-                </div>
-                <span className="text-[9px] font-black uppercase bg-indigo-600 text-white px-1.5 py-0.5 rounded-md shadow-xs">
-                  SISTEMA
-                </span>
-              </button>
-
               <button
                 onClick={() => setShowMuroModal(true)}
                 title="Muro de Novedades e Instructivos"
@@ -2183,13 +2172,6 @@ const DashboardContent = () => {
             </div>
           ) : (
             <div className="flex flex-col items-center gap-1.5 w-full">
-              <button
-                onClick={() => setShowAcercaDeModal(true)}
-                title="Sobre MÉTRICO (Sistema, Creador & Equipo)"
-                className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 hover:bg-indigo-500/20 transition-all cursor-pointer"
-              >
-                <Info className="w-4 h-4" />
-              </button>
               <button
                 onClick={() => setShowMuroModal(true)}
                 title={`Actualizaciones (${CURRENT_APP_VERSION})`}
@@ -2208,19 +2190,6 @@ const DashboardContent = () => {
                   {isSuperAdmin ? 'Admin. Global General' : isCenterAdmin ? 'Admin. Global de Centro' : 'Usuario Local'}
                 </p>
               </div>
-              <button 
-                onClick={() => setShowCorreoModal(true)} 
-                className="flex items-center justify-between px-3 py-1.5 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 rounded-lg font-bold text-xs transition-all w-full cursor-pointer"
-                title="Configuración y Despacho de Informes por Correo"
-              >
-                <div className="flex items-center gap-2.5">
-                  <Mail className="w-3.5 h-3.5 text-indigo-500" />
-                  <span>Informe por Correo</span>
-                </div>
-                <span className="text-[9px] font-black uppercase bg-indigo-600 text-white px-1.5 py-0.5 rounded-md">
-                  PROG
-                </span>
-              </button>
               <button onClick={handlePasswordResetRequest} className="flex items-center gap-3 px-3 py-1.5 text-secondary-custom hover:text-primary-custom hover:bg-black/5 dark:hover:bg-white/5 rounded-lg font-medium text-xs transition-all w-full">
                 <Lock className="w-3.5 h-3.5" /> Cambiar Clave
               </button>
@@ -2230,13 +2199,6 @@ const DashboardContent = () => {
             </>
           ) : (
             <>
-              <button 
-                onClick={() => setShowCorreoModal(true)} 
-                title="Informe por Correo (Despacho de Turno)" 
-                className="p-2.5 text-indigo-500 hover:bg-indigo-500/10 rounded-xl transition-all cursor-pointer"
-              >
-                <Mail className="w-4 h-4" />
-              </button>
               <button 
                 onClick={handlePasswordResetRequest} 
                 title="Cambiar Clave" 

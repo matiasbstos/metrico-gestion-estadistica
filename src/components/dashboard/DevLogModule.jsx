@@ -8,6 +8,36 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-67',
+    titulo: 'Optimización de Barra Lateral: Reubicación de Correos, Compactación de Auditoría & Eliminación de Duplicados',
+    fecha: '2026-10-10',
+    version_tag: 'v6.3.67',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_67.png',
+    problema: 'La barra lateral (Sidebar) presentaba problemas ergonómicos y visuales: 1) El botón "Informe por Correo" se encontraba flotando de forma huérfana en la cabecera sobre "Tema Visual" y duplicado en el perfil de usuario inferior. 2) Existían dos accesos con la misma denominación "Torre de Control", generando confusión entre el monitor asistencial de urgencia y el pipeline técnico del sistema. 3) Las pastillas/badges laterales (IA GEMINI, REACT FLOW, PIPELINE) se visualizaban cortadas en su borde derecho debido a restricciones de flex y un ancho ajustado (w-64). 4) Los accesos a Verificación, Auditoría de Sistema, Bitácora y Sobre MÉTRICO se encontraban dispersos ocupando excesivo espacio vertical. 5) El acceso "Sobre MÉTRICO" estaba duplicado en las opciones y en el pie arriba de Novedades.',
+    logica: '1) Reubicación de "Informe por Correo" como ítem oficial dentro del menú acordeón "Gestión & Control" (junto a Reporte Ejecutivo), eliminando los botones huérfanos y duplicados del pie. 2) Disambiguación taxonómica: la Torre de Control de pacientes/boxes pasa a denominarse canónicamente "Flujo Operativo" (con viñeta REACT FLOW) y la de infraestructura pasa a "Auditoría de Sistema" (con viñeta PIPELINE). 3) Corrección de viñetas cortadas: ampliación de la barra lateral a w-72 (288px), retiro de la propiedad truncate del contenedor flex y asignación de shrink-0 whitespace-nowrap a los badges. 4) Agrupación y compactación: creación del nuevo acordeón colapsable "Auditoría & Sistema" gobernado por isSistemaOpen conteniendo Verificación, Auditoría de Sistema, Bitácora y Sobre MÉTRICO. 5) Erradicación del botón duplicado Sobre MÉTRICO en el pie, dejando únicamente el acceso oficial a Novedades.',
+    solucion: 'Barra lateral limpia, simétrica y compacta: viñetas legibles al 100%, navegación agrupada por áreas lógicas de trabajo y eliminación definitiva de duplicidades.',
+    fullPost: `En esta versión v6.3.67 optimizamos integralmente la arquitectura de la barra lateral (Sidebar) de MÉTRICO:
+
+1. **Reubicación Canónica de Informe por Correo**:
+   - Se erradicó el botón huérfano que flotaba sobre el menú encima de "Tema Visual", así como el botón redundante en el bloque inferior de perfil.
+   - "Informe por Correo" ahora reside ordenadamente dentro del grupo acordeón **Gestión & Control** junto a "Reporte Ejecutivo", contando con su respectivo acceso rápido en modo colapsado.
+
+2. **Disambiguación de Torres de Control**:
+   - El monitor interactivo de flujo de pacientes y boxes fue renombrado a **"Flujo Operativo"** con viñeta distintiva **REACT FLOW**.
+   - El panel de diagnóstico técnico y chequeos de datos fue renombrado a **"Auditoría de Sistema"** con viñeta **PIPELINE**.
+
+3. **Resolución de Viñetas Cortadas (Badges Unclipping)**:
+   - Se amplió el ancho del Sidebar de \`w-64\` (256px) a \`w-72\` (288px).
+   - Se retiró la clase \`truncate\` que estaba erróneamente aplicada sobre el contenedor flexible padre, delegando el truncamiento al texto interior y protegiendo las pastillas con \`shrink-0 flex-shrink-0 whitespace-nowrap\`.
+
+4. **Nuevo Acordeón "Auditoría & Sistema"**:
+   - Se compactaron los módulos de verificación técnica agrupando en un único menú colapsable: **Verificación**, **Auditoría de Sistema**, **Bitácora de Desarrollo** y **Sobre MÉTRICO**.
+
+5. **Eliminación del Duplicado de "Sobre MÉTRICO"**:
+   - Se retiró el botón duplicado que figuraba en el pie de herramientas superior a Novedades, centralizando toda la información institucional en el menú de Auditoría & Sistema.`
+  },
+  {
     id: 'devlog-v6-3-66',
     titulo: 'Sincronización SSOT Universal: Erradicación Total de Discrepancias entre Dashboard Inicial, Subreportes y Correos de Guardia',
     fecha: '2026-10-10',

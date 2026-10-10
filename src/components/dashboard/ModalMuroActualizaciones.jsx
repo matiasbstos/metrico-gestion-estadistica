@@ -4,7 +4,7 @@ import {
   HelpCircle, BookOpen, Lightbulb, Eye, Mail, Volume2, Lock, Activity, ShieldCheck, Database, FileSpreadsheet, 
   BarChart3, LineChart, ArrowLeftRight, Send, Award, Users, TrendingUp, CheckCircle, Zap, UserCheck, Cloud, 
   ExternalLink, Search, Printer, FileText, RefreshCw, UploadCloud, Compass, Flame, Maximize2, Wind,
-  Building2, Stethoscope, Gauge, Workflow, Info
+  Building2, Stethoscope, Gauge, Workflow, Info, SlidersHorizontal
 } from 'lucide-react';
 import { CURRENT_APP_VERSION } from '../../config/version';
 
@@ -14,6 +14,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
   if (!isOpen) return null;
 
   const updatesList = [
+    {
+      id: 'v6.3.67',
+      version: 'v6.3.67',
+      fecha: '10 de Octubre, 2026',
+      badge: 'EXPERIENCIA DE USUARIO • REDISEÑO Y COMPACTACIÓN ESTRUCTURAL DE BARRA LATERAL (SIDEBAR)',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Optimización de Barra Lateral: Reubicación de Correos, Compactación de Auditoría & Eliminación de Duplicados',
+      categoria: 'Interfaz de Usuario & Navegación',
+      icon: SlidersHorizontal,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se optimizó integralmente la arquitectura de navegación de la barra lateral (Sidebar) de MÉTRICO: reubicación de "Informe por Correo" al menú de Gestión & Control (erradicando el botón flotante huérfano y el del pie), disambiguación entre "Flujo Operativo" (React Flow) y "Auditoría de Sistema" (Pipeline), ampliación de ancho a 288px (w-72) con resolución definitiva del corte de viñetas/badges, creación del nuevo acordeón colapsable "Auditoría & Sistema", y eliminación del duplicado de "Sobre MÉTRICO" del pie inferior.',
+      instructivo: {
+        paraQueSirve: 'Permite una navegación fluida, ordenada y compacta, visualizando todos los módulos organizados lógicamente por áreas de trabajo.',
+        quePuedesVer: 'Un menú lateral elegante y sin viñetas cortadas, con acceso a correos dentro de Gestión & Control, y las herramientas de auditoría agrupadas de forma compacta.',
+        ejemploUso: 'Despliega "Gestión & Control" para acceder a Informe por Correo o abre "Auditoría & Sistema" para revisar Verificación, Pipeline, Bitácora o información del equipo.'
+      },
+      changes: [
+        'Reubicación de "Informe por Correo" dentro del acordeón de Gestión & Control y eliminación de botones huérfanos y duplicados en el pie.',
+        'Disambiguación de doble Torre de Control: renombrada a "Flujo Operativo" (React Flow de Urgencia) y "Auditoría de Sistema" (Pipeline de Chequeos).',
+        'Ampliación del ancho de barra lateral a w-72 (288px) y eliminación de overflow cortado en badges (IA GEMINI, REACT FLOW, PIPELINE).',
+        'Creación del nuevo acordeón colapsable "Auditoría & Sistema" para compactar Verificación, Auditoría de Sistema, Bitácora y Sobre MÉTRICO.',
+        'Eliminación del botón duplicado de "Sobre MÉTRICO" en el pie de herramientas inferior, manteniendo únicamente Novedades.'
+      ]
+    },
     {
       id: 'v6.3.66',
       version: 'v6.3.66',

@@ -10,6 +10,25 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.67',
+    version_tag: 'v6.3.67',
+    fecha: '10 de Octubre, 2026',
+    fecha_despliegue: '10 de Octubre, 2026',
+    proposito_actualizacion: 'Optimización de Barra Lateral: Reubicación de Correos, Compactación de Auditoría & Eliminación de Duplicados.',
+    medios_y_stack: [
+      'Dashboard.jsx (Ampliación del ancho del Sidebar a w-72 [288px]; eliminación de truncate flex para resolver corte de badges en Radar y Flujo; reubicación de "Informe por Correo" al acordeón "Gestión & Control"; creación del acordeón colapsable "Auditoría & Sistema" [isSistemaOpen] agrupando Verificación, Auditoría de Sistema, Bitácora y Sobre MÉTRICO; disambiguación de doble Torre de Control a "Flujo Operativo" [React Flow] y "Auditoría de Sistema" [Pipeline]; supresión del botón duplicado Sobre MÉTRICO en el pie)',
+      'ModalMuroActualizaciones.jsx (Registro de actualización v6.3.67 e incorporación de icono SlidersHorizontal)',
+      'InformeArquitectura.jsx (Documentación técnica institucional de arquitectura y refactorización UI)',
+      'DevLogModule.jsx (Registro cronológico de ingeniería v6.3.67)',
+      'version.js (Sincronización a v6.3.67)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Erradicación de elementos visuales cortados, eliminación de duplicidades en la navegación y agrupamiento lógico de herramientas administrativas y de auditoría (Reglas 10 & UI).',
+      firestore_collections: ['system_architecture_log'],
+      documentos_afectados: ['src/components/Dashboard.jsx', 'src/config/version.js', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/DevLogModule.jsx']
+    }
+  },
+  {
     id: 'v6.3.66',
     version_tag: 'v6.3.66',
     fecha: '10 de Octubre, 2026',
