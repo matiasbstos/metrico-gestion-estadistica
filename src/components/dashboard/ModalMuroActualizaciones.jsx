@@ -15,6 +15,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.69',
+      version: 'v6.3.69',
+      fecha: '10 de Octubre, 2026',
+      badge: 'GOBERNANZA ASISTENCIAL & PROTOCOLO DEL AGENTE • PROMULGACIÓN DE REGLA 31 Y SUPERVISIÓN ACTIVA DE LA IA',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Formalización de la Regla 31 & Certificación Activa del Agente: Encasillamiento Asistencial SAR y Blindaje Lingüístico',
+      categoria: 'Normativa Oficial & Agente de IA',
+      icon: ShieldCheck,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se formalizó canónicamente la Regla 31 (Regla 22 del Consolidado de Arquitectura) en la normativa vinculante de MÉTRICO (.agents/AGENTS.md) y se integró la supervisión del Agente Inspector Asistencial (helpers.js) y del Agente Administrador del Radar (AgenteRadarAdmin.jsx). El Agente certifica activamente que toda auto-detección, apertura inicial y despacho de informes concilie al 100% con las ventanas asistenciales SAR (16:00 a 12:00 PM en día hábil y 08:00 a 20:00 / 20:00 a 08:00 en fines de semana) y valida la inmunidad ante locales foráneos mediante ChileanDatePicker y ChileanTimePicker.',
+      instructivo: {
+        paraQueSirve: 'Convierte en norma constitucional e inviolable del sistema y del Agente de IA el encasillamiento de 16:00 a 12:00 PM y el formato chileno DD/MM/AAAA, asegurando que ningún agente futuro ni actualización degrade este comportamiento.',
+        quePuedesVer: 'La Regla 22 incorporada en el panel de Normativa Institucional de Arquitectura, y el Agente del Radar con prompts interactivos sobre encasillamiento de guardia.',
+        ejemploUso: 'Consulta al Agente del Radar "¿Cuáles son las ventanas de encasillamiento y horarios de corte oficial SAR?" para recibir la confirmación de la regla institucional.'
+      },
+      changes: [
+        'Promulgación de la Regla 31 en .agents/AGENTS.md: principio inviolable de auto-selección del último turno cerrado, ventanas oficiales SAR y blindaje lingüístico.',
+        'Incorporación de la Regla 22 en REGLAS_INSTITUCIONALES_METRICO en InformeArquitectura.jsx y actualización del contador a 22 Reglas Certificadas.',
+        'Integración en autoRectificarTurnoConAgente en helpers.js para sanear y certificar horaInicio, horaFin y horarioPreset según la norma oficial.',
+        'Actualización del mensaje inicial y quickPrompts del Agente del Radar (AgenteRadarAdmin.jsx) para asesorar sobre la ventana de encasillamiento de guardia.'
+      ]
+    },
+    {
       id: 'v6.3.68',
       version: 'v6.3.68',
       fecha: '10 de Octubre, 2026',

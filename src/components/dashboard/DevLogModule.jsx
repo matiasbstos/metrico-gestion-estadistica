@@ -8,6 +8,33 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-69',
+    titulo: 'Formalización de la Regla 31 & Certificación Activa del Agente: Encasillamiento Asistencial SAR y Blindaje Lingüístico',
+    fecha: '2026-10-10',
+    version_tag: 'v6.3.69',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_69.png',
+    problema: 'Se requería blindar constitucionalmente el encasillamiento horario y la auto-detección del último turno cerrado como una regla de gobernanza institucional obligatoria e inviolable (.agents/AGENTS.md y catálogo de arquitectura del sitio), estableciendo la supervisión activa del Agente Inspector Asistencial de MÉTRICO y dotando al Agente del Radar de respuestas interactivas sobre la normativa SAR.',
+    logica: '1) Promulgación de la Regla 31 en .agents/AGENTS.md estableciendo: auto-selección autónoma al inicio y recarga del último turno cerrado; ventanas horarias oficiales (16:00 a 12:00 PM en día hábil y 08:00 a 20:00 / 20:00 a 08:00 en fin de semana); prohibición de formatos anglosajones y obligación de ChileanDatePicker (DD/MM/AAAA) y ChileanTimePicker (24h); y mandato al Agente para certificar esta regla en toda auditoría y despacho. 2) Inclusión de la Regla 22 en el catálogo REGLAS_INSTITUCIONALES_METRICO en InformeArquitectura.jsx y actualización del contador a 22 Reglas Certificadas. 3) Integración en autoRectificarTurnoConAgente en helpers.js para asegurar que toda rectificación del Agente aplique el encasillamiento horario institucional. 4) Actualización del mensaje inicial y prompts rápidos del Agente del Radar (AgenteRadarAdmin.jsx) para asesorar al equipo asistencial.',
+    solucion: 'Normativa institucional formalmente blindada en las reglas del sistema y supervisada activamente por el Agente de IA.',
+    fullPost: `En esta versión v6.3.69 consagramos la Regla 31 en la normativa de MÉTRICO (.agents/AGENTS.md) y en el catálogo interactivo de arquitectura del sitio:
+
+1. **Constitucionalización de la Regla 31 en AGENTS.md**:
+   - Se formalizó como regla canónica inviolable: auto-selección obligatoria al inicio y recarga del último turno cerrado al 100%.
+   - Definición unívoca de las ventanas asistenciales SAR:
+     * **Día Hábil**: 16:00 hrs a 12:00 PM del día siguiente (20 horas de cobertura continua para capturar fila previa y estadía en box de pacientes que ingresan a las 08:00 AM).
+     * **Fin de Semana Diurno**: 08:00 a 20:00 hrs (12 horas exactas).
+     * **Fin de Semana Nocturno**: 20:00 a 08:00 hrs del día siguiente (12 horas exactas con cruce de medianoche).
+   - Prohibición estricta de formatos regionales foráneos (MM/DD/YYYY) e imposición de **ChileanDatePicker** (DD/MM/AAAA con día de la semana) y **ChileanTimePicker** (24 hrs).
+
+2. **Integración con el Agente de IA**:
+   - **Agente Inspector Asistencial** (\`helpers.js\`): Valida y rectifica (\`autoRectificarTurnoConAgente\`) que todo turno certificado aplique el encasillamiento horario oficial, bloqueando turnos en curso previos al corte formal.
+   - **Agente del Radar Predictivo** (\`AgenteRadarAdmin.jsx\`): Incorpora en su mensaje de bienvenida y en sus consultas rápidas el asesoramiento operativo sobre ventanas y horarios de corte SAR.
+
+3. **Catálogo de Arquitectura del Sitio**:
+   - Incorporación de la **Regla 22** en el panel interactivo de Normativa Institucional y actualización de la especificación de Horarios de Turno en Tab 2.`
+  },
+  {
     id: 'devlog-v6-3-68',
     titulo: 'Calibración Estricta de Auto-Detección de Turno Cerrado: Encasillamiento SAR (16:00 a 12:00 vs 08:00-20:00) & Blindaje de Fechas DD/MM/AAAA',
     fecha: '2026-10-10',

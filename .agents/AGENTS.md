@@ -137,7 +137,11 @@
       * En cualquier año civil activo o en curso ($Y$), donde hayan transcurrido $M$ meses ($1 \le M \le 12$), toda comparación interanual (YoY / YTD) contra el año previo ($Y-1$) DEBE contrastarse única y exclusivamente contra los mismos $M$ meses transcurridos del año previo ($1..M$).
       * **Aplicación Transversal Inviolable**:
         a) *Año Activo 2026 (al corte de Septiembre, $M=9$)*: Se compara estrictamente Ene-Sep 2026 contra Ene-Sep 2025 (**27.150 admitidos**, **24.618 atendidos**, **2.532 altas admin**), arrojando el crecimiento real oficial de **+11.0% YoY** en admisiones (30.130 vs 27.150) y **+11.4% YoY** en atenciones (27.415 vs 24.618).
-        b) *Transición a 2027 y Años Posteriores*: Cuando inicie el año asistencial 2027, la regla operará con idéntica lógica dinámica sin fijaciones estáticas:
+        b) *Principio de Prorrateo Diario Continuo para Meses en Curso (Erradicación de Saltos Bruscos)*:
+           - Cuando el mes en curso ($M$) presenta datos parciales ($1 \le \text{día} < \text{días del mes}$), la cuota del año previo para dicho mes no se suma completa ni se fija en cero; escala de forma continua y estrictamente proporcional a los días transcurridos ($F = \frac{\text{día}}{\text{días del mes}}$).
+           - Base Homóloga Total = $\sum_{m=1}^{M-1} \text{Base Mes Cerrado}[m] + (\text{Base Mes Activo}[M] \times F)$.
+           - Este mecanismo garantiza que a medida que transcurren los días de cualquier nuevo mes (ej. días 1 a 31 de Octubre, Noviembre, o en 2027), la tasa interanual (YoY) evolucione de manera suave, estable y matemáticamente coherente, erradicando por completo caídas artificiales o saltos bruscos día a día.
+        c) *Transición a 2027 y Años Posteriores*: Cuando inicie el año asistencial 2027, la regla operará con idéntica lógica dinámica sin fijaciones estáticas:
            - En *Enero 2027 ($M=1$)*: el sistema comparará Ene 2027 vs Ene 2026.
            - En *Febrero 2027 ($M=2$)*: comparará Ene-Feb 2027 vs Ene-Feb 2026 acumulado.
            - En *Diciembre 2027 ($M=12$)*: comparará los 12 meses de 2027 contra los 12 meses de 2026.
@@ -209,7 +213,54 @@
     - **Principio de Continuidad Temporal Ininterrumpida e Ingesta Perpetua**: El sistema MÉTRICO está diseñado para la ingesta continua, acumulativa y perpetua de planillas Rayen a lo largo del tiempo. Queda terminantemente prohibido incorporar en el código fuente comprobaciones, filtros o variables con fechas fijas o meses de corte rígidos (tales como `m <= 8`, `dia <= 28`, `p.fecha.includes('2026-10')`, `m > 9`, constantes estáticas `OFFICIAL_DATA_CUTOFF_MS = 28/09/2026`, o límites duros de año como `y <= 2026`).
     - **Soporte Pleno de Octubre, Noviembre, Diciembre 2026 y Ejercicios Futuros**: La plataforma debe absorber de forma natural todas las planillas de los meses restantes del año 2026 y la transición cronológica hacia 2027 y años subsiguientes. Toda validación de año asistencial debe emplear rangos dinámicos (`y >= 2024 && y <= currentYear + 1`) y fallbacks reactivos a la fecha actual (`today`), erradicando cualquier retroceso forzado a fechas del pasado.
     - **Gobernanza Dinámica del Límite Temporal**: El límite superior para la validación de registros clínicos debe regirse única y exclusivamente por el tiempo real dinámico (`Date.now() + 24 horas`), previniendo registros futuros anómalos derivados de errores de formato fecha (DD/MM/YYYY vs MM/DD/YYYY) sin impedir jamás que el sistema procese y visualice datos legítimos del presente mes o de meses sucesivos.
-    - **Actualización Canónica y Sincronización Automática de Lotes y Crecimiento YTD**: Al cargarse un nuevo lote oficial de datos (ej. Lote 53 con correlativo `#30.789` al `03/10/2026 22:20:20 hrs`, o lotes sucesivos de 32.000, 35.000, 40.000 pacientes), el sistema debe recalcular dinámicamente el badge de cabecera (*"Datos cargados hasta: DD/MM/AAAA HH:mm"*), actualizar los techos de control con `Math.max(30789, ...)` e incrementar de forma reactiva las métricas acumuladas (admitidos, atendidos, altas, traslados y constataciones) y auto-seleccionar el último turno asistencial completo cerrado de la serie sin requerir parches ni desbloqueos manuales de código.
+28. **Protocolo del Agente Inspector de Integridad Asistencial Pre-Vuelo & Luz Verde Obligatoria (Regla de Despacho v6.3.64)**:
+    - **Principio de Luz Verde Obligatoria**: Ningún turno de guardia puede ser colocado en la cola de despacho activa ni emitido vía SMTP si no cuenta con la certificación formal de Luz Verde (score 9/9) emitida por el Agente Inspector Pre-Vuelo (`evaluarLuzVerdeAgenteTurno`).
+    - **Los 9 Pilares Asistenciales Auditados**:
+      1. *Balance Asistencial de Guardia*: Cuadratura universal estricta: $\text{Admitidos} = \text{Atendidos } (\text{Altas Médicas} + \text{Traslados}) + \text{Altas Administrativas}$.
+      2. *Indicadores Maestros Interanuales (YoY & YTD)*: Variaciones interanuales y volúmenes YTD certificados sin valores `NaN`, `null` ni vacíos.
+      3. *Desglose de 3 Tramos de Espera & Constataciones Z51.8*: Admisión-Triaje, Triaje-Box y Box-Alta con control médico-legal Z51.8 estructurado.
+      4. *Distribución Oficial de Triaje Manchester C1-C5*: Categorías de severidad proporcionales a atenciones médicas efectivas; estrictamente prohibido presentar todas las categorías en 0 si hay pacientes atendidos.
+      5. *Productividad de Facultativos de Guardia*: Nómina médica con profesionales tratantes, atenciones y porcentajes de aporte al turno.
+      6. *Top 10 Diagnósticos CIE-10*: Mapeo epidemiológico completo con códigos oficiales CIE-10 (mínimo 8-10 códigos con nombres y tendencias; nunca "Sin registro" ni vacíos).
+      7. *Centros Base Red APS & Paridad Demográfica 100%*: Centros de salud de la red (Boris Soler, Elgueta, Florencia, etc.) con cuotas normalizadas $\le 100\%$, y demografía por sexo exacta al 100% de admisiones ($\text{Femenino} + \text{Masculino} = \text{Total Admitidos}$).
+      8. *Traslados Hospitalarios UEH*: Si $\text{traslados} > 0$, ficha clínica con categoría institucional en mayúsculas (`C1-C5`), sospecha diagnóstica y hospital receptor UEH. Si $\text{traslados} = 0$, resolución primaria SAR documentada.
+      9. *Bitácora de Seguridad Asistencial*: Conteo de sospecha de fracturas/traumatología y vigilancia respiratoria aguda con valores numéricos válidos.
+    - **Mecanismo de Bloqueo en Cola y Despacho**:
+      a) El motor de despacho autónomo (`proximoTurnoPendiente`) filtra de forma excluyente por `t.luzVerde === true`. Los turnos en revisión o con alertas no son despachados automáticamente.
+      b) La tabla de turnos presenta la columna del Agente con badges interactivos `🟢 Luz Verde (9/9)` y `🔴 Alerta (X/9)` con modal de inspección detallada.
+      c) En el botón "Enviar Ahora", si un turno carece de certificación, el Agente interviene para aplicar la auto-rectificación canónica antes de liberar el correo.
+
+29. **Blindaje de Inicialización, Hoisting Modular y Estabilidad de Auditoría Pre-Vuelo (Regla de Estabilidad v6.3.65)**:
+    - **Erradicación de TDZ y Orden Canónico de Hooks (`ModalConfiguracionCorreo.jsx`)**: El cómputo reactivo de indicadores derivados (como el conteo de turnos con Luz Verde o Alerta en la cola filtrada) debe ejecutarse estrictamente tras la inicialización y filtrado final de las colecciones de datos (`colaFiltradaFinal`), previniendo excepciones de inicialización tardía (`ReferenceError`) en producción.
+    - **Hoisting Modular Nativo en Funciones del Agente (`helpers.js`)**: Las funciones de auditoría asistencial (`evaluarLuzVerdeAgenteTurno` y `autoRectificarTurnoConAgente`) deben declararse como `function declarations` exportadas, garantizando disponibilidad síncrona inmediata en cualquier punto de importación sin depender del orden secuencial de declaración.
+
+30. **Sincronización SSOT Universal y Paridad Clínica 100% entre Dashboard Inicial, Subreportes y Correos de Guardia (Regla de Oro v6.3.66)**:
+    - **Centralización Unívoca en `OFFICIAL_RAYEN_SHIFT_CONTROLS` (`helpers.js`)**: Toda certificación de turno cerrado auditado se exporta exclusivamente desde `helpers.js`. `useMetricoAnalytics.js` y `ModalConfiguracionCorreo.jsx` consultan de forma unificada esta fuente. Cuando el período consultado en el Dashboard o Reportes coincida con un turno oficial certificado (<= 2 días), `statsKPI`, `currentVol`, `currentAltas`, `currentTraslados`, `currentConstataciones`, `currentCats` y `rankingCentros` se reconcilian reactivamente con los datos oficiales de Rayen, erradicando que un corte parcial en memoria discrepe con el informe de correo.
+    - **Calibración de Ventana Asistencial SAR de 20 Horas en Día Hábil (`getWindowRange`)**: En franjas de turno largo hábil (17:00 a 08:00), `getWindowRange` expande automáticamente la ventana de admisión a 16:00 y la de egreso a 12:00 PM del día siguiente para capturar la fila previa y las altas médicas extendidas.
+    - **Inyección Obligatoria de `allPacientesDB` en Subreportes y Submódulos**: `ReportesModule` y los 6 submódulos clínicos (`AnalisisAltasDetail`, `AnalisisFracturas`, `AnalisisEnfermeria`, `AnalisisConstataciones`, `AnalisisTraslados`, `AnalisisRespiratorio`) reciben obligatoriamente la base consolidada `allPacientesDB` para garantizar integridad en comparativas interanuales.
+    - **Predicados Canónicos Universales en `summaryGenerator.js`**: Los resúmenes narrativos y analíticos deben utilizar invariablemente las funciones canónicas `isAltaAdmin(p) || p.estado === 'Cancelada'`, `isFractura(p)`, `isConstatacionLesion(p)` e `isTraslado(p)`.
+    - **Ámbito Estricto de Turno en Resúmenes del Correo**: `subReportSummaries` en `ModalConfiguracionCorreo.jsx` se calcula evaluando de forma estricta los pacientes del turno seleccionado (`targetPacs`) y nunca el acumulado anual indiscriminado.
+
+31. **Auto-Detección Estricta del Último Turno Clínico 100% Cerrado, Encasillamiento Asistencial SAR y Blindaje de Formato Chileno con Supervisión del Agente (Regla Canónica SAR v6.3.68)**:
+    - **Principio Inviolable de Auto-Selección al Inicio y Recarga**:
+      Toda apertura inicial de MÉTRICO (`Dashboard.jsx`), restablecimiento de filtros (`handleClearFilters` / "Borrar Filtros"), y auditoría de despacho DEBE cargar y posicionar por defecto de manera 100% autónoma el **último turno asistencial cerrado al 100%**, sin exigir manipulación manual del usuario.
+    - **Ventanas Oficiales de Encasillamiento Horario y Estadía SAR**:
+      a) **Días Hábiles (Lunes a Viernes no festivo - Turno Largo Semana)**:
+         * *Horario Oficial de Guardia*: `17:00 a 08:00 hrs`.
+         * *Ventana Asistencial de Encasillamiento y Estadía*: `16:00 hrs a 12:00 PM (mediodía)` del día siguiente (20 horas de búsqueda continua). Esto captura las admisiones de fila previa de ventanilla a las 16:00 hrs y la permanencia en box, observación médica y altas de los pacientes que ingresaron durante el cambio de guardia a las 08:00 AM.
+         * *Criterio de Cierre Formal*: Todo corte de datos en día hábil previo a las 12:00 PM del día siguiente se considera con atenciones y estadías en curso; el sistema selecciona de forma automática el turno cerrado previo.
+      b) **Fines de Semana (Sábados y Domingos) & Festivos Oficiales**:
+         * La jornada se divide invariablemente en dos turnos clínicos independientes:
+           1. *Turno Diurno*: Inicia estrictamente a las `08:00 hrs` y finaliza a las `20:00 hrs` del mismo día (12 horas exactas).
+           2. *Turno Nocturno*: Inicia estrictamente a las `20:00 hrs` y finaliza a las `08:00 hrs` del día siguiente (12 horas exactas con cruce de medianoche).
+         * Queda terminantemente prohibido consolidar o promediar los dos turnos de fin de semana en un solo día civil de 24 horas.
+    - **Blindaje Lingüístico-Temporal en Formato Chileno (`ChileanDatePicker` & `ChileanTimePicker`)**:
+      * Queda estrictamente prohibido el renderizado en crudo de inputs de fecha con dependencia del locale regional del navegador o sistema operativo, lo cual generaba que navegadores en-US mostraran `10/08/2026` simulando 10 de Agosto en lugar del 8 de Octubre.
+      * Toda entrada o selector de período debe utilizar de forma inmutable la representación institucional: **Día abreviado en español + `DD/MM/AAAA`** (ej. `Vie 09/10/2026` o `Sáb 10/10/2026`) y horas en estándar militar 24 hrs (`16:00 hrs`, `12:00 hrs`), manteniendo accesible por clic el selector de calendario nativo sin alterar el texto formateado.
+    - **Supervisión Activa del Agente Inspector Asistencial & Auditoría Pre-Vuelo**:
+      * El Agente Inspector (`evaluarLuzVerdeAgenteTurno` / `autoRectificarTurnoConAgente`) valida activamente el encasillamiento horario del turno: turnos largos de semana deben cubrir la ventana de 16:00 a 12:00 PM, y turnos de fin de semana deben ajustarse a 08:00-20:00 o 20:00-08:00.
+      * El Agente del Radar Predictivo (`AgenteRadarAdmin.jsx`) y el motor de auditoría deben verificar que ningún turno sea colocado en la cola de despacho ni auto-seleccionado si se encuentra en curso antes del corte formal de guardia.
+      * Ante cualquier solicitud de auditoría, prueba de envío o inicio de sesión, el Agente DEBE certificar y validar que las fechas y horas concilien con esta ventana oficial SAR.
 
 ---
 

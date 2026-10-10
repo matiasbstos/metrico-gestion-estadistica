@@ -1973,8 +1973,30 @@ export function autoRectificarTurnoConAgente(rawTurno, statsKPI = null) {
     estadiaTotalMinutos: 132
   };
 
+  // Saneamiento de Horario y Encasillamiento SAR (Reglas 5, 9 & 31)
+  let horaInicio = rawTurno.horaInicio || '16:00';
+  let horaFin = rawTurno.horaFin || '12:00';
+  let horarioPreset = rawTurno.horarioPreset || rawTurno.preset || 'largo';
+
+  if (horarioPreset === 'largo' || horaInicio === '16:00') {
+    horaInicio = '16:00';
+    horaFin = '12:00';
+    horarioPreset = 'largo';
+  } else if (horarioPreset === 'finde_dia' || (horaInicio === '08:00' && (horaFin === '20:00' || horaFin === '19:59'))) {
+    horaInicio = '08:00';
+    horaFin = '20:00';
+    horarioPreset = 'finde_dia';
+  } else if (horarioPreset === 'finde_noche' || horaInicio === '20:00') {
+    horaInicio = '20:00';
+    horaFin = '08:00';
+    horarioPreset = 'finde_noche';
+  }
+
   const rectificado = {
     ...rawTurno,
+    horaInicio,
+    horaFin,
+    horarioPreset,
     totalPacientes: totalAdmitidos,
     totalAdmitidos,
     atendidos,

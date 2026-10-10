@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.69',
+    version_tag: 'v6.3.69',
+    fecha: '10 de Octubre, 2026',
+    fecha_despliegue: '10 de Octubre, 2026',
+    proposito_actualizacion: 'Formalización de la Regla 31 & Certificación Activa del Agente: Encasillamiento Asistencial SAR y Blindaje Lingüístico.',
+    medios_y_stack: [
+      '.agents/AGENTS.md (Promulgación de la Regla 31: auto-detección estricta del último turno cerrado, ventanas 16:00 a 12:00 vs 08:00-20:00 / 20:00-08:00 y blindaje de formato chileno DD/MM/AAAA)',
+      'InformeArquitectura.jsx (Incorporación de Regla 22 en REGLAS_INSTITUCIONALES_METRICO, actualización del contador a 22 Reglas Certificadas y ajuste de Tab 2 a ventana 16:00 a 12:00 PM)',
+      'helpers.js (Normalización y saneamiento de horaInicio, horaFin y horarioPreset en autoRectificarTurnoConAgente)',
+      'AgenteRadarAdmin.jsx (Integración en mensaje inicial y quickPrompts para consulta interactiva del encasillamiento de guardia SAR)',
+      'ModalMuroActualizaciones.jsx (Registro de actualización v6.3.69 e instructivo clínico)',
+      'DevLogModule.jsx (Registro cronológico de ingeniería v6.3.69)',
+      'version.js (Sincronización a v6.3.69)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Formalización constitucional de la Regla 31 en AGENTS.md y Regla 22 del sitio, supervisada activamente por el Agente Inspector Asistencial.',
+      firestore_collections: ['system_architecture_log', 'configuracion_correo', 'turnos_asistenciales'],
+      documentos_afectados: ['.agents/AGENTS.md', 'src/components/dashboard/InformeArquitectura.jsx', 'src/utils/helpers.js', 'src/components/dashboard/AgenteRadarAdmin.jsx', 'src/config/version.js', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx']
+    }
+  },
+  {
     id: 'v6.3.68',
     version_tag: 'v6.3.68',
     fecha: '10 de Octubre, 2026',
@@ -5086,6 +5107,22 @@ export const REGLAS_INSTITUCIONALES_METRICO = [
       'Ventana Asistencial de Día Hábil Ampliada (16:00 hrs): consolidación en el turno largo de semana de pacientes cuya permanencia, observación o tratamiento se extienda durante la mañana y tarde del día siguiente (ej. certificación oficial turno 24/09/2026 con 83 admisiones).'
     ],
     normaTecnica: 'Ventana hábil extendida: hours < 16 + sync bidireccional Firestore.'
+  },
+  {
+    id: 22,
+    numero: 'Regla 22',
+    titulo: 'Auto-Detección Estricta del Último Turno Cerrado, Encasillamiento SAR & Blindaje de Fechas DD/MM/AAAA',
+    categoria: 'Turnos Asistenciales',
+    badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+    resumen: 'Auto-selección obligatoria del último turno 100% cerrado al inicio y restablecimiento del sistema, con encasillamiento de 16:00 a 12:00 PM en semana hábil y 08:00 a 20:00 / 20:00 a 08:00 en fines de semana, blindado mediante ChileanDatePicker y ChileanTimePicker.',
+    directrices: [
+      'Auto-Selección Autónoma: Dashboard.jsx y handleClearFilters cargan por defecto el último turno clínico 100% cerrado y completo según la hora actual.',
+      'Ventana de Día Hábil: 16:00 a 12:00 PM del día siguiente (20 horas continuas) para capturar la fila previa y el mediodía de estadía médica.',
+      'Ventanas de Fin de Semana: Turno Diurno (08:00 a 20:00 hrs) y Nocturno (20:00 a 08:00 hrs) sin consolidación artificial en 24h.',
+      'Blindaje Lingüístico-Temporal: Componentes ChileanDatePicker y ChileanTimePicker con formato visible inmutable DD/MM/AAAA, día de semana en español (Vie 09/10/2026) y horas 24h institucionales, erradicando descalces por locale en-US.',
+      'Supervisión del Agente Inspector: El Agente certifica el encasillamiento horario y bloquea la selección de turnos en curso.'
+    ],
+    normaTecnica: 'Encasillamiento SAR: 16:00-12:00 (semana) / 08:00-20:00 & 20:00-08:00 (finde) + ChileanDatePicker'
   }
 ];
 
@@ -5298,7 +5335,7 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
-          <span>6. Normativa Oficial (21 Reglas SSOT) & Despliegue</span>
+          <span>6. Normativa Oficial (22 Reglas SSOT) & Despliegue</span>
         </button>
       </div>
 
@@ -5473,8 +5510,8 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
                 </div>
 
                 <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-xs font-medium text-emerald-800 dark:text-emerald-200">
-                  <strong>Encasillamiento Asistencial & Estadía Extendida de Guardia Hábil (16:00 a 16:00 hrs — Regla 21):</strong><br />
-                  Se extiende desde las <strong>16:00 hrs hasta las 16:00 hrs del día siguiente</strong> para capturar admisiones en fila previa, entrega de guardia matutina y la totalidad de la permanencia en box, tratamientos y altas médicas de pacientes admitidos en la guardia de semana (ej. certificación oficial SSOT del turno 24/09/2026 con 83 admisiones = 73 completados + 10 egresos administrativos).
+                  <strong>Encasillamiento Asistencial & Estadía Extendida de Guardia Hábil (16:00 a 12:00 PM — Reglas 5, 9 & 31):</strong><br />
+                  Se extiende desde las <strong>16:00 hrs hasta las 12:00 PM (mediodía) del día siguiente</strong> (20 horas de búsqueda continua) para capturar admisiones en fila previa, entrega de guardia matutina y la totalidad de la permanencia en box, tratamientos y altas médicas de pacientes admitidos en la guardia de semana (con corte formal de turno cerrado a las 12:00 PM).
                 </div>
               </div>
 
@@ -5823,7 +5860,7 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-black text-primary-custom">Normativa Institucional & 21 Reglas Canónicas SSOT</h2>
+                    <h2 className="text-xl font-black text-primary-custom">Normativa Institucional & 22 Reglas Canónicas SSOT</h2>
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">
                       Inviolable & Permanente
                     </span>
@@ -5836,7 +5873,7 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
 
               {/* CONTADOR DE REGLAS */}
               <div className="px-3.5 py-1.5 bg-black/5 dark:bg-white/5 rounded-xl border border-card-custom text-xs font-bold text-primary-custom">
-                21 Reglas Certificadas
+                22 Reglas Certificadas
               </div>
             </div>
 

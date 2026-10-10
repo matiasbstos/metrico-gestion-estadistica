@@ -7,7 +7,7 @@ export default function AgenteRadarAdmin({ app, peakDay, calidadAire, climaData,
     {
       id: 1,
       sender: 'agent',
-      text: `Hola, soy tu **Agente Administrador del Radar Predictivo MÉTRICO AI**.\n\nEstoy analizando en tiempo real la demanda proyectada del SAR Elsa Romo Aravena: turnos de urgencia (Diurno/Nocturno), curva de admisiones en horas peak (19:00 - 22:30), categorización Triage Manchester (C1-C5) y requerimientos de horas médicas. ¿Qué aspecto de la urgencia deseas revisar hoy?`,
+      text: `Hola, soy tu **Agente Administrador del Radar Predictivo MÉTRICO AI**.\n\nEstoy analizando en tiempo real la demanda proyectada del SAR Elsa Romo Aravena: turnos de urgencia (Diurno/Nocturno/Largo Semana), ventanas oficiales de encasillamiento asistencial (16:00 a 12:00 PM en semana hábil y 08:00 a 20:00 / 20:00 a 08:00 en fines de semana), curva de admisiones en horas peak (19:00 - 22:30), categorización Triaje Manchester (C1-C5) y requerimientos de horas médicas. ¿Qué aspecto de la urgencia deseas revisar hoy?`,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -28,6 +28,7 @@ export default function AgenteRadarAdmin({ app, peakDay, calidadAire, climaData,
   const [thresholdElevado, setThresholdElevated] = useState(95);
 
   const quickPrompts = [
+    { label: '🕒 Ventana Turno & Encasillamiento SAR', prompt: '¿Cuáles son las ventanas de encasillamiento y horarios de corte oficial SAR (16:00 a 12:00 en semana vs 08:00-20:00 en fin de semana)?' },
     { label: '🚨 Sobrecarga y Triage C1-C3', prompt: '¿Cómo gestionar el flujo de triaje ante la sobrecarga de pacientes graves (C1-C3) proyectada?' },
     { label: '🌙 Turno Noche / Fin de Semana', prompt: '¿Cuál es la dotación médica y de reanimación recomendada para el turno nocturno y fin de semana?' },
     { label: '⏳ Cuello de Botella (19:00 - 22:30)', prompt: '¿En qué franja horaria se proyecta el mayor cuello de botella de admisiones y cómo mitigarlo?' },
