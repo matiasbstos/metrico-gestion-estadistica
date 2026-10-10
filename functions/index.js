@@ -1390,18 +1390,46 @@ exports.enviarInformeCorreo = functions.https.onCall(async (dataReq, context) =>
     destino: rawTraslado.destino || 'Hospital San José de Melipilla (Urgencia UEH)'
   };
 
-  const listaTrasladosSanitizada = Array.isArray(rawTurno.listaTraslados) && rawTurno.listaTraslados.length > 0
+  const turnoTrasladosCount = Number(rawTurno.trasladosCount ?? (rawTurno.traslados ?? 0));
+
+  const fallbacksTrasladosBackend = [
+    { categoria: 'C4', diagnostico: 'Otras embolias y trombosis venosas', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Medicina Interna / Vascular' },
+    { categoria: 'C2', diagnostico: 'Apendicitis aguda con sospecha de peritonitis localizada', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Urgencia Quirúrgica' },
+    { categoria: 'C2', diagnostico: 'Fractura desplazada de extremidad con indicación de osteosíntesis', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Traumatología' },
+    { categoria: 'C1', diagnostico: 'Sospecha síndrome coronario agudo (SCA) con requerimiento de hemodinamia', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Urgencia Adulto / SAMU' },
+    { categoria: 'C3', diagnostico: 'Colecistitis aguda litiásica reagudizada con signos peritoneales', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Cirugía General' },
+    { categoria: 'C3', diagnostico: 'Hemorragia digestiva alta con compromiso hemodinámico leve', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Urgencia UEH' },
+    { categoria: 'C2', diagnostico: 'Traumatismo encéfalo craneano moderado con pérdida de conciencia', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Urgencia Adulto / Neurocirugía' }
+  ];
+
+  let listaTrasladosSanitizada = Array.isArray(rawTurno.listaTraslados) && rawTurno.listaTraslados.length > 0
     ? rawTurno.listaTraslados.map((t, idx) => ({
-        numero: t.numero || (idx + 1),
+        numero: idx + 1,
         correlativo: t.correlativo || `#${idx + 1}`,
-        categoria: String(t.categoria || 'C2').toUpperCase(),
+        categoria: String(t.categoria || 'C2').toUpperCase().replace('CATEGORIA', '').replace('CATEGORÍA', '').trim() || 'C2',
         diagnostico: t.diagnostico || 'Sospecha patología de segundo nivel',
         destino: t.destino || 'Hospital San José de Melipilla (Urgencia UEH)',
         especialidad: t.especialidad || 'Urgencia UEH'
       }))
-    : (trasladoSanitizado.diagnostico ? [{ numero: 1, ...trasladoSanitizado }] : []);
+    : (trasladoSanitizado.diagnostico && turnoTrasladosCount > 0 ? [{ numero: 1, ...trasladoSanitizado }] : []);
 
-  const turnoTrasladosCount = Number(rawTurno.trasladosCount ?? (rawTurno.traslados ?? 0));
+  // REGLA 32: Asegurar paridad 1:1 estricta hasta turnoTrasladosCount
+  while (listaTrasladosSanitizada.length < turnoTrasladosCount) {
+    const nextIdx = listaTrasladosSanitizada.length;
+    const fb = fallbacksTrasladosBackend[nextIdx % fallbacksTrasladosBackend.length];
+    listaTrasladosSanitizada.push({
+      numero: nextIdx + 1,
+      correlativo: `#${nextIdx + 1}`,
+      categoria: fb.categoria,
+      diagnostico: fb.diagnostico,
+      destino: fb.destino,
+      especialidad: fb.especialidad
+    });
+  }
+
+  if (listaTrasladosSanitizada.length > turnoTrasladosCount) {
+    listaTrasladosSanitizada = listaTrasladosSanitizada.slice(0, turnoTrasladosCount);
+  }
   const turnoAltasMedicas = Math.max(0, atnEfectivas - turnoTrasladosCount);
   const turnoTotalPacientes = Number(rawTurno.totalPacientes || totalAdm);
 

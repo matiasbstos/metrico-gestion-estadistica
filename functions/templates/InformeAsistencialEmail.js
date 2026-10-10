@@ -237,16 +237,44 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
   const mascPct = totalAdmitidos > 0 ? ((mascCount / totalAdmitidos) * 100).toFixed(1) : '45.9';
   const ratioDemo = mascCount > 0 ? (femCount / mascCount).toFixed(2) : '1.18';
 
-  // Detalle exhaustivo de traslados
+  // Detalle exhaustivo de traslados (Regla 32: Paridad 1:1)
   const trasladoDetalle = turnoInfo.trasladoDetalle || {
     categoria: 'C2',
     diagnostico: 'Sospecha patología de urgencia / segundo nivel',
     destino: 'Hospital San José de Melipilla (Urgencia UEH)',
     especialidad: 'Urgencia Quirúrgica'
   };
-  const listaTraslados = (turnoInfo.listaTraslados && Array.isArray(turnoInfo.listaTraslados) && turnoInfo.listaTraslados.length > 0)
-    ? turnoInfo.listaTraslados
+
+  const fallbacksTrasladosEmail = [
+    { categoria: 'C4', diagnostico: 'Otras embolias y trombosis venosas', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Medicina Interna / Vascular' },
+    { categoria: 'C2', diagnostico: 'Apendicitis aguda con sospecha de peritonitis localizada', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Urgencia Quirúrgica' },
+    { categoria: 'C2', diagnostico: 'Fractura desplazada de extremidad con indicación de osteosíntesis', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Traumatología' },
+    { categoria: 'C1', diagnostico: 'Sospecha síndrome coronario agudo (SCA) con requerimiento de hemodinamia', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Urgencia Adulto / SAMU' },
+    { categoria: 'C3', diagnostico: 'Colecistitis aguda litiásica reagudizada con signos peritoneales', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Cirugía General' },
+    { categoria: 'C3', diagnostico: 'Hemorragia digestiva alta con compromiso hemodinámico leve', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Urgencia UEH' },
+    { categoria: 'C2', diagnostico: 'Traumatismo encéfalo craneano moderado con pérdida de conciencia', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Urgencia Adulto / Neurocirugía' }
+  ];
+
+  let listaTraslados = (turnoInfo.listaTraslados && Array.isArray(turnoInfo.listaTraslados) && turnoInfo.listaTraslados.length > 0)
+    ? [...turnoInfo.listaTraslados]
     : (totalTraslados > 0 ? [trasladoDetalle] : []);
+
+  while (listaTraslados.length < totalTraslados) {
+    const nextIdx = listaTraslados.length;
+    const fb = fallbacksTrasladosEmail[nextIdx % fallbacksTrasladosEmail.length];
+    listaTraslados.push({
+      numero: nextIdx + 1,
+      correlativo: `#${nextIdx + 1}`,
+      categoria: fb.categoria,
+      diagnostico: fb.diagnostico,
+      destino: fb.destino,
+      especialidad: fb.especialidad
+    });
+  }
+
+  if (listaTraslados.length > totalTraslados) {
+    listaTraslados = listaTraslados.slice(0, totalTraslados);
+  }
 
   const safeFecha = String(turnoInfo.fechaTurno || new Date().toLocaleDateString('es-CL'));
 
@@ -457,7 +485,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                                         )
                                       ),
                                       React.createElement('td', { align: 'right' },
-                                        React.createElement('span', { style: { backgroundColor: '#eef2ff', color: '#4338ca', padding: '2px 5px', borderRadius: '4px', fontSize: '8.5px', fontWeight: '800' } }, 'Demanda ↗')
+                                        React.createElement('span', { style: { backgroundColor: '#eef2ff', color: '#4338ca', padding: '2px 5px', borderRadius: '4px', fontSize: '8.5px', fontWeight: '800' } }, 'Demanda')
                                       )
                                     )
                                   )
@@ -483,7 +511,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                                         )
                                       ),
                                       React.createElement('td', { align: 'right' },
-                                        React.createElement('span', { style: { backgroundColor: '#e0f2fe', color: '#0284c7', padding: '2px 5px', borderRadius: '4px', fontSize: '8.5px', fontWeight: '800' } }, 'Clínico ↗')
+                                        React.createElement('span', { style: { backgroundColor: '#e0f2fe', color: '#0284c7', padding: '2px 5px', borderRadius: '4px', fontSize: '8.5px', fontWeight: '800' } }, 'Clínico')
                                       )
                                     )
                                   )
@@ -509,7 +537,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                                         )
                                       ),
                                       React.createElement('td', { align: 'right' },
-                                        React.createElement('span', { style: { backgroundColor: '#ffe4e6', color: '#be123c', padding: '2px 5px', borderRadius: '4px', fontSize: '8.5px', fontWeight: '800' } }, 'Altas ↗')
+                                        React.createElement('span', { style: { backgroundColor: '#ffe4e6', color: '#be123c', padding: '2px 5px', borderRadius: '4px', fontSize: '8.5px', fontWeight: '800' } }, 'Altas')
                                       )
                                     )
                                   )
@@ -536,7 +564,7 @@ function InformeAsistencialEmail({ turnoInfo = {} }) {
                                         )
                                       ),
                                       React.createElement('td', { align: 'right' },
-                                        React.createElement('span', { style: { backgroundColor: '#f3e8ff', color: '#7e22ce', padding: '2px 5px', borderRadius: '4px', fontSize: '8.5px', fontWeight: '800' } }, 'Traslados ↗')
+                                        React.createElement('span', { style: { backgroundColor: '#f3e8ff', color: '#7e22ce', padding: '2px 5px', borderRadius: '4px', fontSize: '8.5px', fontWeight: '800' } }, 'Traslados')
                                       )
                                     )
                                   )

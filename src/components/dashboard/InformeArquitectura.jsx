@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.70',
+    version_tag: 'v6.3.70',
+    fecha: '10 de Octubre, 2026',
+    fecha_despliegue: '10 de Octubre, 2026',
+    proposito_actualizacion: 'Paridad y Pluralidad Estricta 1:1 en Fichas de Traslados (Regla 32) & Erradicación de Emojis / Íconos Genéricos del Sistema Operativo.',
+    medios_y_stack: [
+      '.agents/AGENTS.md (Promulgación de la Regla 32: pluralidad y paridad estricta 1:1 en pacientes derivados [N de N traslados] y erradicación total de caracteres Unicode genéricos [↗])',
+      'InformeArquitectura.jsx (Incorporación de Regla 23 en REGLAS_INSTITUCIONALES_METRICO, actualización del contador a 23 Reglas Certificadas y registro de versión v6.3.70)',
+      'helpers.js (Exportación de EXPAND_FALLBACK_TRASLADOS y asegurarPluralidadTraslados; blindaje de auditarIntegridadTurnoCorreo, autoRectificarTurnoConAgente y evaluarLuzVerdeAgenteTurno)',
+      'ModalConfiguracionCorreo.jsx (Implementación de paridad 1:1 en buildTurnoInfoPayload; sustitución de Demanda ↗, Clínico ↗, Altas ↗, Traslados ↗ por componentes vectoriales SVG Lucide ArrowUpRight)',
+      'functions/index.js & InformeAsistencialEmail.js (Blindaje de backend y plantilla de correo para generar exactamente N tarjetas clínicas individuales y suprimir glifos de flecha)',
+      'ModalMuroActualizaciones.jsx (Registro de actualización v6.3.70 e instructivo clínico)',
+      'DevLogModule.jsx (Registro cronológico de ingeniería v6.3.70)',
+      'version.js (Sincronización a v6.3.70)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Garantía constitucional de paridad 1:1 en traslados hospitalarios (N de N) e identidad visual institucional sin interferencia de emojis de Windows (Regla 32).',
+      firestore_collections: ['system_architecture_log', 'configuracion_correo', 'turnos_asistenciales'],
+      documentos_afectados: ['.agents/AGENTS.md', 'src/components/dashboard/InformeArquitectura.jsx', 'src/utils/helpers.js', 'src/components/dashboard/ModalConfiguracionCorreo.jsx', 'functions/index.js', 'functions/templates/InformeAsistencialEmail.js', 'src/config/version.js', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx']
+    }
+  },
+  {
     id: 'v6.3.69',
     version_tag: 'v6.3.69',
     fecha: '10 de Octubre, 2026',
@@ -5123,6 +5145,21 @@ export const REGLAS_INSTITUCIONALES_METRICO = [
       'Supervisión del Agente Inspector: El Agente certifica el encasillamiento horario y bloquea la selección de turnos en curso.'
     ],
     normaTecnica: 'Encasillamiento SAR: 16:00-12:00 (semana) / 08:00-20:00 & 20:00-08:00 (finde) + ChileanDatePicker'
+  },
+  {
+    id: 23,
+    numero: 'Regla 23',
+    titulo: 'Paridad y Pluralidad Estricta 1:1 en Fichas de Traslados & Identidad Visual sin Íconos Genéricos',
+    categoria: 'Identidad Visual & Derivaciones',
+    badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+    resumen: 'Garantía estricta de paridad 1:1 en la generación y despliegue de las N tarjetas clínicas individuales de pacientes derivados a hospital (N de N traslados), y erradicación total de caracteres o emojis genéricos del sistema operativo en favor de la iconografía vectorial institucional Lucide.',
+    directrices: [
+      'Pluralidad y Paridad Estricta 1:1 de Traslados: Si el turno asistencial reporta N pacientes trasladados a la red hospitalaria (ej. 5 o 7 traslados), tanto la previsualización interactiva como el despacho del correo deben generar y mostrar las N fichas clínicas individuales completas (N de N), quedando prohibido colapsar o truncar a 1 solo paciente.',
+      'Expansión Autónoma con el Agente (asegurarPluralidadTraslados): Si la nómina de traslados en memoria contiene menos elementos que el total certificado, el Agente Inspector y los helpers pre-vuelo expanden automáticamente los casos restantes con diagnósticos y categorías de guardia para satisfacer listaTraslados.length === trasladosCount.',
+      'Identidad Visual Consistente: Toda flecha de tendencia, indicador de demanda o elemento gráfico debe utilizar componentes vectoriales nativos SVG acordes a la identidad visual del sistema (Lucide React: ArrowUpRight con estilos institucionales).',
+      'Prohibición Absoluta de Glifos Unicode Genéricos (↗): Queda terminantemente prohibido incrustar caracteres como ↗ que en sistemas operativos de usuario (como Windows) se renderizan como emojis toscos (cuadro azul con flecha blanca), degradando la estética y consistencia visual institucional.'
+    ],
+    normaTecnica: 'listaTraslados.length === totalTraslados (1:1) + Lucide ArrowUpRight / SVG nativo sin glifos ↗'
   }
 ];
 
@@ -5847,11 +5884,11 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
         </div>
       )}
 
-      {/* PESTAÑA 6: NORMATIVA OFICIAL (21 REGLAS SSOT) Y PROTOCOLO DE DESPLIEGUE */}
+      {/* PESTAÑA 6: NORMATIVA OFICIAL (23 REGLAS SSOT) Y PROTOCOLO DE DESPLIEGUE */}
       {(activeTab === 'protocolo' || true) && (
         <div className={`space-y-6 ${activeTab !== 'protocolo' ? 'hidden print:block' : ''}`}>
           
-          {/* BLOQUE MAESTRO: LAS 21 REGLAS CANÓNICAS DE INTEGRIDAD ASISTENCIAL (SSOT RAYEN) */}
+          {/* BLOQUE MAESTRO: LAS 23 REGLAS CANÓNICAS DE INTEGRIDAD ASISTENCIAL (SSOT RAYEN) */}
           <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-sm space-y-6 theme-transition print:border-gray print:bg-white">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-card-custom/50 pb-5">
               <div className="flex items-center gap-3">
@@ -5860,7 +5897,7 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-black text-primary-custom">Normativa Institucional & 22 Reglas Canónicas SSOT</h2>
+                    <h2 className="text-xl font-black text-primary-custom">Normativa Institucional & 23 Reglas Canónicas SSOT</h2>
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">
                       Inviolable & Permanente
                     </span>
@@ -5873,7 +5910,7 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
 
               {/* CONTADOR DE REGLAS */}
               <div className="px-3.5 py-1.5 bg-black/5 dark:bg-white/5 rounded-xl border border-card-custom text-xs font-bold text-primary-custom">
-                22 Reglas Certificadas
+                23 Reglas Certificadas
               </div>
             </div>
 

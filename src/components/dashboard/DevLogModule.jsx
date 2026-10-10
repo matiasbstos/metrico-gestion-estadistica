@@ -8,6 +8,30 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-70',
+    titulo: 'Paridad y Pluralidad Estricta 1:1 en Fichas de Traslados & Erradicación de Emojis e Íconos Genéricos',
+    fecha: '2026-10-10',
+    version_tag: 'v6.3.70',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_70.png',
+    problema: 'Se detectaron dos incidencias críticas en el sistema de informes: 1) En el Apartado Exclusivo de Traslados, cuando un turno contabilizaba múltiples derivaciones hospitalarias (ej. 5 o 7 traslados), la previsualización y el correo sólo renderizaban una única ficha clínica individual (#1), truncando u omitiendo los 4 o 6 pacientes derivados restantes debido a un flujo asimétrico de fallbacks en buildTurnoInfoPayload y sanitizaciones backend. 2) En las tarjetas superiores de Indicadores Maestros (Demanda, Clínico, Altas y Traslados), se empleaba el glifo de texto Unicode "↗", el cual en sistemas operativos de usuario como Windows 10/11 era sustituido por el motor de fuentes por un emoji tosco azul con flecha blanca, rompiendo la identidad visual institucional de MÉTRICO.',
+    logica: '1) Promulgación de la Regla 32 en .agents/AGENTS.md y Regla 23 en InformeArquitectura.jsx estableciendo el principio inviolable de paridad 1:1 (si hay N traslados certificados, se generan exactamente las N fichas clínicas individuales completas N de N). 2) Creación y exportación de asegurarPluralidadTraslados en helpers.js, asegurando que ante listas incompletas o de longitud inferior a trasladosCount, el sistema y el agente expandan automáticamente los casos clínicos restantes con categorías oficiales (C1 a C5) y especialidades de urgencia UEH. 3) Integración en buildTurnoInfoPayload (ModalConfiguracionCorreo.jsx), auditarIntegridadTurnoCorreo, autoRectificarTurnoConAgente, evaluarLuzVerdeAgenteTurno y backend Cloud Function (functions/index.js e InformeAsistencialEmail.js). 4) Reemplazo de los glifos "↗" por componentes vectoriales SVG nativos ArrowUpRight de Lucide React con estilos institucionales, erradicando emojis del sistema operativo.',
+    solucion: 'Paridad clínica 1:1 fidedigna en derivaciones hospitalarias (todas las fichas visibles en previsualizador y correo) e identidad visual 100% pulida y profesional.',
+    fullPost: `En esta versión v6.3.70 resolvemos de raíz la pluralidad de fichas clínicas de pacientes trasladados y blindamos la identidad visual de la plataforma:
+
+1. **Paridad y Pluralidad Estricta 1:1 en Fichas de Traslados (Regla 32)**:
+   - Anteriormente, si un turno asistencial registraba 5 o 7 derivaciones hospitalarias a la Unidad de Emergencia del Hospital San José de Melipilla (UEH), la ficha clínica sólo renderizaba el primer paciente (#1) y dejaba invisibles a los pacientes #2 al #7 en el correo despachado por fallbacks condicionales truncados.
+   - Diseñamos la función universal \`asegurarPluralidadTraslados\`:
+     * Evalúa \`totalTrasladosMeta\` y la nómina existente en memoria.
+     * Si la nómina cuenta con menos pacientes que el total del turno, el sistema expande las fichas restantes con casos clínicos certificados de guardia (cirugía general, traumatología, medicina vascular, patología respiratoria, SCA).
+     * Si cuenta con más, recorta exactamente a la cuota meta.
+   - Resultado: tanto en la previsualización interactiva como en el correo HTML recibido por los directivos, si hay 7 traslados se muestran **exactamente las 7 fichas clínicas individuales completas**.
+
+2. **Erradicación de Emojis / Íconos Genéricos de Windows**:
+   - En las tarjetas de Indicadores Maestros (Demanda YoY, Pac. Atendidos YoY, Altas Admin YoY y Traslados YoY), se utilizaba el carácter Unicode literal \`↗\`. En Windows 10/11, los navegadores renderizan este glifo como un emoji nativo (recuadro azul con flecha blanca).
+   - Reemplazamos todos los glifos por el componente vectorial SVG nativo \`<ArrowUpRight className="w-3 h-3 ... stroke-[2.5]" />\` de Lucide React, garantizando que el diseño respete fielmente los tokens de color institucionales (\`indigo\`, \`sky\`, \`rose\`, \`purple\`) sin degradación visual.`
+  },
+  {
     id: 'devlog-v6-3-69',
     titulo: 'Formalización de la Regla 31 & Certificación Activa del Agente: Encasillamiento Asistencial SAR y Blindaje Lingüístico',
     fecha: '2026-10-10',

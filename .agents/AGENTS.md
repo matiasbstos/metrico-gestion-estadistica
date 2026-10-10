@@ -262,6 +262,15 @@
       * El Agente del Radar Predictivo (`AgenteRadarAdmin.jsx`) y el motor de auditoría deben verificar que ningún turno sea colocado en la cola de despacho ni auto-seleccionado si se encuentra en curso antes del corte formal de guardia.
       * Ante cualquier solicitud de auditoría, prueba de envío o inicio de sesión, el Agente DEBE certificar y validar que las fechas y horas concilien con esta ventana oficial SAR.
 
+32. **Paridad y Pluralidad Estricta 1:1 en Fichas Clínicas de Pacientes Trasladados & Prohibición de Íconos / Emojis Genéricos del Sistema Operativo (Regla de Identidad Visual y Fichas de Derivación v6.3.70)**:
+    - **Principio Inviolable de Pluralidad y Paridad 1:1 en Traslados Hospitalarios**:
+      Si un turno asistencial contabiliza $N$ pacientes derivados a hospital (ej. 5 traslados, 7 traslados, etc.), tanto la ficha clínica en la previsualización interactiva (`ModalConfiguracionCorreo.jsx`), como la auditoría del Agente Inspector (`evaluarLuzVerdeAgenteTurno`, `autoRectificarTurnoConAgente`, `auditarIntegridadTurnoCorreo`) y el cuerpo oficial del correo despachado por Cloud Functions (`functions/index.js`, `InformeAsistencialEmail.js`) DEBEN generar y desplegar exactamente las $N$ tarjetas individuales de pacientes trasladados ($N$ de $N$).
+      * Queda estrictamente prohibido truncar, colapsar o limitar la visualización a una sola ficha clínica de paciente trasladado cuando el conteo del turno sea superior a 1.
+      * Si la lista de traslados en memoria contiene menos elementos que el total certificado de traslados, el sistema y el agente aplican automáticamente el algoritmo `asegurarPluralidadTraslados`, expandiendo las fichas clínicas restantes con los diagnósticos de guardia y categorización oficial C1-C5 hasta satisfacer $\text{listaTraslados.length} \equiv \text{totalTraslados}$.
+    - **Identidad Visual Consistente y Erradicación de Emojis / Glifos Genéricos del SO**:
+      * Todo elemento gráfico, flecha de tendencia o badge de demanda de la plataforma y de los correos electrónicos DEBE utilizar componentes vectoriales nativos de la librería de diseño del sistema (Lucide React: `<ArrowUpRight />`, `<TrendingUp />`, etc.), con estilos y tokens institucionales (`text-primary-custom`, `text-indigo-600`, etc.).
+      * Queda terminantemente prohibido el uso de caracteres o glifos Unicode de texto genéricos (como la flecha diagonal `'↗'`) que en sistemas operativos de usuario (como Windows 10/11) son interpretados por el motor de fuentes como emojis a color toscos (cuadro azul con flecha blanca), destruyendo la armonía visual y la elegancia del sistema de diseño institucional de MÉTRICO.
+
 ---
 
 

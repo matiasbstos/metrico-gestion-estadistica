@@ -15,6 +15,29 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.70',
+      version: 'v6.3.70',
+      fecha: '10 de Octubre, 2026',
+      badge: 'PARIDAD 1:1 EN DERIVACIONES & IDENTIDAD VISUAL • REGLA 32: PLURALIDAD EN TRASLADOS Y VECTORES LUCIDE',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Paridad y Pluralidad Estricta 1:1 en Fichas de Traslados & Erradicación de Emojis e Íconos Genéricos',
+      categoria: 'Identidad Visual & Derivaciones Hospitalarias',
+      icon: ArrowLeftRight,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se promulgó la Regla 32 (Regla 23 del Consolidado de Arquitectura) resolviendo dos exigencias asistenciales prioritarias: 1) Paridad y Pluralidad Estricta 1:1 en Traslados: Se garantizó que si un turno reporta N derivaciones a hospital (ej. 5 o 7 traslados), tanto la previsualización interactiva como el despacho del correo por Cloud Functions generen y desplieguen exactamente las N fichas clínicas individuales (N de N), impidiendo cualquier colapso o truncamiento a 1 solo paciente mediante el helper asegurarPluralidadTraslados. 2) Identidad Visual Consistente: Se erradicó el glifo genérico "↗" (que en Windows se transformaba en un emoji azul) reemplazándolo por el componente vectorial SVG nativo ArrowUpRight de Lucide React en las tarjetas de Demanda, Atendidos, Altas y Traslados.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que toda derivación hospitalaria tenga su ficha clínica individual completa tanto en pantalla como en el correo oficial despachado, y asegura una identidad visual nítida y profesional sin emojis deformados por el sistema operativo.',
+        quePuedesVer: 'En el Apartado Exclusivo de Traslados verás las N tarjetas clínicas individuales (ej. 7 de 7) con categoría, diagnóstico de sospecha y hospital de destino. En las tarjetas de Demanda y Cobertura, los badges ahora lucen flechas vectoriales SVG integradas.',
+        ejemploUso: 'Al previsualizar un turno con 7 traslados en el Centro de Control de Correos, podrás revisar cada una de las 7 fichas clínicas completas sin omisiones, coincidiendo exactamente con el correo emitido.'
+      },
+      changes: [
+        'Promulgación de la Regla 32 en .agents/AGENTS.md y Regla 23 en InformeArquitectura.jsx: paridad 1:1 estricta de traslados e identidad visual institucional.',
+        'Implementación de asegurarPluralidadTraslados en helpers.js para blindar la generación de exactamente N fichas clínicas de pacientes derivados.',
+        'Integración en buildTurnoInfoPayload (ModalConfiguracionCorreo.jsx), auditarIntegridadTurnoCorreo, autoRectificarTurnoConAgente, evaluarLuzVerdeAgenteTurno y backend Cloud Function.',
+        'Sustitución de flechas Unicode ↗ por componentes vectoriales SVG ArrowUpRight de Lucide React en los badges de Demanda, Clínico, Altas y Traslados.'
+      ]
+    },
+    {
       id: 'v6.3.69',
       version: 'v6.3.69',
       fecha: '10 de Octubre, 2026',

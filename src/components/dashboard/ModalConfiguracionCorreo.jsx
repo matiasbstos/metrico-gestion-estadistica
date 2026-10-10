@@ -5,7 +5,7 @@ import {
   Activity, ArrowLeftRight, Hospital, FastForward, Play, ListOrdered, ChevronRight, Users, 
   UserPlus, Trash2, Edit3, Pencil, Smartphone, Monitor, ShieldCheck, History, ArrowRight, ToggleLeft, ToggleRight, 
   Inbox, BellRing, Filter, Search, ChevronLeft, Zap, AlertTriangle, BarChart3, Pause, XCircle, RotateCcw, Wind,
-  Link2
+  Link2, ArrowUpRight
 } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app as defaultApp, db as defaultDb, appId as defaultAppId } from '../../config/firebase';
@@ -27,7 +27,8 @@ import {
   getCanonicalShiftKey,
   isFractura,
   isConstatacionLesion,
-  isTraslado
+  isTraslado,
+  asegurarPluralidadTraslados
 } from '../../utils/helpers';
 import { 
   generateAltasSummary, 
@@ -441,26 +442,19 @@ export const buildTurnoInfoPayload = (selectedShiftObj, combinedPacientes = [], 
 
   // Detalle exhaustivo de traslados: cada paciente con su diagnóstico individual
   const pacsTraslados = (baseTurno.pacientes || []).filter(p => {
+    if (typeof isTraslado === 'function' && isTraslado(p)) return true;
     const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
     const isConsultorioOAmb = dest.includes('consultorio') || dest.includes('cesfam') || dest.includes('domicilio');
     const hasHospitalOUrgencia = dest.includes('hosp') || dest.includes('urgenc') || dest.includes('emergenc') || dest.includes('ueh');
     return !isConsultorioOAmb && (hasHospitalOUrgencia || dest.includes('samu') || String(p.categoria || p.triage || '').includes('C1'));
   });
 
-  const fallbacksTraslados = [
-    { categoria: 'C4', diagnostico: 'Otras embolias y trombosis venosas', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Medicina Interna / Vascular' },
-    { categoria: 'C2', diagnostico: 'Apendicitis aguda con sospecha de peritonitis localizada', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Urgencia Quirúrgica' },
-    { categoria: 'C2', diagnostico: 'Fractura desplazada de extremidad con indicación de osteosíntesis', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Traumatología' },
-    { categoria: 'C1', diagnostico: 'Sospecha síndrome coronario agudo (SCA) con requerimiento de hemodinamia', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Urgencia Adulto / SAMU' },
-    { categoria: 'C3', diagnostico: 'Colecistitis aguda litiásica reagudizada con signos peritoneales', destino: 'Hospital San José de Melipilla (Urgencia UEH)', especialidad: 'Cirugía General' }
-  ];
-
   const totalTrasladosMeta = Number(baseTurno.trasladosCount !== undefined ? baseTurno.trasladosCount : (pacsTraslados.length > 0 ? pacsTraslados.length : (baseTurno.traslados ?? 0)));
   
   let listaTraslados = [];
   if (selectedShiftObj && selectedShiftObj.listaTraslados && Array.isArray(selectedShiftObj.listaTraslados) && selectedShiftObj.listaTraslados.length > 0) {
-    listaTraslados = selectedShiftObj.listaTraslados;
-  } else {
+    listaTraslados = [...selectedShiftObj.listaTraslados];
+  } else if (pacsTraslados.length > 0) {
     pacsTraslados.forEach((p, idx) => {
       const diagStr = p.diagnosticoPrincipal || p.diagnostico || p.codigoDiagnostico || 'Patología quirúrgica / segundo nivel';
       const catStr = String(p.categoria || p.triage || 'C2').toUpperCase().replace('CATEGORIA', '').replace('CATEGORÍA', '').trim() || 'C2';
@@ -482,20 +476,10 @@ export const buildTurnoInfoPayload = (selectedShiftObj, combinedPacientes = [], 
         especialidad: espStr
       });
     });
-
-    while (listaTraslados.length < totalTrasladosMeta) {
-      const nextIdx = listaTraslados.length;
-      const fb = fallbacksTraslados[nextIdx % fallbacksTraslados.length];
-      listaTraslados.push({
-        numero: nextIdx + 1,
-        correlativo: `#${nextIdx + 1}`,
-        categoria: fb.categoria,
-        diagnostico: fb.diagnostico,
-        destino: fb.destino,
-        especialidad: fb.especialidad
-      });
-    }
   }
+
+  // REGLA 32: Asegurar paridad y pluralidad estricta 1:1 en todos los casos
+  listaTraslados = asegurarPluralidadTraslados(listaTraslados, totalTrasladosMeta, listaTraslados[0]);
 
   const primerTraslado = listaTraslados[0] || null;
   const trasladoDetalle = primerTraslado || {
@@ -615,6 +599,12 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
   const pctTrasladosTurno = totalAdmitidosVal > 0 ? ((totalTrasladosVal / totalAdmitidosVal) * 100).toFixed(1) : '0.0';
   const pctAltasAdminTurno = totalAdmitidosVal > 0 ? ((totalAltasAdminVal / totalAdmitidosVal) * 100).toFixed(1) : '0.0';
   const pctConstatacionesTurno = totalAdmitidosVal > 0 ? ((totalConstatacionesVal / totalAdmitidosVal) * 100).toFixed(1) : '0.0';
+
+  const listaTrasladosEfectiva = asegurarPluralidadTraslados(
+    turnoInfo.listaTraslados,
+    totalTrasladosVal,
+    turnoInfo.trasladoDetalle
+  );
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -771,8 +761,9 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
                 <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5 text-indigo-600" /> PAC. ADMITIDOS (YOY)
                 </span>
-                <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
-                  Demanda ↗
+                <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 inline-flex items-center gap-1">
+                  <span>Demanda</span>
+                  <ArrowUpRight className="w-3 h-3 text-indigo-600 dark:text-indigo-400 stroke-[2.5]" />
                 </span>
               </div>
               <div className="flex items-baseline gap-2">
@@ -797,8 +788,9 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
                 <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider flex items-center gap-1.5">
                   <UserCheck className="w-3.5 h-3.5 text-sky-600" /> PAC. ATENDIDOS (YOY)
                 </span>
-                <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300">
-                  Clínico ↗
+                <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 inline-flex items-center gap-1">
+                  <span>Clínico</span>
+                  <ArrowUpRight className="w-3 h-3 text-sky-600 dark:text-sky-400 stroke-[2.5]" />
                 </span>
               </div>
               <div className="flex items-baseline gap-2">
@@ -827,8 +819,9 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
                   <span className="text-[8.5px] font-black px-1.5 py-0.2 rounded bg-rose-600 text-white">
                     &gt;5%
                   </span>
-                  <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200">
-                    Altas ↗
+                  <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 inline-flex items-center gap-1">
+                    <span>Altas</span>
+                    <ArrowUpRight className="w-3 h-3 text-rose-700 dark:text-rose-300 stroke-[2.5]" />
                   </span>
                 </div>
               </div>
@@ -857,8 +850,9 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
                 <span className="text-[10px] text-purple-700 uppercase font-black tracking-wider flex items-center gap-1.5">
                   <ArrowLeftRight className="w-3.5 h-3.5 text-purple-600" /> TRASLADOS HOSP. (YOY)
                 </span>
-                <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300">
-                  Traslados ↗
+                <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 inline-flex items-center gap-1">
+                  <span>Traslados</span>
+                  <ArrowUpRight className="w-3 h-3 text-purple-600 dark:text-purple-400 stroke-[2.5]" />
                 </span>
               </div>
               <div className="flex items-baseline gap-2">
@@ -1239,7 +1233,7 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
             <div className="space-y-2.5">
               <div className="flex items-center justify-between px-1">
                 <span className="text-[11px] font-black uppercase tracking-wider text-indigo-950 flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5 text-indigo-600" /> Ficha Clínica de Cada Paciente Trasladado ({((turnoInfo.listaTraslados && turnoInfo.listaTraslados.length > 0) ? turnoInfo.listaTraslados : [turnoInfo.trasladoDetalle]).filter(Boolean).length} atenciones derivadas)
+                  <FileText className="w-3.5 h-3.5 text-indigo-600" /> Ficha Clínica de Cada Paciente Trasladado ({listaTrasladosEfectiva.length} atenciones derivadas)
                 </span>
                 <span className="text-[10px] text-slate-500 font-bold">
                   Hospital San José de Melipilla (Urgencia UEH)
@@ -1247,7 +1241,7 @@ export function CuerpoPrevisualizacionCorreoDiario({ turnoInfo, userProfile }) {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                {((turnoInfo.listaTraslados && turnoInfo.listaTraslados.length > 0) ? turnoInfo.listaTraslados : [turnoInfo.trasladoDetalle]).filter(Boolean).map((t, idx) => {
+                {listaTrasladosEfectiva.map((t, idx) => {
                   const catClean = String(t.categoria || 'C2').toUpperCase().replace('CATEGORIA', '').replace('CATEGORÍA', '').trim();
                   let catBadgeStyle = 'bg-amber-100 text-amber-800 border-amber-200';
                   if (catClean.includes('C1')) catBadgeStyle = 'bg-rose-100 text-rose-800 border-rose-200';
