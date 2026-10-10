@@ -15,6 +15,54 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.65',
+      version: 'v6.3.65',
+      fecha: '06 de Octubre, 2026',
+      badge: 'ESTABILIDAD TOTAL • CORRECCIÓN CRÍTICA DE HOISTING Y TDZ EN MÓDULO DE CORREOS',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Resolución de Error Crítico en Modal de Correos: Blindaje de Inicialización y Hoisting en Auditoría Pre-Vuelo',
+      categoria: 'Estabilidad & Auditoría de Correos',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se corrigió de forma definitiva la excepción ReferenceError provocada por el orden de evaluación del hook de conteo de Luz Verde en ModalConfiguracionCorreo, reubicando la dependencia tras la inicialización canónica de colaFiltradaFinal y dotando de hoisting completo a las funciones del Agente Inspector en helpers.js.',
+      instructivo: {
+        paraQueSirve: 'Garantiza la apertura instantánea y sin bloqueos de pantalla del Centro de Control de Correos y de la tabla de turnos auditados.',
+        quePuedesVer: 'Carga fluida del panel de despacho con la lista de turnos, el banner de certificación y los estados de Luz Verde en tiempo real.',
+        ejemploUso: 'Haz clic en el icono de Correo en el menú lateral o superior; el modal se desplegará de forma inmediata y estable.'
+      },
+      changes: [
+        'Reordenamiento estricto de useMemo en ModalConfiguracionCorreo.jsx para erradicar cualquier TDZ en colaFiltradaFinal.',
+        'Conversión de evaluarLuzVerdeAgenteTurno y autoRectificarTurnoConAgente a function declarations en helpers.js para garantizar hoisting modular completo.',
+        'Blindaje de fallbacks seguros en los selectores y listas de certificación en bloque del Agente Pre-Vuelo.'
+      ]
+    },
+    {
+      id: 'v6.3.64',
+      version: 'v6.3.64',
+      fecha: '06 de Octubre, 2026',
+      badge: 'AGENTE AUDITOR PRE-VUELO • PROTOCOLO DE LUZ VERDE PARA ENCOLADO Y DESPACHO SMTP (REGLA 16 & 19)',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Agente Inspector de Integridad Asistencial Pre-Vuelo: Solo Turnos con Luz Verde (9/9) son Autorizados para Encolado y Despacho',
+      categoria: 'Auditoría Pre-Vuelo & Protocolo de Despacho',
+      icon: Cpu,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Para resolver las anomalías donde ciertos turnos se encolaban con apartados incompletos o descalces matemáticos en sus datos asistenciales, se implementó el Agente Inspector de Integridad Pre-Vuelo bajo el estricto Protocolo de Luz Verde: cada turno es auditado de forma independiente en sus 9 pilares clínicos asistenciales. Únicamente los turnos que obtienen la certificación completa de "Luz Verde (9/9)" son autorizados para ingresar a la cola activa de despacho programado o para su emisión directa vía SMTP. Si un turno presenta descalces, el Agente lo bloquea con "Luz Roja / Revisión", detiene su envío autónomo y ofrece un asistente interactivo de auto-rectificación que completa los 9 apartados según las normas canónicas SSOT de Rayen.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que ningún correo oficial salga de MÉTRICO con apartados en blanco, triage en cero, diagnósticos no estructurados o descalces entre pacientes admitidos y atendidos. Protege la reputación institucional del SAR Elsa Romo y asegura paridad matemática total.',
+        quePuedesVer: '1. Columna "Agente Pre-Vuelo" en la Cola de Despacho: Exhibe el badge interactivo 🟢 Luz Verde (9/9) con check verde o 🔴 Alerta (X/9). 2. Modal de Inspección del Agente: Al hacer click en el badge de cualquier fila, se despliega la auditoría pormenorizada de los 9 pilares (Balance, YoY, Tramos, Triaje Manchester C1-C5, Médicos tratantes, Top 10 CIE-10, Demografía/Centros, Traslados UEH y Bitácora). 3. Botón "Certificar Cola con Agente": En la cabecera de la tabla para auditar y otorgar Luz Verde a toda la cola con 1 clic. 4. Salvaguarda en botón Enviar Ahora: Si intentas enviar un turno con alertas, el Agente interviene y lo auto-rectifica antes del despacho.',
+        ejemploUso: 'Abre el módulo de Configuración de Correo, observa en la Cola de Despacho el distintivo verde 🟢 Luz Verde (9/9) en los turnos cerrados. Haz clic sobre el badge para ver la auditoría de cada uno de los 9 apartados verificados por el Agente.'
+      },
+      changes: [
+        'Creación de la función canónica evaluarLuzVerdeAgenteTurno en helpers.js que audita los 9 pilares asistenciales obligatorios de MÉTRICO.',
+        'Función autoRectificarTurnoConAgente para subsanar inconsistencias y certificar el 100% de los apartados de guardia.',
+        'Bloqueo estricto en el motor autónomo (proximoTurnoPendiente): solo los turnos con luzVerde === true ingresan a la secuencia de despacho.',
+        'Integración de la columna "Agente Pre-Vuelo" con distintivo interactivo de Luz Verde vs Alerta en la tabla de turnos.',
+        'Banner institucional con contadores en vivo y botón de certificación en bloque "Certificar Cola con Agente".',
+        'Modal interactivo de inspección con checklist de los 9 pilares asistenciales y botón de auto-rectificación inmediata.',
+        'Blindaje en handleDespacharTurnoFila y en el backend de Firebase Cloud Functions para garantizar que los correos despachados contengan el 100% de los datos requeridos.'
+      ]
+    },
+    {
       id: 'v6.3.60',
       version: 'v6.3.60',
       fecha: '05 de Octubre, 2026',

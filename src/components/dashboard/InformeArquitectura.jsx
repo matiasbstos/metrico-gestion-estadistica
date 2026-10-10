@@ -10,6 +10,42 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.65',
+    version_tag: 'v6.3.65',
+    fecha: '06 de Octubre, 2026',
+    fecha_despliegue: '06 de Octubre, 2026',
+    proposito_actualizacion: 'Resolución de Error Crítico en Módulo de Correos: Blindaje de Inicialización y Hoisting en Auditoría Pre-Vuelo.',
+    medios_y_stack: [
+      'ModalConfiguracionCorreo.jsx (Reubicación estricta del useMemo de conteo de Luz Verde/Alerta tras la declaración de colaFiltradaFinal, erradicando la excepción ReferenceError por TDZ)',
+      'helpers.js (Declaración de evaluarLuzVerdeAgenteTurno y autoRectificarTurnoConAgente con function declarations para hoisting a nivel de módulo sin dependencia posicional)',
+      'version.js (Sincronización a v6.3.65)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Garantía de inicialización síncrona en React y estabilidad absoluta del Centro de Control de Correos.',
+      firestore_collections: ['configuracion_correo', 'system_architecture_log'],
+      documentos_afectados: ['src/components/dashboard/ModalConfiguracionCorreo.jsx', 'src/utils/helpers.js', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx']
+    }
+  },
+  {
+    id: 'v6.3.64',
+    version_tag: 'v6.3.64',
+    fecha: '06 de Octubre, 2026',
+    fecha_despliegue: '06 de Octubre, 2026',
+    proposito_actualizacion: 'Agente Inspector de Integridad Asistencial Pre-Vuelo & Protocolo de Luz Verde Obligatoria para Encolado y Despacho de Informes Oficiales por Correo.',
+    medios_y_stack: [
+      'helpers.js (Implementación del Agente Auditor evaluarLuzVerdeAgenteTurno: inspección matemática estricta de los 9 pilares asistenciales requeridos: 1. Balance Asistencial de Guardia, 2. Indicadores Maestros YoY & YTD, 3. Tramos de Espera & Constataciones Z51.8, 4. Triaje Manchester C1-C5 proporcional a admisiones, 5. Productividad de Facultativos de Guardia, 6. Top 10 Diagnósticos CIE-10 completos, 7. Centros Base Red APS & Paridad Demográfica 100%, 8. Ficha Clínica de Traslados UEH en mayúsculas institucionales, 9. Bitácora de Seguridad Traumatológica & Respiratoria; función autoRectificarTurnoConAgente para subsanar descalces y certificar con score 9/9)',
+      'ModalConfiguracionCorreo.jsx (Integración del Protocolo de Luz Verde en la Cola de Despacho: badge interactivo 🟢 Luz Verde (9/9) vs 🔴 Alerta (X/9); bloqueo de encolado activo y despacho autónomo en proximoTurnoPendiente para turnos sin certificación; banner institucional con botón Certificar Cola con Agente; modal interactivo de inspección con checklist de los 9 pilares asistenciales; salvaguarda en handleDespacharTurnoFila que previene envíos con apartados vacíos o descalces)',
+      'functions/index.js & InformeAsistencialEmail.js (Blindaje de backend en Cloud Function enviarInformeCorreo para verificar cuadratura universal y normalizar automáticamente datos antes del despacho Nodemailer)',
+      'version.js (Sincronización a v6.3.64)',
+      'ModalMuroActualizaciones.jsx (Comunicado oficial en Muro de Novedades del sistema)'
+    ],
+    estructura_datos: {
+      reglas_negocio: '1) Protocolo de Luz Verde Obligatoria (Regla 16 & 19 MÉTRICO): Ningún informe asistencial puede colocarse en cola activa para envío ni emitirse por SMTP si no cuenta con la certificación formal de Luz Verde (9/9) emitida por el Agente Auditor. 2) Integridad de los 9 Pilares: Los 9 apartados deben estar 100% completos, sin códigos CIE-10 en blanco, con demografía cuadrada al 100%, centros normalizados <= 100% y triaje proporcional a atenciones. 3) Auto-Rectificación Asistencial: Si un turno histórico o cerrado presenta inconsistencias, el Agente auto-rectifica el payload aplicando las normas SSOT de Rayen antes de autorizar el despacho.',
+      firestore_collections: ['system_architecture_log', 'configuracion_correo', 'turnos', 'audit_logs'],
+      documentos_afectados: ['src/utils/helpers.js', 'src/components/dashboard/ModalConfiguracionCorreo.jsx', 'functions/index.js', 'functions/templates/InformeAsistencialEmail.js', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx']
+    }
+  },
+  {
     id: 'v6.3.60',
     version_tag: 'v6.3.60',
     fecha: '05 de Octubre, 2026',

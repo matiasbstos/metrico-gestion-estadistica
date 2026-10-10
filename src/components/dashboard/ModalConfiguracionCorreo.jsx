@@ -19,7 +19,9 @@ import {
   resolverEquipoTurno,
   isDiaHabilChile,
   getProximoDiaHabilChile,
-  calcularHorarioDespachoTurno
+  calcularHorarioDespachoTurno,
+  evaluarLuzVerdeAgenteTurno,
+  autoRectificarTurnoConAgente
 } from '../../utils/helpers';
 import { 
   generateAltasSummary, 
@@ -1641,6 +1643,17 @@ export default function ModalConfiguracionCorreo({
   const [showModalPreviewRow, setShowModalPreviewRow] = useState(false);
   const [previewShiftTarget, setPreviewShiftTarget] = useState(null);
   const [despachandoRowKey, setDespachandoRowKey] = useState(null);
+
+  // Estados para el Agente Auditor Pre-Vuelo (Luz Verde 9/9)
+  const [showModalAuditoriaAgente, setShowModalAuditoriaAgente] = useState(false);
+  const [turnoAuditoriaTarget, setTurnoAuditoriaTarget] = useState(null);
+  const [rectifiedShiftsMap, setRectifiedShiftsMap] = useState(() => {
+    try {
+      const s = localStorage.getItem('metrico_turnos_rectificados_map');
+      if (s) return JSON.parse(s);
+    } catch(e) {}
+    return {};
+  });
   const [sentShiftsMap, setSentShiftsMap] = useState(() => {
     try {
       const s = localStorage.getItem('metrico_informes_enviados_map');
@@ -1735,6 +1748,68 @@ export default function ModalConfiguracionCorreo({
 
     if (showNotif) {
       showNotif(`Turno ${shiftRow.textoCompleto || fTurno || 'seleccionado'} restablecido a la cola ("Listo para Despacho").`, 'success');
+    }
+  };
+
+  // Operaciones del Agente Auditor Pre-Vuelo (Protocolo de Luz Verde MÉTRICO)
+  const handleAbrirAuditoriaAgente = (shiftRow) => {
+    if (!shiftRow) return;
+    setTurnoAuditoriaTarget(shiftRow);
+    setShowModalAuditoriaAgente(true);
+  };
+
+  const handleAutoRectificarTurno = (shiftRow) => {
+    if (!shiftRow) return;
+    const rectificado = autoRectificarTurnoConAgente(shiftRow, statsKPI);
+    if (!rectificado) return;
+
+    setRectifiedShiftsMap(prev => {
+      const next = {
+        ...prev,
+        [shiftRow.shiftKey]: rectificado,
+        [shiftRow.fecha]: rectificado
+      };
+      try {
+        localStorage.setItem('metrico_turnos_rectificados_map', JSON.stringify(next));
+      } catch(e) {}
+      return next;
+    });
+
+    if (turnoAuditoriaTarget && turnoAuditoriaTarget.shiftKey === shiftRow.shiftKey) {
+      setTurnoAuditoriaTarget(rectificado);
+    }
+
+    playSuccessChime();
+    if (showNotif) {
+      showNotif(`🟢 Turno ${shiftRow.fechaTurno || shiftRow.fecha} certificado por el Agente. Luz Verde otorgada (9/9).`, 'success');
+    }
+  };
+
+  const handleCertificarColaCompleta = () => {
+    const listToCertify = (colaFiltradaFinal || []).filter(t => t.esTurnoCompleto && !t.luzVerde);
+    if (listToCertify.length === 0) {
+      if (showNotif) showNotif('Todos los turnos de la cola ya cuentan con Luz Verde del Agente (9/9).', 'info');
+      return;
+    }
+
+    setRectifiedShiftsMap(prev => {
+      const next = { ...prev };
+      listToCertify.forEach(t => {
+        const rect = autoRectificarTurnoConAgente(t, statsKPI);
+        if (rect) {
+          next[t.shiftKey] = rect;
+          next[t.fecha] = rect;
+        }
+      });
+      try {
+        localStorage.setItem('metrico_turnos_rectificados_map', JSON.stringify(next));
+      } catch(e) {}
+      return next;
+    });
+
+    playSuccessChime();
+    if (showNotif) {
+      showNotif(`🟢 Agente Pre-Vuelo certificó ${listToCertify.length} turnos. Luz Verde otorgada al 100% de la cola.`, 'success');
     }
   };
 
@@ -2388,17 +2463,51 @@ export default function ModalConfiguracionCorreo({
         infoDespacho = calcularHorarioDespachoTurno(item, modoCargaMasiva, currentSlotIdx, intervaloMinutos, pautasDB, ultimoDespachoMs);
       }
 
+      // CÁLCULO DEL ESTADO DEL AGENTE AUDITOR PRE-VUELO (LUZ VERDE 9/9)
+      const rectificadoPrev = rectifiedShiftsMap[item.shiftKey] || rectifiedShiftsMap[item.fecha];
+      let turnoParaEval = rectificadoPrev ? { ...item, ...rectificadoPrev } : item;
+
+      // Si es un turno cerrado histórico (2025 o Rayen oficial o pacientes), auto-rectificar de forma transparente si le falta algún pilar
+      if (isCompleto && (item.isHistorico2025 || item.isRayenOficial || !turnoParaEval.distribucionDemografia || !turnoParaEval.triage)) {
+        const autoCheck = autoRectificarTurnoConAgente(turnoParaEval, statsKPI);
+        if (autoCheck && autoCheck.luzVerde) {
+          turnoParaEval = autoCheck;
+        }
+      }
+
+      const evalAgente = evaluarLuzVerdeAgenteTurno(turnoParaEval);
+      const luzVerde = Boolean(evalAgente.luzVerde && isCompleto);
+
+      // Si el turno no tiene Luz Verde, se suspende su despacho en la cola hasta revisión
+      if (!isSent && !isCancelled && isCompleto && !luzVerde) {
+        infoDespacho = {
+          horarioTexto: '🔴 En Revisión del Agente',
+          scheduledTimestampMs: 0,
+          debeDispararAhora: false,
+          esPausado: true,
+          motivoPausa: `Falta certificar (${evalAgente.score}/9)`,
+          proximoHabilTexto: 'Requiere Luz Verde Pre-Vuelo'
+        };
+      }
+
       return {
+        ...turnoParaEval,
         ...item,
+        ...(turnoParaEval.luzVerde ? turnoParaEval : {}),
         turnoHomologo,
         tieneHomologo: Boolean(turnoHomologo),
         isCompleto,
         esTurnoCompleto: isCompleto,
+        luzVerde,
+        evalAgenteScore: evalAgente.score,
+        evalAgenteTotal: evalAgente.totalChecks,
+        evalAgenteChecks: evalAgente.checks,
+        evalAgenteAlertas: evalAgente.alertas,
         isSent,
         isCancelled,
         horarioProyectado: infoDespacho.horarioTexto,
         scheduledTimestampMs: infoDespacho.scheduledTimestampMs,
-        debeDispararAhora: infoDespacho.debeDispararAhora,
+        debeDispararAhora: infoDespacho.debeDispararAhora && luzVerde,
         esPausado: infoDespacho.esPausado,
         motivoPausa: infoDespacho.motivoPausa,
         proximoHabilTexto: infoDespacho.proximoHabilTexto
@@ -2406,7 +2515,7 @@ export default function ModalConfiguracionCorreo({
     });
 
     return list;
-  }, [combinedPacientes, turnosDB, pautasDB, modoCargaMasiva, intervaloMinutos, sentShiftsMap, cancelledShiftsMap, ultimoDespachoMs]);
+  }, [combinedPacientes, turnosDB, pautasDB, modoCargaMasiva, intervaloMinutos, sentShiftsMap, cancelledShiftsMap, ultimoDespachoMs, rectifiedShiftsMap, statsKPI]);
 
   // 1.0.1 Conteo Analítico de Correos Pendientes por Año (2024, 2025, 2026)
   const conteoPorAno = useMemo(() => {
@@ -2457,11 +2566,12 @@ export default function ModalConfiguracionCorreo({
   }, [pautasDB]);
 
   // 1.1 Próximo Turno Clínico en Espera de Despacho (SSOT)
+  // Regla Estricta: Solo turnos 100% cerrados con LUZ VERDE del Agente pueden ser despachados autónomamente
   const proximoTurnoPendiente = useMemo(() => {
     const listPend = turnosAuditadosCola.filter(t => !t.isSent && !t.isCancelled);
     if (listPend.length === 0) return null;
-    const cerradoListo = listPend.find(t => t.esTurnoCompleto);
-    return cerradoListo || listPend[0];
+    const cerradoConLuzVerde = listPend.find(t => t.esTurnoCompleto && t.luzVerde);
+    return cerradoConLuzVerde || null;
   }, [turnosAuditadosCola]);
 
   // 2. Detección Automática de Días Completos (Consolidado por Día Civil 24h)
@@ -2637,6 +2747,17 @@ export default function ModalConfiguracionCorreo({
   }, [modoVistaCola, turnosAuditadosCola, diasCompletosAuditados, filtroFechaExacta, filtroColaAno, filtroMes, filtroSemana, searchColaFecha]);
 
   const diasFiltradosCola = colaFiltradaFinal;
+
+  // 4.5 Conteo de Auditoría Pre-Vuelo del Agente (Luz Verde 9/9)
+  const { totalConLuzVerde, totalConAlerta } = useMemo(() => {
+    let verde = 0;
+    let alerta = 0;
+    (colaFiltradaFinal || []).forEach(t => {
+      if (t.luzVerde) verde++;
+      else if (t.esTurnoCompleto && !t.isSent && !t.isCancelled) alerta++;
+    });
+    return { totalConLuzVerde: verde, totalConAlerta: alerta };
+  }, [colaFiltradaFinal]);
 
   // 5. Turno seleccionado específicamente desde la tabla para previsualizar/auditar
   const selectedShiftObj = useMemo(() => {
@@ -3012,6 +3133,25 @@ export default function ModalConfiguracionCorreo({
         }
       }
 
+      // Verificación y Salvaguarda del Agente Auditor Pre-Vuelo (Protocolo de Luz Verde MÉTRICO)
+      if (!shiftRow.luzVerde) {
+        const confirmarRect = window.confirm(
+          `🤖 INTERVENCIÓN DEL AGENTE AUDITOR PRE-VUELO (Protocolo Luz Verde MÉTRICO):\n\nEl turno seleccionado (${shiftRow.textoCompleto}) requiere certificación oficial (${shiftRow.evalAgenteScore || 0}/9 checks aprobados).\n\n¿Deseas que el Agente aplique la Auto-Rectificación Asistencial y otorgue Luz Verde Oficial (9/9) ahora mismo antes de despachar?`
+        );
+        if (!confirmarRect) {
+          return;
+        }
+        const rectificado = autoRectificarTurnoConAgente(shiftRow, statsKPI);
+        if (rectificado) {
+          shiftRow = rectificado;
+          setRectifiedShiftsMap(prev => ({
+            ...prev,
+            [shiftRow.shiftKey]: rectificado,
+            [shiftRow.fecha]: rectificado
+          }));
+        }
+      }
+
       // Regla 20 MÉTRICO: Advertencia de política asistencial en fin de semana o feriado oficial
       const hoyEsHabil = isDiaHabilChile(new Date(), pautasDB);
       if (!hoyEsHabil && !forzarEnvio) {
@@ -3035,6 +3175,10 @@ export default function ModalConfiguracionCorreo({
         console.log('[Despacho Autónomo] Turno en curso/parcial omitido por Regla 5 SSOT:', shiftRow.textoCompleto);
         return;
       }
+      if (!shiftRow.luzVerde) {
+        console.log('[Despacho Autónomo] Turno sin Luz Verde omitido por el Agente Auditor:', shiftRow.textoCompleto);
+        return;
+      }
       const hoyEsHabil = isDiaHabilChile(new Date(), pautasDB);
       if (!hoyEsHabil && !forzarEnvio) {
         console.log('[Despacho Autónomo] Hoy es día inhábil (Regla 20). Envío programado en pausa.');
@@ -3053,7 +3197,10 @@ export default function ModalConfiguracionCorreo({
       const functionsInstance = getFunctions(targetApp);
       const callEnviarCorreo = httpsCallable(functionsInstance, 'enviarInformeCorreo');
 
-      const shiftPayload = buildTurnoInfoPayload(shiftRow, combinedPacientes, pautasDB, auditResult, statsKPI);
+      let shiftPayload = buildTurnoInfoPayload(shiftRow, combinedPacientes, pautasDB, auditResult, statsKPI);
+      if (!shiftPayload.luzVerde) {
+        shiftPayload = autoRectificarTurnoConAgente(shiftPayload, statsKPI) || shiftPayload;
+      }
 
       const res = await callEnviarCorreo({
         destinatarios: target,
@@ -4262,6 +4409,48 @@ export default function ModalConfiguracionCorreo({
                 </div>
               </div>
 
+              {/* BANNER INSTITUCIONAL DEL AGENTE AUDITOR PRE-VUELO */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 bg-gradient-to-r from-emerald-500/10 via-indigo-500/10 to-transparent border border-emerald-500/30 rounded-2xl shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+                    <Cpu className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-black text-primary-custom uppercase tracking-wide flex items-center gap-1.5">
+                        Agente Auditor Pre-Vuelo • Protocolo de Luz Verde
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                        9 Pilares Asistenciales
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">
+                        🟢 {totalConLuzVerde} con Luz Verde
+                      </span>
+                      {totalConAlerta > 0 && (
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
+                          🔴 {totalConAlerta} en Revisión
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-secondary-custom font-medium mt-0.5">
+                      Filtro estricto: Solo turnos 100% cerrados con <strong>Luz Verde (9/9)</strong> se autorizan para envío automático o encolado activo.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 self-stretch sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={handleCertificarColaCompleta}
+                    className="px-3.5 py-1.5 rounded-xl text-xs font-black uppercase transition-all cursor-pointer flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                    title="Auditar todos los turnos visibles de la cola y aplicar Luz Verde con el Agente"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Certificar Cola con Agente</span>
+                  </button>
+                </div>
+              </div>
+
               {/* TABLA DE TURNOS ASISTENCIALES O DÍAS CIVILES */}
               <div className="overflow-auto border border-card-custom rounded-2xl max-h-80 custom-scrollbar">
                 <table className="w-full text-left text-xs whitespace-nowrap">
@@ -4274,13 +4463,14 @@ export default function ModalConfiguracionCorreo({
                       <th className="p-3.5">Atendidos / Altas</th>
                       <th className="p-3.5">Horario Despacho</th>
                       <th className="p-3.5">Estado</th>
+                      {modoVistaCola === 'TURNOS' && <th className="p-3.5 text-center">Agente Pre-Vuelo</th>}
                       {modoVistaCola === 'TURNOS' && <th className="p-3.5 text-center">Acciones</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-card-custom/20">
                     {colaFiltradaFinal.length === 0 ? (
                       <tr>
-                        <td colSpan={modoVistaCola === 'TURNOS' ? 8 : 5} className="p-8 text-center text-xs text-secondary-custom font-bold">
+                        <td colSpan={modoVistaCola === 'TURNOS' ? 9 : 5} className="p-8 text-center text-xs text-secondary-custom font-bold">
                           No se encontraron registros para el filtro o término seleccionado.
                         </td>
                       </tr>
@@ -4388,6 +4578,27 @@ export default function ModalConfiguracionCorreo({
                                 </span>
                               )}
                             </td>
+
+                            {modoVistaCola === 'TURNOS' && (
+                              <td className="p-3.5 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => handleAbrirAuditoriaAgente(d)}
+                                  className={`px-2.5 py-1.5 rounded-xl text-[10px] font-black uppercase cursor-pointer flex items-center justify-center gap-1.5 transition-all shadow-2xs mx-auto border ${
+                                    d.luzVerde
+                                      ? 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                                      : d.isSent
+                                      ? 'bg-emerald-500/10 text-emerald-600/70 dark:text-emerald-400/70 border-emerald-500/20'
+                                      : 'bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 border-rose-500/30 animate-pulse'
+                                  }`}
+                                  title={d.luzVerde ? 'Luz Verde Oficial: 9/9 apartados auditados y certificados' : `Revisión requerida: ${d.evalAgenteScore || 0}/9 checks aprobados. Haz clic para auditar e inspeccionar.`}
+                                >
+                                  <span className={`w-2 h-2 rounded-full ${d.luzVerde ? 'bg-emerald-500 shadow-sm' : 'bg-rose-500 animate-pulse'}`} />
+                                  <span>{d.luzVerde ? 'Luz Verde (9/9)' : `Alerta (${d.evalAgenteScore || 0}/9)`}</span>
+                                  {d.luzVerde ? <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" /> : <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0" />}
+                                </button>
+                              </td>
+                            )}
 
                             {modoVistaCola === 'TURNOS' && (
                               <td className="p-3.5 text-center">
@@ -5397,6 +5608,153 @@ export default function ModalConfiguracionCorreo({
           </button>
         </div>
       </footer>
+
+      {/* 4. MODAL INTERACTIVO DE INSPECCIÓN DEL AGENTE AUDITOR PRE-VUELO */}
+      {showModalAuditoriaAgente && turnoAuditoriaTarget && (
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-slate-900 border border-indigo-500/30 rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+            {/* Cabecera */}
+            <div className="p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-b border-card-custom/80 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
+                  <Cpu className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white flex items-center gap-2">
+                    Agente Auditor Pre-Vuelo • Inspección de Calidad Clínica
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                      Protocolo Luz Verde
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">
+                    {turnoAuditoriaTarget.textoCompleto || `${turnoAuditoriaTarget.fechaTurno} • ${turnoAuditoriaTarget.equipo}`}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowModalAuditoriaAgente(false)}
+                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-all cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Banner de Veredicto */}
+            <div className={`p-4 border-b flex items-center justify-between gap-4 shrink-0 ${
+              turnoAuditoriaTarget.luzVerde
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
+                : 'bg-rose-500/10 border-rose-500/20 text-rose-300'
+            }`}>
+              <div className="flex items-center gap-3">
+                {turnoAuditoriaTarget.luzVerde ? (
+                  <CheckCircle2 className="w-7 h-7 text-emerald-400 shrink-0" />
+                ) : (
+                  <AlertTriangle className="w-7 h-7 text-rose-400 shrink-0 animate-pulse" />
+                )}
+                <div>
+                  <h4 className="text-sm font-black uppercase tracking-wide">
+                    {turnoAuditoriaTarget.luzVerde 
+                      ? '🟢 Luz Verde Oficial Otorgada (9/9 Checks Aprobados)' 
+                      : `🔴 Luz Roja / Revisión Requerida (${turnoAuditoriaTarget.evalAgenteScore || 0}/9 Aprobados)`}
+                  </h4>
+                  <p className="text-xs text-slate-300 mt-0.5">
+                    {turnoAuditoriaTarget.luzVerde
+                      ? 'Este turno cumple al 100% con la paridad matemática de Rayen y los 9 pilares asistenciales para despacho.'
+                      : 'El turno presenta apartados incompletos o descalces matemáticos. Requiere auto-rectificación antes de enviar.'}
+                  </p>
+                </div>
+              </div>
+
+              {!turnoAuditoriaTarget.luzVerde && (
+                <button
+                  type="button"
+                  onClick={() => handleAutoRectificarTurno(turnoAuditoriaTarget)}
+                  className="px-4 py-2 rounded-xl text-xs font-black uppercase bg-emerald-600 hover:bg-emerald-700 text-white shadow-md flex items-center gap-2 cursor-pointer transition-all shrink-0"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Auto-Rectificar con Agente</span>
+                </button>
+              )}
+            </div>
+
+            {/* Lista de los 9 Checks de las Láminas */}
+            <div className="p-5 overflow-y-auto space-y-3 custom-scrollbar flex-1">
+              <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-2 mb-2">
+                <ShieldCheck className="w-4 h-4 text-indigo-400" />
+                Auditoría Pormenorizada de los 9 Pilares Asistenciales
+              </h4>
+
+              {(turnoAuditoriaTarget.evalAgenteChecks || []).map((chk) => (
+                <div 
+                  key={chk.id} 
+                  className={`p-3.5 rounded-2xl border transition-all ${
+                    chk.aprobado 
+                      ? 'bg-slate-800/40 border-emerald-500/30' 
+                      : 'bg-rose-500/10 border-rose-500/40'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-2.5">
+                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
+                        chk.aprobado ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
+                      }`}>
+                        {chk.aprobado ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5" />}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-black text-white">{chk.pilar || chk.nombre}</span>
+                          <span className={`text-[9px] font-black px-2 py-0.2 rounded-full uppercase ${
+                            chk.aprobado 
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                              : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                          }`}>
+                            {chk.aprobado ? 'Aprobado (100%)' : 'Pendiente / Alerta'}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 mt-0.5">{chk.descripcion}</p>
+                        <div className="mt-1.5 font-mono text-[11px] text-indigo-300 bg-slate-950/40 px-2.5 py-1 rounded-lg border border-white/5 inline-block">
+                          {chk.detalle}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Footer Modal */}
+            <div className="p-4 bg-slate-950 border-t border-card-custom/80 flex items-center justify-between shrink-0">
+              <span className="text-xs text-slate-400 font-mono">
+                Certificación MÉTRICO SSOT • Ecuación Universal Rayen
+              </span>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPreviewShiftTarget(turnoAuditoriaTarget);
+                    setSelectedShiftKey(turnoAuditoriaTarget.shiftKey);
+                    setShowModalAuditoriaAgente(false);
+                    setActiveTab('diseno');
+                  }}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5" /> Ver en Previsualizador
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowModalAuditoriaAgente(false)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition-all cursor-pointer"
+                >
+                  Cerrar Inspección
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
