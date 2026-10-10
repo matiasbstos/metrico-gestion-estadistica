@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import InfoTooltip from '../InfoTooltip';
 import { generateConstatacionesSummary } from '../../utils/summaryGenerator';
+import { isConstatacionLesion } from '../../utils/helpers';
 
 export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, kpisBigQuery }) {
   const [filtroSexo, setFiltroSexo] = useState('TODOS');
@@ -36,28 +37,7 @@ export default function AnalisisConstataciones({ pacientesFiltrados, pacientesDB
     return pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
   }, [pacientesFiltrados, pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin]);
 
-  // Helper oficial para Constataciones & Atenciones Médico-Legales / Policiales (CIE-10 Z51.8, Z04, Z65, Z02.7 y Destino Carabineros/PDI/Comisaría)
-  const isConstatacionOficial = (p) => {
-    if (!p) return false;
-    if (p.flag_constatacion_z518 !== undefined && p.flag_constatacion_z518 !== null) {
-      if (Boolean(p.flag_constatacion_z518)) return true;
-    }
-    const cat = String(p.categoria || p.categoria_triage || '').toLowerCase();
-    if (cat === 'c3_z518') return true;
-    const cod = String(p.codigoDiagnostico || p.codigo_diagnostico_cie10 || p.codigo || '').toUpperCase();
-    const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
-    const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
-    const obs = String(p.observacion || p.obs || '').toUpperCase();
-
-    if (cod.includes('Z51.8') || cod.includes('Z518') || cod.includes('Z04') || cod.includes('Z65') || cod.includes('Z02.7')) return true;
-    if (diag.includes('CONSTATAC') || diag.includes('CIRCUNSTANCIAS LEGALES') || diag.includes('LEGAL')) return true;
-
-    // Clasificación por Destino u Observación a Unidades Policiales / Judiciales (Carabineros, PDI, Comisaría, Custodia)
-    const keywordsPolice = ['CARABINERO', 'PDI', 'COMISARIA', 'COMISARÍA', 'POLICIA', 'POLICÍA', 'POLICIAL', 'DETENIDO', 'CUSTODIA', 'FISCALIA', 'FISCALÍA'];
-    if (keywordsPolice.some(k => dest.includes(k) || obs.includes(k))) return true;
-
-    return false;
-  };
+  const isConstatacionOficial = isConstatacionLesion;
 
   const ytdConstatacionesCount = useMemo(() => {
     if (!pacientesDB || pacientesDB.length === 0) return 258;

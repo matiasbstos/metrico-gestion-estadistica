@@ -5,7 +5,7 @@ import { useMetricoProfesionales } from '../../hooks/useMetricoProfesionales';
 import FiltrosGlobales from './FiltrosGlobales';
 import { generateAltasSummary, generateFracturasSummary, generateEnfermeriaSummary, generateConstatacionesSummary, generateTrasladosSummary, generateRespiratorioSummary } from '../../utils/summaryGenerator';
 import { clasificarDiagnosticoRespiratorio, encasillarCentroProvinciaMelipilla, isHospitalDestino, DEFAULT_SUBGROUPS, DIRECTORIO_CENTROS_MELIPILLA } from './AnalisisRespiratorio';
-import { obtenerTurnoDetallado, resolverEquipoTurno } from '../../utils/helpers';
+import { obtenerTurnoDetallado, resolverEquipoTurno, isAltaAdmin, isFractura, isTraslado } from '../../utils/helpers';
 import { generateDynamicProyeccion, detectEffectiveBaseDate } from '../../utils/radarPredictivoEngine';
 
 export default function ReportesModule({ 
@@ -107,7 +107,7 @@ export default function ReportesModule({
   }, [radarProyecciones]);
 
   // Extraer KPIs para el reporte con la Matriz de Turnos y horarios seleccionados
-  const { statsKPI, demografiaStats, topDiagnosticos, pacientesFiltrados, turnosFiltrados } = useMetricoAnalytics(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin, {}, tipoCorte, filtroHoraInicio, filtroHoraFin);
+  const { statsKPI, demografiaStats, topDiagnosticos, pacientesFiltrados, turnosFiltrados } = useMetricoAnalytics(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin, {}, tipoCorte, filtroHoraInicio, filtroHoraFin, pautasDB);
   const { filteredMetricsByDoctor } = useMetricoProfesionales(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin, [], '', tipoCorte, filtroHoraInicio, filtroHoraFin);
 
   // Rango de fechas reales detectado automáticamente de los datos de pacientes
@@ -188,7 +188,7 @@ export default function ReportesModule({
         const startMs = new Date(prevStartStr + 'T00:00:00').getTime();
         const endMs = new Date(prevEndStr + 'T23:59:59').getTime();
         const prevYearPacs = pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
-        prevYearAltas = prevYearPacs.filter(p => p.estado === 'Cancelada').length;
+        prevYearAltas = prevYearPacs.filter(p => isAltaAdmin(p) || p.estado === 'Cancelada').length;
         prevYearTotalAdms = prevYearPacs.length;
         prevYearPct = prevYearTotalAdms > 0 ? ((prevYearAltas / prevYearTotalAdms) * 100).toFixed(1) : '0.0';
         if (prevYearAltas > 0) {
@@ -228,24 +228,8 @@ export default function ReportesModule({
     const diagMap = {};
 
     pacs.forEach(p => {
-      const diag = (p.diagnosticoPrincipal || p.codigoDiagnostico || '').toLowerCase();
-      const isFrac = diag.includes('fractura') || diag.includes('fx');
-      
-      const isTrasladoHelper = (p) => {
-        if (!p) return false;
-        if (p.flag_traslado_hospitalario !== undefined && p.flag_traslado_hospitalario !== null) return Boolean(p.flag_traslado_hospitalario);
-        const destStr = String(p.destinoAlta || p.destino || p.lugarDerivacion || p.motivoAlta || p.tipoAlta || '').toUpperCase();
-        const obsStr = String(p.observacion || p.obs || '').toUpperCase();
-        const catStr = String(p.categoria || p.categoria_triage || '').toUpperCase();
-        const isTrans = destStr.includes('HOSP') || destStr.includes('URGENC') || destStr.includes('EMERGENC') || destStr.includes('UEH') || destStr.includes('SAMU') || destStr.includes('DERIVAC') ||
-                        obsStr.includes('HOSP') || obsStr.includes('URGENC') || obsStr.includes('EMERGENC') || obsStr.includes('UEH') || obsStr.includes('SAMU') ||
-                        catStr === 'C1';
-        const isRoutine = (destStr.includes('CONSULTORIO') || destStr.includes('CESFAM') || destStr.includes('DOMICILIO')) &&
-                          !(destStr.includes('HOSP') || destStr.includes('URGENC') || destStr.includes('EMERGENC') || destStr.includes('UEH'));
-        return isTrans && !isRoutine;
-      };
-
-      const isTraslado = isTrasladoHelper(p);
+      const isFrac = isFractura(p);
+      const isTrans = isTraslado(p);
       const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
       const isDomicilio = dest.includes('domicilio');
 
@@ -254,7 +238,7 @@ export default function ReportesModule({
         const key = (p.diagnosticoPrincipal || p.codigoDiagnostico || 'FRACTURA NO ESPECIFICADA').toUpperCase();
         diagMap[key] = (diagMap[key] || 0) + 1;
 
-        if (isTraslado) {
+        if (isTrans) {
           fracturasTrasladadas++;
         } else if (isDomicilio) {
           fracturasDomicilio++;

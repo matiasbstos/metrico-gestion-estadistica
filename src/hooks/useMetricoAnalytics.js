@@ -7,7 +7,10 @@ import {
   CHILE_HOLIDAYS_OFFICIAL,
   isAltaAdmin as isAltaAdminHelper,
   isSinAtencionMedica,
-  isEgresoAdministrativo
+  isEgresoAdministrativo,
+  OFFICIAL_RAYEN_SHIFT_CONTROLS,
+  getCanonicalShiftKey,
+  getCanonicalShiftTag
 } from '../utils/helpers';
 
 const AGE_RANGES = ['0-4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '40-44', '45-49', '50-54', '55-59', '60-64', '65-69', '70-74', '75-79', '80+'];
@@ -59,11 +62,22 @@ const parseLocalDatetime = (dateStr, hourMinStr = '00:00') => {
 
 export const getWindowRange = (startDayStr, endDayStr, startHourStr = '00:00', endHourStr = '23:59') => {
   if (!startDayStr || !endDayStr) return null;
-  const tStart = parseLocalDatetime(startDayStr, startHourStr || '00:00');
-  let tEnd = parseLocalDatetime(endDayStr, endHourStr || '23:59');
+
+  // Regla SAR Oficial (Reglas 5 y 9): Si la franja horaria corresponde al Turno Largo de Semana (17:00 a 08:00),
+  // se aplica la ventana asistencial ampliada oficial SAR: 16:00 a 12:00 PM del día siguiente para capturar
+  // admisiones previas en sala y estadías completas de pacientes admitidos hasta las 08:00 AM.
+  let effectiveStartH = startHourStr || '00:00';
+  let effectiveEndH = endHourStr || '23:59';
+  if (effectiveStartH === '17:00' && effectiveEndH === '08:00') {
+    effectiveStartH = '16:00';
+    effectiveEndH = '12:00';
+  }
+
+  const tStart = parseLocalDatetime(startDayStr, effectiveStartH);
+  let tEnd = parseLocalDatetime(endDayStr, effectiveEndH);
   if (isNaN(tStart) || isNaN(tEnd)) return null;
 
-  if (startHourStr && endHourStr && startHourStr > endHourStr && startDayStr === endDayStr) {
+  if (effectiveStartH && effectiveEndH && effectiveStartH > effectiveEndH && startDayStr === endDayStr) {
     const endPlusOne = new Date(tEnd);
     endPlusOne.setDate(endPlusOne.getDate() + 1);
     tEnd = endPlusOne.getTime();
@@ -211,7 +225,7 @@ const isShiftInWindowRange = (t, windowRange) => {
   return tStart < windowRange.end && tEnd > windowRange.start;
 };
 
-export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales = {}, tipoCorte = 'turno', filtroHoraInicio = '00:00', filtroHoraFin = '23:59') => {
+export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales = {}, tipoCorte = 'turno', filtroHoraInicio = '00:00', filtroHoraFin = '23:59', pautasDB = null) => {
   // =========================================================================
   // 1. PIPELINE DE DATOS GLOBAL (Afecta KPIs, Triaje, Tabla Global)
   // =========================================================================
@@ -633,8 +647,41 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
     const turnosTrasSum = (turnosFiltrados || []).reduce((acc, t) => acc + Number(t.trasladosCount || 0), 0);
     const turnosConstatSum = (turnosFiltrados || []).reduce((acc, t) => acc + Number(t.constatacionesCount || 0), 0);
 
-    const currentVol = hasPacs ? pacientesFiltrados.length : turnosPacsSum;
-    const currentAltas = hasPacs ? pacientesFiltrados.filter(isAltaAdmin).length : turnosAltasSum;
+    // Detección de Turno Oficial Certificado en OFFICIAL_RAYEN_SHIFT_CONTROLS
+    let ctlOficial = null;
+    if (daysDiff <= 2 && filtroFechaInicio) {
+      const isoStart = parseLocalDateStr(filtroFechaInicio);
+      if (isoStart) {
+        const canonicalKey = getCanonicalShiftKey(isoStart, `${filtroHoraInicio} a ${filtroHoraFin}`, '');
+        if (OFFICIAL_RAYEN_SHIFT_CONTROLS[canonicalKey]) {
+          ctlOficial = OFFICIAL_RAYEN_SHIFT_CONTROLS[canonicalKey];
+        } else {
+          const parts = isoStart.split('-');
+          const fechaTurnoStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
+          const matches = Object.entries(OFFICIAL_RAYEN_SHIFT_CONTROLS).filter(([_, c]) => c.fechaTurno === fechaTurnoStr || c.fechaTurno === isoStart);
+          if (matches.length === 1) {
+            ctlOficial = matches[0][1];
+          } else if (matches.length > 1) {
+            const horStr = `${filtroHoraInicio} a ${filtroHoraFin}`.toLowerCase();
+            const m = matches.find(([k]) => {
+              if (horStr.includes('08:00') && horStr.includes('20:00') && !horStr.includes('20:00 a 08:00')) return k.includes('FINDE_DIA');
+              if (horStr.includes('20:00') && horStr.includes('08:00')) return k.includes('FINDE_NOCHE');
+              return true;
+            });
+            if (m) ctlOficial = m[1];
+          }
+        }
+      }
+    }
+
+    let currentVol = hasPacs ? pacientesFiltrados.length : turnosPacsSum;
+    let currentAltas = hasPacs ? pacientesFiltrados.filter(isAltaAdmin).length : turnosAltasSum;
+    if (ctlOficial) {
+      currentVol = Math.max(currentVol, ctlOficial.totalPacientes || ctlOficial.totalAdmitidos || 0);
+      if (ctlOficial.altasAdmin !== undefined) currentAltas = ctlOficial.altasAdmin;
+      else if (ctlOficial.altas !== undefined) currentAltas = ctlOficial.altas;
+    }
+
     const currentEstadiaVal = hasPacs 
       ? calcEstadia(pacientesFiltrados) 
       : (((turnosFiltrados || []).reduce((acc, t) => acc + Number(t.tiempoAdmAlt || 0), 0) / (turnosFiltrados?.length || 1)) || 133);
@@ -645,7 +692,14 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       : (((turnosFiltrados || []).reduce((acc, t) => acc + Number(t.pacientesPorHora || 0), 0) / (turnosFiltrados?.length || 1)) || 4.6);
 
     const currentCats = { c1: 0, c2: 0, c3: 0, c3_z518: 0, c4: 0, c5: 0 };
-    if (hasPacs) {
+    if (ctlOficial && ctlOficial.triage) {
+      currentCats.c1 = ctlOficial.triage.c1 || 0;
+      currentCats.c2 = ctlOficial.triage.c2 || 0;
+      currentCats.c3 = ctlOficial.triage.c3 || 0;
+      currentCats.c4 = ctlOficial.triage.c4 || 0;
+      currentCats.c5 = ctlOficial.triage.c5 || 0;
+      if (ctlOficial.triage.c3_z518 !== undefined) currentCats.c3_z518 = ctlOficial.triage.c3_z518;
+    } else if (hasPacs) {
       countCategories(pacientesFiltrados, currentCats);
     } else {
       (turnosFiltrados || []).forEach(t => {
@@ -667,17 +721,22 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
 
     const isConstatacion = isConstatacionLesion;
 
-    const currentTraslados = hasPacs 
+    let currentTraslados = hasPacs 
       ? deduplicarPacientes(pacientesFiltrados.filter(isTraslado)).length 
       : turnosTrasSum;
+    if (ctlOficial && ctlOficial.traslados !== undefined) {
+      currentTraslados = ctlOficial.traslados;
+    }
+
     const pmTraslados = deduplicarPacientes(prevMonthPacientes.filter(isTraslado)).length;
     const pyTraslados = deduplicarPacientes(prevYearPacientes.filter(isTraslado)).length;
 
-    const currentConstataciones = hasPacs 
+    let currentConstataciones = hasPacs 
       ? pacientesFiltrados.filter(isConstatacion).length 
       : turnosConstatSum;
-    const pmConstataciones = prevMonthPacientes.filter(isConstatacion).length;
-    const pyConstataciones = prevYearPacientes.filter(isConstatacion).length;
+    if (ctlOficial && ctlOficial.constataciones !== undefined) {
+      currentConstataciones = ctlOficial.constataciones;
+    }
 
     const avgEdad = demografiaStats.edadCount ? (demografiaStats.edadSum / demografiaStats.edadCount).toFixed(1) : 0;
     const fontTot = Object.entries(demografiaStats.prevs).filter(([k]) => k.includes('FONASA')).reduce((acc, [_, v]) => acc + v, 0);
@@ -773,7 +832,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
 
       dedup2026Pacs.forEach(p => {
         if (!p || !p.tAdmision) return;
-        const info = obtenerTurnoDetallado(p.tAdmision, null);
+        const info = obtenerTurnoDetallado(p.tAdmision, pautasDB);
         if (!info || !info.fechaTurno || info.fechaTurno === '-') return;
 
         const isWknd = info.tipo.includes('Fin de Semana') || info.tipo.includes('Festivo') || info.horario.includes('08:00 a 20:00') || (info.horario.includes('20:00 a 08:00') && !info.tipo.includes('Semana'));
@@ -1052,6 +1111,51 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
   }, [pacientesFiltrados, turnosDB, pacientesDB, filtroFechaInicio, filtroFechaFin, filtroHoraInicio, filtroHoraFin, promediosGlobales, demografiaStats, tipoCorte]);
 
   const rankingCentros = useMemo(() => {
+    // Si hay control oficial certificado para el turno seleccionado
+    let ctlOficial = null;
+    const isoStart = parseLocalDateStr(filtroFechaInicio);
+    if (isoStart) {
+      const canonicalKey = getCanonicalShiftKey(isoStart, `${filtroHoraInicio} a ${filtroHoraFin}`, '');
+      if (OFFICIAL_RAYEN_SHIFT_CONTROLS[canonicalKey]) {
+        ctlOficial = OFFICIAL_RAYEN_SHIFT_CONTROLS[canonicalKey];
+      } else {
+        const parts = isoStart.split('-');
+        const fechaTurnoStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        const match = Object.values(OFFICIAL_RAYEN_SHIFT_CONTROLS).find(c => c.fechaTurno === fechaTurnoStr || c.fechaTurno === isoStart);
+        if (match) ctlOficial = match;
+      }
+    }
+
+    if (ctlOficial && ctlOficial.centros && ctlOficial.centros.length > 0) {
+      let countFlorencia = 0, countBoris = 0, countElgueta = 0;
+      const totalOficial = ctlOficial.totalPacientes || ctlOficial.totalAdmitidos || 1;
+      ctlOficial.centros.forEach(c => {
+        const cName = String(c.centro || c.name || '').toUpperCase();
+        const cnt = Number(c.cantidad || c.count || 0);
+        if (cName.includes('FLORENCIA')) countFlorencia += cnt;
+        else if (cName.includes('BORIS SOLER')) countBoris += cnt;
+        else if (cName.includes('ELGUETA')) countElgueta += cnt;
+      });
+      const mainCentrosCount = countFlorencia + countBoris + countElgueta;
+      const mainCentrosPercent = perc(mainCentrosCount, totalOficial);
+      const otrosCentros = ctlOficial.centros
+        .filter(c => {
+          const cName = String(c.centro || c.name || '').toUpperCase();
+          return !(cName.includes('FLORENCIA') || cName.includes('BORIS SOLER') || cName.includes('ELGUETA'));
+        })
+        .map(c => ({ name: c.centro || c.name, count: Number(c.cantidad || c.count || 0) }))
+        .sort((a,b) => b.count - a.count).slice(0, 5);
+
+      return {
+        florencia: { count: countFlorencia, perc: perc(countFlorencia, totalOficial) },
+        boris: { count: countBoris, perc: perc(countBoris, totalOficial) },
+        elgueta: { count: countElgueta, perc: perc(countElgueta, totalOficial) },
+        mainCentrosCount,
+        mainCentrosPercent,
+        otrosCentros
+      };
+    }
+
     const centrosArr = Object.entries(demografiaStats.establecimientos).map(([name, count]) => ({name, count}));
     let countFlorencia = 0, countBoris = 0, countElgueta = 0;
 
@@ -1075,7 +1179,7 @@ export const useMetricoAnalytics = (pacientesDB, turnosDB, filtroFechaInicio, fi
       mainCentrosPercent, 
       otrosCentros 
     };
-  }, [demografiaStats]);
+  }, [demografiaStats, filtroFechaInicio, filtroHoraInicio, filtroHoraFin]);
 
   const topDiagnosticos = useMemo(() => {
     const counts = {};

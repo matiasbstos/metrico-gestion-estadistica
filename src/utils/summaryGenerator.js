@@ -1,4 +1,11 @@
 // Generadores de resumen analítico y narrativo clínico para dashboards e informes
+import { 
+  isAltaAdmin, 
+  isFractura, 
+  isConstatacionLesion, 
+  isTraslado, 
+  isRespiratorio 
+} from './helpers';
 
 const formatPct = (val, tot) => tot > 0 ? ((val / tot) * 100).toFixed(1) : '0.0';
 
@@ -27,7 +34,7 @@ const isInvalidDoctorName = (name) => {
 export const generateAltasSummary = (pacs, statsOverride = null) => {
   if (!pacs || pacs.length === 0) return 'Sin registros suficientes para generar análisis de altas administrativas.';
   
-  const altas = pacs.filter(p => p.estado === 'Cancelada');
+  const altas = pacs.filter(p => isAltaAdmin(p) || p.estado === 'Cancelada');
   const totalAltas = (statsOverride && statsOverride.totalAltas !== undefined) ? statsOverride.totalAltas : altas.length;
   const total = (statsOverride && statsOverride.totalPacientes !== undefined && statsOverride.totalPacientes > 0) ? statsOverride.totalPacientes : pacs.length;
   const pct = formatPct(totalAltas, total);
@@ -71,11 +78,7 @@ export const generateFracturasSummary = (pacs, stats = null) => {
   if (!pacs || pacs.length === 0) return 'Sin registros suficientes para generar análisis de estadísticas de fracturas.';
   
   const total = stats ? stats.totalEvaluados : pacs.length;
-  const totalFracturas = stats ? stats.total : pacs.filter(p => {
-    const cod = String(p.codigoDiagnostico || '').trim().toUpperCase();
-    const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').trim().toUpperCase();
-    return diag.includes('FRACTURA') || cod.includes('FRACTURA');
-  }).length;
+  const totalFracturas = stats ? stats.total : pacs.filter(isFractura).length;
 
   if (totalFracturas === 0) return 'No se registraron casos de fracturas óseas en el período consultado.';
 
@@ -88,8 +91,8 @@ export const generateFracturasSummary = (pacs, stats = null) => {
     topDiagsText = top2.map(d => `"${d.diagnostico}" (${d.total} casos)`).join(' y ');
   } else {
     const diagCounts = {};
-    pacs.forEach(p => {
-      const diag = p.diagnosticoPrincipal || 'Sin Especificar';
+    pacs.filter(isFractura).forEach(p => {
+      const diag = p.diagnosticoPrincipal || p.codigoDiagnostico || 'Fractura No Especificada';
       diagCounts[diag] = (diagCounts[diag] || 0) + 1;
     });
     const sortedDiags = Object.entries(diagCounts).sort((a,b) => b[1] - a[1]).slice(0, 2);
@@ -170,28 +173,7 @@ export const generateEnfermeriaSummary = (pacs) => {
 export const generateConstatacionesSummary = (pacs) => {
   if (!pacs || pacs.length === 0) return 'Sin registros suficientes para generar análisis de constatación de lesiones.';
 
-  const isConstatacionOficial = (p) => {
-    if (!p) return false;
-    if (p.flag_constatacion_z518 !== undefined && p.flag_constatacion_z518 !== null) {
-      if (Boolean(p.flag_constatacion_z518)) return true;
-    }
-    const cat = String(p.categoria || p.categoria_triage || '').toLowerCase();
-    if (cat === 'c3_z518') return true;
-    const cod = String(p.codigoDiagnostico || p.codigo_diagnostico_cie10 || p.codigo || '').toUpperCase();
-    const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toUpperCase();
-    const dest = String(p.destinoAlta || p.destino || '').toUpperCase();
-    const obs = String(p.observacion || p.obs || '').toUpperCase();
-
-    if (cod.includes('Z51.8') || cod.includes('Z518') || cod.includes('Z04') || cod.includes('Z65') || cod.includes('Z02.7')) return true;
-    if (diag.includes('CONSTATAC') || diag.includes('CIRCUNSTANCIAS LEGALES') || diag.includes('LEGAL')) return true;
-
-    const keywordsPolice = ['CARABINERO', 'PDI', 'COMISARIA', 'COMISARÍA', 'POLICIA', 'POLICÍA', 'POLICIAL', 'DETENIDO', 'CUSTODIA', 'FISCALIA', 'FISCALÍA'];
-    if (keywordsPolice.some(k => dest.includes(k) || obs.includes(k))) return true;
-
-    return false;
-  };
-
-  const listConstataciones = pacs.filter(isConstatacionOficial);
+  const listConstataciones = pacs.filter(isConstatacionLesion);
   const totalConst = listConstataciones.length;
   if (totalConst === 0) return 'No se registraron constataciones de lesiones en el período seleccionado.';
 
@@ -233,20 +215,6 @@ export const generateConstatacionesSummary = (pacs) => {
 export const generateTrasladosSummary = (pacs, prevYearPacs = [], globalTotalPacientes = null) => {
   if (!pacs || pacs.length === 0) return 'Sin registros suficientes para generar análisis de traslados hospitalarios.';
 
-  const isTraslado = (p) => {
-    if (!p) return false;
-    if (p.flag_traslado_hospitalario !== undefined && p.flag_traslado_hospitalario !== null) return Boolean(p.flag_traslado_hospitalario);
-    const dest = String(p.destinoAlta || p.destino || p.lugarDerivacion || p.motivoAlta || p.tipoAlta || '').toUpperCase();
-    const obs = String(p.observacion || p.obs || '').toUpperCase();
-    const cat = String(p.categoria || p.categoria_triage || '').toUpperCase();
-    const isTrans = dest.includes('HOSP') || dest.includes('URGENC') || dest.includes('EMERGENC') || dest.includes('UEH') || dest.includes('SAMU') || dest.includes('DERIVAC') ||
-                    obs.includes('HOSP') || obs.includes('URGENC') || obs.includes('EMERGENC') || obs.includes('UEH') || obs.includes('SAMU') ||
-                    cat === 'C1';
-    const isRoutine = (dest.includes('CONSULTORIO') || dest.includes('CESFAM') || dest.includes('DOMICILIO')) &&
-                      !(dest.includes('HOSP') || dest.includes('URGENC') || dest.includes('EMERGENC') || dest.includes('UEH'));
-    return isTrans && !isRoutine;
-  };
-
   const listTraslados = pacs.filter(isTraslado);
   const total = listTraslados.length;
   if (total === 0) return 'No se registraron traslados hospitalarios a urgencias externas en el período seleccionado.';
@@ -279,27 +247,11 @@ export const generateMonthlyConsolidatedSummary = (pacs) => {
   if (!pacs || pacs.length === 0) return 'Sin registros suficientes para generar el consolidado de cierre mensual.';
 
   const total = pacs.length;
-  const atendidos = pacs.filter(p => p.estado === 'Atendido' || p.tAnamnesis || p.tAlta).length;
-  const altas = pacs.filter(p => p.estado === 'Cancelada').length;
-  const fracturas = pacs.filter(p => {
-    const cod = String(p.codigoDiagnostico || '').trim().toUpperCase();
-    const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').trim().toUpperCase();
-    return diag.includes('FRACTURA') || cod.includes('FRACTURA');
-  }).length;
-  
-  const constataciones = pacs.filter(p => {
-    const cod = String(p.codigoDiagnostico || '').trim().toUpperCase();
-    const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').trim().toUpperCase();
-    const obs = String(p.observacion || p.obs || '').trim().toUpperCase();
-    return cod.includes('Z51.8') || cod.includes('Z518') || cod.includes('Z04') || cod.includes('Z65') || diag.includes('CONSTATAC') || obs.includes('CONSTATAC') || obs.includes('CARABINERO') || obs.includes('PDI');
-  }).length;
-
-  const traslados = pacs.filter(p => {
-    const dest = String(p.destinoAlta || p.destino || p.lugarDerivacion || p.motivoAlta || p.tipoAlta || '').toLowerCase();
-    const obs = String(p.observacion || p.obs || '').toLowerCase();
-    const cat = String(p.categoria || p.triage || '').toLowerCase();
-    return dest.includes('hosp') || dest.includes('urgenc') || dest.includes('emergenc') || dest.includes('ueh') || dest.includes('samu') || obs.includes('traslado') || cat === 'c1';
-  }).length;
+  const altas = pacs.filter(p => isAltaAdmin(p) || p.estado === 'Cancelada').length;
+  const atendidos = Math.max(0, total - altas);
+  const fracturas = pacs.filter(isFractura).length;
+  const constataciones = pacs.filter(isConstatacionLesion).length;
+  const traslados = pacs.filter(isTraslado).length;
 
   const pctAtendidos = formatPct(atendidos, total);
   const pctAltas = formatPct(altas, total);
@@ -333,17 +285,10 @@ export const generateMultiDayBatchSummary = (datesList = [], pacs = [], turnos =
     const turnosDia = turnos.filter(t => t.fechaInicio === fechaStr);
 
     let adm = pacsDia.length;
-    let altas = pacsDia.filter(p => p.estado === 'Cancelada' || p.destinoAlta?.includes('ALTA ADMIN')).length;
+    let altas = pacsDia.filter(p => isAltaAdmin(p) || p.estado === 'Cancelada').length;
     let atend = Math.max(0, adm - altas);
-    let tras = pacsDia.filter(p => {
-      const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
-      return dest.includes('hosp') || dest.includes('urgenc') || dest.includes('ueh');
-    }).length;
-    let consts = pacsDia.filter(p => {
-      const cod = String(p.codigoDiagnostico || '').toUpperCase();
-      const diag = String(p.diagnosticoPrincipal || '').toUpperCase();
-      return cod.includes('Z51.8') || diag.includes('CONSTATAC');
-    }).length;
+    let tras = pacsDia.filter(isTraslado).length;
+    let consts = pacsDia.filter(isConstatacionLesion).length;
 
     if (adm === 0 && turnosDia.length > 0) {
       turnosDia.forEach(t => {
@@ -416,14 +361,9 @@ export const generateRespiratorioSummary = (pacsResp, prevYearPacsResp, totalSAR
         if (e >= 80) am80mas++;
       }
     }
-    const dest = String(p.destinoAlta || p.destino || p.lugarDerivacion || p.motivoAlta || p.tipoAlta || '').toLowerCase();
-    const obs = String(p.observacion || p.obs || '').toLowerCase();
-    const cat = String(p.categoria || p.triage || p.triageManchester || '').toLowerCase();
-    const isTrans = dest.includes('hosp') || dest.includes('urgenc') || dest.includes('emergenc') || dest.includes('ueh') || dest.includes('samu') || dest.includes('traslado') || dest.includes('deriv') ||
-                    obs.includes('hosp') || obs.includes('urgenc') || obs.includes('traslado') || cat === 'c1';
-    const isRoutine = (dest.includes('consultorio') || dest.includes('cesfam') || dest.includes('domicilio')) &&
-                      !(dest.includes('hosp') || dest.includes('urgenc') || dest.includes('emergenc') || dest.includes('ueh'));
-    if (isTrans && !isRoutine) hospitalizados++;
+    if (isTraslado(p)) {
+      hospitalizados++;
+    }
   });
 
   const pctPed = total > 0 ? ((pedTotal / total) * 100).toFixed(1) : '0.0';
@@ -439,4 +379,3 @@ export const generateRespiratorioSummary = (pacsResp, prevYearPacsResp, totalSAR
 
   return `Durante el período consultado, el SAR Elsa Romo Aravena registró ${total} consultas por patologías respiratorias, representando el ${pctDemanda}% de la demanda asistencial global. La carga infantil (<15 años) concentró ${pedTotal} pacientes (${pctPed}%), con un predominio de ${ped0a4} lactantes/preescolares (0-4 años) y ${ped5a9} escolares tempranos (5-9 años). La población adulta mayor (60+ años) alcanzó ${amTotal} casos (${pctAM}%), con ${am80mas} pacientes octogenarios o mayores. Se gestionaron ${hospitalizados} derivaciones a hospital base y unidades de urgencia (tasa de derivación del ${pctHosp}%).${yoyText}`;
 };
-

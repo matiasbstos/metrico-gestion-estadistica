@@ -5,8 +5,8 @@ import {
   Info, TrendingUp, TrendingDown, Layers, BarChart3, Baby, UserCheck, HeartPulse, ArrowUpRight, Sparkles
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
-import InfoTooltip from '../InfoTooltip';
 import { generateFracturasSummary } from '../../utils/summaryGenerator';
+import { isFractura } from '../../utils/helpers';
 
 const perc = (val, tot) => tot > 0 ? ((val / tot) * 100).toFixed(1) : '0.0';
 
@@ -61,10 +61,7 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
   }, [pacientesDB, prevYearStart, prevYearEnd]);
 
   const fracturasPrevYear = useMemo(() => {
-    return pacientesPrevYear.filter(p => {
-      const diag = (p.diagnosticoPrincipal || p.codigoDiagnostico || '').toLowerCase();
-      return diag.includes('fractura') || diag.includes('fx');
-    }).length;
+    return pacientesPrevYear.filter(isFractura).length;
   }, [pacientesPrevYear]);
 
   // Pipeline de filtrado para pacientes con Fractura
@@ -72,11 +69,7 @@ export default function AnalisisFracturas({ pacientesFiltrados, pacientesDB, fil
     if (!pacientesFiltrados || pacientesFiltrados.length === 0) return [];
     
     return pacientesFiltrados.filter(p => {
-      const diag = String(p.diagnosticoPrincipal || '').trim().toLowerCase();
-      const cod = String(p.codigoDiagnostico || '').trim().toLowerCase();
-      
-      const matchesWord = diag.includes('fractura') || cod.includes('fractura');
-      if (!matchesWord) return false;
+      if (!isFractura(p)) return false;
 
       // Filtro de Destino
       const catDestino = parseDestinoCat(p);

@@ -15,6 +15,31 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.66',
+      version: 'v6.3.66',
+      fecha: '10 de Octubre, 2026',
+      badge: 'SINCRONIZACIÓN SSOT UNIVERSAL • PARIDAD 100% ENTRE DASHBOARD, SUBREPORTES Y CORREOS (REGLAS 11, 16, 18 & 19)',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Erradicación de Discrepancias Numéricas y Clínicas: Sintonía Total entre Dashboard Inicial, Subreportes y Despacho de Informes',
+      categoria: 'Consolidación de Datos & Paridad Clínica',
+      icon: ShieldCheck,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'Se erradicó de forma integral cualquier discrepancia numérica y clínica entre la visualización del Dashboard Inicial, los Subreportes especializados (Altas, Fracturas, Traslados, Constataciones, Enfermería, Respiratorio) y los informes despachados por correo electrónico. Se unificó la matriz SSOT OFFICIAL_RAYEN_SHIFT_CONTROLS en helpers.js con propagación reactiva a useMetricoAnalytics, se calibró la ventana asistencial SAR de día hábil (16:00 a 12:00 PM), se conectó allPacientesDB a ReportesModule y todos los submódulos clínicos, y se homologaron los predicados canónicos isAltaAdmin, isFractura, isConstatacionLesion e isTraslado en toda la arquitectura del sistema.',
+      instructivo: {
+        paraQueSirve: 'Garantiza que cualquier cifra vista en las tarjetas del Dashboard, en las tablas y PDFs de subreportes, y en los informes emitidos por correo electrónico o su previsualizador concilien exactamente al 100%.',
+        quePuedesVer: 'Paridad exacta de admitidos, atendidos, altas administrativas, traslados hospitalarios, constataciones Z51.8 y distribución de centros de salud en todas las vistas de la plataforma.',
+        ejemploUso: 'Filtra cualquier turno cerrado oficial (ej. 09/09, 10/09 o 24/09); observarás idénticos 94 admitidos (83 atendidos y 11 altas) tanto en el Dashboard como en el módulo de Reportes y en el correo de guardia.'
+      },
+      changes: [
+        'Centralización SSOT de OFFICIAL_RAYEN_SHIFT_CONTROLS en helpers.js e importación directa en useMetricoAnalytics y ModalConfiguracionCorreo.',
+        'Reconciliación reactiva de statsKPI, currentVol, currentAltas, currentTraslados, currentConstataciones, currentCats y rankingCentros ante turnos oficiales certificados.',
+        'Calibración de getWindowRange en useMetricoAnalytics para turnos de semana hábil (16:00 a 12:00 PM) capturando admisiones de fila previa y altas médicas extendidas.',
+        'Inyección de la base consolidada allPacientesDB a ReportesModule y a los submódulos AnalisisAltasDetail, AnalisisFracturas, AnalisisEnfermeria, AnalisisConstataciones, AnalisisTraslados y AnalisisRespiratorio en Dashboard.jsx.',
+        'Unificación canónica de isAltaAdmin, isFractura, isConstatacionLesion e isTraslado en summaryGenerator.js, ModalConfiguracionCorreo y submódulos de reporte.',
+        'Calibración de subReportSummaries en ModalConfiguracionCorreo para evaluar de forma estricta los pacientes del turno seleccionado (targetPacs).'
+      ]
+    },
+    {
       id: 'v6.3.65',
       version: 'v6.3.65',
       fecha: '06 de Octubre, 2026',

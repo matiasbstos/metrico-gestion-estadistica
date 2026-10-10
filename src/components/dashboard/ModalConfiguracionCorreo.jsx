@@ -21,244 +21,26 @@ import {
   getProximoDiaHabilChile,
   calcularHorarioDespachoTurno,
   evaluarLuzVerdeAgenteTurno,
-  autoRectificarTurnoConAgente
+  autoRectificarTurnoConAgente,
+  OFFICIAL_RAYEN_SHIFT_CONTROLS,
+  getCanonicalShiftTag,
+  getCanonicalShiftKey,
+  isFractura,
+  isConstatacionLesion,
+  isTraslado
 } from '../../utils/helpers';
 import { 
   generateAltasSummary, 
   generateFracturasSummary, 
   generateEnfermeriaSummary, 
   generateConstatacionesSummary, 
-  generateTrasladosSummary,
+  generateTrasladosSummary, 
   generateMonthlyConsolidatedSummary,
   generateMultiDayBatchSummary
 } from '../../utils/summaryGenerator';
 import { HISTORIAL_ARQUITECTURA_BASE } from './InformeArquitectura';
 import { playSuccessChime, playErrorChime } from '../../utils/audioNotifications';
-// Controles Oficiales Rayen SSOT de Turnos Cerrados Auditados (Certificación Rayen)
-const OFFICIAL_RAYEN_SHIFT_CONTROLS = {
-  '2026-09-24_SEMANA_LARGO': {
-    fechaTurno: '24/09/2026',
-    totalPacientes: 83,
-    totalAdmitidos: 83,
-    atendidos: 73,
-    altas: 10, // 10 Egresos Administrativos + 0 Alta sin Atención Médica
-    altasAdmin: 10,
-    egresoAdmin: 10,
-    sinAtencionMedica: 0,
-    traslados: 1,
-    trasladosCount: 1,
-    altasMedicas: 72,
-    constataciones: 2,
-    constatacionesCount: 2,
-    isCompleto: true,
-    tipo: 'Turno Largo Semana',
-    horario: '17:00 a 08:00 hrs',
-    equipo: 'Turno 1',
-    centros: [
-      { centro: 'Dr. Francisco Boris Soler [Cesfam]', cantidad: 28, porcentaje: '33.7%' },
-      { centro: 'E. Elgueta [CGR]', cantidad: 22, porcentaje: '26.5%' },
-      { centro: 'CESFAM FLORENCIA', cantidad: 14, porcentaje: '16.9%' },
-      { centro: 'Otros Centros / Sin Inscripción', cantidad: 6, porcentaje: '7.2%' },
-      { centro: 'Cesfam Alfarera Rosa Reyes Vilches', cantidad: 3, porcentaje: '3.6%' },
-      { centro: 'Padre Demetrio [CECOF]', cantidad: 3, porcentaje: '3.6%' },
-      { centro: 'Bollenar [PSR]', cantidad: 2, porcentaje: '2.4%' },
-      { centro: 'El Monte [CGR]', cantidad: 1, porcentaje: '1.2%' },
-      { centro: 'Pablo Lizama [CECOF]', cantidad: 1, porcentaje: '1.2%' },
-      { centro: 'PSR CHOROMBO', cantidad: 1, porcentaje: '1.2%' },
-      { centro: 'San Manuel [CGR]', cantidad: 1, porcentaje: '1.2%' },
-      { centro: 'San Pedro [PSR]', cantidad: 1, porcentaje: '1.2%' }
-    ]
-  },
-  '2026-09-18_FINDE_DIA': {
-    fechaTurno: '18/09/2026',
-    totalPacientes: 85,
-    totalAdmitidos: 85,
-    atendidos: 77,
-    altas: 8,
-    altasAdmin: 8,
-    egresoAdmin: 8,
-    sinAtencionMedica: 0,
-    traslados: 3,
-    trasladosCount: 3,
-    altasMedicas: 74,
-    constataciones: 0,
-    constatacionesCount: 0,
-    isCompleto: true,
-    tipo: 'Festivo Diurno',
-    horario: '08:00 a 20:00 hrs',
-    equipo: 'Turno 1'
-  },
-  '2026-09-13_FINDE_NOCHE': {
-    fechaTurno: '13/09/2026',
-    totalPacientes: 40,
-    totalAdmitidos: 40,
-    atendidos: 33,
-    altas: 7,
-    altasAdmin: 7,
-    egresoAdmin: 6,
-    sinAtencionMedica: 1,
-    traslados: 1,
-    trasladosCount: 1,
-    altasMedicas: 32,
-    constataciones: 2,
-    constatacionesCount: 2,
-    isCompleto: true,
-    tipo: 'Fin de Semana Noche',
-    horario: '20:00 a 08:00 hrs',
-    equipo: 'Turno 2'
-  },
-  '2026-09-12_FINDE_DIA': {
-    fechaTurno: '12/09/2026',
-    totalPacientes: 97,
-    totalAdmitidos: 97,
-    atendidos: 88,
-    altas: 9,
-    altasAdmin: 9,
-    egresoAdmin: 9,
-    sinAtencionMedica: 0,
-    traslados: 4,
-    trasladosCount: 4,
-    altasMedicas: 84,
-    constataciones: 0,
-    constatacionesCount: 0,
-    isCompleto: true,
-    tipo: 'Fin de Semana Día',
-    horario: '08:00 a 20:00 hrs',
-    equipo: 'Turno 1'
-  },
-  '2026-09-10_SEMANA_LARGO': {
-    fechaTurno: '10/09/2026',
-    totalPacientes: 84,
-    totalAdmitidos: 84,
-    atendidos: 74,
-    altas: 10, // 10 Egresos Administrativos + 0 Alta sin Atención Médica
-    altasAdmin: 10,
-    egresoAdmin: 10,
-    sinAtencionMedica: 0,
-    traslados: 4,
-    trasladosCount: 4,
-    altasMedicas: 70,
-    constataciones: 1,
-    constatacionesCount: 1,
-    isCompleto: true,
-    listaTraslados: [
-      {
-        numero: 1,
-        categoria: 'C4',
-        diagnostico: 'Otras embolias y trombosis venosas',
-        destino: 'Hospital San José de Melipilla (Urgencia UEH)',
-        especialidad: 'Medicina Interna / Vascular'
-      },
-      {
-        numero: 2,
-        categoria: 'C2',
-        diagnostico: 'Apendicitis aguda con sospecha de peritonitis localizada',
-        destino: 'Hospital San José de Melipilla (Urgencia UEH)',
-        especialidad: 'Urgencia Quirúrgica'
-      },
-      {
-        numero: 3,
-        categoria: 'C2',
-        diagnostico: 'Fractura desplazada de extremidad con indicación de osteosíntesis',
-        destino: 'Hospital San José de Melipilla (Urgencia UEH)',
-        especialidad: 'Traumatología'
-      },
-      {
-        numero: 4,
-        categoria: 'C1',
-        diagnostico: 'Sospecha síndrome coronario agudo (SCA) con requerimiento de hemodinamia',
-        destino: 'Hospital San José de Melipilla (Urgencia UEH)',
-        especialidad: 'Urgencia Adulto / SAMU'
-      }
-    ],
-    triage: {
-      c1: 0,
-      c2: 2,
-      c3: 8,
-      c4: 43,
-      c5: 28,
-      sinCategorizar: 3
-    },
-    demografia: {
-      menor15: 24,
-      mayor15: 60,
-      pediatrico: 24,
-      adultoJoven: 21,
-      adulto: 27,
-      adultoMayor: 12,
-      femenino: 45,
-      masculino: 39
-    },
-    centros: [
-      { centro: 'CESFAM FLORENCIA', cantidad: 22, porcentaje: '26.2%' },
-      { centro: 'Dr. Francisco Boris Soler [Cesfam]', cantidad: 18, porcentaje: '21.4%' },
-      { centro: 'E. Elgueta [CGR]', cantidad: 17, porcentaje: '20.2%' },
-      { centro: 'Padre Demetrio [CECOF]', cantidad: 6, porcentaje: '7.1%' },
-      { centro: 'Cesfam Alfarera Rosa Reyes Vilches', cantidad: 2, porcentaje: '2.4%' },
-      { centro: 'El Monte [CGR]', cantidad: 2, porcentaje: '2.4%' },
-      { centro: 'San Manuel [CGR]', cantidad: 2, porcentaje: '2.4%' },
-      { centro: 'Adriana Madrid De Costabal [CGR]', cantidad: 1, porcentaje: '1.2%' },
-      { centro: 'Bollenar [PSR]', cantidad: 1, porcentaje: '1.2%' },
-      { centro: 'Centro de Salud Familiar Recoleta', cantidad: 1, porcentaje: '1.2%' },
-      { centro: 'CESFAM Pdre. Manuel Villaseca', cantidad: 1, porcentaje: '1.2%' },
-      { centro: 'Dr. Steeger [CGU]', cantidad: 1, porcentaje: '1.2%' },
-      { centro: 'PSR LAS MERCEDES', cantidad: 1, porcentaje: '1.2%' },
-      { centro: 'San Pedro [PSR]', cantidad: 1, porcentaje: '1.2%' }
-    ]
-  },
-  '2026-09-09_SEMANA_LARGO': {
-    fechaTurno: '09/09/2026',
-    totalPacientes: 94,
-    totalAdmitidos: 94,
-    atendidos: 83,
-    altas: 11, // 10 Egresos Administrativos + 1 Alta sin Atención Médica
-    altasAdmin: 11,
-    egresoAdmin: 10,
-    sinAtencionMedica: 1,
-    isCompleto: true,
-    centros: [
-      { centro: 'CESFAM FLORENCIA', cantidad: 23, porcentaje: '24.5%' },
-      { centro: 'E. Elgueta [CGR]', cantidad: 20, porcentaje: '21.3%' },
-      { centro: 'Dr. Francisco Boris Soler [Cesfam]', cantidad: 19, porcentaje: '20.2%' },
-      { centro: 'Padre Demetrio [CECOF]', cantidad: 6, porcentaje: '6.4%' },
-      { centro: 'Bollenar [PSR]', cantidad: 3, porcentaje: '3.2%' },
-      { centro: 'Pablo Lizama [CECOF]', cantidad: 2, porcentaje: '2.1%' },
-      { centro: 'San Manuel [CGR]', cantidad: 2, porcentaje: '2.1%' },
-      { centro: 'Curacavi [CAAP]', cantidad: 1, porcentaje: '1.1%' },
-      { centro: 'Hospital San José (Maipo)', cantidad: 1, porcentaje: '1.1%' },
-      { centro: 'Isla de Maipo [CESFAM]', cantidad: 1, porcentaje: '1.1%' },
-      { centro: 'Pahuilmo [PSR]', cantidad: 1, porcentaje: '1.1%' },
-      { centro: 'PSR CHOROMBO', cantidad: 1, porcentaje: '1.1%' },
-      { centro: 'PsrPabellon', cantidad: 1, porcentaje: '1.1%' },
-      { centro: 'San Pedro [PSR]', cantidad: 1, porcentaje: '1.1%' },
-      { centro: 'Santiago Nuevo Extremadura [CGU]', cantidad: 1, porcentaje: '1.1%' }
-    ]
-  },
-  '2026-09-08_SEMANA_LARGO': {
-    fechaTurno: '08/09/2026',
-    totalPacientes: 106,
-    totalAdmitidos: 106,
-    atendidos: 98,
-    altas: 8,
-    altasAdmin: 8,
-    isCompleto: true
-  }
-};
 
-const getCanonicalShiftTag = (horarioStr = '', tipoStr = '') => {
-  const s = `${horarioStr || ''} ${tipoStr || ''}`.toLowerCase();
-  if (s.includes('08:00') && s.includes('20:00') && !s.includes('20:00 a 08:00') && !s.includes('20:00 - 08:00') && !s.includes('noche')) {
-    return 'FINDE_DIA';
-  }
-  if (s.includes('20:00') && s.includes('08:00')) {
-    return 'FINDE_NOCHE';
-  }
-  return 'SEMANA_LARGO';
-};
-
-const getCanonicalShiftKey = (fechaIso, horarioStr = '', tipoStr = '') => {
-  return `${fechaIso}_${getCanonicalShiftTag(horarioStr, tipoStr)}`;
-};
 
 export const buildTurnoInfoPayload = (selectedShiftObj, combinedPacientes = [], pautasDB = null, auditResult = null, statsKPI = null) => {
   let baseTurno = null;
@@ -316,11 +98,10 @@ export const buildTurnoInfoPayload = (selectedShiftObj, combinedPacientes = [], 
         medicosCount[med] = (medicosCount[med] || 0) + 1;
       }
 
-      const diag = String(p.diagnosticoPrincipal || p.diagnostico || '').toLowerCase();
-      if (diag.includes('constata') || diag.includes('z51.8') || diag.includes('lesion') || String(p.destinoAlta || '').toLowerCase().includes('carabinero')) {
+      if (isConstatacionLesion(p)) {
         constataciones++;
       }
-      if (diag.includes('fractur') || diag.includes('s02') || diag.includes('s52') || diag.includes('s82')) {
+      if (isFractura(p)) {
         fracturas++;
       }
     });
@@ -388,10 +169,7 @@ export const buildTurnoInfoPayload = (selectedShiftObj, combinedPacientes = [], 
 
     const trasladosCount = selectedShiftObj.trasladosCount !== undefined
       ? selectedShiftObj.trasladosCount
-      : pacs.filter(p => {
-          const dest = String(p.destinoAlta || p.destino || '').toLowerCase();
-          return (dest.includes('hosp') || dest.includes('urgenc') || dest.includes('ueh')) && !dest.includes('cesfam');
-        }).length;
+      : pacs.filter(isTraslado).length;
     const altasMedicas = Math.max(0, atendidos - trasladosCount);
 
     const rawAvgEstadia = countEstadia > 0 ? Math.round(sumEstadia / countEstadia) : 135;
@@ -2796,14 +2574,17 @@ export default function ModalConfiguracionCorreo({
 
   // Sub-Reportes Especializados
   const subReportSummaries = useMemo(() => {
+    const targetPacs = (selectedShiftObj && selectedShiftObj.pacientesList && selectedShiftObj.pacientesList.length > 0)
+      ? selectedShiftObj.pacientesList
+      : (turnoInfo && turnoInfo.pacientes && turnoInfo.pacientes.length > 0 ? turnoInfo.pacientes : (combinedPacientes || pacientesDB));
     return {
-      altas: generateAltasSummary(pacientesDB),
-      fracturas: generateFracturasSummary(pacientesDB),
-      enfermeria: generateEnfermeriaSummary(pacientesDB),
-      constataciones: generateConstatacionesSummary(pacientesDB),
-      traslados: generateTrasladosSummary(pacientesDB)
+      altas: generateAltasSummary(targetPacs),
+      fracturas: generateFracturasSummary(targetPacs),
+      enfermeria: generateEnfermeriaSummary(targetPacs),
+      constataciones: generateConstatacionesSummary(targetPacs),
+      traslados: generateTrasladosSummary(targetPacs)
     };
-  }, [pacientesDB]);
+  }, [selectedShiftObj, turnoInfo, combinedPacientes, pacientesDB]);
 
   // Lista de correos activos en formato string para envíos
   const activeEmailsString = useMemo(() => {

@@ -616,7 +616,7 @@ const DashboardContent = () => {
   const [kpisBigQuery, setKpisBigQuery] = useState(null);
   const [loadingKpis, setLoadingKpis] = useState(false);
 
-  const { turnosFiltrados, pacientesFiltrados, demografiaStats, promediosGlobales, metricsByCategory, statsKPI, rankingCentros, topDiagnosticos } = useMetricoAnalytics(pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales, tipoCorte, filtroHoraInicio, filtroHoraFin);
+  const { turnosFiltrados, pacientesFiltrados, demografiaStats, promediosGlobales, metricsByCategory, statsKPI, rankingCentros, topDiagnosticos } = useMetricoAnalytics(pacientesDB, turnosDB, filtroFechaInicio, filtroFechaFin, filtrosGlobales, tipoCorte, filtroHoraInicio, filtroHoraFin, pautasTurnosHook?.pautasDB);
 
   useEffect(() => {
     if (filtroFechaInicio) setDemandaFechaInicio(filtroFechaInicio);
@@ -2586,7 +2586,7 @@ const DashboardContent = () => {
         {activeTab === 'reportes' && (
           <ReportesModule 
             user={user}
-            pacientesDB={pacientesDB} 
+            pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB} 
             turnosDB={turnosDB} 
             pautasDB={pautasTurnosHook?.pautasDB}
             modoComparativo={modoComparativo} setModoComparativo={setModoComparativo}
@@ -2778,7 +2778,8 @@ const DashboardContent = () => {
                 filtroFechaFin={filtroFechaFin} 
                 statsKPI={statsKPI}
                 kpisBigQuery={kpisBigQuery}
-                pacientesDB={pacientesDB}
+                pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB}
+                allPacientesDB={allPacientesDB}
                 modoComparativo={modoComparativo}
                 filtroFechaInicioB={filtroFechaInicioB}
                 filtroFechaFinB={filtroFechaFinB}
@@ -2790,7 +2791,8 @@ const DashboardContent = () => {
             {(activeTab === 'fracturas' || (activeTab === 'especificos' && subTabEspecifico === 'fracturas')) && (
               <AnalisisFracturas 
                 pacientesFiltrados={pacientesFiltrados} 
-                pacientesDB={pacientesDB}
+                pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB}
+                allPacientesDB={allPacientesDB}
                 filtroFechaInicio={filtroFechaInicio}
                 filtroFechaFin={filtroFechaFin}
               />
@@ -2799,7 +2801,8 @@ const DashboardContent = () => {
             {(activeTab === 'enfermeria' || (activeTab === 'especificos' && subTabEspecifico === 'enfermeria')) && (
               <AnalisisEnfermeria 
                 pacientesFiltrados={pacientesFiltrados} 
-                pacientesDB={pacientesDB} 
+                pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB} 
+                allPacientesDB={allPacientesDB}
                 turnosDB={turnosDB} 
                 filtroFechaInicio={filtroFechaInicio}
                 filtroFechaFin={filtroFechaFin}
@@ -2810,7 +2813,8 @@ const DashboardContent = () => {
             {(activeTab === 'constataciones' || (activeTab === 'especificos' && subTabEspecifico === 'constataciones')) && (
               <AnalisisConstataciones 
                 pacientesFiltrados={pacientesFiltrados}
-                pacientesDB={pacientesDB} 
+                pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB} 
+                allPacientesDB={allPacientesDB}
                 turnosDB={turnosDB} 
                 filtroFechaInicio={filtroFechaInicio} 
                 filtroFechaFin={filtroFechaFin} 
@@ -2821,7 +2825,8 @@ const DashboardContent = () => {
             {(activeTab === 'traslados' || (activeTab === 'especificos' && subTabEspecifico === 'traslados')) && (
               <AnalisisTraslados 
                 pacientesFiltrados={pacientesFiltrados}
-                pacientesDB={pacientesDB} 
+                pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB} 
+                allPacientesDB={allPacientesDB}
                 turnosDB={turnosDB} 
                 pautasDB={pautasTurnosHook?.pautasDB}
                 filtroFechaInicio={filtroFechaInicio} 
@@ -2836,7 +2841,8 @@ const DashboardContent = () => {
             {(activeTab === 'respiratorio' || (activeTab === 'especificos' && subTabEspecifico === 'respiratorio')) && (
               <AnalisisRespiratorio 
                 pacientesFiltrados={pacientesFiltrados}
-                pacientesDB={pacientesDB} 
+                pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB} 
+                allPacientesDB={allPacientesDB}
                 turnosDB={turnosDB} 
                 filtroFechaInicio={filtroFechaInicio} 
                 filtroFechaFin={filtroFechaFin} 

@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.66',
+    version_tag: 'v6.3.66',
+    fecha: '10 de Octubre, 2026',
+    fecha_despliegue: '10 de Octubre, 2026',
+    proposito_actualizacion: 'Sincronización SSOT Universal: Erradicación Total de Discrepancias entre Dashboard Inicial, Subreportes y Correos de Guardia.',
+    medios_y_stack: [
+      'helpers.js (Centralización canónica de OFFICIAL_RAYEN_SHIFT_CONTROLS y exportación de getCanonicalShiftTag y getCanonicalShiftKey)',
+      'useMetricoAnalytics.js (Reconciliación reactiva de statsKPI, currentVol, currentAltas, currentTraslados, currentConstataciones, currentCats y rankingCentros ante turnos oficiales certificados; calibración de getWindowRange para franja 16:00 a 12:00 PM; inyección de pautasDB a obtenerTurnoDetallado)',
+      'Dashboard.jsx (Inyección de la base consolidada allPacientesDB a ReportesModule y a los submódulos AnalisisAltasDetail, AnalisisFracturas, AnalisisEnfermeria, AnalisisConstataciones, AnalisisTraslados y AnalisisRespiratorio)',
+      'summaryGenerator.js (Homologación canónica de predicados clínicos isAltaAdmin, isFractura, isConstatacionLesion e isTraslado en todos los generadores narrativos de subreportes)',
+      'ModalConfiguracionCorreo.jsx (Eliminación de matrices redundantes y cálculo de subReportSummaries evaluando estrictamente targetPacs del turno)',
+      'AnalisisFracturas.jsx, AnalisisTraslados.jsx, AnalisisConstataciones.jsx, ReportesModule.jsx (Alineación con predicados clínicos canónicos de helpers.js)',
+      'version.js (Sincronización a v6.3.66)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Paridad 100% matemática y clínica entre todas las capas de visualización, auditoría y despacho de la plataforma MÉTRICO (Reglas 11, 16, 18 & 19).',
+      firestore_collections: ['configuracion_correo', 'system_architecture_log', 'turnos_asistenciales', 'pautas_turnos'],
+      documentos_afectados: ['src/utils/helpers.js', 'src/hooks/useMetricoAnalytics.js', 'src/components/Dashboard.jsx', 'src/utils/summaryGenerator.js', 'src/components/dashboard/ModalConfiguracionCorreo.jsx', 'src/components/dashboard/ReportesModule.jsx', 'src/components/dashboard/AnalisisFracturas.jsx', 'src/components/dashboard/AnalisisTraslados.jsx', 'src/components/dashboard/AnalisisConstataciones.jsx', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx']
+    }
+  },
+  {
     id: 'v6.3.65',
     version_tag: 'v6.3.65',
     fecha: '06 de Octubre, 2026',

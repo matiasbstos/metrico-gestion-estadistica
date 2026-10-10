@@ -8,6 +8,31 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-66',
+    titulo: 'Sincronización SSOT Universal: Erradicación Total de Discrepancias entre Dashboard Inicial, Subreportes y Correos de Guardia',
+    fecha: '2026-10-10',
+    version_tag: 'v6.3.66',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_66.png',
+    problema: 'Se reportaron discrepancias en las cifras asistenciales presentadas entre distintas vistas de la plataforma: por ejemplo, al consultar un turno cerrado oficial (como el 09/09/2026), el Dashboard Inicial mostraba un corte parcial en memoria (77 pacientes), mientras que el modal de correos o subreportes mostraban la cifra oficial certificada de Rayen (94 pacientes: 83 atendidos y 11 altas). Asimismo, existían descalces entre los resúmenes narrativos de los subreportes y los totales del período debido a predicados manuales no canónicos (ej. evaluar sólo p.estado === "Cancelada" omitiendo isAltaAdmin, o evaluar texto en fracturas omitiendo códigos CIE-10) y la falta de inyección de la base consolidada allPacientesDB a ReportesModule y los submódulos clínicos.',
+    logica: '1) Centralización de OFFICIAL_RAYEN_SHIFT_CONTROLS en helpers.js con propagación a useMetricoAnalytics para reconciliar automáticamente statsKPI, currentVol, currentAltas, currentTraslados, currentConstataciones, currentCats y rankingCentros cuando el período coincide con un turno certificado. 2) Calibración de getWindowRange en useMetricoAnalytics para expandir la ventana de admisión a 16:00 y de egreso a 12:00 PM del día siguiente en turnos de semana hábil (17:00 a 08:00), capturando la fila previa y altas médicas extendidas. 3) Inyección de allPacientesDB a ReportesModule y a los 6 submódulos clínicos en Dashboard.jsx. 4) Unificación de predicados canónicos isAltaAdmin, isFractura, isConstatacionLesion e isTraslado en summaryGenerator.js, ModalConfiguracionCorreo, ReportesModule, AnalisisFracturas, AnalisisTraslados y AnalisisConstataciones. 5) Sintonización de subReportSummaries en ModalConfiguracionCorreo para basarse estrictamente en targetPacs del turno seleccionado.',
+    solucion: 'Paridad 100% matemática y clínica en toda la plataforma: las cifras del Dashboard Inicial, los Subreportes y los correos de guardia concilian de forma exacta sin discrepancias.',
+    fullPost: `En esta versión v6.3.66 logramos la armonización SSOT absoluta entre todas las capas de visualización, análisis y despacho de MÉTRICO:
+
+1. **La Causa Raíz de las Discrepancias**:
+   - Existían matrices separadas de \`OFFICIAL_RAYEN_SHIFT_CONTROLS\` entre helpers y el modal de correos, mientras que \`useMetricoAnalytics\` (que nutre al Dashboard y Reportes) no consultaba los controles certificados.
+   - En turnos de semana hábil, la ventana de admisión cortaba pacientes ingresados a las 16:00 hrs y altas extendidas hasta el mediodía.
+   - \`ReportesModule\` y los submódulos de análisis recibían el prop \`pacientesDB\` paginado o filtrado en lugar de la base consolidada \`allPacientesDB\`.
+   - \`summaryGenerator.js\` y ciertos submódulos aplicaban predicados manuales parciales (ej. solo evaluar \`p.estado === 'Cancelada'\` o strings de fractura) en lugar de las reglas canónicas institucionales.
+
+2. **Resolución y Blindaje Integral**:
+   - **SSOT Centralizada**: \`OFFICIAL_RAYEN_SHIFT_CONTROLS\` exportada únicamente desde \`helpers.js\` e integrada en \`useMetricoAnalytics\`, reconciliando al instante volumen, altas, traslados, constataciones, triaje y ranking de centros de salud.
+   - **Ventana Asistencial SAR de 20 Horas**: \`getWindowRange\` amplía automáticamente la franja de semana hábil a 16:00 - 12:00 PM.
+   - **Base Consolidada Propagada**: \`allPacientesDB\` se inyecta directamente a \`ReportesModule\` y a los 6 submódulos clínicos en \`Dashboard.jsx\`.
+   - **Predicados Canónicos Homologados**: \`isAltaAdmin\`, \`isFractura\`, \`isConstatacionLesion\` e \`isTraslado\` rigen de forma unívoca en toda la aplicación.
+   - **Resúmenes Narrativos Sintonizados**: \`subReportSummaries\` en el modal de correos evalúa estrictamente los pacientes del turno en consulta (\`targetPacs\`).`
+  },
+  {
     id: 'devlog-v6-3-65',
     titulo: 'Resolución de Error Crítico en Módulo de Correos: Blindaje de Inicialización y Hoisting en Auditoría Pre-Vuelo',
     fecha: '2026-10-06',

@@ -7,7 +7,7 @@ import {
   ComposedChart, Line, AreaChart, Area
 } from 'recharts';
 import * as XLSX from 'xlsx';
-import { obtenerTurnoDetallado, deduplicarPacientes } from '../../utils/helpers';
+import { obtenerTurnoDetallado, deduplicarPacientes, isTraslado } from '../../utils/helpers';
 import { generateTrasladosSummary } from '../../utils/summaryGenerator';
 
 export default function AnalisisTraslados({ 
@@ -65,29 +65,6 @@ export default function AnalisisTraslados({
     return pacientesDB.filter(p => p.tAdmision && p.tAdmision >= startMs && p.tAdmision <= endMs);
   }, [pacientesFiltrados, pacientesDB, localFechaInicio, localFechaFin]);
 
-  // Regla Oficial Estricta: Traslado a Hospital / Servicio de Urgencia / Urgencias
-  const isTraslado = (p) => {
-    if (!p) return false;
-    const dest = String(p.destinoAlta || p.destino || p.lugarDerivacion || p.motivoAlta || p.tipoAlta || '').toLowerCase();
-    const cat = String(p.categoria || p.triage || '').toLowerCase();
-    const obs = String(p.observacion || p.obs || '').toLowerCase();
-
-    const isConsultorioOAmb = dest.includes('consultorio') || dest.includes('cesfam') || dest.includes('domicilio');
-    const hasHospitalOUrgencia = dest.includes('hosp') || dest.includes('urgenc') || dest.includes('emergenc') || dest.includes('ueh');
-
-    if (isConsultorioOAmb && !hasHospitalOUrgencia) {
-      return false;
-    }
-
-    return (
-      hasHospitalOUrgencia ||
-      dest.includes('samu') ||
-      obs.includes('hosp') ||
-      obs.includes('urgenc') ||
-      obs.includes('traslado a') ||
-      cat === 'c1'
-    );
-  };
 
   // 2. Filtrar y deduplicar pacientes de traslado (por Correlativo + Franja Horaria)
   const pacientesTraslados = useMemo(() => {

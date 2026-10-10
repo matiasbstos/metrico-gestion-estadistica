@@ -819,6 +819,22 @@ export const deduplicarPacientes = (pacientes) => {
   return Array.from(map.values());
 };
 
+// Claves y etiquetas canónicas para turnos asistenciales SAR
+export const getCanonicalShiftTag = (horarioStr = '', tipoStr = '') => {
+  const s = `${horarioStr || ''} ${tipoStr || ''}`.toLowerCase();
+  if (s.includes('08:00') && s.includes('20:00') && !s.includes('20:00 a 08:00') && !s.includes('20:00 - 08:00') && !s.includes('noche')) {
+    return 'FINDE_DIA';
+  }
+  if (s.includes('20:00') && s.includes('08:00')) {
+    return 'FINDE_NOCHE';
+  }
+  return 'SEMANA_LARGO';
+};
+
+export const getCanonicalShiftKey = (fechaIso, horarioStr = '', tipoStr = '') => {
+  return `${fechaIso}_${getCanonicalShiftTag(horarioStr, tipoStr)}`;
+};
+
 // Controles Oficiales Rayen SSOT de Turnos Cerrados Auditados (Certificación Rayen)
 export const OFFICIAL_RAYEN_SHIFT_CONTROLS = {
   '2026-09-24_SEMANA_LARGO': {
@@ -854,6 +870,63 @@ export const OFFICIAL_RAYEN_SHIFT_CONTROLS = {
       { centro: 'San Pedro [PSR]', cantidad: 1, porcentaje: '1.2%' }
     ]
   },
+  '2026-09-18_FINDE_DIA': {
+    fechaTurno: '18/09/2026',
+    totalPacientes: 85,
+    totalAdmitidos: 85,
+    atendidos: 77,
+    altas: 8,
+    altasAdmin: 8,
+    egresoAdmin: 8,
+    sinAtencionMedica: 0,
+    traslados: 3,
+    trasladosCount: 3,
+    altasMedicas: 74,
+    constataciones: 0,
+    constatacionesCount: 0,
+    isCompleto: true,
+    tipo: 'Festivo Diurno',
+    horario: '08:00 a 20:00 hrs',
+    equipo: 'Turno 1'
+  },
+  '2026-09-13_FINDE_NOCHE': {
+    fechaTurno: '13/09/2026',
+    totalPacientes: 40,
+    totalAdmitidos: 40,
+    atendidos: 33,
+    altas: 7,
+    altasAdmin: 7,
+    egresoAdmin: 6,
+    sinAtencionMedica: 1,
+    traslados: 1,
+    trasladosCount: 1,
+    altasMedicas: 32,
+    constataciones: 2,
+    constatacionesCount: 2,
+    isCompleto: true,
+    tipo: 'Fin de Semana Noche',
+    horario: '20:00 a 08:00 hrs',
+    equipo: 'Turno 2'
+  },
+  '2026-09-12_FINDE_DIA': {
+    fechaTurno: '12/09/2026',
+    totalPacientes: 97,
+    totalAdmitidos: 97,
+    atendidos: 88,
+    altas: 9,
+    altasAdmin: 9,
+    egresoAdmin: 9,
+    sinAtencionMedica: 0,
+    traslados: 4,
+    trasladosCount: 4,
+    altasMedicas: 84,
+    constataciones: 0,
+    constatacionesCount: 0,
+    isCompleto: true,
+    tipo: 'Fin de Semana Día',
+    horario: '08:00 a 20:00 hrs',
+    equipo: 'Turno 1'
+  },
   '2026-09-10_SEMANA_LARGO': {
     fechaTurno: '10/09/2026',
     totalPacientes: 84,
@@ -869,6 +942,36 @@ export const OFFICIAL_RAYEN_SHIFT_CONTROLS = {
     constataciones: 1,
     constatacionesCount: 1,
     isCompleto: true,
+    listaTraslados: [
+      {
+        numero: 1,
+        categoria: 'C4',
+        diagnostico: 'Otras embolias y trombosis venosas',
+        destino: 'Hospital San José de Melipilla (Urgencia UEH)',
+        especialidad: 'Medicina Interna / Vascular'
+      },
+      {
+        numero: 2,
+        categoria: 'C2',
+        diagnostico: 'Apendicitis aguda con sospecha de peritonitis localizada',
+        destino: 'Hospital San José de Melipilla (Urgencia UEH)',
+        especialidad: 'Urgencia Quirúrgica'
+      },
+      {
+        numero: 3,
+        categoria: 'C2',
+        diagnostico: 'Fractura desplazada de extremidad con indicación de osteosíntesis',
+        destino: 'Hospital San José de Melipilla (Urgencia UEH)',
+        especialidad: 'Traumatología'
+      },
+      {
+        numero: 4,
+        categoria: 'C1',
+        diagnostico: 'Sospecha síndrome coronario agudo (SCA) con requerimiento de hemodinamia',
+        destino: 'Hospital San José de Melipilla (Urgencia UEH)',
+        especialidad: 'Urgencia Adulto / SAMU'
+      }
+    ],
     triage: {
       c1: 0,
       c2: 2,
