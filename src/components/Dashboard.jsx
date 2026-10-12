@@ -63,6 +63,7 @@ const InformeArquitectura = safeLazy(() => import('./dashboard/InformeArquitectu
 const DevLogModule = safeLazy(() => import('./dashboard/DevLogModule'));
 const MonitorFlujoOperativo = safeLazy(() => import('./dashboard/MonitorFlujoOperativo'));
 const TorreControlSistema = safeLazy(() => import('./dashboard/TorreControlSistema'));
+const ExecutiveReportPDF = safeLazy(() => import('./dashboard/ExecutiveReportPDF'));
 import { formatLocalDate, calcularUltimoTurnoCompleto, resolverMaxTimestampGlobal } from '../utils/helpers';
 import Login from './Login';
 import { playIntegrityAlertChime, playLogoutChime } from '../utils/audioNotifications';
@@ -73,7 +74,7 @@ import {
   CheckCircle, XCircle, Filter, PieChart as PieChartIcon, 
   BarChart as BarChartIcon, TrendingUp, X, Cloud, CloudUpload, CloudOff,
   Calendar, Layers, Save, TrendingDown, ArrowUpRight, ArrowDownRight,
-  HeartPulse, Shield, ShieldCheck, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail, BookOpen, Terminal, SlidersHorizontal, Wind, Workflow, Cpu, Info
+  HeartPulse, Shield, ShieldCheck, ShieldAlert, Globe, Building2, MapPin, Search, Zap, UserPlus, Eraser, Lock, GitCompare, Award, ChevronDown, Menu, ChevronLeft, ChevronRight, ArrowLeftRight, Megaphone, Mail, BookOpen, Terminal, SlidersHorizontal, Wind, Workflow, Cpu, Info, Crown
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, 
@@ -301,6 +302,7 @@ const DashboardContent = () => {
         case 'profesionales': import('./dashboard/AnalisisProfesionales'); break;
         case 'altas': import('./dashboard/AnalisisAltasDetail'); break;
         case 'pauta': import('./dashboard/PautaTurnos'); break;
+        case 'rendimiento_pdf': import('./dashboard/ExecutiveReportPDF'); break;
         default: break;
       }
     } catch (e) {
@@ -1999,6 +2001,12 @@ const DashboardContent = () => {
                     <FileSpreadsheet className="w-4 h-4 flex-shrink-0" />
                   </button>
                   <button 
+                    onClick={() => { setActiveTab('rendimiento_pdf'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                    title="Informe Ejecutivo Rendimiento SAR (Subreporte A4)"
+                    className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'rendimiento_pdf' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-amber-500 hover:bg-amber-500/10'}`}>
+                    <Crown className="w-4 h-4 flex-shrink-0 text-amber-500" />
+                  </button>
+                  <button 
                     onClick={() => { setActiveTab('data'); if(window.innerWidth < 768) setSidebarCollapsed(true); }} 
                     title="Gestión de Datos"
                     className={`flex items-center rounded-lg font-bold text-sm shadow-sm transition-all duration-200 p-3 justify-center ${activeTab === 'data' ? 'accent-bg-custom text-white' : 'bg-transparent text-secondary-custom hover:text-teal-500 hover:bg-teal-500/10'}`}>
@@ -2072,6 +2080,11 @@ const DashboardContent = () => {
                         onClick={() => { setActiveTab('reportes'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
                         className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'reportes' ? 'bg-emerald-500/20 text-emerald-500 font-black border border-emerald-500/30' : 'text-secondary-custom hover:text-emerald-500 hover:bg-emerald-500/10'}`}>
                         <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" /> Reporte Ejecutivo
+                      </button>
+                      <button 
+                        onClick={() => { setActiveTab('rendimiento_pdf'); if(window.innerWidth < 768) setSidebarCollapsed(true); }}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg font-bold text-xs transition-all ${activeTab === 'rendimiento_pdf' ? 'bg-amber-500/20 text-amber-500 font-black border border-amber-500/30' : 'text-secondary-custom hover:text-amber-500 hover:bg-amber-500/10'}`}>
+                        <Crown className="w-3.5 h-3.5 text-amber-500" /> Rendimiento PDF
                       </button>
                       <button 
                         onClick={() => setShowCorreoModal(true)}
@@ -2610,6 +2623,17 @@ const DashboardContent = () => {
             filtroFechaFin={filtroFechaFin}
             setFiltroFechaInicio={handleSetFiltroFechaInicio}
             setFiltroFechaFin={handleSetFiltroFechaFin}
+            setActiveTab={setActiveTab}
+          />
+        )}
+
+        {activeTab === 'rendimiento_pdf' && (
+          <ExecutiveReportPDF 
+            pacientesDB={allPacientesDB && allPacientesDB.length > 0 ? allPacientesDB : pacientesDB} 
+            turnosDB={turnosDB} 
+            pautasDB={pautasTurnosHook?.pautasDB}
+            filtroFechaInicio={filtroFechaInicio}
+            filtroFechaFin={filtroFechaFin}
             setActiveTab={setActiveTab}
           />
         )}

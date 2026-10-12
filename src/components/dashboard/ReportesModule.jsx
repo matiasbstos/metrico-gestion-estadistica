@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { FileText, Download, Printer, Calendar, Users, Clock, AlertTriangle, CheckSquare, Square, Activity, Hospital, UserCheck, ShieldCheck, ShieldAlert, Layers, Mail, Wind, Stethoscope, Building2, CheckCircle } from 'lucide-react';
+import { FileText, Download, Printer, Calendar, Users, Clock, AlertTriangle, CheckSquare, Square, Activity, Hospital, UserCheck, ShieldCheck, ShieldAlert, Layers, Mail, Wind, Stethoscope, Building2, CheckCircle, Crown, Trophy } from 'lucide-react';
 import { useMetricoAnalytics } from '../../hooks/useMetricoAnalytics';
 import { useMetricoProfesionales } from '../../hooks/useMetricoProfesionales';
 import FiltrosGlobales from './FiltrosGlobales';
@@ -7,6 +7,7 @@ import { generateAltasSummary, generateFracturasSummary, generateEnfermeriaSumma
 import { clasificarDiagnosticoRespiratorio, encasillarCentroProvinciaMelipilla, isHospitalDestino, DEFAULT_SUBGROUPS, DIRECTORIO_CENTROS_MELIPILLA } from './AnalisisRespiratorio';
 import { obtenerTurnoDetallado, resolverEquipoTurno, isAltaAdmin, isFractura, isTraslado } from '../../utils/helpers';
 import { generateDynamicProyeccion, detectEffectiveBaseDate } from '../../utils/radarPredictivoEngine';
+import { buildScorecardData } from '../../utils/scorecardEngine';
 
 export default function ReportesModule({ 
   user,
@@ -40,6 +41,7 @@ export default function ReportesModule({
   const [incluirTraslados, setIncluirTraslados] = useState(true);
   const [incluirRespiratorio, setIncluirRespiratorio] = useState(true);
   const [incluirRadar, setIncluirRadar] = useState(true);
+  const [incluirRendimientoTurnos, setIncluirRendimientoTurnos] = useState(true);
 
   // Fechas dinámicas desde la barra de filtros globales
   const fechas = useMemo(() => {
@@ -109,6 +111,18 @@ export default function ReportesModule({
   // Extraer KPIs para el reporte con la Matriz de Turnos y horarios seleccionados
   const { statsKPI, demografiaStats, topDiagnosticos, pacientesFiltrados, turnosFiltrados } = useMetricoAnalytics(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin, {}, tipoCorte, filtroHoraInicio, filtroHoraFin, pautasDB);
   const { filteredMetricsByDoctor } = useMetricoProfesionales(pacientesDB, turnosDB, fechas.rawInicio, fechas.rawFin, [], '', tipoCorte, filtroHoraInicio, filtroHoraFin);
+
+  // Scorecard y Rendimiento de Turnos para el Sub-reporte Consolidado
+  const scorecardReportData = useMemo(() => {
+    return buildScorecardData({
+      pacientesDB,
+      turnosDB,
+      pautasDB,
+      fechaInicio: fechas.rawInicio,
+      fechaFin: fechas.rawFin,
+      teams: ['Turno 1', 'Turno 2', 'Turno 3', 'Turno 4']
+    });
+  }, [pacientesDB, turnosDB, pautasDB, fechas.rawInicio, fechas.rawFin]);
 
   // Rango de fechas reales detectado automáticamente de los datos de pacientes
   const rangoFechasReales = useMemo(() => {
@@ -1534,6 +1548,14 @@ totalTriados,
             >
               {incluirRadar ? <CheckSquare className="w-4 h-4 text-indigo-500 shrink-0" /> : <Square className="w-4 h-4 opacity-40 shrink-0" />}
               <span>Sub-reporte Radar Predictivo (IA)</span>
+            </button>
+
+            <button 
+              onClick={() => setIncluirRendimientoTurnos(!incluirRendimientoTurnos)}
+              className={`flex items-center gap-2.5 p-3 rounded-2xl border text-xs font-bold transition-all text-left cursor-pointer ${incluirRendimientoTurnos ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400' : 'bg-black/5 dark:bg-white/5 border-card-custom text-secondary-custom'}`}
+            >
+              {incluirRendimientoTurnos ? <CheckSquare className="w-4 h-4 text-amber-500 shrink-0" /> : <Square className="w-4 h-4 opacity-40 shrink-0" />}
+              <span>Sub-reporte Rendimiento de Guardias (Scorecard)</span>
             </button>
 
           </div>
@@ -3135,8 +3157,127 @@ totalTriados,
               </div>
             )}
 
+            {/* HOJA 9: SUB-REPORTE RENDIMIENTO DE GUARDIAS & SCORECARD */}
+            {incluirRendimientoTurnos && (
+              <div className={`${(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados || incluirRespiratorio || incluirRadar) ? 'print-page-break' : ''} space-y-6`}>
+                {/* Cabecera del Documento Institucional */}
+                <div className="border-b-2 border-slate-900 pb-4 flex justify-between items-end">
+                  <div className="flex items-center gap-4">
+                    <img src="/IMG/LogoSAR.png" alt="Logo SAR" className="h-12 object-contain" />
+                    <div>
+                      <h2 className="text-xl font-black text-slate-900 tracking-tight">SUB-REPORTE: RENDIMIENTO DE GUARDIAS & SCORECARD</h2>
+                      <p className="text-xs font-bold text-amber-700 uppercase tracking-widest mt-0.5">Modelo Ponderado 0-100 Puntos • Agilidad Triage • Resolutividad Asistencial</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2.5 py-1 rounded border border-amber-300">Scorecard Oficial SAR</span>
+                    <p className="text-[11px] text-slate-600 font-bold mt-1.5">
+                      Período: {fechas.inicio} al {fechas.fin}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Sello Institucional de Fidedignidad y Cuadratura Regla 19 Universal */}
+                {renderSelloRegla19("Sub-reporte Rendimiento de Guardias y Scorecard")}
+
+                {/* Síntesis Ejecutiva del Período */}
+                {scorecardReportData.veredictoGerencial && (
+                  <div className="bg-amber-50/70 border border-amber-300 p-4 rounded-xl space-y-2">
+                    <div className="flex items-center gap-2 text-amber-900">
+                      <Crown className="w-5 h-5 text-amber-600" />
+                      <span className="text-xs font-black uppercase tracking-wider">Síntesis Directiva del Desempeño de Guardia</span>
+                    </div>
+                    <p className="text-xs text-slate-800 font-bold leading-relaxed">
+                      Esta herramienta evalúa el desempeño de las guardias mediante un modelo de puntuación ponderada (0-100 pts), priorizando la agilidad clínica, la resolución de pacientes y la capacidad de absorción.
+                    </p>
+                    <p className="text-xs text-slate-700 leading-relaxed pt-1 border-t border-amber-200">
+                      El <strong className="text-slate-900 font-black">{scorecardReportData.veredictoGerencial.leaderAlias}</strong> lidera el período con <span className="font-black text-amber-700">{scorecardReportData.veredictoGerencial.leaderScore} pts</span> impulsado por {scorecardReportData.veredictoGerencial.fortalezaTexto}. Se recomienda evaluar la rotación del <strong className="text-slate-900 font-black">{scorecardReportData.veredictoGerencial.laggingAlias}</strong> ({scorecardReportData.veredictoGerencial.laggingScore} pts) con oportunidad en {scorecardReportData.veredictoGerencial.oportunidadTexto}.
+                    </p>
+                  </div>
+                )}
+
+                {/* Tabla de Clasificación del Scorecard */}
+                <div className="print-avoid-break">
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 border-b border-slate-200 pb-1">
+                    Matriz de Clasificación de Desempeño por Equipos de Guardia (Puntuación Máxima 100 pts)
+                  </h3>
+                  <table className="w-full text-left text-[11px] border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-700 font-bold">
+                        <th className="p-2 border border-slate-200">Ranking & Guardia</th>
+                        <th className="p-2 border border-slate-200 text-center">Score Global</th>
+                        <th className="p-2 border border-slate-200 text-center">1. Volumen (20%)</th>
+                        <th className="p-2 border border-slate-200 text-center">2. Triage ≤15m (30%)</th>
+                        <th className="p-2 border border-slate-200 text-center">3. Lead Time (20%)</th>
+                        <th className="p-2 border border-slate-200 text-center">4. Resolutiva (30%)</th>
+                        <th className="p-2 border border-slate-200 text-center">Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {scorecardReportData.scorecardRanking.map((row, idx) => (
+                        <tr key={idx} className={row.rank === 1 ? 'bg-amber-50/50 font-bold' : ''}>
+                          <td className="p-2 border border-slate-200">
+                            <span className="font-black text-slate-900">{row.alias}</span>
+                            <span className="text-[9px] text-slate-500 block">{row.rankBadge}</span>
+                          </td>
+                          <td className="p-2 border border-slate-200 text-center font-black text-slate-900 text-sm">
+                            {row.scoreFinal} pts
+                          </td>
+                          <td className="p-2 border border-slate-200 text-center font-bold text-slate-800">
+                            {(row.vol || 0).toLocaleString('es-CL')} pac.
+                          </td>
+                          <td className="p-2 border border-slate-200 text-center font-bold text-indigo-700">
+                            {row.latencia} min
+                          </td>
+                          <td className="p-2 border border-slate-200 text-center font-bold text-slate-800">
+                            {row.leadTime} min
+                          </td>
+                          <td className="p-2 border border-slate-200 text-center font-bold text-emerald-700">
+                            {row.resolutiva}%
+                          </td>
+                          <td className="p-2 border border-slate-200 text-center">
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${
+                              row.rank === 1 ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+                              row.rank === 2 ? 'bg-indigo-100 text-indigo-800 border border-indigo-300' :
+                              'bg-slate-100 text-slate-700 border border-slate-300'
+                            }`}>
+                              {row.rank === 1 ? 'Líder' : row.rank === 2 ? 'Alto Desempeño' : 'Operativo'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Desglose de Líderes y Rezagados por Indicador */}
+                <div className="print-avoid-break pt-2">
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 border-b border-slate-200 pb-1">
+                    Líderes y Brechas Operativas por Indicador Clave (Extremos de Desempeño)
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {Object.values(scorecardReportData.kpiExtremes).slice(0, 4).map((ext, eIdx) => (
+                      <div key={eIdx} className="border border-slate-200 p-2.5 rounded-xl bg-slate-50 space-y-1">
+                        <span className="text-[9px] font-bold text-slate-500 uppercase block truncate">{ext.kpiName}</span>
+                        <div className="text-[10px] space-y-0.5">
+                          <div className="flex justify-between items-center text-emerald-800 font-bold">
+                            <span>🟢 {ext.best?.alias}:</span>
+                            <span>{ext.bestFormatted}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-rose-800 font-bold">
+                            <span>🔴 {ext.worst?.alias}:</span>
+                            <span>{ext.worstFormatted}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* SECCIÓN DE CIERRE Y CONTROL DE VALIDEZ GLOBAL (SOLO CUANDO SE INCLUYEN OTROS REPORTES) */}
-            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados || incluirRespiratorio || incluirRadar) && (
+            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados || incluirRespiratorio || incluirRadar || incluirRendimientoTurnos) && (
               <div className="print-page-break print-avoid-break space-y-6 pt-6 border-t-2 border-slate-950">
                 {/* Header Cierre */}
                 <div className="flex justify-between items-center border-b border-slate-300 pb-3">
@@ -3189,7 +3330,7 @@ totalTriados,
             )}
 
             {/* BLOQUE GLOBAL DE CIERRE DE INFORME Y VALIDACIÓN DE DATOS */}
-            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados || incluirRespiratorio || incluirRadar) && (
+            {(incluirGeneral || incluirAltas || incluirFracturas || incluirEnfermeria || incluirConstataciones || incluirTraslados || incluirRespiratorio || incluirRadar || incluirRendimientoTurnos) && (
               <div className="print-avoid-break pt-8 border-t-2 border-slate-900 mt-8 space-y-6">
                 
                 {/* Cuadro de Tiempos y Operatividad */}

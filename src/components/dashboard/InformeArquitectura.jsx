@@ -10,6 +10,31 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.72',
+    version_tag: 'v6.3.72',
+    fecha: '11 de Octubre, 2026',
+    fecha_despliegue: '11 de Octubre, 2026',
+    proposito_actualizacion: 'Transparencia Algorítmica del Score Global, Síntesis Ejecutiva Introductoria, Glosario Universal con Criterios de Evaluación y Subreporte PDF Modular (Regla 34 / Regla 25 Consolidada).',
+    medios_y_stack: [
+      '.agents/AGENTS.md (Promulgación de la Regla 34: Transparencia algorítmica del Score Global 100 pts [30/30/20/20], glosario universal con polaridad y criterios de evaluación, y enrutamiento global del informe PDF)',
+      'InformeArquitectura.jsx (Incorporación de Regla 25 en REGLAS_INSTITUCIONALES_METRICO, actualización del contador a 25 Reglas Certificadas y registro de versión v6.3.72)',
+      'Tooltip.jsx (Ampliación de KPITooltip con Popover enriquecido para Score Global detallando los 4 pesos, y actualización de GLOSARIO_KPIS con criterios de evaluación y polaridad en todas las métricas)',
+      'AnalisisComparativoTriple.jsx (Expansión de la Síntesis Ejecutiva introductoria en el Veredicto del Período con subtítulo ministerial, Tooltip en SCORE GLOBAL, Manchester, Radar y tarjetas Tremor de extremos)',
+      'scorecardEngine.js (Motor puro buildScorecardData para cálculo canónico del Scorecard y extremos de KPIs sin duplicación de lógica)',
+      'ExecutiveReportPDF.jsx (Componente modular exportable e independiente enrutado en el Dashboard y accesible desde Subreportes en el menú lateral)',
+      'ReportesModule.jsx (Incorporación de la Hoja 9 del Sub-reporte Rendimiento de Guardias & Scorecard para consolidación y exportación automática en el PDF general mensual)',
+      'Dashboard.jsx (Enrutamiento de activeTab "rendimiento_pdf", botón en el menú lateral y prefetch especulativo)',
+      'ModalMuroActualizaciones.jsx (Registro de actualización v6.3.72 e instructivo directivo)',
+      'DevLogModule.jsx (Registro cronológico de ingeniería v6.3.72)',
+      'version.js (Sincronización a v6.3.72)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Transparencia algorítmica estricta del Score Global (30% Resolutiva + 30% Triage + 20% Lead Time + 20% Volumen), glosario universal con criterios de evaluación y polaridad en cada métrica, modularización de ExecutiveReportPDF y consolidación documental en ReportesModule (Hoja 9).',
+      firestore_collections: ['system_architecture_log', 'turnos_asistenciales', 'pautas_turnos'],
+      documentos_afectados: ['src/components/tremor/Tooltip.jsx', 'src/components/dashboard/AnalisisComparativoTriple.jsx', 'src/utils/scorecardEngine.js', 'src/components/dashboard/ExecutiveReportPDF.jsx', 'src/components/dashboard/ReportesModule.jsx', 'src/components/Dashboard.jsx', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx', '.agents/AGENTS.md']
+    }
+  },
+  {
     id: 'v6.3.71',
     version_tag: 'v6.3.71',
     fecha: '10 de Octubre, 2026',
@@ -5198,6 +5223,22 @@ export const REGLAS_INSTITUCIONALES_METRICO = [
       'Exportación a PDF con html2pdf.js: Descarga directa de alta fidelidad con nombre dinámico Informe_SAR_[Mes]_[Año].pdf manteniendo íntegros los estilos CSS/Tailwind.'
     ],
     normaTecnica: 'getKpiExtremes (polaridad pura) + Toggle Dual + ExecutiveReportTemplate A4 + html2pdf.js'
+  },
+  {
+    id: 25,
+    numero: 'Regla 25',
+    titulo: 'Transparencia Algorítmica del Score Global, Síntesis Ejecutiva Introductoria, Glosario Universal y Subreporte PDF Modular',
+    categoria: 'Transparencia Algorítmica & Subreportes',
+    badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/20',
+    resumen: 'Principio de transparencia algorítmica integral y modularización documental: síntesis ejecutiva ministerial con propósito del modelo ponderado (0-100 pts), desglose matemático formal del Score Global (30% Resolutiva, 30% Triage, 20% Estadía, 20% Volumen), glosario universal con criterios de evaluación y polaridad en cada métrica asistencial, componente modular ExecutiveReportPDF.jsx enrutado de forma nativa en el Dashboard y consolidación automática de la Hoja 9 de Rendimiento en el Reporte Ejecutivo General mensual (ReportesModule).',
+    directrices: [
+      'Fase 1 Síntesis Ejecutiva Introductoria: Contenedor ampliado del "Veredicto del Período" con subtítulo formal ("Esta herramienta evalúa el desempeño de las guardias mediante un modelo de puntuación ponderada (0-100 pts), priorizando la agilidad clínica, la resolución de pacientes y la capacidad de absorción"), tarjetas directivas para guardia líder y rezagada.',
+      'Fase 2 Transparencia Matemática del Score Global: Popover interactivo en SCORE GLOBAL detallando de dónde salen los puntos según la fórmula oficial de 100 pts (30% Resolutiva, 30% Triage, 20% Estadía, 20% Volumen).',
+      'Fase 3 Glosario Universal con Criterios de Evaluación: Ícono (ⓘ) en todas las tarjetas Tremor, gráficos (Manchester, Radar) y módulos de Minería de Datos con definición explícita de su criterio de evaluación y polaridad (positiva vs negativa y metas clínicas institucionales).',
+      'Fase 4 Modularización y Enrutamiento Global del Subreporte PDF: Creación del componente exportable independiente ExecutiveReportPDF.jsx enrutado de forma nativa en Dashboard.jsx (activeTab "rendimiento_pdf") con acceso desde el menú lateral.',
+      'Consolidación en Reporte General Mensual: Incorporación de la Hoja 9 de Rendimiento de Guardias & Scorecard dentro de ReportesModule.jsx para consolidarse automáticamente como anexo al imprimir o descargar el PDF global del mes.'
+    ],
+    normaTecnica: 'Transparencia Matemática 100 pts (30/30/20/20) + KPITooltip con Polaridad + ExecutiveReportPDF modular + Hoja 9 en ReportesModule'
   }
 ];
 
@@ -5935,7 +5976,7 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-black text-primary-custom">Normativa Institucional & 24 Reglas Canónicas SSOT</h2>
+                    <h2 className="text-xl font-black text-primary-custom">Normativa Institucional & 25 Reglas Canónicas SSOT</h2>
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">
                       Inviolable & Permanente
                     </span>
@@ -5948,7 +5989,7 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
 
               {/* CONTADOR DE REGLAS */}
               <div className="px-3.5 py-1.5 bg-black/5 dark:bg-white/5 rounded-xl border border-card-custom text-xs font-bold text-primary-custom">
-                24 Reglas Certificadas
+                25 Reglas Certificadas
               </div>
             </div>
 

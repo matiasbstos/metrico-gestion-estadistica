@@ -1457,35 +1457,88 @@ export default function AnalisisComparativoTriple({
       ) : (
         <>
           {/* ========================================================================= */}
-          {/* FASE 1: VEREDICTO GERENCIAL AUTOMÁTICO (TOP BANNER CALLOUT EN LENGUAJE NATURAL) */}
+          {/* FASE 1: SÍNTESIS EJECUTIVA & VEREDICTO DEL PERÍODO (MINI-INFORME INICIAL) */}
           {/* ========================================================================= */}
           {veredictoGerencial && (
-        <div className="bg-gradient-to-r from-blue-50/90 via-indigo-50/60 to-blue-50/90 dark:from-blue-950/30 dark:via-indigo-950/20 dark:to-blue-950/30 border-l-4 border-blue-600 dark:border-blue-500 p-4 md:p-5 rounded-2xl md:rounded-3xl shadow-xs border border-blue-100 dark:border-blue-900/40 flex items-start gap-3.5 transition-all">
-          <div className="p-2.5 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 shrink-0 mt-0.5">
-            <Trophy className="w-5 h-5 text-amber-500" />
-          </div>
-          <div className="space-y-1 text-xs md:text-sm text-slate-700 dark:text-slate-200 leading-relaxed w-full">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-blue-600 text-white shadow-xs">
-                Veredicto del Período
-              </span>
-              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                Resumen Ejecutivo de Decisión Inmediata
-              </span>
+            <div className="bg-gradient-to-r from-blue-50/95 via-indigo-50/80 to-blue-50/95 dark:from-slate-900/90 dark:via-indigo-950/40 dark:to-slate-900/90 border-l-4 border-blue-600 dark:border-blue-500 p-5 md:p-6 rounded-3xl shadow-sm border border-blue-100 dark:border-blue-900/50 space-y-4 transition-all">
+              {/* Encabezado Introductorio Formal */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-blue-100/80 dark:border-blue-900/40 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-2xl bg-blue-600 text-white shadow-xs shrink-0">
+                    <Trophy className="w-5 h-5 text-amber-300" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-blue-600 text-white shadow-xs">
+                        Síntesis Ejecutiva
+                      </span>
+                      <span className="text-[11px] font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide">
+                        Veredicto del Período de Guardia
+                      </span>
+                    </div>
+                    <h3 className="text-base md:text-lg font-black text-slate-900 dark:text-white tracking-tight mt-0.5">
+                      Evaluación Operativa & Modelo de Puntuación Ponderada
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="text-[11px] font-bold text-slate-600 dark:text-slate-300 bg-white/80 dark:bg-slate-800/80 px-3.5 py-1.5 rounded-xl border border-blue-200/60 dark:border-blue-800/40 shrink-0 self-start md:self-auto flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Escala Institucional: <strong className="text-blue-700 dark:text-blue-300">0 - 100 Puntos</strong></span>
+                </div>
+              </div>
+
+              {/* Subtítulo Introductorio Formal Requerido */}
+              <p className="text-xs md:text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                Esta herramienta evalúa el desempeño de las guardias mediante un modelo de puntuación ponderada (0-100 pts), priorizando la agilidad clínica, la resolución de pacientes y la capacidad de absorción.
+              </p>
+
+              {/* Grid de 2 Bloques: Guardia Líder y Recomendación Gerencial */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                {/* Bloque Líder */}
+                <div className="p-3.5 rounded-2xl bg-white/90 dark:bg-slate-800/80 border border-blue-100 dark:border-slate-700/60 shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-blue-700 dark:text-blue-400 flex items-center gap-1.5">
+                      <Trophy className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      Líder del Desempeño
+                    </span>
+                    <span className="text-xs font-black px-2 py-0.5 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                      {veredictoGerencial.leaderScore} pts
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed">
+                    El <strong className="text-blue-600 dark:text-blue-400 font-black">{veredictoGerencial.leaderAlias}</strong> lidera el rendimiento global con <span className="font-black text-slate-900 dark:text-white">{veredictoGerencial.leaderScore} pts</span>, impulsado por <span className="font-bold text-emerald-600 dark:text-emerald-400">{veredictoGerencial.fortalezaTexto}</span>.
+                  </p>
+                </div>
+
+                {/* Bloque Rezagado & Recomendación */}
+                <div className="p-3.5 rounded-2xl bg-white/90 dark:bg-slate-800/80 border border-amber-100 dark:border-slate-700/60 shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      Recomendación Directiva
+                    </span>
+                    <span className="text-xs font-black px-2 py-0.5 rounded-lg bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30">
+                      {veredictoGerencial.laggingScore} pts
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed">
+                    Se recomienda intervenir el flujo del <strong className="text-rose-600 dark:text-rose-400 font-black">{veredictoGerencial.laggingAlias}</strong> (<span className="font-bold text-slate-900 dark:text-white">{veredictoGerencial.laggingScore} pts</span>), abordando su mayor brecha en <span className="font-bold text-rose-600 dark:text-rose-400">{veredictoGerencial.oportunidadTexto}</span>.
+                  </p>
+                </div>
+              </div>
+
+              {/* Pill inferior con ponderación de los 4 pilares */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-blue-100/60 dark:border-blue-900/30 text-[10px] text-slate-500 dark:text-slate-400">
+                <span className="font-semibold">
+                  Matriz de Ponderación SSOT: <strong className="text-slate-700 dark:text-slate-200">30% Tasa Resolutiva • 30% Agilidad Triage • 20% Lead Time • 20% Volumen</strong>
+                </span>
+                <span className="font-bold text-blue-600 dark:text-blue-400">
+                  Transparencia Algorítmica Activa ⓘ
+                </span>
+              </div>
             </div>
-            <p className="font-medium text-xs md:text-sm leading-relaxed">
-              <strong className="text-primary-custom font-black inline-flex items-center gap-1.5">
-                <Trophy className="w-4 h-4 text-amber-500 inline shrink-0" /> Veredicto del Período:
-              </strong> El <strong className="text-blue-600 dark:text-blue-400 font-black">{veredictoGerencial.leaderAlias}</strong> lidera el rendimiento operativo global (<span className="font-black text-primary-custom">{veredictoGerencial.leaderScore} pts</span>) impulsado por {veredictoGerencial.fortalezaTexto}.{' '}
-              <span className="inline-block mt-1 sm:mt-0">
-                <strong className="text-amber-600 dark:text-amber-400 font-black inline-flex items-center gap-1.5">
-                  <AlertTriangle className="w-4 h-4 text-amber-500 inline shrink-0" /> Recomendación Gerencial:
-                </strong> Se recomienda evaluar el flujo del <strong className="text-rose-600 dark:text-rose-400 font-black">{veredictoGerencial.laggingAlias}</strong>, el cual presenta el puntaje más bajo (<span className="font-black text-primary-custom">{veredictoGerencial.laggingScore} pts</span>) con oportunidades de mejora en <span className="font-bold text-rose-600 dark:text-rose-400">{veredictoGerencial.oportunidadTexto}</span>.
-              </span>
-            </p>
-          </div>
-        </div>
-      )}
+          )}
 
       {/* ========================================================================= */}
       {/* FASE 2: SCORECARD GERENCIAL CON COMPONENTES TREMOR (3 COLUMNAS EJECUTIVAS) */}
@@ -1789,7 +1842,7 @@ export default function AnalisisComparativoTriple({
               <tr className="border-b border-card-custom/40 text-[10px] font-black uppercase text-secondary-custom tracking-wider">
                 <th className="pb-3 px-3">Ranking & Equipo</th>
                 <th className="pb-3 px-3 text-center">
-                  <KPITooltip kpiKey="scoreGlobal">Score Global</KPITooltip>
+                  <KPITooltip kpiKey="scoreGlobal" position="bottom">SCORE GLOBAL</KPITooltip>
                 </th>
                 <th className="pb-3 px-3">
                   <KPITooltip kpiKey="volumenTotal">1. Volumen Total</KPITooltip>
@@ -2054,7 +2107,7 @@ export default function AnalisisComparativoTriple({
                 <div>
                   <div className="flex items-center justify-between gap-1 mb-1">
                     <span className="text-[10px] font-black uppercase tracking-wider text-secondary-custom truncate">
-                      {def.name}
+                      <KPITooltip kpiKey={def.key}>{def.name}</KPITooltip>
                     </span>
                     <span className="text-[8.5px] font-bold px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/5 text-secondary-custom shrink-0">
                       {def.polarity === 'higher_is_better' ? 'Mayor es Mejor' : 'Menor es Mejor'}
@@ -2109,7 +2162,7 @@ export default function AnalisisComparativoTriple({
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="text-base md:text-lg font-black text-primary-custom tracking-tight">
-                Comparativa de Categorización Manchester (C1 a C5)
+                <KPITooltip kpiKey="manchester">Comparativa de Categorización Manchester (C1 a C5)</KPITooltip>
               </h3>
               <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
                 Tremor BarChart Agrupado
@@ -2357,7 +2410,7 @@ export default function AnalisisComparativoTriple({
                   <Target className="w-4 h-4" />
                 </span>
                 <h3 className="text-base font-black text-primary-custom tracking-tight">
-                  Visualización Radial de Competencias
+                  <KPITooltip kpiKey="radarMultieje">Visualización Radial de Competencias</KPITooltip>
                 </h3>
               </div>
               <p className="text-xs text-secondary-custom font-medium mt-0.5">

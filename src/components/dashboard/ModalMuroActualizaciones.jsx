@@ -15,6 +15,32 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.72',
+      version: 'v6.3.72',
+      fecha: '11 de Octubre, 2026',
+      badge: 'TRANSPARENCIA ALGORÍTMICA & MODULARIZACIÓN • REGLA 34: SÍNTESIS INTRODUCTORIA, GLOSARIO UNIVERSAL & ENRUTAMIENTO PDF',
+      badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/20',
+      title: 'Transparencia Algorítmica del Score Global, Síntesis Ejecutiva Introductoria, Glosario Universal con Criterios de Evaluación y Subreporte PDF Modular',
+      categoria: 'Transparencia Algorítmica & Subreportes',
+      icon: Crown,
+      iconBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+      summary: 'Se implementó la arquitectura de Transparencia Algorítmica y Modularización Global en MÉTRICO bajo la Regla 34: 1) Fase 1 Síntesis Ejecutiva Introductoria: Expansión del "Veredicto del Período" en la cabecera de Rendimiento con subtítulo formal que explica el propósito del modelo ponderado (0-100 pts) y tarjetas directivas para el líder y rezagado. 2) Fase 2 Transparencia del Score Global: Popover interactivo en SCORE GLOBAL detallando la fórmula exacta y pesos (30% Resolutiva, 30% Triage, 20% Estadía, 20% Volumen). 3) Fase 3 Glosario Universal: Tooltips informativos (ⓘ) en todas las tarjetas Tremor, gráficos (Manchester, Radar) y módulos de Minería de Datos con definición explícita de su criterio de evaluación y polaridad. 4) Fase 4 Modularización y Subreporte PDF: Creación del componente ExecutiveReportPDF.jsx enrutado de forma nativa en el Dashboard y anexo automático de la Hoja 9 de Rendimiento en el Reporte Ejecutivo General mensual (ReportesModule).',
+      instructivo: {
+        paraQueSirve: 'Transparenta totalmente el origen matemático de las puntuaciones de guardia para los equipos clínicos y permite a la dirección descargar o consolidar el informe ejecutivo de rendimiento tanto de forma independiente como adjunto al informe general mensual.',
+        quePuedesVer: 'En Rendimiento de Turnos, una cabecera explicativa formal ("Esta herramienta evalúa el desempeño de las guardias..."), el ícono ⓘ en cada indicador con su criterio de evaluación (polaridad positiva/negativa), el Popover del Score Global con sus 4 ponderaciones, y en el Menú Lateral o Subreportes el nuevo acceso nativo al Informe Ejecutivo PDF.',
+        ejemploUso: 'Pasa el cursor sobre SCORE GLOBAL en la Matriz de Clasificación para ver el desglose del 100% de puntos, o activa "Sub-reporte Rendimiento de Guardias (Scorecard)" en Reporte Ejecutivo para consolidarlo en el PDF global del mes.'
+      },
+      changes: [
+        'Promulgación de la Regla 34 en .agents/AGENTS.md y Regla 25 en InformeArquitectura.jsx: transparencia algorítmica, glosario universal y enrutamiento global del informe PDF.',
+        'Expansión del contenedor "Veredicto del Período" en AnalisisComparativoTriple.jsx transformándolo en una Síntesis Ejecutiva introductoria formal con subtítulo ministerial.',
+        'Desarrollo de Popover flotante en KPITooltip (Tooltip.jsx) con desglose matemático completo de la fórmula de puntuación máxima (100 pts) y los 4 pilares ponderados.',
+        'Actualización de GLOSARIO_KPIS con criterios de evaluación y polaridad explícita para todas las métricas, tarjetas Tremor, gráficos y módulos de minería.',
+        'Creación del componente modular independiente ExecutiveReportPDF.jsx y de la función pura buildScorecardData en scorecardEngine.js.',
+        'Integración en el enrutador principal de Dashboard.jsx (activeTab "rendimiento_pdf") con acceso desde el menú lateral y prefetch especulativo.',
+        'Consolidación de la Hoja 9 de Rendimiento de Guardias & Scorecard dentro del Reporte Ejecutivo General (ReportesModule.jsx) para impresión y exportación PDF global.'
+      ]
+    },
+    {
       id: 'v6.3.71',
       version: 'v6.3.71',
       fecha: '10 de Octubre, 2026',

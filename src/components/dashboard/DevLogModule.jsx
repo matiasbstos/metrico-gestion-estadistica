@@ -8,6 +8,41 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-72',
+    titulo: 'Transparencia Algorítmica del Score Global, Síntesis Ejecutiva Introductoria, Glosario Universal con Criterios de Evaluación y Subreporte PDF Modular',
+    fecha: '2026-10-11',
+    version_tag: 'v6.3.72',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_72.png',
+    problema: 'Se requería aumentar la transparencia algorítmica del Dashboard de Rendimiento de Turnos para que los equipos clínicos comprendan con total exactitud de dónde provienen los puntos del Score Global (0-100 pts), transformar el Veredicto del Período en una Síntesis Ejecutiva formal introductoria, implementar un glosario universal con criterios de evaluación y polaridad en cada métrica asistencial, y modularizar el Informe Ejecutivo de Rendimiento para integrarlo nativamente tanto en el router del menú lateral (Subreportes) como anexo automático en el PDF mensual global (ReportesModule).',
+    logica: '1) Promulgación de la Regla 34 en .agents/AGENTS.md y Regla 25 en InformeArquitectura.jsx. 2) Fase 1: Transformación del "Veredicto del Período" en AnalisisComparativoTriple.jsx en una Síntesis Ejecutiva introductoria con subtítulo formal ("Esta herramienta evalúa el desempeño de las guardias mediante un modelo de puntuación ponderada (0-100 pts), priorizando la agilidad clínica, la resolución de pacientes y la capacidad de absorción"), tarjetas directivas para guardia líder y rezagada, y pill con la fórmula SSOT. 3) Fase 2: Desarrollo de Popover flotante en KPITooltip (Tooltip.jsx) detallando la fórmula máxima de 100 pts con sus 4 ponderaciones oficiales (30% Resolutiva, 30% Triage, 20% Estadía, 20% Volumen). 4) Fase 3: Glosario universal en GLOSARIO_KPIS con polaridad y criterios de evaluación explícitos e integración de íconos ⓘ en todas las tarjetas Tremor, gráficos (Manchester, Radar) y módulos de Minería de Datos. 5) Fase 4: Creación de scorecardEngine.js y del componente modular ExecutiveReportPDF.jsx enrutado en Dashboard.jsx (activeTab "rendimiento_pdf"), e incorporación de la Hoja 9 de Rendimiento de Guardias & Scorecard dentro del Reporte Ejecutivo General mensual (ReportesModule.jsx) para consolidación automática en el PDF oficial.',
+    solucion: 'Transparencia algorítmica 100% clara para usuarios clínicos y directivos, glosario interactivo universal y arquitectura modular de exportación documental enrutada en subreportes e integrada al consolidado mensual.',
+    fullPost: `En esta versión v6.3.72 implementamos la suite completa de Transparencia Algorítmica y Modularización Documental de Rendimiento de Guardias:
+
+1. **Fase 1: Síntesis Ejecutiva Introductoria (Veredicto del Período)**:
+   - Ampliamos el contenedor superior en \`AnalisisComparativoTriple.jsx\`.
+   - Incorporamos el subtítulo ministerial que define el propósito del modelo ponderado (0-100 pts).
+   - Generación de dos bloques directivos: Guardia Líder (destacando score en pts y fortaleza clínica) y Recomendación Directiva para la Guardia Rezagada con foco en su brecha de mejora.
+
+2. **Fase 2: Transparencia Matemática del Score Global (Popover de Tremor)**:
+   - Al posar el cursor sobre \`SCORE GLOBAL\` en la Matriz de Clasificación, se activa un Popover amplio (\`w-80 sm:w-96\`) que desglosa de dónde salen los puntos.
+   - Detalle estructurado de los 4 pilares:
+     * **30% Tasa Resolutiva**: Premia la alta proporción de altas médicas directas y retención clínica efectiva.
+     * **30% Agilidad Triage**: Premia el cumplimiento del estándar institucional de categorización ≤15 min.
+     * **20% Estadía (Lead Time)**: Puntaje inversamente proporcional al tiempo total de permanencia en el recinto.
+     * **20% Volumen**: Puntaje proporcional a la carga operativa total de pacientes absorbida.
+
+3. **Fase 3: Glosario Universal y Criterios de Evaluación (Tooltips ⓘ)**:
+   - Enriquecimiento de \`GLOSARIO_KPIS\` y \`KPITooltip\` en \`src/components/tremor/Tooltip.jsx\`.
+   - Cada tooltip define el indicador y especifica explícitamente su polaridad (positiva vs negativa) y meta ministerial institucional.
+   - Ícono \`(ⓘ)\` habilitado en todas las tarjetas Tremor de extremos, gráfico Manchester, visualización radial Radar y tarjetas de Minería de Datos (Fuga, Reingreso, Rescate Crítico, Extremos de la Vida).
+
+4. **Fase 4: Modularización y Enrutamiento Global del Subreporte PDF**:
+   - Creación de \`src/utils/scorecardEngine.js\` para computar de forma pura el Scorecard de las guardias bajo el Candado de Datos.
+   - Creación del componente \`src/components/dashboard/ExecutiveReportPDF.jsx\`, accesible directamente desde el menú lateral en "Subreportes" (\`activeTab === 'rendimiento_pdf'\`).
+   - Integración de la **Hoja 9: Sub-reporte Rendimiento de Guardias & Scorecard** dentro de \`ReportesModule.jsx\`: cuando la jefatura genera el "Reporte Ejecutivo General" del mes, la hoja de rendimiento se consolida y adjunta automáticamente como una sección/anexo oficial dentro del documento PDF global.`
+  },
+  {
     id: 'devlog-v6-3-71',
     titulo: 'Candado de Datos, Motor Lógico de Extremos por Polaridad & Exportación Ejecutiva One-Pager en Rendimiento de Turnos',
     fecha: '2026-10-10',
