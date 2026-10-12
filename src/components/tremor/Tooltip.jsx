@@ -5,15 +5,15 @@ export const GLOSARIO_KPIS = {
   scoreGlobal: {
     title: 'Score Global de Desempeño',
     text: 'Esta herramienta evalúa el desempeño de las guardias mediante un modelo de puntuación ponderada (0-100 pts), priorizando la agilidad clínica, la resolución de pacientes y la capacidad de absorción.',
-    formulaTitle: 'Fórmula de Puntuación Máxima (100 pts):',
+    formulaTitle: 'Fórmula de Puntuación Máxima (100 pts) & Justificación de Porcentajes:',
     breakdown: [
-      { pct: '30%', name: 'Tasa Resolutiva', desc: 'Premia la alta proporción de altas médicas directas y retención clínica efectiva.' },
-      { pct: '30%', name: 'Agilidad Triage', desc: 'Premia el cumplimiento del estándar institucional de categorización ≤15 min.' },
-      { pct: '20%', name: 'Estadía (Lead Time)', desc: 'Puntaje inversamente proporcional al tiempo total de permanencia en el recinto.' },
-      { pct: '20%', name: 'Volumen', desc: 'Puntaje proporcional a la carga operativa total de pacientes absorbida.' }
+      { pct: '30%', name: 'Tasa Resolutiva', desc: '¿Por qué 30%? Es la misión central del SAR: resolver la urgencia ambulatoria y evitar derivaciones evitables al Hospital Base. Premia altas médicas efectivas y retención asistencial (meta ≥90%).' },
+      { pct: '30%', name: 'Agilidad Triage', desc: '¿Por qué 30%? Primera barrera de seguridad del paciente. La categorización oportuna (≤15 min) detecta emergencias críticas C1/C2; la seguridad vital es intransable.' },
+      { pct: '20%', name: 'Estadía (Lead Time)', desc: '¿Por qué 20%? Premia la rotación ágil de box sin hacinamiento, pero se topa al 20% para no inducir altas apresuradas que comprometan la observación médica necesaria.' },
+      { pct: '20%', name: 'Volumen Absorbido', desc: '¿Por qué 20%? Reconoce el esfuerzo de absorber alta demanda comunitaria, pero se acota al 20% para no penalizar a turnos con menor afluencia natural (días hábiles).' }
     ],
-    criterion: 'Criterio de evaluación: Polaridad positiva (mayor puntaje = mejor balance integral entre agilidad, resolución y capacidad de absorción).',
-    standard: 'Escala 0 a 100 puntos (Modelo Ponderado Oficial)'
+    criterion: 'Criterio de evaluación: Polaridad positiva (mayor puntaje = mejor balance integral entre agilidad, resolución, permanencia y capacidad de absorción).',
+    standard: 'Escala 0 a 100 puntos (Modelo Ponderado Oficial SAR)'
   },
   volumenTotal: {
     title: 'Volumen Total (Carga Asistencial)',

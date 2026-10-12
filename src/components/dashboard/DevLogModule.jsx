@@ -8,6 +8,33 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-73',
+    titulo: 'Apartado Metodológico del Score Global y Justificación Directiva de Ponderaciones (30/30/20/20)',
+    fecha: '2026-10-12',
+    version_tag: 'v6.3.73',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_73.png',
+    problema: 'La jefatura médica y los equipos de turno requerían un apartado dedicado, transparente y pedagógico que explicara con total profundidad por qué existe el Score Global ponderado y por qué se fijaron exactamente esos porcentajes para cada uno de los 4 pilares: 30% Tasa Resolutiva, 30% Agilidad de Triaje, 20% Estadía (Lead Time) y 20% Volumen Absorbido.',
+    logica: '1) Promulgación de la Regla 35 en .agents/AGENTS.md y Regla 26 en InformeArquitectura.jsx. 2) Creación del componente ApartadoScoreGlobal.jsx con 4 tarjetas explicativas detallando "¿Por qué se evalúa este ítem?", "¿Por qué exactamente ese porcentaje?" e "Impacto clínico en la operación SAR". 3) Integración fluida en AnalisisComparativoTriple.jsx con botones interactivos que enlazan tanto la Síntesis Ejecutiva como la Matriz de Clasificación directamente al apartado metodológico. 4) Enriquecimiento del desglose de GLOSARIO_KPIS.scoreGlobal en Tooltip.jsx para que el Popover flotante contenga la justificación directiva concisa. 5) Inclusión de la caja de justificación metodológica en ExecutiveReportTemplate.jsx y en la Hoja 9 de ReportesModule.jsx para que el documento PDF impreso y exportado sea 100% autosuficiente.',
+    solucion: 'Apartado metodológico institucional completo, pedagógico e interactivo que erradica cualquier duda sobre el origen asistencial y matemático de las ponderaciones 30/30/20/20 del Score Global.',
+    fullPost: `En esta versión v6.3.73 culminamos la arquitectura de justificación metodológica del Score Global de Desempeño:
+
+1. **¿Por qué evaluar mediante un Score Global Ponderado?**:
+   - Evita los sesgos clínicos de la métrica única (evaluar solo por volumen favorece turnos de fin de semana; evaluar solo por tiempo castiga turnos que absorbieron contingencias; evaluar solo por velocidad induce altas apresuradas).
+   - Unifica las 4 dimensiones cardinales del SAR en una escala normalizada y justa de 0 a 100 puntos.
+
+2. **Justificación de Cada Porcentaje (30% / 30% / 20% / 20%)**:
+   - **30% Tasa Resolutiva**: Razón de ser del SAR. Mide el desenlace clínico real: resolver la urgencia ambulatoria y retener al paciente en la red primaria evitando derivaciones evitables a la UEH del Hospital Base. Meta: ≥90%.
+   - **30% Agilidad de Triage (≤15 min)**: Primera barrera de seguridad clínica. Detecta oportunamente emergencias vitales C1/C2 en sala de espera. La seguridad vital es innegociable y comparte la máxima ponderación.
+   - **20% Lead Time / Estadía Total**: Mide la rotación y fluidez de box evitando hacinamiento, pero se topa deliberadamente al 20% para no generar el incentivo perverso de dar altas apresuradas o suspender observaciones necesarias.
+   - **20% Capacidad de Absorción (Volumen)**: Reconoce la resiliencia operativa y el esfuerzo ante peaks de demanda, acotado al 20% para no perjudicar a los turnos que operan en días hábiles con menor afluencia exógena pero con impecable estándar asistencial.
+
+3. **Integración en la Plataforma**:
+   - Componente \`ApartadoScoreGlobal.jsx\` desplegable con filtros por pilar y fórmula matemática.
+   - Botones de navegación en la cabecera del Veredicto y en la Matriz de Clasificación.
+   - Consolidación en los reportes PDF de una página y en la Hoja 9 del informe mensual global.`
+  },
+  {
     id: 'devlog-v6-3-72',
     titulo: 'Transparencia Algorítmica del Score Global, Síntesis Ejecutiva Introductoria, Glosario Universal con Criterios de Evaluación y Subreporte PDF Modular',
     fecha: '2026-10-11',

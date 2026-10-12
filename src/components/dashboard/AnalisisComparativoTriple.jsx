@@ -5,10 +5,11 @@ import {
   Gauge, Zap, RefreshCw, Layers, Award, Trophy, Flame, ShieldAlert, 
   Timer, BarChart2, Crown, Target, HeartPulse, UserCheck, 
   AlertCircle, HelpCircle, ChevronRight, Stethoscope, Sparkles, Info,
-  FileText, Download, Printer
+  FileText, Download, Printer, BookOpen, Scale
 } from 'lucide-react';
 import { getKpiExtremes, KPI_POLARITY_DEFINITIONS } from '../../utils/kpiExtremes';
 import ExecutiveReportTemplate from './ExecutiveReportTemplate';
+import ApartadoScoreGlobal from './ApartadoScoreGlobal';
 import { 
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, 
   Tooltip, Legend, ResponsiveContainer,
@@ -1533,12 +1534,25 @@ export default function AnalisisComparativoTriple({
                 <span className="font-semibold">
                   Matriz de Ponderación SSOT: <strong className="text-slate-700 dark:text-slate-200">30% Tasa Resolutiva • 30% Agilidad Triage • 20% Lead Time • 20% Volumen</strong>
                 </span>
-                <span className="font-bold text-blue-600 dark:text-blue-400">
-                  Transparencia Algorítmica Activa ⓘ
-                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById('apartado-score-global');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1.5 cursor-pointer bg-white/80 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg border border-blue-200/60 dark:border-blue-800/40 shadow-2xs hover:bg-white dark:hover:bg-slate-800 transition-all"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>¿Por qué estos porcentajes? Ver Apartado Metodológico ▾</span>
+                </button>
               </div>
             </div>
           )}
+
+          {/* ========================================================================= */}
+          {/* APARTADO METODOLÓGICO: FUNDAMENTOS Y PORCENTAJES DEL SCORE GLOBAL (30/30/20/20) */}
+          {/* ========================================================================= */}
+          <ApartadoScoreGlobal defaultExpanded={true} />
 
       {/* ========================================================================= */}
       {/* FASE 2: SCORECARD GERENCIAL CON COMPONENTES TREMOR (3 COLUMNAS EJECUTIVAS) */}
@@ -1829,9 +1843,21 @@ export default function AnalisisComparativoTriple({
             </p>
           </div>
 
-          <div className="text-xs font-bold text-secondary-custom flex items-center gap-2 bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-xl border border-card-custom">
+          <div className="text-xs font-bold text-secondary-custom flex items-center gap-2 bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-xl border border-card-custom flex-wrap">
             <span>Índice Evaluado:</span>
             <strong className="text-primary-custom">30% Resolutiva • 30% Triaje • 20% Estadía • 20% Volumen</strong>
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('apartado-score-global');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="ml-1 text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer text-[11px]"
+              title="Ver por qué cada porcentaje"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>¿Por qué? Ver Apartado ⓘ</span>
+            </button>
           </div>
         </div>
 

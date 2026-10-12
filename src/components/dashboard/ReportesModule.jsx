@@ -3248,6 +3248,17 @@ totalTriados,
                       ))}
                     </tbody>
                   </table>
+
+                  {/* Fundamento Metodológico de Ponderaciones */}
+                  <div className="mt-2 p-2 rounded-lg bg-slate-50 border border-slate-200 text-[9px] text-slate-600 space-y-1">
+                    <span className="font-bold text-slate-850 block">Fundamento Metodológico del Score Global (Escala 0-100 pts • SSOT SAR):</span>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[8.5px]">
+                      <div><strong className="text-emerald-800">30% Resolutiva:</strong> Misión central SAR de resolución y retención ambulatoria (meta ≥90%).</div>
+                      <div><strong className="text-indigo-800">30% Agilidad Triage:</strong> Seguridad vital; categorización inmediata (meta ≤15 min).</div>
+                      <div><strong className="text-slate-800">20% Lead Time:</strong> Rotación y fluidez de box evitando inducir altas médicas apresuradas.</div>
+                      <div><strong className="text-amber-800">20% Volumen:</strong> Absorción de demanda real sin castigar turnos de menor afluencia.</div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Desglose de Líderes y Rezagados por Indicador */}

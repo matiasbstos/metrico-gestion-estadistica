@@ -15,6 +15,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.73',
+      version: 'v6.3.73',
+      fecha: '12 de Octubre, 2026',
+      badge: 'FUNDAMENTO METODOLÓGICO CLÍNICO • REGLA 35: APARTADO PEDAGÓGICO DEL SCORE GLOBAL & JUSTIFICACIÓN DE PONDERACIONES',
+      badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20',
+      title: 'Apartado Metodológico del Score Global y Justificación Directiva de Ponderaciones (30/30/20/20)',
+      categoria: 'Transparencia Algorítmica & Gestión Clínica',
+      icon: Scale,
+      iconBg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+      summary: 'Se integró un Apartado Metodológico completo y pedagógico (ApartadoScoreGlobal.jsx) accesible directamente en Rendimiento de Turnos, en el Veredicto y en la Matriz de Clasificación, que explica en profundidad por qué existe el Score Global multidimensional y por qué cada porcentaje específico: 1) 30% Tasa Resolutiva: Misión central del SAR en resolución ambulatoria y retención clínica efectiva (meta ≥90%). 2) 30% Agilidad Triage: Primera barrera de seguridad clínica e identificación oportuna de emergencias críticas C1/C2 (meta ≤15 min). 3) 20% Lead Time / Estadía Total: Rotación ágil de box sin inducir altas apresuradas. 4) 20% Capacidad de Absorción (Volumen): Reconocimiento del esfuerzo operativo ante peaks de demanda sin penalizar turnos con menor afluencia exógena.',
+      instructivo: {
+        paraQueSirve: 'Brinda total claridad y respaldo pedagógico a jefaturas de guardia y dirección técnica sobre el origen, la justificación asistencial y los fundamentos de la fórmula del Score Global (0-100 pts).',
+        quePuedesVer: 'En Rendimiento de Turnos, un nuevo apartado interactivo desplegable con 4 tarjetas a color explicativas, la fórmula canónica SSOT, y botones de acceso directo desde la Síntesis Ejecutiva y la Matriz de Clasificación ("¿Por qué estos porcentajes? Ver Apartado").',
+        ejemploUso: 'Haz clic en "¿Por qué estos porcentajes? Ver Apartado Metodológico ▾" en el Veredicto del Período para revisar las preguntas y respuestas fundamentales de cada pilar.'
+      },
+      changes: [
+        'Creación del componente institucional ApartadoScoreGlobal.jsx con justificación clínica y directiva de cada uno de los 4 pilares.',
+        'Detalle explícito del por qué de cada porcentaje: 30% Tasa Resolutiva (propósito SAR), 30% Triage (seguridad vital intransable), 20% Estadía (rotación balanceada sin inducir altas prematuras) y 20% Volumen (absorción equitativa sin sesgo de día hábil vs fin de semana).',
+        'Integración de botones de navegación interactiva en AnalisisComparativoTriple.jsx vinculando el Veredicto y la Matriz de Clasificación con el apartado metodológico.',
+        'Actualización del desglose de GLOSARIO_KPIS.scoreGlobal en Tooltip.jsx enriqueciendo la justificación en cada tarjeta y gráfico.',
+        'Incorporación de la nota metodológica explicativa en ExecutiveReportTemplate.jsx y en la Hoja 9 de ReportesModule.jsx para exportación PDF formal.'
+      ]
+    },
+    {
       id: 'v6.3.72',
       version: 'v6.3.72',
       fecha: '11 de Octubre, 2026',

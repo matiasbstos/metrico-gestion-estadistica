@@ -10,6 +10,30 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.73',
+    version_tag: 'v6.3.73',
+    fecha: '12 de Octubre, 2026',
+    fecha_despliegue: '12 de Octubre, 2026',
+    proposito_actualizacion: 'Apartado Metodológico del Score Global y Justificación Directiva de Ponderaciones (30/30/20/20) (Regla 35 / Regla 26 Consolidada).',
+    medios_y_stack: [
+      '.agents/AGENTS.md (Promulgación de la Regla 35: Fundamento metodológico y justificación de las ponderaciones 30/30/20/20 del Score Global)',
+      'InformeArquitectura.jsx (Incorporación de Regla 26 en REGLAS_INSTITUCIONALES_METRICO, actualización del contador a 26 Reglas Certificadas y registro de v6.3.73)',
+      'ApartadoScoreGlobal.jsx (Componente pedagógico institucional interactivo con 4 tarjetas de pilar, justificación asistencial y fórmula SSOT)',
+      'AnalisisComparativoTriple.jsx (Integración fluida de ApartadoScoreGlobal con botones interactivos que vinculan la Síntesis Ejecutiva y la Matriz de Clasificación)',
+      'Tooltip.jsx (Enriquecimiento del desglose de GLOSARIO_KPIS.scoreGlobal en popover con justificación concisa por pilar)',
+      'ExecutiveReportTemplate.jsx (Caja metodológica de justificación de ponderaciones en informe A4 de alta fidelidad)',
+      'ReportesModule.jsx (Resumen metodológico en Hoja 9 del informe mensual consolidado)',
+      'ModalMuroActualizaciones.jsx (Registro de actualización v6.3.73)',
+      'DevLogModule.jsx (Registro cronológico devlog-v6-3-73)',
+      'version.js (Sincronización a v6.3.73)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Justificación metodológica estricta de cada porcentaje: 30% Tasa Resolutiva (propósito SAR de descongestión), 30% Agilidad Triage (seguridad vital intransable), 20% Estadía (rotación de box sin inducir altas apresuradas) y 20% Volumen (absorción equitativa sin penalizar días hábiles).',
+      firestore_collections: ['system_architecture_log', 'turnos_asistenciales', 'pautas_turnos'],
+      documentos_afectados: ['src/components/dashboard/ApartadoScoreGlobal.jsx', 'src/components/dashboard/AnalisisComparativoTriple.jsx', 'src/components/tremor/Tooltip.jsx', 'src/components/dashboard/ExecutiveReportTemplate.jsx', 'src/components/dashboard/ReportesModule.jsx', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx', '.agents/AGENTS.md']
+    }
+  },
+  {
     id: 'v6.3.72',
     version_tag: 'v6.3.72',
     fecha: '11 de Octubre, 2026',
@@ -5239,6 +5263,22 @@ export const REGLAS_INSTITUCIONALES_METRICO = [
       'Consolidación en Reporte General Mensual: Incorporación de la Hoja 9 de Rendimiento de Guardias & Scorecard dentro de ReportesModule.jsx para consolidarse automáticamente como anexo al imprimir o descargar el PDF global del mes.'
     ],
     normaTecnica: 'Transparencia Matemática 100 pts (30/30/20/20) + KPITooltip con Polaridad + ExecutiveReportPDF modular + Hoja 9 en ReportesModule'
+  },
+  {
+    id: 26,
+    numero: 'Regla 26',
+    titulo: 'Fundamento Metodológico y Justificación de Ponderaciones del Score Global (30/30/20/20)',
+    categoria: 'Transparencia Algorítmica & Gestión Clínica',
+    badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20',
+    resumen: 'Obligación institucional de explicitar en la interfaz y en los reportes ejecutivos el por qué del Score Global de Desempeño y la justificación clínica/directiva de cada uno de sus 4 porcentajes ponderados (30% Tasa Resolutiva, 30% Agilidad de Triaje, 20% Lead Time y 20% Capacidad de Absorción).',
+    directrices: [
+      'Justificación de Tasa Resolutiva (30%): Razón de ser del SAR en descongestión de la red hospitalaria y resolución ambulatoria directa (meta ≥90%).',
+      'Justificación de Agilidad de Triaje (30%): Primera barrera de seguridad clínica e identificación oportuna de emergencias críticas C1/C2 (meta ≤15 min).',
+      'Justificación de Estadía Global / Lead Time (20%): Rotación ágil de box evitando hacinamiento, limitada al 20% para no generar el incentivo perverso de altas prematuras.',
+      'Justificación de Capacidad de Absorción / Volumen (20%): Reconocimiento del esfuerzo operativo ante peaks de demanda comunitaria sin penalizar injustamente a guardias de días hábiles.',
+      'Disponibilidad del Apartado Metodológico: Componente interactivo ApartadoScoreGlobal.jsx y notas de fundamentación en reportes ejecutivos (ExecutiveReportTemplate y Hoja 9 de ReportesModule).'
+    ],
+    normaTecnica: 'ApartadoScoreGlobal.jsx + Fundamentación 30/30/20/20 en UI y Reportes PDF'
   }
 ];
 
@@ -5451,7 +5491,7 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
-          <span>6. Normativa Oficial (22 Reglas SSOT) & Despliegue</span>
+          <span>6. Normativa Oficial (26 Reglas SSOT) & Despliegue</span>
         </button>
       </div>
 

@@ -362,12 +362,29 @@ export default function ExecutiveReportTemplate({
                 </div>
               ))}
             </div>
+
+            {/* NOTA METODOLÓGICA Y JUSTIFICACIÓN DE PONDERACIONES */}
+            <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50/70 text-[9px] text-slate-600 space-y-1">
+              <div className="font-bold text-slate-800 flex items-center justify-between">
+                <span>Fundamento Metodológico del Score Global (Escala 0 - 100 Puntos):</span>
+                <span className="font-mono text-slate-700">Modelo SSOT SAR</span>
+              </div>
+              <p className="leading-tight text-slate-500">
+                El Score Global evalúa el desempeño multidimensional para evitar sesgos por evaluar solo velocidad o solo volumen.
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-0.5 text-slate-700">
+                <div><strong className="text-emerald-700">30% Resolutiva:</strong> Misión central SAR de resolución ambulatoria y retención (meta ≥90%).</div>
+                <div><strong className="text-blue-700">30% Agilidad Triage:</strong> Seguridad vital del paciente; categorización oportuna (meta ≤15 min).</div>
+                <div><strong className="text-indigo-700">20% Lead Time:</strong> Rotación de box y descongestión sin forzar altas médicas apresuradas.</div>
+                <div><strong className="text-amber-700">20% Volumen:</strong> Reconocimiento de absorción de demanda sin castigar turnos de menor afluencia.</div>
+              </div>
+            </div>
           </div>
 
           {/* 6. PIE DE PÁGINA INSTITUCIONAL DE AUDITORÍA */}
           <div className="pt-4 border-t border-slate-300 text-[9.5px] text-slate-500 flex flex-wrap items-center justify-between gap-2">
             <div>
-              <span>Sistema MÉTRICO v6.3.71 • Dirección Técnica SAR Elsa Romo Aravena</span>
+              <span>Sistema MÉTRICO v6.3.73 • Dirección Técnica SAR Elsa Romo Aravena</span>
             </div>
             <div>
               <span>Documento Oficial Certificado para Toma de Decisiones Directivas</span>
