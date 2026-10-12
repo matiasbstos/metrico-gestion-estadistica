@@ -15,6 +15,33 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.74',
+      version: 'v6.3.74',
+      fecha: '12 de Octubre, 2026',
+      badge: 'CONSISTENCIA SSOT & COBERTURA DINÁMICA • REGLA 36: SINCRONIZACIÓN DEL UNIVERSO COMPLETO DE PACIENTES (31.406 PAC.) Y 4 GUARDIAS',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Sincronización del Universo Total de Demanda Asistencial en Rendimiento de Guardias (31.406 pac. YTD), Cobertura Dinámica y Matriz de 4 Turnos SAR',
+      categoria: 'Consistencia SSOT & Rendimiento',
+      icon: Users,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se resolvió la discrepancia de muestra observada en Rendimiento de Turnos (AnalisisComparativoTriple.jsx), donde por defecto se presentaba una ventana acotada de los últimos 3 meses (19.121 pacientes entre Junio y Octubre) en lugar del universo total acumulado YTD en el sistema (31.406 pacientes). A partir de esta versión: 1) El rango temporal por defecto se inicializa en el Año Completo 2026 (01/01/2026 a la fecha de corte), auditando los 31.406 pacientes ingresados. 2) La tarjeta de Muestra Auditada expone tanto el total evaluado como el universo global ingresado con badge dinámico de cobertura ("100% Universo YTD" o "X% Cobertura") y botón de restauración inmediata para volver a la muestra completa si se aplica un filtro mensual. 3) Se expandió la arquitectura analítica a los 4 Turnos Asistenciales Oficiales del SAR (Turnos 1, 2, 3 y 4) en las tarjetas Tremor (grid de 4 columnas), ComposedChart, TremorBarChart de Manchester, Radar de Competencias y Minería Clínica. 4) Se sincronizó el fallback de fecha inicial en ExecutiveReportPDF.jsx y el podio de 4 equipos en ExecutiveReportTemplate.jsx.',
+      instructivo: {
+        paraQueSirve: 'Garantiza consistencia absoluta entre los totales de demanda asistencial del sistema (31.406 pac.) y el módulo de rendimiento, permitiendo evaluar a los 4 equipos de guardia en paralelo sin sesgos por recortes temporales involuntarios.',
+        quePuedesVer: 'En Rendimiento de Turnos, la tarjeta superior indica "31.406 / 31.406 pac. sistema" con el distintivo verde "100% Universo YTD", 4 tarjetas Tremor simultáneas para los Turnos 1, 2, 3 y 4, y opciones de presets rápidas enriquecidas con el conteo de pacientes.',
+        ejemploUso: 'Si filtras por un mes específico como Septiembre y deseas regresar a la visión anual completa de todas las guardias, presiona el preset "Año 2026 Completo (31.406 pac.)" o el enlace "Auditar Universo Completo" en la tarjeta superior.'
+      },
+      changes: [
+        'Ajuste del rango temporal por defecto en AnalisisComparativoTriple.jsx a 2026-01-01 (Año Completo) con preset inicial ano_2026.',
+        'Cálculo dinámico de totalSistemaPacientes (31.406 pac.) y badge de cobertura porcentual en la tarjeta superior de Muestra Auditada.',
+        'Enlace interactivo de restauración inmediata "Auditar Universo Completo (31.406 pac.)" visible ante cualquier filtrado menor al 95% del universo.',
+        'Extensión del motor de comparación a los 4 Turnos Oficiales SAR (Turno 1, Turno 2, Turno 3 y Turno 4) mediante la incorporación de equipoColD / aliasD en teamsConfig.',
+        'Actualización de TremorCards en cuadrícula de 4 columnas (md:grid-cols-2 xl:grid-cols-4) con 4 esquemas de color institucional (Indigo, Violet, Emerald, Amber).',
+        'Actualización del podio scorecardRanking con semaforización completa (#1 Líder, #2 Desempeño Alto, #3 Operación Estable, #4 Brecha Operativa).',
+        'Integración del 4to turno en ComposedChart, TremorBarChart de Manchester C1-C5, RadarChart de Competencias y MiniSparklines de Minería Clínica.',
+        'Actualización del fallback fechaInicio a 2026-01-01 en ExecutiveReportPDF.jsx y cuadrícula de 4 turnos en ExecutiveReportTemplate.jsx.'
+      ]
+    },
+    {
       id: 'v6.3.73',
       version: 'v6.3.73',
       fecha: '12 de Octubre, 2026',

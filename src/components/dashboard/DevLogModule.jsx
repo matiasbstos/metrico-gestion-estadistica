@@ -8,6 +8,39 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-74',
+    titulo: 'Sincronización de Muestra Anual Completa (31.406 pac. YTD), Cobertura Dinámica y Matriz de 4 Turnos SAR',
+    fecha: '2026-10-12',
+    version_tag: 'v6.3.74',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_74.png',
+    problema: 'La muestra auditada por defecto en Rendimiento de Turnos (AnalisisComparativoTriple.jsx) exhibía 19.121 pacientes debido a una ventana acotada hardcodeada desde el 1 de junio de 2026, descalzando con los 31.406 pacientes totales registrados en el sistema al corte actual de octubre. Asimismo, el análisis requería visualizar a las 4 guardias asistenciales oficiales del SAR (Turnos 1, 2, 3 y 4) en igualdad de condiciones con métricas dinámicas de cobertura.',
+    logica: '1) Promulgación de la Regla 36 en .agents/AGENTS.md y Regla 27 en InformeArquitectura.jsx. 2) Sincronización de fechaInicio por defecto a 2026-01-01 (${currentYearStr}-01-01) y activePreset a ano_2026, abarcando el 100% del universo anual (31.406 pacientes). 3) Desambiguación aritmética: el tramo Ene-May sumaba 12.285 pac. y Jun-Oct sumaba 19.121 pac., totalizando con exactitud los 31.406 pac. de pacientesDB. 4) Tarjeta de Muestra Auditada con contador de pacientes auditados vs pacientes del sistema, badge verde 100% Universo YTD o ámbar X% Cobertura y botón restaurar a 1 clic. 5) Expansión completa a 4 turnos asistenciales (Turno 4 en ámbar #d97706) en cuadrícula Tremor de 4 columnas, ComposedChart con doble eje Y, TremorBarChart de Manchester, RadarChart de 5 ejes y MiniSparklines.',
+    solucion: 'Sincronización SSOT del universo completo de demanda (31.406 pac. YTD) en Rendimiento de Turnos, visualizador dinámico de cobertura muestral y comparativa integral para los 4 turnos de guardia del SAR.',
+    fullPost: `En esta versión v6.3.74 resolvimos la sincronización total del universo asistencial y la expansión a 4 turnos en Rendimiento de Guardias:
+
+1. **Resolución de la Muestra Auditada (19.121 vs 31.406 pacientes)**:
+   - **Causa Raíz**: El filtro inicial de fechaInicio estaba configurado estáticamente desde el \`2026-06-01\` (ventana de 4 meses y medio), dejando fuera el período Ene-May.
+   - **Demostración Aritmética 100% Exacta**:
+     * Período 01/01/2026 al 31/05/2026: **12.285 pacientes**.
+     * Período 01/06/2026 al 11/10/2026: **19.121 pacientes**.
+     * Sumatoria Total YTD: $12.285 + 19.121 = \\mathbf{31.406\\text{ pacientes}}$.
+   - **Solución Aplicada**: \`fechaInicio\` se sincroniza dinámicamente al 1° de enero del año actual (\`2026-01-01\`) con preset \`ano_2026\`, garantizando que al abrir el módulo se audite el 100% de los pacientes.
+
+2. **Tarjeta de Muestra Auditada con Cobertura Dinámica**:
+   - Muestra el conteo de pacientes auditados sobre el total del sistema: \`31.406 / 31.406 pac. sistema\`.
+   - Si el usuario aplica filtros o acota fechas, se calcula reactivamente la cobertura (\`X% Cobertura\`) con badge distintivo.
+   - Si la cobertura es menor al 100%, se despliega el botón restaurador \`Auditar Universo Completo (31.406 pac.)\` para regresar con un solo clic.
+
+3. **Matriz Cuádruple de Guardias Asistenciales (Turnos 1, 2, 3 y 4)**:
+   - Incorporación de **Turno 4** con paleta visual institucional ámbar (\`#d97706\`).
+   - Cuadrícula Tremor adaptada a 4 columnas (\`grid-cols-1 md:grid-cols-2 xl:grid-cols-4\`).
+   - ComposedChart con doble barra y líneas de latencia para las 4 guardias.
+   - Gráfico de Triage Manchester y RadarChart de 5 ejes adaptados para comparar Turno 1, Turno 2, Turno 3 y Turno 4.
+   - Scorecard y Podio de 4 niveles (#1 Líder, #2 Desempeño Alto, #3 Operación Estable, #4 Brecha Operativa).
+   - Reportes ejecutivos (ExecutiveReportPDF y ExecutiveReportTemplate) calibrados para exportación de 4 equipos.`
+  },
+  {
     id: 'devlog-v6-3-73',
     titulo: 'Apartado Metodológico del Score Global y Justificación Directiva de Ponderaciones (30/30/20/20)',
     fecha: '2026-10-12',

@@ -10,6 +10,27 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.74',
+    version_tag: 'v6.3.74',
+    fecha: '12 de Octubre, 2026',
+    fecha_despliegue: '12 de Octubre, 2026',
+    proposito_actualizacion: 'Sincronización del Universo Total de Demanda Asistencial en Rendimiento de Guardias (31.406 pac. YTD), Cobertura Dinámica y Matriz de 4 Turnos SAR (Regla 36 / Regla 27 Consolidada).',
+    medios_y_stack: [
+      '.agents/AGENTS.md (Promulgación de la Regla 36: Sincronización del universo total de demanda asistencial en rendimiento de guardias [31.406 pac. YTD], cobertura dinámica de muestra y matriz de 4 turnos SAR)',
+      'InformeArquitectura.jsx (Incorporación de Regla 27 en REGLAS_INSTITUCIONALES_METRICO, actualización del contador a 27 Reglas Certificadas y registro de v6.3.74)',
+      'AnalisisComparativoTriple.jsx (Sincronización de fechaInicio por defecto a 2026-01-01 [universo 31.406 pac.], tarjeta de Muestra Auditada con contador de pacientes del sistema, badge de cobertura YTD y botón restaurar; incorporación nativa de Turno 4 en teamsConfig [ámbar #d97706], cuadrícula de 4 columnas, ComposedChart con doble eje Y, TremorBarChart de Manchester, RadarChart y MiniSparklines)',
+      'ExecutiveReportPDF.jsx & ExecutiveReportTemplate.jsx (Sincronización de fechaInicio anual por defecto y cuadrícula adaptativa de 4 turnos para informe ejecutivo imprimible)',
+      'ModalMuroActualizaciones.jsx (Registro de actualización v6.3.74 e instructivo directivo de cobertura)',
+      'DevLogModule.jsx (Registro cronológico de ingeniería devlog-v6-3-74)',
+      'version.js (Sincronización a v6.3.74)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Sincronización obligatoria del universo total de demanda YTD en Rendimiento de Turnos (31.406 pacientes al 11/10/2026), erradicando el sesgo de ventana acotada Jun-Oct (19.121 pac.); métricas dinámicas de cobertura y soporte integral para las 4 guardias asistenciales oficiales del SAR (Turnos 1, 2, 3 y 4).',
+      firestore_collections: ['system_architecture_log', 'turnos_asistenciales', 'pautas_turnos', 'pacientes'],
+      documentos_afectados: ['src/components/dashboard/AnalisisComparativoTriple.jsx', 'src/components/dashboard/ExecutiveReportPDF.jsx', 'src/components/dashboard/ExecutiveReportTemplate.jsx', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx', '.agents/AGENTS.md']
+    }
+  },
+  {
     id: 'v6.3.73',
     version_tag: 'v6.3.73',
     fecha: '12 de Octubre, 2026',
@@ -5279,6 +5300,22 @@ export const REGLAS_INSTITUCIONALES_METRICO = [
       'Disponibilidad del Apartado Metodológico: Componente interactivo ApartadoScoreGlobal.jsx y notas de fundamentación en reportes ejecutivos (ExecutiveReportTemplate y Hoja 9 de ReportesModule).'
     ],
     normaTecnica: 'ApartadoScoreGlobal.jsx + Fundamentación 30/30/20/20 en UI y Reportes PDF'
+  },
+  {
+    id: 27,
+    numero: 'Regla 27',
+    titulo: 'Sincronización del Universo Total de Demanda Asistencial en Rendimiento de Guardias (31.406 pac. YTD), Cobertura Dinámica y Matriz de 4 Turnos SAR',
+    categoria: 'SSOT & Demanda Asistencial',
+    badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+    resumen: 'Obligación institucional de sincronizar la muestra auditada por defecto en el módulo de Rendimiento de Guardias con el año completo (01/01/2026 a fecha de corte), consolidando el universo completo de demanda (31.406 pacientes) en lugar de ventanas acotadas parciales (ej. 19.121 pac. Jun-Oct). La tarjeta de Muestra Auditada debe reportar la cobertura relativa (%) frente al universo del sistema y habilitar restauración a 1 clic, expandiendo la matriz comparativa a las 4 guardias oficiales del SAR (Turnos 1, 2, 3 y 4).',
+    directrices: [
+      'Universo Anual Completo por Defecto: fechaInicio sincronizada al 1° de enero del año en curso (YYYY-01-01), integrando el universo total YTD ingresado en pacientesDB (31.406 pacientes).',
+      'Desambiguación Aritmética de Muestra: Esclarecimiento matemático estricto: los 19.121 pacientes correspondían exclusivamente a la ventana Jun-Oct (19.121) sin sumar el tramo Ene-May (12.285), cuya adición totaliza exactamente los 31.406 pacientes del sistema.',
+      'Tarjeta de Muestra Auditada con Cobertura Dinámica: Despliegue de X pacientes auditados / Y pacientes sistema, con badge verde "100% Universo YTD" o ámbar "X% Cobertura" y enlace directo "Auditar Universo Completo".',
+      'Matriz Cuádruple de Guardias SAR: Incorporación homogénea de los 4 turnos asistenciales (Turno 1 Azul, Turno 2 Violeta, Turno 3 Esmeralda, Turno 4 Ámbar) en cuadrículas Tremor, ComposedChart con doble eje Y, desglose Manchester C1-C5, RadarChart de 5 ejes y MiniSparklines.',
+      'Alineación de Reportes PDF: ExecutiveReportPDF y ExecutiveReportTemplate reflejan la cuadrícula cuádruple de 4 columnas y fecha de corte anual.'
+    ],
+    normaTecnica: 'Universo YTD = 31.406 pac. + Cobertura Dinámica % + Matriz de 4 Turnos (ColA, ColB, ColC, ColD)'
   }
 ];
 
@@ -5491,7 +5528,7 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
-          <span>6. Normativa Oficial (26 Reglas SSOT) & Despliegue</span>
+          <span>6. Normativa Oficial (27 Reglas SSOT) & Despliegue</span>
         </button>
       </div>
 
@@ -6003,11 +6040,11 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
         </div>
       )}
 
-      {/* PESTAÑA 6: NORMATIVA OFICIAL (24 REGLAS SSOT) Y PROTOCOLO DE DESPLIEGUE */}
+      {/* PESTAÑA 6: NORMATIVA OFICIAL (27 REGLAS SSOT) Y PROTOCOLO DE DESPLIEGUE */}
       {(activeTab === 'protocolo' || true) && (
         <div className={`space-y-6 ${activeTab !== 'protocolo' ? 'hidden print:block' : ''}`}>
           
-          {/* BLOQUE MAESTRO: LAS 24 REGLAS CANÓNICAS DE INTEGRIDAD ASISTENCIAL (SSOT RAYEN) */}
+          {/* BLOQUE MAESTRO: LAS 27 REGLAS CANÓNICAS DE INTEGRIDAD ASISTENCIAL (SSOT RAYEN) */}
           <div className="bg-card-custom p-6 rounded-3xl border border-card-custom shadow-sm space-y-6 theme-transition print:border-gray print:bg-white">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-card-custom/50 pb-5">
               <div className="flex items-center gap-3">
@@ -6016,7 +6053,7 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-black text-primary-custom">Normativa Institucional & 25 Reglas Canónicas SSOT</h2>
+                    <h2 className="text-xl font-black text-primary-custom">Normativa Institucional & 27 Reglas Canónicas SSOT</h2>
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">
                       Inviolable & Permanente
                     </span>
@@ -6029,7 +6066,7 @@ export default function InformeArquitectura({ user, userProfile, isGlobalAdmin, 
 
               {/* CONTADOR DE REGLAS */}
               <div className="px-3.5 py-1.5 bg-black/5 dark:bg-white/5 rounded-xl border border-card-custom text-xs font-bold text-primary-custom">
-                25 Reglas Certificadas
+                27 Reglas Certificadas
               </div>
             </div>
 

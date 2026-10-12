@@ -281,6 +281,54 @@
       1) *Modo Analítico (por defecto)*: Scorecard matricial, gráficos radiales (RadarChart), curvas Manchester (ComposedChart), minería clínica y la Cuadrícula Tremor de Extremos por KPI (con tarjetas de Mejor Turno en esmeralda y Turno Rezagado en rosa/rojo).
       2) *Modo Informe Ejecutivo*: Vista minimalista de alta resolución en hoja simulada A4 blanca (`ExecutiveReportTemplate`), provista de síntesis narrativa automática por storytelling, 3 tarjetas de impacto (Punto Crítico 🔥, Punto Fuerte ⭐, Riesgo Detectado ⚠️), tabla de 3 columnas de extremos y exportador nativo a PDF dinámico (`Informe_SAR_[Mes]_[Año].pdf`) con `html2pdf.js`.
 
+34. **Transparencia Algorítmica del Score Global, Síntesis Ejecutiva Introductoria, Glosario Universal con Criterios de Evaluación y Subreporte PDF Modular (v6.3.72)**:
+    - **Fase 1: Síntesis Ejecutiva Introductoria (Veredicto del Período Ampliado)**:
+      El contenedor superior del Veredicto del Período en `AnalisisComparativoTriple.jsx` debe actuar como introducción formal al dashboard de rendimiento. Debe contener de forma inmutable el subtítulo institucional:
+      *"Esta herramienta evalúa el desempeño de las guardias mediante un modelo de puntuación ponderada (0-100 pts), priorizando la agilidad clínica, la resolución de pacientes y la capacidad de absorción."*
+      Junto a ello, debe desplegar tarjetas directivas destacadas para la guardia líder (con su puntuación en pts y fortaleza clínica) y para la guardia rezagada (con recomendación gerencial sobre su mayor brecha de mejora).
+    - **Fase 2: Transparencia Matemática del Score Global (Popover de Tremor)**:
+      En la Matriz de Clasificación, el ícono informativo `(ⓘ)` junto al encabezado de columna `SCORE GLOBAL` debe accionar un Popover interactivo amplio (`w-80 sm:w-96`, `z-[9999]`) al pasar el cursor, transparentando de dónde salen los puntos mediante los 4 pilares de ponderación oficial:
+      * **30% Tasa Resolutiva**: Premia la alta proporción de altas médicas directas y retención asistencial efectiva.
+      * **30% Agilidad Triage**: Premia el cumplimiento del estándar ministerial de categorización <= 15 min desde admisión.
+      * **20% Estadía (Lead Time)**: Puntaje inversamente proporcional al tiempo total de permanencia en el recinto.
+      * **20% Volumen**: Puntaje proporcional a la carga operativa total de pacientes absorbida.
+    - **Fase 3: Glosario Universal y Criterios de Evaluación en Tooltips**:
+      Todos los títulos de tarjetas Tremor, gráficos (Manchester, Radar) y módulos de Minería de Datos deben incorporar el ícono `(ⓘ)`. El tooltip debe definir obligatoriamente el indicador e indicar de forma explícita su criterio de evaluación y polaridad:
+      * *Latencia Triage*: "Mide el tiempo desde admisión hasta categorización. Criterio de evaluación: Polaridad negativa (menor tiempo = mayor puntaje). El estándar óptimo es <= 15 minutos."
+      * *Tasa de Fuga*: "Pacientes que se retiran sin atención médica. Criterio de evaluación: Polaridad negativa. Un aumento aquí penaliza severamente el puntaje de retención asistencial."
+      * *Extremos de la Vida, Reingreso < 48H, Rescate Crítico, Lead Time, Tasa Resolutiva y Tracker Horario*: Todos con polaridad y estándar institucional explícito.
+    - **Fase 4: Modularización y Enrutamiento Global del Subreporte PDF**:
+      1) *Componente Exportable Independiente*: El visor del documento ejecutivo se extrae y modulariza en `ExecutiveReportPDF.jsx` con soporte de cálculo autónomo reactivo mediante `scorecardEngine.js`.
+      2) *Enrutamiento en Router y Menú Lateral*: Se integra de forma nativa en `Dashboard.jsx` bajo la ruta `activeTab === 'rendimiento_pdf'`, accesible desde el menú lateral en "Subreportes" / "Gestión & Control".
+      3) *Consolidación en Reporte General Mensual*: Cuando la jefatura genera el "Reporte Ejecutivo General" del mes entero en `ReportesModule.jsx`, la **Hoja 9: Sub-reporte Rendimiento de Guardias & Scorecard** se consolida y adjunta automáticamente como una sección o anexo dentro del documento PDF global de salida.
+
+35. **Apartado Metodológico del Score Global y Justificación Directiva de Ponderaciones (30/30/20/20) (v6.3.73)**:
+    - **Principio de Claridad y Respaldo Asistencial Integral**:
+      El sistema debe proporcionar en la interfaz de usuario de Rendimiento de Turnos y en todos los reportes ejecutivos un apartado dedicado (`ApartadoScoreGlobal.jsx`) que explique de forma transparente, pedagógica y exhaustiva por qué existe el Score Global ponderado y por qué se fijaron exactamente esos 4 porcentajes:
+      1) *30% Tasa Resolutiva*: Misión fundamental del SAR de resolver patologías agudas en la red primaria ambulatoria, evitando derivaciones innecesarias a la UEH del Hospital Base y minimizando deserciones de pacientes (meta >= 90%).
+      2) *30% Agilidad de Triage (<= 15 min)*: Primera barrera crítica de seguridad del paciente. Permite detectar de inmediato cuadros con compromiso hemodinámico o riesgo vital (C1/C2). La seguridad vital es innegociable y comparte la ponderación más alta.
+      3) *20% Lead Time / Estadía Total*: Mide la eficiencia interna del flujo de box y rotación de camillas sin hacinamiento, pero se topa deliberadamente al 20% para no generar el incentivo perverso de dar altas prematuras que comprometan la observación médica.
+      4) *20% Capacidad de Absorción (Volumen)*: Reconoce la resiliencia operativa y el esfuerzo ante peaks de demanda comunitaria, pero se acota al 20% para no penalizar a los turnos que operan en días hábiles con menor afluencia exógena pero con impecable estándar asistencial.
+    - **Navegación e Interacción Directa**:
+      Tanto en la Síntesis Ejecutiva (Veredicto) como en la Matriz de Clasificación (Scorecard), el sistema debe ofrecer botones de navegación interactiva ("¿Por qué estos porcentajes? Ver Apartado Metodológico") que enfoquen o desplieguen el apartado metodológico.
+    - **Consolidación en Reportes Oficiales**:
+      El informe A4 one-pager (`ExecutiveReportTemplate.jsx`) y la Hoja 9 del informe mensual consolidado (`ReportesModule.jsx`) deben incorporar la caja metodológica de justificación de ponderaciones, garantizando que el documento impreso o exportado a PDF sea 100% autosuficiente.
+
+36. **Sincronización del Universo Total de Demanda Asistencial en Rendimiento de Guardias (31.406 pac. YTD), Cobertura Dinámica y Matriz de 4 Turnos SAR (v6.3.74)**:
+    - **Principio de Representatividad Anual Completa (31.406 pac. YTD)**:
+      El módulo de Rendimiento de Turnos (`AnalisisComparativoTriple.jsx`) debe auditar por defecto el universo completo del año en curso (desde el 01/01/2026 hasta la fecha de corte), garantizando que los 31.406 pacientes registrados en el sistema participen de la evaluación de guardias y suprimiendo cualquier filtro hardcodeado o acotado que limite la muestra (como la ventana previa del 01/06 al 11/10 que computaba 19.121 pacientes).
+    - **Desambiguación Aritmética de Muestra**:
+      Queda matemáticamente documentada la trazabilidad estricta: los 19.121 pacientes visualizados con anterioridad correspondían a la ventana Jun-Oct (19.121 pac.), a los cuales se suma el segmento Ene-May (12.285 pac.), completando de forma unívoca el total de 31.406 pacientes del sistema.
+    - **Tarjeta de Muestra Auditada con Cobertura Dinámica**:
+      La tarjeta superior debe reflejar `{pacientesAuditados} / {pacientesTotalesSistema} pac. sistema`, acompañada por un badge de cobertura relativa (`100% Universo YTD` o `X% Cobertura`). Si el usuario selecciona un preset acotado o fechas manuales, el sistema debe desplegar un enlace/botón restaurador ("Auditar Universo Completo (31.406 pac.)") para retornar con un solo clic a la muestra global.
+    - **Matriz Cuádruple de Guardias Asistenciales SAR**:
+      Toda la suite comparativa de guardias debe integrar de forma paritaria a los **4 turnos asistenciales del SAR** (`Turno 1` Azul #2563eb, `Turno 2` Violeta #7c3aed, `Turno 3` Esmeralda #059669, `Turno 4` Ámbar #d97706) en:
+      1) Cuadrícula Tremor de 4 columnas (`grid-cols-1 md:grid-cols-2 xl:grid-cols-4`).
+      2) ComposedChart con doble eje Y (barras de volumen e hiperlíneas de latencia para los 4 equipos).
+      3) Gráfico de Triage Manchester y RadarChart de 5 ejes con las 4 guardias.
+      4) Podio y Scorecard con clasificación de 4 rangos (#1 Líder Operativo, #2 Desempeño Alto, #3 Operación Estable, #4 Brecha Operativa).
+      5) MiniSparklines de 4 hitos en tarjetas Tremor y reportes ejecutivos exportables (`ExecutiveReportPDF` y `ExecutiveReportTemplate`).
+
 ---
 
 

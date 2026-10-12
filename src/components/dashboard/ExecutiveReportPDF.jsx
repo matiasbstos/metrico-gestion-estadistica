@@ -20,8 +20,9 @@ export default function ExecutiveReportPDF({
   onBack = null,
   setActiveTab = null
 }) {
-  // Rango de fechas normalizado
-  const fechaInicio = filtroFechaInicio || '2026-06-01';
+  // Rango de fechas normalizado (Por defecto institucional anual completo YTD)
+  const currentYearStr = new Date().getFullYear().toString();
+  const fechaInicio = filtroFechaInicio || `${currentYearStr}-01-01`;
   const fechaFin = filtroFechaFin || new Date().toISOString().split('T')[0];
 
   // Si los datos ya vienen pre-calculados desde el módulo padre, usarlos; de lo contrario, computar mediante scorecardEngine
