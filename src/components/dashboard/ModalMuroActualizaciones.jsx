@@ -15,6 +15,32 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.75',
+      version: 'v6.3.75',
+      fecha: '12 de Octubre, 2026',
+      badge: 'CALIBRACIÓN OPERATIVA DE GUARDIAS • REGLA 36: ROTACIÓN ACTIVA DE 3 TURNOS SAR (TURNOS 1, 2 Y 3) Y COBERTURA DEL 100% (31.406 PAC.)',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
+      title: 'Calibración del Módulo de Rendimiento a la Operación Activa Real de 3 Turnos SAR (Turnos 1, 2 y 3) manteniendo el 100% de la Demanda Auditada (31.406 pac.)',
+      categoria: 'Consistencia SSOT & Rendimiento',
+      icon: Users,
+      iconBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      summary: 'A solicitud directa de la jefatura operativa y en concordancia con la realidad asistencial del SAR Elsa Romo Aravena —donde la dotación médica y clínica funciona actualmente bajo una rotación de 3 turnos activos (Turno 1, Turno 2 y Turno 3) sin que el 4to turno se encuentre operativo—, se calibró integralmente el módulo de Rendimiento de Guardias (AnalisisComparativoTriple.jsx), el motor de clasificación (scorecardEngine.js) y los reportes ejecutivos (ExecutiveReportPDF.jsx, ExecutiveReportTemplate.jsx, ReportesModule.jsx). Se depuraron las series y columnas inactivas del 4to turno en tarjetas Tremor (grid simétrico de 3 columnas), ComposedChart, radar de competencias, minería clínica y podio de clasificación (#1 Líder Operativo, #2 Desempeño Alto, #3 Brecha Operativa), preservando intacta la muestra auditada del 100% del universo de 31.406 pacientes del año 2026.',
+      instructivo: {
+        paraQueSirve: 'Alinea la evaluación y comparación de desempeño de guardias a la estructura real y vigente de 3 turnos rotativos en servicio activo, eliminando columnas inactivas del 4to turno mientras audita la totalidad de los 31.406 pacientes del sistema.',
+        quePuedesVer: 'Una matriz y cuadrícula simétrica de 3 turnos operativos (Turno 1, Turno 2 y Turno 3), con podio de 3 posiciones (#1, #2 y #3), gráficos radar y de barras con 3 series activas, y la tarjeta superior de Muestra Auditada con el 100% del universo evaluado.',
+        ejemploUso: 'Ingresa a Rendimiento de Turnos para auditar la comparativa directa entre los Turnos 1, 2 y 3, verificando la cobertura del 100% (31.406 pacientes) y su desempeño en agilidad, resolutividad, estadía y absorción.'
+      },
+      changes: [
+        'Calibración de la selección y buckets de guardia en AnalisisComparativoTriple.jsx a los 3 turnos en funcionamiento activo: Turno 1, Turno 2 y Turno 3.',
+        'Reestructuración de TremorCards en cuadrícula de 3 columnas (grid-cols-1 md:grid-cols-2 lg:grid-cols-3) para Turno 1 (Índigo), Turno 2 (Violeta) y Turno 3 (Esmeralda).',
+        'Ajuste del podio scorecardRanking a 3 niveles jerárquicos: #1 Líder Operativo, #2 Desempeño Alto y #3 Brecha Operativa.',
+        'Depuración de series inactivas del 4to turno en ComposedChart, TremorBarChart de Manchester C1-C5, RadarChart de Competencias y MiniSparklines.',
+        'Sincronización de scorecardEngine.js y ReportesModule.jsx (Hoja 9) con el array de 3 turnos operativos por defecto.',
+        'Actualización del informe ejecutivo imprimible y descargable (ExecutiveReportTemplate.jsx y ExecutiveReportPDF.jsx) a 3 columnas simétricas de turno.',
+        'Preservación estricta del universo auditado de 31.406 pacientes YTD con badges dinámicos de cobertura y botón de restauración inmediata.'
+      ]
+    },
+    {
       id: 'v6.3.74',
       version: 'v6.3.74',
       fecha: '12 de Octubre, 2026',

@@ -10,6 +10,29 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.75',
+    version_tag: 'v6.3.75',
+    fecha: '12 de Octubre, 2026',
+    fecha_despliegue: '12 de Octubre, 2026',
+    proposito_actualizacion: 'Calibración del Módulo de Rendimiento a la Operación Activa Real de 3 Turnos SAR (Turnos 1, 2 y 3) manteniendo el 100% de la Demanda Auditada (31.406 pac. YTD) (Regla 36 / Regla 27 Calibrada).',
+    medios_y_stack: [
+      '.agents/AGENTS.md (Actualización de Regla 36: Calibración operativa a 3 turnos activos SAR [Turno 1, 2 y 3] y preservación del universo completo de 31.406 pac.)',
+      'InformeArquitectura.jsx (Calibración de Regla 27 en REGLAS_INSTITUCIONALES_METRICO para reflejar los 3 turnos en servicio activo y registro de v6.3.75)',
+      'AnalisisComparativoTriple.jsx (Calibración de equipoOptions a Turnos 1, 2 y 3; reestructuración de TremorCards en 3 columnas [grid-cols-1 md:grid-cols-2 lg:grid-cols-3]; depuración de series inactivas del 4to turno en ComposedChart, TremorBarChart de Manchester C1-C5, RadarChart y MiniSparklines; ajuste de podio scorecardRanking a 3 niveles jerárquicos)',
+      'scorecardEngine.js (Sincronización del parámetro teams a Turnos 1, 2 y 3 por defecto y podio de 3 rangos)',
+      'ExecutiveReportPDF.jsx & ExecutiveReportTemplate.jsx (Calibración de matriz comparativa a 3 turnos operativos y podio de 3 columnas en informe imprimible)',
+      'ReportesModule.jsx (Sincronización de Hoja 9 del Sub-reporte Rendimiento de Guardias a los 3 turnos activos)',
+      'ModalMuroActualizaciones.jsx (Registro de actualización v6.3.75 e instructivo directivo de guardias activas)',
+      'DevLogModule.jsx (Registro cronológico de ingeniería devlog-v6-3-75)',
+      'version.js (Sincronización a v6.3.75)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Calibración estricta de la evaluación comparativa de guardias a la dotación real y operativa del SAR Elsa Romo Aravena (3 turnos rotativos: Turno 1, Turno 2 y Turno 3), excluyendo el 4to turno inactivo para evitar distorsiones o columnas vacías, preservando el 100% del universo de 31.406 pacientes auditados del sistema.',
+      firestore_collections: ['system_architecture_log', 'turnos_asistenciales', 'pautas_turnos', 'pacientes'],
+      documentos_afectados: ['src/components/dashboard/AnalisisComparativoTriple.jsx', 'src/utils/scorecardEngine.js', 'src/components/dashboard/ExecutiveReportPDF.jsx', 'src/components/dashboard/ExecutiveReportTemplate.jsx', 'src/components/dashboard/ReportesModule.jsx', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx', '.agents/AGENTS.md']
+    }
+  },
+  {
     id: 'v6.3.74',
     version_tag: 'v6.3.74',
     fecha: '12 de Octubre, 2026',
@@ -5304,18 +5327,18 @@ export const REGLAS_INSTITUCIONALES_METRICO = [
   {
     id: 27,
     numero: 'Regla 27',
-    titulo: 'Sincronización del Universo Total de Demanda Asistencial en Rendimiento de Guardias (31.406 pac. YTD), Cobertura Dinámica y Matriz de 4 Turnos SAR',
+    titulo: 'Sincronización del Universo Total de Demanda Asistencial en Rendimiento de Guardias (31.406 pac. YTD), Cobertura Dinámica y Matriz Activa de 3 Turnos SAR',
     categoria: 'SSOT & Demanda Asistencial',
     badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
-    resumen: 'Obligación institucional de sincronizar la muestra auditada por defecto en el módulo de Rendimiento de Guardias con el año completo (01/01/2026 a fecha de corte), consolidando el universo completo de demanda (31.406 pacientes) en lugar de ventanas acotadas parciales (ej. 19.121 pac. Jun-Oct). La tarjeta de Muestra Auditada debe reportar la cobertura relativa (%) frente al universo del sistema y habilitar restauración a 1 clic, expandiendo la matriz comparativa a las 4 guardias oficiales del SAR (Turnos 1, 2, 3 y 4).',
+    resumen: 'Obligación institucional de sincronizar la muestra auditada por defecto en Rendimiento de Guardias con el año completo (01/01/2026 a fecha de corte), consolidando el universo completo de demanda (31.406 pacientes) en lugar de ventanas acotadas parciales (ej. 19.121 pac. Jun-Oct), y calibrando la evaluación de desempeño a la dotación real y operativa de 3 turnos en servicio activo (Turno 1, Turno 2 y Turno 3), suprimiendo la columna inactiva del 4to turno.',
     directrices: [
       'Universo Anual Completo por Defecto: fechaInicio sincronizada al 1° de enero del año en curso (YYYY-01-01), integrando el universo total YTD ingresado en pacientesDB (31.406 pacientes).',
       'Desambiguación Aritmética de Muestra: Esclarecimiento matemático estricto: los 19.121 pacientes correspondían exclusivamente a la ventana Jun-Oct (19.121) sin sumar el tramo Ene-May (12.285), cuya adición totaliza exactamente los 31.406 pacientes del sistema.',
       'Tarjeta de Muestra Auditada con Cobertura Dinámica: Despliegue de X pacientes auditados / Y pacientes sistema, con badge verde "100% Universo YTD" o ámbar "X% Cobertura" y enlace directo "Auditar Universo Completo".',
-      'Matriz Cuádruple de Guardias SAR: Incorporación homogénea de los 4 turnos asistenciales (Turno 1 Azul, Turno 2 Violeta, Turno 3 Esmeralda, Turno 4 Ámbar) en cuadrículas Tremor, ComposedChart con doble eje Y, desglose Manchester C1-C5, RadarChart de 5 ejes y MiniSparklines.',
-      'Alineación de Reportes PDF: ExecutiveReportPDF y ExecutiveReportTemplate reflejan la cuadrícula cuádruple de 4 columnas y fecha de corte anual.'
+      'Matriz Activa de 3 Guardias SAR: Incorporación homogénea de los 3 turnos asistenciales en servicio activo (Turno 1 Índigo, Turno 2 Violeta, Turno 3 Esmeralda) en cuadrículas Tremor (grid de 3 columnas), ComposedChart con doble eje Y, desglose Manchester C1-C5, RadarChart de 5 ejes y MiniSparklines, excluyendo el 4to turno inactivo de la rotación.',
+      'Alineación de Reportes PDF: ExecutiveReportPDF y ExecutiveReportTemplate reflejan la cuadrícula de 3 columnas de turno y fecha de corte anual.'
     ],
-    normaTecnica: 'Universo YTD = 31.406 pac. + Cobertura Dinámica % + Matriz de 4 Turnos (ColA, ColB, ColC, ColD)'
+    normaTecnica: 'Universo YTD = 31.406 pac. + Cobertura Dinámica % + Matriz Activa de 3 Turnos SAR (Turno 1, 2 y 3)'
   }
 ];
 

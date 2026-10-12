@@ -40,7 +40,7 @@ export default function ExecutiveReportPDF({
       pautasDB,
       fechaInicio,
       fechaFin,
-      teams: ['Turno 1', 'Turno 2', 'Turno 3', 'Turno 4']
+      teams: ['Turno 1', 'Turno 2', 'Turno 3']
     });
   }, [pacientesDB, turnosDB, pautasDB, fechaInicio, fechaFin, propScorecardRanking, propGlobalAggregates, propKpiExtremes]);
 

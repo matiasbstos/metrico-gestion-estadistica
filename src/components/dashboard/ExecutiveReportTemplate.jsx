@@ -339,7 +339,7 @@ export default function ExecutiveReportTemplate({
               Clasificación de Desempeño Global (Scorecard SAR)
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               {scorecardRanking.map((t, idx) => (
                 <div 
                   key={t.slotId || idx} 
@@ -384,7 +384,7 @@ export default function ExecutiveReportTemplate({
           {/* 6. PIE DE PÁGINA INSTITUCIONAL DE AUDITORÍA */}
           <div className="pt-4 border-t border-slate-300 text-[9.5px] text-slate-500 flex flex-wrap items-center justify-between gap-2">
             <div>
-              <span>Sistema MÉTRICO v6.3.73 • Dirección Técnica SAR Elsa Romo Aravena</span>
+              <span>Sistema MÉTRICO v6.3.75 • Dirección Técnica SAR Elsa Romo Aravena</span>
             </div>
             <div>
               <span>Documento Oficial Certificado para Toma de Decisiones Directivas</span>

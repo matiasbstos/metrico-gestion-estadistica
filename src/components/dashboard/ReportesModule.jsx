@@ -120,7 +120,7 @@ export default function ReportesModule({
       pautasDB,
       fechaInicio: fechas.rawInicio,
       fechaFin: fechas.rawFin,
-      teams: ['Turno 1', 'Turno 2', 'Turno 3', 'Turno 4']
+      teams: ['Turno 1', 'Turno 2', 'Turno 3']
     });
   }, [pacientesDB, turnosDB, pautasDB, fechas.rawInicio, fechas.rawFin]);
 

@@ -160,21 +160,18 @@ export default function AnalisisComparativoTriple({
   });
   const [activePreset, setActivePreset] = useState('ano_2026');
 
-  // Equipos seleccionados para cada uno de los 4 slots de comparación oficial SAR
+  // Equipos seleccionados para cada uno de los 3 slots de comparación oficial SAR
   const [equipoColA, setEquipoColA] = useState('Turno 1');
   const [equipoColB, setEquipoColB] = useState('Turno 2');
   const [equipoColC, setEquipoColC] = useState('Turno 3');
-  const [equipoColD, setEquipoColD] = useState('Turno 4');
 
   // Alias visuales personalizables
   const [aliasA, setAliasA] = useState('Turno 1');
   const [aliasB, setAliasB] = useState('Turno 2');
   const [aliasC, setAliasC] = useState('Turno 3');
-  const [aliasD, setAliasD] = useState('Turno 4');
   const [isEditingAliasA, setIsEditingAliasA] = useState(false);
   const [isEditingAliasB, setIsEditingAliasB] = useState(false);
   const [isEditingAliasC, setIsEditingAliasC] = useState(false);
-  const [isEditingAliasD, setIsEditingAliasD] = useState(false);
 
   // Modo de barras para el ComposedChart (agrupadas vs apiladas)
   const [chartBarMode, setChartBarMode] = useState('grouped'); // 'grouped' | 'stacked'
@@ -182,7 +179,7 @@ export default function AnalisisComparativoTriple({
   // FASE 2: Interfaz Dual (Analista vs Ejecutivo)
   const [modoVista, setModoVista] = useState('analitico'); // 'analitico' (defecto) | 'ejecutivo'
 
-  const equipoOptions = ['Turno 1', 'Turno 2', 'Turno 3', 'Turno 4'];
+  const equipoOptions = ['Turno 1', 'Turno 2', 'Turno 3'];
 
   // Presets globales de fechas
   const handleApplyPreset = (presetKey) => {
@@ -232,7 +229,7 @@ export default function AnalisisComparativoTriple({
     }
   };
 
-  // Configuración de los 4 slots de equipos evaluados (Turnos 1, 2, 3 y 4)
+  // Configuración de los 3 slots de equipos evaluados (Turnos 1, 2 y 3)
   const teamsConfig = useMemo(() => [
     {
       id: 'A',
@@ -278,23 +275,8 @@ export default function AnalisisComparativoTriple({
       accentColor: '#34d399',
       badgeBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
       borderClass: 'border-emerald-500'
-    },
-    {
-      id: 'D',
-      selectedTeam: equipoColD,
-      setSelectedTeam: setEquipoColD,
-      alias: aliasD,
-      setAlias: setAliasD,
-      isEditing: isEditingAliasD,
-      setIsEditing: setIsEditingAliasD,
-      color: '#d97706', // Amber Gold
-      barColor: '#f59e0b',
-      lineColor: '#3b82f6', // High-contrast Blue line
-      accentColor: '#fbbf24',
-      badgeBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',
-      borderClass: 'border-amber-500'
     }
-  ], [equipoColA, equipoColB, equipoColC, equipoColD, aliasA, aliasB, aliasC, aliasD, isEditingAliasA, isEditingAliasB, isEditingAliasC, isEditingAliasD]);
+  ], [equipoColA, equipoColB, equipoColC, aliasA, aliasB, aliasC, isEditingAliasA, isEditingAliasB, isEditingAliasC]);
 
   // CÁLCULO EXHAUSTIVO DE KPIS COMPARATIVOS Y MINERÍA DE DATOS CLÍNICA (FASES 1, 2, 3 Y 4)
   const { teamMetrics, globalAggregates } = useMemo(() => {
@@ -340,8 +322,7 @@ export default function AnalisisComparativoTriple({
     const buckets = {
       'Turno 1': makeInitialTeamBucket('Turno 1'),
       'Turno 2': makeInitialTeamBucket('Turno 2'),
-      'Turno 3': makeInitialTeamBucket('Turno 3'),
-      'Turno 4': makeInitialTeamBucket('Turno 4')
+      'Turno 3': makeInitialTeamBucket('Turno 3')
     };
 
     const startIso = fechaInicio;
@@ -424,7 +405,6 @@ export default function AnalisisComparativoTriple({
           if (teamName && teamName.includes('1')) teamName = 'Turno 1';
           else if (teamName && teamName.includes('2')) teamName = 'Turno 2';
           else if (teamName && teamName.includes('3')) teamName = 'Turno 3';
-          else if (teamName && teamName.includes('4')) teamName = 'Turno 4';
           else teamName = 'Turno 1';
         }
 
@@ -658,8 +638,7 @@ export default function AnalisisComparativoTriple({
       const baselineDefaults = {
         'Turno 1': { total: 4820, atendidos: 4435, altas: 385, fugas: 269, wait: 18, stay: 118, boxWait: 38, c1: 12, c2: 145, c3: 1840, c4: 2120, c5: 703, guardias: 46, traslados: 165, traslCrit: 32, reingresos: 164, ped: 1150, sen: 1030 },
         'Turno 2': { total: 4650, atendidos: 4185, altas: 465, fugas: 335, wait: 24, stay: 134, boxWait: 48, c1: 18, c2: 180, c3: 2110, c4: 1820, c5: 522, guardias: 45, traslados: 198, traslCrit: 48, reingresos: 223, ped: 1110, sen: 1150 },
-        'Turno 3': { total: 4510, atendidos: 4240, altas: 270, fugas: 185, wait: 21, stay: 126, boxWait: 42, c1: 10, c2: 130, c3: 1720, c4: 2050, c5: 600, guardias: 44, traslados: 142, traslCrit: 26, reingresos: 140, ped: 1080, sen: 895 },
-        'Turno 4': { total: 4420, atendidos: 4110, altas: 310, fugas: 215, wait: 22, stay: 129, boxWait: 44, c1: 14, c2: 135, c3: 1780, c4: 1980, c5: 511, guardias: 43, traslados: 150, traslCrit: 30, reingresos: 155, ped: 1040, sen: 920 }
+        'Turno 3': { total: 4510, atendidos: 4240, altas: 270, fugas: 185, wait: 21, stay: 126, boxWait: 42, c1: 10, c2: 130, c3: 1720, c4: 2050, c5: 600, guardias: 44, traslados: 142, traslCrit: 26, reingresos: 140, ped: 1080, sen: 895 }
       };
 
       Object.keys(baselineDefaults).forEach(tKey => {
@@ -813,8 +792,7 @@ export default function AnalisisComparativoTriple({
     const activeTeams = [
       processedMetrics[equipoColA], 
       processedMetrics[equipoColB], 
-      processedMetrics[equipoColC],
-      processedMetrics[equipoColD]
+      processedMetrics[equipoColC]
     ].filter(Boolean);
     const avgTotalPac = activeTeams.length > 0 ? activeTeams.reduce((a, b) => a + b.totalPacientes, 0) / activeTeams.length : 0;
     const avgAtendidos = activeTeams.length > 0 ? activeTeams.reduce((a, b) => a + b.atendidos, 0) / activeTeams.length : 0;
@@ -841,7 +819,7 @@ export default function AnalisisComparativoTriple({
     };
 
     return { teamMetrics: processedMetrics, globalAggregates: globalAggs };
-  }, [pacientesDB, turnosDB, pautasDB, fechaInicio, fechaFin, equipoColA, equipoColB, equipoColC, equipoColD]);
+  }, [pacientesDB, turnosDB, pautasDB, fechaInicio, fechaFin, equipoColA, equipoColB, equipoColC]);
 
   // FASE 1: MATRIZ DE CLASIFICACIÓN DE DESEMPEÑO (SCORECARD RANKING & SEMAFORIZACIÓN)
   const scorecardRanking = useMemo(() => {
@@ -916,15 +894,13 @@ export default function AnalisisComparativoTriple({
     return rankedList.map((item, idx) => ({
       ...item,
       rank: idx + 1,
-      rankTitle: idx === 0 ? '#1 Líder Operativo' : idx === 1 ? '#2 Desempeño Alto' : idx === 2 ? '#3 Operación Estable' : '#4 Brecha Operativa',
-      rankBadge: idx === 0 ? '#1 Líder Operativo' : idx === 1 ? '#2 Desempeño Alto' : idx === 2 ? '#3 Operación Estable' : '#4 Brecha Operativa',
+      rankTitle: idx === 0 ? '#1 Líder Operativo' : idx === 1 ? '#2 Desempeño Alto' : '#3 Brecha Operativa',
+      rankBadge: idx === 0 ? '#1 Líder Operativo' : idx === 1 ? '#2 Desempeño Alto' : '#3 Brecha Operativa',
       rankClass: idx === 0 
         ? 'border-amber-500/50 bg-amber-500/5 shadow-amber-500/10' 
         : idx === 1 
           ? 'border-slate-400/40 bg-slate-400/5' 
-          : idx === 2
-            ? 'border-card-custom bg-black/5 dark:bg-white/5'
-            : 'border-rose-500/30 bg-rose-500/5'
+          : 'border-card-custom bg-black/5 dark:bg-white/5'
     }));
   }, [teamsConfig, teamMetrics]);
 
@@ -1011,14 +987,13 @@ export default function AnalisisComparativoTriple({
     const sA = teamMetrics[equipoColA] || {};
     const sB = teamMetrics[equipoColB] || {};
     const sC = teamMetrics[equipoColC] || {};
-    const sD = teamMetrics[equipoColD] || {};
 
     // 1. Agilidad de Triaje (Menor tiempo de espera = mayor puntaje)
     // Escala: 10 min o menos = 100 pts, 45 min = 40 pts
     const calcAgilidad = (waitMin) => Math.max(15, Math.min(100, Math.round(100 - Math.max(0, (waitMin || 25) - 10) * 1.8)));
 
     // 2. Capacidad de Absorción (Volumen atendido relativo al máximo)
-    const maxV = Math.max(sA.totalPacientes || 0, sB.totalPacientes || 0, sC.totalPacientes || 0, sD.totalPacientes || 0, 1);
+    const maxV = Math.max(sA.totalPacientes || 0, sB.totalPacientes || 0, sC.totalPacientes || 0, 1);
     const calcAbsorcion = (vol) => Math.max(30, Math.min(100, Math.round(45 + ((vol || 0) / maxV) * 55)));
 
     // 3. Resolutividad C1-C3 (Mayor % de alta complejidad = mayor puntaje)
@@ -1036,11 +1011,9 @@ export default function AnalisisComparativoTriple({
         [aliasA]: calcAgilidad(sA.promEsperaTriage),
         [aliasB]: calcAgilidad(sB.promEsperaTriage),
         [aliasC]: calcAgilidad(sC.promEsperaTriage),
-        [aliasD]: calcAgilidad(sD.promEsperaTriage),
         rawA: `${sA.promEsperaTriage || 0} min`,
         rawB: `${sB.promEsperaTriage || 0} min`,
         rawC: `${sC.promEsperaTriage || 0} min`,
-        rawD: `${sD.promEsperaTriage || 0} min`,
         desc: 'Velocidad de categorización médica inicial'
       },
       {
@@ -1048,11 +1021,9 @@ export default function AnalisisComparativoTriple({
         [aliasA]: calcAbsorcion(sA.totalPacientes),
         [aliasB]: calcAbsorcion(sB.totalPacientes),
         [aliasC]: calcAbsorcion(sC.totalPacientes),
-        [aliasD]: calcAbsorcion(sD.totalPacientes),
         rawA: `${(sA.totalPacientes || 0).toLocaleString()} pac.`,
         rawB: `${(sB.totalPacientes || 0).toLocaleString()} pac.`,
         rawC: `${(sC.totalPacientes || 0).toLocaleString()} pac.`,
-        rawD: `${(sD.totalPacientes || 0).toLocaleString()} pac.`,
         desc: 'Volumen total de admisiones absorbidas'
       },
       {
@@ -1060,11 +1031,9 @@ export default function AnalisisComparativoTriple({
         [aliasA]: calcComplejidad(sA.altaComplejidadPct),
         [aliasB]: calcComplejidad(sB.altaComplejidadPct),
         [aliasC]: calcComplejidad(sC.altaComplejidadPct),
-        [aliasD]: calcComplejidad(sD.altaComplejidadPct),
         rawA: `${sA.altaComplejidadPct || 0}%`,
         rawB: `${sB.altaComplejidadPct || 0}%`,
         rawC: `${sC.altaComplejidadPct || 0}%`,
-        rawD: `${sD.altaComplejidadPct || 0}%`,
         desc: 'Proporción de atención en alta complejidad'
       },
       {
@@ -1072,11 +1041,9 @@ export default function AnalisisComparativoTriple({
         [aliasA]: calcRetencion(sA.pctAltasAdmin),
         [aliasB]: calcRetencion(sB.pctAltasAdmin),
         [aliasC]: calcRetencion(sC.pctAltasAdmin),
-        [aliasD]: calcRetencion(sD.pctAltasAdmin),
         rawA: `${(100 - Number(sA.pctAltasAdmin || 0)).toFixed(1)}%`,
         rawB: `${(100 - Number(sB.pctAltasAdmin || 0)).toFixed(1)}%`,
         rawC: `${(100 - Number(sC.pctAltasAdmin || 0)).toFixed(1)}%`,
-        rawD: `${(100 - Number(sD.pctAltasAdmin || 0)).toFixed(1)}%`,
         desc: 'Mínima deserción / egreso administrativo'
       },
       {
@@ -1084,15 +1051,13 @@ export default function AnalisisComparativoTriple({
         [aliasA]: calcVelocidadBox(sA.promTriageToBox),
         [aliasB]: calcVelocidadBox(sB.promTriageToBox),
         [aliasC]: calcVelocidadBox(sC.promTriageToBox),
-        [aliasD]: calcVelocidadBox(sD.promTriageToBox),
         rawA: `${sA.promTriageToBox || 0} min`,
         rawB: `${sB.promTriageToBox || 0} min`,
         rawC: `${sC.promTriageToBox || 0} min`,
-        rawD: `${sD.promTriageToBox || 0} min`,
         desc: 'Flujo rápido de permanencia en box médico'
       }
     ];
-  }, [teamMetrics, equipoColA, equipoColB, equipoColC, equipoColD, aliasA, aliasB, aliasC, aliasD]);
+  }, [teamMetrics, equipoColA, equipoColB, equipoColC, aliasA, aliasB, aliasC]);
 
   // Arquetipos operativos identificados desde el radar para toma de decisiones gerencial
   const operationalArchetypes = useMemo(() => {
@@ -1149,17 +1114,14 @@ export default function AnalisisComparativoTriple({
     const sA = teamMetrics[equipoColA] || {};
     const sB = teamMetrics[equipoColB] || {};
     const sC = teamMetrics[equipoColC] || {};
-    const sD = teamMetrics[equipoColD] || {};
 
     const keyVolA = `${aliasA} (Volumen)`;
     const keyVolB = `${aliasB} (Volumen)`;
     const keyVolC = `${aliasC} (Volumen)`;
-    const keyVolD = `${aliasD} (Volumen)`;
 
     const keyWaitA = `${aliasA} (T. Espera min)`;
     const keyWaitB = `${aliasB} (T. Espera min)`;
     const keyWaitC = `${aliasC} (T. Espera min)`;
-    const keyWaitD = `${aliasD} (T. Espera min)`;
 
     return [
       { 
@@ -1168,11 +1130,9 @@ export default function AnalisisComparativoTriple({
         [keyVolA]: sA.c1 || 0,
         [keyVolB]: sB.c1 || 0,
         [keyVolC]: sC.c1 || 0,
-        [keyVolD]: sD.c1 || 0,
         [keyWaitA]: sA.esperaC1 || 0,
         [keyWaitB]: sB.esperaC1 || 0,
         [keyWaitC]: sC.esperaC1 || 0,
-        [keyWaitD]: sD.esperaC1 || 0,
       },
       { 
         name: 'C2', 
@@ -1180,11 +1140,9 @@ export default function AnalisisComparativoTriple({
         [keyVolA]: sA.c2 || 0,
         [keyVolB]: sB.c2 || 0,
         [keyVolC]: sC.c2 || 0,
-        [keyVolD]: sD.c2 || 0,
         [keyWaitA]: sA.esperaC2 || 0,
         [keyWaitB]: sB.esperaC2 || 0,
         [keyWaitC]: sC.esperaC2 || 0,
-        [keyWaitD]: sD.esperaC2 || 0,
       },
       { 
         name: 'C3', 
@@ -1192,11 +1150,9 @@ export default function AnalisisComparativoTriple({
         [keyVolA]: sA.c3 || 0,
         [keyVolB]: sB.c3 || 0,
         [keyVolC]: sC.c3 || 0,
-        [keyVolD]: sD.c3 || 0,
         [keyWaitA]: sA.esperaC3 || 0,
         [keyWaitB]: sB.esperaC3 || 0,
         [keyWaitC]: sC.esperaC3 || 0,
-        [keyWaitD]: sD.esperaC3 || 0,
       },
       { 
         name: 'C4', 
@@ -1204,11 +1160,9 @@ export default function AnalisisComparativoTriple({
         [keyVolA]: sA.c4 || 0,
         [keyVolB]: sB.c4 || 0,
         [keyVolC]: sC.c4 || 0,
-        [keyVolD]: sD.c4 || 0,
         [keyWaitA]: sA.esperaC4 || 0,
         [keyWaitB]: sB.esperaC4 || 0,
         [keyWaitC]: sC.esperaC4 || 0,
-        [keyWaitD]: sD.esperaC4 || 0,
       },
       { 
         name: 'C5', 
@@ -1216,14 +1170,12 @@ export default function AnalisisComparativoTriple({
         [keyVolA]: sA.c5 || 0,
         [keyVolB]: sB.c5 || 0,
         [keyVolC]: sC.c5 || 0,
-        [keyVolD]: sD.c5 || 0,
         [keyWaitA]: sA.esperaC5 || 0,
         [keyWaitB]: sB.esperaC5 || 0,
         [keyWaitC]: sC.esperaC5 || 0,
-        [keyWaitD]: sD.esperaC5 || 0,
       },
     ];
-  }, [teamMetrics, equipoColA, equipoColB, equipoColC, equipoColD, aliasA, aliasB, aliasC, aliasD]);
+  }, [teamMetrics, equipoColA, equipoColB, equipoColC, aliasA, aliasB, aliasC]);
 
   // Helper para badge de delta con flechas institucionales 🔺 / 🔻
   const renderTrendBadge = (value, avg, invertGood = false, isPercent = false, suffix = '') => {
@@ -1258,11 +1210,9 @@ export default function AnalisisComparativoTriple({
   const seriesVolA = `${aliasA} (Volumen)`;
   const seriesVolB = `${aliasB} (Volumen)`;
   const seriesVolC = `${aliasC} (Volumen)`;
-  const seriesVolD = `${aliasD} (Volumen)`;
   const seriesWaitA = `${aliasA} (T. Espera min)`;
   const seriesWaitB = `${aliasB} (T. Espera min)`;
   const seriesWaitC = `${aliasC} (T. Espera min)`;
-  const seriesWaitD = `${aliasD} (T. Espera min)`;
 
   // Modo de visualización para comparativa Manchester (Tremor BarChart vs Recharts ComposedChart)
   const [manchesterViewMode, setManchesterViewMode] = useState('tremor'); // 'tremor' | 'composed'
@@ -1326,16 +1276,15 @@ export default function AnalisisComparativoTriple({
     const sA = teamMetrics[equipoColA] || {};
     const sB = teamMetrics[equipoColB] || {};
     const sC = teamMetrics[equipoColC] || {};
-    const sD = teamMetrics[equipoColD] || {};
 
     return [
-      { name: 'C1 Reanimación', [aliasA]: sA.c1 || 0, [aliasB]: sB.c1 || 0, [aliasC]: sC.c1 || 0, [aliasD]: sD.c1 || 0 },
-      { name: 'C2 Emergencia', [aliasA]: sA.c2 || 0, [aliasB]: sB.c2 || 0, [aliasC]: sC.c2 || 0, [aliasD]: sD.c2 || 0 },
-      { name: 'C3 Urgencia', [aliasA]: sA.c3 || 0, [aliasB]: sB.c3 || 0, [aliasC]: sC.c3 || 0, [aliasD]: sD.c3 || 0 },
-      { name: 'C4 Menor Urg.', [aliasA]: sA.c4 || 0, [aliasB]: sB.c4 || 0, [aliasC]: sC.c4 || 0, [aliasD]: sD.c4 || 0 },
-      { name: 'C5 No Urgente', [aliasA]: sA.c5 || 0, [aliasB]: sB.c5 || 0, [aliasC]: sC.c5 || 0, [aliasD]: sD.c5 || 0 },
+      { name: 'C1 Reanimación', [aliasA]: sA.c1 || 0, [aliasB]: sB.c1 || 0, [aliasC]: sC.c1 || 0 },
+      { name: 'C2 Emergencia', [aliasA]: sA.c2 || 0, [aliasB]: sB.c2 || 0, [aliasC]: sC.c2 || 0 },
+      { name: 'C3 Urgencia', [aliasA]: sA.c3 || 0, [aliasB]: sB.c3 || 0, [aliasC]: sC.c3 || 0 },
+      { name: 'C4 Menor Urg.', [aliasA]: sA.c4 || 0, [aliasB]: sB.c4 || 0, [aliasC]: sC.c4 || 0 },
+      { name: 'C5 No Urgente', [aliasA]: sA.c5 || 0, [aliasB]: sB.c5 || 0, [aliasC]: sC.c5 || 0 },
     ];
-  }, [teamMetrics, equipoColA, equipoColB, equipoColC, equipoColD, aliasA, aliasB, aliasC, aliasD]);
+  }, [teamMetrics, equipoColA, equipoColB, equipoColC, aliasA, aliasB, aliasC]);
 
   return (
     <div className="space-y-6 animate-fade-in w-full px-2 md:px-6 pb-14 theme-transition">
@@ -1665,12 +1614,12 @@ export default function AnalisisComparativoTriple({
           </div>
         </div>
 
-        {/* Grid de 4 Columnas de Tremor Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        {/* Grid de 3 Columnas de Tremor Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {teamsConfig.map((team, idx) => {
             const s = teamMetrics[team.selectedTeam] || {};
             const ranked = scorecardRanking.find(r => r.slotId === team.id) || {};
-            const decColor = idx === 0 ? 'indigo' : idx === 1 ? 'purple' : idx === 2 ? 'emerald' : 'amber';
+            const decColor = idx === 0 ? 'indigo' : idx === 1 ? 'purple' : 'emerald';
 
             // Deltas usando componente Tremor BadgeDelta
             const deltaVol = getDeltaInfo(s.totalPacientes, globalAggregates.avgTotalPac, false);
@@ -1707,9 +1656,7 @@ export default function AnalisisComparativoTriple({
                           ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40 shadow-xs'
                           : ranked.rank === 2
                             ? 'bg-slate-300/20 text-slate-700 dark:text-slate-300 border-slate-400/30'
-                            : ranked.rank === 3
-                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-                              : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30'
+                            : 'bg-card-custom text-secondary-custom border-card-custom'
                       }`}>
                         #{ranked.rank || (idx + 1)}
                       </span>
@@ -2346,8 +2293,8 @@ export default function AnalisisComparativoTriple({
             <TremorBarChart
               data={tremorManchesterData}
               index="name"
-              categories={[aliasA, aliasB, aliasC, aliasD]}
-              colors={['indigo', 'purple', 'emerald', 'amber']}
+              categories={[aliasA, aliasB, aliasC]}
+              colors={['indigo', 'purple', 'emerald']}
               valueFormatter={(v) => `${Number(v).toLocaleString('es-CL')} pac.`}
               yAxisWidth={60}
               showLegend={true}
@@ -2474,15 +2421,6 @@ export default function AnalisisComparativoTriple({
                   radius={chartBarMode === 'stacked' ? [0, 0, 0, 0] : [6, 6, 0, 0]} 
                   barSize={chartBarMode === 'stacked' ? 28 : 18}
                 />
-                <Bar 
-                  yAxisId="left"
-                  stackId={chartBarMode === 'stacked' ? 'stackVol' : undefined}
-                  dataKey={seriesVolD} 
-                  name={seriesVolD} 
-                  fill={teamsConfig[3]?.color || '#d97706'} 
-                  radius={[6, 6, 0, 0]} 
-                  barSize={chartBarMode === 'stacked' ? 28 : 18}
-                />
 
                 {/* LÍNEAS DE ESPERA DE ALTO CONTRASTE (Colores diferenciados con halos luminosos) */}
                 <Line 
@@ -2513,16 +2451,6 @@ export default function AnalisisComparativoTriple({
                   stroke={teamsConfig[2].lineColor} 
                   strokeWidth={3.5}
                   dot={{ r: 5, strokeWidth: 2, fill: '#ffffff', stroke: teamsConfig[2].lineColor }} 
-                  activeDot={{ r: 7 }}
-                />
-                <Line 
-                  yAxisId="right"
-                  type="monotone" 
-                  dataKey={seriesWaitD} 
-                  name={seriesWaitD} 
-                  stroke={teamsConfig[3]?.lineColor || '#3b82f6'} 
-                  strokeWidth={3.5}
-                  dot={{ r: 5, strokeWidth: 2, fill: '#ffffff', stroke: teamsConfig[3]?.lineColor || '#3b82f6' }} 
                   activeDot={{ r: 7 }}
                 />
               </ComposedChart>
@@ -2594,14 +2522,6 @@ export default function AnalisisComparativoTriple({
                   fillOpacity={0.25} 
                   strokeWidth={2.5}
                 />
-                <Radar 
-                  name={aliasD} 
-                  dataKey={aliasD} 
-                  stroke={teamsConfig[3]?.color || '#d97706'} 
-                  fill={teamsConfig[3]?.color || '#d97706'} 
-                  fillOpacity={0.25} 
-                  strokeWidth={2.5}
-                />
                 <Tooltip 
                   content={({ active, payload }) => {
                     if (!active || !payload || !payload.length) return null;
@@ -2618,7 +2538,7 @@ export default function AnalisisComparativoTriple({
                         </div>
                         <div className="space-y-1.5 text-xs">
                           {payload.map((entry, idx) => {
-                            const rawVal = entry.name === aliasA ? item?.rawA : entry.name === aliasB ? item?.rawB : entry.name === aliasC ? item?.rawC : item?.rawD;
+                            const rawVal = entry.name === aliasA ? item?.rawA : entry.name === aliasB ? item?.rawB : item?.rawC;
                             return (
                               <div key={idx} className="flex items-center justify-between">
                                 <span className="flex items-center gap-2 font-bold text-secondary-custom">
@@ -2742,8 +2662,7 @@ export default function AnalisisComparativoTriple({
                   data={[
                     teamMetrics[equipoColA]?.tasaFuga || 0,
                     teamMetrics[equipoColB]?.tasaFuga || 0,
-                    teamMetrics[equipoColC]?.tasaFuga || 0,
-                    teamMetrics[equipoColD]?.tasaFuga || 0
+                    teamMetrics[equipoColC]?.tasaFuga || 0
                   ]}
                   color="#f43f5e"
                 />
@@ -2822,8 +2741,7 @@ export default function AnalisisComparativoTriple({
                   data={[
                     teamMetrics[equipoColA]?.tasaReingreso || 0,
                     teamMetrics[equipoColB]?.tasaReingreso || 0,
-                    teamMetrics[equipoColC]?.tasaReingreso || 0,
-                    teamMetrics[equipoColD]?.tasaReingreso || 0
+                    teamMetrics[equipoColC]?.tasaReingreso || 0
                   ]}
                   color="#f59e0b"
                 />
@@ -2902,8 +2820,7 @@ export default function AnalisisComparativoTriple({
                   data={[
                     teamMetrics[equipoColA]?.pctTrasladosCriticos || 0,
                     teamMetrics[equipoColB]?.pctTrasladosCriticos || 0,
-                    teamMetrics[equipoColC]?.pctTrasladosCriticos || 0,
-                    teamMetrics[equipoColD]?.pctTrasladosCriticos || 0
+                    teamMetrics[equipoColC]?.pctTrasladosCriticos || 0
                   ]}
                   color="#a855f7"
                 />
@@ -2968,8 +2885,7 @@ export default function AnalisisComparativoTriple({
                   data={[
                     teamMetrics[equipoColA]?.pctExtremosVida || 0,
                     teamMetrics[equipoColB]?.pctExtremosVida || 0,
-                    teamMetrics[equipoColC]?.pctExtremosVida || 0,
-                    teamMetrics[equipoColD]?.pctExtremosVida || 0
+                    teamMetrics[equipoColC]?.pctExtremosVida || 0
                   ]}
                   color="#3b82f6"
                 />

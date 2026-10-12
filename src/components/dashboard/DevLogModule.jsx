@@ -8,6 +8,37 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-75',
+    titulo: 'Calibración de Guardias Operativas Activas a 3 Turnos SAR y Muestra Anual Completa (31.406 pac.)',
+    fecha: '2026-10-12',
+    version_tag: 'v6.3.75',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_75.png',
+    problema: 'Aclaración técnica y operativa formal por parte de la jefatura asistencial del SAR Elsa Romo Aravena: si bien el sistema informático está habilitado para gestionar hasta 4 turnos, en la realidad asistencial actual el servicio opera estrictamente con un ciclo de 3 turnos activos (Turno 1, Turno 2 y Turno 3). El 4to turno no se encuentra en funcionamiento operativo. Mantener el 4to turno en la comparación activa generaba columnas inactivas en las tarjetas Tremor, gráficos y podio de desempeño.',
+    logica: '1) Actualización de la Regla 36 en .agents/AGENTS.md y Regla 27 en InformeArquitectura.jsx, consolidando que la dotación asistencial del SAR opera activamente con 3 turnos rotativos. 2) Calibración de AnalisisComparativoTriple.jsx: limitación de equipoOptions a Turno 1, Turno 2 y Turno 3; teamsConfig a 3 guardias (Índigo, Violeta, Esmeralda); cuadrícula Tremor a 3 columnas simétricas (grid-cols-1 md:grid-cols-2 lg:grid-cols-3); supresión de series inactivas en ComposedChart, Manchester C1-C5, RadarChart y MiniSparklines; y podio scorecardRanking a 3 posiciones (#1 Líder Operativo, #2 Desempeño Alto, #3 Brecha Operativa). 3) Sincronización de scorecardEngine.js y ReportesModule.jsx (Hoja 9) con 3 equipos por defecto. 4) Calibración de ExecutiveReportTemplate.jsx y ExecutiveReportPDF.jsx a 3 columnas. 5) Preservación íntegra de la muestra acumulada auditada de 31.406 pacientes YTD con badges dinámicos de cobertura intactos.',
+    solucion: 'Calibración fidedigna de la evaluación comparativa de desempeño a los 3 turnos en servicio real activo (Turnos 1, 2 y 3), suprimiendo la columna inactiva del 4to turno mientras se audita el 100% de los 31.406 pacientes del sistema.',
+    fullPost: `En esta versión v6.3.75 adaptamos el módulo de Rendimiento de Guardias a la dotación real en funcionamiento del SAR Elsa Romo Aravena:
+
+1. **Alineación con la Realidad Operativa del SAR (3 Turnos Activos)**:
+   - **Contexto Asistencial**: La jefatura técnica precisó que el 4to turno no está operativo en la dotación actual del servicio de urgencia, funcionando exclusivamente los **Turnos 1, 2 y 3**.
+   - **Ajuste Realizado**: Se calibraron los selectores, métricas, cuadrículas y gráficos para comparar con total simetría y justicia a las 3 guardias activas en rotación.
+
+2. **Reestructuración de la Interfaz y Gráficos (Simetría de 3 Columnas)**:
+   - **Tarjetas Tremor**: Cuadrícula optimizada a 3 columnas (\`grid-cols-1 md:grid-cols-2 lg:grid-cols-3\`) para Turno 1 (Índigo), Turno 2 (Violeta) y Turno 3 (Esmeralda).
+   - **ComposedChart de Demanda y Latencia**: 3 barras de volumen y 3 líneas de latencia, suprimiendo las series inactivas del 4to turno.
+   - **RadarChart y Triage Manchester**: Visualización calibrada a 3 categorías activas.
+   - **Podio de Clasificación Scorecard**: Reorganizado en 3 peldaños oficiales:
+     * **#1 Líder Operativo**
+     * **#2 Desempeño Alto**
+     * **#3 Brecha Operativa**
+
+3. **Reportes Ejecutivos Imprimibles y PDF (Hoja 9 y One-Pager)**:
+   - Sincronización de \`ExecutiveReportTemplate.jsx\`, \`ExecutiveReportPDF.jsx\` y la Hoja 9 de \`ReportesModule.jsx\` con la matriz de 3 guardias operativas.
+
+4. **Preservación Total del Universo Auditado (31.406 pacientes)**:
+   - El universo de pacientes auditados del año 2026 permanece 100% íntegro (**31.406 / 31.406 pacientes del sistema**), distribuyéndose la totalidad de las admisiones en los 3 turnos reales de guardia con badge verde de "100% Universo YTD" y restauración a 1 clic.`
+  },
+  {
     id: 'devlog-v6-3-74',
     titulo: 'Sincronización de Muestra Anual Completa (31.406 pac. YTD), Cobertura Dinámica y Matriz de 4 Turnos SAR',
     fecha: '2026-10-12',

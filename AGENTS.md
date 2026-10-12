@@ -314,20 +314,20 @@
     - **Consolidación en Reportes Oficiales**:
       El informe A4 one-pager (`ExecutiveReportTemplate.jsx`) y la Hoja 9 del informe mensual consolidado (`ReportesModule.jsx`) deben incorporar la caja metodológica de justificación de ponderaciones, garantizando que el documento impreso o exportado a PDF sea 100% autosuficiente.
 
-36. **Sincronización del Universo Total de Demanda Asistencial en Rendimiento de Guardias (31.406 pac. YTD), Cobertura Dinámica y Matriz de 4 Turnos SAR (v6.3.74)**:
+36. **Sincronización del Universo Total de Demanda Asistencial en Rendimiento de Guardias (31.406 pac. YTD), Cobertura Dinámica y Matriz Activa de 3 Turnos SAR (v6.3.75)**:
     - **Principio de Representatividad Anual Completa (31.406 pac. YTD)**:
       El módulo de Rendimiento de Turnos (`AnalisisComparativoTriple.jsx`) debe auditar por defecto el universo completo del año en curso (desde el 01/01/2026 hasta la fecha de corte), garantizando que los 31.406 pacientes registrados en el sistema participen de la evaluación de guardias y suprimiendo cualquier filtro hardcodeado o acotado que limite la muestra (como la ventana previa del 01/06 al 11/10 que computaba 19.121 pacientes).
     - **Desambiguación Aritmética de Muestra**:
       Queda matemáticamente documentada la trazabilidad estricta: los 19.121 pacientes visualizados con anterioridad correspondían a la ventana Jun-Oct (19.121 pac.), a los cuales se suma el segmento Ene-May (12.285 pac.), completando de forma unívoca el total de 31.406 pacientes del sistema.
     - **Tarjeta de Muestra Auditada con Cobertura Dinámica**:
       La tarjeta superior debe reflejar `{pacientesAuditados} / {pacientesTotalesSistema} pac. sistema`, acompañada por un badge de cobertura relativa (`100% Universo YTD` o `X% Cobertura`). Si el usuario selecciona un preset acotado o fechas manuales, el sistema debe desplegar un enlace/botón restaurador ("Auditar Universo Completo (31.406 pac.)") para retornar con un solo clic a la muestra global.
-    - **Matriz Cuádruple de Guardias Asistenciales SAR**:
-      Toda la suite comparativa de guardias debe integrar de forma paritaria a los **4 turnos asistenciales del SAR** (`Turno 1` Azul #2563eb, `Turno 2` Violeta #7c3aed, `Turno 3` Esmeralda #059669, `Turno 4` Ámbar #d97706) en:
-      1) Cuadrícula Tremor de 4 columnas (`grid-cols-1 md:grid-cols-2 xl:grid-cols-4`).
-      2) ComposedChart con doble eje Y (barras de volumen e hiperlíneas de latencia para los 4 equipos).
-      3) Gráfico de Triage Manchester y RadarChart de 5 ejes con las 4 guardias.
-      4) Podio y Scorecard con clasificación de 4 rangos (#1 Líder Operativo, #2 Desempeño Alto, #3 Operación Estable, #4 Brecha Operativa).
-      5) MiniSparklines de 4 hitos en tarjetas Tremor y reportes ejecutivos exportables (`ExecutiveReportPDF` y `ExecutiveReportTemplate`).
+    - **Matriz Activa de 3 Guardias Asistenciales SAR (Turnos 1, 2 y 3)**:
+      Por directriz expresa de la jefatura técnica y en estricta concordancia con la realidad operativa del SAR Elsa Romo Aravena, **el servicio de urgencia opera actualmente bajo un ciclo rotativo de 3 turnos activos (Turno 1, Turno 2 y Turno 3)**. El 4to turno, si bien soportado en el diccionario informático, no se encuentra en funcionamiento asistencial. En consecuencia, la suite comparativa de guardias debe calibrarse a los 3 turnos operativos reales (`Turno 1` Azul/Índigo #2563eb, `Turno 2` Violeta #7c3aed, `Turno 3` Esmeralda #059669) suprimiendo columnas y series inactivas en:
+      1) Cuadrícula Tremor de 3 columnas simétricas (`grid-cols-1 md:grid-cols-2 lg:grid-cols-3`).
+      2) ComposedChart con doble eje Y (barras de volumen e hiperlíneas de latencia para las 3 guardias activas).
+      3) Gráfico de Triage Manchester y RadarChart de 5 ejes calibrados a las 3 guardias.
+      4) Podio y Scorecard con clasificación de 3 rangos (#1 Líder Operativo, #2 Desempeño Alto, #3 Brecha Operativa).
+      5) MiniSparklines de minería clínica y reportes ejecutivos exportables (`ExecutiveReportPDF`, `ExecutiveReportTemplate` y Hoja 9 de `ReportesModule`).
 
 ---
 

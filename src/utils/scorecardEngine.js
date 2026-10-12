@@ -27,7 +27,7 @@ export function buildScorecardData({
   pautasDB = {},
   fechaInicio = '',
   fechaFin = '',
-  teams = ['Turno 1', 'Turno 2', 'Turno 3', 'Turno 4']
+  teams = ['Turno 1', 'Turno 2', 'Turno 3']
 }) {
   const buckets = {};
   teams.forEach(teamKey => {
@@ -321,8 +321,8 @@ export function buildScorecardData({
   const scorecardRanking = rankedList.map((item, idx) => ({
     ...item,
     rank: idx + 1,
-    rankTitle: idx === 0 ? '#1 Líder Operativo' : idx === 1 ? '#2 Desempeño Alto' : idx === 2 ? '#3 Operación Estable' : '#4 Rezagado',
-    rankBadge: idx === 0 ? '#1 Líder Operativo' : idx === 1 ? '#2 Desempeño Alto' : idx === 2 ? '#3 Operación Estable' : '#4 Rezagado',
+    rankTitle: idx === 0 ? '#1 Líder Operativo' : idx === 1 ? '#2 Desempeño Alto' : '#3 Brecha Operativa',
+    rankBadge: idx === 0 ? '#1 Líder Operativo' : idx === 1 ? '#2 Desempeño Alto' : '#3 Brecha Operativa',
     rankClass: idx === 0 ? 'border-amber-500/50 bg-amber-500/5' : 'border-card-custom bg-black/5'
   }));
 
