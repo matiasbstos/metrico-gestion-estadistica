@@ -5,6 +5,7 @@ import {
   Calendar, Users, ArrowUpRight
 } from 'lucide-react';
 import { KPI_POLARITY_DEFINITIONS } from '../../utils/kpiExtremes';
+import { CURRENT_APP_VERSION } from '../../config/version';
 
 /**
  * Plantilla del Informe Ejecutivo (ExecutiveReportTemplate)
@@ -384,7 +385,7 @@ export default function ExecutiveReportTemplate({
           {/* 6. PIE DE PÁGINA INSTITUCIONAL DE AUDITORÍA */}
           <div className="pt-4 border-t border-slate-300 text-[9.5px] text-slate-500 flex flex-wrap items-center justify-between gap-2">
             <div>
-              <span>Sistema MÉTRICO v6.3.75 • Dirección Técnica SAR Elsa Romo Aravena</span>
+              <span>Sistema MÉTRICO {CURRENT_APP_VERSION} • Dirección Técnica SAR Elsa Romo Aravena</span>
             </div>
             <div>
               <span>Documento Oficial Certificado para Toma de Decisiones Directivas</span>
