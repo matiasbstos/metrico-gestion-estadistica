@@ -15,6 +15,30 @@ export default function ModalMuroActualizaciones({ isOpen, onClose, onOpenAcerca
 
   const updatesList = [
     {
+      id: 'v6.3.76',
+      version: 'v6.3.76',
+      fecha: '12 de Octubre, 2026',
+      badge: 'CONSISTENCIA SSOT & DEDUPLICACIÓN ESTRICTA • REGLAS 2 Y 36: ERRADICACIÓN DEL DESCALCE DE 35.775 A 31.406 PACIENTES',
+      badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20',
+      title: 'Deduplicación SSOT de Pacientes en Rendimiento de Guardias e Informe Ejecutivo: Erradicación del Descalce de 35.775 vs 31.406 Pacientes',
+      categoria: 'Consistencia SSOT & Rendimiento',
+      icon: ShieldCheck,
+      iconBg: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      summary: 'Se resolvió la discrepancia numérica detectada en la Síntesis Narrativa del Informe Ejecutivo de Rendimiento SAR (ExecutiveReportTemplate / ExecutiveReportPDF / AnalisisComparativoTriple), donde se visualizaba una demanda de 35.775 pacientes en lugar de los 31.406 pacientes oficiales Year-To-Date del Dashboard y de Rayen. La causa raíz radicaba en que pacientesDB contenía 4.369 documentos superpuestos por sincronizaciones de red históricas en caché, y los módulos de rendimiento no estaban aplicando el algoritmo canónico deduplicarPacientes. Con esta corrección, se integró deduplicarPacientes en AnalisisComparativoTriple.jsx, scorecardEngine.js y ExecutiveReportPDF.jsx, cuadrando al 100% el universo anual en exactamente 31.406 pacientes.',
+      instructivo: {
+        paraQueSirve: 'Garantiza paridad matemática absoluta entre las tarjetas maestras del Dashboard (31.406 pacientes YTD) y la totalidad de los reportes y evaluaciones de Rendimiento de Guardias, eliminando inflaciones por duplicidad.',
+        quePuedesVer: 'Tanto en el modo analítico como en el Informe Ejecutivo One-Pager (y en el PDF exportable), la síntesis ejecutiva cita con exactitud: "Durante el período evaluado, el SAR admitió 31.406 pacientes", conciliando con las 28.542 atenciones médicas y 2.864 altas administrativas.',
+        ejemploUso: 'Al ingresar a Rendimiento de Turnos y activar el "Modo Informe Ejecutivo" o exportar el PDF, verifica que la cifra de pacientes admitidos sea exactamente 31.406 pac.'
+      },
+      changes: [
+        'Integración del algoritmo canónico deduplicarPacientes en AnalisisComparativoTriple.jsx tanto para el cálculo de totalSistemaPacientes como para la iteración de sortedPacs.',
+        'Blindaje de buildScorecardData en scorecardEngine.js para deduplicar automáticamente pacientesDB antes de computar métricas de guardias.',
+        'Sincronización en ExecutiveReportPDF.jsx para pasar la muestra deduplicada al motor de scorecard.',
+        'Erradicación total de la sobreestimación de 4.369 registros duplicados (35.775 brutos vs 31.406 únicos SSOT).',
+        'Consistencia universal de la Ecuación Asistencial: 31.406 admitidos = 28.542 atenciones efectivas + 2.864 altas admin.'
+      ]
+    },
+    {
       id: 'v6.3.75',
       version: 'v6.3.75',
       fecha: '12 de Octubre, 2026',

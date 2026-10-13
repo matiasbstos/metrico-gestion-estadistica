@@ -31,6 +31,7 @@ import {
   parseLocalDateStr,
   resolverEquipoTurno, 
   obtenerTurnoDetallado, 
+  deduplicarPacientes,
   isAltaAdmin,
   isSinAtencionMedica,
   isEgresoAdministrativo,
@@ -141,7 +142,7 @@ export default function AnalisisComparativoTriple({
 
   // Universo total ingresado en el sistema para contrastar cobertura
   const totalSistemaPacientes = useMemo(() => {
-    if (pacientesDB && pacientesDB.length > 0) return pacientesDB.length;
+    if (pacientesDB && pacientesDB.length > 0) return deduplicarPacientes(pacientesDB).length;
     return 31406;
   }, [pacientesDB]);
 
@@ -372,8 +373,11 @@ export default function AnalisisComparativoTriple({
     const dedupTurnosList = Array.from(seenTurnosMap.values());
     const totalPacientesInTurnos = dedupTurnosList.reduce((sum, t) => sum + Number(t.totalPacientes || 0), 0);
 
+    // Deduplicar estrictamente la base de pacientes (SSOT Regla 2 & 15 de MÉTRICO)
+    const dedupPacs = deduplicarPacientes(pacientesDB || []);
+
     // Contar cuántos pacientes individuales en memoria corresponden al período
-    (pacientesDB || []).forEach(p => {
+    dedupPacs.forEach(p => {
       if (!p || !p.tAdmision) return;
       const dStr = formatLocalDate(p.tAdmision);
       if (dStr >= startIso && dStr <= endIso) {
@@ -388,7 +392,7 @@ export default function AnalisisComparativoTriple({
       // 2A. MODO COMPLETO DESDE PACIENTES INDIVIDUALES (Rangos con datos completos en memoria)
       // Agrupación para minería de reingresos (<48 hrs)
       const lastAdmByPatient = new Map();
-      const sortedPacs = [...(pacientesDB || [])]
+      const sortedPacs = dedupPacs
         .filter(p => p && p.tAdmision)
         .sort((a, b) => a.tAdmision - b.tAdmision);
 

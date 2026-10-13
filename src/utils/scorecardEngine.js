@@ -8,6 +8,7 @@ import { getKpiExtremes } from './kpiExtremes';
 import { 
   resolverEquipoTurno, 
   formatLocalDate, 
+  deduplicarPacientes,
   isAltaAdmin, 
   isSinAtencionMedica, 
   isEgresoAdministrativo, 
@@ -70,7 +71,7 @@ export function buildScorecardData({
     };
   });
 
-  const pacs = Array.isArray(pacientesDB) ? pacientesDB : [];
+  const pacs = Array.isArray(pacientesDB) ? deduplicarPacientes(pacientesDB) : [];
   const turns = Array.isArray(turnosDB) ? turnosDB : [];
 
   // Deduplicación y filtro de turnos

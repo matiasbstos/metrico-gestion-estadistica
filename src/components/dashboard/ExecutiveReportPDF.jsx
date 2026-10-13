@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { ArrowLeft, Crown, Calendar, Sparkles, Printer, Download } from 'lucide-react';
 import ExecutiveReportTemplate from './ExecutiveReportTemplate';
 import { buildScorecardData } from '../../utils/scorecardEngine';
+import { deduplicarPacientes } from '../../utils/helpers';
 
 /**
  * Componente Modular ExecutiveReportPDF
@@ -35,7 +36,7 @@ export default function ExecutiveReportPDF({
       };
     }
     return buildScorecardData({
-      pacientesDB,
+      pacientesDB: deduplicarPacientes(pacientesDB),
       turnosDB,
       pautasDB,
       fechaInicio,

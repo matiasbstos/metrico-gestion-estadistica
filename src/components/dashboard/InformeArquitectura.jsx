@@ -10,6 +10,28 @@ import { collection, getDocs, doc, setDoc, query, orderBy } from 'firebase/fires
 
 export const HISTORIAL_ARQUITECTURA_BASE = [
   {
+    id: 'v6.3.76',
+    version_tag: 'v6.3.76',
+    fecha: '12 de Octubre, 2026',
+    fecha_despliegue: '12 de Octubre, 2026',
+    proposito_actualizacion: 'Deduplicación SSOT de Pacientes en Rendimiento de Guardias e Informe Ejecutivo: Erradicación del Descalce de 35.775 vs 31.406 Pacientes (Reglas 2 y 36 SSOT).',
+    medios_y_stack: [
+      '.agents/AGENTS.md (Refuerzo de Regla 2 y Regla 36: Aplicación obligatoria de deduplicarPacientes en toda la cadena de Rendimiento de Guardias)',
+      'InformeArquitectura.jsx (Registro de actualización v6.3.76 e instructivo de deduplicación)',
+      'AnalisisComparativoTriple.jsx (Importación e integración de deduplicarPacientes en totalSistemaPacientes, pacsCountInPeriod y sortedPacs, cuadrando a 31.406 pacientes)',
+      'scorecardEngine.js (Importación e integración de deduplicarPacientes en el consolidado de guardias de buildScorecardData)',
+      'ExecutiveReportPDF.jsx (Paso de muestra deduplicada al motor puro de scorecard)',
+      'ModalMuroActualizaciones.jsx (Registro de actualización v6.3.76 e instructivo de paridad SSOT)',
+      'DevLogModule.jsx (Registro cronológico devlog-v6-3-76)',
+      'version.js (Sincronización a v6.3.76)'
+    ],
+    estructura_datos: {
+      reglas_negocio: 'Deduplicación estricta y obligatoria de pacientesDB (Regla 2 SSOT) en los módulos de Rendimiento de Guardias, eliminando 4.369 documentos superpuestos por sincronizaciones de red históricas en caché y garantizando que el total admitido del Informe Ejecutivo concilie al 100% con los 31.406 pacientes YTD del Dashboard.',
+      firestore_collections: ['system_architecture_log', 'pacientes_urgencia', 'turnos_asistenciales', 'pautas_turnos'],
+      documentos_afectados: ['src/components/dashboard/AnalisisComparativoTriple.jsx', 'src/utils/scorecardEngine.js', 'src/components/dashboard/ExecutiveReportPDF.jsx', 'src/config/version.js', 'src/components/dashboard/InformeArquitectura.jsx', 'src/components/dashboard/ModalMuroActualizaciones.jsx', 'src/components/dashboard/DevLogModule.jsx', '.agents/AGENTS.md']
+    }
+  },
+  {
     id: 'v6.3.75',
     version_tag: 'v6.3.75',
     fecha: '12 de Octubre, 2026',

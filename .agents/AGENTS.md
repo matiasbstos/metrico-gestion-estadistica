@@ -5,7 +5,7 @@
    - **Correlativo Máximo Cargado en Sistema**: `#30.789` (Lote 53, Fecha de corte: `03/10/2026 a las 22:20:20 hrs`).
    - **Correlativo de Control Oficial Rayen**: `#30.789` (con `27.968` pacientes atendidos efectivos, `2.821` altas administrativas y `30.789` admitidos YTD).
    - El total acumulado de admisiones (YTD) procesado en MÉTRICO nunca puede superar el correlativo máximo del archivo entregado (`#30.789`) para dicho corte temporal.
-2. **SSOT en `pacientesDB` y Deduplicación Estricta**: La demanda mensual y global debe priorizar siempre el conteo desduplicado directo de `pacientesDB` (`deduplicarPacientes`) para evitar que turnos precalculados o sincronizaciones superpuestas en Firestore inflen artificialmente los totales.
+2. **SSOT en `pacientesDB` y Deduplicación Estricta**: La demanda mensual y global debe priorizar siempre el conteo desduplicado directo de `pacientesDB` (`deduplicarPacientes`) para evitar que turnos precalculados o sincronizaciones superpuestas en Firestore inflen artificialmente los totales. Esta regla aplica obligatoriamente a TODOS los módulos analíticos, incluyendo Rendimiento de Guardias (`AnalisisComparativoTriple`), motores de scoring (`scorecardEngine`) e informes ejecutivos (`ExecutiveReportPDF` / `ExecutiveReportTemplate`), erradicando lecturas brutas de colecciones con duplicados (ej. 35.775 registros brutos vs 31.406 admisiones efectivas deduplicadas).
 3. **Integridad de Líneas Base Históricas (2025)**: Las series comparativas de 12 meses deben mantener la continuidad de la línea base histórica SAR si la base de datos local contiene meses incompletos o fragmentos de prueba (< 2.000 pacientes por mes).
 4. **Prioridad Absoluta de Pauta Manual de Turnos (`pautas_turnos`)**:
    - Toda resolución de equipos asistenciales (`resolverEquipoTurno` y `usePautasTurnos`) debe subordinarse con prioridad 1 a la pauta guardada por el usuario en Firestore (`pautas_turnos`).
@@ -328,6 +328,15 @@
       3) Gráfico de Triage Manchester y RadarChart de 5 ejes calibrados a las 3 guardias.
       4) Podio y Scorecard con clasificación de 3 rangos (#1 Líder Operativo, #2 Desempeño Alto, #3 Brecha Operativa).
       5) MiniSparklines de minería clínica y reportes ejecutivos exportables (`ExecutiveReportPDF`, `ExecutiveReportTemplate` y Hoja 9 de `ReportesModule`).
+
+37. **Deduplicación Estricta SSOT del Universo en Rendimiento de Guardias y Reportes Ejecutivos (31.406 pac. vs 35.775 brutos) (v6.3.76)**:
+    - **Causa Raíz de Inflación Identificada y Subsanada**:
+      La colección Firestore `pacientes_urgencia` y las cachés locales almacenan 35.775 documentos debido a fragmentos y recargas de sincronización acumuladas. Mientras que el Dashboard (`useMetricoAnalytics`) depura mediante `deduplicarPacientes(pacientesDB)` alcanzando los 31.406 pacientes canónicos auditados, el módulo de Rendimiento (`AnalisisComparativoTriple`), el motor de scoring (`scorecardEngine`) y la exportación ejecutiva (`ExecutiveReportPDF`) computaban la colección sin deduplicar, reportando erróneamente un universo inflado de 35.775 admisiones (+4.369 duplicados).
+    - **Cuadratura Matemática Oficial**:
+      $$\text{Documentos Brutos en Base (35.775)} - \text{Duplicados por Correlativo (4.369)} = \text{31.406 Pacientes Únicos Admitidos (SSOT)}$$
+      $$\text{31.406 Admitidos} = \text{28.542 Atenciones Médicas Efectivas} + \text{2.864 Altas Administrativas}$$
+    - **Obligatoriedad de Filtrado**:
+      Queda estrictamente prohibido evaluar `pacientesDB` en cualquier submódulo o reporte sin aplicar previamente `deduplicarPacientes(pacientesDB)`. Toda cifra en la Síntesis Ejecutiva, tarjetas de muestra y desgloses de guardia debe mostrar sin excepción 31.406 pacientes YTD.
 
 ---
 

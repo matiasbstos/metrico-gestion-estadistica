@@ -8,6 +8,34 @@ import { collection, query, orderBy, onSnapshot, addDoc, doc, setDoc } from 'fir
 
 export const DEVLOG_POSTS_INITIAL = [
   {
+    id: 'devlog-v6-3-76',
+    titulo: 'Deduplicación SSOT en Rendimiento de Guardias: Erradicación del Descalce 35.775 vs 31.406 Pacientes',
+    fecha: '2026-10-12',
+    version_tag: 'v6.3.76',
+    autor: 'Matías Bustos',
+    snapshotUrl: '/devlog_snapshots/snapshot_v6_3_76.png',
+    problema: 'En el Informe Ejecutivo de Rendimiento SAR (ExecutiveReportTemplate / ExecutiveReportPDF / AnalisisComparativoTriple), la síntesis narrativa indicaba "Durante el período evaluado, el SAR admitió 35.775 pacientes", descalzando con los 31.406 pacientes oficiales Year-To-Date registrados en el sistema y exhibidos en las tarjetas maestras del Dashboard.',
+    logica: '1) Identificación de Causa Raíz: La colección pacientes_urgencia en Firestore y la base en memoria/IndexedDB albergaban 4.369 documentos adicionales originados por cargas históricas y sincronizaciones de red superpuestas con docId diferenciados (totalizando 35.775 registros brutos). 2) En el Dashboard principal y en el Análisis de Demanda, la cifra se deduplica canónicamente mediante deduplicarPacientes(pacientesDB), arrojando los 31.406 pacientes únicos reales de 2026. 3) Sin embargo, AnalisisComparativoTriple.jsx, scorecardEngine.js y ExecutiveReportPDF.jsx consumían pacientesDB en crudo sin invocar deduplicarPacientes. 4) Se integró deduplicarPacientes en AnalisisComparativoTriple.jsx (tanto en totalSistemaPacientes como en la iteración de sortedPacs), en buildScorecardData (scorecardEngine.js) y en ExecutiveReportPDF.jsx. 5) La cuadratura ahora concilia al 100%: 31.406 admitidos = 28.542 atenciones médicas + 2.864 altas administrativas.',
+    solucion: 'Deduplicación universal de pacientes en toda la suite de rendimiento de guardias e informe ejecutivo, erradicando los 4.369 registros duplicados y garantizando paridad exacta con los 31.406 pacientes YTD.',
+    fullPost: `En esta versión v6.3.76 resolvimos la causa raíz de la discrepancia de universo entre el Informe Ejecutivo de Rendimiento SAR y el Dashboard:
+
+1. **Diagnóstico y Demostración Aritmética (35.775 vs 31.406 pacientes)**:
+   - **Registros Brutos en Base Local / Firestore**: 35.775 documentos en \`pacientesDB\`.
+   - **Registros Duplicados Identificados**: 4.369 atenciones con correlativos o admisiones superpuestas tras sincronizaciones por lotes en caché.
+   - **Universo Único Auditado (SSOT)**: $35.775 - 4.369 = \\mathbf{31.406\\text{ pacientes}}$.
+   - **Ecuación Asistencial Cuadrada**: $\\mathbf{31.406} = 28.542\\text{ atenciones efectivas} + 2.864\\text{ altas administrativas}$.
+
+2. **Causa Técnica**:
+   - Mientras que \`Dashboard.jsx\` y \`AnalisisDemandaAtencion.jsx\` invocaban \`deduplicarPacientes(pacientesDB)\` (Reglas 2 y 15 SSOT), los módulos de rendimiento (\`AnalisisComparativoTriple.jsx\`, \`scorecardEngine.js\` y \`ExecutiveReportPDF.jsx\`) iteraban sobre \`pacientesDB\` en crudo sin deduplicar.
+   - Esto provocaba que \`totalPacientes\` en la síntesis narrativa del reporte ejecutivo sumara 35.775 pacientes.
+
+3. **Solución Implementada**:
+   - Integración de \`deduplicarPacientes\` en \`AnalisisComparativoTriple.jsx\` para calcular \`totalSistemaPacientes\` y filtrar \`sortedPacs\`.
+   - Blindaje de \`buildScorecardData\` en \`scorecardEngine.js\` para que procese automáticamente la base deduplicada.
+   - Sincronización en \`ExecutiveReportPDF.jsx\` y \`ReportesModule.jsx\` (Hoja 9).
+   - Ahora, el Informe Ejecutivo y todas las tarjetas analíticas muestran con total fidelidad los **31.406 pacientes oficiales**.`
+  },
+  {
     id: 'devlog-v6-3-75',
     titulo: 'Calibración de Guardias Operativas Activas a 3 Turnos SAR y Muestra Anual Completa (31.406 pac.)',
     fecha: '2026-10-12',
